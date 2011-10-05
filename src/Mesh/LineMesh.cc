@@ -105,9 +105,9 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
   // Construct the nodes from the positions.
   mNodes.reserve(mNodePositions.size());
   for (unsigned i = 0; i != mNodePositions.size(); ++i) {
-    vector<unsigned> zones(2, UNSETID);
-    if (i > 0)                         zones[0] = zoneOrder[i - 1];
-    if (i < mNodePositions.size() - 1) zones[1] = zoneOrder[i];
+    vector<unsigned> zones;
+    if (i > 0)                         zones.push_back(zoneOrder[i - 1]);
+    if (i < mNodePositions.size() - 1) zones.push_back(zoneOrder[i]);
     mNodes.push_back(Node(*this, i, zones));
     // cerr << "Node -> zones:  " << i << " " << zones[0] << " " << zones[1] << " : " << mNodePositions[i] << " "
     //      << (zones[0] != UNSETID ? generators[zones[0]] : -1.0) << " "

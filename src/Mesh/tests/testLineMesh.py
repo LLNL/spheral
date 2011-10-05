@@ -207,36 +207,12 @@ class LineMeshGenericTests:
         zoneList.sort()
         for inode in xrange(1, mesh.numNodes - 1):
             zoneIDs = mesh.node(inode).zoneIDs
-            assert len(zoneIDs) == 2
-            self.failUnless(zoneIDs[0] == zoneList[inode - 1][1] and
-                            zoneIDs[1] == zoneList[inode][1],
-                            "Did not get expected zone IDs for node %i : %i %i %s %s %s %s" %
-                            (inode, zoneIDs[0], zoneIDs[1], 
-                             mesh.zone(zoneIDs[0]).position(),
-                             mesh.zone(zoneIDs[1]).position(),
-                             zoneList[inode - 1], zoneList[inode]))
-        zoneIDs = mesh.node(0).zoneIDs
-        assert len(zoneIDs) == 2
-        for x in zoneIDs:
-            self.failUnless(x < mesh.numZones or x == LineMesh.UNSETID, 
-                            "Bad zone IDs:  %s" % [x for x in zoneIDs])
-        self.failUnless(zoneIDs[0] == LineMesh.UNSETID and
-                        zoneIDs[1] == zoneList[0][1],
-                        "Did not get expected zone IDs for node %i : %i %i" %
-                        (inode, zoneIDs[0], zoneIDs[1]))
-                         # mesh.zone(zoneIDs[0]).position(),
-                         # mesh.zone(zoneIDs[1]).position()))
-        zoneIDs = mesh.node(mesh.numNodes - 1).zoneIDs
-        assert len(zoneIDs) == 2
-        for x in zoneIDs:
-            self.failUnless(x < mesh.numZones or x == LineMesh.UNSETID, 
-                            "Bad zone IDs:  %s" % [x for x in zoneIDs])
-        self.failUnless(zoneIDs[0] == zoneList[mesh.numNodes - 2][1] and
-                        zoneIDs[1] == LineMesh.UNSETID,
-                        "Did not get expected zone IDs for node %i : %i %i" %
-                        (inode, zoneIDs[0], zoneIDs[1]))
-                         # mesh.zone(zoneIDs[0]).position(),
-                         # mesh.zone(zoneIDs[1]).position()))
+            assert len(zoneIDs) <= 2
+            assert ((inode == 0             and len(zoneIDs) == 1 and zoneIDs[0] == zoneList[0][1]) or
+                    (inode == mesh.numZones and len(zoneIDs) == 1 and zoneIDs[0] == zoneList[-1][1]) or
+                    (len(zoneIDs) == 2 and
+                     zoneIDs[0] == zoneList[inode - 1][1] and
+                     zoneIDs[1] == zoneList[inode][1]))
 
 #===============================================================================
 # Create a uniformly spaced nodes/mesh.
