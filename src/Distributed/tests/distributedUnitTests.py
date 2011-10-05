@@ -3,7 +3,7 @@ source("testDistributeByPosition1d.py")
 source("testDistributeByPosition2d.py")
 
 # ParMETIS redistributor.
-source("testParmetisDistribute.py")
+# source("testParmetisDistribute.py")
 
 # The space filling curve redistributors.
 source("testMortonOrderDistribute.py")
