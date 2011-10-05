@@ -1,0 +1,24 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+Exported("Spheral::DataOutput::Restart")
+
+planarBoundary = Template("Spheral::BoundarySpace::PlanarBoundary",
+                          "ExtendBoundary.hh")
+RigidBoundary = Template("Spheral::BoundarySpace::RigidBoundary",
+                              "ExtendRigidBoundary.hh")
+
+exclude(RigidBoundary.addNodeList)
+
+final(RigidBoundary.enterPlane)
+final(RigidBoundary.setEnterPlane)
+final(RigidBoundary.exitPlane)
+final(RigidBoundary.setExitPlane)
+
+set_policy(RigidBoundary.enterPlane, return_internal_reference())
+set_policy(RigidBoundary.exitPlane, return_internal_reference())
+set_policy(RigidBoundary.reflectOperator, return_internal_reference())
+
+RigidBoundary1d = RigidBoundary("Spheral::Dim<1>", "RigidBoundary1d")
+RigidBoundary2d = RigidBoundary("Spheral::Dim<2>", "RigidBoundary2d")
+RigidBoundary3d = RigidBoundary("Spheral::Dim<3>", "RigidBoundary3d")

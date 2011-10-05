@@ -1,0 +1,459 @@
+\documentclass{article}
+\usepackage{hyperref}
+\newcommand{\Spheral}{{\tt Spheral++}}
+\newcommand{\curl}{{\tt curl}}
+%\newcommand{\url}[1]{{\tt html://#1}}
+
+%-------------------------------------------------------------------------------
+\begin{document}
+\title{Configuring, Building, and Testing \Spheral}
+\author{J. Michael Owen}
+\maketitle
+
+%-------------------------------------------------------------------------------
+\section{Quickstart for the impatient}
+\label{quick.sec}
+On many systems you can build \Spheral\ with only a few steps.
+
+To build \Spheral\ for use on a parallel cluster (assuming MPI is available),
+one could use:
+\begin{verbatim}
+cd spheral/src
+./boot
+./configure
+make
+\end{verbatim}
+
+For a build to run on a serial computer, you need to explicitly tell
+\Spheral\ not build with MPI:
+\begin{verbatim}
+cd spheral/src
+./boot
+./configure --without-mpi
+make
+\end{verbatim}
+Notes:
+\begin{itemize}
+\item \Spheral's build system assumes GNU make.
+\item If you are building on a multi-core (or multi-processor) node, you can
+  accelerate the build process by passing the available number of cores or
+  processors to make with the \verb+-j+ option, i.e. \verb+make -j 2+ on a 2
+  core CPU for instance.
+\item \Spheral\ relies upon several third party software libraries, listed in \S
+  \ref{thirdParty.sec}.  The current version of \Spheral\ downloads and installs
+  most of those libraries itself as part of the build process using the program
+  \curl.  This makes the initial build of \Spheral\ more expensive and requires
+  that you be connected to the Internet so these packages can be fetched and
+  built.  Fortunately these library sources are not updated all that often, so
+  generally subsequent builds of the source do not have to repeat this step.
+  You also must ensure that \curl\ is available, and if not install it (see
+  \S\ref{thirdParty.sec}).
+\end{itemize}
+
+%-------------------------------------------------------------------------------
+\section{Configuration}
+\Spheral\ uses a fairly standard autoconf based build system originally
+provided by Martin Casado.  Executing this system consists of running the
+following commands in the {\tt spheral/src} directory:
+\begin{verbatim}
+./boot
+./configure <options>
+\end{verbatim}
+{\tt configure} has many options, which can be listed with the command
+\begin{verbatim}
+./configure --help
+\end{verbatim}
+The options you will most likely need to set are whether to build the MPI
+parallel enabled version of \Spheral, the compiler choices, optimization level,
+and whether or not you want the Design By Contract (DBC) correctness testing
+enabled.
+
+\subsection{Selecting whether to build a parallel or a serial code.}
+\Spheral\ defaults to building the parallel (MPI-enabled) code.  If you want to
+build the serial version only, then specify the
+\begin{itemize}
+\item\verb+--without-mpi+
+\end{itemize}
+option.
+
+\subsection{Selecting the compiler(s)}
+\Spheral\ depends on several compilers for different components, so we have
+tried to simplify the compiler selection process through the use of the
+\begin{itemize}
+\item \verb+--with-compilers=<gnu,intel,vacpp,emsolve>+
+\end{itemize}
+{\tt configure} option.  Currently the only valid options are {\tt gnu}, {\tt
+  intel}, {\tt vacpp}, or {\tt emsolve} -- the default is {\tt gnu}.  The {\tt
+  intel} option selects the {\tt icc} compiler suite, only appropriate on intel
+environments where this compiler has been installed.  Similarly {\tt vacpp} runs
+the {\tt xlC} compile suite on IBM AIX systems.  At the time of this writing,
+however, {\tt xlC} does not correctly build the {\tt Boost} third party library
+set (\S \ref{free.sec}.\ref{boost.item}) , so this option cannot be used.  The
+{\tt emsolve} compiler suite is a very specialized option that will probably not
+be of general use.
+
+If the set of compilers selected by one of the above options is not quite right
+for a particular installation, it is also possible to specify the individual
+compiler choices via the following set of {\tt configure} flags.
+\begin{itemize}
+\item \verb+--with-CC=<compiler>+: Select the serial C compiler.
+\item \verb+--with-CXX=<compiler>+: Select the serial C++ compiler.
+\item \verb+--with-MPICC=<compiler>+: Select the MPI CC compiler, only necessary
+if you're building the parallel version of \Spheral.
+\item \verb+--with-MPICXX=<compiler>+: Select the MPI C++ compiler, also only
+necessary if you're building the parallel code.
+\item \verb+--with-python-CC=<compiler>+: \ref{free.sec}.\ref{python.item}
+ Manually select the C compiler to build python with.  Defaults to the
+ C compiler selected by \verb+--with-CC+.
+\item \verb+--with-python-CXX=<compiler>+: \ref{free.sec}.\ref{python.item}
+Manually select the C++ compiler to build python with.  Defaults to
+the C++ compiler selected by \verb+--with-CXX+.
+\end{itemize}
+
+\subsection{Options affecting optimization level}
+Options that are useful for determining the optimization are
+\begin{itemize}
+\item \verb+--with-opt=<0,1,2,3,4,5,6>+: Select the optimization level.  Level 0
+results in an unoptimized debugable executable, which will run quite slowly.
+Progressively higher numbers select progressively more aggressive optimization,
+which may not work with all compiler choices.  We have experimented with
+optimizations up to the maximum with the Gnu compilers, but in general pushing
+much beyond 3 does not result in noticeable run time improvements.  Running with
+opt set to 2 or 3 generally results in code that is 5-10x faster than level 0.
+The default for most compilers is a reasonable level of optimization, but not
+necessarily the highest possible value.
+\item \verb+--with-dbc=<all,pre,none>+: Select the level at which to enforce
+Design By Contract correctness testing.  Possible values are
+\begin{itemize}
+\item \verb+all+: enforce all contracts
+\item \verb+pre+: enforce only preconditions
+\item \verb+none+: turn off all contract testing
+\end{itemize}
+The default value is \verb+none+, which is appropriate for building an
+executable optimized for run-time speed.  If you are encountering problems (or
+developing new code) however, it is a good idea to enable the contracts with
+\verb+all+, which gives exhaustive correctness checking during execution (at the
+price of running $\sim 5\times$ more slowly).
+\end{itemize}
+
+\subsection{Miscellaneous options}
+Some lesser used options that may be of interest include
+\begin{itemize}
+\item \verb+--with-debug+: Turn on debug print statements.  Beware, this is a
+very verbose option!
+\item \verb+--with-tau+: Activate the TAU timer profiling of the code.
+\item \verb+--with-papi+: Used in combination with \verb+--with-tau+, this
+  option causes the TAU timers to use PAPI calls on supported architectures to
+  look at hardware counters.
+\end{itemize}
+
+\subsection{Configuration examples}
+
+When configuring your build, bear in mind the limitation that we require a
+reasonably standard compliant C++ compiler.  Unfortunately for many Red Hat
+Linux users, Red Hat continues to ship their system with a non-release versions
+of \verb.g++., which often fail on some of the more challenging C++ constructs
+found in \Spheral\ and the included {\tt Boost} library.  If you are using such
+non-standard compilers it will likely be necessary to obtain a modern version of
+\verb+gcc+.  In \S \ref{mcr.sec} below we show an example building on such a Red
+Hat based system, overriding the compiler to use the 3.4.3 series of Gnu
+compilers.  The following are some generic configuration examples:
+
+\begin{itemize}
+\item To build a serial debugable version, assuming the default compiler choices
+are OK:
+\begin{verbatim}
+./configure --with-compilers=gnu --without-mpi
+\end{verbatim}
+
+\item To build a similar serial optimized code
+\begin{verbatim}
+./configure --with-compilers=gnu --without-mpi --with-opt=2 --with-dbc=none
+\end{verbatim}
+
+\item To build an optimized parallel executable, manually setting the compiler
+choices:
+\begin{verbatim}
+./configure --with-opt=2 --with-dbc=none \
+            --with-CC=gcc --with-CXX=g++ \
+            --with-MPICC=mpicc --with-MPICXX=mpiCC
+\end{verbatim}
+
+\end{itemize}
+
+In the sections below we show examples of configurations on several platforms in
+use at LLNL.
+
+\subsubsection{Example configuration: IBM AIX systems at LLNL}
+\label{berg.sec}
+On AIX systems we recommend using the Gnu based compilers, which are not
+typically the system default.  At LLNL frontend scripts are provided that
+automatically link the proper MPI libraries in when used with the Gnu
+compilers, so configuration is relatively simple as in the following examples:
+\begin{verbatim}
+./configure --with-compilers=gnu
+\end{verbatim}
+Similarly, to configure an optimized executable
+\begin{verbatim}
+./configure --with-compilers=gnu --with-opt=2 --with-dbc=none
+\end{verbatim}
+
+If you are trying to build on an AIX system other than those at LLNL, you will
+likely have to build your own versions of these frontend scripts appropriate
+for your system.  The simplest method to do this is examine what the default
+MPI compilers are doing (by running \verb+mpcc -v+ and \verb+mpCC -v+ for
+example), and emulating that substituting in the compiler of your choice.
+There are examples of such scripts in the \verb+spheral/src/helpers+ directory
+(see \verb.mpg++-aix. and \verb+mpgcc-aix+.
+
+\subsubsection{Example configuration: Red Hat based parallel Linux systems at LLNL}
+\label{mcr.sec}
+
+As mentioned above, Red Hat based systems typically use non-release versions of
+the Gnu compilers (such as 2.96).  You can test what version of compiler you
+have by running \verb+gcc -v+.  If it spits out a string containing 2.96 as the
+version, we strongly recommend building a newer version of gcc for use with
+\Spheral.  The latest releases of gcc can be found at \url{http://gcc.gnu.org}.
+Instructions for building \verb+gcc+ can be found in the source and at the main
+web site.
+
+Once you have a reasonable version of the compiler, you must configure
+\Spheral\ to build with it.  Additionally, on a distributed parallel Linux
+cluster you want to make sure that \verb+mpicc+ and \verb+mpiCC+ are using the
+correct compiler.  On most Linux clusters \verb+mpicc/mpiCC+ are simply scripts
+from the MPICH distribution (\url{http://www-unix.mcs.anl.gov/mpi/}), in which
+case it is possible to override the compilers they use with environment
+variables.  In the \Spheral\ source we have examples of modified front-end
+scripts (the {\tt spheral/src/helpers/mpicc} and
+\verb+spheral/src/helpers/mpiCC+ files) set up to do just this, assuming the
+compilers you want to run are called \verb+gcc-3.4.3+ and \verb+g++-3.4.3+.
+These are appropriate for use on the LLNL Linux clusters, such as pengra and
+mcr.
+
+On intel Linux you can choose to use either the \verb+gnu+ or \verb+intel+
+compiler sets, i.e.
+\begin{verbatim}
+./configure --with-compilers=intel
+\end{verbatim}
+or
+\begin{verbatim}
+./configure --with-compilers=gnu --with-opt=2 --with-dbc=none
+\end{verbatim}
+You can also override any of the individual compiler choices as needed,
+\begin{verbatim}
+./configure --with-compilers=gnu --with-opt=2 --with-dbc=none \
+    --with-CC=gcc-3.4.3 --with-CXX=g++-3.4.3 \
+    --with-MPICC=/home/username/Spheral++/spheral/src/helpers/mpicc \
+    --with-MPICXX=/home/username/Spheral++/spheral/src/helpers/mpiCC
+\end{verbatim}
+
+%-------------------------------------------------------------------------------
+\section{Building the code}
+
+Once you have configured \Spheral, building is simply a matter of executing {\tt
+make}.  \Spheral's build system is based upon Gnu's \verb+make+, which is
+available on most systems.  On a Linux based system \verb+make+ is the Gnu make,
+while on many other systems Gnu make is installed as \verb+gmake+.  Building the
+code from scratch can be quite a long process, particularly while building all
+the third party packages.  Fortunately, if you are building on a multiprocessor
+SMP machine you can take advantage of Gnu make's parallel build facilities via
+the \verb+-j+ option to vastly speed up the compile process.  For instance, on a
+typical AIX machine at LLNL a serial build might take several hours.  However,
+by building 10 way (\verb+gmake -j 10+), the full compile can be completed in
+less than half an hour.
+
+%% \subsection{Building in parallel using distributed resources}
+%% If you are building on a parallel machine that uses distributed resources
+%% rather than shared processors on a single node, unfortunately Gnu \verb+make+'s
+%% parallel \verb+-j+ option will not help you.  However, we have implemented a
+%% somewhat limited distributed building capability in \Spheral\ for such
+%% distributed machines.  It will not build the third party libraries in parallel,
+%% but will attempt to build the \Spheral\ source itself in a distributed manner.
+%% In order to use this function you must tell \Spheral's \verb+configure+ system
+%% how submit parallel jobs on your machine with the
+%% \verb+--with-submitDistributedMake+ option.  For example, common methods of
+%% specifying a 10 way build on a Beowulf style cluster might include
+%% \begin{verbatim}
+%% configure ... --with-submitDistributedMake="mpriun -np 10"
+%% \end{verbatim}
+%% or
+%% \begin{verbatim}
+%% configure ... --with-submitDistributedMake="srun -n 10 -N 5 -p pdebug"
+%% \end{verbatim}
+%% where the ellipses indicate the other usual configuration options discussed
+%% previously.  You should consult your own clusters documentation for the
+%% appropriate syntax for submitting parallel jobs to run.  Once you have
+%% configured properly, you can invoke the distributed parallel build simply by
+%% typing
+%% \begin{verbatim}
+%% make DistributedMake
+%% \end{verbatim}
+
+%-------------------------------------------------------------------------------
+\section{Running \Spheral}
+\Spheral\ is just a set of extensions to the Python language, so running
+\Spheral\ is simply a matter of producing a Python script appropriate for your
+problem using the \Spheral\ extension objects (available via the
+\verb+import Spheral+ command).  The \Spheral\ distribution includes several
+example and test scripts which demonstrate setups for several standard test
+cases.  The results of one such test (the Sod shock tube) can be found
+at \newline \url{http://spheral.sf.net/SodExample.html}.
+
+When you build \Spheral\ it installs all of its components in the top
+directory where you installed the source, including Python.  For instance, if
+you installed the source in \verb+/home/username/Spheral+, then after you
+finish building \Spheral\ there will be a \verb+/home/username/Spheral/bin+
+directory containing a \verb+python+ executable.  If you built for a parallel
+architecture there will also be a \verb+pyMPI+ executable there which you will
+want to use.  Once you run one of these executables you can simply issue the
+command \verb+import Spheral+ and all of the components will be available in the
+module \verb+Spheral+.  Exactly how you run the executable will depend on your
+architecture (and whether you configured for parallel or serial).  Here are some
+example invocations assuming you have a python script \verb+example.py+ which
+contains the setup for your problem, and your source was installed in {\tt
+/home/username/Spheral}:
+\begin{itemize}
+\item If you configured for a serial executable:
+\begin{verbatim}
+/home/username/Spheral/bin/python -i example.py
+\end{verbatim}
+\item For a 4 way parallel run on a typical MPICH based parallel machine (if you
+configured for a parallel executable):
+\begin{verbatim}
+mpirun -np 4 /home/username/Spheral/bin/pyMPI -i example.py
+\end{verbatim}
+\item For a 4 way parallel run on a SLURM based parallel machine (again assuming
+you configured for a parallel executable):
+\begin{verbatim}
+srun -n 4 -N 2 /home/username/Spheral/bin/pyMPI -i example.py
+\end{verbatim}
+\item Similarly for a 4 way parallel run on an IBM AIX parallel machine:
+\begin{verbatim}
+poe /home/username/Spheral/bin/pyMPI -i example.py -nodes 1 -procs 4
+\end{verbatim}
+\end{itemize}
+
+\subsection{AIX notes}
+\Spheral\ builds as a series of dynamically loading libraries, which requires
+that the loader be able to resolve where these libraries are at load time.
+Unfortunately we are currently having some problem with the rpath on AIX, so the
+user must explicitly set their LIBPATH environment variable in order for the
+loader to perform this resolution correctly at run time.  The
+\Spheral\ libraries are installed in {\em topdir}{\tt
+  /lib/python2.4/site-packages/Spheral}, where {\em topdir} is the directory
+where you installed the \Spheral\ source.  On AIX set your LIBPATH environment
+variable to this path when you want to run \Spheral.
+
+%-------------------------------------------------------------------------------
+\section{Testing}
+\Spheral\ includes a python based automated testing system: \verb+ats+.  You
+can use this to run a set of test cases included with the distribution.
+\verb+ats+ is installed in the same \verb+bin+ directory where \verb+python+
+and \verb+pyMPI+ are installed.  In the \verb+spheral/tests+ directory there is
+a file called \verb+integration.ats+ which runs the set of automated tests we
+currently support.  You can generate a simple help/usage description for {\tt
+  ats} by executing \verb+ats -h+.  Here's an example of running the automated
+tests for a serial build assuming you downloaded the \Spheral\ source into the
+directory \verb+/home/username/Spheral+:
+\begin{verbatim}
+cd /home/username/Spheral/spheral/tests
+/home/username/Spheral/bin/ats -f 'np < 2' -e /home/username/Spheral/bin/python integration.ats
+\end{verbatim}
+Note that we added a filter (\verb+-f 'np < 2'+) to remove any tests requiring
+more than one processor.
+
+If you built the parallel MPI enabled version of the code you would execute
+\begin{verbatim}
+cd /home/username/Spheral/spheral/tests
+/home/username/Spheral/bin/ats -e /home/username/Spheral/bin/pyMPI integration.ats
+\end{verbatim}
+which will run all the tests, including the parallel cases.
+
+%-------------------------------------------------------------------------------
+\appendix
+\section{Third party libraries}
+\label{thirdParty.sec}
+\subsection{Open source software used with \Spheral}
+\label{free.sec}
+Listed here are  the third party packages which  \Spheral\ uses.  These packages
+are  automatically  downloaded and  built  by \Spheral\  as  part  of the  build
+process,  so  you  must  have  an  active  network  connection  the  first  time
+\Spheral\  is  built.  \Spheral\  benefits   greatly  from   the  open-source
+availability of all of these packages,  without which this project would be much
+more difficult and cumbersome.  Note that you must have the \curl\ program
+available on your machine in order for \Spheral\ to download these packages for
+you.  If \curl\ is not installed please download and install it yourself (as
+described below) before beginning the \Spheral\ build process.
+\begin{enumerate}
+\item \curl: \url{http://curl.haxx.se/}
+\curl is the tool that makes it possible for \Spheral\ to automatically download
+the third party libraries listed here.  You must ensure that this program is
+installed and available on your system before starting to build \Spheral.  This
+will already be available (or easily installable) for common systems such as
+Linux.  If needed however you can download this software directly from the
+above URL and install it yourself.
+
+\item \verb+Python+: \url{http://www.python.org} \label{python.item} \newline
+\verb+Python+ is a simple yet powerful scripting language which \Spheral\ uses
+as it's primary user interface.  \Spheral\ is in fact simply an extension of the
+\verb+Python+ language.
+
+\item \verb+Boost+: \url{http://www.boost.org} \label{boost.item} \newline
+\verb+Boost+ is a collection of peer-reviewed open source libraries for use with
+C++.  \Spheral\ makes use of a few \verb+Boost+ components, such as the
+\verb+shared-ptr+ library.
+
+\item \verb+NumPy+: \url{http://numpy.scipy.org/} \newline
+NumPy (formerly Numeric Python) adds a fast, compact, multidimensional array
+language facility to Python.
+
+\item \verb+Gnuplot+ \label{gnuplot.item}
+  \url{http://gnuplot-py.sourceforge.net/} \newline \Spheral\ uses the standard
+  \verb+gnuplot+ plotting package through this Python package to provide simple
+  $(x,y)$ plots.  This package is just the python frontend to \verb+gnuplot+ --
+  it requires that the \verb+gnuplot+ package already be installed on your
+  machine.
+
+\item Gnu Scientific Library:
+  \url{http://www.gnu.org/software/gsl/} \label{gsl.item} \newline A collection
+  of useful scientific numerical algorithms coded in C.  This is one of the
+  packages the user is required to download separately.  Download the 1.7
+  release, which can be found at \newline
+  \url{ftp://ftp.gnu.org/gnu/gsl/gsl-1.10.tar.gz}
+
+\item \verb+SciPy+: \url{http://www.scipy.org/} \newline A python based
+  collection of numerical algorithms.  This not actually required by \Spheral
+  (and is not included in the distribution), but if you install {\tt SciPy} in
+  the \verb+spheral/src/thirdPartyLibs+ directory and configure
+  \Spheral\ appropriately, \Spheral\ will build and install it.
+
+\item \verb+pybindgen+: \url{http://pybindgen.googlecode.com} \newline
+  The code generator we use to bind/expose the C++ \Spheral\ code to python.
+
+\item\verb+pyMPI+: \url{http://sourceforge.net/projects/pympi} \newline
+An MPI enhanced version of Python, allowing the user to perform distributed MPI
+operations from the Python language via a new module, \verb+mpi+.  \verb+pyMPI+
+serves as the Python interface for \Spheral\ in distributed mode.
+
+\item\verb+TAU+: \url{http://www.cs.uoregon.edu/research/paracomp/tau/tautools/}
+\newline
+A profiling toolkit for analyzing code performance.
+
+\end{enumerate}
+
+\subsection{Non-free software}
+\label{nonfree.sec}
+Here we list software which is not necessarily open-source and freely available,
+but which \Spheral\ can optionally use if so desired.
+\newcommand{\Parmetis}{{\tt ParMETIS}}
+\begin{enumerate}
+\item \Parmetis: \label{parmetis.item}
+  \url{http://glaros.dtc.umn.edu/gkhome/views/metis/} \newline \Parmetis\ is a
+  distributed parallel graph portioning tool which \Spheral\ relies upon for
+  it's parallel distributed domain decompositioning in 2-D and 3-D.
+  \Parmetis\ is used both to create an initial domain decomposition and to
+  periodically redistribute the nodes in order to maintain parallel efficiency
+  as the nodes move about.
+\end{enumerate}
+
+\end{document}

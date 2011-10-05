@@ -1,0 +1,14 @@
+Exported("Spheral::ArtificialViscositySpace::ArtificialViscosity<Spheral::Dim<3> >")
+
+pm = Class("Spheral::MHDSpace::PriceMonaghanDissipation",
+           "WrapPriceMonaghanDissipation.hh")
+
+final(pm.initialize)
+final(pm.viscousEffects)
+final(pm.dt)
+final(pm.viscousAcceleration)
+final(pm.viscousWork)
+final(pm.viscousPressure)
+final(pm.viscousInternalEnergy)
+final(pm.valid)
+

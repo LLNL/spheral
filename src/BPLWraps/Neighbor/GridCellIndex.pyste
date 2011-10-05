@@ -1,0 +1,24 @@
+gridCellIndex = Template("Spheral::NeighborSpace::GridCellIndex",
+                         "ExtendGridCellIndex.hh")
+exclude(gridCellIndex.operator["()"])
+
+x1d = gridCellIndex("Spheral::Dim<1>", "GridCellIndex1d")
+x2d = gridCellIndex("Spheral::Dim<2>", "GridCellIndex2d")
+x3d = gridCellIndex("Spheral::Dim<3>", "GridCellIndex3d")
+
+# add_method(x1d, "printGridCellIndex1d")
+# rename(x1d.printGridCellIndex1d, "__str__")
+
+# add_method(x2d, "printGridCellIndex2d")
+# rename(x2d.printGridCellIndex2d, "__str__")
+
+# add_method(x3d, "printGridCellIndex3d")
+# rename(x3d.printGridCellIndex3d, "__str__")
+
+# Function("GridCellIndexRange1d", "ExtendNeighbor.hh")
+# Function("GridCellIndexRange2d", "ExtendNeighbor.hh")
+# Function("GridCellIndexRange3d", "ExtendNeighbor.hh")
+
+# Function("incrementGridCell1d", "ExtendNeighbor.hh")
+# Function("incrementGridCell2d", "ExtendNeighbor.hh")
+# Function("incrementGridCell3d", "ExtendNeighbor.hh")

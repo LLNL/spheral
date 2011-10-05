@@ -1,0 +1,10 @@
+x = Class("Spheral::DataOutput::RestartRegistrar", "DataOutput/RestartRegistrar.hh")
+
+exclude(x.registerForRestart)
+exclude(x.unregisterRestartHandle)
+exclude(x.haveRestartHandle)
+exclude(x.begin)
+exclude(x.end)
+exclude(x.instancePtr)
+
+set_policy(x.instance, return_value_policy(reference_existing_object))

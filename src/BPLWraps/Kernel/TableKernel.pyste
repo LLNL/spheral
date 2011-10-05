@@ -1,0 +1,26 @@
+TableKernel = Template("Spheral::KernelSpace::TableKernel",
+                       "ExtendTableKernel.hh")
+
+exclude(TableKernel.asDescendent)
+exclude(TableKernel.nperhValues)
+exclude(TableKernel.WsumValues)
+
+final(TableKernel.valid)
+
+TableKernel1d = TableKernel("Spheral::Dim<1>", "TableKernel1d")
+add_method(TableKernel1d, "Spheral::nperhValues1d")
+add_method(TableKernel1d, "Spheral::WsumValues1d")
+rename(TableKernel1d.nperhValues1d, "nperh")
+rename(TableKernel1d.WsumValues1d, "Wsum")
+
+TableKernel2d = TableKernel("Spheral::Dim<2>", "TableKernel2d")
+add_method(TableKernel2d, "Spheral::nperhValues2d")
+add_method(TableKernel2d, "Spheral::WsumValues2d")
+rename(TableKernel2d.nperhValues2d, "nperh")
+rename(TableKernel2d.WsumValues2d, "Wsum")
+
+TableKernel3d = TableKernel("Spheral::Dim<3>", "TableKernel3d")
+add_method(TableKernel3d, "Spheral::nperhValues3d")
+add_method(TableKernel3d, "Spheral::WsumValues3d")
+rename(TableKernel3d.nperhValues3d, "nperh")
+rename(TableKernel3d.WsumValues3d, "Wsum")

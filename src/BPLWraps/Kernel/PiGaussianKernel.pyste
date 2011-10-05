@@ -1,0 +1,9 @@
+PiGaussianKernel = Template("Spheral::KernelSpace::PiGaussianKernel",
+                            "ExtendPiGaussianKernel.hh")
+exclude(PiGaussianKernel.asDescendent)
+
+final(PiGaussianKernel.valid)
+
+PiGaussianKernel1d = PiGaussianKernel("Spheral::Dim<1>", "PiGaussianKernel1d")
+PiGaussianKernel2d = PiGaussianKernel("Spheral::Dim<2>", "PiGaussianKernel2d")
+PiGaussianKernel3d = PiGaussianKernel("Spheral::Dim<3>", "PiGaussianKernel3d")

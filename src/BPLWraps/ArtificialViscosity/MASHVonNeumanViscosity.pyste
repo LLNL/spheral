@@ -1,0 +1,17 @@
+x = Template("Spheral::ArtificialViscositySpace::MASHVonNeumanViscosity",
+             "ExtendArtificialViscosity.hh")
+
+final(x.initialize)
+final(x.viscousEffects)
+final(x.viscousAcceleration)
+final(x.viscousWork)
+final(x.viscousPressure)
+final(x.viscousInternalEnergy)
+final(x.valid)
+
+set_policy(x.velocityDivergence, return_internal_reference())
+set_policy(x.correction, return_internal_reference())
+
+x1d = x("Spheral::Dim<1>", "MASHVonNeumanViscosity1d")
+x2d = x("Spheral::Dim<2>", "MASHVonNeumanViscosity2d")
+x3d = x("Spheral::Dim<3>", "MASHVonNeumanViscosity3d")

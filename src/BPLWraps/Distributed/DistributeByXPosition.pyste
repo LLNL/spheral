@@ -1,0 +1,6 @@
+rdn = Template("Spheral::PartitionSpace::DistributeByXPosition",
+               "ExtendDistributeByXPosition.hh")
+
+rdn1d = rdn("Spheral::Dim<1>", "DistributeByXPosition1d")
+rdn2d = rdn("Spheral::Dim<2>", "DistributeByXPosition2d")
+rdn3d = rdn("Spheral::Dim<3>", "DistributeByXPosition3d")

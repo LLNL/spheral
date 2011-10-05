@@ -1,0 +1,17 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+Exported("Spheral::BoundarySpace::Boundary<Spheral::Dim<1> >")
+Exported("Spheral::BoundarySpace::Boundary<Spheral::Dim<2> >")
+Exported("Spheral::BoundarySpace::Boundary<Spheral::Dim<3> >")
+
+ngdb = Template("Spheral::BoundarySpace::NestedGridDistributedBoundary",
+                "ExtendNestedGridDistributedBoundary.hh")
+
+set_policy(ngdb.instance, return_value_policy(reference_existing_object))
+set_policy(ngdb.getNestedGridNeighbor, return_internal_reference())
+exclude(ngdb.addNodeList)
+
+ngdb1d = ngdb("Spheral::Dim<1>", "NestedGridDistributedBoundary1d")
+ngdb2d = ngdb("Spheral::Dim<2>", "NestedGridDistributedBoundary2d")
+ngdb3d = ngdb("Spheral::Dim<3>", "NestedGridDistributedBoundary3d")
