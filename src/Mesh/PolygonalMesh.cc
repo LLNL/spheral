@@ -80,7 +80,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 //     xmin = elementWiseMax(xmin, (**wallItr).xmin());
 //     xmax = elementWiseMin(xmax, (**wallItr).xmax());
 //   }
-  cerr << "PolygonalMesh choosing (xmin, xmax) range to be : " << xmin << " " << xmax << endl;
+//   cerr << "PolygonalMesh choosing (xmin, xmax) range to be : " << xmin << " " << xmax << endl;
 
   // The inverse box scale.
   const Vector box = xmax - xmin;
@@ -110,10 +110,10 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     VoroPP<Dimension> voro(generators, xmin, xmax,
                            20, 20, 1, 1.0e-8);
 
-    // Add walls to the container.
-    for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
-         wallItr != mWallPtrs.end();
-         ++wallItr) voro.addBoundary(**wallItr);
+//     // Add walls to the container.
+//     for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
+//          wallItr != mWallPtrs.end();
+//          ++wallItr) voro.addBoundary(**wallItr);
 
     // Read out the Voro++ data.
     badGenerators = voro.allCells(cellVertices, cellFaceVertices, cellVolumes, cellCentroids, neighborCells);
