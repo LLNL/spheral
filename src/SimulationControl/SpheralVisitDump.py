@@ -37,7 +37,8 @@ class SpheralVisitDump:
                  baseDirectory = ".",
                  listOfFields = [],
                  listOfFieldLists = [],
-                 dumpGhosts = False):
+                 dumpGhosts = False,
+                 boundaries = []):
 
         # Should we dump ghost values.
         self.dumpGhosts = dumpGhosts
@@ -437,7 +438,8 @@ def dumpPhysicsState(stateThingy,
                      currentTime = None,
                      currentCycle = None,
                      dumpGhosts = False,
-                     dumpDerivatives = False):
+                     dumpDerivatives = False,
+                     boundaries = None):
 
     # What did we get passed?
     if max([isinstance(stateThingy, x) for x in [Integrator1d, Integrator2d, Integrator3d]]):
