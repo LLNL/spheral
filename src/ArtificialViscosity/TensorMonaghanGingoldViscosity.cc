@@ -130,11 +130,11 @@ Piij(const unsigned nodeListi, const unsigned i,
     // Calculate the tensor viscous internal energy.
     const Tensor mui = hi*sigmai;
     Tensor Qepsi = fsheari*(-Cl*csi*mui.Transpose() + Cq*mui*mui);
-    if (limiter) Qepsi = calculateLimiter(vi, vj, csi, csj, hi, hj, nodeListi, i)*Qepsi;
+    if (limiter) Qepsi = this->calculateLimiter(vi, vj, csi, csj, hi, hj, nodeListi, i)*Qepsi;
 
     const Tensor muj = hj*sigmaj;
     Tensor Qepsj = fshearj*(-Cl*csj*muj.Transpose() + Cq*muj*muj);
-    if (limiter) Qepsj = calculateLimiter(vj, vi, csj, csi, hj, hi, nodeListj, j)*Qepsj;
+    if (limiter) Qepsj = this->calculateLimiter(vj, vi, csj, csi, hj, hi, nodeListj, j)*Qepsj;
 
     // We now have enough to compute Pi!
     const Tensor QPii = Qepsi/rhoi;

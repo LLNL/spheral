@@ -73,8 +73,8 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   cdebug << " Current number of NodeLists: " << this->accessBoundaryNodes().size() << endl;
 
   // Remember which node list we are setting the ghost nodes for.
-  addNodeList(nodeList);
-  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  this->addNodeList(nodeList);
+  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
 
   // Get the Neighbor object associated with the node list.
@@ -117,13 +117,13 @@ setGhostNodes(NodeList<Dimension>& nodeList,
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
 
   // Add this NodeList, creating space for control & ghost nodes.
-  addNodeList(nodeList);
+  this->addNodeList(nodeList);
 
   // Get the Neighbor object associated with the node list.
   Neighbor<Dimension>& neighbor = nodeList.neighbor();
 
   // Set the list of control nodes.
-  BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
   controlNodes.resize(0);
   controlNodes.reserve(presetControlNodes.size());
@@ -153,8 +153,8 @@ PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
-  addNodeList(nodeList);
-  BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  this->addNodeList(nodeList);
+  BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& vNodes = boundaryNodes.violationNodes;
   vNodes.resize(0);
 
@@ -179,7 +179,7 @@ PlanarBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
   cdebug << "PlanarBoundary::updateViolationNodes(NodeList&)" << endl;
 
   // Get the set of violation nodes for this NodeList.
-  const vector<int>& vNodes = violationNodes(nodeList);
+  const vector<int>& vNodes = this->violationNodes(nodeList);
 
   // Loop over these nodes, and reset their positions to valid values.
   Field<Dimension, Vector>& positions = nodeList.positions();
@@ -279,7 +279,7 @@ PlanarBoundary<Dimension>::setGhostNodeIndicies(NodeList<Dimension>& nodeList) {
   cdebug << "PlanarBoundary::setGhostNodeIndicies(NodeList): " << this << endl;
 
   // Get the sets of control and ghost nodes.
-  BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
   vector<int>& ghostNodes = boundaryNodes.ghostNodes;
 

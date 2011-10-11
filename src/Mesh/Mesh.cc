@@ -3,6 +3,7 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
+#include <limits>
 #include <numeric>
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
@@ -765,5 +766,10 @@ storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
   this->storeNodeListOffsets(nodeListPtrs.begin(), nodeListPtrs.end(), offsets);
 }
 
+//------------------------------------------------------------------------------
+// Static initializations.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const unsigned Mesh<Dimension>::UNSETID = numeric_limits<unsigned>::max();
 }
 }

@@ -13,9 +13,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-template class GeomThirdRankTensor<1>;
-template class GeomThirdRankTensor<2>;
-template class GeomThirdRankTensor<3>;
+// template class GeomThirdRankTensor<1>;
+// template class GeomThirdRankTensor<2>;
+// template class GeomThirdRankTensor<3>;
 
 //------------------------------------------------------------------------------
 // Set the static variables.

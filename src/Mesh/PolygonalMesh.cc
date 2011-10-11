@@ -392,12 +392,6 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 //                                     << " seconds to construct zones." << endl;
 }
 
-//------------------------------------------------------------------------------
-// Static initializations.
-//------------------------------------------------------------------------------
-template<>
-const unsigned Mesh<Dim<2> >::UNSETID = numeric_limits<unsigned>::max();
-
 }
 }
 

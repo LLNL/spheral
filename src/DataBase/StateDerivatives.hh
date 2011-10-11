@@ -88,7 +88,7 @@ private:
   // No default constructor.
   StateDerivatives();
 
-  using StateBase<Dimension>::StorageType;
+  using typename StateBase<Dimension>::StorageType;
   using StateBase<Dimension>::mStorage;
 };
 

@@ -453,12 +453,6 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                                     << " seconds to construct mesh elements." << endl;
 }
 
-//------------------------------------------------------------------------------
-// Static initializations.
-//------------------------------------------------------------------------------
-template<>
-const unsigned Mesh<Dim<3> >::UNSETID = numeric_limits<unsigned>::max();
-
 }
 }
 

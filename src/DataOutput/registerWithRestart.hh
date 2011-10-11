@@ -34,7 +34,7 @@ template<typename Object>
 inline
 RestartRegistrationType
 registerWithRestart(Object& object,
-                    const unsigned priority = 100) {
+                    const unsigned priority) {
   RestartRegistrationType handle(new Restart<Object>(object));
   RestartRegistrar& registrar = RestartRegistrar::instance();
   registrar.registerRestartHandle(handle, priority);

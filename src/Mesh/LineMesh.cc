@@ -3,7 +3,6 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include <limits>
 #include <algorithm>
 
 #include "Mesh.hh"
@@ -187,11 +186,6 @@ reconstruct(const vector<Dim<1>::Vector>& generators,
   this->reconstruct(generators, boundary.xmin(), boundary.xmax());
 }
 
-//------------------------------------------------------------------------------
-// Static initializations.
-//------------------------------------------------------------------------------
-template<>
-const unsigned Mesh<Dim<1> >::UNSETID = numeric_limits<unsigned>::max();
 }
 }
 

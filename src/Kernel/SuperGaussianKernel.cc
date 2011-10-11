@@ -12,9 +12,9 @@
 //------------------------------------------------------------------------------
 namespace Spheral {
   namespace KernelSpace {
-    template class SuperGaussianKernel<Dim<1> >;
-    template class SuperGaussianKernel<Dim<2> >;
-    template class SuperGaussianKernel<Dim<3> >;
+    // template class SuperGaussianKernel<Dim<1> >;
+    // template class SuperGaussianKernel<Dim<2> >;
+    // template class SuperGaussianKernel<Dim<3> >;
 
     template<> const double SuperGaussianKernel<Dim<1> >::mKW = 0.5*3.0;
     template<> const double SuperGaussianKernel<Dim<2> >::mKW = 0.5*4.0;

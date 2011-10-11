@@ -209,9 +209,9 @@ step(typename Dimension::Scalar maxTime) {
   TAU_PROFILE_STOP(TimePC2Finalize);
 
   // Set the new current time and last time step.
-  currentCycle(this->currentCycle() + 1);
-  currentTime(t + dt);
-  lastDt(dt);
+  this->currentCycle(this->currentCycle() + 1);
+  this->currentTime(t + dt);
+  this->lastDt(dt);
 }
 }
 }

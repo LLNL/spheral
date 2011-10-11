@@ -60,11 +60,11 @@ applyGhostBoundary(Field<Dimension, int>& field) const {
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -81,11 +81,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK2(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes(),
            "bounds error:  " << *ghostItr << " " << nodeList.firstGhostNode() << " " << nodeList.numNodes());
@@ -103,11 +103,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -124,11 +124,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const 
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -145,11 +145,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -166,11 +166,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -187,11 +187,11 @@ applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field)
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);
@@ -208,11 +208,11 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& f
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(controlNodes(nodeList).size() == ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
-  for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < ghostEnd(nodeList));
+  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
+  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
+  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
+  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
+    CHECK(ghostItr < this->ghostEnd(nodeList));
     CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
     CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
     field(*ghostItr) = field(*controlItr);

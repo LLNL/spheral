@@ -57,7 +57,7 @@ int
 NestedGridNeighbor<Dimension>::
 gridLevel(const OtherHType& H) const {
   REQUIRE(this->kernelExtent() > 0.0);
-  double h = HExtent(H, this->kernelExtent()).maxElement();
+  double h = this->HExtent(H, this->kernelExtent()).maxElement();
   return determineGridLevel(h);
 }
 
@@ -573,7 +573,7 @@ setNestedRefineNeighborList(const typename Dimension::Vector& position,
   REQUIRE(gridCellIndex(position, mMasterGridLevel) == mMasterGridCellIndex);
 
   // Determine the maximum extent of this H tensor in each dimension.
-  const Vector extent = HExtent(H, this->kernelExtent());
+  const Vector extent = this->HExtent(H, this->kernelExtent());
   const Vector minExtent = position - extent;
   const Vector maxExtent = position + extent;
 
@@ -581,7 +581,7 @@ setNestedRefineNeighborList(const typename Dimension::Vector& position,
   TAU_PROFILE_START(TimeNestedPrecull);
   const std::vector<int>& coarseList = this->coarseNeighborList();
   std::vector<int>& refineList = this->accessRefineNeighborList();
-  refineList = precullList(position, position, minExtent, maxExtent, coarseList);
+  refineList = this->precullList(position, position, minExtent, maxExtent, coarseList);
   TAU_PROFILE_STOP(TimeNestedPrecull);
 
 //   // Set the per field refine data caches for this NodeList.

@@ -1172,7 +1172,7 @@ inline
 void
 Field<Dimension, DataType>::setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
   int oldSize = this->size();
-  setFieldBaseNodeList(nodeList);
+  this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
   if (this->size() > oldSize) {
     for (int i = oldSize; i < this->size(); ++i) {

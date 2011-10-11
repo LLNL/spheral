@@ -109,15 +109,15 @@ step(typename Dimension::Scalar maxTime) {
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   state.timeAdvanceOnly(true);
-  initialize(state, derivs);
+  this->initialize(state, derivs);
   TAU_PROFILE_STOP(TimeRK2ConstructState);
 
   // Determine the minimum timestep across all packages.
   TAU_PROFILE_START(TimeRK2Dt);
-  const Scalar dt = selectDt(min(this->dtMin(), maxTime - t),
-                             min(this->dtMax(), maxTime - t),
-                             state,
-                             derivs);
+  const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
+                                   min(this->dtMax(), maxTime - t),
+                                   state,
+                                   derivs);
   TAU_PROFILE_STOP(TimeRK2Dt);
 
   // Copy the beginning of step state.
@@ -131,13 +131,13 @@ step(typename Dimension::Scalar maxTime) {
   TAU_PROFILE_START(TimeRK2MidStep);
   const double hdt = 0.5*dt;
   state.update(derivs, hdt, t, hdt);
-  currentTime(t + hdt);
+  this->currentTime(t + hdt);
   TAU_PROFILE_STOP(TimeRK2MidStep);
 
   // Enforce Boundary conditions.
   TAU_PROFILE_START(TimeRK2Boundaries1);
-  enforceBoundaries(state, derivs);
-  applyGhostBoundaries(state, derivs);
+  this->enforceBoundaries(state, derivs);
+  this->applyGhostBoundaries(state, derivs);
   TAU_PROFILE_STOP(TimeRK2Boundaries1);
                                   
   // Do any physics specific stuff relating to the fact the state was just updated.
@@ -148,7 +148,7 @@ step(typename Dimension::Scalar maxTime) {
 
   // Loop over the physics packages and perform any necessary initializations.
   TAU_PROFILE_START(TimeRK2StepInitialize1);
-  preStepInitialize(t + hdt, hdt, state, derivs);
+  this->preStepInitialize(t + hdt, hdt, state, derivs);
   TAU_PROFILE_STOP(TimeRK2StepInitialize1);
 
   // Zero out the stored derivatives.
@@ -167,16 +167,16 @@ step(typename Dimension::Scalar maxTime) {
   // derivatives.
   TAU_PROFILE_START(TimeRK2EndStep);
   state.timeAdvanceOnly(false);
-  copyGhostState(state, state0);
+  this->copyGhostState(state, state0);
   state.assign(state0);
   state.update(derivs, dt, t, dt);
-  currentTime(t + dt);
+  this->currentTime(t + dt);
   TAU_PROFILE_STOP(TimeRK2EndStep);
 
   // Enforce boundaries.
   TAU_PROFILE_START(TimeRK2Boundaries2);
-  enforceBoundaries(state, derivs);
-  applyGhostBoundaries(state, derivs);
+  this->enforceBoundaries(state, derivs);
+  this->applyGhostBoundaries(state, derivs);
   TAU_PROFILE_STOP(TimeRK2Boundaries2);
 
   // Do any physics specific stuff relating to the fact the state was just updated.
@@ -191,9 +191,9 @@ step(typename Dimension::Scalar maxTime) {
   TAU_PROFILE_STOP(TimeRK2Finalize);
 
   // Set the new current time and last time step.
-  currentCycle(this->currentCycle() + 1);
-  currentTime(t + dt);
-  lastDt(dt);
+  this->currentCycle(this->currentCycle() + 1);
+  this->currentTime(t + dt);
+  this->lastDt(dt);
 }
 }
 }

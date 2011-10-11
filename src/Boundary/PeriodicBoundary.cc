@@ -108,8 +108,8 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   END_CONTRACT_SCOPE;
 
   // Now add this NodeList to this master Boundary condition.
-  addNodeList(nodeList);
-  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  this->addNodeList(nodeList);
+  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
   vector<int>& ghostNodes = boundaryNodes.ghostNodes;
 
@@ -159,8 +159,8 @@ PeriodicBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 
   // Copy the violation node info from the subclasses to this one, so it can be
   // accessed from the outside world.
-  addNodeList(nodeList);
-  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  this->addNodeList(nodeList);
+  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& violationNodes = boundaryNodes.violationNodes;
   violationNodes = vector<int>();
   violationNodes.reserve(mPlane1Boundary.violationNodes(nodeList).size() +

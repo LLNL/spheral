@@ -160,7 +160,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
   if (&nodeList == mNodeListPtr) {
-    BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+    BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
     vector<int>& vNodes = boundaryNodes.violationNodes;
     vNodes = nodeIndicies();
   }

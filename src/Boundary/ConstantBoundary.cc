@@ -9,7 +9,6 @@
 #include "Field/FieldBase.hh"
 
 #include "DBC.hh"
-#include "cdebug.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -41,7 +40,6 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
   mSymTensorValues(),
   mThirdRankTensorValues(),
   mVectorScalarValues() {
-  cdebug << "ConstantBoundary::ConstantBoundary" << this << endl;
 
   // Store the field values on the given nodes.
   storeFieldValues<int>(nodeList, nodeIDs, mIntValues);
@@ -62,7 +60,6 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ConstantBoundary<Dimension>::~ConstantBoundary() {
-  cdebug << "ConstantBoundary::~ConstantBoundary() " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -72,11 +69,10 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ConstantBoundary::setGhostNodes(NodeList<Dimension>&)" << endl;
 
   // Add the control/ghost nodes for this NodeList.
-  addNodeList(nodeList);
-  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
+  this->addNodeList(nodeList);
+  typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& ghostNodes = boundaryNodes.ghostNodes;
   ghostNodes.resize(0);
 
@@ -96,7 +92,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     CHECK(ghostNodes.size() == mNumConstantNodes);
 
     // Set the ghost node positions and H.
-    updateGhostNodes(nodeList);
+    this->updateGhostNodes(nodeList);
   }
 }
 
@@ -107,7 +103,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ConstantBoundary::updateGhostNodes(NodeList<Dimension>&)" << endl;
 
   // Check to see if this is the NodeList we're working on.
   if (&nodeList == mNodeListPtr) {
@@ -135,7 +130,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(IntField) " << this << endl;
   setGhostValues<int>(field, mIntValues);
 }
 
@@ -144,7 +138,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(ScalarField) " << this << endl;
   setGhostValues<Scalar>(field, mScalarValues);
 }
 
@@ -153,7 +146,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(VectorField) " << this << endl;
   setGhostValues<Vector>(field, mVectorValues);
 }
 
@@ -162,7 +154,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  cdebug << "ConstantBoundary::applyVector3dGhostBoundary(VectorField) " << this << endl;
   setGhostValues<Vector3d>(field, mVector3dValues);
 }
 
@@ -171,7 +162,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(VectorField) " << this << endl;
   setGhostValues<Tensor>(field, mTensorValues);
 }
 
@@ -180,7 +170,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(SymTensorField) " << this << endl;
   setGhostValues<SymTensor>(field, mSymTensorValues);
 }
 
@@ -189,7 +178,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(ThirdRankTensorField) " << this << endl;
   setGhostValues<ThirdRankTensor>(field, mThirdRankTensorValues);
 }
 
@@ -198,7 +186,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-  cdebug << "ConstantBoundary::applyGhostBoundary(VectorScalarField) " << this << endl;
   setGhostValues<std::vector<Scalar> >(field, mVectorScalarValues);
 }
 
@@ -210,7 +197,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 setViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ConstantBoundary::setViolationNodes(NodeList<Dimension>&)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -221,7 +207,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 updateViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ConstantBoundary::updateViolationNodes(NodeList<Dimension>&)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -232,7 +217,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, int>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(IntField) " << this << endl;
 }
 
 // Specialization for scalar fields.
@@ -240,7 +224,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(ScalarField) " << this << endl;
 }
 
 // Specialization for Vector fields.
@@ -248,7 +231,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(VectorField) " << this << endl;
 }
 
 // Specialization for Vector fields.
@@ -256,7 +238,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  cdebug << "ConstantBoundary::enforceVector3dBoundary(Vector3dField) " << this << endl;
 }
 
 // Specialization for Tensor fields.
@@ -264,7 +245,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(VectorField) " << this << endl;
 }
 
 // Specialization for symmetric tensors.
@@ -272,7 +252,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(SymTensorField) " << this << endl;
 }
 
 // Specialization for third rank tensors.
@@ -280,7 +259,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  cdebug << "ConstantBoundary::enforceBoundary(ThirdRankTensorField) " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -289,7 +267,6 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 template<typename Dimension>
 bool
 ConstantBoundary<Dimension>::valid() const {
-  cdebug << "ConstantBoundary::valid() " << this << endl;
   bool ok = true;
   for (typename std::map<const FieldBase<Dimension>*, std::vector<int> >::const_iterator
          itr = mIntValues.begin();

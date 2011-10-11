@@ -1250,7 +1250,7 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
         const Vector& extenti = extent(nodeListi, i);
         Vector xminGroup = xi - extenti;
         Vector xmaxGroup = xi + extenti;
-        flags(nodeListi, i) == 1;
+        flags(nodeListi, i) = 1;
 
         // Find the min/max extent of this connected set of nodes.
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);

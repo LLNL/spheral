@@ -16,7 +16,7 @@ class FieldUpdatePolicyBase: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using UpdatePolicyBase<Dimension>::KeyType;
+  using typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   FieldUpdatePolicyBase();

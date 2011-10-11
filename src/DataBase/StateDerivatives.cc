@@ -153,8 +153,8 @@ StateDerivatives<Dimension>::
 Zero() {
 
   // Walk the state fields and zero them.
-  for (typename StateBase<Dimension>::StorageType::iterator itr = mStorage.begin();
-       itr != mStorage.end();
+  for (typename StateBase<Dimension>::StorageType::iterator itr = this->mStorage.begin();
+       itr != this->mStorage.end();
        ++itr) itr->second->Zero();
 
   // Reinitialize the node pair interaction information.

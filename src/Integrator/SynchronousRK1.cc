@@ -107,15 +107,15 @@ step(typename Dimension::Scalar maxTime) {
   TAU_PROFILE_START(TimeRK1ConstructState);
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
-  initialize(state, derivs);
+  this->initialize(state, derivs);
   TAU_PROFILE_STOP(TimeRK1ConstructState);
 
   // Determine the minimum timestep across all packages.
   TAU_PROFILE_START(TimeRK1Dt);
-  const Scalar dt = selectDt(min(this->dtMin(), maxTime - t),
-                             min(this->dtMax(), maxTime - t),
-                             state,
-                             derivs);
+  const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
+                                   min(this->dtMax(), maxTime - t),
+                                   state,
+                                   derivs);
   cdebug << "SynchronousRK1::step: chose dt = " << dt << endl;
   TAU_PROFILE_STOP(TimeRK1Dt);
 
@@ -137,8 +137,8 @@ step(typename Dimension::Scalar maxTime) {
 
   // Enforce boundaries.
   TAU_PROFILE_START(TimeRK1Boundaries2);
-  enforceBoundaries(state, derivs);
-  applyGhostBoundaries(state, derivs);
+  this->enforceBoundaries(state, derivs);
+  this->applyGhostBoundaries(state, derivs);
   TAU_PROFILE_STOP(TimeRK1Boundaries2);
 
   // Do any physics specific stuff relating to the fact the state was just updated.
@@ -155,9 +155,9 @@ step(typename Dimension::Scalar maxTime) {
   TAU_PROFILE_STOP(TimeRK1Finalize);
 
   // Set the new current time and last time step.
-  currentCycle(this->currentCycle() + 1);
-  currentTime(t + dt);
-  lastDt(dt);
+  this->currentCycle(this->currentCycle() + 1);
+  this->currentTime(t + dt);
+  this->lastDt(dt);
 }
 }
 }
