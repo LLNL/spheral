@@ -1059,7 +1059,8 @@ DBPutUcdvar(DBfile& file,
     delete[] vars[i];
     delete[] mixvars[i];
   }
-  delete[] vars, mixvars;
+  delete[] vars;
+  delete[] mixvars;
   return result;
 }
 

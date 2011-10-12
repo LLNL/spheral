@@ -33,9 +33,9 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   VERIFY(hmult > 0.0);
 
   // Set the volume normalization and kernel extent.
-  setVolumeNormalization(kernel.volumeNormalization() / Dimension::pownu(hmult));
-  setKernelExtent(hmult * kernel.kernelExtent());
-  setInflectionPoint(hmult * kernel.inflectionPoint());
+  this->setVolumeNormalization(kernel.volumeNormalization() / Dimension::pownu(hmult));
+  this->setKernelExtent(hmult * kernel.kernelExtent());
+  this->setInflectionPoint(hmult * kernel.inflectionPoint());
 
   // Set the number of points and table step size.
   CHECK(numPoints > 1);
@@ -64,10 +64,10 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   }
 
   // Set the delta kernel values for internal use.
-  setDeltaKernelValues();
+  this->setDeltaKernelValues();
 
   // Set the table of n per h values.
-  setNperhValues();
+  this->setNperhValues();
 
   // That should be it, so we should have left the kernel in a valid state.
   ENSURE(valid());

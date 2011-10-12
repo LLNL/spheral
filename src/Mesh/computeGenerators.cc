@@ -38,65 +38,65 @@ using BoundarySpace::Boundary;
 using FieldSpace::Field;
 using NeighborSpace::Neighbor;
 
-//------------------------------------------------------------------------------
-// A helper to build up the hull generators.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-conditionalInsertPoint(set<typename Mesh<Dimension>::Key>& hullGenerators,
-                       const typename Dimension::Vector& x,
-                       const typename Dimension::Vector& xmin,
-                       const typename Dimension::Vector& xmax,
-                       const typename Dimension::Vector& boxInv) {
-  if (testPointInBox(x, xmin, xmax)) hullGenerators.insert(hashPosition(x, xmin, xmax, boxInv));
-}
+// //------------------------------------------------------------------------------
+// // A helper to build up the hull generators.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// void
+// conditionalInsertPoint(set<typename Mesh<Dimension>::Key>& hullGenerators,
+//                        const typename Dimension::Vector& x,
+//                        const typename Dimension::Vector& xmin,
+//                        const typename Dimension::Vector& xmax,
+//                        const typename Dimension::Vector& boxInv) {
+//   if (testPointInBox(x, xmin, xmax)) hullGenerators.insert(hashPosition(x, xmin, xmax, boxInv));
+// }
 
-void
-addBoundingPoints(set<Mesh<Dim<1> >::Key>& hullGenerators,
-                  const Dim<1>::Vector& ri,
-                  const Dim<1>::Vector& extenti,
-                  const Dim<1>::Vector& xmin,
-                  const Dim<1>::Vector& xmax,
-                  const Dim<1>::Vector& boxInv) {
-  conditionalInsertPoint<Dim<1> >(hullGenerators, ri, xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<1> >(hullGenerators, ri - extenti, xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<1> >(hullGenerators, ri + extenti, xmin, xmax, boxInv);
-}
+// void
+// addBoundingPoints(set<Mesh<Dim<1> >::Key>& hullGenerators,
+//                   const Dim<1>::Vector& ri,
+//                   const Dim<1>::Vector& extenti,
+//                   const Dim<1>::Vector& xmin,
+//                   const Dim<1>::Vector& xmax,
+//                   const Dim<1>::Vector& boxInv) {
+//   conditionalInsertPoint<Dim<1> >(hullGenerators, ri, xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<1> >(hullGenerators, ri - extenti, xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<1> >(hullGenerators, ri + extenti, xmin, xmax, boxInv);
+// }
 
-void
-addBoundingPoints(set<Mesh<Dim<2> >::Key>& hullGenerators,
-                  const Dim<2>::Vector& ri,
-                  const Dim<2>::Vector& extenti,
-                  const Dim<2>::Vector& xmin,
-                  const Dim<2>::Vector& xmax,
-                  const Dim<2>::Vector& boxInv) {
-  typedef Dim<2>::Vector Vector;
-  conditionalInsertPoint<Dim<2> >(hullGenerators, ri, xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<2> >(hullGenerators, ri - extenti, xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<2> >(hullGenerators, ri + extenti, xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<2> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<2> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y()), xmin, xmax, boxInv);
-}
+// void
+// addBoundingPoints(set<Mesh<Dim<2> >::Key>& hullGenerators,
+//                   const Dim<2>::Vector& ri,
+//                   const Dim<2>::Vector& extenti,
+//                   const Dim<2>::Vector& xmin,
+//                   const Dim<2>::Vector& xmax,
+//                   const Dim<2>::Vector& boxInv) {
+//   typedef Dim<2>::Vector Vector;
+//   conditionalInsertPoint<Dim<2> >(hullGenerators, ri, xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<2> >(hullGenerators, ri - extenti, xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<2> >(hullGenerators, ri + extenti, xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<2> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<2> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y()), xmin, xmax, boxInv);
+// }
 
-void
-addBoundingPoints(set<Mesh<Dim<3> >::Key>& hullGenerators,
-                  const Dim<3>::Vector& ri,
-                  const Dim<3>::Vector& extenti,
-                  const Dim<3>::Vector& xmin,
-                  const Dim<3>::Vector& xmax,
-                  const Dim<3>::Vector& boxInv) {
-  typedef Dim<3>::Vector Vector;
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri,                                                    xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(),  extenti.y(), -extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y(), -extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y(), -extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(), -extenti.y(), -extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(),  extenti.y(),  extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y(),  extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y(),  extenti.z()), xmin, xmax, boxInv);
-  conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(), -extenti.y(),  extenti.z()), xmin, xmax, boxInv);
-}
+// void
+// addBoundingPoints(set<Mesh<Dim<3> >::Key>& hullGenerators,
+//                   const Dim<3>::Vector& ri,
+//                   const Dim<3>::Vector& extenti,
+//                   const Dim<3>::Vector& xmin,
+//                   const Dim<3>::Vector& xmax,
+//                   const Dim<3>::Vector& boxInv) {
+//   typedef Dim<3>::Vector Vector;
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri,                                                    xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(),  extenti.y(), -extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y(), -extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y(), -extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(), -extenti.y(), -extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(),  extenti.y(),  extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(),  extenti.y(),  extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector( extenti.x(), -extenti.y(),  extenti.z()), xmin, xmax, boxInv);
+//   conditionalInsertPoint<Dim<3> >(hullGenerators, ri + Vector(-extenti.x(), -extenti.y(),  extenti.z()), xmin, xmax, boxInv);
+// }
 
 //------------------------------------------------------------------------------
 // The method itself.
