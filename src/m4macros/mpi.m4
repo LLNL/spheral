@@ -21,6 +21,7 @@ AC_ARG_WITH(mpi,
     MPIPYTHONINTERFACETARGET="fakempi.py"
     MPITHIRDPARTYTARGETS=""
     MPIENABLED="no"
+    CXXPKGS="$CXXPKGS PythonMPIInterfaces"
 ],
 [
     AC_MSG_RESULT(no)
