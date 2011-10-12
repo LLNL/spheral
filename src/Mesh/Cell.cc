@@ -290,24 +290,28 @@ matchFace(const unsigned iface,
 template<typename Dimension>
 bool
 Cell<Dimension>::
-distributeSharedVertices(vector<Cell<Dimension> >& cells) const {
+distributeSharedVertices(vector<Cell<Dimension> >& cells) {
   bool result = true;
   const unsigned ncells = cells.size();
   const unsigned nv = mOldVertices.size();
   REQUIRE(mCellsForVertex.size() == nv);
-  unsigned i, j, jgen;
+  unsigned i, j, jgen, ni, nj;
   for (i = 0; i != nv; ++i) {
+    ni = mCellsForVertex[i].size();
     for (map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
          itr != mCellsForVertex[i].end();
          ++itr) {
       jgen = itr->first;
       j = itr->second;
       CHECK(jgen < ncells and j < cells[jgen].mCellsForVertex.size());
-      if (cells[jgen].mCellsForVertex[j].find(mID) == cells[jgen].mCellsForVertex[j].end()) {
-        result = false;
-        cells[jgen].mCellsForVertex[j][mID] = i;
-      }
+      nj = cells[jgen].mCellsForVertex[j].size();
+      mCellsForVertex[i].insert(cells[jgen].mCellsForVertex[j].begin(),
+                                cells[jgen].mCellsForVertex[j].end());
+      cells[jgen].mCellsForVertex[j].insert(mCellsForVertex[i].begin(),
+                                            mCellsForVertex[i].end());
+      if (cells[jgen].mCellsForVertex[j].size() != nj) result = false;
     }
+    if (mCellsForVertex[i].size() != ni) result = false;
   }
   return result;
 }
@@ -341,17 +345,17 @@ lock(vector<Cell<Dimension> >& cells) {
 
   const unsigned ncells = cells.size();
 
-  // Blago!
-  cerr << "Dumping INITIAL cells for vertices for cell " << mID << endl;
-  for (i = 0; i != nv0; ++i) {
-    cerr << "  Vertex " << i << " @ " << mOldVertices[i] << endl;
-    for (map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-         itr != mCellsForVertex[i].end();
-         ++itr) {
-      cerr << "       " << itr->first << " " << itr->second << endl;
-    }
-  }
-  // Blago!
+  // // Blago!
+  // cerr << "Dumping INITIAL cells for vertices for cell " << mID << endl;
+  // for (i = 0; i != nv0; ++i) {
+  //   cerr << "  Vertex " << i << " @ " << mOldVertices[i] << endl;
+  //   for (map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
+  //        itr != mCellsForVertex[i].end();
+  //        ++itr) {
+  //     cerr << "       " << itr->first << " " << itr->second << endl;
+  //   }
+  // }
+  // // Blago!
 
   // Create the new vertices and update the vertex map to point from the 
   // old vertex numbering to the new.
@@ -398,17 +402,17 @@ lock(vector<Cell<Dimension> >& cells) {
   removeElements(mNewNeighbors, faces2kill);
   CHECK(mNewFaceVertices.size() == mNewNeighbors.size());
 
-  // Blago!
-  cerr << "Dumping FINAL cells for vertices for cell " << mID << endl;
-  for (i = 0; i != nv1; ++i) {
-    cerr << "  Vertex " << i << " @ " << mNewVertices[i] << endl;
-    for (typename map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-         itr != mCellsForVertex[i].end();
-         ++itr) {
-      cerr << "       " << itr->first << " " << itr->second << endl;
-    }
-  }
-  // Blago!
+  // // Blago!
+  // cerr << "Dumping FINAL cells for vertices for cell " << mID << endl;
+  // for (i = 0; i != nv1; ++i) {
+  //   cerr << "  Vertex " << i << " @ " << mNewVertices[i] << endl;
+  //   for (typename map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
+  //        itr != mCellsForVertex[i].end();
+  //        ++itr) {
+  //     cerr << "       " << itr->first << " " << itr->second << endl;
+  //   }
+  // }
+  // // Blago!
 
   // Walk all neighbor cells and update their vertex info for us.
   unsigned nvj;

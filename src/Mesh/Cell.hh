@@ -68,7 +68,7 @@ public:
                  Cell<Dimension>& otherCell);
 
   // Make sure any neighbors we share vertices with know about us.
-  bool distributeSharedVertices(std::vector<Cell<Dimension> >& cells) const;
+  bool distributeSharedVertices(std::vector<Cell<Dimension> >& cells);
 
   // Finish off our internal info,so all new cell info is set.
   void lock(std::vector<Cell<Dimension> >& cells);
