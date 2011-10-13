@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 
 namespace Spheral {
 namespace MeshSpace {
@@ -81,6 +82,9 @@ public:
   // ordering of "otherGen", and looks up our local corresponding vertex appropriately.
   void realNodeID(const unsigned ivertex, const unsigned ID);
   void realNodeID(const unsigned jvertex, const Cell<Dimension>& jcell, const unsigned ID);
+
+  // Dump out the basic state of the cell to a string.
+  std::string dumpCell() const;
 
   //--------------------------- Private Interface ---------------------------//
 private:

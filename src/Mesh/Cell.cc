@@ -8,6 +8,8 @@
 // Created by JMO, Sun Sep 11 18:32:22 PDT 2011
 //----------------------------------------------------------------------------//
 #include <limits>
+#include <string>
+#include <sstream>
 #include "boost/foreach.hpp"
 
 #include "Cell.hh"
@@ -231,9 +233,8 @@ matchFace(const unsigned iface,
   const unsigned nfi = mNewNeighbors.size();
   REQUIRE(iface < nfi);
   REQUIRE(mNewFaceVertices[iface].size() == 0);
-  REQUIRE(count(otherCell.mNewNeighbors.begin(), 
-                otherCell.mNewNeighbors.end(),
-                mID) == 1);
+  REQUIRE2(count(otherCell.mNewNeighbors.begin(), otherCell.mNewNeighbors.end(),mID) == 1, 
+           '\n' << "This cell:  " << this->dumpCell() << '\n' << "Other cell:  " << otherCell.dumpCell());
 
   // Locate the matching face in the other cell.
   const unsigned nfj = otherCell.mNewNeighbors.size();
@@ -493,6 +494,48 @@ realNodeID(const unsigned jvertex,
   CHECK(itr != jcell.mCellsForVertex[jvertex].end());
   const unsigned ivertex = itr->second;
   this->realNodeID(ivertex, ID);
+}
+
+//------------------------------------------------------------------------------
+// Dump this cells info to a string.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+string
+Cell<Dimension>::
+dumpCell() const {
+  stringstream result;
+  const unsigned nv0 = mOldVertices.size();
+  const unsigned nf0 = mOldFaceVertices.size();
+  const unsigned nv1 = mNewVertices.size();
+  const unsigned nf1 = mNewFaceVertices.size();
+  unsigned i, j;
+  result << "ID: " << mID << '\n'
+         << "Volume: " << mVolume << '\n'
+         << "maxEdge: " << mMaxEdge << '\n';
+  for (i = 0; i != nv0; ++i) {
+    result << (i == 0 ? "Old vertices: " : "              ")
+           << i << " : " << mOldVertices[i] << '\n';
+  }
+  for (i = 0; i != nv1; ++i) {
+    result << (i == 0 ? "New vertices: " : "              ")
+           << i << " : " << mNewVertices[i] << '\n';
+  }
+  for (i = 0; i != nf0; ++i) {
+    result << (i == 0 ? "Old face vertices: " : "                   ");
+    for (j = 0; j != mOldFaceVertices[i].size(); ++j) result << mOldFaceVertices[i][j] << " ";
+    result << '\n';
+  }
+  for (i = 0; i != nf1; ++i) {
+    result << (i == 0 ? "New face vertices: " : "                   ");
+    for (j = 0; j != mNewFaceVertices[i].size(); ++j) result << mNewFaceVertices[i][j] << " ";
+    result << '\n';
+  }
+  result << "Old neighbors: ";
+  for (i = 0; i != nf0; ++i) result << mOldNeighbors[i] << " ";
+  result << '\n'
+         << "New neighbors: ";
+  for (i = 0; i != nf1; ++i) result << mNewNeighbors[i] << " ";
+  return result.str();
 }
 
 //------------------------------------------------------------------------------
