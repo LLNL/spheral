@@ -342,48 +342,48 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   while (not done) {
     done = true;
     for (igen = 0; igen != numGens; ++igen) {
-      done = done and cells[igen].distributeSharedVertices(cells);
+      done = done and cells[igen].findMinCellsForVertices(cells);
     }
   }
 
   // Lock the cells -- they should have consistent info now.
   for (igen = 0; igen != numGens; ++igen) cells[igen].lock(cells);
+  Cell<Dimension>::lockMinCellsForVertices(cells);
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to stitch together cell topology." << endl;
 
-  // Create the unique shared nodes based on the cell vertices.
+  // Find the unique node positions, and build up the IDs of the cells that
+  // share these nodes.
   t0 = Timing::currentTime();
-  typedef map<unsigned, unsigned> OtherCellSet;
-  unsigned numNodes = 0, nv;
+  unsigned nv;
+  vector<vector<unsigned> > nodeZoneIDs;
   for (igen = 0; igen != numGens; ++igen) {
     const vector<Vector>& vertices = cells[igen].newVertices();
     nv = vertices.size();
     for (i = 0; i != nv; ++i) {
-      if (cells[igen].realNodeID(i) == Cell<Dimension>::UNSETID) {
-        const OtherCellSet& otherCells = cells[igen].cellsForVertex(i);
-        vector<unsigned> otherCellIDs;
-        for (OtherCellSet::const_iterator itr = otherCells.begin();
-             itr != otherCells.end();
-             ++itr) {
-          jgen = itr->first;
-          j = itr->second;
-          CHECK(cells[jgen].realNodeID(j) == Cell<Dimension>::UNSETID);
-          otherCellIDs.push_back(j);
-        }
+      jgen = cells[igen].minCellForVertex(i);
+      if (jgen == igen) {
+        cells[igen].realNodeID(i, mNodePositions.size());
+        // cerr << igen << " ASSIGNING real node ID " << cells[igen].realNodeID(i) << " @ " << vertices[i] << endl;
         mNodePositions.push_back(vertices[i]);
-        mNodes.push_back(Node(*this, numNodes, otherCellIDs));
-        cells[igen].realNodeID(i, numNodes);
-        for (OtherCellSet::const_iterator itr = otherCells.begin();
-             itr != otherCells.end();
-             ++itr) {
-          jgen = itr->first;
-          cells[jgen].realNodeID(i, cells[igen], numNodes);
-        }
-        ++numNodes;
+        nodeZoneIDs.push_back(vector<unsigned>(1, igen));
+      } else {
+        CHECK(jgen < igen);
+        j = cells[igen].localVertexForMinCell(i);
+        k = cells[jgen].realNodeID(j);
+        CHECK2(k < mNodePositions.size(), k << " " << igen << " " << jgen << " " << mNodePositions.size());
+        cells[igen].realNodeID(i, k);
+        // cerr << igen << " COPYING real node ID " << cells[igen].realNodeID(i) << " @ " << vertices[i] << endl;
+        nodeZoneIDs[k].push_back(jgen);
       }
     }
   }
+  const unsigned numNodes = mNodePositions.size();
+  CHECK(nodeZoneIDs.size() == numNodes);
+  
+  // Create the nodes.
+  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(*this, i, nodeZoneIDs[i]));
   CHECK(mNodes.size() == numNodes);
 
   // Create the edges.

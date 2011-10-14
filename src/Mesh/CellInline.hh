@@ -114,14 +114,22 @@ vertexMap() const {
 }
 
 //------------------------------------------------------------------------------
-// The set of cells and vertices that share one of our vertices.
+// The minimum cell which shares the given local vertex.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const std::map<unsigned, unsigned>&
+unsigned
 Cell<Dimension>::
-cellsForVertex(const unsigned i) const {
-  REQUIRE(i < mCellsForVertex.size());
-  return mCellsForVertex[i];
+minCellForVertex(const unsigned i) const {
+  REQUIRE(i < mMinCellForVertex.size());
+  return mMinCellForVertex[i].first;
+}
+
+template<typename Dimension>
+unsigned
+Cell<Dimension>::
+localVertexForMinCell(const unsigned i) const {
+  REQUIRE(i < mMinCellForVertex.size());
+  return mMinCellForVertex[i].second;
 }
 
 //------------------------------------------------------------------------------

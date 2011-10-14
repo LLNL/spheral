@@ -42,7 +42,7 @@ Cell():
   mOldNeighbors(),
   mNewNeighbors(),
   mVertexMap(),
-  mCellsForVertex(),
+  mMinCellForVertex(),
   mRealNodeIDs() {
 }
 
@@ -69,7 +69,7 @@ Cell(const unsigned ID,
   mOldNeighbors(neighbors),
   mNewNeighbors(neighbors),
   mVertexMap(vertices.size(), UNSETID),
-  mCellsForVertex(vertices.size()),
+  mMinCellForVertex(),
   mRealNodeIDs() {
 
   // Pre-conditions.
@@ -114,9 +114,9 @@ Cell(const unsigned ID,
   // Reduce the vertex map to the unique set.
   updateVertexMap();
 
-  // Intitialize the cells per vertex to include ourself.
+  // Initialize the min cell for each of our vertices to be ourself.
   for (i = 0; i != nv; ++i) {
-    mCellsForVertex[i][mID] = i;
+    mMinCellForVertex.push_back(make_pair(mID, i));
   }
 
   // Any faces on the boundary of the tesselation should go ahead and assign the
@@ -143,11 +143,10 @@ Cell(const unsigned ID,
              mNewFaceVertices[i].size() == 0);
     }
     ENSURE(mVertexMap.size() == vertices.size());
-    ENSURE(mCellsForVertex.size() == vertices.size());
-    for (i = 0; i != mCellsForVertex.size(); ++i) {
-      ENSURE(mCellsForVertex[i].size() == 1);
-      ENSURE(mCellsForVertex[i].find(mID) != mCellsForVertex[i].end());
-      ENSURE(mCellsForVertex[i][mID] == i);
+    ENSURE(mMinCellForVertex.size() == vertices.size());
+    for (i = 0; i != mMinCellForVertex.size(); ++i) {
+      ENSURE(mMinCellForVertex[i].first == mID);
+      ENSURE(mMinCellForVertex[i].second == i);
     }
     ENSURE(mRealNodeIDs.size() == 0);
   }
@@ -290,6 +289,7 @@ matchFace(const unsigned iface,
     masterFace = jface;
     slaveFace = iface;
   }
+  const bool masterIsMinID = (masterCellPtr->mID < slaveCellPtr->mID);
 
   // Walk the vertices of the control face, and match to the closest one in
   // the slave face.
@@ -300,8 +300,11 @@ matchFace(const unsigned iface,
                            slaveCellPtr->mOldFaceVertices[slaveFace]);
     masterCellPtr->mNewFaceVertices[masterFace].push_back(i);
     slaveCellPtr->mNewFaceVertices[slaveFace].push_back(j);
-    masterCellPtr->mCellsForVertex[i][slaveCellPtr->mID] = j;
-    slaveCellPtr->mCellsForVertex[j][masterCellPtr->mID] = i;
+    if (masterCellPtr->mMinCellForVertex[i].first < slaveCellPtr->mMinCellForVertex[j].first) {
+      slaveCellPtr->mMinCellForVertex[j] = masterCellPtr->mMinCellForVertex[i];
+    } else {
+      masterCellPtr->mMinCellForVertex[i] = slaveCellPtr->mMinCellForVertex[j];
+    }
   }
   CHECK(masterCellPtr->mNewFaceVertices[masterFace].size() == nv);
   CHECK(slaveCellPtr->mNewFaceVertices[slaveFace].size() == nv);
@@ -312,39 +315,34 @@ matchFace(const unsigned iface,
 }
 
 //------------------------------------------------------------------------------
-// Enforce symmetry in the set of known cells that share our vertices.
+// Enforce consistency in the minimum cell for each of our vertices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
 Cell<Dimension>::
-distributeSharedVertices(vector<Cell<Dimension> >& cells) {
+findMinCellsForVertices(vector<Cell<Dimension> >& cells) {
   bool result = true;
   const unsigned ncells = cells.size();
   const unsigned nv = mOldVertices.size();
-  REQUIRE(mCellsForVertex.size() == nv);
+  REQUIRE(mMinCellForVertex.size() == nv);
   unsigned i, j, jgen, ni, nj;
   for (i = 0; i != nv; ++i) {
-    ni = mCellsForVertex[i].size();
-    for (map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-         itr != mCellsForVertex[i].end();
-         ++itr) {
-      jgen = itr->first;
-      j = itr->second;
-      CHECK(jgen < ncells and j < cells[jgen].mCellsForVertex.size());
-      nj = cells[jgen].mCellsForVertex[j].size();
-      mCellsForVertex[i].insert(cells[jgen].mCellsForVertex[j].begin(),
-                                cells[jgen].mCellsForVertex[j].end());
-      cells[jgen].mCellsForVertex[j].insert(mCellsForVertex[i].begin(),
-                                            mCellsForVertex[i].end());
-      if (cells[jgen].mCellsForVertex[j].size() != nj) result = false;
+    jgen = mMinCellForVertex[i].first;
+    j = mMinCellForVertex[i].second;
+    CHECK(jgen < ncells);
+    if (cells[jgen].minCellForVertex(j) != jgen) {
+      mMinCellForVertex[i] = cells[jgen].mMinCellForVertex[j];
+      result = false;
     }
-    if (mCellsForVertex[i].size() != ni) result = false;
   }
   return result;
 }
 
 //------------------------------------------------------------------------------
 // Finish off our new vertex and face information.
+// **NOTE**
+// At the completion of this method the mMinCellForVertex local node indices
+// are *not* updated yet.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -361,7 +359,7 @@ lock(vector<Cell<Dimension> >& cells) {
     REQUIRE(mNewFaceVertices.size() <= nf0);
     REQUIRE(mNewNeighbors.size() == nf0);
     REQUIRE(mVertexMap.size() == nv0);
-    REQUIRE(mCellsForVertex.size() == nv0);
+    REQUIRE(mMinCellForVertex.size() == nv0);
     for (i = 0; i != nv0; ++i) {
       REQUIRE(mVertexMap[i] < nv0);
       REQUIRE(mVertexMap[i] <= i);
@@ -397,18 +395,15 @@ lock(vector<Cell<Dimension> >& cells) {
       CHECK(k < nv1);
       CHECK(mVertexMap[k] = k);
       mVertexMap[i] = k;
-      mCellsForVertex[k].insert(mCellsForVertex[i].begin(), mCellsForVertex[i].end());
+      if (mMinCellForVertex[i].first < mMinCellForVertex[k].first) mMinCellForVertex[k] = mMinCellForVertex[i];
     }
   }
-  mCellsForVertex.resize(nv1);
+  mMinCellForVertex.resize(nv1);
   BEGIN_CONTRACT_SCOPE;
   {
     CHECK(mNewVertices.size() == nv1);
-    CHECK(mCellsForVertex.size() == nv1);
+    CHECK(mMinCellForVertex.size() == nv1);
     BOOST_FOREACH(i, mVertexMap) { CHECK(i < nv1); }
-    for (i = 0; i != nv1; ++i) {
-      CHECK(mCellsForVertex[i].size() > 0);
-    }
   }
   END_CONTRACT_SCOPE;
 
@@ -441,33 +436,6 @@ lock(vector<Cell<Dimension> >& cells) {
   // }
   // // Blago!
 
-  // Walk all neighbor cells and update their vertex info for us.
-  unsigned nvj;
-  for (i = 0; i != nv1; ++i) {
-    for (typename map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-         itr != mCellsForVertex[i].end();
-         ++itr) {
-      CHECK(itr->first < ncells);
-      if (itr->first != mID) {
-        Cell<Dimension>& otherCell = cells[itr->first];
-        nvj = otherCell.mCellsForVertex.size();
-        for (j = 0; j != nvj; ++j) {
-          map<unsigned, unsigned> newCells;
-          for (map<unsigned, unsigned>::const_iterator otherItr = otherCell.mCellsForVertex[j].begin();
-               otherItr != otherCell.mCellsForVertex[j].end();
-               ++otherItr) {
-            if (otherItr->first == mID) {
-              newCells[mID] = mVertexMap[otherItr->second];
-            } else {
-              newCells.insert(*otherItr);
-            }
-          }
-          otherCell.mCellsForVertex[j] = newCells;
-        }
-      }
-    }
-  }
-
   // Initialize the real node ID info, though it is not set yet.
   mRealNodeIDs = vector<unsigned>(nv1, UNSETID);
 
@@ -481,13 +449,34 @@ lock(vector<Cell<Dimension> >& cells) {
     }
     ENSURE(mNewNeighbors.size() == mNewFaceVertices.size());
     BOOST_FOREACH(i, mNewNeighbors) { ENSURE(i != DELETED); }
-    ENSURE(mCellsForVertex.size() == mNewVertices.size());
-    for (i = 0; i != mCellsForVertex.size(); ++i) {
-      ENSURE(mCellsForVertex[i].size() >= 1);
-    }
+    ENSURE(mMinCellForVertex.size() == mNewVertices.size());
     BOOST_FOREACH(i, mRealNodeIDs) { ENSURE(i == UNSETID); }
   }
   END_CONTRACT_SCOPE;
+}
+
+//------------------------------------------------------------------------------
+// Finish the minCellForVertex info, assuming all cells have already been locked.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Cell<Dimension>::
+lockMinCellsForVertices(vector<Cell<Dimension> >& cells) {
+  const unsigned ncells = cells.size();
+  unsigned i, j, jnew, iv, nvi, jcell;
+  for (i = 0; i != ncells; ++i) {
+    nvi = cells[i].mMinCellForVertex.size();
+    CHECK(nvi == cells[i].mNewVertices.size());
+    for (iv = 0; iv != nvi; ++iv) {
+      jcell = cells[i].mMinCellForVertex[iv].first;
+      CHECK(jcell < ncells);
+      j = cells[i].mMinCellForVertex[iv].second;
+      CHECK(j < cells[jcell].mVertexMap.size());
+      jnew = cells[jcell].mVertexMap[j];
+      CHECK(jnew < cells[jcell].mNewVertices.size());
+      cells[i].mMinCellForVertex[iv] = make_pair(jcell, jnew);
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -500,26 +489,6 @@ realNodeID(const unsigned ivertex, const unsigned ID) {
   REQUIRE(ivertex < mRealNodeIDs.size());
   REQUIRE(mRealNodeIDs.size() == mNewVertices.size());
   mRealNodeIDs[ivertex] = ID;
-}
-
-//------------------------------------------------------------------------------
-// Same as above, but using the vertex numbering of a neighboring cell.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Cell<Dimension>::
-realNodeID(const unsigned jvertex, 
-           const Cell<Dimension>& jcell,
-           const unsigned ID) {
-  REQUIRE(mRealNodeIDs.size() == mNewVertices.size());
-  REQUIRE(jvertex < jcell.mCellsForVertex.size());
-
-  // Find our vertex in the other cells set.
-  const unsigned nj = jcell.mCellsForVertex[jvertex].size();
-  const map<unsigned, unsigned>::const_iterator itr = jcell.mCellsForVertex[jvertex].find(mID);
-  CHECK(itr != jcell.mCellsForVertex[jvertex].end());
-  const unsigned ivertex = itr->second;
-  this->realNodeID(ivertex, ID);
 }
 
 //------------------------------------------------------------------------------

@@ -58,8 +58,9 @@ public:
   // The map of old -> new vertices.
   const std::vector<unsigned>& vertexMap() const;
 
-  // The set of cells and vertices in those cells that share each of our vertices.
-  const std::map<unsigned, unsigned>& cellsForVertex(const unsigned i) const;
+  // The minimum cell ID which shares the given local vertex.
+  unsigned minCellForVertex(const unsigned i) const;
+  unsigned localVertexForMinCell(const unsigned i) const;
 
   // Make cell connectivity across faces consistent.
   void cullDegenerateNeighbors(std::vector<Cell<Dimension> >& cells);
@@ -69,20 +70,20 @@ public:
   void matchFace(const unsigned iface, 
                  Cell<Dimension>& otherCell);
 
-  // Make sure any neighbors we share vertices with know about us.
-  bool distributeSharedVertices(std::vector<Cell<Dimension> >& cells);
+  // Enforce consistency in the minimum cell for each of our vertices.
+  bool findMinCellsForVertices(std::vector<Cell<Dimension> >& cells);
 
   // Finish off our internal info,so all new cell info is set.
   void lock(std::vector<Cell<Dimension> >& cells);
+
+  // Static method to lock the min cell ID for the vertices of all cells.
+  static void lockMinCellsForVertices(std::vector<Cell<Dimension> >& cells);
 
   // Access the "real" (mesh based) ID for one of our vertices.
   unsigned realNodeID(const unsigned ivertex) const;
 
   // set the "real" (mesh based) ID associated with one of our vertices.
-  // The second form assumes that the "ivertex" argument refers to the vertex
-  // ordering of "otherGen", and looks up our local corresponding vertex appropriately.
   void realNodeID(const unsigned ivertex, const unsigned ID);
-  void realNodeID(const unsigned jvertex, const Cell<Dimension>& jcell, const unsigned ID);
 
   // Dump out the basic state of the cell to a string.
   std::string dumpCell() const;
@@ -96,7 +97,7 @@ private:
   std::vector<std::vector<unsigned> > mOldFaceVertices, mNewFaceVertices;
   std::vector<unsigned> mOldNeighbors, mNewNeighbors;
   std::vector<unsigned> mVertexMap;
-  std::vector<std::map<unsigned, unsigned> > mCellsForVertex; // (jcell, jvertex)
+  std::vector<std::pair<unsigned, unsigned> > mMinCellForVertex; // (jcell, jvertex)
   std::vector<unsigned> mRealNodeIDs;
 
   // Update the vertex map so everything points to the lowest common set.
