@@ -875,7 +875,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
        ++flagSetItr) {
     const NodeList<Dimension>& nodeList = (**flagSetItr).nodeList();
     if (communicatedNodeList(nodeList)) {
-      const DomainBoundaryNodeMap& domainBoundaryNodes = accessDomainBoundaryNodeMap(nodeList);
+      const DomainBoundaryNodeMap& domainBoundaryNodes = this->accessDomainBoundaryNodeMap(nodeList);
       for (typename DomainBoundaryNodeMap::const_iterator innerItr = domainBoundaryNodes.begin();
            innerItr != domainBoundaryNodes.end();
            ++innerItr) {
@@ -896,7 +896,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
        ++flagSetItr, ++nodeListOff) {
     const NodeList<Dimension>& nodeList = (**flagSetItr).nodeList();
     if (communicatedNodeList(nodeList)) {
-      const DomainBoundaryNodeMap& domainBoundaryNodes = accessDomainBoundaryNodeMap(nodeList);
+      const DomainBoundaryNodeMap& domainBoundaryNodes = this->accessDomainBoundaryNodeMap(nodeList);
       for (typename DomainBoundaryNodeMap::const_iterator innerItr = domainBoundaryNodes.begin();
            innerItr != domainBoundaryNodes.end();
            ++innerItr) {
@@ -926,14 +926,14 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
        ++flagSetItr, ++nodeListOff) {
     const NodeList<Dimension>& nodeList = (**flagSetItr).nodeList();
     if (communicatedNodeList(nodeList)) {
-      DomainBoundaryNodeMap& domainBoundaryNodes = accessDomainBoundaryNodeMap(nodeList);
+      DomainBoundaryNodeMap& domainBoundaryNodes = this->accessDomainBoundaryNodeMap(nodeList);
 
       // Grab the flags for this NodeList.
       CHECK(flagSet.haveNodeList(nodeList));
       const Field<Dimension, int>& flags = **flagSet.fieldForNodeList(nodeList);
 
       // Go over each domain this NodeList is communicating with.
-      const BoundaryNodes& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodeList));
+      const BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodeList));
       const size_t myFirstGhostNode = (boundaryNodes.ghostNodes.size() > 0 ? boundaryNodes.ghostNodes[0] : nodeList.numNodes()) - numNodesRemoved[nodeListOff];
       size_t newGhostIndex = myFirstGhostNode;
       for (typename DomainBoundaryNodeMap::iterator innerItr = domainBoundaryNodes.begin();
@@ -994,9 +994,9 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
        ++flagSetItr, ++nodeListOff) {
     const NodeList<Dimension>& nodeList = (**flagSetItr).nodeList();
     if (communicatedNodeList(nodeList)) {
-      const BoundaryNodes& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodeList));
+      const BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodeList));
       const size_t myFirstGhostNode = (boundaryNodes.ghostNodes.size() > 0 ? boundaryNodes.ghostNodes[0] : nodeList.numNodes()) - numNodesRemovedPreviously[nodeListOff];
-      DomainBoundaryNodeMap& domainBoundaryNodes = accessDomainBoundaryNodeMap(nodeList);
+      DomainBoundaryNodeMap& domainBoundaryNodes = this->accessDomainBoundaryNodeMap(nodeList);
       for (typename DomainBoundaryNodeMap::iterator innerItr = domainBoundaryNodes.begin();
            innerItr != domainBoundaryNodes.end();
            ++innerItr) {

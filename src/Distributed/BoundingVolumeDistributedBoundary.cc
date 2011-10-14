@@ -94,7 +94,7 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   TAU_PROFILE("BoundingVolumeDistributedBoundary", "::setAllGhostNodes", TAU_USER);
 
   // Clear out the existing communication map for the given database.
-  reset(dataBase);
+  this->reset(dataBase);
 
   // Start out by determining the bounding volumes for all domains, and then intersecting
   // them to open communication maps of who talks to who.

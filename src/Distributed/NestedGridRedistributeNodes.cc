@@ -251,8 +251,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // The nodeDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
-  CHECK(validDomainDecomposition(nodeDistribution, dataBase));
-  enforceDomainDecomposition(nodeDistribution, dataBase);
+  CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
+  this->enforceDomainDecomposition(nodeDistribution, dataBase);
 
   // Output the final load distribution statistics.
   const string finalLoadStats = this->gatherDomainDistributionStatistics(work);

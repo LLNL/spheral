@@ -93,7 +93,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // which accumulates the complete sorted list.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
-  const int totalNumNodes = numGlobalNodes(dataBase);
+  const int totalNumNodes = this->numGlobalNodes(dataBase);
 
   if (procID == 0) {
 
@@ -133,7 +133,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   } else {
 
     // All other processes just send their info to process 0.
-    vector<char> encodedDistribution = packDomainNodes(localDistribution);
+    vector<char> encodedDistribution = this->packDomainNodes(localDistribution);
     int size = encodedDistribution.size();
     MPI_Send(&size, 1, MPI_INT, 0, 11, mCommunicator);
     MPI_Send(&(*encodedDistribution.begin()), size, MPI_CHAR, 0, 12, mCommunicator);
@@ -172,7 +172,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   }
 
   // Have process 0 broadcast the results to everyone.
-  vector<char> encodedDistribution = packDomainNodes(globalDistribution);
+  vector<char> encodedDistribution = this->packDomainNodes(globalDistribution);
   int size = encodedDistribution.size();
   MPI_Bcast(&size, 1, MPI_INT, 0, mCommunicator);
   if (procID > 0) encodedDistribution.resize(size);
@@ -195,7 +195,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // OK, the localDistribution now holds the desired redistribution of the nodes.
   // Go ahead and redistribute them.
-  enforceDomainDecomposition(localDistribution, dataBase);
+  this->enforceDomainDecomposition(localDistribution, dataBase);
 }
 
 }

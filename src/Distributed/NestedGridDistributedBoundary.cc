@@ -103,7 +103,7 @@ maxNumGridLevels(const DataBase<Dimension>& dataBase) const {
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
 
-    NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+    NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
     numGridLevels = max(numGridLevels, neighbor.numGridLevels());
   }
 
@@ -137,7 +137,7 @@ setGridCellInfluenceRadius(DataBase<Dimension>& dataBase,
   for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
-    NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+    NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
     if (result == 0) {
       result = neighbor.gridCellInfluenceRadius();
     } else {
@@ -175,7 +175,7 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
   for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
-    const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+    const NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
     for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
       CHECK(gridLevel < numGridLevels);
@@ -194,7 +194,7 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
        ++nodeListItr) {
 
     // Get the NestedGridNeighbor and set of occupied grid cells for this NodeList.
-    const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+    const NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
 
     // Insert these grid cell indicies into the (possibly redundant) set of occupied grid cells.
@@ -460,7 +460,7 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
 //     if (communicatedNodeList(**nodeListItr)) updateGhostNodes(**nodeListItr);
-    updateGhostNodes(**nodeListItr);
+    this->updateGhostNodes(**nodeListItr);
   }
   TAU_PROFILE_STOP(TimeNDExchangeMinimal);
 
@@ -573,7 +573,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
       for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
            nodeListItr != dataBase.nodeListEnd();
            ++nodeListItr, ++nodeListi) {
-        const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
+        const NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
 
         // Loop over the grid levels.
         for (int gridLevel = 0; gridLevel != numGridLevels; ++gridLevel) {

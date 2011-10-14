@@ -268,11 +268,11 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // Redistribute nodes between domains.
   CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
-  if (not this->localReorderOnly()) enforceDomainDecomposition(nodeDistribution, dataBase);
+  if (not this->localReorderOnly()) this->enforceDomainDecomposition(nodeDistribution, dataBase);
 
   // At this point we have the nodes on each domain, but they are not sorted locally.
   // That is the next step.  Rebuild the local sorting.
-  nodeDistribution = currentDomainDecomposition(dataBase, globalIDs);
+  nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs);
   sortedIndicies = buildIndex2IDPairs(indicies, nodeDistribution);
 
   // Extract the desired node orderings for each NodeList.

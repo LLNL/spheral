@@ -688,7 +688,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // Redistribute nodes between domains.
   TAU_PROFILE_START(TimeVenforce);
   CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
-  enforceDomainDecomposition(nodeDistribution, dataBase);
+  this->enforceDomainDecomposition(nodeDistribution, dataBase);
   TAU_PROFILE_STOP(TimeVenforce);
 
   // Reinitialize neighbor info.
