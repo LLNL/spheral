@@ -433,7 +433,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
           CHECK(edgeHash2ID.find(ehash) != edgeHash2ID.end());
           edgeIDs.push_back(edgeHash2ID[ehash]);
         }
-        CHECK(edgeIDs.size() > Cell<Dimension>::minVerticesPerFace);
+        CHECK(edgeIDs.size() >= Cell<Dimension>::minVerticesPerFace);
         mFaces.push_back(Face(*this, numFaces, igen, jgen, edgeIDs));
         zoneFaceIDs[igen].push_back(numFaces);
         if (jgen != UNSETID) zoneFaceIDs[jgen].push_back(numFaces);

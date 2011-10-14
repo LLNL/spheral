@@ -593,7 +593,7 @@ allCells(vector<Cell<Dim<3> > >& cells) const {
   typedef Dim<3> Dimension;
 
   // Clear the result.
-  cells = vector<Cell<Dimension> >();
+  cells = vector<Cell<Dimension> >(mNumGenerators);
   
   const unsigned UNSET = numeric_limits<unsigned>::max();
 
@@ -673,7 +673,7 @@ allCells(vector<Cell<Dim<3> > >& cells) const {
     CHECK(neighbors.size() == nf);
 
     // Add the Cell to the result.
-    cells.push_back(Cell<Dimension>(igen, volume, centroid, vertices, faceVertices, neighbors, mEdgeTol));
+    cells[igen] = Cell<Dimension>(igen, volume, centroid, vertices, faceVertices, neighbors, mEdgeTol);
   }
 
   // Check if all generators were created.  If not, return failure.

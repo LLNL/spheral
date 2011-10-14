@@ -26,6 +26,27 @@ using std::max;
 using std::abs;
 
 //------------------------------------------------------------------------------
+// Default constructor -- only provided for use with creating std::vector!
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Cell<Dimension>::
+Cell():
+  mID(UNSETID),
+  mVolume(0.0),
+  mMaxEdge(0.0),
+  mCentroid(),
+  mOldVertices(),
+  mNewVertices(),
+  mOldFaceVertices(),
+  mNewFaceVertices(),
+  mOldNeighbors(),
+  mNewNeighbors(),
+  mVertexMap(),
+  mCellsForVertex(),
+  mRealNodeIDs() {
+}
+
+//------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -57,6 +78,7 @@ Cell(const unsigned ID,
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(neighbors.size() == nf);
+    REQUIRE(count(neighbors.begin(), neighbors.end(), ID) == 0);
     for (iface = 0; iface != nf; ++iface) {
       REQUIRE(faceVertices[iface].size() >= minVerticesPerFace);
       BOOST_FOREACH(i, faceVertices[iface]) { REQUIRE(i < vertices.size()); }
@@ -114,6 +136,8 @@ Cell(const unsigned ID,
     ENSURE(mNewFaceVertices.size() == mOldFaceVertices.size());
     ENSURE(mOldNeighbors == neighbors);
     ENSURE(mNewNeighbors == mOldNeighbors);
+    ENSURE(count(mOldNeighbors.begin(), mOldNeighbors.end(), mID) == 0);
+    ENSURE(count(mNewNeighbors.begin(), mNewNeighbors.end(), mID) == 0);
     for (i = 0; i != mNewFaceVertices.size(); ++i) {
       ENSURE((mNewNeighbors[i] == UNSETID and mNewFaceVertices[i] == mOldFaceVertices[i]) or
              mNewFaceVertices[i].size() == 0);
@@ -158,9 +182,11 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
   CHECK(mOldFaceVertices.size() == nfi);
   for (iface = 0; iface != nfi; ++iface) {
     jcell = mNewNeighbors[iface];
+    CHECK(jcell != mID);
 
     // Check if both cells have valid info for this neighbor relation.
     if (jcell < ncells) {
+      CHECK(cells[jcell].mID == jcell);
       nfj = cells[jcell].mNewNeighbors.size();
       jface = distance(cells[jcell].mNewNeighbors.begin(),
                        find(cells[jcell].mNewNeighbors.begin(), cells[jcell].mNewNeighbors.end(), mID));
@@ -185,7 +211,7 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
           // to form a valid area, so delete the face from both cells.
           CHECK(max(nvi, nvj) < minVerticesPerFace);  // Hopefully we don't have to change the vertices!
           mNewNeighbors[iface] = DELETED;
-          cells[jcell].mNewNeighbors[iface] = DELETED;
+          cells[jcell].mNewNeighbors[jface] = DELETED;
         }
       }
     }
@@ -535,6 +561,9 @@ dumpCell() const {
   result << '\n'
          << "New neighbors: ";
   for (i = 0; i != nf1; ++i) result << mNewNeighbors[i] << " ";
+  result << '\n' << "mVertexMap: ";
+  for (i = 0; i != nv0; ++i) result << "(" << i << " " << mVertexMap[i] << ") ";
+  result << '\n';
   return result.str();
 }
 

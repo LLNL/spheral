@@ -27,6 +27,7 @@ public:
   static const unsigned minVerticesPerFace;
 
   // Constructors.
+  Cell();
   Cell(const unsigned ID,
        const double vol,
        const Vector& centroid,
