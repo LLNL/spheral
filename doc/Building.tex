@@ -51,7 +51,10 @@ Notes:
 \end{itemize}
 
 %-------------------------------------------------------------------------------
-\section{Configuration}
+\section{Detailed build instructions.}
+
+%-------------------------------------------------------------------------------
+\subsection{Generic configuration.}
 \Spheral\ uses a fairly standard autoconf based build system originally
 provided by Martin Casado.  Executing this system consists of running the
 following commands in the {\tt spheral/src} directory:
@@ -68,7 +71,7 @@ parallel enabled version of \Spheral, the compiler choices, optimization level,
 and whether or not you want the Design By Contract (DBC) correctness testing
 enabled.
 
-\subsection{Selecting whether to build a parallel or a serial code.}
+\subsubsection{Selecting whether to build a parallel or a serial code.}
 \Spheral\ defaults to building the parallel (MPI-enabled) code.  If you want to
 build the serial version only, then specify the
 \begin{itemize}
@@ -76,7 +79,7 @@ build the serial version only, then specify the
 \end{itemize}
 option.
 
-\subsection{Selecting the compiler(s)}
+\subsubsection{Selecting the compiler(s)}
 \Spheral\ depends on several compilers for different components, so we have
 tried to simplify the compiler selection process through the use of the
 \begin{itemize}
@@ -110,7 +113,7 @@ Manually select the C++ compiler to build python with.  Defaults to
 the C++ compiler selected by \verb+--with-CXX+.
 \end{itemize}
 
-\subsection{Options affecting optimization level}
+\subsubsection{Options affecting optimization level}
 Options that are useful for determining the optimization are
 \begin{itemize}
 \item \verb+--with-opt=<0,1,2,3,4,5,6>+: Select the optimization level.  Level 0
@@ -136,7 +139,7 @@ developing new code) however, it is a good idea to enable the contracts with
 price of running $\sim 5\times$ more slowly).
 \end{itemize}
 
-\subsection{Miscellaneous options}
+\subsubsection{Miscellaneous options}
 Some lesser used options that may be of interest include
 \begin{itemize}
 \item \verb+--with-debug+: Turn on debug print statements.  Beware, this is a
@@ -146,6 +149,27 @@ very verbose option!
   option causes the TAU timers to use PAPI calls on supported architectures to
   look at hardware counters.
 \end{itemize}
+
+%-------------------------------------------------------------------------------
+\subsection{Mac OS X.}
+\Spheral\ will build and run just fine on the Apple Mac architecture using
+Apple's \verb+Xcode+ compiler suite.  The following steps have proven
+successful.
+\begin{enumerate}
+\item Install Apple's \verb+Xcode+ (available in the App Store), which provides
+  the necessary compiler suite.  Unfortunately the default Apple version of
+  \verb.g++. has some RTTI problems, but the included \verb.clang++. compiler
+  works fine.
+\item Optional.  If you would like to use the parallel capabilities of
+  \Spheral\ you need to install an implementation of \verb.MPI..  The MacPorts
+  (\ref{free.sec}.\ref{Macports.sec}) project's distribution of
+  \verb.MPICH2. works well.  Be sure to install the \verb.clang. variant if you
+  use Macports as follows:
+\begin{verbatim}
+    sudo port install mpich2 +clang
+\end{verbatim}
+\item From this point you can configure and build as usual.
+\end{enumerate}
 
 \subsection{Configuration examples}
 
@@ -183,6 +207,8 @@ choices:
 
 In the sections below we show examples of configurations on several platforms in
 use at LLNL.
+
+
 
 \subsubsection{Example configuration: IBM AIX systems at LLNL}
 \label{berg.sec}
@@ -438,6 +464,10 @@ serves as the Python interface for \Spheral\ in distributed mode.
 \item\verb+TAU+: \url{http://www.cs.uoregon.edu/research/paracomp/tau/tautools/}
 \newline
 A profiling toolkit for analyzing code performance.
+
+\item\verb+Macports+: \url{http://www.macports.org/} \newline
+\label{Macports.sec}
+A collection of standard open-source Unix software for Mac OS X.
 
 \end{enumerate}
 
