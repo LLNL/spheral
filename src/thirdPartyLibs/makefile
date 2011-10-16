@@ -1091,6 +1091,7 @@ $(MPI4PYBUILDDATE):  $(PYTHONBUILDDATE) $(WILDMAGICBUILDDATE) $(MPI4PYDIST)
 	@echo "################################################################################"
 	rm -fr $(MPI4PYDIR)
 	$(GZIP) -dc $(MPI4PYDIST) | $(TAR) -xf -
+	$(PATCH) $(MPI4PYDIR)/setup.cfg mpi4py-1.2.2_setup_dot_cfg.patch
 	$(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install"
 	@if test -n "`$(PYTHONEXE) -c 'from mpi4py import MPI'`"; then \
 	echo "ERROR building mpi4py python extension."; \
