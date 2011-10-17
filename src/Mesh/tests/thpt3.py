@@ -11,3 +11,6 @@ for iz in xrange(nx):
                                         (iz + 0.5)*dx))
 
 mesh = PolyhedralMesh(generators, Vector(0,0,0), Vector(1,1,1))
+for inode in xrange(mesh.numNodes):
+    node = mesh.node(inode)
+    print str(node.position()), list(node.zoneIDs)

@@ -253,17 +253,48 @@ class PolyhedralMeshGenericTests:
                                 (izone, inode, [x for x in zoneIDs], answer[inode]))
 
     #---------------------------------------------------------------------------
+    # Test consistency of zone adjacency via node connection.
+    #---------------------------------------------------------------------------
+    def testPolyhedralZoneAdjacency(self):
+        mesh, void = generatePolyhedralMesh([self.nodes],
+                                            xmin = xmin,
+                                            xmax = xmax)
+        for izone in xrange(mesh.numZones):
+            nodeIDs = mesh.zone(izone).nodeIDs
+            for inode in nodeIDs:
+                self.failUnless(izone in mesh.node(inode).zoneIDs,
+                                "Missing zone %i in neighbors for node %i : %s" % (izone, inode, list(mesh.node(inode).zoneIDs)))
+
+    #---------------------------------------------------------------------------
     # Test the opposite zones across faces.
     #---------------------------------------------------------------------------
     def testPolyhedralMeshOppZones(self):
         mesh, void = generatePolyhedralMesh([self.nodes],
                                             xmin = xmin,
                                             xmax = xmax)
+        Px0 = Plane(Vector(x0, y0, z0), Vector( 1,  0,  0))
+        Px1 = Plane(Vector(x1, y0, z0), Vector(-1,  0,  0))
+        Py0 = Plane(Vector(x0, y0, z0), Vector( 0,  1,  0))
+        Py1 = Plane(Vector(x0, y1, z0), Vector( 0, -1,  0))
+        Pz0 = Plane(Vector(x0, y0, z0), Vector( 0,  0,  1))
+        Pz1 = Plane(Vector(x0, y0, z1), Vector( 0,  0, -1))
+
+        # answer = [[] for i in xrange(mesh.numFaces)]
+        # for izone in xrange(mesh.numZones):
+        #     faces = mesh.zone(izone).faceIDs
+        #     for iface in faces:
+        #         answer[iface].append(izone)
+
         answer = [[] for i in xrange(mesh.numFaces)]
-        for izone in xrange(mesh.numZones):
-            faces = mesh.zone(izone).faceIDs
-            for iface in faces:
-                answer[iface].append(izone)
+        zoneHulls = [mesh.zone(i).convexHull() for i in xrange(mesh.numZones)]
+        for iface in xrange(mesh.numFaces):
+            fp = mesh.face(iface).position()
+            for izone in xrange(mesh.numZones):
+                if zoneHulls[izone].convexContains(fp):
+                    answer[iface].append(izone)
+            assert len(answer[iface]) in (1,2)
+            if len(answer[iface]) == 1:
+                answer[iface].append(PolyhedralMesh.UNSETID)
 
         for iface in xrange(mesh.numFaces):
             face = mesh.face(iface)
@@ -279,6 +310,10 @@ class PolyhedralMeshGenericTests:
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
             else:
+                fp = face.position()
+                assert min([Px0.minimumDistance(fp), Px1.minimumDistance(fp),
+                            Py0.minimumDistance(fp), Py1.minimumDistance(fp),
+                            Pz0.minimumDistance(fp), Pz1.minimumDistance(fp)]) < 1.0e-8
                 assert face.oppositeZoneID(zoneIDs[0]) == PolyhedralMesh.UNSETID
 
 #===============================================================================

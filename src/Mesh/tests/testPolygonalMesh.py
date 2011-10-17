@@ -276,6 +276,19 @@ class PolygonalMeshGenericTests:
                                 (izone, inode, [x for x in zoneIDs], answer[inode]))
 
     #---------------------------------------------------------------------------
+    # Test consistency of zone adjacency via node connection.
+    #---------------------------------------------------------------------------
+    def testPolygonalZoneAdjacency(self):
+        mesh, void = generatePolygonalMesh([self.nodes],
+                                           xmin = xmin,
+                                           xmax = xmax)
+        for izone in xrange(mesh.numZones):
+            nodeIDs = mesh.zone(izone).nodeIDs
+            for inode in nodeIDs:
+                self.failUnless(izone in mesh.node(inode).zoneIDs,
+                                "Missing zone %i in neighbors for node %i : %s" % (izone, inode, list(mesh.node(inode).zoneIDs)))
+
+    #---------------------------------------------------------------------------
     # Test the opposite zones across faces.
     #---------------------------------------------------------------------------
     def testPolygonalMeshOppZones(self):
