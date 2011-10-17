@@ -375,7 +375,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
         CHECK2(k < mNodePositions.size(), k << " " << igen << " " << jgen << " " << mNodePositions.size());
         cells[igen].realNodeID(i, k);
         // cerr << igen << " COPYING real node ID " << cells[igen].realNodeID(i) << " @ " << vertices[i] << endl;
-        nodeZoneIDs[k].push_back(jgen);
+        nodeZoneIDs[k].push_back(igen);
       }
     }
   }

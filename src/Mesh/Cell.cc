@@ -330,9 +330,13 @@ findMinCellsForVertices(vector<Cell<Dimension> >& cells) {
     jgen = mMinCellForVertex[i].first;
     j = mMinCellForVertex[i].second;
     CHECK(jgen < ncells);
-    if (cells[jgen].minCellForVertex(j) != jgen) {
-      mMinCellForVertex[i] = cells[jgen].mMinCellForVertex[j];
+    if (cells[jgen].mMinCellForVertex[j] != mMinCellForVertex[i]) {
       result = false;
+      if (cells[jgen].mMinCellForVertex[j].first < jgen) {
+        mMinCellForVertex[i] = cells[jgen].mMinCellForVertex[j];
+      } else {
+        cells[jgen].mMinCellForVertex[j] = mMinCellForVertex[i];
+      }
     }
   }
   return result;
