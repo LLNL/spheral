@@ -249,7 +249,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     xmin = elementWiseMax(xmin, (**wallItr).xmin());
     xmax = elementWiseMin(xmax, (**wallItr).xmax());
   }
-  cerr << "PolyhedralMesh choosing (xmin, xmax) range to be : " << xmin << " " << xmax << endl;
+  // cerr << "PolyhedralMesh choosing (xmin, xmax) range to be : " << xmin << " " << xmax << endl;
 
   // The inverse box scale.
   const Vector box = xmax - xmin;
