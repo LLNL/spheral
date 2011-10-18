@@ -56,6 +56,9 @@ public:
          const double edgeTol = 1.0e-8);
   ~VoroPP();
 
+  // The internal scaling.
+  double scale() const;
+
   // Add a wall.
   void addBoundary(MeshWall<Dimension>& meshWall);
 
@@ -76,7 +79,7 @@ public:
 
 private:
   unsigned mNumGenerators, mNx, mNy, mNz;
-  double mEdgeTol;
+  double mEdgeTol, mScale;
   const std::vector<Vector>* mGeneratorsPtr;
   Vector mXmin, mXmax;
   boost::shared_ptr<container> mContainerPtr;
@@ -86,6 +89,10 @@ private:
                  const unsigned nx,
                  const unsigned ny,
                  const unsigned nz);
+
+  // Compute the appropriate scale factor.
+  double computeScale(const Vector& xmin,
+                      const Vector& xmax) const;
 
   // Forbidden methods.
   VoroPP();

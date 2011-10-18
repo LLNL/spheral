@@ -285,6 +285,17 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     // Read out the Voro++ data.
     badGenerators = voro.allCells(cells);
 
+//     if (badGenerators.size() > 0) {
+//       stringstream fname;
+//       fname << "BadGenerators_" << Process::getRank() << ".txt";
+//       ofstream os(fname.str().c_str());
+//       for (i = 0; i != numGens; ++i) {
+//         os << generators[i].x() << " " << generators[i].y() << " " << generators[i].z() << endl;
+//       }
+//       os.close();
+//       VERIFY(false);
+//     }
+
     // Did Voro++ miss any generators?
     if (badGenerators.size() > 0) {
       cerr << "  --> Tweaking " << badGenerators.size() << " generators..." << endl;

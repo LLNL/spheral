@@ -111,32 +111,28 @@ VoroPP(const vector<Dim<2>::Vector>& generators,
   mNy(ny),
   mNz(nz),
   mEdgeTol(edgeTol),
+  mScale(computeScale(xmin, xmax)),
   mGeneratorsPtr(&generators),
   mXmin(xmin),
   mXmax(xmax),
-  mContainerPtr(new container(xmin.x(), xmax.x(),
-                              xmin.y(), xmax.y(),
-                              0.0, 1.0, // (xmax.x() - xmin.x())/mNx,
+  mContainerPtr(new container(0.0, 1.0,
+                              0.0, 1.0,
+                              0.0, 1.0,
                               mNx, mNy, mNz,       // The number of sub-regions in each dimension.
                               false, false, false, // Periodic?
                               8)) {
   unsigned igen, ilayer, offset;
   const double dz = 1.0/NLAYERS;
   double z;
-
-//   const Vector box = xmax - xmin;
-//   const Vector boxInv = Vector(1.0/box.x(),
-//                                1.0/box.y());
+  Vector gi;
 
   // Add the generators to the container.
   for (ilayer = 0; ilayer != NLAYERS; ++ilayer) {
+    gi = (generators[igen] - xmin) / mScale;
     z = (ilayer + 0.5)*dz;
     offset = ilayer * mNumGenerators;
     for (igen = 0; igen != mNumGenerators; ++igen) {
-      mContainerPtr->put(igen + offset, generators[igen].x(), generators[igen].y(), z);
-//                          (generators[igen].x() - mXmin.x())*boxInv.x(),
-//                          (generators[igen].y() - mXmin.y())*boxInv.y(),
-//                          z);
+      mContainerPtr->put(igen + offset, gi.x(), gi.y(), z);
     }
   }
 }
@@ -159,23 +155,26 @@ VoroPP(const vector<Dim<3>::Vector>& generators,
   mNy(ny),
   mNz(nz),
   mEdgeTol(edgeTol),
+  mScale(computeScale(xmin, xmax)),
   mXmin(xmin),
   mXmax(xmax),
-  mContainerPtr(new container(xmin.x(), xmax.x(),
-                              xmin.y(), xmax.y(),
-                              xmin.z(), xmax.z(),
+  mContainerPtr(new container(0.0, 1.0,
+                              0.0, 1.0,
+                              0.0, 1.0,
                               mNx, mNy, mNz,       // The number of sub-regions in each dimension.
                               false, false, false, // Periodic?
                               8)) {
 
   unsigned i, j, k, ijk, igen, ncells = nx*ny*nz;
+  Vector gi;
 
   // Add the generators to the container.
   for (igen = 0; igen != mNumGenerators; ++igen) {
-    subRegion(generators[igen], i, j, k);
+    gi = (generators[igen] - xmin) / mScale;
+    subRegion(gi, i, j, k);
     ijk = i + nx*(j + ny*k);
     CHECK(ijk < ncells);
-    mContainerPtr->put(igen, generators[igen].x(), generators[igen].y(), generators[igen].z());
+    mContainerPtr->put(igen, gi.x(), gi.y(), gi.z());
   }
 }
 
@@ -187,6 +186,16 @@ VoroPP<Dimension>::
 ~VoroPP() {
   ENSURE(mContainerPtr.use_count() == 1);
   mContainerPtr->clear();
+}
+
+//------------------------------------------------------------------------------
+// Return the scaling factor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+VoroPP<Dimension>::
+scale() const {
+  return mScale;
 }
 
 //------------------------------------------------------------------------------
@@ -511,6 +520,16 @@ allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
     }
   }
 
+  // Scale back to the input geometry.
+  const double Vscale = mScale*mScale;
+  for (igen = 0; igen != mNumGenerators; ++igen) {
+    for (i = 0; i != cellVertices[igen].size(); ++i) {
+      cellVertices[igen][i] = cellVertices[igen][i]*mScale + mXmin;
+    }
+    cellVolumes[igen] *= Vscale;
+    cellCentroids[igen] = cellCentroids[igen]*mScale + mXmin;
+  }
+
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
@@ -602,14 +621,15 @@ allCells(vector<Cell<Dim<3> > >& cells) const {
   ostringstream oss;
   mContainerPtr->print_all_custom("%i %w %P %s %t %v %C %n", oss);
   const string everything = oss.str();
-  // cerr << "Everything:  " << endl
-  //      << everything << endl;
+//   cerr << "Everything:  " << endl
+//        << everything << endl;
   if (Process::getRank() == 0) cerr << "VoroPP:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to call print_all_custom with "
                                     << mNumGenerators << " generators." << endl;
   mContainerPtr->clear();
 
+  const double Vscale = mScale*mScale*mScale;
   vector<unsigned> flagsMe(mNumGenerators, 0), result;
 
   // Read out the cell by cell stuff from the string.
@@ -643,6 +663,7 @@ allCells(vector<Cell<Dim<3> > >& cells) const {
       iss >> vvec;
       vertices.push_back(Vector());
       vvec.fillVector(vertices.back());
+      vertices.back() = vertices.back()*mScale + mXmin;
     }
     CHECK(vertices.size() == nv);
 
@@ -658,10 +679,11 @@ allCells(vector<Cell<Dim<3> > >& cells) const {
 
     // Get the volume of the cell.
     iss >> volume;
+    volume *= Vscale;
 
     // Get the centroid.
     iss >> xc >> yc >> zc;
-    centroid = Vector(xc, yc, zc);
+    centroid = Vector(xc, yc, zc)*mScale + mXmin;
 
     // Finally the set of neighbor generators.
     neighbors = vector<unsigned>();
@@ -698,14 +720,25 @@ template<typename Dimension>
 void
 VoroPP<Dimension>::
 subRegion(const typename Dimension::Vector& p, unsigned& i, unsigned& j, unsigned& k) const {
-  REQUIRE2(testPointInBox(p, mXmin, mXmax),
+  REQUIRE2(testPointInBox(p, Vector(0,0,0), Vector(1,1,1)),
            "Point not in box:  " << p << " not in [" << mXmin << ", " << mXmax << "]");
-  const Vector3d deltaInv(mNx*safeInv(mXmax.x() - mXmin.x()),
-                          mNy*safeInv(mXmax.y() - mXmin.y()),
-                          mNz*safeInv(mXmax.z() - mXmin.z()));
-  i = max(0U, min(mNx - 1, unsigned((p.x() - mXmin.x())*deltaInv.x())));
-  j = max(0U, min(mNy - 1, unsigned((p.y() - mXmin.y())*deltaInv.y())));
-  k = max(0U, min(mNz - 1, unsigned((p.z() - mXmin.z())*deltaInv.z())));
+  const Vector3d deltaInv(mNx, mNy, mNz);
+  i = max(0U, min(mNx - 1, unsigned(p.x()*deltaInv.x())));
+  j = max(0U, min(mNy - 1, unsigned(p.y()*deltaInv.y())));
+  k = max(0U, min(mNz - 1, unsigned(p.z()*deltaInv.z())));
+}
+
+//------------------------------------------------------------------------------
+// Compute the scaling factor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+VoroPP<Dimension>::
+computeScale(const typename Dimension::Vector& xmin,
+             const typename Dimension::Vector& xmax) const {
+  const double f = (xmax - xmin).maxElement();
+  REQUIRE(f > 1.0e-10);
+  return f;
 }
 
 //------------------------------------------------------------------------------
