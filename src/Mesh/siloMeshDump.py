@@ -240,7 +240,7 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
             assert len(faceNodes[-1]) == face.numNodes
 
             # DEBUG!
-            if True:
+            if False:
                 xf = face.position()
                 fhat = face.unitNormal()
                 for i in xrange(len(faceNodes[-1])):
@@ -269,7 +269,7 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         # DEBUG!
         # Check that the zone faces are correctly oriented (outward normals).
         # As written this checking code assumes convex faces and zones.
-        if True:
+        if False:
             for zid in xrange(mesh.numZones):
                 xz = mesh.zone(zid).position()
                 zfids = zoneFaces[zid]

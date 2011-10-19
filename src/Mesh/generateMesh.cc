@@ -63,8 +63,7 @@ generateMesh(const NodeListIterator nodeListBegin,
   vector<SymTensor> Hs;
   vector<unsigned> offsets;
   if (generateVoid or removeBoundaryZones) {
-    // if (Process::getRank() == 0)
- cerr << "Computing void nodes" << endl;
+    if (Process::getRank() == 0)  cerr << "Computing void nodes" << endl;
     computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                      boundaryBegin, boundaryEnd,
                                                                      xmin, xmax, generators, Hs, offsets);
@@ -80,14 +79,12 @@ generateMesh(const NodeListIterator nodeListBegin,
 
   // Extract the set of generators this domain needs (including any parallel neighbors).
   // This method gives us both the positions and Hs for the generators.
-  // if (Process::getRank() == 0) 
-cerr << "Computing generators" << endl;
+  if (Process::getRank() == 0) cerr << "Computing generators" << endl;
   computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                    boundaryBegin, boundaryEnd,
                                                                    xmin, xmax, generators, Hs, offsets);
   MPI_Barrier(MPI_COMM_WORLD);
-//   if (Process::getRank() == 0) 
-cerr << "generateMesh:: required " 
+  if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct generators." << endl;
 
@@ -95,8 +92,7 @@ cerr << "generateMesh:: required "
   t0 = Timing::currentTime();
   mesh.reconstruct(generators, xmin, xmax, boundaryBegin, boundaryEnd);
   CHECK(mesh.numZones() == generators.size());
-//   if (Process::getRank() == 0)
- cerr << "generateMesh:: required " 
+  if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh." << endl;
 
@@ -122,8 +118,7 @@ cerr << "generateMesh:: required "
     voidNodes.numInternalNodes(0);
     offsets.back() = mesh.numZones();
   }
-//   if (Process::getRank() == 0) 
-cerr << "generateMesh:: required " 
+  if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to remove boundary elements." << endl;
 
@@ -132,8 +127,7 @@ cerr << "generateMesh:: required "
   if (generateParallelConnectivity) {
     t0 = Timing::currentTime();
     mesh.generateDomainInfo();
-//     if (Process::getRank() == 0) 
-cerr << "generateMesh:: required " 
+    if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                       << Timing::difference(t0, Timing::currentTime())
                                       << " seconds to generate parallel connectivity." << endl;
   }
