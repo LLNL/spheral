@@ -11,7 +11,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "Utilities/boundingVolumes.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -59,9 +59,9 @@ update(const KeyType& key,
   // Find the global bounding box.
   Vector xmin, xmax;
   const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
-  boundingBox<Dimension>(positions, xmin, xmax, 
-                         false,      // ghost points
-                         true);      // quantize results
+  globalBoundingBox<Dimension>(positions, xmin, xmax, 
+                               false,      // ghost points
+                               true);      // quantize results
 
   // Puff things up a bit.
   const Vector delta = xmax - xmin;

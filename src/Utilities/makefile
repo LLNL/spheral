@@ -18,7 +18,8 @@ SRCTARGETS = \
 	spheralWildMagicConverters.cc \
 	orientedBoundingBox.cc \
 	nodeBoundingBoxes.cc \
-	boundingVolumes.cc \
+	boundingBox.cc \
+	globalBoundingVolumes.cc \
 	lineSegmentIntersections.cc \
 	pointDistances.cc \
 	integrateThroughMeshAlongSegment.cc \

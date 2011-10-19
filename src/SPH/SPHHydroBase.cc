@@ -40,7 +40,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/boundingVolumes.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 
@@ -1012,9 +1012,9 @@ updateVolume(State<Dimension>& state,
   // Find the global bounding box.
   Vector xmin, xmax;
   const FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
-  boundingBox<Dimension>(positions, xmin, xmax, 
-                         false,      // ghost points
-                         false);      // quantize results
+  globalBoundingBox<Dimension>(positions, xmin, xmax, 
+                               false,      // ghost points
+                               false);     // quantize results
 
   // Puff things up a bit.
   const Vector delta = 0.1*(xmax - xmin);

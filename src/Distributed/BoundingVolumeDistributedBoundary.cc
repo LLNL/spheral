@@ -22,7 +22,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/orientedBoundingBox.hh"
 #include "Utilities/nodeBoundingBoxes.hh"
-#include "Utilities/boundingVolumes.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packWMElement.hh"
 #include "DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
@@ -145,7 +145,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   TAU_PROFILE_START(TimeBVcomputeBV);
   typedef typename Dimension::ConvexHull ConvexHull;
   vector<ConvexHull> domainNodeBoundingVolume(numProcs), domainSampleBoundingVolume(numProcs);
-  boundingVolumes(dataBase, domainNodeBoundingVolume[procID], domainSampleBoundingVolume[procID]);
+  globalBoundingVolumes(dataBase, domainNodeBoundingVolume[procID], domainSampleBoundingVolume[procID]);
   TAU_PROFILE_STOP(TimeBVcomputeBV);
 
   // Globally exchange the bounding polyhedra.

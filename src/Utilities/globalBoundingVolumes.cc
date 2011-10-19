@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// boundingVolumes
+// globalBoundingVolumes
 //
 // Compute minimum bounding volumes (convex hull) for the nodes and their 
 // sampling extents in the given DataBase.
@@ -12,12 +12,14 @@
 #include <vector>
 #include <algorithm>
 
+#include "Wm5ContBox2.h"
+#include "Wm5ContBox3.h"
+
 #include "orientedBoundingBox.hh"
 #include "spheralWildMagicConverters.hh"
 #include "DataBase/DataBase.hh"
 #include "Utilities/allReduce.hh"
-#include "Wm5ContBox2.h"
-#include "Wm5ContBox3.h"
+#include "Geometry/Dimension.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -84,15 +86,16 @@ appendSamplingPositions(const Dim<3>::Vector& position,
 }
 
 //------------------------------------------------------------------------------
-// Compute the minimum volume box containing all the nodes in the DataBase.
+// Compute the minimum volume box containing all the points in a FieldList of
+// positions.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
-            typename Dimension::Vector& xmin,
-            typename Dimension::Vector& xmax,
-            const bool ghost,
-            const bool quantize) {
+globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
+                  typename Dimension::Vector& xmin,
+                  typename Dimension::Vector& xmax,
+                  const bool ghost,
+                  const bool quantize) {
   typedef typename Dimension::Vector Vector;
 
   // Find our local bounds.
@@ -129,9 +132,9 @@ boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-boundingVolumes(const DataBase<Dimension>& dataBase,
-                typename Dimension::ConvexHull& nodeVolume,
-                typename Dimension::ConvexHull& sampleVolume) {
+globalBoundingVolumes(const DataBase<Dimension>& dataBase,
+                      typename Dimension::ConvexHull& nodeVolume,
+                      typename Dimension::ConvexHull& sampleVolume) {
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::ConvexHull ConvexHull;
 
@@ -173,24 +176,24 @@ boundingVolumes(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 namespace Spheral {
 
-template void boundingBox(const FieldList<Dim<1>, Dim<1>::Vector>& positions,
-                          Dim<1>::Vector& xmin,
-                          Dim<1>::Vector& xmax,
-                          const bool ghost,
-                          const bool quantize);
-template void boundingBox(const FieldList<Dim<2>, Dim<2>::Vector>& positions,
-                          Dim<2>::Vector& xmin,
-                          Dim<2>::Vector& xmax,
-                          const bool ghost,
-                          const bool quantize);
-template void boundingBox(const FieldList<Dim<3>, Dim<3>::Vector>& positions,
-                          Dim<3>::Vector& xmin,
-                          Dim<3>::Vector& xmax,
-                          const bool ghost,
-                          const bool quantize);
+template void globalBoundingBox(const FieldList<Dim<1>, Dim<1>::Vector>& positions,
+                                Dim<1>::Vector& xmin,
+                                Dim<1>::Vector& xmax,
+                                const bool ghost,
+                                const bool quantize);
+template void globalBoundingBox(const FieldList<Dim<2>, Dim<2>::Vector>& positions,
+                                Dim<2>::Vector& xmin,
+                                Dim<2>::Vector& xmax,
+                                const bool ghost,
+                                const bool quantize);
+template void globalBoundingBox(const FieldList<Dim<3>, Dim<3>::Vector>& positions,
+                                Dim<3>::Vector& xmin,
+                                Dim<3>::Vector& xmax,
+                                const bool ghost,
+                                const bool quantize);
 
-template void boundingVolumes<Dim<1> >(const DataBase<Dim<1> >& dataBase, Dim<1>::ConvexHull& nodeVolume, Dim<1>::ConvexHull& sampleVolume);
-template void boundingVolumes<Dim<2> >(const DataBase<Dim<2> >& dataBase, Dim<2>::ConvexHull& nodeVolume, Dim<2>::ConvexHull& sampleVolume);
-template void boundingVolumes<Dim<3> >(const DataBase<Dim<3> >& dataBase, Dim<3>::ConvexHull& nodeVolume, Dim<3>::ConvexHull& sampleVolume);
+template void globalBoundingVolumes<Dim<1> >(const DataBase<Dim<1> >& dataBase, Dim<1>::ConvexHull& nodeVolume, Dim<1>::ConvexHull& sampleVolume);
+template void globalBoundingVolumes<Dim<2> >(const DataBase<Dim<2> >& dataBase, Dim<2>::ConvexHull& nodeVolume, Dim<2>::ConvexHull& sampleVolume);
+template void globalBoundingVolumes<Dim<3> >(const DataBase<Dim<3> >& dataBase, Dim<3>::ConvexHull& nodeVolume, Dim<3>::ConvexHull& sampleVolume);
 
 }

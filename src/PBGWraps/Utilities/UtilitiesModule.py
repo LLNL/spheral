@@ -98,16 +98,24 @@ Spheral.add_function("orientedBounding%(name)s", None,
                                          ("2d", "Polygon", "Vector2d", "Dim<2>"),
                                          ("3d", "Polyhedron", "Vector3d", "Dim<3>")):
             exec("""
-Spheral.add_function("boundingBox", None, [constrefparam("Spheral::FieldSpace::VectorFieldList%(dim)s", "positions"),
+Spheral.add_function("boundingBox", None, [constrefparam("vector_of_%(vector)s", "positions"),
                                            refparam("%(vector)s", "xmin"),
                                            refparam("%(vector)s", "xmax"),
-                                           param("bool", "ghost", default_value="false"),
                                            param("bool", "quantize", default_value="true")],
-                                           template_parameters=["%(inst)s"],
-                                           custom_name="boundingVolume")
-Spheral.add_function("boundingVolumes%(dim)s", None, [constrefparam("DataBase%(dim)s", "dataBase"),
-                                                      refparam("%(value)s", "nodeVolume"),
-                                                      refparam("%(value)s", "sampleVolume")])
+                                           template_parameters = ["%(vector)s"],
+                                           custom_name = "boundingBox")
+Spheral.add_function("globalBoundingBox", None, [constrefparam("Spheral::FieldSpace::VectorFieldList%(dim)s", "positions"),
+                                                 refparam("%(vector)s", "xmin"),
+                                                 refparam("%(vector)s", "xmax"),
+                                                 param("bool", "ghost", default_value="false"),
+                                                 param("bool", "quantize", default_value="true")],
+                                                 template_parameters = ["%(inst)s"],
+                                                 custom_name = "globalBoundingBox")
+Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(dim)s", "dataBase"),
+                                                     refparam("%(value)s", "nodeVolume"),
+                                                     refparam("%(value)s", "sampleVolume")],
+                                                     template_parameters = ["%(inst)s"],
+                                                     custom_name = "globalBoundingVolumes")
 """ % {"dim" : dim, "value" : value, "vector" : vector, "inst" : inst})
 
         # Stuff that depends on dimension.

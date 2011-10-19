@@ -17,7 +17,7 @@
 #include "Utilities/safeInv.hh"
 #include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Utilities/boundingVolumes.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/allReduce.hh"
 
 #include "DBC.hh"
@@ -1037,7 +1037,7 @@ boundingBox(typename Dimension::Vector& xmin,
   // This method is now exported to an external stand-alone.  Maintained here
   // for backwards compatibility.
   const FieldList<Dimension, Vector> positions = this->globalPosition();
-  Spheral::boundingBox(positions, xmin, xmax, ghost, quantize);
+  Spheral::globalBoundingBox(positions, xmin, xmax, ghost, quantize);
 }
 
 //------------------------------------------------------------------------------

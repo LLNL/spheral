@@ -120,6 +120,9 @@ class PolyhedralMeshGenericTests:
         for i in xrange(mesh.numZones):
             zone = mesh.zone(i)
             assert zone.ID == i
+        sys.stderr.write("BARRIER...")
+        mpi.barrier()
+        sys.stderr.write("DONE")
         return
 
     #---------------------------------------------------------------------------
@@ -427,7 +430,9 @@ class RandomPolyhedralMeshTests(unittest.TestCase, PolyhedralMeshGenericTests):
             xyznodes_all.append(Vector((ix + 0.5)*dxcell, (iy + 0.5)*dycell, (iz + 0.5)*dzcell))
             occupiedCells.add(i)
         assert len(occupiedCells) == n
+        sys.stderr.write("%i doing setup.bcast!\n" % mpi.rank)
         xyznodes_all = mpi.bcast(xyznodes_all)
+        sys.stderr.write("%i FINISHED setup.bcast!\n" % mpi.rank)
         xyznodes = [v for v in xyznodes_all if testPointInBox(v, xminproc, xmaxproc)]
         dxavg = (x1 - x0)/nx
         dyavg = (y1 - y0)/ny

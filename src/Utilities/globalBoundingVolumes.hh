@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// boundingVolumes
+// globalBoundingVolumes
 //
 // Compute minimum bounding volumes (convex hull) for the nodes and their 
 // sampling extents in the given DataBase.
@@ -9,8 +9,8 @@
 //
 // Created by JMO, Sun Jan 31 19:53:36 PST 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_boundingVolumes__
-#define __Spheral_boundingVolumes__
+#ifndef __Spheral_globalBoundingVolumes__
+#define __Spheral_globalBoundingVolumes__
 
 #include <vector>
 #include "Geometry/Dimension.hh"
@@ -24,21 +24,21 @@ namespace Spheral {
 
 namespace Spheral {
 
-// Minimum bounding box for a set of positions.
+// Minimum bounding box for a FieldList of positions.
 template<typename Dimension>
 void
-boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
-            typename Dimension::Vector& xmin,
-            typename Dimension::Vector& xmax,
-            const bool ghost = false,
-            const bool quantize = true);
+globalBoundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+                  typename Dimension::Vector& xmin,
+                  typename Dimension::Vector& xmax,
+                  const bool ghost = false,
+                  const bool quantize = true);
 
 // Minimum volume FacetedVolume for DataBases.
 template<typename Dimension>
 void 
-boundingVolumes(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                typename Dimension::ConvexHull& nodeVolume,
-                typename Dimension::ConvexHull& sampleVolume);
+globalBoundingVolumes(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                      typename Dimension::ConvexHull& nodeVolume,
+                      typename Dimension::ConvexHull& sampleVolume);
 
 }
 

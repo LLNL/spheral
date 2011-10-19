@@ -11,7 +11,8 @@
 #include "Utilities/mortonOrderIndicies.hh"
 #include "Utilities/peanoHilbertOrderIndicies.hh"
 #include "Utilities/orientedBoundingBox.hh"
-#include "Utilities/boundingVolumes.hh"
+#include "Utilities/boundingBox.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/pointDistances.hh"
@@ -243,33 +244,6 @@ orientedBoundingBox3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
                       Dim<3>::Box& nodeBox,
                       Dim<3>::Box& sampleBox) {
   return orientedBoundingBox(dataBase, nodeBox, sampleBox);
-}
-
-//------------------------------------------------------------------------------
-// Disambiguate the boundingVolumes.
-//------------------------------------------------------------------------------
-inline
-void
-boundingVolumes1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase,
-                  Dim<1>::ConvexHull& nodeVolume,
-                  Dim<1>::ConvexHull& sampleVolume) {
-  boundingVolumes(dataBase, nodeVolume, sampleVolume);
-}
-
-inline
-void
-boundingVolumes2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase,
-                  Dim<2>::ConvexHull& nodeVolume,
-                  Dim<2>::ConvexHull& sampleVolume) {
-  boundingVolumes(dataBase, nodeVolume, sampleVolume);
-}
-
-inline
-void
-boundingVolumes3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
-                  Dim<3>::ConvexHull& nodeVolume,
-                  Dim<3>::ConvexHull& sampleVolume) {
-  boundingVolumes(dataBase, nodeVolume, sampleVolume);
 }
 
 //------------------------------------------------------------------------------

@@ -177,7 +177,8 @@ computeGenerators(NodeListIterator nodeListBegin,
   if (numDomains > 1) {
 
     // Compute the convex hull of each domain, and distribute them to everyone.
-//     if (Process::getRank() == 0) cerr << "Computing and broadcasting local hulls of domains." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "Computing and broadcasting local hulls of domains." << endl;
     const ConvexHull localHull(localPositions);
     vector<ConvexHull> domainHulls(numDomains, localHull);
     vector<unsigned> domainZoneOffset(1, 0);
@@ -200,7 +201,8 @@ computeGenerators(NodeListIterator nodeListBegin,
     CHECK(domainZoneOffset.size() == numDomains + 1);
 
     // Create a mesh of the hull points for all domains.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Computing mesh of union of local hulls." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Computing mesh of union of local hulls." << endl;
     vector<Vector> hullGenerators;
     for (unsigned k = 0; k != domainHulls.size(); ++k) {
       const vector<Vector>& hullVertices = domainHulls[k].vertices();
@@ -214,14 +216,16 @@ computeGenerators(NodeListIterator nodeListBegin,
     set<unsigned> neighborSet;
 
     // First any hulls that intersect ours.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Checking for hulls that intersect local." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Checking for hulls that intersect local." << endl;
     for (unsigned otherProc = 0; otherProc != numDomains; ++otherProc) {
       if (otherProc != rank and
           localHull.intersect(domainHulls[otherProc])) neighborSet.insert(otherProc);
     }
 
     // Now any hulls that have elements adjacent to ours in the hull mesh.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Checking for hulls adjacent in mesh." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Checking for hulls adjacent in mesh." << endl;
     for (unsigned izone = domainZoneOffset[rank];
          izone != domainZoneOffset[rank + 1];
          ++izone) {
@@ -278,7 +282,8 @@ computeGenerators(NodeListIterator nodeListBegin,
     for (unsigned i = 0; i != nlocal; ++i) localZoneHulls.push_back(localMesh.zone(i).convexHull());
 
     // Now we have to determine which of our generators go to each neighbor.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Sending local generators to neighbors." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Sending local generators to neighbors." << endl;
     list<vector<char> > localBuffers;
     list<unsigned> localBufSizes;
     vector<MPI_Request> sendRequests(2*neighborDomains.size());
@@ -301,7 +306,8 @@ computeGenerators(NodeListIterator nodeListBegin,
           }
         }
       }
-//       if (Process::getRank() == 0) cerr << "    computeGenerators:  " << Process::getRank() << "->" << otherProc << " sending " << sendGenIDs.size() << " of " << localPositions.size() << endl;
+//       if (Process::getRank() == 0) 
+cerr << "    computeGenerators:  " << Process::getRank() << "->" << otherProc << " sending " << sendGenIDs.size() << " of " << localPositions.size() << endl;
 
       // Pack up the local generators we're sending.
       vector<Vector> sendgens;
@@ -333,7 +339,8 @@ computeGenerators(NodeListIterator nodeListBegin,
     }
 
     // Get the info from each of our neighbors and append it to the result.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Receiving neighbor generators." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Receiving neighbor generators." << endl;
     for (unsigned k = 0; k != neighborDomains.size(); ++k) {
       const unsigned recvProc = neighborDomains[k];
       unsigned bufSize;
@@ -349,7 +356,8 @@ computeGenerators(NodeListIterator nodeListBegin,
     }
 
     // Make sure all our sends are completed.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Done." << endl;
+//     if (Process::getRank() == 0) 
+cerr << "computeGenerators:  Done." << endl;
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
   }

@@ -13,6 +13,7 @@
 #include "GeomPolyhedron.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
+#include "Utilities/boundingBox.hh"
 #include "Utilities/comparisons.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
@@ -50,15 +51,22 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   if (points.size() > 0) {
     REQUIRE(points.size() > 3);
 
+    // Find the appropriate renormalization so that we can give Qhull points
+    // in a unit box.  Qhull just seems to work better this way.
+    Vector xmin, xmax;
+    boundingBox(points, xmin, xmax, false);
+    const double fscale = (xmax - xmin).maxElement();
+    CHECK(fscale > 0.0);
+
     // Copy the point coordinates to a Qhull point array.
     std::vector<coordT> points_qhull;
     points_qhull.reserve(3 * points.size());
     for (vector<Vector>::const_iterator itr = points.begin();
          itr != points.end();
          ++itr) {
-      points_qhull.push_back(itr->x());
-      points_qhull.push_back(itr->y());
-      points_qhull.push_back(itr->z());
+      points_qhull.push_back((itr->x() - xmin.x())/fscale);
+      points_qhull.push_back((itr->y() - xmin.y())/fscale);
+      points_qhull.push_back((itr->z() - xmin.z())/fscale);
     }
     CHECK(points_qhull.size() == 3*points.size());
 
@@ -75,19 +83,19 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     sprintf(flags, "qhull s"); // Tcv");
     const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, mDevnull, mDevnull);
 
-//     if (exitcode_qhull != 0) {
-//       // Something didn't work, so spit out the points for diagnostics.
-//       vector<pair<double, Vector> > sorted_points;
-//       for (vector<Vector>::const_iterator itr = points.begin();
-//            itr != points.end();
-//            ++itr) sorted_points.push_back(make_pair(itr->magnitude(), *itr));
-//       sort(sorted_points.begin(), sorted_points.end(), ComparePairByFirstElement<pair<double, Vector> >());
-//       for (size_t k = 0; k != sorted_points.size(); ++k) cerr << "    -----> " << sorted_points[k].first << " " << sorted_points[k].second << endl;
+    if (exitcode_qhull != 0) {
+      // Something didn't work, so spit out the points for diagnostics.
+      vector<pair<double, Vector> > sorted_points;
+      for (vector<Vector>::const_iterator itr = points.begin();
+           itr != points.end();
+           ++itr) sorted_points.push_back(make_pair(itr->magnitude(), *itr));
+      sort(sorted_points.begin(), sorted_points.end(), ComparePairByFirstElement<pair<double, Vector> >());
+      for (size_t k = 0; k != sorted_points.size(); ++k) cerr << "    -----> " << sorted_points[k].first << " " << sorted_points[k].second << endl;
 
-//       // Emit the error message by calling qhull again.
-//       FILE *errfile= stderr;    /* error messages from qhull code */
-//       const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, errfile, errfile);
-//     }
+      // Emit the error message by calling qhull again.
+      FILE *errfile= stderr;    /* error messages from qhull code */
+      const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, errfile, errfile);
+    }
     VERIFY2(exitcode_qhull == 0,
             "Qhull emitted an error code while generating GeomPolyhedron");
 
@@ -97,7 +105,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     {
       unsigned i = 0;
       FORALLvertices {
-        mVertices.push_back(Vector(vertex->point[0], vertex->point[1], vertex->point[2]));
+        mVertices.push_back(fscale*Vector(vertex->point[0], vertex->point[1], vertex->point[2]) + xmin);
         vertexIDmap[vertex->id] = i;
         ++i;
       }
@@ -569,14 +577,7 @@ operator!=(const GeomPolyhedron& rhs) const {
 void
 GeomPolyhedron::
 setBoundingBox() {
-  mXmin = DBL_MAX;
-  mXmax = -DBL_MAX;
-  for (vector<Vector>::const_iterator itr = mVertices.begin();
-       itr != mVertices.end();
-       ++itr) {
-    mXmin = elementWiseMin(mXmin, *itr);
-    mXmax = elementWiseMax(mXmax, *itr);
-  }
+  boundingBox(mVertices, mXmin, mXmax, false);
 }
 
 //------------------------------------------------------------------------------
