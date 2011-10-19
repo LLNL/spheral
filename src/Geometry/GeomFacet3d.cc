@@ -56,6 +56,7 @@ area() const {
     j = (i + 1) % npts;
     result += (point(i) - cent).cross(point(j) - cent).magnitude();
   }
+  result *= 0.5;
   ENSURE(result >= 0.0);
   return result;
 }
