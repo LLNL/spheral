@@ -1,0 +1,206 @@
+//---------------------------------Spheral++----------------------------------//
+// Physics -- The topmost abstract base class for all physics packages in
+// Spheral++.  Physics defines the methods generic to all physics classes,
+// but leaves specialized interfaces for particular types of physics (radiative vs.
+// hydro, etc.) to a descendent interface class, Physics.
+//----------------------------------------------------------------------------//
+#include "Physics.hh"
+#include "Boundary/Boundary.hh"
+#include "cdebug.hh"
+
+namespace Spheral {
+namespace PhysicsSpace {
+
+using namespace std;
+using DataBaseSpace::DataBase;
+using BoundarySpace::Boundary;
+
+//------------------------------------------------------------------------------
+// Default constructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Physics<Dimension>::
+Physics():
+  mBoundaryConditions(0) {
+  cdebug << "Physics::Physics()" << endl;
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Physics<Dimension>::
+~Physics() {
+  cdebug << "Physics::~Physics()" << endl;
+}
+
+//------------------------------------------------------------------------------
+// Add a Boundary condition to the end of the current boundary list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+appendBoundary(Boundary<Dimension>& boundary) {
+  cdebug << "Physics::appendBoundary" << endl;
+//   if (!haveBoundary(boundary)) {
+    mBoundaryConditions.push_back(&boundary);
+//   } else {
+//     cerr << "Warning: attempt to append Boundary condition " << &boundary
+//          << "to Physics " << this << " which already has it." << endl;
+//   }
+}
+
+//------------------------------------------------------------------------------
+// Add a Boundary condition to the beginning of the current boundary list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+prependBoundary(Boundary<Dimension>& boundary) {
+  cdebug << "Physics::prependBoundary" << endl;
+//   if (!haveBoundary(boundary)) {
+    mBoundaryConditions.insert(mBoundaryConditions.begin(), &boundary);
+//   } else {
+//     cerr << "Warning: attempt to prepend Boundary condition " << &boundary
+//          << "to Physics " << this << " which already has it." << endl;
+//   }
+}
+
+//------------------------------------------------------------------------------
+// Clear (erase) the boundary condition list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+clearBoundaries() {
+  cdebug << "Physics::clearBoundaries" << endl;
+  mBoundaryConditions = vector<Boundary<Dimension>*>();
+}
+
+//------------------------------------------------------------------------------
+// Test if the given Boundary condition is listed in the physics package.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+Physics<Dimension>::
+haveBoundary(const Boundary<Dimension>& boundary) const {
+  cdebug << "Physics::haveBoundary" << endl;
+  return std::count(mBoundaryConditions.begin(), mBoundaryConditions.end(), &boundary) > 0;
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op ghost boundary method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op enforce boundary method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op problem startup initialization method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op initialization method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+initialize(const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op finalization method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+finalize(const typename Dimension::Scalar time,
+         const typename Dimension::Scalar dt,
+         DataBase<Dimension>& dataBase,
+         State<Dimension>& state,
+         StateDerivatives<Dimension>& derivs) {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op finalizeDerivatives method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+finalizeDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default no-op postStateUpdate method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+postStateUpdate(const DataBase<Dimension>& dataBase, 
+                State<Dimension>& state,
+                const StateDerivatives<Dimension>& derivs) const {
+}
+
+//------------------------------------------------------------------------------
+// Provide a default method for the extraEnergy method, which will return 0.0
+// for classes that don't have their own energy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+Physics<Dimension>::
+extraEnergy() const {
+  return 0.0;
+}
+
+//------------------------------------------------------------------------------
+// Provide a default method for the extraMomentum method, which will return 
+// the zero vector for classes that don't have their own momentum.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Vector
+Physics<Dimension>::
+extraMomentum() const {
+  return typename Dimension::Vector();
+}
+
+}
+}
+
+//------------------------------------------------------------------------------
+// Explict instantiation.
+//------------------------------------------------------------------------------
+#include "Geometry/Dimension.hh"
+
+namespace Spheral {
+namespace PhysicsSpace {
+template class Physics<Dim<1> >;
+template class Physics<Dim<2> >;
+template class Physics<Dim<3> >;
+}
+}

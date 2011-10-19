@@ -1,0 +1,37 @@
+# -*-makefile-*-
+# Spheral++ BPLWraps makefile
+#-------------------------------------------------------------------------------
+SPHERALTOP = ../
+comma:= ,
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master
+
+#-------------------------------------------------------------------------------
+all:		Spheralmodules Spheral.pth
+
+force_build:
+
+Spheral.pth:	force_build
+	cp -f Spheral.pth $(LIBDIR)/..
+
+pystecompileall:  force_build
+	$(PYTHONEXE) $(SPHERALDIR)/lib/python$(PYTHONVERSION)/compileall.py Pyste
+
+$(PKGIMPMODFILES): pystecompileall
+	$(MAKE) -C $(@D) $(@F)
+
+Spheralmodules:  $(BPLPKGS)
+	$(MAKE) -C Spheralmodules all
+
+$(BPLPKGS):	$(PKGIMPMODFILES) force_build
+	$(MAKE) -C $@ all
+
+DistributedMake: force_build
+	@SUBMITDISTRIBUTEDMAKE@ @PYMPI@ $(SRCTOP)/helpers/DistributedMake @DISTRIBUTEDMAKEOPTS@ buildDirectories='$(patsubst %, "%"$(comma), $(BPLPKGS))'
+	$(MAKE) all
+
+clean: 
+	for pckg in $(BPLPKGS); do \
+	(cd $$pckg; $(MAKE) clean; rm -f *.so *.d; rm -f $(PYSTEDATE));\
+	done

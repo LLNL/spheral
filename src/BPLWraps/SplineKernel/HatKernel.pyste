@@ -1,0 +1,9 @@
+HatKernel = Template("Spheral::KernelSpace::HatKernel",
+                     "ExtendHatKernel.hh")
+exclude(HatKernel.asDescendent)
+
+final(HatKernel.valid)
+
+HatKernel1d = HatKernel("Spheral::Dim<1>", "HatKernel1d")
+HatKernel2d = HatKernel("Spheral::Dim<2>", "HatKernel2d")
+HatKernel3d = HatKernel("Spheral::Dim<3>", "HatKernel3d")

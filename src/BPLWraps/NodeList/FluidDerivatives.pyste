@@ -1,0 +1,30 @@
+#-------------------------------------------------------------------------------
+# FluidDerivativeProducer
+#-------------------------------------------------------------------------------
+x = Template("Spheral::NodeSpace::FluidDerivativeProducer", "ExtendFluidDerivatives.hh")
+x1d = x("Spheral::Dim<1>", "FluidDerivativeProducer1d")
+x2d = x("Spheral::Dim<2>", "FluidDerivativeProducer2d")
+x3d = x("Spheral::Dim<3>", "FluidDerivativeProducer3d")
+
+#-------------------------------------------------------------------------------
+# SPHFluidDerivatives
+#-------------------------------------------------------------------------------
+y = Template("Spheral::NodeSpace::SPHFluidDerivatives", "ExtendFluidDerivatives.hh")
+final(y.updateWeight)
+final(y.calculateDerivatives)
+
+y1d = y("Spheral::Dim<1>", "SPHFluidDerivatives1d")
+y2d = y("Spheral::Dim<2>", "SPHFluidDerivatives2d")
+y3d = y("Spheral::Dim<3>", "SPHFluidDerivatives3d")
+
+#-------------------------------------------------------------------------------
+# CSPHFluidDerivatives
+#-------------------------------------------------------------------------------
+z = Template("Spheral::NodeSpace::CSPHFluidDerivatives", "ExtendFluidDerivatives.hh")
+final(z.updateWeight)
+final(z.calculateDerivatives)
+final(z.CSPHCorrectionFields)
+
+y1d = z("Spheral::Dim<1>", "CSPHFluidDerivatives1d")
+y2d = z("Spheral::Dim<2>", "CSPHFluidDerivatives2d")
+y3d = z("Spheral::Dim<3>", "CSPHFluidDerivatives3d")

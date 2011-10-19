@@ -1,0 +1,53 @@
+Include("vectorstringUtilities.hh")
+
+################################################################################
+# vector -> string
+################################################################################
+module_code('''
+  def("vectorint2string", &Spheral::vector2string<int>);
+  def("vectorbool2string", &Spheral::vector2string<bool>);
+  def("vectordouble2string", &Spheral::vector2string<double>);
+  def("vectorstring2string", &Spheral::vector2string<std::string>);
+
+  def("vectorVector1d2string", &Spheral::vector2string<Spheral::Dim<1>::Vector>);
+  def("vectorVector2d2string", &Spheral::vector2string<Spheral::Dim<2>::Vector>);
+  def("vectorVector3d2string", &Spheral::vector2string<Spheral::Dim<3>::Vector>);
+
+  def("vectorTensor1d2string", &Spheral::vector2string<Spheral::Dim<1>::Tensor>);
+  def("vectorTensor2d2string", &Spheral::vector2string<Spheral::Dim<2>::Tensor>);
+  def("vectorTensor3d2string", &Spheral::vector2string<Spheral::Dim<3>::Tensor>);
+
+  def("vectorSymTensor1d2string", &Spheral::vector2string<Spheral::Dim<1>::SymTensor>);
+  def("vectorSymTensor2d2string", &Spheral::vector2string<Spheral::Dim<2>::SymTensor>);
+  def("vectorSymTensor3d2string", &Spheral::vector2string<Spheral::Dim<3>::SymTensor>);
+
+  def("vectorThirdRankTensor1d2string", &Spheral::vector2string<Spheral::Dim<1>::ThirdRankTensor>);
+  def("vectorThirdRankTensor2d2string", &Spheral::vector2string<Spheral::Dim<2>::ThirdRankTensor>);
+  def("vectorThirdRankTensor3d2string", &Spheral::vector2string<Spheral::Dim<3>::ThirdRankTensor>);
+  ''')
+
+################################################################################
+#  string -> vector
+################################################################################
+module_code('''
+  def("string2vectorint", &Spheral::string2vector<int>);
+  def("string2vectorbool", &Spheral::string2vector<bool>);
+  def("string2vectordouble", &Spheral::string2vector<double>);
+  def("string2vectorstring", &Spheral::string2vector<std::string>);
+
+  def("string2vectorVector1d", &Spheral::string2vector<Spheral::Dim<1>::Vector>);
+  def("string2vectorVector2d", &Spheral::string2vector<Spheral::Dim<2>::Vector>);
+  def("string2vectorVector3d", &Spheral::string2vector<Spheral::Dim<3>::Vector>);
+
+  def("string2vectorTensor1d", &Spheral::string2vector<Spheral::Dim<1>::Tensor>);
+  def("string2vectorTensor2d", &Spheral::string2vector<Spheral::Dim<2>::Tensor>);
+  def("string2vectorTensor3d", &Spheral::string2vector<Spheral::Dim<3>::Tensor>);
+
+  def("string2vectorSymTensor1d", &Spheral::string2vector<Spheral::Dim<1>::SymTensor>);
+  def("string2vectorSymTensor2d", &Spheral::string2vector<Spheral::Dim<2>::SymTensor>);
+  def("string2vectorSymTensor3d", &Spheral::string2vector<Spheral::Dim<3>::SymTensor>);
+
+  def("string2vectorThirdRankTensor1d", &Spheral::string2vector<Spheral::Dim<1>::ThirdRankTensor>);
+  def("string2vectorThirdRankTensor2d", &Spheral::string2vector<Spheral::Dim<2>::ThirdRankTensor>);
+  def("string2vectorThirdRankTensor3d", &Spheral::string2vector<Spheral::Dim<3>::ThirdRankTensor>);
+  ''')

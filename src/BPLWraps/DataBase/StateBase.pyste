@@ -1,0 +1,27 @@
+#-----------------------------------------------------------------------------------------
+# The general template defintion.
+#-----------------------------------------------------------------------------------------
+x = Template("Spheral::StateBase", "ExtendStateBase.hh")
+
+#-----------------------------------------------------------------------------------------
+# Set policy for stuff returning references.
+#-----------------------------------------------------------------------------------------
+set_policy(x.scalarField, return_internal_reference())
+set_policy(x.vectorField, return_internal_reference())
+set_policy(x.vector3dField, return_internal_reference())
+set_policy(x.tensorField, return_internal_reference())
+set_policy(x.symTensorField, return_internal_reference())
+set_policy(x.vectorScalarField, return_internal_reference())
+set_policy(x.vectorVectorField, return_internal_reference())
+set_policy(x.vectorSymTensorField, return_internal_reference())
+set_policy(x.doubleArray, return_internal_reference())
+
+set_policy(x.field, return_internal_reference())
+set_policy(x.array, return_internal_reference())
+
+#-----------------------------------------------------------------------------------------
+# Instantiations.
+#-----------------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "StateBase1d")
+x2d = x("Spheral::Dim<2>", "StateBase2d")
+x3d = x("Spheral::Dim<3>", "StateBase3d")

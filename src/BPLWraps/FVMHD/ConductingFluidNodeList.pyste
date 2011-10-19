@@ -1,0 +1,63 @@
+#-------------------------------------------------------------------------------
+# ConductingFluidNodeList
+#-------------------------------------------------------------------------------
+
+Exported("Spheral::NodeSpace::NodeList<Spheral::Dim<1> >")
+Exported("Spheral::NodeSpace::NodeList<Spheral::Dim<2> >")
+Exported("Spheral::NodeSpace::NodeList<Spheral::Dim<3> >")
+
+Exported("Spheral::NodeSpace::FluidNodeList<Spheral::Dim<1> >")
+Exported("Spheral::NodeSpace::FluidNodeList<Spheral::Dim<2> >")
+Exported("Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >")
+
+Exported("Spheral::NodeSpace::SphNodeList<Spheral::Dim<1> >")
+Exported("Spheral::NodeSpace::SphNodeList<Spheral::Dim<2> >")
+Exported("Spheral::NodeSpace::SphNodeList<Spheral::Dim<3> >")
+
+ConductingFluidNodeList = Template("Spheral::MHDSpace::ConductingFluidNodeList", "WrapConductingFluidNodeList.hh")
+exclude(ConductingFluidNodeList.neighborPtr)
+exclude(ConductingFluidNodeList.initialize)
+exclude(ConductingFluidNodeList.registeredFieldsBegin)
+exclude(ConductingFluidNodeList.registeredFieldsEnd)
+
+set_policy(ConductingFluidNodeList.mass, return_internal_reference())
+set_policy(ConductingFluidNodeList.positions, return_internal_reference())
+set_policy(ConductingFluidNodeList.velocity, return_internal_reference())
+set_policy(ConductingFluidNodeList.massDensity, return_internal_reference())
+set_policy(ConductingFluidNodeList.specificThermalEnergy, return_internal_reference())
+set_policy(ConductingFluidNodeList.weight, return_internal_reference())
+set_policy(ConductingFluidNodeList.DmassDensityDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.DspecificThermalEnergyDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.massDensitySum, return_internal_reference())
+set_policy(ConductingFluidNodeList.maxViscousPressure, return_internal_reference())
+set_policy(ConductingFluidNodeList.equationOfState, return_internal_reference())
+set_policy(ConductingFluidNodeList.equationOfStatePtr, return_internal_reference())
+set_policy(ConductingFluidNodeList.normalization, return_internal_reference())
+set_policy(ConductingFluidNodeList.Qnormalization, return_internal_reference())
+set_policy(ConductingFluidNodeList.Qcorrection, return_internal_reference())
+set_policy(ConductingFluidNodeList.Hfield, return_internal_reference())
+set_policy(ConductingFluidNodeList.DxDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.DvelocityDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.DvelocityDx, return_internal_reference())
+set_policy(ConductingFluidNodeList.DHDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.neighbor, return_internal_reference())
+set_policy(ConductingFluidNodeList.correction, return_internal_reference())
+set_policy(ConductingFluidNodeList.alfvenSpeed, return_internal_reference())
+set_policy(ConductingFluidNodeList.conductivity, return_internal_reference())
+set_policy(ConductingFluidNodeList.magneticInduction, return_internal_reference())
+set_policy(ConductingFluidNodeList.DBDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.electricField, return_internal_reference())
+set_policy(ConductingFluidNodeList.currentDensity, return_internal_reference())
+
+ConductingFluidNodeList1d = ConductingFluidNodeList("Spheral::Dim<1>", "ConductingFluidNodeList1d")
+ConductingFluidNodeList2d = ConductingFluidNodeList("Spheral::Dim<2>", "ConductingFluidNodeList2d")
+ConductingFluidNodeList3d = ConductingFluidNodeList("Spheral::Dim<3>", "ConductingFluidNodeList3d")
+use_shared_ptr(ConductingFluidNodeList1d)
+use_shared_ptr(ConductingFluidNodeList2d)
+use_shared_ptr(ConductingFluidNodeList3d)
+
+# Factory for conducting fluid node lists.
+ConductingFluidFactory = Template("Spheral::MHDSpace::ConductingFluidFactory", "ConductingFluidFactory.hh")
+cff1d = ConductingFluidFactory("Spheral::Dim<1>", "ConductingFluidFactory1d")
+cff2d = ConductingFluidFactory("Spheral::Dim<2>", "ConductingFluidFactory2d")
+cff3d = ConductingFluidFactory("Spheral::Dim<3>", "ConductingFluidFactory3d")

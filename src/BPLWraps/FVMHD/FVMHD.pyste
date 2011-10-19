@@ -1,0 +1,23 @@
+# MHD class.
+Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<1> >")
+#Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<2> >")
+#Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<3> >")
+FVMHD = Template("Spheral::MHDSpace::FVMHD", "WrapFVMHD.hh")
+
+# Exclude the following methods.
+#exclude(FVMHD.initialize)
+#exclude(FVMHD.finalize)
+exclude(FVMHD.applyGhostBoundaries)
+exclude(FVMHD.enforceBoundaries)
+
+# Instantiations.
+fvmhd1d = FVMHD("Spheral::Dim<1>", "FVMHD1d")
+#fvmhd2d = FVMHD("Spheral::Dim<2>", "FVMHD2d")
+#fvmhd3d = FVMHD("Spheral::Dim<3>", "FVMHD3d")
+
+# Shared pointers.
+use_shared_ptr(fvmhd1d)
+#use_shared_ptr(fvmhd2d)
+#use_shared_ptr(fvmhd3d)
+
+

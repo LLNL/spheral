@@ -1,0 +1,11 @@
+x = Class("Spheral::BoundarySpace::CylindricalBoundary",
+          "ExtendCylindricalBoundary.hh")
+
+exclude(x.addNodeList)
+
+final(x.applyGhostBoundary)
+final(x.enforceBoundary)
+final(x.setGhostNodes)
+final(x.updateGhostNodes)
+final(x.setViolationNodes)
+final(x.updateViolationNodes)

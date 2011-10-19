@@ -1,0 +1,19 @@
+fileIO = Class("Spheral::FileIOSpace::FileIO", "ExtendFileIO.hh")
+
+set_policy(fileIO.fileName, return_internal_reference())
+
+add_method(fileIO, "Spheral::FileIOSpace::readString")
+
+add_method(fileIO, "Spheral::FileIOSpace::writeList")
+
+add_method(fileIO, "Spheral::FileIOSpace::readIntList")
+add_method(fileIO, "Spheral::FileIOSpace::readFloatList")
+add_method(fileIO, "Spheral::FileIOSpace::readVector1dList")
+add_method(fileIO, "Spheral::FileIOSpace::readVector2dList")
+add_method(fileIO, "Spheral::FileIOSpace::readVector3dList")
+add_method(fileIO, "Spheral::FileIOSpace::readTensor1dList")
+add_method(fileIO, "Spheral::FileIOSpace::readTensor2dList")
+add_method(fileIO, "Spheral::FileIOSpace::readTensor3dList")
+add_method(fileIO, "Spheral::FileIOSpace::readSymTensor1dList")
+add_method(fileIO, "Spheral::FileIOSpace::readSymTensor2dList")
+add_method(fileIO, "Spheral::FileIOSpace::readSymTensor3dList")

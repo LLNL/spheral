@@ -1,0 +1,14 @@
+mg = Template("Spheral::ArtificialViscositySpace::MonaghanGingoldViscosity",
+              "ExtendMonaghanGingoldViscosity.hh")
+
+final(mg.initialize)
+final(mg.viscousEffects)
+final(mg.viscousAcceleration)
+final(mg.viscousWork)
+final(mg.viscousPressure)
+final(mg.viscousInternalEnergy)
+final(mg.valid)
+
+mg1d = mg("Spheral::Dim<1>", "MonaghanGingoldViscosity1d")
+mg2d = mg("Spheral::Dim<2>", "MonaghanGingoldViscosity2d")
+mg3d = mg("Spheral::Dim<3>", "MonaghanGingoldViscosity3d")

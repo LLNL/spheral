@@ -1,0 +1,8 @@
+rdn = Template("Spheral::PartitionSpace::RedistributeNodes",
+               "ExtendRedistributeNodes.hh")
+
+add_property(rdn, "computeWork", "computeWork", "computeWork")
+
+rdn1d = rdn("Spheral::Dim<1>", "RedistributeNodes1d")
+rdn2d = rdn("Spheral::Dim<2>", "RedistributeNodes2d")
+rdn3d = rdn("Spheral::Dim<3>", "RedistributeNodes3d")

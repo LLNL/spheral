@@ -1,0 +1,17 @@
+#-------------------------------------------------------------------------------
+# CoarseNodeIterator
+#-------------------------------------------------------------------------------
+CoarseNodeIterator = Template("Spheral::CoarseNodeIterator",
+                              "ExtendCoarseNodeIterator.hh")
+
+exclude(CoarseNodeIterator.nodeListIterator)
+
+final(CoarseNodeIterator.ensureValidElement)
+final(CoarseNodeIterator.valid)
+
+set_policy(CoarseNodeIterator.nodeListPtr, return_internal_reference())
+set_policy(CoarseNodeIterator.fluidNodeListPtr, return_internal_reference())
+
+CoarseNodeIterator1d = CoarseNodeIterator("Spheral::Dim<1>", "CoarseNodeIterator1d")
+CoarseNodeIterator2d = CoarseNodeIterator("Spheral::Dim<2>", "CoarseNodeIterator2d")
+CoarseNodeIterator3d = CoarseNodeIterator("Spheral::Dim<3>", "CoarseNodeIterator3d")

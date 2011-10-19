@@ -1,0 +1,11 @@
+#-------------------------------------------------------------------------------
+# FieldBase
+#-------------------------------------------------------------------------------
+FieldBase = Template("Spheral::FieldSpace::FieldBase", "ExtendFieldBase.hh")
+
+set_policy(FieldBase.nodeListPtr, return_internal_reference())
+set_policy(FieldBase.nodeList, return_internal_reference())
+
+FieldBase1d = FieldBase("Spheral::Dim<1>", "FieldBase1d")
+FieldBase2d = FieldBase("Spheral::Dim<2>", "FieldBase2d")
+FieldBase3d = FieldBase("Spheral::Dim<3>", "FieldBase3d")

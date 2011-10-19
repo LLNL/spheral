@@ -1,0 +1,19 @@
+tmg = Template("Spheral::ArtificialViscositySpace::TensorMonaghanGingoldViscosity",
+               "ExtendTensorMonaghanGingoldViscosity.hh")
+
+final(tmg.initialize)
+final(tmg.viscousEffects)
+final(tmg.viscousAcceleration)
+final(tmg.viscousWork)
+final(tmg.viscousPressure)
+final(tmg.valid)
+final(tmg.dumpState)
+final(tmg.restoreState)
+
+set_policy(tmg.supplementalViscosity, return_internal_reference())
+set_policy(tmg.fsigma, return_internal_reference())
+set_policy(tmg.supplementalViscosity, return_internal_reference())
+
+tmg1d = tmg("Spheral::Dim<1>", "TensorMonaghanGingoldViscosity1d")
+tmg2d = tmg("Spheral::Dim<2>", "TensorMonaghanGingoldViscosity2d")
+tmg3d = tmg("Spheral::Dim<3>", "TensorMonaghanGingoldViscosity3d")

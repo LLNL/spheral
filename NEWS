@@ -1,0 +1,46 @@
+2006 September 13
+Release notes for 1.3.
+
+This is mostly a catch-up release, since it's been so long since we cut the
+last release.  New stuff includes:
+
+1. Updated most of the third party packages.
+
+2. Addition of the automated test system (ats), which allows a series of tests
+   to be performed on Spheral++ which automatically determine pass/fail.  See
+   the building/testing documentation for the procedure for invoking the
+   automated tests.
+
+3. Generalized the method by which physics packages set up and evolve their
+   state.
+
+4. Optimization improvements.
+
+5. We now support building on Mac OS X machines.
+
+6. Many bugfixes.
+
+7.  A whole host of stuff over the past couple of years...
+
+================================================================================
+2004 April 17
+Release notes for Optimization-1 release of Spheral++.
+
+1. Some minor code changes that reduce our run-time by roughly 25%-30%.  This
+   also makes the run time on the P4 based MCR cluster roughly equivalent to
+   what we see on the new PowerPC chips in Berg.
+
+2. Simplifying configuration by creating default compiler sets for different
+   platforms, which can be selected with the --with-compilers configure flag.
+   Hopefully this removes the onus of setting a bunch of individual compiler
+   choices on suppported platforms.
+
+3. Initial support for building with intel C++ (icc) on intel linux.
+
+4. Adding TAU as a third party package, and implemented TAU timers throughout
+   the code.  This also includes PAPI support via the TAU timers.
+
+5. Adding a new optionally built package (CXXTests, built with --with-cxxtests)
+   which builds C++ source for a set of unit test problems.  Currently these are
+   the src/src/Field/tests/testNodeIterators.py and 
+   src/src/Field/tests/testIndexFieldLists.py

@@ -1,0 +1,5 @@
+eos = Template("Spheral::Material::EquationOfState", "ExtendEquationOfState.hh")
+
+eos1d = eos("Spheral::Dim<1>", "EquationOfState1d")
+eos2d = eos("Spheral::Dim<2>", "EquationOfState2d")
+eos3d = eos("Spheral::Dim<3>", "EquationOfState3d")
