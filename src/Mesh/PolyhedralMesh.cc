@@ -359,7 +359,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 
   // Lock the cells -- they should have consistent info now.
   for (igen = 0; igen != numGens; ++igen) cells[igen].lock(cells);
-  Cell<Dimension>::lockMinCellsForVertices(cells);
+//   Cell<Dimension>::lockMinCellsForVertices(cells);
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to stitch together cell topology." << endl;
@@ -411,6 +411,11 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
         inode = cells[igen].realNodeID(indices[iface][i]);
         jnode = cells[igen].realNodeID(indices[iface][j]);
         CHECK(inode < numNodes and jnode < numNodes);
+        CHECK2(inode != jnode,
+               "Can't have an edge with the same node twice: " << inode << " " << jnode << endl
+               << igen << " " << iface << " " << i << " " << j << endl
+               << mNodePositions[inode] << endl
+               << cells[igen].dumpCell());
         ehash = hashEdge(inode, jnode);
         if (edgeHash2ID.find(ehash) == edgeHash2ID.end()) {
           mEdges.push_back(Edge(*this, numEdges, inode, jnode));

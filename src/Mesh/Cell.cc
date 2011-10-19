@@ -114,15 +114,43 @@ Cell(const unsigned ID,
   // Reduce the vertex map to the unique set.
   updateVertexMap();
 
-  // Initialize the min cell for each of our vertices to be ourself.
+  // Create the new (non-degenerate) vertices for this cell.
+  // In the process update the mVertexMap to point from the old degenerate
+  // vertex ordering to the new non-degenerate set.
+  unsigned nv1 = 0, k;
   for (i = 0; i != nv; ++i) {
-    mMinCellForVertex.push_back(make_pair(mID, i));
+    if (mVertexMap[i] == i) {
+      mNewVertices.push_back(mOldVertices[i]);
+      mVertexMap[i] = nv1++;
+      CHECK(mNewVertices.size() == nv1);
+    } else {
+      k = mVertexMap[mVertexMap[i]];
+      CHECK(k < nv1);
+      CHECK(mVertexMap[k] <= k);
+      mVertexMap[i] = k;
+    }
+  }
+  CHECK(mNewVertices.size() == nv1);
+
+  // Initialize the new face vertices to reflect the new non-degenerate 
+  // vertex ordering.  This *may* result in degenerate (line or point)
+  // faces, which we keep for now.
+  unsigned ki, kj;
+  for (iface = 0; iface != nf; ++iface) {
+    const unsigned nv0 = mOldFaceVertices[iface].size();
+    for (i = 0; i != nv0; ++i) {
+      j = (i + 1) % nv0;
+      ki = mVertexMap[mOldFaceVertices[iface][i]];
+      kj = mVertexMap[mOldFaceVertices[iface][j]];
+      if (ki != kj) {
+        mNewFaceVertices[iface].push_back(ki);
+      }
+    }
   }
 
-  // Any faces on the boundary of the tesselation should go ahead and assign the
-  // original face vertices as the new ones.
-  for (iface = 0; iface != nf; ++iface) {
-    if (mNewNeighbors[iface] == UNSETID) mNewFaceVertices[iface] = mOldFaceVertices[iface];
+  // Initialize the min cell for each of our vertices to be ourself.
+  for (i = 0; i != nv1; ++i) {
+    mMinCellForVertex.push_back(make_pair(mID, i));
   }
 
   // Post-conditions.
@@ -131,7 +159,7 @@ Cell(const unsigned ID,
     ENSURE(mVolume > 0.0);
     ENSURE(mMaxEdge > 0.0);
     ENSURE(mOldVertices == vertices);
-    ENSURE(mNewVertices.size() == 0);
+    ENSURE(mNewVertices.size() > 0 and mNewVertices.size() <= mOldVertices.size());
     ENSURE(mOldFaceVertices == faceVertices);
     ENSURE(mNewFaceVertices.size() == mOldFaceVertices.size());
     ENSURE(mOldNeighbors == neighbors);
@@ -139,11 +167,14 @@ Cell(const unsigned ID,
     ENSURE(count(mOldNeighbors.begin(), mOldNeighbors.end(), mID) == 0);
     ENSURE(count(mNewNeighbors.begin(), mNewNeighbors.end(), mID) == 0);
     for (i = 0; i != mNewFaceVertices.size(); ++i) {
-      ENSURE((mNewNeighbors[i] == UNSETID and mNewFaceVertices[i] == mOldFaceVertices[i]) or
-             mNewFaceVertices[i].size() == 0);
+      for (j = 0; j != mNewFaceVertices[i].size(); ++j) {
+        ENSURE(mNewFaceVertices[i][j] < mNewVertices.size());
+        ENSURE2(count(mNewFaceVertices[i].begin(), mNewFaceVertices[i].end(), mNewFaceVertices[i][j]) == 1, 
+                "Bad node count : " << i << " " << j << endl << dumpCell());
+      }
     }
-    ENSURE(mVertexMap.size() == vertices.size());
-    ENSURE(mMinCellForVertex.size() == vertices.size());
+    ENSURE(mVertexMap.size() == mOldVertices.size());
+    ENSURE(mMinCellForVertex.size() == mNewVertices.size());
     for (i = 0; i != mMinCellForVertex.size(); ++i) {
       ENSURE(mMinCellForVertex[i].first == mID);
       ENSURE(mMinCellForVertex[i].second == i);
@@ -177,7 +208,6 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
   unsigned i, j, jcell, iface, jface, nfj, nvi, nvj;
 
   // Walk our neighbors.
-  CHECK(mNewNeighbors.size() == nfi);
   CHECK(mOldFaceVertices.size() == nfi);
   for (iface = 0; iface != nfi; ++iface) {
     jcell = mNewNeighbors[iface];
@@ -194,6 +224,7 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
       // this face and neighbor association.
       if (jface == nfj) {
         mNewNeighbors[iface] = DELETED;
+        mNewFaceVertices[iface] = vector<unsigned>();
 
       } else {
         // If we got here both cells acknowledge the cross-face relationship,
@@ -201,16 +232,19 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
         // valid area.
         CHECK(jface < nfj);
         set<unsigned> uniquei, uniquej;
-        nvi = mOldFaceVertices[iface].size();
-        nvj = cells[jcell].mOldFaceVertices[jface].size();
-        for (i = 0; i != nvi; ++i) uniquei.insert(mVertexMap[mOldFaceVertices[iface][i]]);
-        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mVertexMap[cells[jcell].mOldFaceVertices[jface][j]]);
+        nvi =              mNewFaceVertices[iface].size();
+        nvj = cells[jcell].mNewFaceVertices[jface].size();
+        for (i = 0; i != nvi; ++i) uniquei.insert(             mNewFaceVertices[iface][i]);
+        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mNewFaceVertices[jface][j]);
         if (min(nvi, nvj) < minVerticesPerFace) {
           // A least one of these cells doesn't have enough unique vertices on this face
           // to form a valid area, so delete the face from both cells.
-          CHECK(max(nvi, nvj) < minVerticesPerFace);  // Hopefully we don't have to change the vertices!
           mNewNeighbors[iface] = DELETED;
           cells[jcell].mNewNeighbors[jface] = DELETED;
+          mNewNeighbors[iface] = DELETED;
+          mNewFaceVertices[iface] = vector<unsigned>();
+          cells[jcell].mNewNeighbors[jface] = DELETED;
+          cells[jcell].mNewFaceVertices[jface] = vector<unsigned>();
         }
       }
     }
@@ -230,10 +264,10 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
         ENSURE(jface < nfj);
         ENSURE(cells[jcell].mNewNeighbors[jface] == mID);
         set<unsigned> uniquei, uniquej;
-        nvi = mOldFaceVertices[iface].size();
-        nvj = cells[jcell].mOldFaceVertices[jface].size();
-        for (i = 0; i != nvi; ++i) uniquei.insert(mVertexMap[mOldFaceVertices[iface][i]]);
-        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mVertexMap[cells[jcell].mOldFaceVertices[jface][j]]);
+        nvi =              mNewFaceVertices[iface].size();
+        nvj = cells[jcell].mNewFaceVertices[jface].size();
+        for (i = 0; i != nvi; ++i) uniquei.insert(             mNewFaceVertices[iface][i]);
+        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mNewFaceVertices[jface][j]);
         ENSURE(nvi >= minVerticesPerFace);
         ENSURE(nvj >= minVerticesPerFace);
       }
@@ -257,7 +291,7 @@ matchFace(const unsigned iface,
   // Pre-conditions.
   const unsigned nfi = mNewNeighbors.size();
   REQUIRE(iface < nfi);
-  REQUIRE(mNewFaceVertices[iface].size() == 0);
+  REQUIRE(mNewFaceVertices[iface].size() >= minVerticesPerFace);
   REQUIRE2(count(otherCell.mNewNeighbors.begin(), otherCell.mNewNeighbors.end(),mID) == 1, 
            '\n' << "This cell:  " << this->dumpCell() << '\n' << "Other cell:  " << otherCell.dumpCell());
 
@@ -268,9 +302,9 @@ matchFace(const unsigned iface,
                                        otherCell.mNewNeighbors.end(),
                                        mID));
   CHECK(jface < nfj);
-  CHECK(otherCell.mNewFaceVertices[jface].size() == 0);
-  const unsigned nvi = mOldFaceVertices[iface].size();
-  const unsigned nvj = otherCell.mOldFaceVertices[jface].size();
+  CHECK(otherCell.mNewFaceVertices[jface].size() >= minVerticesPerFace);
+  const unsigned nvi =           mNewFaceVertices[iface].size();
+  const unsigned nvj = otherCell.mNewFaceVertices[jface].size();
 
   // Determine which cell is going to be in control of this face.
   unsigned i, j, k, nv, masterFace, slaveFace;
@@ -289,16 +323,13 @@ matchFace(const unsigned iface,
     masterFace = jface;
     slaveFace = iface;
   }
-  const bool masterIsMinID = (masterCellPtr->mID < slaveCellPtr->mID);
 
   // Walk the vertices of the control face, and match to the closest one in
   // the slave face.
+  slaveCellPtr->mNewFaceVertices[slaveFace] = vector<unsigned>();
   for (k = 0; k != nv; ++k) {
-    i = masterCellPtr->mOldFaceVertices[masterFace][k];
-    j = findMatchingVertex(masterCellPtr->mOldVertices[i], 
-                           slaveCellPtr->mOldVertices,
-                           slaveCellPtr->mOldFaceVertices[slaveFace]);
-    masterCellPtr->mNewFaceVertices[masterFace].push_back(i);
+    i = masterCellPtr->mNewFaceVertices[masterFace][k];
+    j = findMatchingVertex(masterCellPtr->mNewVertices[i], slaveCellPtr->mNewVertices);
     slaveCellPtr->mNewFaceVertices[slaveFace].push_back(j);
     if (masterCellPtr->mMinCellForVertex[i].first < slaveCellPtr->mMinCellForVertex[j].first) {
       slaveCellPtr->mMinCellForVertex[j] = masterCellPtr->mMinCellForVertex[i];
@@ -306,8 +337,7 @@ matchFace(const unsigned iface,
       masterCellPtr->mMinCellForVertex[i] = slaveCellPtr->mMinCellForVertex[j];
     }
   }
-  CHECK(masterCellPtr->mNewFaceVertices[masterFace].size() == nv);
-  CHECK(slaveCellPtr->mNewFaceVertices[slaveFace].size() == nv);
+  CHECK(slaveCellPtr->mNewFaceVertices[slaveFace].size() == masterCellPtr->mNewFaceVertices[masterFace].size());
 
   // Reverse the order of the face vertices on the slave generator.
   reverse(slaveCellPtr->mNewFaceVertices[slaveFace].begin(),
@@ -323,7 +353,7 @@ Cell<Dimension>::
 findMinCellsForVertices(vector<Cell<Dimension> >& cells) {
   bool result = true;
   const unsigned ncells = cells.size();
-  const unsigned nv = mOldVertices.size();
+  const unsigned nv = mNewVertices.size();
   REQUIRE(mMinCellForVertex.size() == nv);
   unsigned i, j, jgen, ni, nj;
   for (i = 0; i != nv; ++i) {
@@ -344,9 +374,6 @@ findMinCellsForVertices(vector<Cell<Dimension> >& cells) {
 
 //------------------------------------------------------------------------------
 // Finish off our new vertex and face information.
-// **NOTE**
-// At the completion of this method the mMinCellForVertex local node indices
-// are *not* updated yet.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -355,93 +382,33 @@ lock(vector<Cell<Dimension> >& cells) {
 
   // Pre-conditions.
   unsigned i, j, k;
-  const unsigned nv0 = mOldVertices.size();
-  const unsigned nf0 = mOldFaceVertices.size();
+  const unsigned nv0 = mNewVertices.size();
+  const unsigned nf0 = mNewFaceVertices.size();
   BEGIN_CONTRACT_SCOPE;
   {
-    REQUIRE(mNewVertices.size() == 0);
-    REQUIRE(mNewFaceVertices.size() <= nf0);
+    REQUIRE(mNewVertices.size() > minVerticesPerFace);
+    REQUIRE(mNewFaceVertices.size() == mOldFaceVertices.size());
     REQUIRE(mNewNeighbors.size() == nf0);
-    REQUIRE(mVertexMap.size() == nv0);
     REQUIRE(mMinCellForVertex.size() == nv0);
-    for (i = 0; i != nv0; ++i) {
-      REQUIRE(mVertexMap[i] < nv0);
-      REQUIRE(mVertexMap[i] <= i);
-      REQUIRE(mVertexMap[i] == i or mVertexMap[mVertexMap[i]] == mVertexMap[i]);
-    }
   }
   END_CONTRACT_SCOPE;
 
   const unsigned ncells = cells.size();
 
-  // // Blago!
-  // cerr << "Dumping INITIAL cells for vertices for cell " << mID << endl;
-  // for (i = 0; i != nv0; ++i) {
-  //   cerr << "  Vertex " << i << " @ " << mOldVertices[i] << endl;
-  //   for (map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-  //        itr != mCellsForVertex[i].end();
-  //        ++itr) {
-  //     cerr << "       " << itr->first << " " << itr->second << endl;
-  //   }
-  // }
-  // // Blago!
-
-  // Create the new vertices and update the vertex map to point from the 
-  // old vertex numbering to the new.
-  unsigned nv1 = 0;
-  for (i = 0; i != nv0; ++i) {
-    if (mVertexMap[i] == i) {
-      mNewVertices.push_back(mOldVertices[i]);
-      mVertexMap[i] = nv1++;
-      CHECK(mNewVertices.size() == nv1);
-    } else {
-      k = mVertexMap[mVertexMap[i]];
-      CHECK(k < nv1);
-      CHECK(mVertexMap[k] = k);
-      mVertexMap[i] = k;
-      if (mMinCellForVertex[i].first < mMinCellForVertex[k].first) mMinCellForVertex[k] = mMinCellForVertex[i];
-    }
-  }
-  mMinCellForVertex.resize(nv1);
-  BEGIN_CONTRACT_SCOPE;
-  {
-    CHECK(mNewVertices.size() == nv1);
-    CHECK(mMinCellForVertex.size() == nv1);
-    BOOST_FOREACH(i, mVertexMap) { CHECK(i < nv1); }
-  }
-  END_CONTRACT_SCOPE;
-
-  // Update the new face info.
+  // Remove any deleted faces.
   vector<unsigned> faces2kill;
   for (i = 0; i != nf0; ++i) {
     if (mNewNeighbors[i] == DELETED) {
       CHECK(mNewFaceVertices[i].size() == 0);
       faces2kill.push_back(i);
-    } else {
-      CHECK(mNewFaceVertices[i].size() >= minVerticesPerFace);
-      for (j = 0; j != mNewFaceVertices[i].size(); ++j) {
-        mNewFaceVertices[i][j] = mVertexMap[mNewFaceVertices[i][j]];
-      }
     }
   }
   removeElements(mNewFaceVertices, faces2kill);
   removeElements(mNewNeighbors, faces2kill);
   CHECK(mNewFaceVertices.size() == mNewNeighbors.size());
 
-  // // Blago!
-  // cerr << "Dumping FINAL cells for vertices for cell " << mID << endl;
-  // for (i = 0; i != nv1; ++i) {
-  //   cerr << "  Vertex " << i << " @ " << mNewVertices[i] << endl;
-  //   for (typename map<unsigned, unsigned>::const_iterator itr = mCellsForVertex[i].begin();
-  //        itr != mCellsForVertex[i].end();
-  //        ++itr) {
-  //     cerr << "       " << itr->first << " " << itr->second << endl;
-  //   }
-  // }
-  // // Blago!
-
   // Initialize the real node ID info, though it is not set yet.
-  mRealNodeIDs = vector<unsigned>(nv1, UNSETID);
+  mRealNodeIDs = vector<unsigned>(nv0, UNSETID);
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE;
@@ -520,12 +487,14 @@ dumpCell() const {
            << i << " : " << mNewVertices[i] << '\n';
   }
   for (i = 0; i != nf0; ++i) {
-    result << (i == 0 ? "Old face vertices: " : "                   ");
+    result << (i == 0 ? "Old face vertices: " : "                   ")
+           << i << " : ";
     for (j = 0; j != mOldFaceVertices[i].size(); ++j) result << mOldFaceVertices[i][j] << " ";
     result << '\n';
   }
   for (i = 0; i != nf1; ++i) {
-    result << (i == 0 ? "New face vertices: " : "                   ");
+    result << (i == 0 ? "New face vertices: " : "                   ")
+           << i << " : ";
     for (j = 0; j != mNewFaceVertices[i].size(); ++j) result << mNewFaceVertices[i][j] << " ";
     result << '\n';
   }
@@ -536,6 +505,8 @@ dumpCell() const {
   for (i = 0; i != nf1; ++i) result << mNewNeighbors[i] << " ";
   result << '\n' << "mVertexMap: ";
   for (i = 0; i != nv0; ++i) result << "(" << i << " " << mVertexMap[i] << ") ";
+  result << '\n' << "Real Node IDs: ";
+  for (i = 0; i != mRealNodeIDs.size(); ++i) result << mRealNodeIDs[i] << " ";
   result << '\n';
   return result.str();
 }
@@ -560,6 +531,11 @@ updateVertexMap() {
         mVertexMap[i] = mVertexMap[j];
       }
     }
+  }
+
+  // Post-conditions.
+  for (i = 0; i != nv; ++i) {
+    ENSURE(mVertexMap[i] == mVertexMap[mVertexMap[i]]);
   }
 }
 

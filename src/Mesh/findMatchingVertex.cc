@@ -95,6 +95,7 @@ unsigned
 findMatchingVertex(const Dim<3>::Vector& target,
                    const std::vector<Dim<3>::Vector>& verticesj,
                    const std::vector<unsigned>& indicesj) {
+  REQUIRE(indicesj.size() > 0);
   const unsigned n = indicesj.size();
   unsigned i, result = n + 1;
   double chi2, chi2_min = 1e100;
