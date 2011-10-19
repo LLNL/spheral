@@ -83,19 +83,19 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     sprintf(flags, "qhull s"); // Tcv");
     const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, mDevnull, mDevnull);
 
-    if (exitcode_qhull != 0) {
-      // Something didn't work, so spit out the points for diagnostics.
-      vector<pair<double, Vector> > sorted_points;
-      for (vector<Vector>::const_iterator itr = points.begin();
-           itr != points.end();
-           ++itr) sorted_points.push_back(make_pair(itr->magnitude(), *itr));
-      sort(sorted_points.begin(), sorted_points.end(), ComparePairByFirstElement<pair<double, Vector> >());
-      for (size_t k = 0; k != sorted_points.size(); ++k) cerr << "    -----> " << sorted_points[k].first << " " << sorted_points[k].second << endl;
+//     if (exitcode_qhull != 0) {
+//       // Something didn't work, so spit out the points for diagnostics.
+//       vector<pair<double, Vector> > sorted_points;
+//       for (vector<Vector>::const_iterator itr = points.begin();
+//            itr != points.end();
+//            ++itr) sorted_points.push_back(make_pair(itr->magnitude(), *itr));
+//       sort(sorted_points.begin(), sorted_points.end(), ComparePairByFirstElement<pair<double, Vector> >());
+//       for (size_t k = 0; k != sorted_points.size(); ++k) cerr << "    -----> " << sorted_points[k].first << " " << sorted_points[k].second << endl;
 
-      // Emit the error message by calling qhull again.
-      FILE *errfile= stderr;    /* error messages from qhull code */
-      const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, errfile, errfile);
-    }
+//       // Emit the error message by calling qhull again.
+//       FILE *errfile= stderr;    /* error messages from qhull code */
+//       const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, errfile, errfile);
+//     }
     VERIFY2(exitcode_qhull == 0,
             "Qhull emitted an error code while generating GeomPolyhedron");
 
