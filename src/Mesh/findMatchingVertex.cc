@@ -71,9 +71,10 @@ findMatchingVertex(const std::vector<Dim<3>::Vector>& verticesi,
 //------------------------------------------------------------------------------
 // Find the closest vertex in the list to the given position.
 //------------------------------------------------------------------------------
+template<typename Vector>
 unsigned
-findMatchingVertex(const Dim<3>::Vector& target,
-                   const std::vector<Dim<3>::Vector>& verticesj) {
+findMatchingVertex(const Vector& target,
+                   const std::vector<Vector>& verticesj) {
   const unsigned n = verticesj.size();
   unsigned i, result = n + 1;
   double chi2, chi2_min = 1e100;
@@ -91,9 +92,10 @@ findMatchingVertex(const Dim<3>::Vector& target,
 //------------------------------------------------------------------------------
 // Find the closest vertex in a subset of the list to the given position.
 //------------------------------------------------------------------------------
+template<typename Vector>
 unsigned
-findMatchingVertex(const Dim<3>::Vector& target,
-                   const std::vector<Dim<3>::Vector>& verticesj,
+findMatchingVertex(const Vector& target,
+                   const std::vector<Vector>& verticesj,
                    const std::vector<unsigned>& indicesj) {
   REQUIRE(indicesj.size() > 0);
   const unsigned n = indicesj.size();
@@ -110,6 +112,21 @@ findMatchingVertex(const Dim<3>::Vector& target,
   ENSURE(result < n);
   return indicesj[result];
 }
+
+//------------------------------------------------------------------------------
+// Explicit instantiation.
+//------------------------------------------------------------------------------
+template unsigned findMatchingVertex<Dim<2>::Vector>(const Dim<2>::Vector& target,
+                                                     const std::vector<Dim<2>::Vector>& verticesj);
+template unsigned findMatchingVertex<Dim<2>::Vector>(const Dim<2>::Vector& target,
+                                                     const std::vector<Dim<2>::Vector>& verticesj,
+                                                     const std::vector<unsigned>& indicesj);
+
+template unsigned findMatchingVertex<Dim<3>::Vector>(const Dim<3>::Vector& target,
+                                                     const std::vector<Dim<3>::Vector>& verticesj);
+template unsigned findMatchingVertex<Dim<3>::Vector>(const Dim<3>::Vector& target,
+                                                     const std::vector<Dim<3>::Vector>& verticesj,
+                                                     const std::vector<unsigned>& indicesj);
 
 }
 }

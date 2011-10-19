@@ -231,19 +231,14 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
         // so ensure we have enough vertices in the face to define a 
         // valid area.
         CHECK(jface < nfj);
-        set<unsigned> uniquei, uniquej;
         nvi =              mNewFaceVertices[iface].size();
         nvj = cells[jcell].mNewFaceVertices[jface].size();
-        for (i = 0; i != nvi; ++i) uniquei.insert(             mNewFaceVertices[iface][i]);
-        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mNewFaceVertices[jface][j]);
         if (min(nvi, nvj) < minVerticesPerFace) {
           // A least one of these cells doesn't have enough unique vertices on this face
           // to form a valid area, so delete the face from both cells.
           mNewNeighbors[iface] = DELETED;
           cells[jcell].mNewNeighbors[jface] = DELETED;
-          mNewNeighbors[iface] = DELETED;
           mNewFaceVertices[iface] = vector<unsigned>();
-          cells[jcell].mNewNeighbors[jface] = DELETED;
           cells[jcell].mNewFaceVertices[jface] = vector<unsigned>();
         }
       }
@@ -263,11 +258,8 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
                          find(cells[jcell].mNewNeighbors.begin(), cells[jcell].mNewNeighbors.end(), mID));
         ENSURE(jface < nfj);
         ENSURE(cells[jcell].mNewNeighbors[jface] == mID);
-        set<unsigned> uniquei, uniquej;
         nvi =              mNewFaceVertices[iface].size();
         nvj = cells[jcell].mNewFaceVertices[jface].size();
-        for (i = 0; i != nvi; ++i) uniquei.insert(             mNewFaceVertices[iface][i]);
-        for (j = 0; j != nvj; ++j) uniquej.insert(cells[jcell].mNewFaceVertices[jface][j]);
         ENSURE(nvi >= minVerticesPerFace);
         ENSURE(nvj >= minVerticesPerFace);
       }
@@ -427,30 +419,6 @@ lock(vector<Cell<Dimension> >& cells) {
 }
 
 //------------------------------------------------------------------------------
-// Finish the minCellForVertex info, assuming all cells have already been locked.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Cell<Dimension>::
-lockMinCellsForVertices(vector<Cell<Dimension> >& cells) {
-  const unsigned ncells = cells.size();
-  unsigned i, j, jnew, iv, nvi, jcell;
-  for (i = 0; i != ncells; ++i) {
-    nvi = cells[i].mMinCellForVertex.size();
-    CHECK(nvi == cells[i].mNewVertices.size());
-    for (iv = 0; iv != nvi; ++iv) {
-      jcell = cells[i].mMinCellForVertex[iv].first;
-      CHECK(jcell < ncells);
-      j = cells[i].mMinCellForVertex[iv].second;
-      CHECK(j < cells[jcell].mVertexMap.size());
-      jnew = cells[jcell].mVertexMap[j];
-      CHECK(jnew < cells[jcell].mNewVertices.size());
-      cells[i].mMinCellForVertex[iv] = make_pair(jcell, jnew);
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
 // Set the "real" (mesh based) ID associated with one of our vertices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -542,13 +510,16 @@ updateVertexMap() {
 //------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
-template<> const unsigned Cell<Dim<3> >::UNSETID = numeric_limits<unsigned>::max();
-template<> const unsigned Cell<Dim<3> >::DELETED = numeric_limits<unsigned>::max() - 1U;
+template<typename Dimension> const unsigned Cell<Dimension>::UNSETID = numeric_limits<unsigned>::max();
+template<typename Dimension> const unsigned Cell<Dimension>::DELETED = numeric_limits<unsigned>::max() - 1U;
+
+template<> const unsigned Cell<Dim<2> >::minVerticesPerFace = 2U;
 template<> const unsigned Cell<Dim<3> >::minVerticesPerFace = 3U;
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
+template class Cell<Dim<2> >;
 template class Cell<Dim<3> >;
 }
 }

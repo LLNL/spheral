@@ -76,9 +76,6 @@ public:
   // Finish off our internal info,so all new cell info is set.
   void lock(std::vector<Cell<Dimension> >& cells);
 
-  // Static method to lock the min cell ID for the vertices of all cells.
-  static void lockMinCellsForVertices(std::vector<Cell<Dimension> >& cells);
-
   // Access the "real" (mesh based) ID for one of our vertices.
   unsigned realNodeID(const unsigned ivertex) const;
 

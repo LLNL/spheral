@@ -359,7 +359,6 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 
   // Lock the cells -- they should have consistent info now.
   for (igen = 0; igen != numGens; ++igen) cells[igen].lock(cells);
-//   Cell<Dimension>::lockMinCellsForVertices(cells);
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to stitch together cell topology." << endl;

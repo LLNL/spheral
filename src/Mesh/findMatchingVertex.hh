@@ -28,16 +28,18 @@ findMatchingVertex(const std::vector<Dim<3>::Vector>& verticesi,
 //------------------------------------------------------------------------------
 // Find the closest vertex in the list to the given position.
 //------------------------------------------------------------------------------
+template<typename Vector>
 unsigned
-findMatchingVertex(const Dim<3>::Vector& target,
-                   const std::vector<Dim<3>::Vector>& verticesj);
+findMatchingVertex(const Vector& target,
+                   const std::vector<Vector>& verticesj);
 
 //------------------------------------------------------------------------------
 // Find the closest vertex in a subset of the list to the given position.
 //------------------------------------------------------------------------------
+template<typename Vector>
 unsigned
-findMatchingVertex(const Dim<3>::Vector& target,
-                   const std::vector<Dim<3>::Vector>& verticesj,
+findMatchingVertex(const Vector& target,
+                   const std::vector<Vector>& verticesj,
                    const std::vector<unsigned>& indicesj);
 
 }
