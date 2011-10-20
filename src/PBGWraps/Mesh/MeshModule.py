@@ -380,13 +380,6 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Methods.
         x.add_method("addBoundary", None, [constrefparam(meshwall, "boundary")])
-        if ndim == 2:
-            x.add_method("allCells", "vector_of_unsigned",
-                         [refparam(vector_of_vector_of_vector, "cellVertices"),
-                          refparam("vector_of_vector_of_vector_of_unsigned", "cellFaceVertices"),
-                          refparam("vector_of_double", "cellVolumes"),
-                          refparam(vector_of_vector, "cellCentroids"),
-                          refparam("vector_of_vector_of_unsigned", "neighborCells")], is_const=True)
         x.add_method("subRegion", None, [constrefparam(vector, "point"),
                                          param("unsigned int", "i"),
                                          param("unsigned int", "j"),

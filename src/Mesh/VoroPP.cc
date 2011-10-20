@@ -216,66 +216,69 @@ addBoundary(MeshWall<Dimension>& meshWall) {
 
 //------------------------------------------------------------------------------
 // Return the vertex and face description of all cells.
-// Note we assign a unique ID to each vertex, but the vertices themselves are
-// degenerate!
+// We use our local Cell class to encapsulate the cell by cell info.
 //------------------------------------------------------------------------------
 template<>
 vector<unsigned>
 VoroPP<Dim<2> >::
-allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
-         vector<vector<vector<unsigned> > >& cellFaceVertices,
-         vector<double>& cellVolumes,
-         vector<Dim<2>::Vector>& cellCentroids,
-         vector<vector<unsigned> >& neighborCells) const {
-
-  // Size the results appropriately.
-  cellVertices = vector<vector<Vector> >(mNumGenerators);
-  cellFaceVertices = vector<vector<vector<unsigned> > >(mNumGenerators);
-  cellVolumes = vector<double>(mNumGenerators);
-  cellCentroids = vector<Vector>(mNumGenerators);
-  neighborCells = vector<vector<unsigned> >(mNumGenerators);
-  
+allCells(vector<Cell<Dim<2> > >& cells) const {
+  typedef Dim<2> Dimension;
   const unsigned UNSET = numeric_limits<unsigned>::max();
-//   const double zmin = -(mXmax.x() - mXmin.x())/mNx;
+
+  // Clear the result.
+  cells = vector<Cell<Dimension> >(mNumGenerators);
+  
 
   // Read out the entire string from Voro++.
-//   Timing::Time t0 = Timing::currentTime();
+  Timing::Time t0 = Timing::currentTime();
   ostringstream oss;
-  mContainerPtr->print_all_custom("%i %w %P %s %t %f %C %n", oss);
+  mContainerPtr->print_all_custom("%i %w %P %s %t %v %C %n", oss);
   const string everything = oss.str();
-//   if (Process::getRank() == 0) cerr << "VoroPP:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to call print_all_custom with "
-//                                     << mNumGenerators << " generators." << endl;
+//   cerr << "Everything:  " << endl
+//        << everything << endl;
+  if (Process::getRank() == 0) cerr << "VoroPP:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to call print_all_custom with "
+                                    << mNumGenerators << " generators." << endl;
   mContainerPtr->clear();
 
+  const double Vscale = mScale*mScale;
   vector<unsigned> flagsMe(mNumGenerators, 0), result;
 
   // Read out the cell by cell stuff from the string.
   istringstream iss(everything);
+
+  int otherGen;
+  unsigned nv, nf, i, j, k, n, igen, numDone = 0U;
+  double xc, yc, zc;
+
+  unsigned iigen, ilayer, iBotFace, i0, i1;
+  double z0layer, area, volume;
+  Vector centroid;
+  vector<unsigned> voro2real, realFaceOrder, neighbors;
+  vector<vector<unsigned> > faceVertices;
+  vector<Vector> vertices;
+  vector<VoroVector> voroVerts;
+  vector<VoroFaceIndices> voroFaceIndices;
+  
   const unsigned maxline = 65536;
   char line[maxline];
 
-  bool useGen, killEdge, done;
-  int otherGen;
-  unsigned nv, nf, i, j, k, n, igen, jgen, iigen, ilayer, iBotFace, numDone = 0U;
-  double xc, yc, zc, area, maxEdge, z0layer;
-  vector<unsigned> voro2real, edges2kill;
-  vector<int> realFaceOrder, newVertexOrder;
-  vector<VoroVector> voroVerts;
-  vector<VoroFaceIndices> voroFaceIndices;
-  VoroVector vvec;
-  VoroFaceIndices f;
   while (iss >> iigen and numDone < mNumGenerators) {
     igen = iigen % mNumGenerators;
     if (flagsMe[igen] == 1) {
+
       // We've already hit this generator in a different layer, so skip it.
       iss.getline(line, maxline);
 
     } else {
+
       CHECK2(igen < mNumGenerators, igen << " " << mNumGenerators);
+      CHECK(flagsMe[igen] == 0);
       flagsMe[igen] = 1;
       ++numDone;
+
+      // What layer are we in?
       ilayer = iigen / mNumGenerators;
       CHECK(ilayer < NLAYERS);
       z0layer = ilayer*1.0/NLAYERS;
@@ -283,12 +286,11 @@ allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
       // Read the number of vertices.
       iss >> nv;
 
-      // Read out this cell's Voro++ vertex coordinates.
+      // Read out this cell's vertex coordinates.
       CHECK(nv >= 6);
-      voroVerts = vector<VoroVector>();
+      voroVerts = vector<VoroVector>(nv);
       for (i = 0; i != nv; ++i) {
-        voroVerts.push_back(VoroVector());
-        iss >> voroVerts.back();
+        iss >> voroVerts[i];
       }
       CHECK(voroVerts.size() == nv);
 
@@ -296,13 +298,11 @@ allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
       iss >> nf;
       CHECK(nf >= 5);
       iBotFace = UNSET;
-      voroFaceIndices = vector<VoroFaceIndices>();
+      voroFaceIndices = vector<VoroFaceIndices>(nf);
       for (i = 0; i != nf; ++i) {
-        voroFaceIndices.push_back(VoroFaceIndices());
-        iss >> voroFaceIndices.back();
+        iss >> voroFaceIndices[i];
 
-        // Identify the face with all zero z coordinates.
-        // This represents our 2D cell.
+        // Identify the face with z = z0layer -- this is our target.
         zc = z0layer;
         for (j = 0; j != voroFaceIndices.back().indices.size(); ++j) {
           zc = max(zc, voroVerts[voroFaceIndices.back().indices[j]].z);
@@ -317,17 +317,20 @@ allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
       // Pick out the nodes of the bottom face.
       j = 0;
       n = voroFaceIndices[iBotFace].indices.size();
-      cellVertices[igen].resize(n);
+      vertices = vector<Vector>(n);
+      faceVertices = vector<vector<unsigned> >(n, vector<unsigned>(2));
       voro2real = vector<unsigned>(nv, UNSET);
       for (i = 0; i != n; ++i) {
         k = voroFaceIndices[iBotFace].indices[i];
-        voroVerts[k].fillVector(cellVertices[igen][i]);
-        boundPointWithinBox(cellVertices[igen][i], Vector(0.0,0.0), Vector(1.0, 1.0));
+        voroVerts[k].fillVector(vertices[i]);
+        vertices[i] = vertices[i]*mScale + mXmin;
+        faceVertices[i][0] = i;
+        faceVertices[i][1] = (i + 1) % n;
         voro2real[k] = i;
       }
 
       // Extract our real face ordering.
-      realFaceOrder = vector<int>(nf, -1);
+      realFaceOrder = vector<unsigned>(nf, UNSET);
       for (i = 0; i != nf; ++i) {
         vector<unsigned> thpt;
         for (j = 0; j != voroFaceIndices[i].indices.size(); ++j) {
@@ -336,286 +339,78 @@ allCells(vector<vector<Dim<2>::Vector> >& cellVertices,
           if (k != UNSET) thpt.push_back(k);
         }
         if (thpt.size() == 2) {
-          if (min(thpt[0], thpt[1]) == 0) {
-            if (max(thpt[0], thpt[1]) == 1) {
-              realFaceOrder[i] = 0;
-            } else {
-              realFaceOrder[i] = max(thpt[0], thpt[1]);
-            }
+          if (thpt[0] < thpt[1]) {
+            i0 = thpt[0];
+            i1 = thpt[1];
           } else {
-            realFaceOrder[i] = min(thpt[0], thpt[1]);
+            i0 = thpt[1];
+            i1 = thpt[0];
+          }
+          CHECK((i1 == i0 + 1) or (i0 == 0 and i1 == n - 1));
+          if (i0 == 0 and i1 == 1) {
+            realFaceOrder[i] = 0;
+          } else if (i0 == 0 and i1 == n - 1) {
+            realFaceOrder[i] = n - 1;
+          } else {
+            realFaceOrder[i] = i0;
           }
         }
       }
-      n = cellVertices[igen].size();
-      for (i = 0; i != n; ++i) {
-        vector<unsigned> thpt;
-        thpt.push_back(i);
-        thpt.push_back((i + 1) % n);
-        cellFaceVertices[igen].push_back(thpt);
-      }
-      CHECK(cellFaceVertices[igen].size() >= 3);
-      // if (not (cellFaceVertices[igen].size() == cellVertices[igen].size())) {
-      //   cerr << "Vertices: ";
-      //   for (i = 0; i != cellVertices[igen].size(); ++i) cerr << cellVertices[igen][i] << " ";
-      //   cerr << endl
-      //        << "          ";
-      //   for (i = 0; i != voroFaceIndices[iBotFace].indices.size(); ++i) {
-      //     k = voroFaceIndices[iBotFace].indices[i];
-      //     cerr << "(" << voroVerts[k].x << " " << voroVerts[k].y << " " << voroVerts[k].z << ") ";
-      //   }
-      //   cerr << endl
-      //        << "          ";
-      //   for (i = 0; i != nv; ++i) {
-      //     cerr << "(" << voroVerts[k].x << " " << voroVerts[k].y << " " << voroVerts[k].z << ") ";
-      //   }
-      //   cerr << endl
-      //        << "          ";
-      //   for (i = 0; i != nv; ++i) cerr << voro2real[i] << " ";
-      //   cerr << endl
-      //        << "Face vertices: ";
-      //   for (i = 0; i != cellFaceVertices[igen].size(); ++i) cerr << "(" << cellFaceVertices[igen][i][0] << " " << cellFaceVertices[igen][i][1] << ") ";
-      //   cerr << endl;
-      // }
-      CHECK(cellFaceVertices[igen].size() == cellVertices[igen].size());
 
       // Get the face areas (resulting in the zone "volume" in this 2D case).
       for (i = 0; i != nf; ++i) {
         iss >> area;
-        if (i == iBotFace) cellVolumes[igen] = area;
+        if (i == iBotFace) volume = area*Vscale;
       }
 
       // Get the centroid.
       iss >> xc >> yc >> zc;
-      cellCentroids[igen] = Vector(xc, yc);
+      centroid = Vector(xc, yc)*mScale + mXmin;
 
       // Finally the set of neighbor generators.
-      neighborCells[igen] = vector<unsigned>(n);
+      neighbors = vector<unsigned>(n, UNSET);
       for (i = 0; i != nf; ++i) {
         iss >> otherGen;
-        if (realFaceOrder[i] >= 0) {
-          CHECK(realFaceOrder[i] < n);
-          neighborCells[igen][realFaceOrder[i]] = (otherGen >= 0 ? (otherGen % mNumGenerators) : UNSET);
+        if (realFaceOrder[i] != UNSET) {
+          CHECK(realFaceOrder[i] < neighbors.size());
+          neighbors[realFaceOrder[i]] = otherGen;
         }
       }
+
+      // Add the Cell to the result.
+      cells[igen] = Cell<Dimension>(igen, volume, centroid, vertices, faceVertices, neighbors, mEdgeTol);
     }
   }
 
   // Check if all generators were created.  If not, return failure.
   if (numDone != mNumGenerators) {
     for (igen = 0; igen != mNumGenerators; ++igen) {
-      if (flagsMe[igen] == 0) result.push_back(igen);
+      if (flagsMe[igen] == 0) {
+        result.push_back(igen);
+        // cerr << "Missed " << igen << endl;
+      }
     }
     return result;
   }
 
-  // Now do some pruning.
-  unsigned ji, jj, nj;
-  vector<unsigned>::const_iterator killItr;
-  vector<vector<Vector> > newCellVertices;
-  done = false;
-  while (not done) {
-    done = true;
-    vector<vector<unsigned> > edges2kill(mNumGenerators);
-    for (igen = 0; igen != mNumGenerators; ++igen) {
-      // Scan the edges looking for any that fall below the threshold for removal.
-      n = cellVertices[igen].size();
-      maxEdge = 0.0;
-      for (i = 0; i != n; ++i) {
-        j = (i + 1) % n;
-        maxEdge = max(maxEdge, (cellVertices[igen][i] - cellVertices[igen][j]).magnitude());
-      }
-      CHECK2(maxEdge > 0.0, igen << " " << maxEdge << " " << (*mGeneratorsPtr)[igen]);
-      for (i = 0; i != n; ++i) {
-        jgen = neighborCells[igen][i];
-        j = (i + 1) % n;
-        killEdge = ((cellVertices[igen][i] - cellVertices[igen][j]).magnitude()/maxEdge < mEdgeTol);
-        if ((not killEdge) and (jgen != UNSET)) {
-          // Check if the neighbor zone across this face knows about us.  If not, kill the edge.
-          killEdge = (count(neighborCells[jgen].begin(), neighborCells[jgen].end(), igen) == 0);
-        }
-        if (killEdge) {
-          edges2kill[igen].push_back(i);
-          if (jgen != UNSET) {
-            k = distance(neighborCells[jgen].begin(), find(neighborCells[jgen].begin(), neighborCells[jgen].end(), igen));
-            if (k < neighborCells[jgen].size()) {
-              edges2kill[jgen].push_back(k);
-            }
-          }
-          done = false;
-        }
-      }
-    }
-
-    if (not done) {
-      newCellVertices = cellVertices;
-      // Make a first pass on any edges we're removing and make sure everyone agrees about
-      // new node positions.
-      for (igen = 0; igen != mNumGenerators; ++igen) {
-        if (edges2kill[igen].size() > 0) {
-          newCellVertices[igen] = cellVertices[igen];
-          sort(edges2kill[igen].begin(), edges2kill[igen].end());
-          edges2kill[igen].erase(unique(edges2kill[igen].begin(), edges2kill[igen].end()), edges2kill[igen].end());
-          n = cellVertices[igen].size();
-          for (killItr = edges2kill[igen].begin(); killItr != edges2kill[igen].end(); ++killItr) {
-            i = *killItr;
-            CHECK(i < n);
-            j = (i + 1) % n;
-            jgen = neighborCells[igen][i];
-            
-            // Does the neighbor really line up with us?
-            if (jgen != UNSET) {
-              nj = cellVertices[jgen].size();
-              ji = findMatchingVertex(i, cellVertices[igen], cellVertices[jgen]);
-              CHECK(ji < nj);
-              jj = (ji == 0 ? nj - 1 : ji - 1);
-              if ((cellVertices[igen][i] - cellVertices[jgen][ji]).magnitude2() +
-                  (cellVertices[igen][j] - cellVertices[jgen][jj]).magnitude2() > 1.0e-8) jgen = UNSET;
-            }
-            if (jgen == UNSET) {
-              newCellVertices[igen][j] = 0.5*(cellVertices[igen][i] + cellVertices[igen][j]);
-              newCellVertices[igen][i] = newCellVertices[igen][j];
-            } else {
-              newCellVertices[igen][j] = 0.25*(cellVertices[igen][i] + cellVertices[igen][j] +
-                                               cellVertices[jgen][ji] + cellVertices[jgen][jj]);
-              newCellVertices[igen][i] = newCellVertices[igen][j];
-              newCellVertices[jgen][ji] == newCellVertices[igen][j];
-              newCellVertices[jgen][jj] == newCellVertices[igen][j];
-            }
-          }
-        }
-      }
-
-      // Now remove edges & nodes.
-      for (igen = 0; igen != mNumGenerators; ++igen) {
-        if (edges2kill[igen].size() > 0) {
-          n = cellVertices[igen].size();
-          vector<int> newVertexOrder(n, -1);
-          killItr = edges2kill[igen].begin();
-          k = 0;
-          for (i = 0; i != n; ++i) {
-            if (killItr < edges2kill[igen].end() and i == *killItr) {
-              ++killItr;
-            } else {
-              newVertexOrder[i] = k++;
-            }
-          }
-          CHECK2(killItr == edges2kill[igen].end(), killItr - edges2kill[igen].begin() << " " << edges2kill[igen].size());
-          CHECK2(k == (n - edges2kill[igen].size()), k << " " << n << " " << edges2kill[igen].size());
-          CHECK2(k >= 3, n << " " << edges2kill[igen].size());
-          for (i = 0; i != n; ++i) {
-            CHECK(cellFaceVertices[igen][i].size() == 2);
-            mapIndex(cellFaceVertices[igen][i][0], newVertexOrder, k);
-            mapIndex(cellFaceVertices[igen][i][1], newVertexOrder, k);
-          }
-          removeElements(newCellVertices[igen], edges2kill[igen]);
-          removeElements(cellFaceVertices[igen], edges2kill[igen]);
-          removeElements(neighborCells[igen], edges2kill[igen]);
-          CHECK(newCellVertices[igen].size() == k);
-          CHECK(cellFaceVertices[igen].size() == k);
-          CHECK(neighborCells[igen].size() == k);
-        }
-      }
-      cellVertices = newCellVertices;
-    }
-  }
-
-  // Scale back to the input geometry.
-  const double Vscale = mScale*mScale;
-  for (igen = 0; igen != mNumGenerators; ++igen) {
-    for (i = 0; i != cellVertices[igen].size(); ++i) {
-      cellVertices[igen][i] = cellVertices[igen][i]*mScale + mXmin;
-    }
-    cellVolumes[igen] *= Vscale;
-    cellCentroids[igen] = cellCentroids[igen]*mScale + mXmin;
-  }
-
-  // Post-conditions.
-  BEGIN_CONTRACT_SCOPE;
-  {
-//     // Check that all generators were computed.
-//     const unsigned numDone = accumulate(flagsMe.begin(), flagsMe.end(), 0U);
-//     if (numDone != mNumGenerators) {
-//       cerr << "Box range:  " << mXmin << " " << mXmax << endl;
-//       for (igen = 0; igen != NLAYERS * mNumGenerators; ++igen) {
-//         if (flagsMe[igen] == 0U) cerr << "  --> " << igen << " " << (*mGeneratorsPtr)[igen % mNumGenerators] << endl;
-//       }
-//     }
-//     ENSURE2(numDone == mNumGenerators, "VoroPP: computed " << numDone << " of " << mNumGenerators << " generators.");
-    
-    // Look for symmetry in neighbors.
-    unsigned jgen;
-    for (igen = 0; igen != mNumGenerators; ++igen) {
-      nf = cellVertices[igen].size();
-//       if (not (cellFaceVertices[igen].size() == nf)) {
-//         cerr << "Vertices: ";
-//         for (i = 0; i != nf; ++i) cerr << cellVertices[igen][i] << " ";
-//         cerr << endl
-//              << "          ";
-//         for (i = 0; i != voroFaceIndices[iBotFace].indices.size(); ++i) {
-//           k = voroFaceIndices[iBotFace].indices[i];
-//           cerr << "(" << voroVerts[k].x << " " << voroVerts[k].y << " " << voroVerts[k].z << ") ";
-//         }
-//         cerr << endl
-//              << "Face vertices: ";
-//         for (i = 0; i != cellFaceVertices[igen].size(); ++i) cerr << "(" << cellFaceVertices[igen][i][0] << " " << cellFaceVertices[igen][i][1] << ") ";
-//         cerr << "Cell centroid: " << "(" << xc << " " << yc << " " << zc << ")" << endl;
-//         cerr << endl;
-//       }
-      ENSURE2(cellFaceVertices[igen].size() == nf, cellFaceVertices[igen].size() << " " << nf);
-      ENSURE(neighborCells[igen].size() == nf);
-      for (i = 0; i != nf; ++i) {
-        jgen = neighborCells[igen][i];
-        ENSURE2(jgen == UNSET or count(neighborCells[igen].begin(), neighborCells[igen].end(), jgen) == 1,
-                igen << " " << jgen << " : " << count(neighborCells[igen].begin(), neighborCells[igen].end(), jgen));
-        if (jgen != UNSET) {
-//           if (!(count(neighborCells[jgen].begin(), neighborCells[jgen].end(), igen) == 1)) {
-//             cerr << "Blago!  " << endl
-//                  << "Generator " << igen << endl
-//                  << "    ";
-//             for (j = 0; j != cellVertices[igen].size(); ++j) cerr << cellVertices[igen][j] << " ";
-//             cerr << endl
-//                  << "    ";
-//             for (j = 0; j != neighborCells[igen].size(); ++j) cerr << neighborCells[igen][j] << " ";
-//             cerr << endl
-//                  << "Generator " << jgen << endl
-//                  << "    ";
-//             for (j = 0; j != cellVertices[jgen].size(); ++j) cerr << cellVertices[jgen][j] << " ";
-//             cerr << endl
-//                  << "    ";
-//             for (j = 0; j != neighborCells[jgen].size(); ++j) cerr << neighborCells[jgen][j] << " ";
-//             cerr << endl;
-//           }
-          ENSURE2(count(neighborCells[jgen].begin(), neighborCells[jgen].end(), igen) == 1,
-                  jgen << " " << igen << " : " << count(neighborCells[jgen].begin(), neighborCells[jgen].end(), igen));
-        }
-        j = (i + 1) % nf;
-        ENSURE(cellFaceVertices[igen][i] != cellFaceVertices[igen][j]);
-      }
-    }
-  }
-  END_CONTRACT_SCOPE;
-
-  // That's it.
-  return result;
+  // Otherwise, success!
+  return vector<unsigned>();
 }
 
 //------------------------------------------------------------------------------
 // Return the vertex and face description of all cells.
-// Note we assign a unique ID to each vertex, but the vertices themselves are
-// degenerate!
+// We use our local Cell class to encapsulate the cell by cell info.
 //------------------------------------------------------------------------------
 template<>
 vector<unsigned>
 VoroPP<Dim<3> >::
 allCells(vector<Cell<Dim<3> > >& cells) const {
   typedef Dim<3> Dimension;
+  const unsigned UNSET = numeric_limits<unsigned>::max();
 
   // Clear the result.
   cells = vector<Cell<Dimension> >(mNumGenerators);
   
-  const unsigned UNSET = numeric_limits<unsigned>::max();
-
   // Read out the entire string from Voro++.
   Timing::Time t0 = Timing::currentTime();
   ostringstream oss;

@@ -45,6 +45,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Some useful typedefs.
   typedef Dim<2> Dimension;
+  typedef pair<unsigned, unsigned> EdgeHash;
 
   // Is there anything to do?
   if (generators.size() == 0) return;
@@ -54,7 +55,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   const double xtol2 = xtol*xtol;
 
   // Pre-conditions.
-  unsigned i, j, k, igen, numGens = generators.size();
+  unsigned i, j, k, igen, jgen, numGens = generators.size();
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin0.x() < xmax0.x() and
@@ -71,15 +72,14 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   }
   END_CONTRACT_SCOPE;
 
-  // This version is currently a hack 'cause the 2D implementation of Voro++ 
-  // doesn't really support walls.  We're just cutting down the bounding box.
+  // Enforce the boundary condition limits on volume.
   Vector xmin = xmin0, xmax = xmax0;
-//   for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
-//        wallItr != mWallPtrs.end();
-//        ++wallItr) {
-//     xmin = elementWiseMax(xmin, (**wallItr).xmin());
-//     xmax = elementWiseMin(xmax, (**wallItr).xmax());
-//   }
+  for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
+       wallItr != mWallPtrs.end();
+       ++wallItr) {
+    xmin = elementWiseMax(xmin, (**wallItr).xmin());
+    xmax = elementWiseMin(xmax, (**wallItr).xmax());
+  }
 //   cerr << "PolygonalMesh choosing (xmin, xmax) range to be : " << xmin << " " << xmax << endl;
 
   // The inverse box scale.
@@ -93,42 +93,54 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   boost::uniform_01<base_generator_type> rangen(basegen);
 
   // Use Voro++ to generate our tessellation information.
-//   Timing::Time t0 = Timing::currentTime();
+  Timing::Time t0 = Timing::currentTime();
+  const double edgeTol = 1.0e-8;
   vector<unsigned> badGenerators(1U, 1U);
-  vector<vector<Vector> > cellVertices;
-  vector<vector<vector<unsigned> > > cellFaceVertices;
-  vector<double> cellVolumes;
-  vector<Vector> cellCentroids;
-  vector<vector<unsigned> > neighborCells;
+  vector<Cell<Dimension> > cells;
   unsigned iter = 0;
-  double costheta, sintheta;
+  double costheta, sintheta, cosphi, sinphi;
   vector<Vector>& modgenerators = const_cast<vector<Vector>&>(generators);  // This is deliberately bad to remind us this whole loop is a hack!
   while (badGenerators.size() > 0 and iter < 10) {
     ++iter;
 
     // Build the Voro++ object.
     VoroPP<Dimension> voro(generators, xmin, xmax,
-                           20, 20, 1, 1.0e-8);
+                           20, 20, 20, edgeTol);
 
-//     // Add walls to the container.
-//     for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
-//          wallItr != mWallPtrs.end();
-//          ++wallItr) voro.addBoundary(**wallItr);
+//      // Add walls to the container.
+//      for (vector<MeshWallPtr>::iterator wallItr = mWallPtrs.begin();
+//           wallItr != mWallPtrs.end();
+//           ++wallItr) voro.addBoundary(**wallItr);
 
     // Read out the Voro++ data.
-    badGenerators = voro.allCells(cellVertices, cellFaceVertices, cellVolumes, cellCentroids, neighborCells);
+    badGenerators = voro.allCells(cells);
+
+//     if (badGenerators.size() > 0) {
+//       stringstream fname;
+//       fname << "BadGenerators_" << Process::getRank() << ".txt";
+//       ofstream os(fname.str().c_str());
+//       for (i = 0; i != numGens; ++i) {
+//         os << generators[i].x() << " " << generators[i].y() << " " << generators[i].z() << endl;
+//       }
+//       os.close();
+//       VERIFY(false);
+//     }
 
     // Did Voro++ miss any generators?
     if (badGenerators.size() > 0) {
       cerr << "  --> Tweaking " << badGenerators.size() << " generators..." << endl;
       for (k = 0; k != badGenerators.size(); ++k) {
         igen = badGenerators[k];
-//         cerr << "PolygonalMesh: Tweaking bad generator " << igen << " " << modgenerators[igen];
+//         cerr << "PolyhedralMesh: Tweaking bad generator " << igen << " " << modgenerators[igen];
         costheta = 2.0*(rangen() - 0.5);
+        cosphi = 2.0*(rangen() - 0.5);
         CHECK(abs(costheta) <= 1.0);
+        CHECK(abs(cosphi) <= 1.0);
         sintheta = sqrt(1.0 - costheta*costheta) * sgn(rangen());
-        modgenerators[igen] += Vector(1.0e-5*box.x() * costheta,
-                                      1.0e-5*box.y() * sintheta);
+        sinphi = sqrt(1.0 - cosphi*cosphi) * sgn(rangen());
+        modgenerators[igen] += Vector(1.0e-5*box.x() * costheta*sinphi,
+                                      1.0e-5*box.y() * sintheta*sinphi,
+                                      1.0e-5*box.z() * cosphi);
 //         modgenerators[igen] = boundPointWithinBox(modgenerators[igen] + Vector(1.0e-5*box.x() * costheta,
 //                                                                                1.0e-5*box.y() * sintheta),
 //                                                   xmin, xmax);
@@ -137,259 +149,153 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     }
   }
   VERIFY2(badGenerators.size() == 0, "Voro++ unable to handle all generators: " << badGenerators.size() << " bad of " << numGens);
-  CHECK(cellVertices.size() == numGens);
-  CHECK(cellFaceVertices.size() == numGens);
-  CHECK(cellVolumes.size() == numGens);
-  CHECK(cellCentroids.size() == numGens);
-  CHECK(neighborCells.size() == numGens);
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to construct Voro++ data." << endl;
+  CHECK(cells.size() == numGens);
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to construct Voro++ data." << endl;
 
-  // Prepare storage for the mesh face IDs for each cell, and the set of shared nodes
-  // between cells.
-//   t0 = Timing::currentTime();
-  const int UNSETFACEID = numeric_limits<int>::max();
-  vector<vector<int> > cellFaceIDs;
-  vector<vector<set<pair<unsigned, unsigned> > > > sharedLocalNodes;
-  cellFaceIDs.reserve(numGens);
-  sharedLocalNodes.reserve(numGens);
-  unsigned nfacesi, nfacesj;
+  // Now we need to take the (probably inconsistent) cell by cell information
+  // from Voro++ and stitch it together into a fully consistent topology.
+  t0 = Timing::currentTime();
+
+  // Enforce consistency for the cells neighboring across faces.
+  for (igen = 0; igen != numGens; ++igen) cells[igen].cullDegenerateNeighbors(cells);
+
+  // Match up face info between cells.
+  unsigned iface, nf;
   for (igen = 0; igen != numGens; ++igen) {
-    const vector<Vector>& verticesi = cellVertices[igen];
-    nfacesi = verticesi.size();
-    cellFaceIDs.push_back(vector<int>(nfacesi, UNSETFACEID));
-    sharedLocalNodes.push_back(vector<set<pair<unsigned, unsigned> > >(nfacesi));
-    for (i = 0; i != nfacesi; ++i) {
-      sharedLocalNodes[igen][i].insert(make_pair(igen, i));
+    const vector<unsigned>& neighbors = cells[igen].newNeighbors();
+    nf = cells[igen].numOldFaces();
+    CHECK(neighbors.size() == nf);
+    for (iface = 0; iface != nf; ++iface) {
+      jgen = neighbors[iface];
+      CHECK(jgen == Cell<Dimension>::UNSETID or
+            jgen == Cell<Dimension>::DELETED or
+            jgen < numGens);
+      if (jgen < numGens and
+          jgen > igen) cells[igen].matchFace(iface, cells[jgen]);
     }
   }
-  CHECK(cellFaceIDs.size() == numGens);
-  CHECK(sharedLocalNodes.size() == numGens);
 
-  // Find the common faces and nodes between zones.  We can assign
-  // mesh face IDs at this time as well.
-  unsigned numFaces = 0, jgen, iface, jface;
-  for (igen = 0; igen != numGens; ++igen) {
-    const vector<unsigned>& neighborsi = neighborCells[igen];
-    const vector<Vector>& verticesi = cellVertices[igen];
-    nfacesi = neighborsi.size();
-    CHECK(verticesi.size() == nfacesi);
-    CHECK(cellFaceIDs[igen].size() == nfacesi);
-    CHECK(sharedLocalNodes[igen].size() == nfacesi);
-    for (iface = 0; iface != nfacesi; ++iface) {
-      jgen = neighborsi[iface];
-//       cerr << "Generator neighbors:  " << igen << " " << jgen << endl;
-      if (jgen == UNSETID) {
-        // This face is on a boundary, so just assign it a new ID and we're done.
-        cellFaceIDs[igen][iface] = numFaces++;
-      } else if (jgen > igen) {
-        // Find which local face this corresponds to in the neighbor cell.
-        const vector<Vector>& verticesj = cellVertices[jgen];
-        nfacesj = verticesj.size();
-        k = findMatchingVertex(iface, verticesi, verticesj);
-        jface = (k == 0 ? nfacesj - 1 : k - 1);
-        // if (!(((verticesi[iface] - verticesj[k]).magnitude2() < 1.0e-5) and
-        //       ((verticesi[(iface + 1) % nfacesi] - verticesj[jface]).magnitude2() < 1.0e-5))) {
-        //   cerr << "Generators:  " << igen << " " << jgen << endl;
-        //   cerr << "neighborsi:  ";
-        //   for (unsigned ii = 0; ii != neighborsi.size(); ++ii) cerr << neighborsi[ii] << " ";
-        //   cerr << endl;
-        //   cerr << "verticesi : ";
-        //   for (unsigned t = 0; t != verticesi.size(); ++t) cerr << verticesi[t] << " ";
-        //   cerr << endl
-        //        << "verticesj : ";
-        //   for (unsigned t = 0; t != verticesj.size(); ++t) cerr << verticesj[t] << " ";
-        //   cerr << endl
-        //        << iface << " <-> " << k << endl
-        //        << (iface + 1) % nfacesi << " <-> " << jface << endl;
-        // }
-        CHECK2((verticesi[iface] - verticesj[k]).magnitude2() < 1.0e-5,
-               "Possible bad node match:  " << verticesi[iface] << " " << verticesj[k] << " " << (verticesi[iface] - verticesj[k]).magnitude2());
-        CHECK2((verticesi[(iface + 1) % nfacesi] - verticesj[jface]).magnitude2() < 1.0e-5,
-               "Possible bad node match:  " << verticesi[(iface + 1) % nfacesi] << " " << verticesj[jface] << " " << (verticesi[(iface + 1) % nfacesi] - verticesj[jface]).magnitude2());
-
-        // Assign the new face to each cell.
-        cellFaceIDs[igen][iface] = numFaces++;
-        cellFaceIDs[jgen][jface] = ~(cellFaceIDs[igen][iface]);
-
-        // Store the matching node info.
-        sharedLocalNodes[igen][iface].insert(make_pair(jgen, k));
-        sharedLocalNodes[jgen][k].insert(make_pair(igen, iface));
-
-        sharedLocalNodes[igen][(iface + 1) % nfacesi].insert(make_pair(jgen, jface));
-        sharedLocalNodes[jgen][jface].insert(make_pair(igen, (iface + 1) % nfacesi));
-      }
-    }
-  }
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to assign face IDs." << endl;
-
-//   // Blago!
-//   for (igen = 0; igen != numGens; ++igen) {
-//     cerr << igen << " sharedLocalNodes: " << endl;
-//     for (i = 0; i != cellVertices[igen].size(); ++i) {
-//       cerr << "  --> " << i << " " << cellVertices[igen][i] << " : ";
-//       for (set<pair<unsigned, unsigned> >::const_iterator itr = sharedLocalNodes[igen][i].begin();
-//            itr != sharedLocalNodes[igen][i].end();
-//            ++itr) cerr << "(" << itr->first << " " << itr->second << ") ";
-//       cerr << endl;
-//     }
-//   }
-//   // Blago!
-
-  // Prepare storage for the mesh node IDs in each cell.
-//   t0 = Timing::currentTime();
-  vector<vector<unsigned> > cellMeshNodeIDs;
-  vector<vector<unsigned> > nodeZoneIDs;
-  cellMeshNodeIDs.reserve(numGens);
-  for (igen = 0; igen != numGens; ++igen) cellMeshNodeIDs.push_back(vector<unsigned>(cellVertices[igen].size(), UNSETID));
-  CHECK(cellMeshNodeIDs.size() == numGens);
-
-  // Now we know enough to build the mesh node information.
-  unsigned numNodes = 0, n;
-  for (igen = 0; igen != numGens; ++igen) {
-    n = sharedLocalNodes[igen].size();
-    for (i = 0; i != n; ++i) {
-      if (cellMeshNodeIDs[igen][i] == UNSETID) {
-        set<pair<unsigned, unsigned> > fullNodeSet, currentNodeSet, newNodeSet = sharedLocalNodes[igen][i];
-        while (not newNodeSet.empty()) {
-          currentNodeSet = newNodeSet;
-          newNodeSet = set<pair<unsigned, unsigned> >();
-
-          // Create the union of the full set with the current.
-          set<pair<unsigned, unsigned> > tmp;
-          set_union(fullNodeSet.begin(), fullNodeSet.end(),
-                    currentNodeSet.begin(), currentNodeSet.end(),
-                    inserter(tmp, tmp.begin()));
-          fullNodeSet.swap(tmp);
-
-          // Look for any new shared node info we don't have yet.
-          for (set<pair< unsigned, unsigned> >::const_iterator citr = currentNodeSet.begin();
-               citr != currentNodeSet.end();
-               ++citr) {
-            const set<pair<unsigned, unsigned> >& otherNodeSet = sharedLocalNodes[citr->first][citr->second];
-            for (set<pair<unsigned, unsigned> >::const_iterator oitr = otherNodeSet.begin();
-                 oitr != otherNodeSet.end();
-                 ++oitr) {
-              if (fullNodeSet.find(*oitr) == fullNodeSet.end()) newNodeSet.insert(*oitr);
-            }
-          }
-        }
-        CHECK(fullNodeSet.size() > 0);
-
-        // Now we should know all cells that share this node in common.  Assign them all this as
-        // the next mesh node ID.
-        mNodePositions.push_back(Vector());
-        nodeZoneIDs.push_back(vector<unsigned>());
-        nodeZoneIDs.back().reserve(fullNodeSet.size());
-        for (set<pair<unsigned, unsigned> >::const_iterator itr = fullNodeSet.begin();
-             itr != fullNodeSet.end();
-             ++itr) {
-          CHECK(itr->first < cellMeshNodeIDs.size() and itr->second < cellMeshNodeIDs[itr->first].size());
-          CHECK(cellMeshNodeIDs[itr->first][itr->second] == UNSETID);
-          cellMeshNodeIDs[itr->first][itr->second] = numNodes;
-          mNodePositions.back() += cellVertices[itr->first][itr->second];
-          nodeZoneIDs.back().push_back(itr->first);
-        }
-        ++numNodes;
-        mNodePositions.back() /= fullNodeSet.size();
-        boundPointWithinBox(mNodePositions.back(), xmin, xmax);
-        CHECK(nodeZoneIDs.back().size() == fullNodeSet.size());
-      }
-    }
-  }
-  CHECK(mNodePositions.size() == numNodes);
-  CHECK(nodeZoneIDs.size() == numNodes);
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to construct unique Node IDs." << endl;
-
-  BEGIN_CONTRACT_SCOPE;
-  {
-    // Make sure the unique node positions are consistent with the cell by cell 
-    // vertices.
-    const double tol = 1.0e-8*(xmax - xmin).maxElement();
+  // Propagate the info of which cells share vertices until it stops 
+  // changing.
+  bool done = false;
+  while (not done) {
+    done = true;
     for (igen = 0; igen != numGens; ++igen) {
-      const vector<Vector>& vertices = cellVertices[igen];
-      const vector<unsigned>& nodeIDs = cellMeshNodeIDs[igen];
-      n = vertices.size();
-      CHECK2(nodeIDs.size() == n, nodeIDs.size() << " " << n);
-      for (i = 0; i != n; ++i) {
-        CHECK(nodeIDs[i] < mNodePositions.size());
-        CHECK2((vertices[i] - mNodePositions[nodeIDs[i]]).magnitude2() < tol,
-               "Blago!  " << igen << " " << i << " " << nodeIDs[i] << " "
-               << vertices[i] << " " << mNodePositions[i]);
-      }
+      done = done and cells[igen].findMinCellsForVertices(cells);
     }
   }
-  END_CONTRACT_SCOPE;
 
-  // Construct the nodes.
-//   t0 = Timing::currentTime();
-  mNodes.reserve(numNodes);
-  unsigned inode;
-  for (inode = 0; inode != numNodes; ++inode) {
-    CHECK(inode < nodeZoneIDs.size());
-    mNodes.push_back(Node(*this, inode, nodeZoneIDs[inode]));
-    BEGIN_CONTRACT_SCOPE;
-    {
-      BOOST_FOREACH(igen, mNodes.back().mZoneIDs) { CHECK(igen < numGens); }
-    }
-    END_CONTRACT_SCOPE;
-  }
-  CHECK(mNodes.size() == mNodePositions.size());
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to construct nodes." << endl;
+  // Lock the cells -- they should have consistent info now.
+  for (igen = 0; igen != numGens; ++igen) cells[igen].lock(cells);
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to stitch together cell topology." << endl;
 
-  // Build the edges and faces simultaneously.
-//   t0 = Timing::currentTime();
-  mEdges.reserve(numFaces);
-  mFaces.reserve(numFaces);
-  unsigned iedge = 0;
+  // Find the unique node positions, and build up the IDs of the cells that
+  // share these nodes.
+  t0 = Timing::currentTime();
+  unsigned nv;
+  vector<vector<unsigned> > nodeZoneIDs;
   for (igen = 0; igen != numGens; ++igen) {
-    const vector<int>& faceIDs = cellFaceIDs[igen];
-    const vector<unsigned>& nodeIDs = cellMeshNodeIDs[igen];
-    const vector<unsigned>& neighborsi = neighborCells[igen];
-    n = faceIDs.size();
-    CHECK(nodeIDs.size() == n);
-    CHECK(neighborsi.size() == n);
-    for (i = 0; i != n; ++i) {
-      if (faceIDs[i] >= 0) {
-        CHECK(faceIDs[i] == iedge);
-        j = (i + 1) % n;
-        CHECK2(nodeIDs[i] != nodeIDs[j], nodeIDs[i] << " " << nodeIDs[j] << " : " << i << " " << j << " " << n);
-        mEdges.push_back(Edge(*this, iedge, nodeIDs[i], nodeIDs[j]));
-        mFaces.push_back(Face(*this, iedge, igen, neighborsi[i], vector<unsigned>(1, iedge)));
-        ++iedge;
+    const vector<Vector>& vertices = cells[igen].newVertices();
+    nv = vertices.size();
+    for (i = 0; i != nv; ++i) {
+      jgen = cells[igen].minCellForVertex(i);
+      if (jgen == igen) {
+        cells[igen].realNodeID(i, mNodePositions.size());
+        // cerr << igen << " ASSIGNING real node ID " << cells[igen].realNodeID(i) << " @ " << vertices[i] << endl;
+        mNodePositions.push_back(vertices[i]);
+        nodeZoneIDs.push_back(vector<unsigned>(1, igen));
+      } else {
+        CHECK(jgen < igen);
+        j = cells[igen].localVertexForMinCell(i);
+        k = cells[jgen].realNodeID(j);
+        CHECK2(k < mNodePositions.size(), k << " " << igen << " " << jgen << " " << mNodePositions.size());
+        cells[igen].realNodeID(i, k);
+        // cerr << igen << " COPYING real node ID " << cells[igen].realNodeID(i) << " @ " << vertices[i] << endl;
+        nodeZoneIDs[k].push_back(igen);
       }
     }
   }
-  CHECK(mEdges.size() == numFaces);
+  const unsigned numNodes = mNodePositions.size();
+  CHECK(nodeZoneIDs.size() == numNodes);
+  
+  // Create the nodes.
+  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(*this, i, nodeZoneIDs[i]));
+  CHECK(mNodes.size() == numNodes);
+
+  // Create the edges.
+  unsigned numEdges = 0, inode, jnode;
+  EdgeHash ehash;
+  map<EdgeHash, unsigned> edgeHash2ID;
+  for (igen = 0; igen != numGens; ++igen) {
+    const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
+    nf = indices.size();
+    for (iface = 0; iface != nf; ++iface) {
+      nv = indices[iface].size();
+      for (i = 0; i != nv; ++i) {
+        j = (i + 1) % nv;
+        inode = cells[igen].realNodeID(indices[iface][i]);
+        jnode = cells[igen].realNodeID(indices[iface][j]);
+        CHECK(inode < numNodes and jnode < numNodes);
+        CHECK2(inode != jnode,
+               "Can't have an edge with the same node twice: " << inode << " " << jnode << endl
+               << igen << " " << iface << " " << i << " " << j << endl
+               << mNodePositions[inode] << endl
+               << cells[igen].dumpCell());
+        ehash = hashEdge(inode, jnode);
+        if (edgeHash2ID.find(ehash) == edgeHash2ID.end()) {
+          mEdges.push_back(Edge(*this, numEdges, inode, jnode));
+          edgeHash2ID[ehash] = numEdges++;
+        }
+      }
+    }
+  }
+  CHECK(mEdges.size() == numEdges);
+  CHECK(edgeHash2ID.size() == numEdges);
+  
+  // Create the faces.
+  unsigned numFaces = 0;
+  vector<vector<unsigned> > zoneFaceIDs(numGens);
+  for (igen = 0; igen != numGens; ++igen) {
+    const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
+    const vector<unsigned>& neighbors = cells[igen].newNeighbors();
+    nf = indices.size();
+    CHECK(neighbors.size() == nf);
+    for (iface = 0; iface != nf; ++iface) {
+      jgen = neighbors[iface];
+      if (jgen == UNSETID or jgen > igen) {
+        vector<unsigned> edgeIDs;
+        nv = indices[iface].size();
+        for (i = 0; i != nv; ++i) {
+          j = (i + 1) % nv;
+          inode = cells[igen].realNodeID(indices[iface][i]);
+          jnode = cells[igen].realNodeID(indices[iface][j]);
+          CHECK(inode < numNodes and jnode < numNodes);
+          ehash = hashEdge(inode, jnode);
+          CHECK(edgeHash2ID.find(ehash) != edgeHash2ID.end());
+          edgeIDs.push_back(edgeHash2ID[ehash]);
+        }
+        CHECK(edgeIDs.size() >= Cell<Dimension>::minVerticesPerFace);
+        mFaces.push_back(Face(*this, numFaces, igen, jgen, edgeIDs));
+        zoneFaceIDs[igen].push_back(numFaces);
+        if (jgen != UNSETID) zoneFaceIDs[jgen].push_back(numFaces);
+        ++numFaces;
+      }
+    }
+  }
   CHECK(mFaces.size() == numFaces);
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to construct edges." << endl;
 
-  // Build the zones.
-//   t0 = Timing::currentTime();
-  mZones.reserve(numGens);
+  // Create the zones.
   for (igen = 0; igen != numGens; ++igen) {
-    n = cellFaceIDs[igen].size();
-    CHECK2(n >= 3, "Bad number of faces for zone:  " << igen << " " << n);
-    vector<unsigned> faceIDs;
-    faceIDs.reserve(n);
-    for (i = 0; i != n; ++i) faceIDs.push_back(cellFaceIDs[igen][i] >= 0 ?
-                                               cellFaceIDs[igen][i] :
-                                               ~cellFaceIDs[igen][i]);
-    CHECK(faceIDs.size() == n);
-    mZones.push_back(Zone(*this, igen, faceIDs));
+    CHECK(zoneFaceIDs[igen].size() == cells[igen].numNewFaces());
+    mZones.push_back(Zone(*this, igen, zoneFaceIDs[igen]));
   }
-//   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-//                                     << Timing::difference(t0, Timing::currentTime())
-//                                     << " seconds to construct zones." << endl;
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to construct mesh elements." << endl;
 }
 
 }
