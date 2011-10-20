@@ -66,8 +66,8 @@ Zone(const Mesh<Dim<2> >& mesh,
   }
   END_CONTRACT_SCOPE;
   
-  // Sort the faces to be counter-clockwise around the zone.
-  CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, mFaceIDs[0]);
+//   // Sort the faces to be counter-clockwise around the zone.
+//   CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, mFaceIDs[0]);
 //   sort(mFaceIDs.begin() + 1, mFaceIDs.end(), faceComparator);
 
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
@@ -84,18 +84,18 @@ Zone(const Mesh<Dim<2> >& mesh,
     n2i = mMeshPtr->mEdges[mEdgeIDs[i]].node2ID();
     n1j = mMeshPtr->mEdges[mEdgeIDs[j]].node1ID();
     n2j = mMeshPtr->mEdges[mEdgeIDs[j]].node2ID();
-    if (!(n1i == n1j or n1i == n2j or
-          n2i == n1j or n2i == n2j)) {
-      cerr << "Bad nodes/edges to zone:  " << endl
-           << "  Nodes for edges:" << endl;
-      for (i = 0; i != numEdges; ++i) {
-        cerr << "  --> " 
-             << mMeshPtr->mEdges[mEdgeIDs[i]].node1ID() << " "
-             << mMeshPtr->mEdges[mEdgeIDs[i]].node2ID() << " : "
-             << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[i]].node1ID()] << " "
-             << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[i]].node2ID()] << endl;
-      }
-    }
+//     if (!(n1i == n1j or n1i == n2j or
+//           n2i == n1j or n2i == n2j)) {
+//       cerr << "Bad nodes/edges to zone:  " << endl
+//            << "  Nodes for edges:" << endl;
+//       for (unsigned ii = 0; ii != numEdges; ++ii) {
+//         cerr << "  --> " 
+//              << mMeshPtr->mEdges[mEdgeIDs[ii]].node1ID() << " "
+//              << mMeshPtr->mEdges[mEdgeIDs[ii]].node2ID() << " : "
+//              << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[ii]].node1ID()] << " "
+//              << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[ii]].node2ID()] << endl;
+//       }
+//     }
     CHECK2(n1i == n1j or n1i == n2j or
            n2i == n1j or n2i == n2j, "Bad node IDs:  " << n1i << " " << n2i << " " << n1j << " " << n2j);
     mNodeIDs.push_back((n1i == n1j) or (n1i == n2j) ? n1i : n2i);

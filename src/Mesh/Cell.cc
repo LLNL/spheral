@@ -225,6 +225,7 @@ cullDegenerateNeighbors(vector<Cell<Dimension> >& cells) {
       if (jface == nfj) {
         mNewNeighbors[iface] = DELETED;
         mNewFaceVertices[iface] = vector<unsigned>();
+        cerr << "Dropping " << iface << " from " << mID << endl;
 
       } else {
         // If we got here both cells acknowledge the cross-face relationship,

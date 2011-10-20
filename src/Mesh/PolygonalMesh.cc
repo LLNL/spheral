@@ -131,20 +131,12 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       cerr << "  --> Tweaking " << badGenerators.size() << " generators..." << endl;
       for (k = 0; k != badGenerators.size(); ++k) {
         igen = badGenerators[k];
-//         cerr << "PolyhedralMesh: Tweaking bad generator " << igen << " " << modgenerators[igen];
+//         cerr << "PolygonalMesh: Tweaking bad generator " << igen << " " << modgenerators[igen];
         costheta = 2.0*(rangen() - 0.5);
-        cosphi = 2.0*(rangen() - 0.5);
         CHECK(abs(costheta) <= 1.0);
-        CHECK(abs(cosphi) <= 1.0);
         sintheta = sqrt(1.0 - costheta*costheta) * sgn(rangen());
-        sinphi = sqrt(1.0 - cosphi*cosphi) * sgn(rangen());
-        modgenerators[igen] += Vector(1.0e-5*box.x() * costheta*sinphi,
-                                      1.0e-5*box.y() * sintheta*sinphi,
-                                      1.0e-5*box.z() * cosphi);
-//         modgenerators[igen] = boundPointWithinBox(modgenerators[igen] + Vector(1.0e-5*box.x() * costheta,
-//                                                                                1.0e-5*box.y() * sintheta),
-//                                                   xmin, xmax);
-//         cerr << " --> " << modgenerators[igen] << endl;
+        modgenerators[igen] += Vector(1.0e-5*box.x() * costheta,
+                                      1.0e-5*box.y() * sintheta);
       }
     }
   }
@@ -222,77 +214,113 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   const unsigned numNodes = mNodePositions.size();
   CHECK(nodeZoneIDs.size() == numNodes);
   
+//   // BLAGO!
+//   cerr << "------------------------------ LOCKED CELLS ------------------------------" << endl;
+//   for (igen = 0; igen != numGens; ++igen) {
+//     cerr << cells[igen].dumpCell() << endl;
+//   }
+//   // BLAGO!
+
   // Create the nodes.
   for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(*this, i, nodeZoneIDs[i]));
   CHECK(mNodes.size() == numNodes);
 
-  // Create the edges.
+  // Create the edges, faces, and zones.
+  // This logic relies on vertices being order counter-clockwise around the cell.
   unsigned numEdges = 0, inode, jnode;
   EdgeHash ehash;
   map<EdgeHash, unsigned> edgeHash2ID;
   for (igen = 0; igen != numGens; ++igen) {
-    const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
-    nf = indices.size();
-    for (iface = 0; iface != nf; ++iface) {
-      nv = indices[iface].size();
-      for (i = 0; i != nv; ++i) {
-        j = (i + 1) % nv;
-        inode = cells[igen].realNodeID(indices[iface][i]);
-        jnode = cells[igen].realNodeID(indices[iface][j]);
-        CHECK(inode < numNodes and jnode < numNodes);
-        CHECK2(inode != jnode,
-               "Can't have an edge with the same node twice: " << inode << " " << jnode << endl
-               << igen << " " << iface << " " << i << " " << j << endl
-               << mNodePositions[inode] << endl
-               << cells[igen].dumpCell());
-        ehash = hashEdge(inode, jnode);
-        if (edgeHash2ID.find(ehash) == edgeHash2ID.end()) {
-          mEdges.push_back(Edge(*this, numEdges, inode, jnode));
-          edgeHash2ID[ehash] = numEdges++;
-        }
+    nv = cells[igen].newVertices().size();
+    const vector<unsigned>& neighbors = cells[igen].newNeighbors();
+    CHECK(neighbors.size() == nv);
+    vector<unsigned> zoneFaceIDs;
+    for (i = 0; i != nv; ++i) {
+      j = (i + 1) % nv;
+      inode = cells[igen].realNodeID(i);
+      jnode = cells[igen].realNodeID(j);
+      CHECK(inode < numNodes and jnode < numNodes);
+      CHECK2(inode != jnode,
+             "Can't have an edge with the same node twice: " << inode << " " << jnode << endl
+             << igen << " " << iface << " " << i << " " << j << endl
+             << mNodePositions[inode] << endl
+             << cells[igen].dumpCell());
+      ehash = hashEdge(inode, jnode);
+      if (edgeHash2ID.find(ehash) == edgeHash2ID.end()) {
+        jgen = neighbors[i];
+        vector<unsigned> edgeIDs(1, numEdges);
+        mEdges.push_back(Edge(*this, numEdges, inode, jnode));
+        mFaces.push_back(Face(*this, numEdges, igen, jgen, edgeIDs));
+        edgeHash2ID[ehash] = numEdges++;
       }
+      zoneFaceIDs.push_back(edgeHash2ID[ehash]);
     }
+    CHECK(zoneFaceIDs.size() == nv);
+    mZones.push_back(Zone(*this, igen, zoneFaceIDs));
   }
   CHECK(mEdges.size() == numEdges);
+  CHECK(mFaces.size() == numEdges);
   CHECK(edgeHash2ID.size() == numEdges);
-  
-  // Create the faces.
-  unsigned numFaces = 0;
-  vector<vector<unsigned> > zoneFaceIDs(numGens);
-  for (igen = 0; igen != numGens; ++igen) {
-    const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
-    const vector<unsigned>& neighbors = cells[igen].newNeighbors();
-    nf = indices.size();
-    CHECK(neighbors.size() == nf);
-    for (iface = 0; iface != nf; ++iface) {
-      jgen = neighbors[iface];
-      if (jgen == UNSETID or jgen > igen) {
-        vector<unsigned> edgeIDs;
-        nv = indices[iface].size();
-        for (i = 0; i != nv; ++i) {
-          j = (i + 1) % nv;
-          inode = cells[igen].realNodeID(indices[iface][i]);
-          jnode = cells[igen].realNodeID(indices[iface][j]);
-          CHECK(inode < numNodes and jnode < numNodes);
-          ehash = hashEdge(inode, jnode);
-          CHECK(edgeHash2ID.find(ehash) != edgeHash2ID.end());
-          edgeIDs.push_back(edgeHash2ID[ehash]);
-        }
-        CHECK(edgeIDs.size() >= Cell<Dimension>::minVerticesPerFace);
-        mFaces.push_back(Face(*this, numFaces, igen, jgen, edgeIDs));
-        zoneFaceIDs[igen].push_back(numFaces);
-        if (jgen != UNSETID) zoneFaceIDs[jgen].push_back(numFaces);
-        ++numFaces;
-      }
-    }
-  }
-  CHECK(mFaces.size() == numFaces);
+  CHECK(mZones.size() == numGens);
 
-  // Create the zones.
-  for (igen = 0; igen != numGens; ++igen) {
-    CHECK(zoneFaceIDs[igen].size() == cells[igen].numNewFaces());
-    mZones.push_back(Zone(*this, igen, zoneFaceIDs[igen]));
-  }
+//     const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
+//     nf = indices.size();
+//     for (iface = 0; iface != nf; ++iface) {
+//       nv = indices[iface].size();
+//       for (i = 0; i != nv; ++i) {
+//         j = (i + 1) % nv;
+//         inode = cells[igen].realNodeID(indices[iface][i]);
+//         jnode = cells[igen].realNodeID(indices[iface][j]);
+//         CHECK(inode < numNodes and jnode < numNodes);
+//         CHECK2(inode != jnode,
+//                "Can't have an edge with the same node twice: " << inode << " " << jnode << endl
+//                << igen << " " << iface << " " << i << " " << j << endl
+//                << mNodePositions[inode] << endl
+//                << cells[igen].dumpCell());
+//         ehash = hashEdge(inode, jnode);
+//         if (edgeHash2ID.find(ehash) == edgeHash2ID.end()) {
+//           mEdges.push_back(Edge(*this, numEdges, inode, jnode));
+//           edgeHash2ID[ehash] = numEdges++;
+//         }
+//       }
+//     }
+//   }
+  
+//   // Create the faces.
+//   for (igen = 0; igen != numGens; ++igen) {
+//     const vector<vector<unsigned> >& indices = cells[igen].newFaceVertices();
+//     const vector<unsigned>& neighbors = cells[igen].newNeighbors();
+//     nf = indices.size();
+//     CHECK(neighbors.size() == nf);
+//     for (iface = 0; iface != nf; ++iface) {
+//       jgen = neighbors[iface];
+//       if (jgen == UNSETID or jgen > igen) {
+//         vector<unsigned> edgeIDs;
+//         nv = indices[iface].size();
+//         for (i = 0; i != nv - (3 - Dimension::nDim); ++i) {
+//           j = (i + 1) % nv;
+//           inode = cells[igen].realNodeID(indices[iface][i]);
+//           jnode = cells[igen].realNodeID(indices[iface][j]);
+//           CHECK(inode < numNodes and jnode < numNodes);
+//           ehash = hashEdge(inode, jnode);
+//           CHECK(edgeHash2ID.find(ehash) != edgeHash2ID.end());
+//           edgeIDs.push_back(edgeHash2ID[ehash]);
+//         }
+//         CHECK(edgeIDs.size() >= Cell<Dimension>::minVerticesPerFace);
+//         mFaces.push_back(Face(*this, numFaces, igen, jgen, edgeIDs));
+//         zoneFaceIDs[igen].push_back(numFaces);
+//         if (jgen != UNSETID) zoneFaceIDs[jgen].push_back(numFaces);
+//         ++numFaces;
+//       }
+//     }
+//   }
+
+//   // Create the zones.
+//   for (igen = 0; igen != numGens; ++igen) {
+//     CHECK(zoneFaceIDs[igen].size() == cells[igen].numNewFaces());
+//     mZones.push_back(Zone(*this, igen, zoneFaceIDs[igen]));
+//   }
+
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
