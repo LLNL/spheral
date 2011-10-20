@@ -63,14 +63,7 @@ public:
   void addBoundary(MeshWall<Dimension>& meshWall);
 
   // Return the vertex and face stuff for all cells.
-  // Note we assign a unique ID to each vertex, but the vertices themselves are
-  // degenerate!
-  std::vector<unsigned>
-  allCells(std::vector<std::vector<Vector> >& cellVertices,
-           std::vector<std::vector<std::vector<unsigned> > >& cellFaceVertices,
-           std::vector<double>& cellVolumes,
-           std::vector<Vector>& cellCentroids,
-           std::vector<std::vector<unsigned> >& neighborCells) const;
+  // We use our local Cell class to encapsulate the cell by cell info.
   std::vector<unsigned>
   allCells(std::vector<Cell<Dimension> >& cells) const;
 
@@ -115,19 +108,9 @@ template<> VoroPP<Dim<3> >::VoroPP(const std::vector<Dim<3>::Vector>& generators
                                    const unsigned ny,
                                    const unsigned nz,
                                    const double edgeTol);
-template<> std::vector<unsigned>
-VoroPP<Dim<2> >::allCells(std::vector<std::vector<Dim<2>::Vector> >& cellVertices,
-                          std::vector<std::vector<std::vector<unsigned> > >& cellFaceVertices,
-                          std::vector<double>& cellVolumes,
-                          std::vector<Dim<2>::Vector>& cellCentroids,
-                          std::vector<std::vector<unsigned> >& neighborCells) const;
+template<> std::vector<unsigned> VoroPP<Dim<2> >::allCells(std::vector<Cell<Dim<2> > >& cells) const;
+template<> std::vector<unsigned> VoroPP<Dim<3> >::allCells(std::vector<Cell<Dim<3> > >& cells) const;
 
-template<> std::vector<unsigned>
-VoroPP<Dim<3> >::allCells(std::vector<std::vector<Dim<3>::Vector> >& cellVertices,
-                          std::vector<std::vector<std::vector<unsigned> > >& cellFaceVertices,
-                          std::vector<double>& cellVolumes,
-                          std::vector<Dim<3>::Vector>& cellCentroids,
-                          std::vector<std::vector<unsigned> >& neighborCells) const;
 }
 }
 
