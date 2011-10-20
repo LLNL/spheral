@@ -128,10 +128,10 @@ VoroPP(const vector<Dim<2>::Vector>& generators,
 
   // Add the generators to the container.
   for (ilayer = 0; ilayer != NLAYERS; ++ilayer) {
-    gi = (generators[igen] - xmin) / mScale;
-    z = (ilayer + 0.5)*dz;
-    offset = ilayer * mNumGenerators;
     for (igen = 0; igen != mNumGenerators; ++igen) {
+      gi = (generators[igen] - xmin) / mScale;
+      z = (ilayer + 0.5)*dz;
+      offset = ilayer * mNumGenerators;
       mContainerPtr->put(igen + offset, gi.x(), gi.y(), z);
     }
   }
@@ -227,12 +227,11 @@ allCells(vector<Cell<Dim<2> > >& cells) const {
 
   // Clear the result.
   cells = vector<Cell<Dimension> >(mNumGenerators);
-  
 
   // Read out the entire string from Voro++.
   Timing::Time t0 = Timing::currentTime();
   ostringstream oss;
-  mContainerPtr->print_all_custom("%i %w %P %s %t %v %C %n", oss);
+  mContainerPtr->print_all_custom("%i %w %P %s %t %f %C %n", oss);
   const string everything = oss.str();
 //   cerr << "Everything:  " << endl
 //        << everything << endl;
@@ -304,10 +303,10 @@ allCells(vector<Cell<Dim<2> > >& cells) const {
 
         // Identify the face with z = z0layer -- this is our target.
         zc = z0layer;
-        for (j = 0; j != voroFaceIndices.back().indices.size(); ++j) {
-          zc = max(zc, voroVerts[voroFaceIndices.back().indices[j]].z);
-        }
-        if (zc < z0layer + 0.01) {
+        j = 0;
+        while (j != voroFaceIndices[i].indices.size() and
+               abs(voroVerts[voroFaceIndices[i].indices[j]].z - z0layer) < 1.0e-4) ++j;
+        if (j == voroFaceIndices[i].indices.size()) {
           CHECK(iBotFace == UNSET);
           iBotFace = i;
         }
@@ -373,7 +372,7 @@ allCells(vector<Cell<Dim<2> > >& cells) const {
         iss >> otherGen;
         if (realFaceOrder[i] != UNSET) {
           CHECK(realFaceOrder[i] < neighbors.size());
-          neighbors[realFaceOrder[i]] = otherGen;
+          neighbors[realFaceOrder[i]] = (otherGen < 0 ? UNSET : otherGen);
         }
       }
 
