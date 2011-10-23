@@ -31,7 +31,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                  rreject = None,
                  originreject = None,
                  reversereject = False,
-                 relaxation = None):
+                 relaxation = None,
+                 rejecter = None):
 
         assert nRadial > 0
         assert nTheta > 0
@@ -206,6 +207,14 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
             self.y = y
             self.m = m
             self.H = H
+
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.m, self.H = rejecter(self.x,
+                                                      self.y,
+                                                      self.m,
+                                                      self.H)
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
