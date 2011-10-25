@@ -128,6 +128,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     // Make sure elements are listed counter-clockwise.
     CounterClockwiseCompareElements<Node, Vector> nodeComparator(mMeshPtr->mNodes, mNodeIDs[0]);
     CounterClockwiseCompareElements<Edge, Vector> edgeComparator(mMeshPtr->mEdges, mEdgeIDs[0]);
+    CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, mFaceIDs[0]);
     for (unsigned i = 0; i < mFaceIDs.size() - 1; ++i) {
       ENSURE2(nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) >= 0,
               nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) << " "
