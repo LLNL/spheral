@@ -516,11 +516,11 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
   // In parallel we have to reduce the elements across processors.
 
   // Calculate the size of the packed data per position.
-  const int sizeOfElement = (numScalarFieldLists*DataTypeTraits<Scalar>::numElements()*sizeof(typename DataTypeTraits<Scalar>::ElementType) +
-                             numVectorFieldLists*DataTypeTraits<Vector>::numElements()*sizeof(typename DataTypeTraits<Vector>::ElementType) +
-                             numTensorFieldLists*DataTypeTraits<Tensor>::numElements()*sizeof(typename DataTypeTraits<Tensor>::ElementType) +
-                             numSymTensorFieldLists*DataTypeTraits<SymTensor>::numElements()*sizeof(typename DataTypeTraits<SymTensor>::ElementType) +
-                             DataTypeTraits<Scalar>::numElements()*sizeof(typename DataTypeTraits<Scalar>::ElementType));
+  const int sizeOfElement = (numScalarFieldLists*DataTypeTraits<Scalar>::numElements(0.0)*sizeof(typename DataTypeTraits<Scalar>::ElementType) +
+                             numVectorFieldLists*DataTypeTraits<Vector>::numElements(Vector::zero)*sizeof(typename DataTypeTraits<Vector>::ElementType) +
+                             numTensorFieldLists*DataTypeTraits<Tensor>::numElements(Tensor::zero)*sizeof(typename DataTypeTraits<Tensor>::ElementType) +
+                             numSymTensorFieldLists*DataTypeTraits<SymTensor>::numElements(SymTensor::zero)*sizeof(typename DataTypeTraits<SymTensor>::ElementType) +
+                             DataTypeTraits<Scalar>::numElements(0.0)*sizeof(typename DataTypeTraits<Scalar>::ElementType));
 
   // Figure out what we have to send to other processors.
   // In the process we transfer any of our local values we've accumulated to the final result.

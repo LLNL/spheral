@@ -351,7 +351,6 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
                            param(val, "value")])
 
         # Methods.
-        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
         x.add_method("Zero", None, [], is_virtual=True)
         x.add_method("valid", "bool", [], is_const=True)
         x.add_method("internalValues", vector_of_value, [], is_const=True)
@@ -396,24 +395,31 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 #         x.add_inplace_numeric_operator("+=", right_cppclass=val)
 #         x.add_inplace_numeric_operator("-=", right_cppclass=val)
 
-        # Indexing.
+        # Sequence methods.
+        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
         if indexAsPointer:
-            x.add_function_as_method("indexFieldAsPointer",
+            x.add_function_as_method("indexContainerAsPointer",
                                      retval(ptr(val), reference_existing_object=True),
                                      [param(me, "self"), param("int", "index")],
                                      template_parameters = [me],
+                                     foreign_cpp_namespace = "Spheral",
                                      custom_name = "__getitem__")
         else:
-            x.add_function_as_method("indexField",
-                                     val,
+            x.add_function_as_method("indexContainer", val,
                                      [param(me, "self"), param("int", "index")],
                                      template_parameters = [me],
+                                     foreign_cpp_namespace = "Spheral",
                                      custom_name = "__getitem__")
-        x.add_function_as_method("assignToFieldIndex", None, [param(me, "self"),
-                                                              param("int", "index"),
-                                                              param(val, "value")],
+        x.add_function_as_method("assignToContainerIndex", "int",
+                                 [param(me, "self"), param("int", "index"), param(val, "value")],
                                  template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
                                  custom_name = "__setitem__")
+        x.add_function_as_method("containsValue", "int",
+                                 [param(me, "self"), param(val, "value")],
+                                 template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__contains__")
 
         # The virtual methods from FieldBase.
         x.add_method("size", "int", [], is_const=True, is_virtual=True)
@@ -494,7 +500,6 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r")], is_const=True)
         x.add_method("Zero", None, [])
-        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
 
         # Comparison operators.
         x.add_binary_comparison_operator("==")
@@ -520,18 +525,33 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
                 x.add_method("applyScalarMin", None, [param("double", "dataMin")])
                 x.add_method("applyScalarMax", None, [param("double", "dataMax")])
 
-        # Indexing.
-        x.add_function_as_method("indexFieldList",
+        # Sequence methods.
+        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
+        x.add_function_as_method("indexContainer",
                                  retval(ptr(field), reference_existing_object=True),
                                  [param(me, "self"), param("int", "index")],
                                  template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
                                  custom_name = "__getitem__")
+        x.add_function_as_method("assignToContainerIndexPtr", "int",
+                                 [param(me, "self"), param("int", "index"), param(ptr(field), "value", transfer_ownership=False)],
+                                 template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__setitem__")
+        x.add_function_as_method("containsValue", "int",
+                                 [param(me, "self"), param(ptr(field), "value", transfer_ownership=False)],
+                                 template_parameters = [me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__contains__")
+
         x.add_function_as_method("fieldForNodeList",
                                  retval(ptr(field), reference_existing_object=True),
                                  [param(me, "self"), 
                                   constrefparam(nodelist, "nodeList")],
                                  template_parameters = [dim, me],
                                  custom_name = "fieldForNodeList")
+
+        # Extract an individual value.
         if indexAsPointer:
             x.add_function_as_method("indexFieldListForValuePointer",
                                      retval(ptr(val), reference_existing_object=True),

@@ -477,7 +477,7 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) const {
-  CHECK(index < mFieldPtrs.size());
+  REQUIRE(index < mFieldPtrs.size());
   return mFieldPtrs[index];
 }
 
@@ -486,8 +486,27 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) {
-  CHECK(index < mFieldPtrs.size());
+  REQUIRE(index < mFieldPtrs.size());
   return mFieldPtrs[index];
+}
+
+//------------------------------------------------------------------------------
+// at version, for consistency with the STL.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::ElementType
+FieldList<Dimension, DataType>::
+at(const unsigned int index) const {
+  return (*this)[index];
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::ElementType
+FieldList<Dimension, DataType>::
+at(const unsigned int index) {
+  return (*this)[index];
 }
 
 //------------------------------------------------------------------------------
@@ -617,6 +636,7 @@ operator()(const typename Dimension::Vector& position,
     int procID, numProcs;
     MPI_Comm_rank(MPI_COMM_WORLD, &procID);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    VERIFY(DataTypeTraits<DataType>::fixedSize());
     const size_t sizeOfElement = DataTypeTraits<DataType>::numElements()*sizeof(typename DataTypeTraits<DataType>::ElementType);
     std::vector<char> sendBuffer;
     std::vector<char> recvBuffer(sizeOfElement);
@@ -1092,7 +1112,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator*=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
-  CHECK(this->numFields() == rhs.numFields());
+  REQUIRE(this->numFields() == rhs.numFields());
   for (int i = 0; i < numFields(); ++i) {
     CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
     *((*this)[i]) *= *(rhs[i]);
@@ -1121,7 +1141,7 @@ inline
 FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::
 operator/(const FieldList<Dimension, typename Dimension::Scalar>& rhs) const {
-  CHECK(this->numFields() == rhs.numFields());
+  REQUIRE(this->numFields() == rhs.numFields());
   FieldList<Dimension, DataType> result(*this);
   result.copyFields();
   result /= rhs;
@@ -1135,7 +1155,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>
 FieldList<Dimension, DataType>::operator/(const Scalar& rhs) const {
-  CHECK(rhs != 0.0);
+  REQUIRE(rhs != 0.0);
   FieldList<Dimension, DataType> result(*this);
   result.copyFields();
   result /= rhs;
@@ -1150,7 +1170,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator/=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
-  CHECK(this->numFields() == rhs.numFields());
+  REQUIRE(this->numFields() == rhs.numFields());
   for (int i = 0; i < numFields(); ++i) {
     CHECK((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr());
     *((*this)[i]) /= *(rhs[i]);
@@ -1165,7 +1185,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator/=(const typename Dimension::Scalar& rhs) {
-  CHECK(rhs != 0.0);
+  REQUIRE(rhs != 0.0);
   for (int i = 0; i < numFields(); ++i) {
     *((*this)[i]) /= rhs;
   }
@@ -1638,7 +1658,7 @@ inline
 FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 operator*(const FieldList<Dimension, DataType>& lhs,
           const FieldList<Dimension, OtherDataType>& rhs) {
-  CHECK(lhs.numFields() == rhs.numFields());
+  REQUIRE(lhs.numFields() == rhs.numFields());
   FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType> result;
   result.copyFields();
   for (int i = 0; i < lhs.numFields(); ++i) {
@@ -2032,7 +2052,7 @@ inline
 FieldSpace::FieldList<Dimension, DataType>
 min(const FieldSpace::FieldList<Dimension, DataType>& fieldList1,
     const FieldSpace::FieldList<Dimension, DataType>& fieldList2) {
-  CHECK(fieldList1.numFields() == fieldList2.numFields());
+  REQUIRE(fieldList1.numFields() == fieldList2.numFields());
   FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
   result.copyFields();
   for (int i = 0; i < fieldList1.numFields(); ++i) {
@@ -2075,7 +2095,7 @@ inline
 FieldSpace::FieldList<Dimension, DataType>
 max(const FieldSpace::FieldList<Dimension, DataType>& fieldList1,
     const FieldSpace::FieldList<Dimension, DataType>& fieldList2) {
-  CHECK(fieldList1.numFields() == fieldList2.numFields());
+  REQUIRE(fieldList1.numFields() == fieldList2.numFields());
   FieldSpace::FieldList<Dimension, typename Dimension::Scalar> result;
   result.copyFields();
   for (int i = 0; i < fieldList1.numFields(); ++i) {

@@ -296,6 +296,23 @@ Field<Dimension, DataType>::operator()(int index) const {
 }
 
 //------------------------------------------------------------------------------
+// at version, for consistency with STL interface.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+DataType&
+Field<Dimension, DataType>::at(int index) {
+  return this->operator()(index);
+}
+
+template<typename Dimension, typename DataType>
+inline
+const DataType&
+Field<Dimension, DataType>::at(int index) const {
+  return this->operator()(index);
+}
+
+//------------------------------------------------------------------------------
 // Element access by Node ID iterator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

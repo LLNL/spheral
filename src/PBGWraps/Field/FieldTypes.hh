@@ -7,6 +7,8 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Field/FieldListSet.hh"
+#include "Utilities/FieldDataTypeTraits.hh"
+#include "PBGWraps/CXXTypes/CXXTypes.hh"
 
 namespace Spheral {
 namespace FieldSpace {
@@ -147,66 +149,69 @@ typedef std::vector<Spheral::FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor> > 
 namespace Spheral {
 namespace FieldSpace {
 
-//------------------------------------------------------------------------------
-// Index into a Field.
-//------------------------------------------------------------------------------
-template<typename FieldType>
-inline
-typename FieldType::FieldDataType
-indexField(FieldType& container, 
-           const size_t index) {
-  if (index < container.size()) {
-    return container[index];
-  } else {
-    PyErr_SetString(PyExc_IndexError, "Field index out of range");
-    return typename FieldType::FieldDataType();
-  }
-}
+// //------------------------------------------------------------------------------
+// // Index into a Field.
+// //------------------------------------------------------------------------------
+// template<typename FieldType>
+// inline
+// typename FieldType::FieldDataType
+// indexField(FieldType& container, 
+//            int index) {
+//   if (index < 0) index += container.size();
+//   if (index < container.size()) {
+//     return container[index];
+//   } else {
+//     PyErr_SetString(PyExc_IndexError, "Field index out of range");
+//     return typename FieldType::FieldDataType();
+//   }
+// }
 
-template<typename FieldType>
-inline
-typename FieldType::FieldDataType*
-indexFieldAsPointer(FieldType& container, 
-                    const size_t index) {
-  if (index < container.size()) {
-    return &(container[index]);
-  } else {
-    PyErr_SetString(PyExc_IndexError, "Field index out of range");
-    return NULL;
-  }
-}
+// template<typename FieldType>
+// inline
+// typename FieldType::FieldDataType*
+// indexFieldAsPointer(FieldType& container, 
+//                     int index) {
+//   if (index < 0) index += container.size();
+//   if (index < container.size()) {
+//     return &(container[index]);
+//   } else {
+//     PyErr_SetString(PyExc_IndexError, "Field index out of range");
+//     return NULL;
+//   }
+// }
 
-//------------------------------------------------------------------------------
-// Assign to a postion in a Field.
-//------------------------------------------------------------------------------
-template<typename FieldType>
-inline
-void
-assignToFieldIndex(FieldType& container, 
-                   const size_t index,
-                   const typename FieldType::FieldDataType& value) {
-  if (index >= container.size()) {
-    PyErr_SetString(PyExc_IndexError, "Field index out of range");
-  } else {
-    container[index] = value;
-  }
-}
+// //------------------------------------------------------------------------------
+// // Assign to a postion in a Field.
+// //------------------------------------------------------------------------------
+// template<typename FieldType>
+// inline
+// int
+// assignToFieldIndex(FieldType& container, 
+//                    int index,
+//                    const typename FieldType::FieldDataType& value) {
+//   if (index < 0) index += container.size();
+//   if (index >= container.size()) {
+//     PyErr_SetString(PyExc_IndexError, "Field index out of range");
+//   } else {
+//     container[index] = value;
+//   }
+// }
 
-//------------------------------------------------------------------------------
-// Index into a FieldList (extracting Fields).
-//------------------------------------------------------------------------------
-template<typename FieldListType>
-inline
-typename FieldListType::ElementType
-indexFieldList(FieldListType& container, 
-               const size_t index) {
-  if (index < container.size()) {
-    return container[index];
-  } else {
-    PyErr_SetString(PyExc_IndexError, "FieldList index out of range");
-    return NULL;
-  }
-}
+// //------------------------------------------------------------------------------
+// // Index into a FieldList (extracting Fields).
+// //------------------------------------------------------------------------------
+// template<typename FieldListType>
+// inline
+// typename FieldListType::ElementType
+// indexFieldList(FieldListType& container, 
+//                const size_t index) {
+//   if (index < container.size()) {
+//     return container[index];
+//   } else {
+//     PyErr_SetString(PyExc_IndexError, "FieldList index out of range");
+//     return NULL;
+//   }
+// }
 
 template<typename Dimension, typename FieldListType>
 inline

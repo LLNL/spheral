@@ -982,8 +982,8 @@ $(PILBUILDDATE):	$(PYTHONBUILDDATE) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 #-------------------------------------------------------------------------------
 # pybindgen (Python bindings)
 #-------------------------------------------------------------------------------
-$(PYBINDGENDIST):
-	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
+#$(PYBINDGENDIST):
+#	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
 
 $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 	@echo "################################################################################"
