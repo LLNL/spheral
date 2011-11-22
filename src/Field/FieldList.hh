@@ -56,6 +56,7 @@ public:
   typedef DataType FieldDataType;
 
   typedef Field<Dimension, DataType>* ElementType;
+  typedef Field<Dimension, DataType>* value_type;    // STL compatibility
   typedef std::vector<ElementType> StorageType;
 
   typedef typename StorageType::iterator iterator;
@@ -115,8 +116,11 @@ public:
   const_reverse_iterator rend() const;
 
   // Index operator.
-  ElementType operator[](const unsigned int index);
-  ElementType operator[](const unsigned int index) const;
+  ElementType operator[](const unsigned index);
+  ElementType operator[](const unsigned index) const;
+
+  ElementType at(const unsigned index);
+  ElementType at(const unsigned index) const;
 
   // Return an iterator to the Field associated with the given NodeList.
   iterator fieldForNodeList(const NodeSpace::NodeList<Dimension>& nodeList);

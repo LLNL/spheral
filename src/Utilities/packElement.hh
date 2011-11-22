@@ -372,7 +372,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
                   const int sendProc,
                   const int recvProc) {
   return (packIndicies.size() * 
-          DataTypeTraits<DataType>::numElements() * 
+          DataTypeTraits<DataType>::numElements(DataType()) * 
           sizeof(typename DataTypeTraits<DataType>::ElementType));
 }
 
@@ -385,7 +385,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
                   const int recvProc) {
 
   // Byte size of the primitive type of the vector.
-  const int elementSize = (DataTypeTraits<DataType>::numElements() * 
+  const int elementSize = (DataTypeTraits<DataType>::numElements(DataType()) * 
                            sizeof(typename DataTypeTraits<DataType>::ElementType));
 
   // Find the rank of this processor.

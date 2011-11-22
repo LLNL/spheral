@@ -49,6 +49,7 @@ public:
   
   typedef typename FieldBase<Dimension>::FieldName FieldName;
   typedef DataType FieldDataType;
+  typedef DataType value_type;      // STL compatibility.
 
   typedef typename std::vector<DataType>::iterator iterator;
   typedef typename std::vector<DataType>::const_iterator const_iterator;
@@ -86,6 +87,9 @@ public:
 
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
   const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
+
+  DataType& at(int index);
+  const DataType& at(int index) const;
 
   // The number of elements in the field.
   int numElements() const;

@@ -165,17 +165,19 @@ class Geometry:
         symTenName= "SymTensor%id" % ndim
         tensor_class = self.space.wrapObjs[tenName]
     
+        me = vecName
+
         # Instance attributes.
         x.add_static_attribute("nDimensions", "int", True)
-        x.add_static_attribute("zero", vecName, True)
-        x.add_static_attribute("one", vecName, True)
+        x.add_static_attribute("zero", me, True)
+        x.add_static_attribute("one", me, True)
     
         # Constructors.
         x.add_constructor([])
         x.add_constructor([param("double", "x")])
         x.add_constructor([param("double", "x"), param("double", "y")])
         x.add_constructor([param("double", "x"), param("double", "y"), param("double", "z")])
-        x.add_constructor([param(vecName, "rhs")])
+        x.add_constructor([param(me, "rhs")])
     
         # x, y, z
         x.add_instance_attribute("x", "double", False, "x", "x")
@@ -186,24 +188,27 @@ class Geometry:
         x.add_method("operator()", "double", [param("int", "index")], custom_name="__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType",
-                                 "int",
-                                 [param(vecName, "self")],
-                                 template_parameters = [vecName],
+        x.add_function_as_method("sizeGeomType", "int",
+                                 [param(me, "self")],
+                                 template_parameters = [me],
                                  custom_name = "__len__")
-        x.add_function_as_method("indexGeomVector",
-                                 "double",
-                                 [param(vecName, "self"), param("int", "index")],
-                                 template_parameters = [vecName],
+        x.add_function_as_method("indexGeomType", "double",
+                                 [param(me, "self"), param("int", "index")],
+                                 template_parameters = [me],
                                  custom_name = "__getitem__")
-        x.add_function_as_method("assignToGeomVector",
-                                 None,
-                                 [param(vecName, "self"), 
-                                  param("int", "index"),
-                                  param("double", "value")],
-                                 template_parameters = [vecName],
+        x.add_function_as_method("assignToGeomType", "int",
+                                 [param(me, "self"), param("int", "index"), param("double", "value")],
+                                 template_parameters = [me],
                                  custom_name = "__setitem__")
-    
+        x.add_function_as_method("sliceGeomType", "vector_of_double",
+                                 [param(me, "self"), param("int", "i1"), param("int", "i2")],
+                                 template_parameters = [me],
+                                 custom_name = "__getslice__")
+        x.add_function_as_method("containsGeomType", "int",
+                                 [param(me, "self"), param("double", "value")],
+                                 template_parameters = [me],
+                                 custom_name = "__contains__")
+
         x.add_method("Zero", None, [])
     
         # Operators.
@@ -229,7 +234,7 @@ class Geometry:
         x.add_inplace_numeric_operator("/=", right = "double")
     
         # Comparisons.
-        x.add_method("compare", "int", [param(vecName, "other")], is_const=True)
+        x.add_method("compare", "int", [param(me, "other")], is_const=True)
         x.add_method("compare", "int", [param("double", "other")], is_const=True)
     
         x.add_binary_comparison_operator("==")
@@ -240,11 +245,11 @@ class Geometry:
         x.add_binary_comparison_operator(">=")
     
         # Misc methods.
-        x.add_method("dot", "double", [param(vecName, "other")], is_const=True)
-        x.add_method("cross", vec3Name, [param(vecName, "other")], is_const=True)
-        x.add_method("dyad", tenName, [param(vecName, "other")], is_const=True)
+        x.add_method("dot", "double", [param(me, "other")], is_const=True)
+        x.add_method("cross", vec3Name, [param(me, "other")], is_const=True)
+        x.add_method("dyad", tenName, [param(me, "other")], is_const=True)
         x.add_method("selfdyad", symTenName, [], is_const=True)
-        x.add_method("unitVector", vecName, [], is_const=True)
+        x.add_method("unitVector", me, [], is_const=True)
         x.add_method("magnitude", "double", [], is_const=True)
         x.add_method("magnitude2", "double", [], is_const=True)
         x.add_method("minElement", "double", [], is_const=True)
@@ -253,8 +258,8 @@ class Geometry:
         x.add_method("sumElements", "double", [], is_const=True)
     
         # String representations.
-        x.add_function_as_method("printReprVector", "std::string", [param(vecName, "self")],
-                                 template_parameters = [vecName],
+        x.add_function_as_method("printReprVector", "std::string", [param(me, "self")],
+                                 template_parameters = [me],
                                  custom_name = "__repr__")
         x.add_output_stream_operator()
     
@@ -298,23 +303,26 @@ class Geometry:
         x.add_method("operator()", "double", [param("int", "row"), param("int", "column")], custom_name="__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType",
-                                 "int",
+        x.add_function_as_method("sizeGeomType", "int",
                                  [param(me, "self")],
                                  template_parameters = [me],
                                  custom_name = "__len__")
-        x.add_function_as_method("indexGeomTensor",
-                                 "double",
+        x.add_function_as_method("indexGeomType", "double",
                                  [param(me, "self"), param("int", "index")],
                                  template_parameters = [me],
                                  custom_name = "__getitem__")
-        x.add_function_as_method("assignToGeomTensor",
-                                 None,
-                                 [param(me, "self"), 
-                                  param("int", "index"),
-                                  param("double", "value")],
-                             template_parameters = [me],
-                             custom_name = "__setitem__")
+        x.add_function_as_method("assignToGeomType", "int",
+                                 [param(me, "self"), param("int", "index"), param("double", "value")],
+                                 template_parameters = [me],
+                                 custom_name = "__setitem__")
+        x.add_function_as_method("sliceGeomType", "vector_of_double",
+                                 [param(me, "self"), param("int", "i1"), param("int", "i2")],
+                                 template_parameters = [me],
+                                 custom_name = "__getslice__")
+        x.add_function_as_method("containsGeomType", "int",
+                                 [param(me, "self"), param("double", "value")],
+                                 template_parameters = [me],
+                                 custom_name = "__contains__")
 
         # Extract rows/cols.
         x.add_method("getRow", vec, [param("int", "row")], is_const=True)
@@ -436,23 +444,26 @@ class Geometry:
                                  custom_name = "__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType",
-                                 "int",
+        x.add_function_as_method("sizeGeomType", "int",
                                  [param(me, "self")],
                                  template_parameters = [me],
                                  custom_name = "__len__")
-        x.add_function_as_method("indexGeomTensor",
-                                 "double",
+        x.add_function_as_method("indexGeomType", "double",
                                  [param(me, "self"), param("int", "index")],
                                  template_parameters = [me],
                                  custom_name = "__getitem__")
-        x.add_function_as_method("assignToGeomTensor",
-                                 None,
-                                 [param(me, "self"), 
-                                  param("int", "index"),
-                                  param("double", "value")],
+        x.add_function_as_method("assignToGeomType", "int",
+                                 [param(me, "self"), param("int", "index"), param("double", "value")],
                                  template_parameters = [me],
                                  custom_name = "__setitem__")
+        x.add_function_as_method("sliceGeomType", "vector_of_double",
+                                 [param(me, "self"), param("int", "i1"), param("int", "i2")],
+                                 template_parameters = [me],
+                                 custom_name = "__getslice__")
+        x.add_function_as_method("containsGeomType", "int",
+                                 [param(me, "self"), param("double", "value")],
+                                 template_parameters = [me],
+                                 custom_name = "__contains__")
     
         x.add_method("Zero", None, [])
     

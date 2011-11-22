@@ -60,7 +60,7 @@ typedef std::vector<Spheral::Facet2d> vector_of_Facet2d;
 typedef std::vector<Spheral::Facet3d> vector_of_Facet3d;
 
 //------------------------------------------------------------------------------
-// Vector sequence methods.
+// Sequence methods for geometric types.
 //------------------------------------------------------------------------------
 namespace Spheral {
 
@@ -68,62 +68,67 @@ template<typename Type>
 inline
 int
 sizeGeomType(Type& self) {
-  return DataTypeTraits<Type>::numElements();
+  return DataTypeTraits<Type>::numElements(self);
 }
 
-template<typename Vector>
+template<typename Type>
 inline
 double
-indexGeomVector(Vector& self,
-                const size_t index) {
-  if (index < Vector::nDimensions) {
-    return self(index);
-  } else {
-    PyErr_SetString(PyExc_IndexError, "Vector index out of range");
-    return 0.0;
-  }
-}
-
-template<typename Vector>
-inline
-void
-assignToGeomVector(Vector& self, 
-                   const size_t index,
-                   const double value) {
-  if (index >= Vector::nDimensions) {
-    PyErr_SetString(PyExc_IndexError, "Container index out of range");
-  } else {
-    self(index) = value;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Tensor sequence methods.
-//------------------------------------------------------------------------------
-template<typename Tensor>
-inline
-double
-indexGeomTensor(Tensor& self,
-                const size_t index) {
-  if (index < DataTypeTraits<Tensor>::numElements()) {
+indexGeomType(Type& self,
+              int index) {
+  const int n = DataTypeTraits<Type>::numElements(self);
+  if (index < 0) index += n;
+  if (index < n) {
     return *(self.begin() + index);
   } else {
-    PyErr_SetString(PyExc_IndexError, "Tensor index out of range");
+    PyErr_SetString(PyExc_IndexError, "Index out of range");
     return 0.0;
   }
 }
 
-template<typename Tensor>
+template<typename Type>
 inline
-void
-assignToGeomTensor(Tensor& self, 
-                   const size_t index,
-                   const double value) {
-  if (index >= DataTypeTraits<Tensor>::numElements()) {
-    PyErr_SetString(PyExc_IndexError, "Tensor index out of range");
+std::vector<double>
+sliceGeomType(Type& self,
+              int i1,
+              int i2) {
+  std::vector<double> result;
+  const int n = DataTypeTraits<Type>::numElements(self);
+  if (i1 < 0) i1 += n;
+  if (i2 < 0) i2 += n;
+  for (int i = i1; i < i2; ++i) result.push_back(indexGeomType(self, i));
+  return result;
+}
+
+template<typename Type>
+inline
+int
+assignToGeomType(Type& self, 
+                 int index,
+                 const double value) {
+  const int n = DataTypeTraits<Type>::numElements(self);
+  if (index < 0) index += n;
+  if (index >= n) {
+    PyErr_SetString(PyExc_IndexError, "Container index out of range");
+    return -1;
   } else {
     *(self.begin() + index) = value;
+    return 0;
   }
+}
+
+template<typename Type>
+inline
+int
+containsGeomType(Type& self,
+                 const double value) {
+  int result = 0;
+  const int n = DataTypeTraits<Type>::numElements(self);
+  int i = 0;
+  while (result == 0 and i++ < n) {
+    result = ((*(self.begin() + i) == value) ? 1 : 0);
+  }
+  return result;
 }
 
 //------------------------------------------------------------------------------

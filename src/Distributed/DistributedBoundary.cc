@@ -16,7 +16,6 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "DBC.hh"
-#include "cdebug.hh"
 #include "waitAllWithDeadlockDetection.hh"
 
 #include "TAU.h"
@@ -63,8 +62,6 @@ DistributedBoundary<Dimension>::DistributedBoundary():
 #endif
   mSendBuffers(),
   mRecvBuffers() {
-  cdebug << domainID() << " "
-         << "DistributedBoundary::DistributedBoundary()" << endl;
   
   // Create the new communicator for use with parallel distributed boundary
   // conditions.
@@ -84,8 +81,6 @@ DistributedBoundary<Dimension>::DistributedBoundary():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DistributedBoundary<Dimension>::~DistributedBoundary() {
-  cdebug << domainID() << " "
-         << "DistributedBoundary::~DistributedBoundary()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -95,8 +90,6 @@ template<typename Dimension>
 bool
 DistributedBoundary<Dimension>::
 communicatedNodeList(const NodeList<Dimension>& nodeList) const {
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::communicatedNodeList(NodeList)" << endl;
   return mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList)) !=
     mNodeListDomainBoundaryNodeMap.end();
 }
@@ -109,8 +102,6 @@ bool
 DistributedBoundary<Dimension>::
 nodeListSharedWithDomain(const NodeList<Dimension>& nodeList,
                          int neighborDomainID) const {
-  cdebug  << domainID() << " "
-          << "DistributedBoundary::nodeListSharedWithDomain(NodeList,int)" << endl;
   typename NodeListDomainBoundaryNodeMap::const_iterator itr =
     mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList));
 
@@ -126,8 +117,6 @@ template<typename Dimension>
 const typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap&
 DistributedBoundary<Dimension>::
 domainBoundaryNodeMap(const NodeList<Dimension>& nodeList) const {
-//   cdebug << domainID() << " "
-//        << "DistributedBoundary::domainBoundaryNodeMap(NodeList)" << endl;
   typename NodeListDomainBoundaryNodeMap::const_iterator itr =
     mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList));
   REQUIRE(itr != mNodeListDomainBoundaryNodeMap.end());
@@ -142,8 +131,6 @@ const typename DistributedBoundary<Dimension>::DomainBoundaryNodes&
 DistributedBoundary<Dimension>::
 domainBoundaryNodes(const NodeList<Dimension>& nodeList,
                     int neighborDomainID) const {
-  cdebug << domainID() << " "
-         << "DistributedBoundary::domainBoundaryNodes(NodeList, domain)" << endl;
   const DomainBoundaryNodeMap& domainBoundary = domainBoundaryNodeMap(nodeList);
   typename DomainBoundaryNodeMap::const_iterator itr = domainBoundary.find(neighborDomainID);
   CHECK(itr != domainBoundary.end());
@@ -648,14 +635,11 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
   // TAU timers.
   TAU_PROFILE("DistributedBoundary", "::beginExchangeField", TAU_USER);
 
-  cdebug << domainID() << " "
-         << "DistributedBoundary::beginExchangeField(field)" << endl
-         << "Exchanging " << field.name() << " on " << field.nodeListPtr()->name() << endl;
-
   // We use a handy trait class to tell us how many elements there are in the
   // type we're exchanging.
   typedef typename DataTypeTraits<DataType>::ElementType ElementType;
-  const int numElementsInType = DataTypeTraits<DataType>::numElements();
+  VERIFY2(DataTypeTraits<DataType>::fixedSize(), "Assuming we're communicating fixed size types!");
+  const int numElementsInType = DataTypeTraits<DataType>::numElements(DataType());
   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
 
   // Grab the number of domains and processor ID.
@@ -832,10 +816,6 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
 
 
   }
-
-  cdebug << domainID() << " "
-         << "DistributedBoundary::beginExchangeField(field)" << endl
-         << "Completed " << field.name() << " on " << field.nodeListPtr()->name() << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -1061,9 +1041,6 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
   // TAU timers.
   TAU_PROFILE("DistributedBoundary", "::updateGhostNodes(nodeList)", TAU_USER);
 
-  cdebug << domainID() << " "
-         << "DistributedBoundary::updateGhostNodes(nodeList)" << endl;
-
   // Exchange the positions and H fields for this NodeList.
   Field<Dimension, Vector>& positions = nodeList.positions();
   Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
@@ -1229,7 +1206,6 @@ template<typename Dimension>
 typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap&
 DistributedBoundary<Dimension>::
 accessDomainBoundaryNodeMap(const NodeList<Dimension>& nodeList) {
-//   cdebug << domainID()  << "DistributedBoundary::accessDomainBoundaryNodeMap(NodeList)" << endl;
   return const_cast<DomainBoundaryNodeMap&>(domainBoundaryNodeMap(nodeList));
 }
 
@@ -1242,8 +1218,6 @@ typename DistributedBoundary<Dimension>::DomainBoundaryNodes&
 DistributedBoundary<Dimension>::
 accessDomainBoundaryNodes(const NodeList<Dimension>& nodeList,
                           int neighborDomainID) {
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::accessDomainBoundaryNodes(NodeList, domain)" << endl;
   return const_cast<DomainBoundaryNodes&>(domainBoundaryNodes(nodeList,
                                                               neighborDomainID));
 }
@@ -1312,8 +1286,6 @@ removeDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::reset(const DataBase<Dimension>& dataBase) {
-  cdebug << domainID() << " "
-         << "DistributedBoundary::reset()" << endl;
 
   // Call the ancestor method.
   Boundary<Dimension>::reset(dataBase);
@@ -1334,9 +1306,6 @@ void
 DistributedBoundary<Dimension>::
 unpackField(Field<Dimension, DataType>& field,
             const list< vector<char> >& packedValues) const {
-
-  cdebug << domainID() << " "
-         << "DistributedBoundary::unpackField" << std::endl;
 
   // Get the domain mappings for the NodeList of this Field.
   const NodeList<Dimension>& nodeList = field.nodeList();

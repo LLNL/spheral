@@ -9,61 +9,115 @@ def generateStdVectorBindings(v, value, cppname,
                               wrapIterators = False):
     pointerValue = (value[-1:] == "*")
 
+    # Constructors.
     v.add_constructor([])
     v.add_constructor([param("int", "size")])
     v.add_constructor([constrefparam(cppname, "rhs")])
     if not pointerValue:
         v.add_constructor([param("int", "size"), param(value, "value")])
+
+    # __len__
     v.add_method("size", "int", [])
     v.add_method("size", "int", [], custom_name = "__len__")
     v.add_method("resize", None, [param("int", "size")])
 
-    # Concatentation as addition.
-    v.add_binary_numeric_operator("+")
+    # __add__ and __iadd__
+    v.add_function_as_method("concatContainers", cppname,
+                             [param(cppname, "self"), param(cppname, "rhs")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__add__")
+    v.add_function_as_method("concatContainersInPlace", cppname,
+                             [param(cppname, "self"), param(cppname, "rhs")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__iadd__")
+
+    # __mul__ and __imul__
+    v.add_function_as_method("repeatContainer", cppname,
+                             [param(cppname, "self"), param("unsigned int", "count")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__mul__")
+    v.add_function_as_method("repeatContainerInPlace", cppname,
+                             [param(cppname, "self"), param("unsigned int", "count")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__imul__")
+
+    # __getitem__
+    if pointerValue:
+        v.add_function_as_method("indexContainer",
+                                 retval(value, reference_existing_object=True),
+                                 [param(cppname, "self"), param("int", "index")],
+                                 template_parameters = [cppname],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__getitem__")
+    else:
+        if indexAsPointer:
+            v.add_function_as_method("indexContainerAsPointer",
+                                     retval(ptr(value), reference_existing_object=True),
+                                     [param(cppname, "self"), param("int", "index")],
+                                     template_parameters = [cppname],
+                                     foreign_cpp_namespace = "Spheral",
+                                     custom_name = "__getitem__")
+        else:
+            v.add_function_as_method("indexContainer", value,
+                                     [param(cppname, "self"), param("int", "index")],
+                                     template_parameters = [cppname],
+                                     foreign_cpp_namespace = "Spheral",
+                                     custom_name = "__getitem__")
+
+    # __setitem__
+    if not pointerValue:
+        v.add_function_as_method("assignToContainerIndex", "int",
+                                 [param(cppname, "self"), param("int", "index"), param(value, "value")],
+                                 template_parameters = [cppname],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__setitem__")
+
+    # append
+    if pointerValue:
+        v.add_function_as_method("appendToContainerOfPointers", "int",
+                                 [param(cppname, "self"), param(value, "value", transfer_ownership=False)],
+                                 template_parameters = [cppname],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "append")
+    else:
+        v.add_method("push_back", None, [param(value, "value")])
+        v.add_method("push_back", None, [param(value, "value")], custom_name="append")
+
+
+    # __getslice__ and __setslice__.
+    v.add_function_as_method("sliceContainer", cppname,
+                             [param(cppname, "self"), param("int", "index1"), param("int", "index2")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__getslice__")
+    v.add_function_as_method("assignToSlice", "int",
+                             [param(cppname, "self"), param("int", "index1"), param("int", "index2"), refparam(cppname, "values")],
+                             template_parameters = [cppname],
+                             foreign_cpp_namespace = "Spheral",
+                             custom_name = "__setslice__")
+                                      
+    # __contains__
+    if pointerValue:
+        v.add_function_as_method("containsPtr", "int",
+                                 [param(cppname, "self"), param(value, "value", transfer_ownership=False)],
+                                 template_parameters = [cppname],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__contains__")
+    else:
+        v.add_function_as_method("containsValue", "int",
+                                 [param(cppname, "self"), param(value, "value")],
+                                 template_parameters = [cppname],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "__contains__")
 
     # Optionally expose the iterators.
     if wrapIterators:
         v.add_method("begin", "%s_iterator" % cppname, [])
         v.add_method("end", "%s_iterator" % cppname, [])
-
-    if pointerValue:
-        v.add_function_as_method("indexVectorOfPointers",
-                                 retval(value, reference_existing_object=True),
-                                 [param(cppname, "self"), param("int", "index")],
-                                 template_parameters = [value],
-                                 custom_name = "__getitem__")
-    else:
-        if indexAsPointer:
-#             v.add_function_as_method("indexVectorAsReference",
-#                                      retval(ref(value), reference_existing_object=True),
-#                                      [param(cppname, "self"), param("int", "index")],
-#                                      template_parameters = [value],
-#                                      custom_name = "__getitem__")
-            v.add_function_as_method("indexVectorAsPointer",
-                                     retval(ptr(value), reference_existing_object=True),
-                                     [param(cppname, "self"), param("int", "index")],
-                                     template_parameters = [value],
-                                     custom_name = "__getitem__")
-        else:
-            v.add_function_as_method("indexVector",
-                                     value,
-                                     [param(cppname, "self"), param("int", "index")],
-                                     template_parameters = [value],
-                                     custom_name = "__getitem__")
-
-    if not pointerValue:
-        v.add_function_as_method("assignToPosition", None, [param(cppname, "self"),
-                                                            param("int", "index"),
-                                                            param(value, "value")],
-                                 template_parameters = [cppname],
-                                 custom_name = "__setitem__")
-        v.add_method("push_back", None, [param(value, "value")])
-        v.add_method("push_back", None, [param(value, "value")], custom_name="append")
-    else:
-        v.add_function_as_method("appendToVectorOfPointers", None, [param(cppname, "self"),
-                                                                    param(value, "value", transfer_ownership=False)],
-                                 template_parameters = [cppname],
-                                 custom_name = "append")
 
     return
 
@@ -99,6 +153,7 @@ def generateStdPairBindings(p, value1, value2, cppname,
                                      retval(value1, reference_existing_object=True),
                                      [param(cppname, "self")],
                                      template_parameters = [cppname],
+                                     foreign_cpp_namespace = "Spheral",
                                      custom_name = "first")
         else:
             p.add_instance_attribute("first", value1)
@@ -110,6 +165,7 @@ def generateStdPairBindings(p, value1, value2, cppname,
                                      retval(value1, reference_existing_object=True),
                                      [param(cppname, "self")],
                                      template_parameters = [cppname],
+                                     foreign_cpp_namespace = "Spheral",
                                      custom_name = "second")
         else:
             p.add_instance_attribute("second", value2)
