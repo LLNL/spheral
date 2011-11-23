@@ -198,13 +198,8 @@ class Spheral1dVizDump:
 
             # Write the preamble.
             f = open(filename, "w")
-            f.write("# Time = %g\n# Cycle = %i\n#\n# NodeList -> number mappings:\n" % (time, cycle))
-            for (name, id) in nodeListIDs:
-                f.write("#    %s  :  %i\n" % (name, id))
-            f.write("#")
-            for lab in (["pos", "inodelist"] + list(scalarFieldGroups) + list(vectorFieldGroups) + list(tensorFieldGroups) + list(symTensorFieldGroups)):
-                f.write(" %20s" % lab.replace(" ", "_"))
-            f.write("\n")
+            self.writePreamble(f, time, cycle, nodeListIDs,
+                               (["pos", "inodelist"] + list(scalarFieldGroups) + list(vectorFieldGroups) + list(tensorFieldGroups) + list(symTensorFieldGroups)))
 
             # Write the data.
             n = len(values[0])
@@ -216,6 +211,19 @@ class Spheral1dVizDump:
 
         return
     
+    #---------------------------------------------------------------------------
+    # Write the preamble to the given file.
+    #---------------------------------------------------------------------------
+    def writePreamble(self, f, time, cycle, nodeListIDs, labels):
+        f.write("# Time = %g\n# Cycle = %i\n#\n# NodeList -> number mappings:\n" % (time, cycle))
+        for (name, id) in nodeListIDs:
+            f.write("#    %s  :  %i\n" % (name, id))
+        f.write("#")
+        for lab in labels:
+            f.write(" %20s" % lab.replace(" ", "_"))
+        f.write("\n")
+        return
+
 #-------------------------------------------------------------------------------
 # Dump out all the Fields in a State object.
 # You can pass any of the following for stateThingy:
