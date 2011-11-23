@@ -198,12 +198,12 @@ class Spheral1dVizDump:
 
             # Write the preamble.
             f = open(filename, "w")
-            f.write("# Time = %g\n# Cycle = %i\n#\n# NodeList -> number mappings:\n")
+            f.write("# Time = %g\n# Cycle = %i\n#\n# NodeList -> number mappings:\n" % (time, cycle))
             for (name, id) in nodeListIDs:
                 f.write("#    %s  :  %i\n" % (name, id))
             f.write("#")
             for lab in (["pos", "inodelist"] + list(scalarFieldGroups) + list(vectorFieldGroups) + list(tensorFieldGroups) + list(symTensorFieldGroups)):
-                f.write(" %20s" % lab)
+                f.write(" %20s" % lab.replace(" ", "_"))
             f.write("\n")
 
             # Write the data.
