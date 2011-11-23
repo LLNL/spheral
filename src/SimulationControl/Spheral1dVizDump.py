@@ -67,7 +67,8 @@ class Spheral1dVizDump:
 
         # We had better be one dimensional!
         assert len(self._nodeLists) > 0
-        assert "List1d" in str(self._nodeLists[0])
+        for x in self._nodeLists:
+            assert "List1d" in str(x)
         self.dimension = "1d"
 
         # Version of the format written by this class.
@@ -97,7 +98,7 @@ class Spheral1dVizDump:
         # Now build the output file name, including directory.  Make sure
         # the file does not already exist -- if it does we default to overwriting.
         filename = os.path.join(outputdir,
-                                self.baseFileName + "-time=%g-cycle=%i" % (simulationTime, cycle))
+                                self.baseFileName + "-time=%g-cycle=%i.gnu" % (simulationTime, cycle))
 ##         if os.path.exists(filename):
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
@@ -133,7 +134,7 @@ class Spheral1dVizDump:
             addFieldToGroup(field, self._symTensorFieldGroups)
         else:
             raise RuntimeError, "What is %s?" % field
-        self._nodeLists.add(field.nodeList)
+        self._nodeLists.add(field.nodeList())
         return
 
     #---------------------------------------------------------------------------
@@ -178,7 +179,7 @@ class Spheral1dVizDump:
             symTensorFields = [findFieldForNodeList(nodes, fname, symTensorFieldGroups[fname], SymTensorField1d) for fname in symTensorFieldGroups]
             pos = nodes.positions()
             for i in xrange(nodes.numInternalNodes):
-                values.append([pos.x, nodeListID])
+                values.append([pos[i].x, nodeListID])
                 for f in scalarFields:
                     values[-1].append(f[i])
                 for f in vectorFields:
@@ -200,15 +201,16 @@ class Spheral1dVizDump:
             f.write("# Time = %g\n# Cycle = %i\n#\n# NodeList -> number mappings:\n")
             for (name, id) in nodeListIDs:
                 f.write("#    %s  :  %i\n" % (name, id))
+            f.write("#")
             for lab in (["pos", "inodelist"] + list(scalarFieldGroups) + list(vectorFieldGroups) + list(tensorFieldGroups) + list(symTensorFieldGroups)):
-                f.write("%20s" % lab)
+                f.write(" %20s" % lab)
             f.write("\n")
 
             # Write the data.
             n = len(values[0])
             for stuff in values:
                 assert len(stuff) == n
-                f.write((n*" %20g" + "\n") % stuff)
+                f.write((n*" %20g" + "\n") % tuple(stuff))
 
             f.close()
 
