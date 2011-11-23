@@ -238,6 +238,10 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         x.add_instance_attribute("hmax", "double", getter="hmax", setter="hmax")
         x.add_instance_attribute("hminratio", "double", getter="hminratio", setter="hminratio")
 
+        # Comparison operators.
+        x.add_binary_comparison_operator("==")
+        x.add_binary_comparison_operator("!=")
+
         return
 
     #---------------------------------------------------------------------------
