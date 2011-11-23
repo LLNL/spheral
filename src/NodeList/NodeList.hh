@@ -197,6 +197,10 @@ public:
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+  // Some operators.
+  bool operator==(const NodeList& rhs) const;
+  bool operator!=(const NodeList& rhs) const;
+
 protected:
   //--------------------------- Protected Interface ---------------------------//
 

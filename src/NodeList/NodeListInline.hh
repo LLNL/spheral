@@ -251,5 +251,22 @@ NodeList<Dimension>::hminratio(const typename Dimension::Scalar val) {
   mhminratio = val;
 }
 
+//------------------------------------------------------------------------------
+// Comparison operators.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+NodeList<Dimension>::operator==(const NodeList<Dimension>& rhs) const {
+  return this == &rhs;
+}
+
+template<typename Dimension>
+inline
+bool
+NodeList<Dimension>::operator!=(const NodeList<Dimension>& rhs) const {
+  return not (*this == rhs);
+}
+
 }
 }
