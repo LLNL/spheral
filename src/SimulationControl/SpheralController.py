@@ -18,7 +18,6 @@ from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
 #from ExtendFlatFileIO import FlatFileIO
 from GzipFileIO import GzipFileIO
-from SpheralVoronoiSiloDump import dumpPhysicsState
 
 from SpheralTestUtilities import globalFrame
 from NodeGeneratorBase import ConstantRho
@@ -42,16 +41,25 @@ class SpheralController(RestartableObject):
                  vizDir =  ".",
                  vizStep = None,
                  vizTime = None,
-                 vizMethod = dumpPhysicsState):
+                 vizMethod = None):
         RestartableObject.__init__(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
-        self.vizMethod = vizMethod
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase().nDim
+
+        # Determine the visualization method.
+        if vizMethod:
+            self.vizMethod = vizMethod
+        else:
+            if self.dim == "1d":
+                from Spheral1dVizDump import dumpPhysicsState
+            else:
+                from SpheralVoronoiSiloDump import dumpPhysicsState
+            self.vizMethod = dumpPhysicsState
 
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
