@@ -5,6 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include <cstring>
+#include "boost/algorithm/string/replace.hpp"
 
 #include "FileIO.hh"
 #include "Field/Field.hh"
@@ -288,25 +289,8 @@ writeObject(PyObject* thing, PyObject* pathObj) {
   string result(PyString_AsString(pickledThing));
 
   // Replace the \n to <<n>> to survive writing to the file.
-  {
-    size_t i = result.find("\n");
-    while (i != string::npos) {
-      result.replace(i, 1, "<<n>>");
-      i = result.find("\n");
-    }
-  }
+  boost::replace_all(result, "\n", "<<n>>");
   CHECK(result.find("\n") == string::npos);
-
-//   string result;
-//   for (string::const_iterator itr = result0.begin();
-//        itr != result0.end();
-//        ++itr) {
-//     if (*itr == '\n') {
-//       result += "<<n>>";
-//     } else {
-//       result.push_back(*itr);
-//     }
-//   }
 
   // Now we can finally write the sucker out.
   this->write(result, string(path));
@@ -331,14 +315,7 @@ readObject(PyObject* pathObj) const {
   this->read(encodedThing, path);
 
   // Convert the \n's back to the real thing.
-  {
-    size_t i = encodedThing.find("<<n>>");
-    while (i != string::npos) {
-      encodedThing.replace(i, 1, "\n");
-      encodedThing.erase(i + 1, 4);
-      i = encodedThing.find("<<n>>");
-    }
-  }
+  boost::replace_all(encodedThing, "<<n>>", "\n");
   CHECK(encodedThing.find("<<n>>") == string::npos);
 
   // Turn the string into a python object.

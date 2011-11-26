@@ -73,7 +73,11 @@ class GzipFileIO(PyFileIO):
 
         # If requested, read the file to memory.
         if access == Read and self.readToMemory:
-            self.lines = self.f.readlines()
+            self.lines = {}
+            for line in self.f:
+                i = line.index(self.terminator())
+                assert i < len(line)
+                self.lines[line[:i+1]] = line[i+1:-1]
 
         return
 
@@ -124,9 +128,7 @@ class GzipFileIO(PyFileIO):
 
         # If we read everything to memory, just scan that.
         if self.readToMemory:
-            for line in self.lines:
-                if line[:npath] == pathstring:
-                    return line[npath:-1]
+            return self.lines[pathstring]
 
         else:
             # Go to the beginning of the file.
