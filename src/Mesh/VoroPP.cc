@@ -115,8 +115,8 @@ VoroPP(const vector<Dim<2>::Vector>& generators,
   mGeneratorsPtr(&generators),
   mXmin(xmin),
   mXmax(xmax),
-  mContainerPtr(new container(0.0, 1.0,
-                              0.0, 1.0,
+  mContainerPtr(new container(0.0, (xmax - xmin).x()/mScale,
+                              0.0, (xmax - xmin).y()/mScale,
                               0.0, 1.0,
                               mNx, mNy, mNz,       // The number of sub-regions in each dimension.
                               false, false, false, // Periodic?
@@ -158,9 +158,9 @@ VoroPP(const vector<Dim<3>::Vector>& generators,
   mScale(computeScale(xmin, xmax)),
   mXmin(xmin),
   mXmax(xmax),
-  mContainerPtr(new container(0.0, 1.0,
-                              0.0, 1.0,
-                              0.0, 1.0,
+  mContainerPtr(new container(0.0, (xmax - xmin).x()/mScale,
+                              0.0, (xmax - xmin).y()/mScale,
+                              0.0, (xmax - xmin).z()/mScale,
                               mNx, mNy, mNz,       // The number of sub-regions in each dimension.
                               false, false, false, // Periodic?
                               8)) {
