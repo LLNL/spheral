@@ -144,11 +144,11 @@ fi
 AC_SUBST(BOOSTVER1)
 AC_SUBST(BOOSTVER2)
 if test "`uname -s`" = "Darwin"; then
-   BOOSTVER1="1_46_1"
-   BOOSTVER2="1.46.1"
+   BOOSTVER1="1_48_0"
+   BOOSTVER2="1.48.0"
 else
-   BOOSTVER1="1_47_0"
-   BOOSTVER2="1.47.0"
+   BOOSTVER1="1_48_0"
+   BOOSTVER2="1.48.0"
 fi
 
 # -----------------------------------------------------------------

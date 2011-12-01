@@ -21,8 +21,8 @@ CURL = curl -L
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.1.tar.bz2
-PYTHONURL = http://www.python.org/ftp/python/2.7.1/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.2.tar.bz2
+PYTHONURL = http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2
 PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
 PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
 
