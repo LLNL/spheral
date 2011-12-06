@@ -305,6 +305,15 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                                     << " seconds to construct mesh elements." << endl;
 }
 
+//------------------------------------------------------------------------------
+// Static initializations.
+//------------------------------------------------------------------------------
+template<> const unsigned Mesh<Dim<3> >::minFacesPerZone = 4;
+template<> const unsigned Mesh<Dim<3> >::minEdgesPerZone = 6;
+template<> const unsigned Mesh<Dim<3> >::minNodesPerZone = 4;
+template<> const unsigned Mesh<Dim<3> >::minEdgesPerFace = 3;
+template<> const unsigned Mesh<Dim<3> >::minNodesPerFace = 3;
+
 }
 }
 

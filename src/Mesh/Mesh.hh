@@ -38,6 +38,8 @@ public:
   typedef uint64_t KeyElement;
   typedef boost::tuple<KeyElement, KeyElement, KeyElement> Key;
   static const unsigned UNSETID;
+  static const unsigned minFacesPerZone, minEdgesPerZone, minNodesPerZone;
+  static const unsigned minEdgesPerFace, minNodesPerFace;
 
   //---------------------------------------------------------------------------
   // Declare the elements of the mesh.
@@ -111,6 +113,9 @@ public:
   //   mask[i] = 0  ---> remove zone i
   //   mask[i] = 1  ---> keep zone i
   void removeZonesByMask(const std::vector<unsigned>& mask);
+
+  // Remove edges below a threshold fraction size.
+  void cleanEdges(const double edgeTol);
 
   // Sizes.
   unsigned numNodes() const;

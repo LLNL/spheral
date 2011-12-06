@@ -186,6 +186,15 @@ reconstruct(const vector<Dim<1>::Vector>& generators,
   this->reconstruct(generators, boundary.xmin(), boundary.xmax());
 }
 
+//------------------------------------------------------------------------------
+// Static initializations.
+//------------------------------------------------------------------------------
+template<> const unsigned Mesh<Dim<1> >::minFacesPerZone = 2;
+template<> const unsigned Mesh<Dim<1> >::minEdgesPerZone = 2;
+template<> const unsigned Mesh<Dim<1> >::minNodesPerZone = 2;
+template<> const unsigned Mesh<Dim<1> >::minEdgesPerFace = 1;
+template<> const unsigned Mesh<Dim<1> >::minNodesPerFace = 1;
+
 }
 }
 

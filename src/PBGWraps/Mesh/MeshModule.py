@@ -114,6 +114,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("reconstruct", None, [constrefparam(vector_of_vector, "generators"),
                                            constrefparam(facetedvolume, "boundary")])
         x.add_method("removeZonesByMask", None, [constrefparam("vector_of_unsigned", "mask")])
+        x.add_method("cleanEdges", None, [param("double", "edgeTol")])
         x.add_method("node", node, [param("unsigned int", "i")], is_const=True)
         x.add_method("edge", edge, [param("unsigned int", "i")], is_const=True)
         x.add_method("face", face, [param("unsigned int", "i")], is_const=True)
@@ -139,6 +140,11 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_instance_attribute("sharedNodes", "vector_of_vector_of_unsigned", getter="sharedNodes", is_const=True)
 
         x.add_static_attribute("UNSETID", "unsigned int",  is_const=True)
+        x.add_static_attribute("minFacesPerZone", "unsigned int",  is_const=True)
+        x.add_static_attribute("minEdgesPerZone", "unsigned int",  is_const=True)
+        x.add_static_attribute("minNodesPerZone", "unsigned int",  is_const=True)
+        x.add_static_attribute("minEdgesPerFace", "unsigned int",  is_const=True)
+        x.add_static_attribute("minNodesPerFace", "unsigned int",  is_const=True)
 
         return
 
