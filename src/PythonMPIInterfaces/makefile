@@ -1,0 +1,19 @@
+# -*-makefile-*-
+# Spheral++ PythonMPIInterfaces package makefile
+#-------------------------------------------------------------------------------
+PKGNAME = SimulationControl
+PKGDIR = $(PKGNAME)/
+PYTHONTARGETS = \
+	$(MPIPYTHONINTERFACETARGET)
+INSTALLTARGETS = mpi.py
+
+SPHERALTOP = ..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_taumaster
+include $(SPHERALTOP)/helpers/makefile_master
+
+mpi.py:	$(MPIPYTHONINTERFACETARGET)
+	rm -f $(LIBDIR)/mpi.py
+	ln -s $(LIBDIR)/$(MPIPYTHONINTERFACETARGET) $(LIBDIR)/mpi.py

@@ -1,0 +1,18 @@
+b = Template("Spheral::BoundarySpace::ThreeOneDimensionBoundary",
+             "ExtendBoundary.hh")
+
+exclude(b.addNodeList)
+
+final(b.enterPlane)
+final(b.setEnterPlane)
+final(b.exitPlane)
+final(b.setExitPlane)
+
+final(b.applyGhostBoundary)
+final(b.enforceBoundary)
+final(b.setGhostNodes)
+final(b.updateGhostNodes)
+final(b.setViolationNodes)
+final(b.updateViolationNodes)
+
+b3d = b("Spheral::Dim<3>", "ThreeOneDimensionBoundary3d")

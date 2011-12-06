@@ -1,0 +1,9 @@
+BSplineKernel = Template("Spheral::KernelSpace::BSplineKernel",
+                         "ExtendBSplineKernel.hh")
+exclude(BSplineKernel.asDescendent)
+
+final(BSplineKernel.valid)
+
+BSplineKernel1d = BSplineKernel("Spheral::Dim<1>", "BSplineKernel1d")
+BSplineKernel2d = BSplineKernel("Spheral::Dim<2>", "BSplineKernel2d")
+BSplineKernel3d = BSplineKernel("Spheral::Dim<3>", "BSplineKernel3d")

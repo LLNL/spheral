@@ -1,0 +1,87 @@
+//---------------------------------Spheral++----------------------------------//
+// GeomFacet2d -- A facet of a polygon (just two points).
+//
+// Note a Facet does not maintain it's own copies of it's end points -- the
+// assumption is that this is a Facet of a GeomPolygon and that polygon owns
+// the set of vertex positions.
+//
+// Created by JMO, Thu Jan 28 10:58:32 PST 2010
+//----------------------------------------------------------------------------//
+#ifndef __Spheral_GeomFacet2d__
+#define __Spheral_GeomFacet2d__
+
+#include <vector>
+
+namespace Spheral {
+
+template<int nDim> class GeomVector;
+
+class GeomFacet2d {
+public:
+  //--------------------------- Public Interface ---------------------------//
+  typedef GeomVector<2> Vector;
+
+  //----------------------------------------------------------------------------
+  // Constructors, assignment, destructor.
+  //----------------------------------------------------------------------------
+  GeomFacet2d();
+  GeomFacet2d(const std::vector<Vector>& vertices,
+              const unsigned point1,
+              const unsigned point2);
+  GeomFacet2d(const GeomFacet2d& rhs);
+  GeomFacet2d& operator=(const GeomFacet2d& rhs);
+  ~GeomFacet2d();
+
+  // Is the given point above, below, or colinear with the facet?
+  int compare(const Vector& point,
+              const double tol = 1.0e-8) const;
+
+  // Compare a set of points:
+  //  1 => all points above.
+  //  0 => points both above and below (or equal).
+  // -1 => all points below.
+  int compare(const std::vector<Vector>& points,
+              const double tol = 1.0e-8) const;
+
+  // Access the points.
+  const Vector& point1() const;
+  const Vector& point2() const;
+
+  unsigned ipoint1() const;
+  unsigned ipoint2() const;
+
+  const Vector& normal() const;
+  
+  Vector position() const;
+
+  double area() const;
+
+  // Compute the minimum distance from the facet to a point.
+  double distance(const Vector& p) const;
+
+  // Compute the closest point on the facet to the given point.
+  Vector closestPoint(const Vector& p) const;
+
+  // Comparisons.
+  bool operator==(const GeomFacet2d& rhs) const;
+  bool operator!=(const GeomFacet2d& rhs) const;
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  const std::vector<Vector>* mVerticesPtr;
+  unsigned mPoint1, mPoint2;
+  Vector mNormal;
+};
+
+}
+
+#include "GeomFacet2dInline.hh"
+
+#else 
+
+namespace Spheral {
+  class GeomFacet2d;
+}
+
+#endif
+

@@ -1,0 +1,61 @@
+#-------------------------------------------------------------------------------
+# Externally exported types.
+#-------------------------------------------------------------------------------
+Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<1> >")
+Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<2> >")
+Exported("Spheral::PhysicsSpace::Physics<Spheral::Dim<3> >")
+
+#-------------------------------------------------------------------------------
+# General template.
+#-------------------------------------------------------------------------------
+x = Template("Spheral::GravitySpace::SPHGravity",
+             "ExtendSPHGravity.hh")
+
+#-------------------------------------------------------------------------------
+# Excluded methods.
+#-------------------------------------------------------------------------------
+#exclude(x.initialize)
+#exclude(x.finalize)
+#exclude(x.applyGhostBoundaries)
+#exclude(x.enforceBoundaries)
+
+#-------------------------------------------------------------------------------
+# Final (no python override) methods.
+#-------------------------------------------------------------------------------
+final(x.initialize)
+
+#-------------------------------------------------------------------------------
+# Policies.
+#-------------------------------------------------------------------------------
+set_policy(x.potential, return_internal_reference())
+
+#-------------------------------------------------------------------------------
+# 1D
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "SPHGravity1d")
+add_method(x1d.matrix, "matrix")
+add_method(x1d.RHS, "RHS")
+add_method(x1d.residualNorm, "residualNorm")
+add_method(x1d.potential, "potential")
+add_method(x1d.G, "G")
+
+#-------------------------------------------------------------------------------
+# 2D
+#-------------------------------------------------------------------------------
+x2d = x("Spheral::Dim<2>", "SPHGravity2d")
+add_method(x2d.matrix, "matrix")
+add_method(x2d.RHS, "RHS")
+add_method(x2d.residualNorm, "residualNorm")
+add_method(x2d.potential, "potential")
+add_method(x2d.G, "G")
+
+#-------------------------------------------------------------------------------
+# 3D
+#-------------------------------------------------------------------------------
+x3d = x("Spheral::Dim<3>", "SPHGravity3d")
+add_method(x3d.matrix, "matrix")
+add_method(x3d.RHS, "RHS")
+add_method(x3d.residualNorm, "residualNorm")
+add_method(x3d.potential, "potential")
+add_method(x3d.G, "G")
+

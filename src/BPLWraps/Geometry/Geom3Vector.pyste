@@ -1,0 +1,26 @@
+#-------------------------------------------------------------------------------
+# Vector
+#-------------------------------------------------------------------------------
+Vector = Class("Spheral::Geom3Vector", "ExtendGeom3Vector.hh")
+
+class_code(Vector, ".def(other<double>() + self)")
+class_code(Vector, ".def(other<double>() * self)")
+
+exclude(Vector.operator["()"])
+exclude(Vector.begin)
+exclude(Vector.end)
+exclude(Vector.operator["<<"])
+exclude(Vector.operator[">>"])
+
+add_property(Vector, "x", "x", "x")
+add_property(Vector, "y", "y", "y")
+add_property(Vector, "z", "z", "z")
+
+add_method(Vector, "Spheral::index3Vector")
+rename(Vector.index3Vector, "__call__")
+
+add_method(Vector, "Spheral::printGeom3Vector")
+rename(Vector.printGeom3Vector, "__str__")
+
+add_method(Vector, "Spheral::vector3Elements")
+rename(Vector.vector3Elements, "elements")
