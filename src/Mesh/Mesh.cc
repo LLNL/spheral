@@ -466,12 +466,7 @@ cleanEdges(const double edgeTol){
         }
       }
     }
-    CHECK(*max_element(nodeMask.begin(), nodeMask.end()) < 2*nNodes);
-
-    // Set the node mask appropriately.
-    for (unsigned inode = 0; inode != mNodes.size(); ++inode) {
-      nodeMask[inode] = (nodeMask[inode] >= nNodes ? 0 : 1);
-    }
+    // We need to do something about renumbering the nodes.
 
     // Check if there are any faces that need to be removed.
     vector<unsigned> faceMask(mFaces.size(), 1);
