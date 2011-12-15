@@ -401,6 +401,7 @@ cleanEdges(const double edgeTol){
   // Iterate until all edges are above the threshold.
   bool meshClean = false;
   while (not meshClean) {
+    cerr << "Pass!" << endl;
     meshClean = true;
 
     // Find the maximum edge length in each zone, and in turn find the maximum
@@ -421,52 +422,50 @@ cleanEdges(const double edgeTol){
     // nodes.
     const unsigned nNodes = mNodes.size();
     vector<unsigned> edgeMask(mEdges.size(), 1);
-    vector<unsigned> nodeMask(mNodes.size(), UNSETID); // UNSETID = unvisited, 1 = visited and kept, >nNodes = deleted and replaced with (i-nNodes)
-    unsigned n1, n2, nmaskMin, nmaskMax;
+    vector<unsigned> nodeMask(mNodes.size(), 1);
+    vector<unsigned> nodeMap(mNodes.size());
+    for (unsigned i = 0; i != mNodes.size(); ++i) nodeMap[i] = i;
+    unsigned n1, n2;
     for (unsigned iedge = 0; iedge != mEdges.size(); ++iedge) {
       n1 = mEdges[iedge].node1().ID();
       n2 = mEdges[iedge].node2().ID();
-      if (n2 < n1) swap(n1, n2);
-
-      // Are we deleting the edge?
-      if (mEdges[iedge].length() < edgeTol*maxZoneEdgeLength[iedge]) {
+      if (mEdges[iedge].length() < edgeTol*maxZoneEdgeLength[iedge] and 
+          nodeMask[n1] == 1 and nodeMask[n2] == 1) {
         meshClean = false;
         edgeMask[iedge] = 0;
-        nmaskMin = min(nodeMask[n1], nodeMask[n2]);
-        nmaskMax = max(nodeMask[n1], nodeMask[n2]);
+        nodeMask[n1] = 2;
+        nodeMask[n2] = 0;
+        nodeMap[n2] = n1;
+      }
+    }
+    replace_if(nodeMask.begin(), nodeMask.end(), bind2nd(equal_to<unsigned>(), 2), 1);
+    
+    // Reassign the nodes we're renumbering before they get deleted.
+    {
+      // Edges.
+      for (unsigned i = 0; i != mEdges.size(); ++i) {
+        Edge& edge = mEdges[i];
+        edge.mNode1ID = nodeMap[edge.mNode1ID];
+        edge.mNode2ID = nodeMap[edge.mNode2ID];
+      }
 
-        // Check which node we're getting rid of.
-        if (nmaskMin == UNSETID) {
-          // Neither node has been visited yet.
-          nodeMask[n1] = 1;
-          nodeMask[n2] = n1 + nNodes;
+      // Faces.
+      for (unsigned i = 0; i != mFaces.size(); ++i) {
+        Face& face = mFaces[i];
+        vector<unsigned> kill;
+        for (unsigned j = 0; j != face.mNodeIDs.size(); ++j) {
+          face.mNodeIDs[j] = nodeMap[face.mNodeIDs[j]];
+        }
+      }
 
-        } else if (nmaskMax == UNSETID) {
-          if (nodeMask[n1] == UNSETID) swap(n1, n2);
-          // n2 has not been visited, and...
-          if (nmaskMin == 1) {
-            // n1 is already marked to keep.
-            nodeMask[n2] = n1 + nNodes;
-          } else {
-            // n1 has been deleted.
-            CHECK(nodeMask[n1] >= nNodes and nodeMask[n1] < UNSETID and nodeMask[n2] == UNSETID);
-            nodeMask[n2] = 1;
-          }
-
-        } else if (nmaskMin >= nNodes) {
-          // Both nodes have already been marked for deletion, so we need to 
-          // ensure both point at the same remaining non-deleted node.
-          nodeMask[n1] = min(nodeMask[n1], nodeMask[n2]);
-          nodeMask[n2] = nodeMask[n1];
-
-        } else {
-          // One of the nodes has already been marked for deletion and the other
-          // to keep, so there's nothing to do.
-          CHECK(nmaskMin == 1 and nmaskMax > 1);
+      // Zones.
+      for (unsigned i = 0; i != mZones.size(); ++i) {
+        Zone& zone = mZones[i];
+        for (unsigned j = 0; j != zone.mNodeIDs.size(); ++j) {
+          zone.mNodeIDs[j] = nodeMap[zone.mNodeIDs[j]];
         }
       }
     }
-    // We need to do something about renumbering the nodes.
 
     // Check if there are any faces that need to be removed.
     vector<unsigned> faceMask(mFaces.size(), 1);
@@ -486,61 +485,67 @@ cleanEdges(const double edgeTol){
     const vector<unsigned> newFaceIDs = this->recomputeIDs(faceMask);
 
     // Update the IDs of nodes and their internal data.
-    for (unsigned i = 0; i != mNodes.size(); ++i) {
-      Node& node = mNodes[i];
-      node.mID = newNodeIDs[i];
+    {
+      vector<unsigned> kill;
+      for (unsigned i = 0; i != mNodes.size(); ++i) {
+        if (newNodeIDs[i] == UNSETID) {
+          kill.push_back(i);
+        } else {
+          Node& node = mNodes[i];
+          node.mID = newNodeIDs[i];
+        }
+      }
+      removeElements(mNodes, kill);
     }
   
     // Update the IDs of edges and their internal data.
-    for (unsigned i = 0; i != mEdges.size(); ++i) {
-      Edge& edge = mEdges[i];
-      edge.mID = newEdgeIDs[i];
-      edge.mNode1ID = newNodeIDs[edge.mNode1ID];
-      edge.mNode2ID = newNodeIDs[edge.mNode2ID];
-    }
-
-    // Update the IDs of faces and their internal data.
-    for (unsigned i = 0; i != mFaces.size(); ++i) {
-      Face& face = mFaces[i];
-      face.mID = newFaceIDs[i];
-      this->reassignIDs(face.mNodeIDs, newNodeIDs);
-      this->reassignIDs(face.mEdgeIDs, newEdgeIDs);
-    }
-
-    // Update the IDs of the zones and their internal data.
-    for (unsigned i = 0; i != mZones.size(); ++i) {
-      Zone& zone = mZones[i];
-      this->reassignIDs(zone.mNodeIDs, newNodeIDs);
-      this->reassignIDs(zone.mEdgeIDs, newEdgeIDs);
-      this->reassignIDs(zone.mFaceIDs, newFaceIDs);
-    }
-
-    // Erase the nodes.
     {
       vector<unsigned> kill;
-      for (unsigned i = 0; i != nodeMask.size(); ++i) {
-        if (nodeMask[i] == 0) kill.push_back(i);
-      }
-      removeElements(mNodes, kill);
-      removeElements(mNodePositions, kill);
-    }
-
-    // Erase the edges.
-    {
-      vector<unsigned> kill;
-      for (unsigned i = 0; i != edgeMask.size(); ++i) {
-        if (edgeMask[i] == 0) kill.push_back(i);
+      for (unsigned i = 0; i != mEdges.size(); ++i) {
+        if (newEdgeIDs[i] == UNSETID) {
+          kill.push_back(i);
+        } else {
+          Edge& edge = mEdges[i];
+          edge.mID = newEdgeIDs[i];
+          edge.mNode1ID = newNodeIDs[edge.mNode1ID];
+          edge.mNode2ID = newNodeIDs[edge.mNode2ID];
+          CHECK(edge.mNode1ID != UNSETID and
+                edge.mNode2ID != UNSETID);
+        }
       }
       removeElements(mEdges, kill);
     }
 
-    // Erase the faces.
+    // Update the IDs of faces and their internal data.
     {
       vector<unsigned> kill;
-      for (unsigned i = 0; i != faceMask.size(); ++i) {
-        if (faceMask[i] == 0) kill.push_back(i);
+      for (unsigned i = 0; i != mFaces.size(); ++i) {
+        if (newFaceIDs[i] == UNSETID) {
+          kill.push_back(i);
+        } else {
+          Face& face = mFaces[i];
+          face.mID = newFaceIDs[i];
+          this->reassignIDs(face.mNodeIDs, newNodeIDs);
+          this->reassignIDs(face.mEdgeIDs, newEdgeIDs);
+          this->removeUNSETIDs(face.mNodeIDs);
+          this->removeUNSETIDs(face.mEdgeIDs);
+        }
       }
       removeElements(mFaces, kill);
+    }
+
+    // Update the IDs of the zones and their internal data.
+    {
+      vector<unsigned> kill;
+      for (unsigned i = 0; i != mZones.size(); ++i) {
+        Zone& zone = mZones[i];
+        this->reassignIDs(zone.mNodeIDs, newNodeIDs);
+        this->reassignIDs(zone.mEdgeIDs, newEdgeIDs);
+        this->reassignIDs(zone.mFaceIDs, newFaceIDs);
+        this->removeUNSETIDs(zone.mNodeIDs);
+        this->removeUNSETIDs(zone.mEdgeIDs);
+        this->removeUNSETIDs(zone.mFaceIDs);
+      }
     }
   }
 

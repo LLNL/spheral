@@ -200,6 +200,9 @@ private:
   void reassignIDs(std::vector<unsigned>& ids,
                    const std::vector<unsigned>& old2new) const;
 
+  // Delete any elements in the list which are set to UNSETID.
+  void removeUNSETIDs(std::vector<unsigned>& ids) const;
+
   // Internal method to handle reconstructing the mesh after boundary
   // conditions and such have all been provided.
   void reconstructInternal(const std::vector<Vector>& generators,
