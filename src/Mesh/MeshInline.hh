@@ -430,6 +430,21 @@ reassignIDs(std::vector<unsigned>& ids,
 }
 
 //------------------------------------------------------------------------------
+// Mesh::removeUNSETIDs
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+Mesh<Dimension>::
+removeUNSETIDs(std::vector<unsigned>& ids) const {
+  std::vector<unsigned> kill;
+  for (size_t k = 0; k != ids.size(); ++k) {
+    if (ids[k] == UNSETID) kill.push_back(k);
+  }
+  removeElements(ids, kill);
+}
+
+//------------------------------------------------------------------------------
 // Fill in the NodeList offsets.
 //------------------------------------------------------------------------------
 template<typename Dimension>
