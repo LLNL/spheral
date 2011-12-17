@@ -210,6 +210,13 @@ private:
                            const Vector& xmax);
 };
 
+// Mesh::cleanEdges does not make sense in 1D.
+template<>
+inline
+void
+Mesh<Dim<1> >::
+cleanEdges(const double edgeTol) {}
+
 }
 }
 

@@ -393,7 +393,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
 template<typename Dimension>
 void
 Mesh<Dimension>::
-cleanEdges(const double edgeTol){
+cleanEdges(const double edgeTol) {
 
   // Pre-conditions.
   VERIFY2(edgeTol > 0.0, "Specify a positive (non-zero) edge tolerance!");
@@ -401,7 +401,6 @@ cleanEdges(const double edgeTol){
   // Iterate until all edges are above the threshold.
   bool meshClean = false;
   while (not meshClean) {
-    cerr << "Pass!" << endl;
     meshClean = true;
 
     // Find the maximum edge length in each zone, and in turn find the maximum
@@ -458,13 +457,13 @@ cleanEdges(const double edgeTol){
         }
       }
 
-      // Zones.
-      for (unsigned i = 0; i != mZones.size(); ++i) {
-        Zone& zone = mZones[i];
-        for (unsigned j = 0; j != zone.mNodeIDs.size(); ++j) {
-          zone.mNodeIDs[j] = nodeMap[zone.mNodeIDs[j]];
-        }
-      }
+      // // Zones.
+      // for (unsigned i = 0; i != mZones.size(); ++i) {
+      //   Zone& zone = mZones[i];
+      //   for (unsigned j = 0; j != zone.mNodeIDs.size(); ++j) {
+      //     zone.mNodeIDs[j] = nodeMap[zone.mNodeIDs[j]];
+      //   }
+      // }
     }
 
     // Check if there are any faces that need to be removed.
@@ -479,13 +478,37 @@ cleanEdges(const double edgeTol){
       faceMask[iface] = (numActiveEdges >= minEdgesPerFace ? 1 : 0);
     }
 
+    // cout << "nodeMask: ";
+    // copy(nodeMask.begin(), nodeMask.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl
+    //      << "edgeMask: ";
+    // copy(edgeMask.begin(), edgeMask.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl
+    //      << "faceMask: ";
+    // copy(faceMask.begin(), faceMask.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl
+    //      << "nodeMap: ";
+    // copy(nodeMap.begin(), nodeMap.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl;
+
     // Figure out the new numberings.
     const vector<unsigned> newNodeIDs = this->recomputeIDs(nodeMask);
     const vector<unsigned> newEdgeIDs = this->recomputeIDs(edgeMask);
     const vector<unsigned> newFaceIDs = this->recomputeIDs(faceMask);
 
+    // cout << "newNodeIDs: ";
+    // copy(newNodeIDs.begin(), newNodeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl;
+    // cout << "newEdgeIDs: ";
+    // copy(newEdgeIDs.begin(), newEdgeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl;
+    // cout << "newFaceIDs: ";
+    // copy(newFaceIDs.begin(), newFaceIDs.end(), ostream_iterator<unsigned>(cout, " "));
+    // cout << endl;
+
     // Update the IDs of nodes and their internal data.
     {
+      // cout << "Nodes:  " << endl;
       vector<unsigned> kill;
       for (unsigned i = 0; i != mNodes.size(); ++i) {
         if (newNodeIDs[i] == UNSETID) {
@@ -493,13 +516,16 @@ cleanEdges(const double edgeTol){
         } else {
           Node& node = mNodes[i];
           node.mID = newNodeIDs[i];
+          // cout << "    " << node.mID << " " << node.position() << endl;
         }
       }
       removeElements(mNodes, kill);
+      removeElements(mNodePositions, kill);
     }
   
     // Update the IDs of edges and their internal data.
     {
+      // cout << "Edges:  " << endl;
       vector<unsigned> kill;
       for (unsigned i = 0; i != mEdges.size(); ++i) {
         if (newEdgeIDs[i] == UNSETID) {
@@ -511,6 +537,10 @@ cleanEdges(const double edgeTol){
           edge.mNode2ID = newNodeIDs[edge.mNode2ID];
           CHECK(edge.mNode1ID != UNSETID and
                 edge.mNode2ID != UNSETID);
+          // cout << "    " << edge.mID << " : "
+          //      << edge.mNode1ID << " "
+          //      << edge.mNode2ID << " "
+          //      << endl;
         }
       }
       removeElements(mEdges, kill);
@@ -518,6 +548,7 @@ cleanEdges(const double edgeTol){
 
     // Update the IDs of faces and their internal data.
     {
+      // cout << "Faces:" << endl;
       vector<unsigned> kill;
       for (unsigned i = 0; i != mFaces.size(); ++i) {
         if (newFaceIDs[i] == UNSETID) {
@@ -529,6 +560,11 @@ cleanEdges(const double edgeTol){
           this->reassignIDs(face.mEdgeIDs, newEdgeIDs);
           this->removeUNSETIDs(face.mNodeIDs);
           this->removeUNSETIDs(face.mEdgeIDs);
+          // cout << face.mID << " : ";
+          // copy(face.mNodeIDs.begin(), face.mNodeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+          // cout << " : ";
+          // copy(face.mEdgeIDs.begin(), face.mEdgeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+          // cout << endl;
         }
       }
       removeElements(mFaces, kill);
@@ -536,15 +572,26 @@ cleanEdges(const double edgeTol){
 
     // Update the IDs of the zones and their internal data.
     {
+      // cout << "Zones:  " << endl;
       vector<unsigned> kill;
       for (unsigned i = 0; i != mZones.size(); ++i) {
         Zone& zone = mZones[i];
-        this->reassignIDs(zone.mNodeIDs, newNodeIDs);
-        this->reassignIDs(zone.mEdgeIDs, newEdgeIDs);
-        this->reassignIDs(zone.mFaceIDs, newFaceIDs);
-        this->removeUNSETIDs(zone.mNodeIDs);
-        this->removeUNSETIDs(zone.mEdgeIDs);
-        this->removeUNSETIDs(zone.mFaceIDs);
+        vector<unsigned> faceIDs = zone.mFaceIDs;
+        this->reassignIDs(faceIDs, newFaceIDs);
+        this->removeUNSETIDs(faceIDs);
+        zone = Zone(*this, i, faceIDs);
+        // this->reassignIDs(zone.mEdgeIDs, newEdgeIDs);
+        // this->reassignIDs(zone.mFaceIDs, newFaceIDs);
+        // this->removeUNSETIDs(zone.mEdgeIDs);
+        // this->removeUNSETIDs(zone.mFaceIDs);
+        // zone.constructNodeIDs();
+        // cout << zone.mID << " : ";
+        // copy(zone.mNodeIDs.begin(), zone.mNodeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+        // cout << " : ";
+        // copy(zone.mEdgeIDs.begin(), zone.mEdgeIDs.end(), ostream_iterator<unsigned>(cout, " "));
+        // cout << " : ";
+        // copy(zone.mFaceIDs.begin(), zone.mFaceIDs.end(), ostream_iterator<unsigned>(cout, " "));
+        // cout << endl;
       }
     }
   }
