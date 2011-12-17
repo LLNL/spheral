@@ -73,7 +73,7 @@ Zone(const Mesh<Dim<2> >& mesh,
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
   mEdgeIDs = mFaceIDs;
 
-  // We need the nodes sorted counter-clockwise around the zone as well.  Since the edges
+  // We need the nodes sorted counter-clockwise around the zone.  Since the edges
   // are now sorted correctly, we can get this by taking the common node for each edge pair
   // around the zone.
   const unsigned numEdges = mEdgeIDs.size();
