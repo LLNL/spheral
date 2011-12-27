@@ -727,6 +727,8 @@ class Geometry:
         # Constructors.
         x.add_constructor([])
         x.add_constructor([refparam("vector_of_Vector3d", "points")])
+        x.add_constructor([refparam("vector_of_Vector3d", "points"),
+                           refparam("vector_of_vector_of_unsigned", "facetIndices")])
         x.add_constructor([constrefparam(me, "rhs")])
     
         # Methods.
