@@ -187,30 +187,52 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mVertices(points),
   mFacets(),
   mConvex(false) {
+
+  unsigned i;
   vector<unsigned> indices;
-  Vector a, b, normal;
+  Vector a, b, normal, centroid;
+  mFacets.reserve(facetIndices.size());
+
+  // Temporarily normalize the vertex positions.
+  Vector xmin, xmax;
+  boundingBox(mVertices, xmin, xmax);
+  const double fscale = (xmax - xmin).maxElement();
+  CHECK(fscale > 0.0);
+  for (i = 0; i != mVertices.size(); ++i) mVertices[i] /= fscale;
+
+  // Construct the facets.
   for (vector<vector<unsigned> >::const_iterator facetItr = facetIndices.begin();
        facetItr != facetIndices.end();
        ++facetItr) {
     vector<unsigned> indices = *facetItr;
-    VERIFY(indices.size() > 2);
-    VERIFY(*max_element(indices.begin(), indices.end()) < points.size());
+    VERIFY2(indices.size() > 2, "Need at least two points per facet.");
+    VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
+            "Bad vertex index for facet.");
+
+    // Find a central point for the facet.
+    centroid = Vector();
+    for (i = 0; i != indices.size(); ++i) centroid += mVertices[indices[i]];
+    centroid /= indices.size();
 
     // Pick three points and construct an arbitrary normal.
-    a = points[indices[1]] - points[indices[0]];
-    b = points[indices[2]] - points[indices[0]];
+    a = mVertices[indices[1]] - mVertices[indices[0]];
+    b = mVertices[indices[2]] - mVertices[indices[0]];
     normal = a.cross(b);
     VERIFY(distinctlyGreaterThan(normal.magnitude2(), 0.0, 1.0e-10));
     normal = normal.unitVector();
 
     // Sort the indices counter-clockwise for this normal.
     sort(indices.begin() + 1, indices.end(),
-         CounterClockwiseComparator<Vector, vector<Vector> >(points, points[indices[0]], normal));
+         CounterClockwiseComparator<Vector, vector<Vector> >(mVertices, mVertices[indices[0]], normal));
 
     // Construct a facet using this ordering (which may not be correct right now).
     mFacets.push_back(Facet(mVertices, indices, normal));
   }
   CHECK(mFacets.size() == facetIndices.size());
+
+  // Fill in our bounding box.
+  setBoundingBox();
+  mConvex = false;    // Assume non-convex until facets are straightened out.
 
   // Now check the facets to see if we need to reverse their node orders.
   Vector fc, fcm, fcp;
@@ -219,19 +241,22 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
     normal = mFacets[ifacet].normal();
     fcm = fc - 1.0e-5*normal;
     fcp = fc + 1.0e-5*normal;
-    CHECK(this->contains(fcm) == not this->contains(fcp));
+    CHECK2(this->contains(fcm) == not this->contains(fcp),
+           "Error checking facet orientation:  " << ifacet << " " << mFacets[ifacet]);
     if (not this->contains(fcm)) {
       indices = mFacets[ifacet].ipoints();
-      reverse(indices.begin(), indices.end());
+      std::reverse(indices.begin(), indices.end());
       mFacets[ifacet] = Facet(mVertices, indices, -normal);
     }
   }
 
-  // Fill in our bounding box.
-  setBoundingBox();
-
   // Check if we're convex.
   mConvex = this->convex();
+
+  // Denormalize the vertex positions.
+  for (i = 0; i != mVertices.size(); ++i) mVertices[i] *= fscale;
+  mXmin *= fscale;
+  mXmax *= fscale;
 }
 
 //------------------------------------------------------------------------------

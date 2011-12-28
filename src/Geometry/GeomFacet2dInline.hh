@@ -159,6 +159,17 @@ operator!=(const GeomFacet2d& rhs) const {
   return not (*this == rhs);
 }
 
-
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+inline
+std::ostream&
+operator<<(std::ostream& os, const GeomFacet2d& facet) {
+  os << "GeomFacet2d( ivertices : " << facet.ipoint1() << " " << facet.ipoint2() << "\n"
+     << "              vertices : " << facet.point1() << " " << facet.point2() << "\n"
+     << "                normal : " << facet.normal() 
+     << "\n)";
+  return os;
+}
 
 }

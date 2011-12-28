@@ -9,7 +9,9 @@
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_GeomFacet3d__
 #define __Spheral_GeomFacet3d__
+
 #include <vector>
+#include <iostream>
 
 namespace Spheral {
 
@@ -69,6 +71,9 @@ private:
   std::vector<unsigned> mPoints;
   Vector mNormal;
 };
+
+// Provide an ostream operator for GeomFacet3d.
+std::ostream& operator <<(std::ostream& os, const GeomFacet3d& facet);
 
 }
 

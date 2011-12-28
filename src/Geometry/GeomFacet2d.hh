@@ -11,6 +11,7 @@
 #define __Spheral_GeomFacet2d__
 
 #include <vector>
+#include <iostream>
 
 namespace Spheral {
 
@@ -72,6 +73,9 @@ private:
   unsigned mPoint1, mPoint2;
   Vector mNormal;
 };
+
+// Provide an ostream operator for GeomFacet2d.
+std::ostream& operator <<(std::ostream& os, const GeomFacet2d& facet);
 
 }
 
