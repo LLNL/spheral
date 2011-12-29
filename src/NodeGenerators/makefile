@@ -6,7 +6,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 
 SRCTARGETS = \
-	generateCylDistributionFromRZ.cc
+	generateCylDistributionFromRZ.cc \
+	fillFacetedVolume.cc
 
 PYTHONTARGETS = \
 	NodeGeneratorBase.py \
