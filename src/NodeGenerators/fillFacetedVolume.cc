@@ -30,17 +30,38 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
   CHECK(ny > 0 and ny <= n1d);
   CHECK(nz > 0 and nz <= n1d);
 
-  for (iz = 0; iz != nz; ++iz) {
-    z = xmin.z() + (iz + 0.5)*dx;
-    for (iy = 0; iy != ny; ++iy) {
-      y = xmin.y() + (iy + 0.5)*dx;
-      for (ix = 0; ix != nx; ++ix) {
-        x = xmin.x() + (ix + 0.5)*dx;
-        if (outerBoundary.contains(Vector(x, y, z))) result.push_back(Vector(x, y, z));
+  if (outerBoundary.convex()) {
+
+    for (iz = 0; iz != nz; ++iz) {
+      z = xmin.z() + (iz + 0.5)*dx;
+      for (iy = 0; iy != ny; ++iy) {
+        y = xmin.y() + (iy + 0.5)*dx;
+        for (ix = 0; ix != nx; ++ix) {
+          x = xmin.x() + (ix + 0.5)*dx;
+          Vector pos(x, y, z);
+          if (outerBoundary.contains(pos)) result.push_back(pos);
+        }
       }
     }
-  }
 
+  } else {
+
+    // We'll try using the much faster convex contains method as a pre-filter
+    // before using the expensive general contains.
+    const FacetedVolume convexOuterBoundary(outerBoundary.vertices());
+    for (iz = 0; iz != nz; ++iz) {
+      z = xmin.z() + (iz + 0.5)*dx;
+      for (iy = 0; iy != ny; ++iy) {
+        y = xmin.y() + (iy + 0.5)*dx;
+        for (ix = 0; ix != nx; ++ix) {
+          x = xmin.x() + (ix + 0.5)*dx;
+          Vector pos(x, y, z);
+          if (convexOuterBoundary.convexContains(pos) and outerBoundary.contains(pos)) result.push_back(pos);
+        }
+      }
+    }
+
+  }
   return result;
 }
 
@@ -68,6 +89,12 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
   CHECK(ny > 0 and ny <= n1d);
   CHECK(nz > 0 and nz <= n1d);
 
+  const bool innerConvex = innerBoundary.convex();
+  const bool outerConvex = outerBoundary.convex();
+  const FacetedVolume convexInnerBoundary = innerConvex ? innerBoundary : FacetedVolume(innerBoundary.vertices());
+  const FacetedVolume convexOuterBoundary = outerConvex ? outerBoundary : FacetedVolume(outerBoundary.vertices());
+
+  bool outerTest, innerTest;
   for (iz = 0; iz != nz; ++iz) {
     z = xmin.z() + (iz + 0.5)*dx;
     for (iy = 0; iy != ny; ++iy) {
@@ -75,7 +102,17 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
       for (ix = 0; ix != nx; ++ix) {
         x = xmin.x() + (ix + 0.5)*dx;
         Vector pos(x, y, z);
-        if ((not innerBoundary.contains(pos)) and outerBoundary.contains(pos)) result.push_back(pos);
+        outerTest = convexOuterBoundary.contains(pos);
+        if (outerTest and not outerConvex) outerTest = outerBoundary.contains(pos);
+        if (outerTest) {
+          innerTest = convexInnerBoundary.contains(pos);
+          if (not innerTest) {
+            result.push_back(pos);
+          } else {
+            if (not innerConvex) innerTest = innerBoundary.contains(pos);
+            if (not innerTest) result.push_back(pos);
+          }
+        }
       }
     }
   }
