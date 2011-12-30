@@ -29,6 +29,7 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
   CHECK(nx > 0 and nx <= n1d);
   CHECK(ny > 0 and ny <= n1d);
   CHECK(nz > 0 and nz <= n1d);
+  result.reserve(nx*ny*nz);
 
   if (outerBoundary.convex()) {
 
@@ -88,6 +89,7 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
   CHECK(nx > 0 and nx <= n1d);
   CHECK(ny > 0 and ny <= n1d);
   CHECK(nz > 0 and nz <= n1d);
+  result.reserve(nx*ny*nz);
 
   const bool innerConvex = innerBoundary.convex();
   const bool outerConvex = outerBoundary.convex();
