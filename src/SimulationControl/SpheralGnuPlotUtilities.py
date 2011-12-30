@@ -43,30 +43,18 @@ def generateNewGnuPlot(persist = False):
 #-------------------------------------------------------------------------------
 # Helper method, sort a set of lists by the first one.
 #-------------------------------------------------------------------------------
-def multiSort(x, *args):
+def multiSort(*args):
     # All the lists have to be the same length.
     for l in args:
-        assert len(l) == len(x)
+        assert len(l) == len(args[0])
 
-    # First build a composite list, each element of which is the tuple of
-    # elements from each component list.
-    multiList = []
-    for i in xrange(len(x)):
-        tmp = [x[i]]
-        for l in args:
-            tmp.append(l[i])
-        multiList.append(tuple(tmp))
+    # This is the obscure zip trick!
+    result = zip(*sorted(zip(*args)))
 
-    # Now sort the multiList (by x).
-    multiList.sort()
-
-    # Return the sorted results in place of the arguments.
-    for i in xrange(len(x)):
-        x[i] = multiList[i][0]
-        j = 1
-        for l in args:
-            l[i] = multiList[i][j]
-            j += 1
+    # Copy the sorted stuff back to the input arguments.
+    for ilist in xrange(len(args)):
+        for i in xrange(len(args[ilist])):
+            args[ilist][i] = result[ilist][i]
 
     return
 
