@@ -41,14 +41,18 @@ class NodeGenerators:
         Spheral.add_function("fillFacetedVolume",
                              "vector_of_Vector3d",
                              [constrefparam("Polyhedron", "outerBoundary"),
-                              param("unsigned int", "n1d")],
+                              param("unsigned int", "n1d"),
+                              param("unsigned int", "domain"),
+                              param("unsigned int", "numDomains")],
                              docstring = "Return a vector of positions filling the given polyhedron.")
 
         Spheral.add_function("fillFacetedVolume",
                              "vector_of_Vector3d",
                              [constrefparam("Polyhedron", "innerBoundary"),
                               constrefparam("Polyhedron", "outerBoundary"),
-                              param("unsigned int", "n1d")],
+                              param("unsigned int", "n1d"),
+                              param("unsigned int", "domain"),
+                              param("unsigned int", "numDomains")],
                              docstring = "Return a vector of positions filling the volume between an inner and outer bounding polyhedra.")
         return
 

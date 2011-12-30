@@ -13,13 +13,17 @@ namespace Spheral {
 // Fill a bounding volume.
 std::vector<Dim<3>::Vector>
 fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
-                  const unsigned n1d);
+                  const unsigned n1d,
+                  const unsigned domain,
+                  const unsigned numDomains);
 
 // Fill between inner and outer bounding volumes.
 std::vector<Dim<3>::Vector>
 fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
                   const Dim<3>::FacetedVolume& outerBoundary,
-                  const unsigned n1d);
+                  const unsigned n1d,
+                  const unsigned domain,
+                  const unsigned numDomains);
 
 }
 
