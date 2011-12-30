@@ -3,9 +3,6 @@
 namespace Spheral {
 
 using namespace std;
-using std::abs;
-using std::min;
-using std::max;
 
 //------------------------------------------------------------------------------
 // Fill an outer bounding volume.
