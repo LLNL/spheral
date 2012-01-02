@@ -235,6 +235,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("area", "double", [], is_const=True)
         x.add_method("unitNormal", vector, [], is_const=True)
         x.add_method("oppositeZoneID", "unsigned int", [param("unsigned int", "zoneID")], is_const=True)
+        x.add_method("compare", "int", [constrefparam(vector, "point"), param("double", "tol", default_value="1.0e-8")], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
