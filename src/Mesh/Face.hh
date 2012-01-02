@@ -50,6 +50,10 @@ public:
   // Return the other zone sharing this face.
   unsigned oppositeZoneID(const unsigned zoneID) const;
 
+  // Is the given point above, below, or coplanar with the facet?
+  int compare(const Vector& point,
+              const double tol = 1.0e-8) const;
+
   //--------------------------- Private Interface ---------------------------//
 private:
   const Mesh<Dimension>* mMeshPtr;

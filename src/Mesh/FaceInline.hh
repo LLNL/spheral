@@ -97,5 +97,22 @@ oppositeZoneID(const unsigned zoneID) const {
   return zoneID == mZone1ID ? mZone2ID : mZone1ID;
 }
 
+//------------------------------------------------------------------------------
+// Is the given point above, below, or coplanar with the facet?
+// Returns 1, -1, 0 respectively.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+Mesh<Dimension>::Face::
+compare(const typename Dimension::Vector& point,
+        const double tol) const {
+  const Vector normal = this->unitNormal();
+  const double test = normal.dot(point - mMeshPtr->mNodePositions[mNodeIDs[0]]);
+  return (fuzzyEqual(test, 0.0, tol) ?  0 :
+          test > 0.0                 ?  1 :
+                                       -1);
+}
+
 }
 }
