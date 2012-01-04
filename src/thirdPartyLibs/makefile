@@ -200,7 +200,7 @@ WILDMAGICDIR = GeometricTools
 WILDMAGICBUILDDATE = $(patsubst %.zip, .%.date, $(WILDMAGICDIST))
 
 # Qhull
-QHULLDIST = qhull-2010.1-src.tgz
+QHULLDIST = qhull-2011.2-src.tgz
 QHULLURL = http://www.qhull.org/download/$(QHULLDIST)
 QHULLDIR = $(QHULLDIST:-src.tgz=)
 QHULLINCDIR = $(SPHERALDIR)/include/qhull
@@ -1062,16 +1062,11 @@ $(QHULLBUILDDATE):	$(PYTHONBUILDDATE) $(QHULLDIST)
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
-	$(PATCH) $(QHULLDIR)/src/Makefile Makefile-qhull-2010.1.patch
-# 	$(CP) Makefile-qhullcpp-2010.1 $(QHULLDIR)/cpp
-	$(SHELL) -ec "cd $(QHULLDIR)/src; \
-	env CC=$(CXX) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(MAKE) MAKEFLAGS= ; \
-	env BINDIR=$(SPHERALDIR)/bin MANDIR=$(SPHERALDIR)/man INCDIR=$(QHULLINCDIR) $(MAKE) install"
-# 	$(SHELL) -ec "cd $(QHULLDIR)/cpp; \
-# 	env CC=$(CC) CXX=$(CXX) $(MAKE) -f Makefile-qhullcpp-2010.1 ; \
-# 	env LIBDIR=$(SPHERALDIR)/lib INCDIR=$(QHULLINCDIR) $(MAKE) install"
-	$(CP) -f $(QHULLDIR)/src/libqhull.a $(SPHERALDIR)/lib
-	@if ! test -e $(SPHERALDIR)/lib/libqhull.a; then \
+	$(PATCH) $(QHULLDIR)/Makefile Makefile-qhull-2011.2.patch
+	$(SHELL) -ec "cd $(QHULLDIR); \
+	env CC=$(CXX) CXX=$(CXX) CFLAGS='$(CFLAGS)' DESTDIR=$(SPHERALDIR) $(MAKE) MAKEFLAGS= ; \
+	env DESTDIR=$(SPHERALDIR) $(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
 	echo "ERROR building Qhull."; \
 	rm -f $(QHULLBUILDDATE); \
 	exit 1; \

@@ -35,7 +35,7 @@ ARCH = $(SPHERALARCH)
 ##EXTRALIBS = $(SRCTOP)/boost/libboost_python.a
 ##EXTRALIBS = -bmap:libGeometry.map /lib/crt0.o
 
-EXTRALIBS = -lqhull
+EXTRALIBS = -lqhullstatic
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_taumaster

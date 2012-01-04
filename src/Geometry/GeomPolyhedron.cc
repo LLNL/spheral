@@ -19,7 +19,9 @@
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolyhedron.hh"
 
-#include "qhull/qhull_a.h"
+extern "C" {
+#include "libqhull/qhull_a.h"
+}
 
 namespace Spheral {
 
