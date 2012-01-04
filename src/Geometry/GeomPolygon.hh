@@ -28,10 +28,17 @@ public:
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
   //----------------------------------------------------------------------------
+  GeomPolygon();
+
   // Note the following constructor constructs the convex hull of the given points,
   // meaning that the full set of points passed in may not appear in the vertices.
-  GeomPolygon();
   GeomPolygon(const std::vector<Vector>& points);
+
+  // This constructor takes a set of points that define facets of the surface
+  // of the polygon.
+  GeomPolygon(const std::vector<Vector>& points,
+              const std::vector<std::vector<unsigned> >& facetIndices);
+
   GeomPolygon(const GeomPolygon& rhs);
   GeomPolygon& operator=(const GeomPolygon& rhs);
   ~GeomPolygon();

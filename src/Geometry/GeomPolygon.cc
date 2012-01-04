@@ -19,7 +19,9 @@
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
 
-#include "qhull/qhull_a.h"
+extern "C" {
+#include "libqhull/qhull_a.h"
+}
 
 namespace Spheral {
 
@@ -145,6 +147,67 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     }
     END_CONTRACT_SCOPE;
   }
+}
+
+//------------------------------------------------------------------------------
+// Construct given the positions and facet indices.
+//------------------------------------------------------------------------------
+GeomPolygon::
+GeomPolygon(const vector<GeomPolygon::Vector>& points,
+            const vector<vector<unsigned> >& facetIndices):
+  mVertices(points),
+  mFacets(),
+  mConvex(false) {
+
+  // Temporarily normalize the vertex positions.
+  unsigned i, j;
+  Vector xmin, xmax;
+  boundingBox(mVertices, xmin, xmax);
+  const double fscale = (xmax - xmin).maxElement();
+  CHECK(fscale > 0.0);
+  for (i = 0; i != mVertices.size(); ++i) mVertices[i] /= fscale;
+
+  // Construct the facets.
+  Vector centroid;
+  mFacets.reserve(facetIndices.size());
+  for (vector<vector<unsigned> >::const_iterator facetItr = facetIndices.begin();
+       facetItr != facetIndices.end();
+       ++facetItr) {
+    const vector<unsigned>& indices = *facetItr;
+    VERIFY2(indices.size() == 2, "Need two points per facet.");
+    VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
+            "Bad vertex index for facet.");
+    mFacets.push_back(Facet(mVertices, indices[0], indices[1]));
+  }
+  CHECK(mFacets.size() == facetIndices.size());
+
+  // Fill in our bounding box.
+  setBoundingBox();
+  mConvex = false;    // Assume non-convex until facets are straightened out.
+
+  // Now check the facets to see if we need to reverse their node orders.
+  Vector fc, fcm, fcp, normal;
+  for (unsigned ifacet = 0; ifacet != mFacets.size(); ++ifacet) {
+    fc = mFacets[ifacet].position();
+    normal = mFacets[ifacet].normal();
+    fcm = fc - 1.0e-5*normal;
+    fcp = fc + 1.0e-5*normal;
+    CHECK2(this->contains(fcm) == not this->contains(fcp),
+           "Error checking facet orientation:  " << ifacet << " " << mFacets[ifacet]);
+    if (not this->contains(fcm)) {
+      i = mFacets[ifacet].ipoint1();
+      j = mFacets[ifacet].ipoint2();      
+      mFacets[ifacet] = Facet(mVertices, j, i);
+    }
+  }
+
+  // Check if we're convex.
+  mConvex = this->convex();
+
+  // Denormalize the vertex positions.
+  for (i = 0; i != mVertices.size(); ++i) mVertices[i] *= fscale;
+  mXmin *= fscale;
+  mXmax *= fscale;
 }
 
 //------------------------------------------------------------------------------
