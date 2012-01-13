@@ -10,6 +10,8 @@
 #include <map>
 #include <limits>
 
+#include "boost/foreach.hpp"
+
 #include "GeomPolyhedron.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
@@ -63,12 +65,10 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     // Copy the point coordinates to a Qhull point array.
     std::vector<coordT> points_qhull;
     points_qhull.reserve(3 * points.size());
-    for (vector<Vector>::const_iterator itr = points.begin();
-         itr != points.end();
-         ++itr) {
-      points_qhull.push_back((itr->x() - xmin.x())/fscale);
-      points_qhull.push_back((itr->y() - xmin.y())/fscale);
-      points_qhull.push_back((itr->z() - xmin.z())/fscale);
+    BOOST_FOREACH(Vector vec, points) {
+      points_qhull.push_back((vec.x() - xmin.x())/fscale);
+      points_qhull.push_back((vec.y() - xmin.y())/fscale);
+      points_qhull.push_back((vec.z() - xmin.z())/fscale);
     }
     CHECK(points_qhull.size() == 3*points.size());
 
@@ -203,17 +203,14 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   for (i = 0; i != mVertices.size(); ++i) mVertices[i] /= fscale;
 
   // Construct the facets.
-  for (vector<vector<unsigned> >::const_iterator facetItr = facetIndices.begin();
-       facetItr != facetIndices.end();
-       ++facetItr) {
-    vector<unsigned> indices = *facetItr;
+  BOOST_FOREACH(vector<unsigned> indices, facetIndices) {
     VERIFY2(indices.size() > 2, "Need at least two points per facet.");
     VERIFY2(*max_element(indices.begin(), indices.end()) < points.size(),
             "Bad vertex index for facet.");
 
     // Find a central point for the facet.
     centroid = Vector();
-    for (i = 0; i != indices.size(); ++i) centroid += mVertices[indices[i]];
+    BOOST_FOREACH(i, indices) centroid += mVertices[i];
     centroid /= indices.size();
 
     // Pick three points and construct an arbitrary normal.
@@ -272,11 +269,9 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
   mFacets.reserve(rhs.mFacets.size());
-  for (vector<Facet>::const_iterator itr = rhs.mFacets.begin();
-       itr != rhs.mFacets.end();
-       ++itr) mFacets.push_back(Facet(mVertices,
-                                      itr->ipoints(),
-                                      itr->normal()));
+  BOOST_FOREACH(Facet facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                  facet.ipoints(),
+                                                                  facet.normal()));
   ENSURE(mFacets.size() == rhs.mFacets.size());
 }
 
@@ -290,11 +285,9 @@ operator=(const GeomPolyhedron& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    for (vector<Facet>::const_iterator itr = rhs.mFacets.begin();
-         itr != rhs.mFacets.end();
-         ++itr) mFacets.push_back(Facet(mVertices,
-                                        itr->ipoints(),
-                                        itr->normal()));
+    BOOST_FOREACH(Facet facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                    facet.ipoints(),
+                                                                    facet.normal()));
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
     mConvex = rhs.mConvex;
@@ -358,15 +351,12 @@ bool
 GeomPolyhedron::
 intersect(const GeomPolyhedron& rhs) const {
   if (not testBoxIntersection(mXmin, mXmax, rhs.mXmin, rhs.mXmax)) return false;
-  for (std::vector<Vector>::const_iterator itr = mVertices.begin();
-       itr != mVertices.end();
-       ++itr) {
-    if (rhs.contains(*itr)) return true;
+  Vector vec;
+  BOOST_FOREACH(vec, mVertices) {
+    if (rhs.contains(vec)) return true;
   }
-  for (std::vector<Vector>::const_iterator itr = rhs.mVertices.begin();
-       itr != rhs.mVertices.end();
-       ++itr) {
-    if (this->contains(*itr)) return true;
+  BOOST_FOREACH(vec, rhs.mVertices) {
+    if (this->contains(vec)) return true;
   }
   return false;
 }
@@ -412,10 +402,8 @@ convexIntersect(const GeomPolyhedron& rhs) const {
 bool
 GeomPolyhedron::
 intersect(const GeomPolyhedron::Box& rhs) const {
-  for (std::vector<Vector>::const_iterator itr = mVertices.begin();
-       itr != mVertices.end();
-       ++itr) {
-    if (testPointInBox(*itr, rhs)) return true;
+  BOOST_FOREACH(Vector vec, mVertices) {
+    if (testPointInBox(vec, rhs)) return true;
   }
 
   typedef Wm5::Vector3<double> WMVector;
@@ -439,8 +427,28 @@ intersect(const GeomPolyhedron::Box& rhs) const {
 GeomPolyhedron::Vector
 GeomPolyhedron::
 centroid() const {
-  return std::accumulate(mVertices.begin(), mVertices.end(), Vector())/
-    max(unsigned(mVertices.size()), 1U);
+  const unsigned n = mVertices.size();
+  Vector result;
+  if (n == 0) return result;
+  CHECK(n >= 4);
+  const Vector c0 = std::accumulate(mVertices.begin(), mVertices.end(), Vector())/n;
+
+  // Specialize for tets, which are easy!
+  if (n == 4) return c0;
+
+  // Walk the facets.  Note we assume all facets are planar here!
+  unsigned i, j;
+  double vol, volsum = 0.0;
+  Vector fc;
+  BOOST_FOREACH(Facet facet, mFacets) {
+    fc = facet.position();
+    vol = facet.area() * facet.normal().dot(facet.point(0) - c0);  // Should be one third of this, but will cancel.
+    volsum += vol;
+    result += vol * (0.25*c0 + 0.75*fc);
+  }
+  CHECK(volsum > 0.0);
+  result /= volsum;
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -451,10 +459,8 @@ GeomPolyhedron::
 edges() const {
   vector<pair<unsigned, unsigned> > result;
   unsigned i, j, k, npoints;
-  for (vector<Facet>::const_iterator facetItr = mFacets.begin();
-       facetItr != mFacets.end();
-       ++facetItr) {
-    const vector<unsigned>& ipoints = facetItr->ipoints();
+  BOOST_FOREACH(Facet facet, mFacets) {
+    const vector<unsigned>& ipoints = facet.ipoints();
     npoints = ipoints.size();
     for (k = 0; k != npoints; ++k) {
       i = ipoints[k];
@@ -475,13 +481,11 @@ GeomPolyhedron::
 facetVertices() const {
   vector<vector<unsigned> > result;
   if (mVertices.size() > 0) {
-    for (vector<Facet>::const_iterator itr = mFacets.begin();
-         itr != mFacets.end();
-         ++itr) {
-      vector<unsigned> facet;
-      copy(itr->ipoints().begin(), itr->ipoints().end(), back_inserter(facet));
-      CHECK(facet.size() == itr->ipoints().size());
-      result.push_back(facet);
+    BOOST_FOREACH(Facet facet, mFacets) {
+      vector<unsigned> pts;
+      copy(facet.ipoints().begin(), facet.ipoints().end(), back_inserter(pts));
+      CHECK(pts.size() == facet.ipoints().size());
+      result.push_back(pts);
     }
   }
   return result;
@@ -495,9 +499,7 @@ GeomPolyhedron::
 facetNormals() const {
   vector<Vector> result;
   result.reserve(mFacets.size());
-  for (vector<Facet>::const_iterator itr = mFacets.begin();
-       itr != mFacets.end();
-       ++itr) result.push_back(itr->normal());
+  BOOST_FOREACH(Facet facet, mFacets) result.push_back(facet.normal());
   ENSURE(result.size() == mFacets.size());
   return result;
 }
@@ -534,10 +536,8 @@ GeomPolyhedron::
 volume() const {
   double result = 0.0;
   const Vector c = centroid();
-  for (vector<Facet>::const_iterator itr = mFacets.begin();
-       itr != mFacets.end();
-       ++itr) {
-    result += itr->area() * abs(itr->normal().dot(itr->point(0) - c));
+  BOOST_FOREACH(Facet facet, mFacets) {
+    result += facet.area() * abs(facet.normal().dot(facet.point(0) - c));
   }
   ENSURE(result >= 0.0);
   return result/3.0;
@@ -560,10 +560,8 @@ GeomPolyhedron::
 closestPoint(const GeomPolyhedron::Vector& p) const {
   double r2, minr2 = numeric_limits<double>::max();
   Vector result, thpt;
-  for (vector<Facet>::const_iterator itr = mFacets.begin();
-       itr != mFacets.end();
-       ++itr) {
-    thpt = itr->closestPoint(p);
+  BOOST_FOREACH(Facet facet, mFacets) {
+    thpt = facet.closestPoint(p);
     r2 = (thpt - p).magnitude2();
     if (r2 < minr2) {
       result = thpt;
@@ -583,7 +581,7 @@ operator==(const GeomPolyhedron& rhs) const {
                  mFacets.size() == rhs.mFacets.size());
   int i = 0;
   while (result and i != mFacets.size()) {
-    result = mFacets[i] == rhs.mFacets[i];
+    result = (mFacets[i] == rhs.mFacets[i]);
     ++i;
   }
   return result;
