@@ -4,10 +4,12 @@
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
 #include <algorithm>
+#include <limits>
 
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
+#include "Utilities/allReduce.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -184,6 +186,25 @@ Mesh<Dim<1> >::
 reconstruct(const vector<Dim<1>::Vector>& generators,
             const Dim<1>::FacetedVolume& boundary) {
   this->reconstruct(generators, boundary.xmin(), boundary.xmax());
+}
+
+//------------------------------------------------------------------------------
+// Compute the bounding surface of the mesh.
+//------------------------------------------------------------------------------
+template<>
+Dim<1>::FacetedVolume
+Mesh<Dim<1> >::
+boundingSurface() const {
+  // The best we can do is the bounding vertex positions.
+  double xmin =  std::numeric_limits<double>::max(), 
+         xmax = -std::numeric_limits<double>::max();
+  for (unsigned i = 0; i != mNodePositions.size(); ++i) {
+    xmin = std::min(xmin, mNodePositions[i].x());
+    xmax = std::max(xmax, mNodePositions[i].x());
+  }
+  xmin = allReduce(xmin, MPI_MIN, MPI_COMM_WORLD);
+  xmax = allReduce(xmax, MPI_MAX, MPI_COMM_WORLD);
+  return FacetedVolume(Vector(0.5*(xmin + xmax)), 0.5*(xmax - xmin));
 }
 
 //------------------------------------------------------------------------------

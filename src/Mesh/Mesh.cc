@@ -5,8 +5,11 @@
 //----------------------------------------------------------------------------//
 #include <limits>
 #include <numeric>
+#include <list>
+
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
+#include "boost/foreach.hpp"
 
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/removeElements.hh"
@@ -857,6 +860,196 @@ generateDomainInfo() {
   // That's it.
   ENSURE2(validDomainInfo(xmin, xmax, false) == "", validDomainInfo(xmin, xmax, false));
 #endif
+}
+
+//------------------------------------------------------------------------------
+// Find unique global IDs for all mesh nodes.  This requires that the 
+// Mesh::generateDomainInfo method already be called.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<unsigned> 
+Mesh<Dimension>::
+globalMeshNodeIDs() const {
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
+  const unsigned rank = Process::getRank();
+  const unsigned nlocal = this->numNodes();
+  unsigned nown;
+  
+  // Pre-conditions.
+  VERIFY2(numDomains == 1 or
+          mNeighborDomains.size() > 0 and mSharedNodes.size() == mNeighborDomains.size(),
+          "You must call Mesh::generateDomainInfo before calling Mesh::globalMeshNodeIDs!");
+
+  // If we're serial this is easy!
+  vector<unsigned> result(nlocal, UNSETID);
+  if (numDomains == 1) {
+    for (unsigned i = 0; i != nlocal; ++i) result[i] = i;
+    nown = nlocal;
+
+  } else {
+#ifdef USE_MPI
+    // The parallel case.  Start by having everyone figure out how many nodes
+    // they own.
+    const unsigned numNeighborDomains = mSharedNodes.size();
+    vector<unsigned> owner(nlocal, rank);
+    for (unsigned k = 0; k != numNeighborDomains; ++k) {
+      CHECK(mNeighborDomains[k] < numDomains);
+      if (mNeighborDomains[k] < rank) {
+        BOOST_FOREACH(unsigned i, mSharedNodes[k]) {
+          CHECK(i < nlocal);
+          owner[i] = mNeighborDomains[k];
+        }
+      }
+    }
+    CHECK(owner.size() == nlocal);
+    nown = count(owner.begin(), owner.end(), rank);
+
+    // Figure out the range of global IDs for each domain to assign.  This is simple but
+    // terribly serial!
+    unsigned minID = 0;
+    {
+      if (rank > 0) {
+        MPI_Status recvStatus;
+        MPI_Recv(&minID, 1, MPI_UNSIGNED, rank - 1, 10, MPI_COMM_WORLD, &recvStatus);
+      }
+      if (rank < numDomains - 1) {
+        unsigned maxID = minID + nown;
+        MPI_Send(&maxID, 1, MPI_UNSIGNED, rank + 1, 10, MPI_COMM_WORLD);
+      }
+    }
+
+    // Assign the global IDs for the vertices we own.
+    unsigned j = minID;
+    for (unsigned i = 0; i != nlocal; ++i) {
+      if (owner[i] == rank) result[i] = j++;
+    }
+    CHECK(j == minID + nown);
+
+    // Exchange the known IDs between neighboring domains.
+    list<vector<unsigned> > sendBuffers, recvBuffers;
+    vector<MPI_Request> sendRequests, recvRequests;
+    sendRequests.reserve(numNeighborDomains);
+    recvRequests.reserve(numNeighborDomains);
+    for (unsigned k = 0; k != numNeighborDomains; ++k) {
+      const unsigned otherProc = mNeighborDomains[k];
+      CHECK(otherProc < numDomains);
+      const unsigned n = mSharedNodes[k].size();
+      if (mNeighborDomains[k] < rank) {
+        recvBuffers.push_back(vector<unsigned>(n, UNSETID));
+        recvRequests.push_back(MPI_Request());
+        MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
+      } else {
+        sendBuffers.push_back(vector<unsigned>(n, UNSETID));
+        sendRequests.push_back(MPI_Request());
+        vector<unsigned>& buf = sendBuffers.back();
+        for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
+        MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
+      }
+    }
+    CHECK(sendBuffers.size() == sendRequests.size());
+    CHECK(sendRequests.size() <= numNeighborDomains);
+    CHECK(recvBuffers.size() == recvRequests.size());
+    CHECK(recvRequests.size() <= numNeighborDomains);
+    CHECK(sendRequests.size() + recvRequests.size() == numNeighborDomains);
+
+    // Are we receiving anything?
+    if (recvRequests.size() > 0) {
+
+      // Wait 'til we have all our receives.
+      vector<MPI_Status> recvStatus(recvRequests.size());
+      MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+
+      // Walk the neighbor domains.
+      list<vector<unsigned> >::const_iterator recvBufferItr = recvBuffers.begin();
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        if (mNeighborDomains[k] < rank) {
+
+          // Unpack the global IDs, with the knowledge that a given node can be shared with more
+          // than one domain so we have to take a minimum here.
+          const unsigned n = mSharedNodes[k].size();
+          CHECK(recvBufferItr != recvBuffers.end());
+          const vector<unsigned>& buf = *recvBufferItr++;
+          CHECK(buf.size() == n);
+          for (unsigned j = 0; j != n; ++j) {
+            const unsigned i = mSharedNodes[k][j];
+            CHECK(i < nlocal);
+            result[i] = min(result[i], buf[j]);
+          }
+        }
+      }
+      CHECK(recvBufferItr == recvBuffers.end());
+    }
+
+    // Don't exit until all of our sends are complete.
+    if (sendRequests.size() > 0) {
+      vector<MPI_Status> sendStatus(sendRequests.size());
+      MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
+    }
+
+    // Post-conditions (parallel).
+    BEGIN_CONTRACT_SCOPE;
+    {
+      // Make sure everyone is consistent about the global IDs of shared nodes.
+      list<vector<unsigned> > sendBuffers, recvBuffers;
+      vector<MPI_Request> sendRequests, recvRequests;
+      sendRequests.reserve(numNeighborDomains);
+      recvRequests.reserve(numNeighborDomains);
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned otherProc = mNeighborDomains[k];
+        CHECK(otherProc < numDomains);
+        const unsigned n = mSharedNodes[k].size();
+
+        recvBuffers.push_back(vector<unsigned>(n, UNSETID));
+        recvRequests.push_back(MPI_Request());
+        MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
+
+        sendBuffers.push_back(vector<unsigned>(n, UNSETID));
+        sendRequests.push_back(MPI_Request());
+        vector<unsigned>& buf = sendBuffers.back();
+        for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
+        MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
+      }
+      CHECK(sendBuffers.size() == numNeighborDomains);
+      CHECK(sendRequests.size() == numNeighborDomains);
+      CHECK(recvBuffers.size() == numNeighborDomains);
+      CHECK(recvRequests.size() == numNeighborDomains);
+
+      // Wait 'til we have all our receives.
+      vector<MPI_Status> recvStatus(recvRequests.size());
+      MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+
+      // Walk the neighbor domains.
+      list<vector<unsigned> >::const_iterator recvBufferItr = recvBuffers.begin();
+      for (unsigned k = 0; k != numNeighborDomains; ++k) {
+        const unsigned n = mSharedNodes[k].size();
+        CHECK(recvBufferItr != recvBuffers.end());
+        const vector<unsigned>& buf = *recvBufferItr++;
+        CHECK(buf.size() == n);
+        for (unsigned j = 0; j != n; ++j) {
+          const unsigned i = mSharedNodes[k][j];
+          CHECK(i < nlocal);
+          ENSURE(result[i] == buf[j]);
+        }
+      }
+      CHECK(recvBufferItr == recvBuffers.end());
+
+      // Don't exit until all of our sends are complete.
+      if (sendRequests.size() > 0) {
+        vector<MPI_Status> sendStatus(sendRequests.size());
+        MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
+      }
+    }
+    END_CONTRACT_SCOPE;
+#endif
+
+  }
+
+  // Post-conditions.
+  ENSURE(result.size() == nlocal);
+  ENSURE(count(result.begin(), result.end(), UNSETID) == 0);
+
+  // That's it.
+  return result;
 }
 
 //------------------------------------------------------------------------------

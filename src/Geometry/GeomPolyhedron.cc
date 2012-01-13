@@ -163,9 +163,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
            itr != mVertices.end();
            ++itr) centroid += *itr;
       centroid /= mVertices.size();
-      for (vector<Facet>::const_iterator itr = mFacets.begin();
-           itr != mFacets.end();
-           ++itr) ENSURE((itr->position() - centroid).dot(itr->normal()) >= 0.0);
+      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE((facet.position() - centroid).dot(facet.normal()) >= 0.0);
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
@@ -269,9 +267,9 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
   mFacets.reserve(rhs.mFacets.size());
-  BOOST_FOREACH(Facet facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                  facet.ipoints(),
-                                                                  facet.normal()));
+  BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                         facet.ipoints(),
+                                                                         facet.normal()));
   ENSURE(mFacets.size() == rhs.mFacets.size());
 }
 
@@ -285,9 +283,9 @@ operator=(const GeomPolyhedron& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    BOOST_FOREACH(Facet facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                    facet.ipoints(),
-                                                                    facet.normal()));
+    BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                           facet.ipoints(),
+                                                                           facet.normal()));
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
     mConvex = rhs.mConvex;
@@ -440,7 +438,7 @@ centroid() const {
   unsigned i, j;
   double vol, volsum = 0.0;
   Vector fc;
-  BOOST_FOREACH(Facet facet, mFacets) {
+  BOOST_FOREACH(const Facet& facet, mFacets) {
     fc = facet.position();
     vol = facet.area() * facet.normal().dot(facet.point(0) - c0);  // Should be one third of this, but will cancel.
     volsum += vol;
@@ -459,7 +457,7 @@ GeomPolyhedron::
 edges() const {
   vector<pair<unsigned, unsigned> > result;
   unsigned i, j, k, npoints;
-  BOOST_FOREACH(Facet facet, mFacets) {
+  BOOST_FOREACH(const Facet& facet, mFacets) {
     const vector<unsigned>& ipoints = facet.ipoints();
     npoints = ipoints.size();
     for (k = 0; k != npoints; ++k) {
@@ -481,7 +479,7 @@ GeomPolyhedron::
 facetVertices() const {
   vector<vector<unsigned> > result;
   if (mVertices.size() > 0) {
-    BOOST_FOREACH(Facet facet, mFacets) {
+    BOOST_FOREACH(const Facet& facet, mFacets) {
       vector<unsigned> pts;
       copy(facet.ipoints().begin(), facet.ipoints().end(), back_inserter(pts));
       CHECK(pts.size() == facet.ipoints().size());
@@ -499,7 +497,7 @@ GeomPolyhedron::
 facetNormals() const {
   vector<Vector> result;
   result.reserve(mFacets.size());
-  BOOST_FOREACH(Facet facet, mFacets) result.push_back(facet.normal());
+  BOOST_FOREACH(const Facet& facet, mFacets) result.push_back(facet.normal());
   ENSURE(result.size() == mFacets.size());
   return result;
 }
@@ -536,7 +534,7 @@ GeomPolyhedron::
 volume() const {
   double result = 0.0;
   const Vector c = centroid();
-  BOOST_FOREACH(Facet facet, mFacets) {
+  BOOST_FOREACH(const Facet& facet, mFacets) {
     result += facet.area() * abs(facet.normal().dot(facet.point(0) - c));
   }
   ENSURE(result >= 0.0);
@@ -560,7 +558,7 @@ GeomPolyhedron::
 closestPoint(const GeomPolyhedron::Vector& p) const {
   double r2, minr2 = numeric_limits<double>::max();
   Vector result, thpt;
-  BOOST_FOREACH(Facet facet, mFacets) {
+  BOOST_FOREACH(const Facet& facet, mFacets) {
     thpt = facet.closestPoint(p);
     r2 = (thpt - p).magnitude2();
     if (r2 < minr2) {

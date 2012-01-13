@@ -213,6 +213,32 @@ class LineMeshGenericTests:
                     (len(zoneIDs) == 2 and
                      zoneIDs[0] == zoneList[inode - 1][1] and
                      zoneIDs[1] == zoneList[inode][1]))
+        return
+
+    #---------------------------------------------------------------------------
+    # Test the bounding surface.
+    #---------------------------------------------------------------------------
+    def testBoundingSurface(self):
+        mesh, void = generateLineMesh([self.nodes],
+                                      xmin = xmin,
+                                      xmax = xmax,
+                                      generateParallelConnectivity = True)
+        bs = mesh.boundingSurface()
+        assert fuzzyEqual(bs.xmin.x, x0, 1.0e-10)
+        assert fuzzyEqual(bs.xmax.x, x1, 1.0e-10)
+
+        # Check that all the generators are contained.
+        pos = self.nodes.positions()
+        for i in xrange(self.nodes.numInternalNodes):
+            self.failUnless(bs.contains(pos[i]),
+                            "Failed containment for generator %i @ %s" % (i, pos[i]))
+
+        # Check that all mesh nodes are contained.
+        for i in xrange(mesh.numNodes):
+            self.failUnless(bs.contains(mesh.node(i).position()),
+                            "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
+
+        return
 
 #===============================================================================
 # Create a uniformly spaced nodes/mesh.

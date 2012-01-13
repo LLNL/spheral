@@ -124,10 +124,12 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("offset", "unsigned int", [constrefparam(nodelist, "nodeList")], is_const=True)
         x.add_method("offset", "unsigned int", [param("unsigned int", "nodeListi")], is_const=True)
         x.add_method("generateDomainInfo", None, [])
+        x.add_method("globalMeshNodeIDs", "vector_of_unsigned", [], is_const=True)
         x.add_method("validDomainInfo", "std::string",
                      [constrefparam(vector, "xmin"), constrefparam(vector, "xmax"), param("bool", "checkUniqueSendProc")], is_const=True)
         x.add_method("storeNodeListOffsets", None,
                      [constrefparam(vector_of_nodelist, "nodeLists"), constrefparam("vector_of_unsigned", "offsets")])
+        x.add_method("boundingSurface", facetedvolume, [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("nDim", "int", getter="nDim", is_const=True)
