@@ -327,6 +327,113 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 }
 
 //------------------------------------------------------------------------------
+// Compute the bounding surface of the mesh.
+//------------------------------------------------------------------------------
+template<>
+Dim<2>::FacetedVolume
+Mesh<Dim<2> >::
+boundingSurface() const {
+  // Flatten the set of communicated nodes into a set.
+  set<unsigned> sharedNodes;
+  unsigned domainID;
+  for (domainID = 0; domainID != mSharedNodes.size(); ++domainID) {
+    std::copy(mSharedNodes[domainID].begin(), mSharedNodes[domainID].end(),
+              std::inserter(sharedNodes, sharedNodes.begin()));
+  }
+
+  // Look for the faces that bound the mesh.
+  set<unsigned> nodeIDs;
+  vector<vector<unsigned> > facetIndices;
+  BOOST_FOREACH(const Face& face, mFaces) {
+    CHECK(face.mNodeIDs.size() == 2);
+    if ((face.zone1ID() == UNSETID or face.zone2ID() == UNSETID) and
+        (sharedNodes.find(face.mNodeIDs[0]) == sharedNodes.end() and
+         sharedNodes.find(face.mNodeIDs[1]) == sharedNodes.end())) {
+      nodeIDs.insert(face.mNodeIDs[0]);
+      nodeIDs.insert(face.mNodeIDs[1]);
+      vector<unsigned> ids;
+      ids.push_back(face.mNodeIDs[0]);
+      ids.push_back(face.mNodeIDs[1]);
+      facetIndices.push_back(ids);
+    }
+  }
+
+  // Extract the subset of vertices we actually need, and renumber the indices.
+  unsigned i;
+  vector<Vector> vertices;
+  map<unsigned, unsigned> old2new;
+  vertices.reserve(nodeIDs.size());
+  for (set<unsigned>::const_iterator itr = nodeIDs.begin();
+       itr != nodeIDs.end();
+       ++itr) {
+    old2new[*itr] = vertices.size();
+    vertices.push_back(mNodePositions[*itr]);
+  }
+  for (i = 0; i != facetIndices.size(); ++i) {
+    CHECK(facetIndices[i].size() == 2);
+    facetIndices[i][0] = old2new[facetIndices[i][0]];
+    facetIndices[i][1] = old2new[facetIndices[i][1]];
+  }
+
+#ifdef USE_MPI
+  // In the parallel case we have to construct the total surface and distribute
+  // it to everyone.
+  const unsigned rank = Process::getRank();
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
+  if (numDomains > 1) {
+    unsigned j, bufSize, nvertices, nfacets;
+    vector<char> localBuffer, buffer;
+    vector<char>::const_iterator bufItr;
+    vector<Vector> otherVertices;
+    vector<unsigned> otherIndices;
+    packElement(vertices, localBuffer);
+    packElement(facetIndices.size(), localBuffer);
+    for (i = 0; i != facetIndices.size(); ++i) packElement(facetIndices[i], localBuffer);
+    for (domainID = 0; domainID != numDomains; ++domainID) {
+      buffer = localBuffer;
+      bufSize = localBuffer.size();
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, domainID, MPI_COMM_WORLD);
+      if (bufSize > 0) {
+        buffer.resize(bufSize);
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID, MPI_COMM_WORLD);
+        if (rank != domainID) {
+          nvertices = vertices.size();
+          otherVertices = vector<Vector>();
+          bufItr = buffer.begin();
+          unpackElement(otherVertices, bufItr, buffer.end());
+          copy(otherVertices.begin(), otherVertices.end(), back_inserter(vertices));
+          unpackElement(nfacets, bufItr, buffer.end());
+          for (i = 0; i != nfacets; ++i) {
+            otherIndices = vector<unsigned>();
+            unpackElement(otherIndices, bufItr, buffer.end());
+            CHECK2(otherIndices.size() == 2, "Bad size: " << otherIndices.size());
+            facetIndices.push_back(vector<unsigned>());
+            facetIndices.back().reserve(otherIndices.size());
+            for (j = 0; j != otherIndices.size(); ++j) facetIndices.back().push_back(otherIndices[j] + nvertices);
+            CHECK(facetIndices.back().size() == otherIndices.size());
+          }
+        }
+      }
+    }
+  }
+#endif
+
+  // Post-conditions.
+  BEGIN_CONTRACT_SCOPE;
+  {
+    cerr << "Blago!" << endl;
+    BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
+      ENSURE(indices.size() == 2);
+      cerr << "  indices.size() = " << indices.size() << endl;
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  // That's it.
+  return FacetedVolume(vertices, facetIndices);
+}
+
+//------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
 template<> const unsigned Mesh<Dim<2> >::minFacesPerZone = 3;

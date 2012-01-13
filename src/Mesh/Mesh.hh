@@ -152,6 +152,9 @@ public:
   // Compute the parallel connectivity.
   void generateDomainInfo();
 
+  // Compute unique global IDs for each node.
+  std::vector<unsigned> globalMeshNodeIDs() const;
+
   // Check that the internal parallel info is consistent.
   std::string validDomainInfo(const Vector& xmin,
                               const Vector& xmax,
@@ -171,6 +174,9 @@ public:
                             const std::vector<unsigned>& offsets);
   void storeNodeListOffsets(const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs,
                             const std::vector<unsigned>& offsets);
+
+  // Compute the bounding surface of the mesh.
+  FacetedVolume boundingSurface() const;
 
   //--------------------------- Private Interface ---------------------------//
 private:

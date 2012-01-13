@@ -50,7 +50,7 @@ def recv(source=0, tag=100, obj=None):
 # isend
 #-------------------------------------------------------------------------------
 def isend(obj, dest=0, tag=100):
-    comm.isend(obj=obj, dest=dest, tag=tag)
+    return comm.isend(obj=obj, dest=dest, tag=tag)
 
 #-------------------------------------------------------------------------------
 # reduce

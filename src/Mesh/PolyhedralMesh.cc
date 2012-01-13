@@ -306,6 +306,59 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 }
 
 //------------------------------------------------------------------------------
+// Compute the bounding surface of the mesh.
+//------------------------------------------------------------------------------
+template<>
+Dim<3>::FacetedVolume
+Mesh<Dim<3> >::
+boundingSurface() const {
+  // Flatten the set of communicated nodes into a set.
+  set<unsigned> sharedNodes;
+  unsigned domainID;
+  for (domainID = 0; domainID != mSharedNodes.size(); ++domainID) {
+    std::copy(mSharedNodes[domainID].begin(), mSharedNodes[domainID].end(),
+              std::inserter(sharedNodes, sharedNodes.begin()));
+  }
+
+  // Look for the faces that bound the mesh.
+  set<unsigned> nodeIDs;
+  vector<vector<unsigned> > facetIndices;
+  for (unsigned iface = 0; iface != this->mFaces.size(); ++iface) {
+    if ((mFaces[iface].zone1ID() == UNSETID or mFaces[iface].zone2ID() == UNSETID) and
+        (sharedNodes.find(mFaces[iface].mNodeIDs[0]) == sharedNodes.end() and
+         sharedNodes.find(mFaces[iface].mNodeIDs[1]) == sharedNodes.end())) {
+      nodeIDs.insert(mFaces[iface].mNodeIDs[0]);
+      nodeIDs.insert(mFaces[iface].mNodeIDs[1]);
+      vector<unsigned> ids;
+      ids.push_back(mFaces[iface].mNodeIDs[0]);
+      ids.push_back(mFaces[iface].mNodeIDs[1]);
+      facetIndices.push_back(ids);
+    }
+  }
+
+  // Extract the subset of vertices we actually need, and renumber the indices.
+  vector<Vector> vertices;
+  map<unsigned, unsigned> old2new;
+  vertices.reserve(nodeIDs.size());
+  for (set<unsigned>::const_iterator itr = nodeIDs.begin();
+       itr != nodeIDs.end();
+       ++itr) {
+    old2new[*itr] = vertices.size();
+    vertices.push_back(mNodePositions[*itr]);
+  }
+  for (unsigned i = 0; i != facetIndices.size(); ++i) {
+    CHECK(facetIndices[i].size() == 2);
+    facetIndices[i][0] = old2new[facetIndices[i][0]];
+    facetIndices[i][1] = old2new[facetIndices[i][1]];
+  }
+
+  // That's it.
+  return FacetedVolume(vertices, facetIndices);
+}
+
+
+
+//------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
 template<> const unsigned Mesh<Dim<3> >::minFacesPerZone = 4;
