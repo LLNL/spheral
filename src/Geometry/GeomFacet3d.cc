@@ -1,5 +1,7 @@
 #include <limits>
 
+#include "boost/foreach.hpp"
+
 #include "GeomVector.hh"
 #include "GeomFacet3d.hh"
 #include "Utilities/pointDistances.hh"
@@ -36,11 +38,26 @@ compare(const std::vector<GeomFacet3d::Vector>& points,
 GeomFacet3d::Vector
 GeomFacet3d::
 position() const {
-  REQUIRE(mPoints.size() > 0);
-  Vector result;
-  for (unsigned i = 0; i != mPoints.size(); ++i) result += point(i);
-  result /= mPoints.size();
-  return result;
+  const unsigned n = mPoints.size();
+  unsigned i, j;
+  double area, areasum = 0.0;
+  Vector c0, result;
+  REQUIRE(n > 0);
+
+  for (i = 0; i != n; ++i) c0 += point(i);
+  c0 /= n;
+
+  // Specialize for triangles, which are easy!
+  if (n == 3) return c0;
+
+  for (i = 0; i != n; ++i) {
+    j = (i + 1) % n;
+    area = (point(i) - c0).cross(point(j) - c0).z(); // This is off by a factor of 2 but will cancel.
+    areasum += area;
+    result += area * (c0 + point(i) + point(j));
+  }
+  CHECK(areasum > 0.0);
+  return result/(3.0 * areasum);
 }
 
 //------------------------------------------------------------------------------
