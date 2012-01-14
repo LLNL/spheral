@@ -333,6 +333,7 @@ template<>
 Dim<2>::FacetedVolume
 Mesh<Dim<2> >::
 boundingSurface() const {
+
   // Flatten the set of communicated nodes into a set.
   set<unsigned> sharedNodes;
   unsigned domainID;
@@ -341,38 +342,30 @@ boundingSurface() const {
               std::inserter(sharedNodes, sharedNodes.begin()));
   }
 
-  // Look for the faces that bound the mesh.
-  set<unsigned> nodeIDs;
+  // Build the global IDs for the mesh nodes.
+  const vector<unsigned> local2globalIDs = this->globalMeshNodeIDs();
+
+  // Look for the faces that bound the mesh.  We build up the global
+  // vertex indices, and the associated positions.
+  unsigned i, j, iglobal, jglobal;
+  map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
   BOOST_FOREACH(const Face& face, mFaces) {
     CHECK(face.mNodeIDs.size() == 2);
+    i = face.mNodeIDs[0];
+    j = face.mNodeIDs[1];
     if ((face.zone1ID() == UNSETID or face.zone2ID() == UNSETID) and
-        (sharedNodes.find(face.mNodeIDs[0]) == sharedNodes.end() and
-         sharedNodes.find(face.mNodeIDs[1]) == sharedNodes.end())) {
-      nodeIDs.insert(face.mNodeIDs[0]);
-      nodeIDs.insert(face.mNodeIDs[1]);
+        (sharedNodes.find(i) == sharedNodes.end() or
+         sharedNodes.find(j) == sharedNodes.end())) {
+      iglobal = local2globalIDs[i];
+      jglobal = local2globalIDs[j];
+      globalVertexPositions[iglobal] = mNodePositions[i];
+      globalVertexPositions[jglobal] = mNodePositions[j];
       vector<unsigned> ids;
-      ids.push_back(face.mNodeIDs[0]);
-      ids.push_back(face.mNodeIDs[1]);
+      ids.push_back(iglobal);
+      ids.push_back(jglobal);
       facetIndices.push_back(ids);
     }
-  }
-
-  // Extract the subset of vertices we actually need, and renumber the indices.
-  unsigned i;
-  vector<Vector> vertices;
-  map<unsigned, unsigned> old2new;
-  vertices.reserve(nodeIDs.size());
-  for (set<unsigned>::const_iterator itr = nodeIDs.begin();
-       itr != nodeIDs.end();
-       ++itr) {
-    old2new[*itr] = vertices.size();
-    vertices.push_back(mNodePositions[*itr]);
-  }
-  for (i = 0; i != facetIndices.size(); ++i) {
-    CHECK(facetIndices[i].size() == 2);
-    facetIndices[i][0] = old2new[facetIndices[i][0]];
-    facetIndices[i][1] = old2new[facetIndices[i][1]];
   }
 
 #ifdef USE_MPI
@@ -381,14 +374,22 @@ boundingSurface() const {
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
   if (numDomains > 1) {
-    unsigned j, bufSize, nvertices, nfacets;
+    unsigned bufSize;
+    size_t nfacets;
     vector<char> localBuffer, buffer;
     vector<char>::const_iterator bufItr;
     vector<Vector> otherVertices;
     vector<unsigned> otherIndices;
-    packElement(vertices, localBuffer);
+
+    // Pack our local data, and then erase our local copy to be rebuilt 
+    // consistently for everyone.
+    packElement(globalVertexPositions, localBuffer);
     packElement(facetIndices.size(), localBuffer);
     for (i = 0; i != facetIndices.size(); ++i) packElement(facetIndices[i], localBuffer);
+    globalVertexPositions = map<unsigned, Vector>();
+    facetIndices = vector<vector<unsigned> >();
+
+    // Distribute the complete data to everyone.
     for (domainID = 0; domainID != numDomains; ++domainID) {
       buffer = localBuffer;
       bufSize = localBuffer.size();
@@ -396,35 +397,51 @@ boundingSurface() const {
       if (bufSize > 0) {
         buffer.resize(bufSize);
         MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID, MPI_COMM_WORLD);
-        if (rank != domainID) {
-          nvertices = vertices.size();
-          otherVertices = vector<Vector>();
-          bufItr = buffer.begin();
-          unpackElement(otherVertices, bufItr, buffer.end());
-          copy(otherVertices.begin(), otherVertices.end(), back_inserter(vertices));
-          unpackElement(nfacets, bufItr, buffer.end());
-          for (i = 0; i != nfacets; ++i) {
-            otherIndices = vector<unsigned>();
-            unpackElement(otherIndices, bufItr, buffer.end());
-            CHECK2(otherIndices.size() == 2, "Bad size: " << otherIndices.size());
-            facetIndices.push_back(vector<unsigned>());
-            facetIndices.back().reserve(otherIndices.size());
-            for (j = 0; j != otherIndices.size(); ++j) facetIndices.back().push_back(otherIndices[j] + nvertices);
-            CHECK(facetIndices.back().size() == otherIndices.size());
-          }
+        bufItr = buffer.begin();
+        unpackElement(globalVertexPositions, bufItr, buffer.end());
+        unpackElement(nfacets, bufItr, buffer.end());
+        for (i = 0; i != nfacets; ++i) {
+          otherIndices = vector<unsigned>();
+          unpackElement(otherIndices, bufItr, buffer.end());
+          CHECK2(otherIndices.size() == 2, "Bad size: " << otherIndices.size());
+          facetIndices.push_back(otherIndices);
         }
       }
     }
   }
 #endif
 
+  // Extract the vertex positions as an array, and map the global IDs 
+  // to index in this array.
+  map<unsigned, unsigned> global2vertexID;
+  vector<Vector> vertices;
+  vertices.reserve(globalVertexPositions.size());
+  i = 0;
+  for (map<unsigned, Vector>::const_iterator itr = globalVertexPositions.begin();
+       itr != globalVertexPositions.end();
+       ++itr, ++i) {
+    global2vertexID[itr->first] = i;
+    vertices.push_back(itr->second);
+  }
+  CHECK(i == globalVertexPositions.size());
+  CHECK(global2vertexID.size() == globalVertexPositions.size());
+  CHECK(vertices.size() == globalVertexPositions.size());
+
+  // Transform the facet node indices to the vertex array numbering.
+  for (i = 0; i != facetIndices.size(); ++i) {
+    CHECK(facetIndices[i].size() == 2);
+    CHECK(global2vertexID.find(facetIndices[i][0]) != global2vertexID.end());
+    CHECK(global2vertexID.find(facetIndices[i][1]) != global2vertexID.end());
+    facetIndices[i][0] = global2vertexID[facetIndices[i][0]];
+    facetIndices[i][1] = global2vertexID[facetIndices[i][1]];
+  }
+
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
-    cerr << "Blago!" << endl;
     BOOST_FOREACH(const vector<unsigned>& indices, facetIndices) {
       ENSURE(indices.size() == 2);
-      cerr << "  indices.size() = " << indices.size() << endl;
+      ENSURE(*max_element(indices.begin(), indices.end()) < vertices.size());
     }
   }
   END_CONTRACT_SCOPE;
