@@ -986,60 +986,62 @@ globalMeshNodeIDs() const {
       MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
     }
 
-    // Post-conditions (parallel).
-    BEGIN_CONTRACT_SCOPE;
-    {
-      // Make sure everyone is consistent about the global IDs of shared nodes.
-      list<vector<unsigned> > sendBuffers, recvBuffers;
-      vector<MPI_Request> sendRequests, recvRequests;
-      sendRequests.reserve(numNeighborDomains);
-      recvRequests.reserve(numNeighborDomains);
-      for (unsigned k = 0; k != numNeighborDomains; ++k) {
-        const unsigned otherProc = mNeighborDomains[k];
-        CHECK(otherProc < numDomains);
-        const unsigned n = mSharedNodes[k].size();
+    // I think this post-condition check is too expensive to always have in a 
+    // contract, so I'm putting this same logic in the Mesh unit tests instead.
+//     // Post-conditions (parallel).
+//     BEGIN_CONTRACT_SCOPE;
+//     {
+//       // Make sure everyone is consistent about the global IDs of shared nodes.
+//       list<vector<unsigned> > sendBuffers, recvBuffers;
+//       vector<MPI_Request> sendRequests, recvRequests;
+//       sendRequests.reserve(numNeighborDomains);
+//       recvRequests.reserve(numNeighborDomains);
+//       for (unsigned k = 0; k != numNeighborDomains; ++k) {
+//         const unsigned otherProc = mNeighborDomains[k];
+//         CHECK(otherProc < numDomains);
+//         const unsigned n = mSharedNodes[k].size();
 
-        recvBuffers.push_back(vector<unsigned>(n, UNSETID));
-        recvRequests.push_back(MPI_Request());
-        MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
+//         recvBuffers.push_back(vector<unsigned>(n, UNSETID));
+//         recvRequests.push_back(MPI_Request());
+//         MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
 
-        sendBuffers.push_back(vector<unsigned>(n, UNSETID));
-        sendRequests.push_back(MPI_Request());
-        vector<unsigned>& buf = sendBuffers.back();
-        for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
-        MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
-      }
-      CHECK(sendBuffers.size() == numNeighborDomains);
-      CHECK(sendRequests.size() == numNeighborDomains);
-      CHECK(recvBuffers.size() == numNeighborDomains);
-      CHECK(recvRequests.size() == numNeighborDomains);
+//         sendBuffers.push_back(vector<unsigned>(n, UNSETID));
+//         sendRequests.push_back(MPI_Request());
+//         vector<unsigned>& buf = sendBuffers.back();
+//         for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
+//         MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
+//       }
+//       CHECK(sendBuffers.size() == numNeighborDomains);
+//       CHECK(sendRequests.size() == numNeighborDomains);
+//       CHECK(recvBuffers.size() == numNeighborDomains);
+//       CHECK(recvRequests.size() == numNeighborDomains);
 
-      // Wait 'til we have all our receives.
-      vector<MPI_Status> recvStatus(recvRequests.size());
-      MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+//       // Wait 'til we have all our receives.
+//       vector<MPI_Status> recvStatus(recvRequests.size());
+//       MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
 
-      // Walk the neighbor domains.
-      list<vector<unsigned> >::const_iterator recvBufferItr = recvBuffers.begin();
-      for (unsigned k = 0; k != numNeighborDomains; ++k) {
-        const unsigned n = mSharedNodes[k].size();
-        CHECK(recvBufferItr != recvBuffers.end());
-        const vector<unsigned>& buf = *recvBufferItr++;
-        CHECK(buf.size() == n);
-        for (unsigned j = 0; j != n; ++j) {
-          const unsigned i = mSharedNodes[k][j];
-          CHECK(i < nlocal);
-          ENSURE(result[i] == buf[j]);
-        }
-      }
-      CHECK(recvBufferItr == recvBuffers.end());
+//       // Walk the neighbor domains.
+//       list<vector<unsigned> >::const_iterator recvBufferItr = recvBuffers.begin();
+//       for (unsigned k = 0; k != numNeighborDomains; ++k) {
+//         const unsigned n = mSharedNodes[k].size();
+//         CHECK(recvBufferItr != recvBuffers.end());
+//         const vector<unsigned>& buf = *recvBufferItr++;
+//         CHECK(buf.size() == n);
+//         for (unsigned j = 0; j != n; ++j) {
+//           const unsigned i = mSharedNodes[k][j];
+//           CHECK(i < nlocal);
+//           ENSURE(result[i] == buf[j]);
+//         }
+//       }
+//       CHECK(recvBufferItr == recvBuffers.end());
 
-      // Don't exit until all of our sends are complete.
-      if (sendRequests.size() > 0) {
-        vector<MPI_Status> sendStatus(sendRequests.size());
-        MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
-      }
-    }
-    END_CONTRACT_SCOPE;
+//       // Don't exit until all of our sends are complete.
+//       if (sendRequests.size() > 0) {
+//         vector<MPI_Status> sendStatus(sendRequests.size());
+//         MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
+//       }
+//     }
+//     END_CONTRACT_SCOPE;
 #endif
 
   }

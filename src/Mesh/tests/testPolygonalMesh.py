@@ -360,28 +360,34 @@ class PolygonalMeshGenericTests:
             for req in sendRequests:
                 req.Wait()
 
-##     #---------------------------------------------------------------------------
-##     # Test the bounding surface.
-##     #---------------------------------------------------------------------------
-##     def testBoundingSurface(self):
-##         mesh, void = generatePolygonalMesh([self.nodes],
-##                                            xmin = xmin,
-##                                            xmax = xmax,
-##                                            generateParallelConnectivity = True)
-##         bs = mesh.boundingSurface()
+    #---------------------------------------------------------------------------
+    # Test the bounding surface.
+    #---------------------------------------------------------------------------
+    def testBoundingSurface(self):
+        mesh, void = generatePolygonalMesh([self.nodes],
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           generateVoid = False,
+                                           generateParallelConnectivity = True)
+        bs = mesh.boundingSurface()
 
-##         # Check that all the generators are contained.
-##         pos = self.nodes.positions()
-##         for i in xrange(self.nodes.numInternalNodes):
-##             self.failUnless(bs.contains(pos[i]),
-##                             "Failed containment for generator %i @ %s" % (i, pos[i]))
+        for facet in bs.facets():
+            self.failUnless(facet.compare(Vector(0.5, 0.5)) == -1,
+                            "Bluh? %s %s %i" % (facet.position, facet.normal, 
+                                                facet.compare(Vector(0.5, 0.5))))
 
-##         # Check that all mesh nodes are contained.
-##         for i in xrange(mesh.numNodes):
-##             self.failUnless(bs.contains(mesh.node(i).position()),
-##                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
+        # Check that all the generators are contained.
+        pos = self.nodes.positions()
+        for i in xrange(self.nodes.numInternalNodes):
+            self.failUnless(bs.contains(pos[i]),
+                            "Failed containment for generator %i @ %s" % (i, pos[i]))
 
-##         return
+        # Check that all mesh nodes are contained.
+        for i in xrange(mesh.numNodes):
+            self.failUnless(bs.contains(mesh.node(i).position()),
+                            "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
+
+        return
 
 #===============================================================================
 # Create a uniformly spaced nodes/mesh.
