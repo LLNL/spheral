@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <map>
 #include <iterator>
 #include "DataTypeTraits.hh"
 
@@ -538,6 +539,50 @@ unpackElement(GeomPolyhedron& value,
   unpackElement(facetVertices, itr, endPackedVector);
   unpackElement(facetNormals, itr, endPackedVector);
   value.reconstruct(vertices, facetVertices, facetNormals);
+}
+
+//------------------------------------------------------------------------------
+// We also provide the ability to pack/unpack std::map's of known types.
+//------------------------------------------------------------------------------
+template<typename Key, typename Value>
+inline
+void
+packElement(const std::map<Key, Value>& mapvalue,
+            std::vector<char>& buffer) {
+
+  // Pack the size first.
+  packElement(mapvalue.size(), buffer);
+
+  // Now walk the key, value pairs and pack them up.
+  for (typename std::map<Key, Value>::const_iterator itr = mapvalue.begin();
+       itr != mapvalue.end();
+       ++itr) {
+    packElement(itr->first, buffer);
+    packElement(itr->second, buffer);
+  }
+}
+
+template<typename Key, typename Value>
+inline
+void
+unpackElement(std::map<Key, Value>& mapvalue,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+
+  // Get the size.
+  size_t numElements;
+  unpackElement(numElements, itr, endPackedVector);
+
+  // Unpack the individual (key, value) pairs and put them in.
+  size_t i;
+  Key key;
+  Value value;
+  for (i = 0; i != numElements; ++i) {
+    unpackElement(key, itr, endPackedVector);
+    unpackElement(value, itr, endPackedVector);
+    mapvalue[key] = value;
+  }
+  ENSURE(itr <= endPackedVector);
 }
 
 }
