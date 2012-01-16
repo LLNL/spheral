@@ -60,7 +60,7 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(SPHERALDIR)/bin/cmake
-CMAKEDIST = cmake-2.8.5.tar.gz
+CMAKEDIST = cmake-2.8.7.tar.gz
 CMAKEURL = http://www.cmake.org/files/v2.8/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
@@ -360,6 +360,7 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
+	$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
 	$(SHELL) -ec 'cd $(NUMPYDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
@@ -477,7 +478,8 @@ $(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
 	rm -fr $(GCCXMLDIR)
 	$(BZIP2) -dc $(GCCXMLDIST) | $(TAR) -xf -
 	$(MKDIR) $(GCCXMLDIR)/build
-	$(SHELL) -ec 'cd $(GCCXMLDIR)/build; env CC=$(GCCXMLCC) CXX=$(GCCXMLCXX) $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
+	$(SHELL) -ec 'cd $(GCCXMLDIR)/build; \
+	env CC=$(GCCXMLCC) CXX=$(GCCXMLCXX) $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
 	@if ! test -e $(SPHERALDIR)/bin/gccxml_cc1plus -a -e $(SPHERALDIR)/bin/gccxml; then \
 	echo "ERROR building gccxml."; \
 	rm -f $(GCCXMLDATE); \
@@ -1055,17 +1057,17 @@ $(WILDMAGICBUILDDATE):	$(PYTHONBUILDDATE) $(WILDMAGICDIST)
 $(QHULLDIST):
 	$(CURL) "$(QHULLURL)" > $(QHULLDIST)
 
-$(QHULLBUILDDATE):	$(PYTHONBUILDDATE) $(QHULLDIST)
+$(QHULLBUILDDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(QHULLDIST)"
 	@echo "################################################################################"
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
-	$(PATCH) $(QHULLDIR)/Makefile Makefile-qhull-2011.2.patch
-	$(SHELL) -ec "cd $(QHULLDIR); \
-	env CC=$(CXX) CXX=$(CXX) CFLAGS='$(CFLAGS)' DESTDIR=$(SPHERALDIR) $(MAKE) MAKEFLAGS= ; \
-	env DESTDIR=$(SPHERALDIR) $(MAKE) install"
+	$(SHELL) -ec "cd $(QHULLDIR)/build; \
+	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
 	echo "ERROR building Qhull."; \
 	rm -f $(QHULLBUILDDATE); \
