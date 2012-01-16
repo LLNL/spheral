@@ -62,6 +62,19 @@ packElement<int>(const int& value,
   }
 }
 
+// Specialization for size_t.
+template<>
+inline
+void
+packElement<size_t>(const size_t& value, 
+                    std::vector<char>& buffer) {
+  const int packSize = sizeof(size_t);
+  char* data = reinterpret_cast<char*>(const_cast<size_t*>(&value));
+  for (int i = 0; i != packSize; ++i) {
+    buffer.push_back(*(data + i));
+  }
+}
+
 // // Specialization for an unsigned int type.
 // template<>
 // inline
@@ -217,6 +230,22 @@ unpackElement<int>(int& value,
                    std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator& endPackedVector) {
   const int packSize = sizeof(int);
+  char* data = reinterpret_cast<char*>(&value);
+  for (int i = 0; i != packSize; ++i, ++itr) {
+    CHECK(itr < endPackedVector);
+    *(data + i) = *itr;
+  }
+  ENSURE(itr <= endPackedVector);
+}
+
+// Specialization for a size_t.
+template<>
+inline
+void
+unpackElement<size_t>(size_t& value,
+                      std::vector<char>::const_iterator& itr,
+                      const std::vector<char>::const_iterator& endPackedVector) {
+  const int packSize = sizeof(size_t);
   char* data = reinterpret_cast<char*>(&value);
   for (int i = 0; i != packSize; ++i, ++itr) {
     CHECK(itr < endPackedVector);

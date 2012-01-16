@@ -8,6 +8,8 @@
 #define DataTypeTraits_HH
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stddef.h>
 #include <vector>
 #include "boost/tuple/tuple.hpp"
 #include "Geometry/Dimension.hh"
@@ -44,6 +46,18 @@ struct DataTypeTraits<int> {
   static int zero() { return 0; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_INT; }
+#endif
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<size_t> {
+  typedef size_t ElementType;
+  static const bool fixedSize() { return true; }
+  static size_t numElements(const ElementType& x) { return 1; }
+  static size_t zero() { return 0U; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return MPI_UNSIGNED; }
 #endif
 };
 
