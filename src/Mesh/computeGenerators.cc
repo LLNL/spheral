@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <set>
 
+#include "boost/foreach.hpp"
+
 #include "computeGenerators.hh"
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
@@ -247,6 +249,12 @@ computeGenerators(NodeListIterator nodeListBegin,
       }
     }
 
+//     // Blago!
+//     for (unsigned otherProc = 0; otherProc != numDomains; ++otherProc) {
+//       if (otherProc != rank) neighborSet.insert(otherProc);
+//     }
+//     // Blago!
+
     // Make sure everyone is consistent about who talks to whom.
     vector<unsigned> neighborDomains;
     copy(neighborSet.begin(), neighborSet.end(), back_inserter(neighborDomains));
@@ -290,17 +298,24 @@ computeGenerators(NodeListIterator nodeListBegin,
       set<unsigned> sendGenIDs;
       unsigned j;
       for (unsigned i = 0; i != nlocal; ++i) {
-        if (domainHulls[otherProc].convexIntersect(localZoneHulls[i])) {
-          sendGenIDs.insert(i);
+        if (domainHulls[otherProc].convexIntersect(localZoneHulls[i])) sendGenIDs.insert(i);
+      }
+
+      // Go out a rind of two neighbors for each send zone, and send them too.
+      for (unsigned irind = 0; irind != 2; ++irind) {
+        set<unsigned> newSendGenIDs;
+        BOOST_FOREACH(unsigned i, sendGenIDs) {
           const vector<unsigned>& faceIDs = localMesh.zone(i).faceIDs();
           for (vector<unsigned>::const_iterator faceItr = faceIDs.begin();
                faceItr != faceIDs.end();
                ++faceItr) {
             j = localMesh.face(*faceItr).oppositeZoneID(i);
-            if (j != Mesh<Dimension>::UNSETID) sendGenIDs.insert(j);
+            if (j != Mesh<Dimension>::UNSETID) newSendGenIDs.insert(j);
           }
         }
+        std::copy(newSendGenIDs.begin(), newSendGenIDs.end(), std::inserter(sendGenIDs, sendGenIDs.end()));
       }
+
 //       if (Process::getRank() == 0) cerr << "    computeGenerators:  " << Process::getRank() << "->" << otherProc << " sending " << sendGenIDs.size() << " of " << localPositions.size() << endl;
 
       // Pack up the local generators we're sending.
