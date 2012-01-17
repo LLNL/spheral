@@ -62,18 +62,18 @@ packElement<int>(const int& value,
   }
 }
 
-// Specialization for size_t.
-template<>
-inline
-void
-packElement<size_t>(const size_t& value, 
-                    std::vector<char>& buffer) {
-  const int packSize = sizeof(size_t);
-  char* data = reinterpret_cast<char*>(const_cast<size_t*>(&value));
-  for (int i = 0; i != packSize; ++i) {
-    buffer.push_back(*(data + i));
-  }
-}
+// // Specialization for size_t.
+// template<>
+// inline
+// void
+// packElement<size_t>(const size_t& value, 
+//                     std::vector<char>& buffer) {
+//   const int packSize = sizeof(size_t);
+//   char* data = reinterpret_cast<char*>(const_cast<size_t*>(&value));
+//   for (int i = 0; i != packSize; ++i) {
+//     buffer.push_back(*(data + i));
+//   }
+// }
 
 // // Specialization for an unsigned int type.
 // template<>
@@ -238,21 +238,21 @@ unpackElement<int>(int& value,
   ENSURE(itr <= endPackedVector);
 }
 
-// Specialization for a size_t.
-template<>
-inline
-void
-unpackElement<size_t>(size_t& value,
-                      std::vector<char>::const_iterator& itr,
-                      const std::vector<char>::const_iterator& endPackedVector) {
-  const int packSize = sizeof(size_t);
-  char* data = reinterpret_cast<char*>(&value);
-  for (int i = 0; i != packSize; ++i, ++itr) {
-    CHECK(itr < endPackedVector);
-    *(data + i) = *itr;
-  }
-  ENSURE(itr <= endPackedVector);
-}
+// // Specialization for a size_t.
+// template<>
+// inline
+// void
+// unpackElement<size_t>(size_t& value,
+//                       std::vector<char>::const_iterator& itr,
+//                       const std::vector<char>::const_iterator& endPackedVector) {
+//   const int packSize = sizeof(size_t);
+//   char* data = reinterpret_cast<char*>(&value);
+//   for (int i = 0; i != packSize; ++i, ++itr) {
+//     CHECK(itr < endPackedVector);
+//     *(data + i) = *itr;
+//   }
+//   ENSURE(itr <= endPackedVector);
+// }
 
 // // Specialization for an unsigned int type.
 // template<>
@@ -580,7 +580,7 @@ packElement(const std::map<Key, Value>& mapvalue,
             std::vector<char>& buffer) {
 
   // Pack the size first.
-  packElement(mapvalue.size(), buffer);
+  packElement(unsigned(mapvalue.size()), buffer);
 
   // Now walk the key, value pairs and pack them up.
   for (typename std::map<Key, Value>::const_iterator itr = mapvalue.begin();
@@ -599,7 +599,7 @@ unpackElement(std::map<Key, Value>& mapvalue,
               const std::vector<char>::const_iterator& endPackedVector) {
 
   // Get the size.
-  size_t numElements;
+  unsigned numElements;
   unpackElement(numElements, itr, endPackedVector);
 
   // Unpack the individual (key, value) pairs and put them in.
