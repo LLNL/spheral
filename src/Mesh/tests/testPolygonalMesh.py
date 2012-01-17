@@ -228,29 +228,49 @@ class PolygonalMeshGenericTests:
                             recvPos))
                 self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
+        # Check that all shared nodes have been found.
+        myHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+        myHashSet = set(myHashes)
+        for sendProc in xrange(numDomains):
+            theirHashSet = mpi.bcast(myHashSet, root=sendProc)
+            if sendProc != mpi.rank:
+                commonHashes = myHashSet.intersection(theirHashSet)
+                self.failIf(len(commonHashes) > 0 and (not sendProc in neighborDomains),
+                            "Missed a neighbor domain : %i %i : %i" % (mpi.rank, sendProc, len(commonHashes)))
+                self.failIf(len(commonHashes) == 0 and (sendProc in neighborDomains),
+                            "Erroneously communicating between domains : %i %i" % (mpi.rank, sendProc))
+                if len(commonHashes) > 0:
+                    k = neighborDomains.index(sendProc)
+                    self.failUnless(len(commonHashes) == len(sharedNodes[k]),
+                                    "Size of shared nodes does not match: %i %i : %i %i" % (mpi.rank, sendProc,
+                                                                                            len(commonHashes),
+                                                                                            len(sharedNodes[k])))
+                    sharedHashes = set([myHashes[i] for i in sharedNodes[k]])
+                    self.failUnless(sharedHashes == commonHashes, "Set of common hashes does not match")
+
         return
 
-##     #---------------------------------------------------------------------------
-##     # Test each mesh point hashes uniquely.
-##     #---------------------------------------------------------------------------
-##     def testPolygonalMeshHash(self):
-##         t0 = time.clock()
-##         mesh, void = generatePolygonalMesh([self.nodes],
-##                                            xmin = xmin,
-##                                            xmax = xmax)
-##         print "Required %f seconds to generate mesh" % (time.clock() - t0)
-##         pos = [mesh.zone(i).position() for i in xrange(mesh.numZones)] + [mesh.node(i).position() for i in xrange(mesh.numNodes)]
-##         boxInv = xmax - xmin
-##         boxInv = Vector(1.0/boxInv.x, 1.0/boxInv.y)
-##         hashes = [hashPosition(x, xmin, xmax, boxInv) for x in pos]
-##         blarg = zip(hashes, pos)
-##         blarg.sort()
-##         for i in xrange(len(blarg) - 1):
-##             hash0 = blarg[i][0]
-##             hash1 = blarg[i+1][0]
-##             self.failIf(hash0 == hash1,
-##                         "%i: Non-unique hash:  %i %i %s %s %s %s %g" % (mpi.rank, i, mesh.numZones, str(hash0), str(hash1), str(blarg[i][1]), str(blarg[i+1][1]), (blarg[i][1] - blarg[i+1][1]).magnitude()))
-##         return
+    #---------------------------------------------------------------------------
+    # Test the mesh coordinates hash uniquely.
+    #---------------------------------------------------------------------------
+    def testPolygonalMeshHash(self):
+        t0 = time.clock()
+        mesh, void = generatePolygonalMesh([self.nodes],
+                                           xmin = xmin,
+                                           xmax = xmax)
+        print "Required %f seconds to generate mesh" % (time.clock() - t0)
+        pos = [mesh.zone(i).position() for i in xrange(mesh.numZones)] + [mesh.node(i).position() for i in xrange(mesh.numNodes)]
+        boxInv = xmax - xmin
+        boxInv = Vector(1.0/boxInv.x, 1.0/boxInv.y)
+        hashes = [hashPosition(x, xmin, xmax, boxInv) for x in pos]
+        blarg = zip(hashes, pos)
+        blarg.sort()
+        for i in xrange(len(blarg) - 1):
+            hash0 = blarg[i][0]
+            hash1 = blarg[i+1][0]
+            self.failIf(hash0 == hash1,
+                        "%i: Non-unique hash:  %i %i %s %s %s %s %g" % (mpi.rank, i, mesh.numZones, str(hash0), str(hash1), str(blarg[i][1]), str(blarg[i+1][1]), (blarg[i][1] - blarg[i+1][1]).magnitude()))
+        return
 
     #---------------------------------------------------------------------------
     # Test the zones of the nodes.
@@ -363,7 +383,7 @@ class PolygonalMeshGenericTests:
     #---------------------------------------------------------------------------
     # Test the bounding surface.
     #---------------------------------------------------------------------------
-    def testBoundingSurface(self):
+    def testZBoundingSurface(self):
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax,
