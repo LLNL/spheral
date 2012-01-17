@@ -204,11 +204,11 @@ case $COMPILERS in
          PARMETISCC=$MPICC
 
       elif test $OSNAME = "Darwin"; then
-         CC=gcc
-         CXX=g++
+         CC=clang
+         CXX=clang++
          F77=f77
-         MPICC=mpicc
-         MPICXX=mpicxx
+         MPICC='mpicc -cc=$(CC)'
+         MPICXX='mpicxx -cxx=$(CXX)'
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
