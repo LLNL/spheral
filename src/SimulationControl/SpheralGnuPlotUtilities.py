@@ -919,7 +919,8 @@ def plotEHistory(conserve):
 def plotPolygon(polygon,
                 plotNormals = False,
                 plotCentroid = False,
-                plot = None):
+                plot = None,
+                persist = False):
     px = []
     py = []
     for v in polygon.vertices():
@@ -945,7 +946,7 @@ def plotPolygon(polygon,
         ndx.append(f.normal.x)
         ndy.append(f.normal.y)
     if plot is None:
-        plot = generateNewGnuPlot()
+        plot = generateNewGnuPlot(persist)
     dataPoints = Gnuplot.Data(px, py,
                               with_ = "points pt 1 ps 2",
                               title = "Vertices",
