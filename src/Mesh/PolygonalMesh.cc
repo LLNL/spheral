@@ -374,8 +374,7 @@ boundingSurface() const {
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
   if (numDomains > 1) {
-    unsigned bufSize;
-    size_t nfacets;
+    unsigned bufSize, nfacets;
     vector<char> localBuffer, buffer;
     vector<char>::const_iterator bufItr;
     vector<Vector> otherVertices;
@@ -384,7 +383,7 @@ boundingSurface() const {
     // Pack our local data, and then erase our local copy to be rebuilt 
     // consistently for everyone.
     packElement(globalVertexPositions, localBuffer);
-    packElement(facetIndices.size(), localBuffer);
+    packElement(unsigned(facetIndices.size()), localBuffer);
     for (i = 0; i != facetIndices.size(); ++i) packElement(facetIndices[i], localBuffer);
     globalVertexPositions = map<unsigned, Vector>();
     facetIndices = vector<vector<unsigned> >();
