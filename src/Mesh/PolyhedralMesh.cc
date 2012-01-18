@@ -314,7 +314,6 @@ Mesh<Dim<3> >::
 boundingSurface() const {
 
   // Flatten the set of communicated nodes into a set.
-  cerr << "Flattening sharedNodes." << endl;
   set<unsigned> sharedNodes;
   unsigned domainID;
   for (domainID = 0; domainID != mSharedNodes.size(); ++domainID) {
@@ -323,14 +322,12 @@ boundingSurface() const {
   }
 
   // Build the global IDs for the mesh nodes.
-  cerr << "Building global node IDs." << endl;
   const vector<unsigned> local2globalIDs = this->globalMeshNodeIDs();
 
   // Look for the faces that bound the mesh.  We build up the global
   // vertex indices, and the associated positions.
-  cerr << "Finding bounding faces." << endl;
   bool useFace;
-  unsigned i, j, iglobal;
+  unsigned i, j, iglobal, izone;
   map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
   BOOST_FOREACH(const Face& face, mFaces) {
@@ -344,10 +341,19 @@ boundingSurface() const {
     if (useFace) {
       vector<unsigned> ids;
       BOOST_FOREACH(i, nodeIDs) {
+        CHECK(i < local2globalIDs.size());
         iglobal = local2globalIDs[i];
+        CHECK(globalVertexPositions.find(iglobal) == globalVertexPositions.end() or
+              fuzzyEqual((globalVertexPositions[iglobal] - mNodePositions[i]).magnitude2(), 0.0));
         globalVertexPositions[iglobal] = mNodePositions[i];
         ids.push_back(iglobal);
       }
+
+      // Do we need to reverse the face orientation?
+      izone = std::min(face.zone1ID(), face.zone2ID());
+      CHECK(izone != UNSETID);
+      if (face.compare(mZones[izone].position()) == 1) std::reverse(ids.begin(), ids.end());
+
       facetIndices.push_back(ids);
     }
   }
@@ -355,7 +361,6 @@ boundingSurface() const {
 #ifdef USE_MPI
   // In the parallel case we have to construct the total surface and distribute
   // it to everyone.
-  cerr << "MPI baby!" << endl;
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
   if (numDomains > 1) {
@@ -388,6 +393,7 @@ boundingSurface() const {
           otherIndices = vector<unsigned>();
           unpackElement(otherIndices, bufItr, buffer.end());
           CHECK2(otherIndices.size() >= 3, "Bad size: " << otherIndices.size());
+
           facetIndices.push_back(otherIndices);
         }
       }
@@ -397,7 +403,6 @@ boundingSurface() const {
 
   // Extract the vertex positions as an array, and map the global IDs 
   // to index in this array.
-  cerr << "Extracting." << endl;
   map<unsigned, unsigned> global2vertexID;
   vector<Vector> vertices;
   vertices.reserve(globalVertexPositions.size());
@@ -413,12 +418,12 @@ boundingSurface() const {
   CHECK(vertices.size() == globalVertexPositions.size());
 
   // Transform the facet node indices to the vertex array numbering.
-  cerr << "Transforming." << endl;
-  for (i = 0; i != facetIndices.size(); ++i) {
-    CHECK(facetIndices[i].size() >= 3);
-    for (j = 0; j != facetIndices[i].size(); ++j) {
-      CHECK(global2vertexID.find(facetIndices[i][j]) != global2vertexID.end());
-      facetIndices[i][j] = global2vertexID[facetIndices[i][j]];
+  BOOST_FOREACH(vector<unsigned>& indices, facetIndices) {
+    CHECK(indices.size() >= 3);
+    for (j = 0; j != indices.size(); ++j) {
+      CHECK(global2vertexID.find(indices[j]) != global2vertexID.end());
+      indices[j] = global2vertexID[indices[j]];
+      CHECK(indices[j] < vertices.size());
     }
   }
 
@@ -433,7 +438,6 @@ boundingSurface() const {
   END_CONTRACT_SCOPE;
 
   // That's it.
-  cerr << "Go for build!" << endl;
   return FacetedVolume(vertices, facetIndices);
 }
 
