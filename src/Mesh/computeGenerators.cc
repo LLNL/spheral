@@ -279,72 +279,81 @@ computeGenerators(NodeListIterator nodeListBegin,
     }
     END_CONTRACT_SCOPE;
 
-    // Build the mesh of the local generators, and extract the convex hulls of each zone.
-    const Mesh<Dimension> localMesh(localPositions, xmin, xmax);
-    CHECK(localMesh.numZones() == nlocal);
-    vector<ConvexHull> localZoneHulls;
-    for (unsigned i = 0; i != nlocal; ++i) localZoneHulls.push_back(localMesh.zone(i).convexHull());
+    // Screw it -- pack up *all* the local generators for sending.
+    vector<Vector> sendgens;
+    vector<SymTensor> sendHs;
+    for (unsigned i = 0; i != localPositions.size(); ++i) {
+      sendgens.push_back(localPositions[i]);
+      sendHs.push_back(localHs[i]);
+    }
+    vector<char> localBuffer;
+    packElement(sendgens, localBuffer);
+    packElement(sendHs, localBuffer);
+    unsigned localBufSize = localBuffer.size();
+
+//     // Build the mesh of the local generators, and extract the convex hulls of each zone.
+//     const Mesh<Dimension> localMesh(localPositions, xmin, xmax);
+//     CHECK(localMesh.numZones() == nlocal);
+//     vector<ConvexHull> localZoneHulls;
+//     for (unsigned i = 0; i != nlocal; ++i) localZoneHulls.push_back(localMesh.zone(i).convexHull());
 
     // Now we have to determine which of our generators go to each neighbor.
     if (Process::getRank() == 0) cerr << "computeGenerators:  Sending local generators to neighbors." << endl;
-    list<vector<char> > localBuffers;
-    list<unsigned> localBufSizes;
+//     list<vector<char> > localBuffers;
+//     list<unsigned> localBufSizes;
     vector<MPI_Request> sendRequests(2*neighborDomains.size());
     for (unsigned k = 0; k != neighborDomains.size(); ++k) {
       const unsigned otherProc = neighborDomains[k];
 
-      // Look for any zones that intersect the other domain hull.  We'll send that generator
-      // along with its immediate neighbors.
-      set<unsigned> sendGenIDs;
-      unsigned j;
-      for (unsigned i = 0; i != nlocal; ++i) {
-        if (domainHulls[otherProc].convexIntersect(localZoneHulls[i])) sendGenIDs.insert(i);
-      }
+//       // Look for any zones that intersect the other domain hull.  We'll send that generator
+//       // along with its immediate neighbors.
+//       set<unsigned> sendGenIDs;
+//       unsigned j;
+//       for (unsigned i = 0; i != nlocal; ++i) {
+//         if (domainHulls[otherProc].convexIntersect(localZoneHulls[i])) sendGenIDs.insert(i);
+//       }
 
-      // Go out a rind of two neighbors for each send zone, and send them too.
-      for (unsigned irind = 0; irind != 2; ++irind) {
-        set<unsigned> newSendGenIDs;
-        BOOST_FOREACH(unsigned i, sendGenIDs) {
-          const vector<unsigned>& faceIDs = localMesh.zone(i).faceIDs();
-          for (vector<unsigned>::const_iterator faceItr = faceIDs.begin();
-               faceItr != faceIDs.end();
-               ++faceItr) {
-            j = localMesh.face(*faceItr).oppositeZoneID(i);
-            if (j != Mesh<Dimension>::UNSETID) newSendGenIDs.insert(j);
-          }
-        }
-        std::copy(newSendGenIDs.begin(), newSendGenIDs.end(), std::inserter(sendGenIDs, sendGenIDs.end()));
-      }
+//       // Go out a rind of two neighbors for each send zone, and send them too.
+//       for (unsigned irind = 0; irind != 2; ++irind) {
+//         set<unsigned> newSendGenIDs;
+//         BOOST_FOREACH(unsigned i, sendGenIDs) {
+//           const vector<unsigned>& faceIDs = localMesh.zone(i).faceIDs();
+//           for (vector<unsigned>::const_iterator faceItr = faceIDs.begin();
+//                faceItr != faceIDs.end();
+//                ++faceItr) {
+//             j = localMesh.face(*faceItr).oppositeZoneID(i);
+//             if (j != Mesh<Dimension>::UNSETID) newSendGenIDs.insert(j);
+//           }
+//         }
+//         std::copy(newSendGenIDs.begin(), newSendGenIDs.end(), std::inserter(sendGenIDs, sendGenIDs.end()));
+//       }
 
 //       if (Process::getRank() == 0) cerr << "    computeGenerators:  " << Process::getRank() << "->" << otherProc << " sending " << sendGenIDs.size() << " of " << localPositions.size() << endl;
 
-      // Pack up the local generators we're sending.
-      vector<Vector> sendgens;
-      vector<SymTensor> sendHs;
-      for (typename set<unsigned>::const_iterator itr = sendGenIDs.begin();
-           itr != sendGenIDs.end();
-           ++itr) {
-        sendgens.push_back(localPositions[*itr]);
-        sendHs.push_back(localHs[*itr]);
-      }
-      CHECK(sendgens.size() == sendGenIDs.size());
-      CHECK(sendHs.size() == sendGenIDs.size());
-
-//       // Blago!
-//       for (unsigned i = 0; i != localPositions.size(); ++i) {
-//         sendgens.push_back(localPositions[i]);
-//         sendHs.push_back(localHs[i]);
+//       // Pack up the local generators we're sending.
+//       vector<Vector> sendgens;
+//       vector<SymTensor> sendHs;
+//       for (typename set<unsigned>::const_iterator itr = sendGenIDs.begin();
+//            itr != sendGenIDs.end();
+//            ++itr) {
+//         sendgens.push_back(localPositions[*itr]);
+//         sendHs.push_back(localHs[*itr]);
 //       }
-//       // Blago!
+//       CHECK(sendgens.size() == sendGenIDs.size());
+//       CHECK(sendHs.size() == sendGenIDs.size());
 
-      localBuffers.push_back(vector<char>());
-      packElement(sendgens, localBuffers.back());
-      packElement(sendHs, localBuffers.back());
-      localBufSizes.push_back(localBuffers.back().size());
+//       localBuffers.push_back(vector<char>());
+//       packElement(sendgens, localBuffers.back());
+//       packElement(sendHs, localBuffers.back());
+//       localBufSizes.push_back(localBuffers.back().size());
+
+//       // Send the generator info.
+//       MPI_Isend(&localBufSizes.back(), 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &(sendRequests[2*k]));
+//       MPI_Isend(&localBuffers.back().front(), localBufSizes.back(), MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &(sendRequests[2*k + 1]));
 
       // Send the generator info.
-      MPI_Isend(&localBufSizes.back(), 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &(sendRequests[2*k]));
-      MPI_Isend(&localBuffers.back().front(), localBufSizes.back(), MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &(sendRequests[2*k + 1]));
+      MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &(sendRequests[2*k]));
+      MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &(sendRequests[2*k + 1]));
     }
 
     // Get the info from each of our neighbors and append it to the result.
