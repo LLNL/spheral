@@ -427,12 +427,12 @@ boundingSurface() const {
   CHECK(vertices.size() == globalVertexPositions.size());
 
   // Transform the facet node indices to the vertex array numbering.
-  for (i = 0; i != facetIndices.size(); ++i) {
-    CHECK(facetIndices[i].size() == 2);
-    CHECK(global2vertexID.find(facetIndices[i][0]) != global2vertexID.end());
-    CHECK(global2vertexID.find(facetIndices[i][1]) != global2vertexID.end());
-    facetIndices[i][0] = global2vertexID[facetIndices[i][0]];
-    facetIndices[i][1] = global2vertexID[facetIndices[i][1]];
+  BOOST_FOREACH(vector<unsigned>& indices, facetIndices) {
+    CHECK(indices.size() == 2);
+    CHECK(global2vertexID.find(indices[0]) != global2vertexID.end());
+    CHECK(global2vertexID.find(indices[1]) != global2vertexID.end());
+    indices[0] = global2vertexID[indices[0]];
+    indices[1] = global2vertexID[indices[1]];
   }
 
   // Post-conditions.
