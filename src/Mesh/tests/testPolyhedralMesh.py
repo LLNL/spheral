@@ -210,6 +210,26 @@ class PolyhedralMeshGenericTests:
                             recvPos))
                 self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
+        # Check that all shared nodes have been found.
+        myHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+        myHashSet = set(myHashes)
+        for sendProc in xrange(numDomains):
+            theirHashSet = mpi.bcast(myHashSet, root=sendProc)
+            if sendProc != mpi.rank:
+                commonHashes = myHashSet.intersection(theirHashSet)
+                self.failIf(len(commonHashes) > 0 and (not sendProc in neighborDomains),
+                            "Missed a neighbor domain : %i %i : %i" % (mpi.rank, sendProc, len(commonHashes)))
+                self.failIf(len(commonHashes) == 0 and (sendProc in neighborDomains),
+                            "Erroneously communicating between domains : %i %i" % (mpi.rank, sendProc))
+                if len(commonHashes) > 0:
+                    k = neighborDomains.index(sendProc)
+                    self.failUnless(len(commonHashes) == len(sharedNodes[k]),
+                                    "Size of shared nodes does not match: %i %i : %i %i" % (mpi.rank, sendProc,
+                                                                                            len(commonHashes),
+                                                                                            len(sharedNodes[k])))
+                    sharedHashes = set([myHashes[i] for i in sharedNodes[k]])
+                    self.failUnless(sharedHashes == commonHashes, "Set of common hashes does not match")
+
         return
 
     #---------------------------------------------------------------------------
@@ -316,6 +336,73 @@ class PolyhedralMeshGenericTests:
                             Py0.minimumDistance(fp), Py1.minimumDistance(fp),
                             Pz0.minimumDistance(fp), Pz1.minimumDistance(fp)]) < 1.0e-8
                 assert face.oppositeZoneID(zoneIDs[0]) == PolyhedralMesh.UNSETID
+
+    #---------------------------------------------------------------------------
+    # Test the global mesh node IDs.
+    #---------------------------------------------------------------------------
+    def testGlobalMeshNodeIDs(self):
+        mesh, void = generatePolyhedralMesh([self.nodes],
+                                            xmin = xmin,
+                                            xmax = xmax,
+                                            generateParallelConnectivity = True)
+        globalIDs = mesh.globalMeshNodeIDs()
+
+        # Check that all our local IDs are unique.
+        uniqueIDs = set()
+        for i in globalIDs:
+            uniqueIDs.add(i)
+        self.failUnless(len(uniqueIDs) == len(globalIDs),
+                        "Global mesh node IDs not unique!  %i != %i" % (len(globalIDs), len(uniqueIDs)))
+
+        # Check that the IDs are unique and consistent across domains.
+        if mpi.procs > 1:
+            neighbors = mesh.neighborDomains
+            sharedNodes = mesh.sharedNodes
+            assert len(neighbors) == len(sharedNodes)
+
+            # Translate to the shared nodes to global IDs.
+            sharedGlobalIDs = [[globalIDs[i] for i in localIDs] for localIDs in sharedNodes]
+            assert len(sharedGlobalIDs) == len(neighbors)
+
+            # Do non-blocking sends to all our neighbors.
+            sendRequests = []
+            for neighbor, ids in zip(neighbors, sharedGlobalIDs):
+                sendRequests.append(mpi.isend(ids, dest=neighbor))
+            assert len(sendRequests) == len(neighbors)
+
+            # Recv the IDs from our neighbors and do the testing.
+            for neighbor, localIDs in zip(neighbors, sharedGlobalIDs):
+                otherIDs = mpi.recv(source=neighbor)[0]
+                self.failUnless(otherIDs == list(localIDs),
+                                "Global IDs don't match between domains %i <-> %i\n%s\n%s" % (mpi.rank, neighbor, list(localIDs), otherIDs))
+
+            # Wait until all our sends have completed.
+            for req in sendRequests:
+                req.Wait()
+
+    #---------------------------------------------------------------------------
+    # Test the bounding surface.
+    #---------------------------------------------------------------------------
+    def testBoundingSurface(self):
+        mesh, void = generatePolyhedralMesh([self.nodes],
+                                            xmin = xmin,
+                                            xmax = xmax,
+                                            generateVoid = False,
+                                            generateParallelConnectivity = True)
+        bs = mesh.boundingSurface()
+
+        # Check that all the generators are contained.
+        pos = self.nodes.positions()
+        for i in xrange(self.nodes.numInternalNodes):
+            self.failUnless(bs.contains(pos[i]),
+                            "Failed containment for generator %i @ %s" % (i, pos[i]))
+
+        # Check that all mesh nodes are contained.
+        for i in xrange(mesh.numNodes):
+            self.failUnless(bs.contains(mesh.node(i).position()),
+                            "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
+
+        return
 
 #===============================================================================
 # Create a uniformly spaced nodes/mesh.

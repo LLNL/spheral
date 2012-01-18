@@ -163,7 +163,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
            itr != mVertices.end();
            ++itr) centroid += *itr;
       centroid /= mVertices.size();
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE((facet.position() - centroid).dot(facet.normal()) >= 0.0);
+      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2((facet.position() - centroid).dot(facet.normal()) >= 0.0,
+                                                         "Inward normal? " << (facet.position() - centroid).dot(facet.normal()) << " " << facet.position() << " " << centroid << " " << facet.normal());
 
       // We had better be convex if built from a convex hull.
       ENSURE(convex());
