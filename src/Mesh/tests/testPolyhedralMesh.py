@@ -390,6 +390,7 @@ class PolyhedralMeshGenericTests:
                                             generateVoid = False,
                                             generateParallelConnectivity = True)
         bs = mesh.boundingSurface()
+        sys.stderr.write("Finished creating surface.\n")
 
         # Check that all the generators are contained.
         pos = self.nodes.positions()
