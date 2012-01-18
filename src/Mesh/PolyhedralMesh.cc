@@ -314,6 +314,7 @@ Mesh<Dim<3> >::
 boundingSurface() const {
 
   // Flatten the set of communicated nodes into a set.
+  cerr << "Flattening sharedNodes." << endl;
   set<unsigned> sharedNodes;
   unsigned domainID;
   for (domainID = 0; domainID != mSharedNodes.size(); ++domainID) {
@@ -322,10 +323,12 @@ boundingSurface() const {
   }
 
   // Build the global IDs for the mesh nodes.
+  cerr << "Building global node IDs." << endl;
   const vector<unsigned> local2globalIDs = this->globalMeshNodeIDs();
 
   // Look for the faces that bound the mesh.  We build up the global
   // vertex indices, and the associated positions.
+  cerr << "Finding bounding faces." << endl;
   bool useFace;
   unsigned i, j, iglobal;
   map<unsigned, Vector> globalVertexPositions;
@@ -334,7 +337,10 @@ boundingSurface() const {
     const vector<unsigned>& nodeIDs = face.nodeIDs();
     useFace = (face.zone1ID() == UNSETID or face.zone2ID() == UNSETID);
     i = 0;
-    while (useFace and i != nodeIDs.size()) useFace = (sharedNodes.find(nodeIDs[i]) == sharedNodes.end());
+    while (useFace and i != nodeIDs.size()) {
+      useFace = (sharedNodes.find(nodeIDs[i]) == sharedNodes.end());
+      ++i;
+    }
     if (useFace) {
       vector<unsigned> ids;
       BOOST_FOREACH(i, nodeIDs) {
@@ -349,6 +355,7 @@ boundingSurface() const {
 #ifdef USE_MPI
   // In the parallel case we have to construct the total surface and distribute
   // it to everyone.
+  cerr << "MPI baby!" << endl;
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
   if (numDomains > 1) {
@@ -390,6 +397,7 @@ boundingSurface() const {
 
   // Extract the vertex positions as an array, and map the global IDs 
   // to index in this array.
+  cerr << "Extracting." << endl;
   map<unsigned, unsigned> global2vertexID;
   vector<Vector> vertices;
   vertices.reserve(globalVertexPositions.size());
@@ -405,6 +413,7 @@ boundingSurface() const {
   CHECK(vertices.size() == globalVertexPositions.size());
 
   // Transform the facet node indices to the vertex array numbering.
+  cerr << "Transforming." << endl;
   for (i = 0; i != facetIndices.size(); ++i) {
     CHECK(facetIndices[i].size() >= 3);
     for (j = 0; j != facetIndices[i].size(); ++j) {
@@ -424,6 +433,7 @@ boundingSurface() const {
   END_CONTRACT_SCOPE;
 
   // That's it.
+  cerr << "Go for build!" << endl;
   return FacetedVolume(vertices, facetIndices);
 }
 
