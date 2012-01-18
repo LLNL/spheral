@@ -52,7 +52,7 @@ position() const {
 
   for (i = 0; i != n; ++i) {
     j = (i + 1) % n;
-    area = (point(i) - c0).cross(point(j) - c0).z(); // This is off by a factor of 2 but will cancel.
+    area = (point(i) - c0).cross(point(j) - c0).magnitude(); // This is off by a factor of 2 but will cancel.
     areasum += area;
     result += area * (c0 + point(i) + point(j));
   }

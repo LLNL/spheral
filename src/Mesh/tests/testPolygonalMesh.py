@@ -384,7 +384,7 @@ class PolygonalMeshGenericTests:
     #---------------------------------------------------------------------------
     # Test the bounding surface.
     #---------------------------------------------------------------------------
-    def testZBoundingSurface(self):
+    def testBoundingSurface(self):
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax,
