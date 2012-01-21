@@ -83,7 +83,7 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 
 # Tau
 TAUURL=http://tau.uoregon.edu/$(TAUDIST)
-TAUDIR = $(TAUDIST:.tgz=-2.20.3)
+TAUDIR = $(TAUDIST:.tgz=-2.21.1)
 TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
 TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
 
@@ -333,9 +333,8 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/bin
 	rm -fr $(PYTHONDIR)
 	$(BZIP2) -dc $(PYTHONDIST) | $(TAR) -xf -
-	#$(PATCH) $(PYTHONDIR)/setup.py $(PYTHONDIR)-setup.py.patch
 	$(SHELL) -ec "cd $(PYTHONDIR); \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC=$(PYTHONCC) CXX=$(PYTHONCXX) CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' ./configure --disable-ipv6 --with-gcc=$(PYTHONCC) --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
+	env CONFIG_SHELL=$(CONFIG_SHELL) CC=$(PYTHONCC) CXX=$(PYTHONCXX) CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc=$(PYTHONCC) --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' 
 	$(MAKE) -C $(PYTHONDIR) install
 	@if ! test -e $(PYTHONEXE); then \

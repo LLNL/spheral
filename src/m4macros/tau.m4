@@ -68,12 +68,12 @@ AC_ARG_WITH(tau,
   else
     TAUCONFIGUREFLAGS="$TAUCONFIGUREFLAGS"
   fi
-  TAUMAKEFILE="include \$(SPHERALTOP)/thirdPartyLibs/tau-2.20.3/Makefile.tau"
+  TAUMAKEFILE="include \$(SPHERALTOP)/thirdPartyLibs/tau-2.21.1/Makefile.tau"
 ],
 [
   AC_MSG_RESULT(no)
   TAUTARGET=".tau.dummydate"
-  TAUFLAGS="-I \$(SPHERALTOP)/thirdPartyLibs/tau-2.20.3/include"
+  TAUFLAGS="-I \$(SPHERALTOP)/thirdPartyLibs/tau-2.21.1/include"
   TAUMAKEFILE="TAU_INCLUDE = \$(TAUFLAGS)"
 ])
 
