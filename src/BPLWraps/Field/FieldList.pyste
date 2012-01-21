@@ -1,0 +1,583 @@
+#-------------------------------------------------------------------------------
+# FieldList
+#-------------------------------------------------------------------------------
+FieldList = Template("Spheral::FieldSpace::FieldList", "ExtendFieldList.hh")
+
+#-------------------------------------------------------------------------------
+# Excluded methods.
+#-------------------------------------------------------------------------------
+exclude(FieldList.operator["()"])
+exclude(FieldList.begin)
+exclude(FieldList.end)
+exclude(FieldList.rbegin)
+exclude(FieldList.rend)
+exclude(FieldList.fieldForNodeList)
+exclude(FieldList.nodeBegin)
+exclude(FieldList.nodeEnd)
+exclude(FieldList.internalNodeBegin)
+exclude(FieldList.internalNodeEnd)
+exclude(FieldList.ghostNodeBegin)
+exclude(FieldList.ghostNodeEnd)
+exclude(FieldList.masterNodeBegin)
+exclude(FieldList.masterNodeEnd)
+exclude(FieldList.coarseNodeBegin)
+exclude(FieldList.coarseNodeEnd)
+exclude(FieldList.refineNodeBegin)
+exclude(FieldList.refineNodeEnd)
+
+exclude(FieldList.cacheRefineElements)
+exclude(FieldList.useCacheRefineElements)
+exclude(FieldList.numRefineCacheElements)
+exclude(FieldList.refineCacheBegin)
+exclude(FieldList.refineCacheEnd)
+exclude(FieldList.refineCache)
+
+#-------------------------------------------------------------------------------
+# 1-D int FieldList
+#-------------------------------------------------------------------------------
+IntFieldList1d = FieldList("Spheral::Dim<1> int", "IntFieldList1d")
+
+add_method(IntFieldList1d, "Spheral::FieldSpace::getItemIntFieldList1d")
+set_policy(IntFieldList1d.getItemIntFieldList1d,
+           return_internal_reference())
+rename(IntFieldList1d.getItemIntFieldList1d, "__getitem__")
+
+add_method(IntFieldList1d, "Spheral::FieldSpace::intFields1d")
+rename(IntFieldList1d.intFields1d, "fields")
+
+add_method(IntFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListInt1d")
+set_policy(IntFieldList1d.extractFieldForNodeListInt1d,
+           return_internal_reference())
+rename(IntFieldList1d.extractFieldForNodeListInt1d, "fieldForNodeList")
+
+add_method(IntFieldList1d, "Spheral::FieldSpace::sampleValueFieldListInt1d")
+rename(IntFieldList1d.sampleValueFieldListInt1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D ULL FieldList
+#-------------------------------------------------------------------------------
+ULLFieldList1d = FieldList("Spheral::Dim<1> ULL", "ULLFieldList1d")
+
+add_method(ULLFieldList1d, "Spheral::FieldSpace::getItemULLFieldList1d")
+set_policy(ULLFieldList1d.getItemULLFieldList1d,
+           return_internal_reference())
+rename(ULLFieldList1d.getItemULLFieldList1d, "__getitem__")
+
+add_method(ULLFieldList1d, "Spheral::FieldSpace::ULLFields1d")
+rename(ULLFieldList1d.ULLFields1d, "fields")
+
+add_method(ULLFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListULL1d")
+set_policy(ULLFieldList1d.extractFieldForNodeListULL1d,
+           return_internal_reference())
+rename(ULLFieldList1d.extractFieldForNodeListULL1d, "fieldForNodeList")
+
+add_method(ULLFieldList1d, "Spheral::FieldSpace::sampleValueFieldListULL1d")
+rename(ULLFieldList1d.sampleValueFieldListULL1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D Scalar FieldList
+#-------------------------------------------------------------------------------
+ScalarFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::Scalar", "ScalarFieldList1d")
+
+add_method(ScalarFieldList1d, "Spheral::FieldSpace::getItemScalarFieldList1d")
+set_policy(ScalarFieldList1d.getItemScalarFieldList1d,
+           return_internal_reference())
+rename(ScalarFieldList1d.getItemScalarFieldList1d, "__getitem__")
+
+add_method(ScalarFieldList1d, "Spheral::FieldSpace::scalarFields1d")
+rename(ScalarFieldList1d.scalarFields1d, "fields")
+
+add_method(ScalarFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListScalar1d")
+set_policy(ScalarFieldList1d.extractFieldForNodeListScalar1d,
+           return_internal_reference())
+rename(ScalarFieldList1d.extractFieldForNodeListScalar1d, "fieldForNodeList")
+
+add_method(ScalarFieldList1d, "Spheral::FieldSpace::sampleValueFieldListScalar1d")
+rename(ScalarFieldList1d.sampleValueFieldListScalar1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D Vector FieldList
+#-------------------------------------------------------------------------------
+VectorFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::Vector", "VectorFieldList1d")
+exclude(VectorFieldList1d.sumElements)
+exclude(VectorFieldList1d.min)
+exclude(VectorFieldList1d.max)
+
+add_method(VectorFieldList1d, "Spheral::FieldSpace::getItemVectorFieldList1d")
+set_policy(VectorFieldList1d.getItemVectorFieldList1d,
+           return_internal_reference())
+rename(VectorFieldList1d.getItemVectorFieldList1d, "__getitem__")
+
+add_method(VectorFieldList1d, "Spheral::FieldSpace::vectorFields1d")
+rename(VectorFieldList1d.vectorFields1d, "fields")
+
+add_method(VectorFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListVector1d")
+set_policy(VectorFieldList1d.extractFieldForNodeListVector1d,
+           return_internal_reference())
+rename(VectorFieldList1d.extractFieldForNodeListVector1d, "fieldForNodeList")
+
+add_method(VectorFieldList1d, "Spheral::FieldSpace::sampleValueFieldListVector1d")
+rename(VectorFieldList1d.sampleValueFieldListVector1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D Vector3d FieldList
+#-------------------------------------------------------------------------------
+Vector3dFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::Vector3d", "Vector3dFieldList1d")
+exclude(Vector3dFieldList1d.sumElements)
+exclude(Vector3dFieldList1d.min)
+exclude(Vector3dFieldList1d.max)
+
+add_method(Vector3dFieldList1d, "Spheral::FieldSpace::getItemVector3dFieldList1d")
+set_policy(Vector3dFieldList1d.getItemVector3dFieldList1d,
+           return_internal_reference())
+rename(Vector3dFieldList1d.getItemVector3dFieldList1d, "__getitem__")
+
+add_method(Vector3dFieldList1d, "Spheral::FieldSpace::vector3dFields1d")
+rename(Vector3dFieldList1d.vector3dFields1d, "fields")
+
+add_method(Vector3dFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListVector3d1d")
+set_policy(Vector3dFieldList1d.extractFieldForNodeListVector3d1d,
+           return_internal_reference())
+rename(Vector3dFieldList1d.extractFieldForNodeListVector3d1d, "fieldForNodeList")
+
+add_method(Vector3dFieldList1d, "Spheral::FieldSpace::sampleValueFieldListVector3d1d")
+rename(Vector3dFieldList1d.sampleValueFieldListVector3d1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D Tensor FieldList
+#-------------------------------------------------------------------------------
+TensorFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::Tensor", "TensorFieldList1d")
+exclude(TensorFieldList1d.sumElements)
+exclude(TensorFieldList1d.min)
+exclude(TensorFieldList1d.max)
+
+add_method(TensorFieldList1d, "Spheral::FieldSpace::getItemTensorFieldList1d")
+set_policy(TensorFieldList1d.getItemTensorFieldList1d,
+           return_internal_reference())
+rename(TensorFieldList1d.getItemTensorFieldList1d, "__getitem__")
+
+add_method(TensorFieldList1d, "Spheral::FieldSpace::tensorFields1d")
+rename(TensorFieldList1d.tensorFields1d, "fields")
+
+add_method(TensorFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListTensor1d")
+set_policy(TensorFieldList1d.extractFieldForNodeListTensor1d,
+           return_internal_reference())
+rename(TensorFieldList1d.extractFieldForNodeListTensor1d, "fieldForNodeList")
+
+add_method(TensorFieldList1d, "Spheral::FieldSpace::sampleValueFieldListTensor1d")
+rename(TensorFieldList1d.sampleValueFieldListTensor1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D SymTensor FieldList
+#-------------------------------------------------------------------------------
+SymTensorFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::SymTensor", "SymTensorFieldList1d")
+exclude(SymTensorFieldList1d.sumElements)
+exclude(SymTensorFieldList1d.min)
+exclude(SymTensorFieldList1d.max)
+
+add_method(SymTensorFieldList1d, "Spheral::FieldSpace::getItemSymTensorFieldList1d")
+set_policy(SymTensorFieldList1d.getItemSymTensorFieldList1d,
+           return_internal_reference())
+rename(SymTensorFieldList1d.getItemSymTensorFieldList1d, "__getitem__")
+
+add_method(SymTensorFieldList1d, "Spheral::FieldSpace::symTensorFields1d")
+rename(SymTensorFieldList1d.symTensorFields1d, "fields")
+
+add_method(SymTensorFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListSymTensor1d")
+set_policy(SymTensorFieldList1d.extractFieldForNodeListSymTensor1d,
+           return_internal_reference())
+rename(SymTensorFieldList1d.extractFieldForNodeListSymTensor1d, "fieldForNodeList")
+
+add_method(SymTensorFieldList1d, "Spheral::FieldSpace::sampleValueFieldListSymTensor1d")
+rename(SymTensorFieldList1d.sampleValueFieldListSymTensor1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 1-D ThirdRankTensor FieldList
+#-------------------------------------------------------------------------------
+ThirdRankTensorFieldList1d = FieldList("Spheral::Dim<1> Spheral::Dim<1>::ThirdRankTensor", "ThirdRankTensorFieldList1d")
+exclude(ThirdRankTensorFieldList1d.sumElements)
+exclude(ThirdRankTensorFieldList1d.min)
+exclude(ThirdRankTensorFieldList1d.max)
+
+add_method(ThirdRankTensorFieldList1d, "Spheral::FieldSpace::getItemThirdRankTensorFieldList1d")
+set_policy(ThirdRankTensorFieldList1d.getItemThirdRankTensorFieldList1d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList1d.getItemThirdRankTensorFieldList1d, "__getitem__")
+
+add_method(ThirdRankTensorFieldList1d, "Spheral::FieldSpace::thirdRankTensorFields1d")
+rename(ThirdRankTensorFieldList1d.thirdRankTensorFields1d, "fields")
+
+add_method(ThirdRankTensorFieldList1d, "Spheral::FieldSpace::extractFieldForNodeListThirdRankTensor1d")
+set_policy(ThirdRankTensorFieldList1d.extractFieldForNodeListThirdRankTensor1d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList1d.extractFieldForNodeListThirdRankTensor1d, "fieldForNodeList")
+
+add_method(ThirdRankTensorFieldList1d, "Spheral::FieldSpace::sampleValueFieldListThirdRankTensor1d")
+rename(ThirdRankTensorFieldList1d.sampleValueFieldListThirdRankTensor1d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D Int FieldList
+#-------------------------------------------------------------------------------
+IntFieldList2d = FieldList("Spheral::Dim<2> int", "IntFieldList2d")
+
+add_method(IntFieldList2d, "Spheral::FieldSpace::getItemIntFieldList2d")
+set_policy(IntFieldList2d.getItemIntFieldList2d,
+           return_internal_reference())
+rename(IntFieldList2d.getItemIntFieldList2d, "__getitem__")
+
+add_method(IntFieldList2d, "Spheral::FieldSpace::intFields2d")
+rename(IntFieldList2d.intFields2d, "fields")
+
+add_method(IntFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListInt2d")
+set_policy(IntFieldList2d.extractFieldForNodeListInt2d,
+           return_internal_reference())
+rename(IntFieldList2d.extractFieldForNodeListInt2d, "fieldForNodeList")
+
+add_method(IntFieldList2d, "Spheral::FieldSpace::sampleValueFieldListInt2d")
+rename(IntFieldList2d.sampleValueFieldListInt2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D ULL FieldList
+#-------------------------------------------------------------------------------
+ULLFieldList2d = FieldList("Spheral::Dim<2> ULL", "ULLFieldList2d")
+
+add_method(ULLFieldList2d, "Spheral::FieldSpace::getItemULLFieldList2d")
+set_policy(ULLFieldList2d.getItemULLFieldList2d,
+           return_internal_reference())
+rename(ULLFieldList2d.getItemULLFieldList2d, "__getitem__")
+
+add_method(ULLFieldList2d, "Spheral::FieldSpace::ULLFields2d")
+rename(ULLFieldList2d.ULLFields2d, "fields")
+
+add_method(ULLFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListULL2d")
+set_policy(ULLFieldList2d.extractFieldForNodeListULL2d,
+           return_internal_reference())
+rename(ULLFieldList2d.extractFieldForNodeListULL2d, "fieldForNodeList")
+
+add_method(ULLFieldList2d, "Spheral::FieldSpace::sampleValueFieldListULL2d")
+rename(ULLFieldList2d.sampleValueFieldListULL2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D Scalar FieldList
+#-------------------------------------------------------------------------------
+ScalarFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::Scalar", "ScalarFieldList2d")
+
+add_method(ScalarFieldList2d, "Spheral::FieldSpace::getItemScalarFieldList2d")
+set_policy(ScalarFieldList2d.getItemScalarFieldList2d,
+           return_internal_reference())
+rename(ScalarFieldList2d.getItemScalarFieldList2d, "__getitem__")
+
+add_method(ScalarFieldList2d, "Spheral::FieldSpace::scalarFields2d")
+rename(ScalarFieldList2d.scalarFields2d, "fields")
+
+add_method(ScalarFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListScalar2d")
+set_policy(ScalarFieldList2d.extractFieldForNodeListScalar2d,
+           return_internal_reference())
+rename(ScalarFieldList2d.extractFieldForNodeListScalar2d, "fieldForNodeList")
+
+add_method(ScalarFieldList2d, "Spheral::FieldSpace::sampleValueFieldListScalar2d")
+rename(ScalarFieldList2d.sampleValueFieldListScalar2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D Vector FieldList
+#-------------------------------------------------------------------------------
+VectorFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::Vector", "VectorFieldList2d")
+exclude(VectorFieldList2d.sumElements)
+exclude(VectorFieldList2d.min)
+exclude(VectorFieldList2d.max)
+
+add_method(VectorFieldList2d, "Spheral::FieldSpace::getItemVectorFieldList2d")
+set_policy(VectorFieldList2d.getItemVectorFieldList2d,
+           return_internal_reference())
+rename(VectorFieldList2d.getItemVectorFieldList2d, "__getitem__")
+
+add_method(VectorFieldList2d, "Spheral::FieldSpace::vectorFields2d")
+rename(VectorFieldList2d.vectorFields2d, "fields")
+
+add_method(VectorFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListVector2d")
+set_policy(VectorFieldList2d.extractFieldForNodeListVector2d,
+           return_internal_reference())
+rename(VectorFieldList2d.extractFieldForNodeListVector2d, "fieldForNodeList")
+
+add_method(VectorFieldList2d, "Spheral::FieldSpace::sampleValueFieldListVector2d")
+rename(VectorFieldList2d.sampleValueFieldListVector2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D Vector3d FieldList
+#-------------------------------------------------------------------------------
+Vector3dFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::Vector3d", "Vector3dFieldList2d")
+exclude(Vector3dFieldList2d.sumElements)
+exclude(Vector3dFieldList2d.min)
+exclude(Vector3dFieldList2d.max)
+
+add_method(Vector3dFieldList2d, "Spheral::FieldSpace::getItemVector3dFieldList2d")
+set_policy(Vector3dFieldList2d.getItemVector3dFieldList2d,
+           return_internal_reference())
+rename(Vector3dFieldList2d.getItemVector3dFieldList2d, "__getitem__")
+
+add_method(Vector3dFieldList2d, "Spheral::FieldSpace::vector3dFields2d")
+rename(Vector3dFieldList2d.vector3dFields2d, "fields")
+
+add_method(Vector3dFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListVector3d2d")
+set_policy(Vector3dFieldList2d.extractFieldForNodeListVector3d2d,
+           return_internal_reference())
+rename(Vector3dFieldList2d.extractFieldForNodeListVector3d2d, "fieldForNodeList")
+
+add_method(Vector3dFieldList2d, "Spheral::FieldSpace::sampleValueFieldListVector3d2d")
+rename(Vector3dFieldList2d.sampleValueFieldListVector3d2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D Tensor FieldList
+#-------------------------------------------------------------------------------
+TensorFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::Tensor", "TensorFieldList2d")
+exclude(TensorFieldList2d.sumElements)
+exclude(TensorFieldList2d.min)
+exclude(TensorFieldList2d.max)
+
+add_method(TensorFieldList2d, "Spheral::FieldSpace::getItemTensorFieldList2d")
+set_policy(TensorFieldList2d.getItemTensorFieldList2d,
+           return_internal_reference())
+rename(TensorFieldList2d.getItemTensorFieldList2d, "__getitem__")
+
+add_method(TensorFieldList2d, "Spheral::FieldSpace::tensorFields2d")
+rename(TensorFieldList2d.tensorFields2d, "fields")
+
+add_method(TensorFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListTensor2d")
+set_policy(TensorFieldList2d.extractFieldForNodeListTensor2d,
+           return_internal_reference())
+rename(TensorFieldList2d.extractFieldForNodeListTensor2d, "fieldForNodeList")
+
+add_method(TensorFieldList2d, "Spheral::FieldSpace::sampleValueFieldListTensor2d")
+rename(TensorFieldList2d.sampleValueFieldListTensor2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D SymTensor FieldList
+#-------------------------------------------------------------------------------
+SymTensorFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::SymTensor", "SymTensorFieldList2d")
+exclude(SymTensorFieldList2d.sumElements)
+exclude(SymTensorFieldList2d.min)
+exclude(SymTensorFieldList2d.max)
+
+add_method(SymTensorFieldList2d, "Spheral::FieldSpace::getItemSymTensorFieldList2d")
+set_policy(SymTensorFieldList2d.getItemSymTensorFieldList2d,
+           return_internal_reference())
+rename(SymTensorFieldList2d.getItemSymTensorFieldList2d, "__getitem__")
+
+add_method(SymTensorFieldList2d, "Spheral::FieldSpace::symTensorFields2d")
+rename(SymTensorFieldList2d.symTensorFields2d, "fields")
+
+add_method(SymTensorFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListSymTensor2d")
+set_policy(SymTensorFieldList2d.extractFieldForNodeListSymTensor2d,
+           return_internal_reference())
+rename(SymTensorFieldList2d.extractFieldForNodeListSymTensor2d, "fieldForNodeList")
+
+add_method(SymTensorFieldList2d, "Spheral::FieldSpace::sampleValueFieldListSymTensor2d")
+rename(SymTensorFieldList2d.sampleValueFieldListSymTensor2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 2-D ThirdRankTensor FieldList
+#-------------------------------------------------------------------------------
+ThirdRankTensorFieldList2d = FieldList("Spheral::Dim<2> Spheral::Dim<2>::ThirdRankTensor", "ThirdRankTensorFieldList2d")
+exclude(ThirdRankTensorFieldList2d.sumElements)
+exclude(ThirdRankTensorFieldList2d.min)
+exclude(ThirdRankTensorFieldList2d.max)
+
+add_method(ThirdRankTensorFieldList2d, "Spheral::FieldSpace::getItemThirdRankTensorFieldList2d")
+set_policy(ThirdRankTensorFieldList2d.getItemThirdRankTensorFieldList2d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList2d.getItemThirdRankTensorFieldList2d, "__getitem__")
+
+add_method(ThirdRankTensorFieldList2d, "Spheral::FieldSpace::thirdRankTensorFields2d")
+rename(ThirdRankTensorFieldList2d.thirdRankTensorFields2d, "fields")
+
+add_method(ThirdRankTensorFieldList2d, "Spheral::FieldSpace::extractFieldForNodeListThirdRankTensor2d")
+set_policy(ThirdRankTensorFieldList2d.extractFieldForNodeListThirdRankTensor2d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList2d.extractFieldForNodeListThirdRankTensor2d, "fieldForNodeList")
+
+add_method(ThirdRankTensorFieldList2d, "Spheral::FieldSpace::sampleValueFieldListThirdRankTensor2d")
+rename(ThirdRankTensorFieldList2d.sampleValueFieldListThirdRankTensor2d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D Int FieldList
+#-------------------------------------------------------------------------------
+IntFieldList3d = FieldList("Spheral::Dim<3> int", "IntFieldList3d")
+
+add_method(IntFieldList3d, "Spheral::FieldSpace::getItemIntFieldList3d")
+set_policy(IntFieldList3d.getItemIntFieldList3d,
+           return_internal_reference())
+rename(IntFieldList3d.getItemIntFieldList3d, "__getitem__")
+
+add_method(IntFieldList3d, "Spheral::FieldSpace::intFields3d")
+rename(IntFieldList3d.intFields3d, "fields")
+
+add_method(IntFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListInt3d")
+set_policy(IntFieldList3d.extractFieldForNodeListInt3d,
+           return_internal_reference())
+rename(IntFieldList3d.extractFieldForNodeListInt3d, "fieldForNodeList")
+
+add_method(IntFieldList3d, "Spheral::FieldSpace::sampleValueFieldListInt3d")
+rename(IntFieldList3d.sampleValueFieldListInt3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D ULL FieldList
+#-------------------------------------------------------------------------------
+ULLFieldList3d = FieldList("Spheral::Dim<3> ULL", "ULLFieldList3d")
+
+add_method(ULLFieldList3d, "Spheral::FieldSpace::getItemULLFieldList3d")
+set_policy(ULLFieldList3d.getItemULLFieldList3d,
+           return_internal_reference())
+rename(ULLFieldList3d.getItemULLFieldList3d, "__getitem__")
+
+add_method(ULLFieldList3d, "Spheral::FieldSpace::ULLFields3d")
+rename(ULLFieldList3d.ULLFields3d, "fields")
+
+add_method(ULLFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListULL3d")
+set_policy(ULLFieldList3d.extractFieldForNodeListULL3d,
+           return_internal_reference())
+rename(ULLFieldList3d.extractFieldForNodeListULL3d, "fieldForNodeList")
+
+add_method(ULLFieldList3d, "Spheral::FieldSpace::sampleValueFieldListULL3d")
+rename(ULLFieldList3d.sampleValueFieldListULL3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D Scalar FieldList
+#-------------------------------------------------------------------------------
+ScalarFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::Scalar", "ScalarFieldList3d")
+
+add_method(ScalarFieldList3d, "Spheral::FieldSpace::getItemScalarFieldList3d")
+set_policy(ScalarFieldList3d.getItemScalarFieldList3d,
+           return_internal_reference())
+rename(ScalarFieldList3d.getItemScalarFieldList3d, "__getitem__")
+
+add_method(ScalarFieldList3d, "Spheral::FieldSpace::scalarFields3d")
+rename(ScalarFieldList3d.scalarFields3d, "fields")
+
+add_method(ScalarFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListScalar3d")
+set_policy(ScalarFieldList3d.extractFieldForNodeListScalar3d,
+           return_internal_reference())
+rename(ScalarFieldList3d.extractFieldForNodeListScalar3d, "fieldForNodeList")
+
+add_method(ScalarFieldList3d, "Spheral::FieldSpace::sampleValueFieldListScalar3d")
+rename(ScalarFieldList3d.sampleValueFieldListScalar3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D Vector FieldList
+#-------------------------------------------------------------------------------
+VectorFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::Vector", "VectorFieldList3d")
+exclude(VectorFieldList3d.sumElements)
+exclude(VectorFieldList3d.min)
+exclude(VectorFieldList3d.max)
+
+add_method(VectorFieldList3d, "Spheral::FieldSpace::getItemVectorFieldList3d")
+set_policy(VectorFieldList3d.getItemVectorFieldList3d,
+           return_internal_reference())
+rename(VectorFieldList3d.getItemVectorFieldList3d, "__getitem__")
+
+add_method(VectorFieldList3d, "Spheral::FieldSpace::vectorFields3d")
+rename(VectorFieldList3d.vectorFields3d, "fields")
+
+add_method(VectorFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListVector3d")
+set_policy(VectorFieldList3d.extractFieldForNodeListVector3d,
+           return_internal_reference())
+rename(VectorFieldList3d.extractFieldForNodeListVector3d, "fieldForNodeList")
+
+add_method(VectorFieldList3d, "Spheral::FieldSpace::sampleValueFieldListVector3d")
+rename(VectorFieldList3d.sampleValueFieldListVector3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D Vector3d FieldList
+#-------------------------------------------------------------------------------
+Vector3dFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::Vector3d", "Vector3dFieldList3d")
+exclude(Vector3dFieldList3d.sumElements)
+exclude(Vector3dFieldList3d.min)
+exclude(Vector3dFieldList3d.max)
+
+add_method(Vector3dFieldList3d, "Spheral::FieldSpace::getItemVector3dFieldList3d")
+set_policy(Vector3dFieldList3d.getItemVector3dFieldList3d,
+           return_internal_reference())
+rename(Vector3dFieldList3d.getItemVector3dFieldList3d, "__getitem__")
+
+add_method(Vector3dFieldList3d, "Spheral::FieldSpace::vector3dFields3d")
+rename(Vector3dFieldList3d.vector3dFields3d, "fields")
+
+add_method(Vector3dFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListVector3d3d")
+set_policy(Vector3dFieldList3d.extractFieldForNodeListVector3d3d,
+           return_internal_reference())
+rename(Vector3dFieldList3d.extractFieldForNodeListVector3d3d, "fieldForNodeList")
+
+add_method(Vector3dFieldList3d, "Spheral::FieldSpace::sampleValueFieldListVector3d3d")
+rename(Vector3dFieldList3d.sampleValueFieldListVector3d3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D Tensor FieldList
+#-------------------------------------------------------------------------------
+TensorFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::Tensor", "TensorFieldList3d")
+exclude(TensorFieldList3d.sumElements)
+exclude(TensorFieldList3d.min)
+exclude(TensorFieldList3d.max)
+
+add_method(TensorFieldList3d, "Spheral::FieldSpace::getItemTensorFieldList3d")
+set_policy(TensorFieldList3d.getItemTensorFieldList3d,
+           return_internal_reference())
+rename(TensorFieldList3d.getItemTensorFieldList3d, "__getitem__")
+
+add_method(TensorFieldList3d, "Spheral::FieldSpace::tensorFields3d")
+rename(TensorFieldList3d.tensorFields3d, "fields")
+
+add_method(TensorFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListTensor3d")
+set_policy(TensorFieldList3d.extractFieldForNodeListTensor3d,
+           return_internal_reference())
+rename(TensorFieldList3d.extractFieldForNodeListTensor3d, "fieldForNodeList")
+
+add_method(TensorFieldList3d, "Spheral::FieldSpace::sampleValueFieldListTensor3d")
+rename(TensorFieldList3d.sampleValueFieldListTensor3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D SymTensor FieldList
+#-------------------------------------------------------------------------------
+SymTensorFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::SymTensor", "SymTensorFieldList3d")
+exclude(SymTensorFieldList3d.sumElements)
+exclude(SymTensorFieldList3d.min)
+exclude(SymTensorFieldList3d.max)
+
+add_method(SymTensorFieldList3d, "Spheral::FieldSpace::getItemSymTensorFieldList3d")
+set_policy(SymTensorFieldList3d.getItemSymTensorFieldList3d,
+           return_internal_reference())
+rename(SymTensorFieldList3d.getItemSymTensorFieldList3d, "__getitem__")
+
+add_method(SymTensorFieldList3d, "Spheral::FieldSpace::symTensorFields3d")
+rename(SymTensorFieldList3d.symTensorFields3d, "fields")
+
+add_method(SymTensorFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListSymTensor3d")
+set_policy(SymTensorFieldList3d.extractFieldForNodeListSymTensor3d,
+           return_internal_reference())
+rename(SymTensorFieldList3d.extractFieldForNodeListSymTensor3d, "fieldForNodeList")
+
+add_method(SymTensorFieldList3d, "Spheral::FieldSpace::sampleValueFieldListSymTensor3d")
+rename(SymTensorFieldList3d.sampleValueFieldListSymTensor3d, "__call__")
+
+#-------------------------------------------------------------------------------
+# 3-D ThirdRankTensor FieldList
+#-------------------------------------------------------------------------------
+ThirdRankTensorFieldList3d = FieldList("Spheral::Dim<3> Spheral::Dim<3>::ThirdRankTensor", "ThirdRankTensorFieldList3d")
+exclude(ThirdRankTensorFieldList3d.sumElements)
+exclude(ThirdRankTensorFieldList3d.min)
+exclude(ThirdRankTensorFieldList3d.max)
+
+add_method(ThirdRankTensorFieldList3d, "Spheral::FieldSpace::getItemThirdRankTensorFieldList3d")
+set_policy(ThirdRankTensorFieldList3d.getItemThirdRankTensorFieldList3d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList3d.getItemThirdRankTensorFieldList3d, "__getitem__")
+
+add_method(ThirdRankTensorFieldList3d, "Spheral::FieldSpace::thirdRankTensorFields3d")
+rename(ThirdRankTensorFieldList3d.thirdRankTensorFields3d, "fields")
+
+add_method(ThirdRankTensorFieldList3d, "Spheral::FieldSpace::extractFieldForNodeListThirdRankTensor3d")
+set_policy(ThirdRankTensorFieldList3d.extractFieldForNodeListThirdRankTensor3d,
+           return_internal_reference())
+rename(ThirdRankTensorFieldList3d.extractFieldForNodeListThirdRankTensor3d, "fieldForNodeList")
+
+add_method(ThirdRankTensorFieldList3d, "Spheral::FieldSpace::sampleValueFieldListThirdRankTensor3d")
+rename(ThirdRankTensorFieldList3d.sampleValueFieldListThirdRankTensor3d, "__call__")
+

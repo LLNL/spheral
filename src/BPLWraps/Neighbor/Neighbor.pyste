@@ -1,0 +1,63 @@
+#-------------------------------------------------------------------------------
+# Generic template
+#-------------------------------------------------------------------------------
+Neighbor = Template("Spheral::NeighborSpace::Neighbor",
+                    "ExtendNeighbor.hh")
+
+#-------------------------------------------------------------------------------
+# Excluded methods.
+#-------------------------------------------------------------------------------
+#exclude(Neighbor.masterList)
+#exclude(Neighbor.coarseNeighborList)
+#exclude(Neighbor.refineNeighborList)
+exclude(Neighbor.masterBegin)
+exclude(Neighbor.masterEnd)
+exclude(Neighbor.coarseNeighborBegin)
+exclude(Neighbor.coarseNeighborEnd)
+exclude(Neighbor.refineNeighborBegin)
+exclude(Neighbor.refineNeighborEnd)
+
+#-------------------------------------------------------------------------------
+# Policies
+#-------------------------------------------------------------------------------
+set_policy(Neighbor.masterList, return_internal_reference())
+set_policy(Neighbor.coarseNeighborList, return_internal_reference())
+set_policy(Neighbor.refineNeighborList, return_internal_reference())
+
+set_policy(Neighbor.neighborPtr, return_internal_reference())
+set_policy(Neighbor.nodeList, return_internal_reference())
+set_policy(Neighbor.nodeListPtr, return_internal_reference())
+set_policy(Neighbor.nodeExtentField, return_internal_reference())
+
+#-------------------------------------------------------------------------------
+# 1-D instantiation.
+#-------------------------------------------------------------------------------
+Neighbor1d = Neighbor("Spheral::Dim<1>", "Neighbor1d")
+# add_method(Neighbor1d, "wrapMasterList1d")
+# add_method(Neighbor1d, "wrapCoarseNeighborList1d")
+# add_method(Neighbor1d, "wrapRefineNeighborList1d")
+# rename(Neighbor1d.wrapMasterList1d, "masterList")
+# rename(Neighbor1d.wrapCoarseNeighborList1d, "coarseNeighborList")
+# rename(Neighbor1d.wrapRefineNeighborList1d, "refineNeighborList")
+
+#-------------------------------------------------------------------------------
+# 2-D instantiation.
+#-------------------------------------------------------------------------------
+Neighbor2d = Neighbor("Spheral::Dim<2>", "Neighbor2d")
+# add_method(Neighbor2d, "wrapMasterList2d")
+# add_method(Neighbor2d, "wrapCoarseNeighborList2d")
+# add_method(Neighbor2d, "wrapRefineNeighborList2d")
+# rename(Neighbor2d.wrapMasterList2d, "masterList")
+# rename(Neighbor2d.wrapCoarseNeighborList2d, "coarseNeighborList")
+# rename(Neighbor2d.wrapRefineNeighborList2d, "refineNeighborList")
+
+#-------------------------------------------------------------------------------
+# 3-D instantiation.
+#-------------------------------------------------------------------------------
+Neighbor3d = Neighbor("Spheral::Dim<3>", "Neighbor3d")
+# add_method(Neighbor3d, "wrapMasterList3d")
+# add_method(Neighbor3d, "wrapCoarseNeighborList3d")
+# add_method(Neighbor3d, "wrapRefineNeighborList3d")
+# rename(Neighbor3d.wrapMasterList3d, "masterList")
+# rename(Neighbor3d.wrapCoarseNeighborList3d, "coarseNeighborList")
+# rename(Neighbor3d.wrapRefineNeighborList3d, "refineNeighborList")

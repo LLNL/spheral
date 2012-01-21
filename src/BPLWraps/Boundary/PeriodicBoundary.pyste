@@ -1,0 +1,22 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+Exported("Spheral::DataOutput::Restart")
+
+periodicBoundary = Template("Spheral::BoundarySpace::PeriodicBoundary",
+                            "ExtendPeriodicBoundary.hh")
+
+exclude(periodicBoundary.PeriodicPlanarBoundary)
+exclude(periodicBoundary.addNodeList)
+
+final(periodicBoundary.enterPlane)
+final(periodicBoundary.setEnterPlane)
+final(periodicBoundary.exitPlane)
+final(periodicBoundary.setExitPlane)
+
+set_policy(periodicBoundary.enterPlane, return_internal_reference())
+set_policy(periodicBoundary.exitPlane, return_internal_reference())
+
+periodicBoundary1d = periodicBoundary("Spheral::Dim<1>", "PeriodicBoundary1d")
+periodicBoundary2d = periodicBoundary("Spheral::Dim<2>", "PeriodicBoundary2d")
+periodicBoundary3d = periodicBoundary("Spheral::Dim<3>", "PeriodicBoundary3d")

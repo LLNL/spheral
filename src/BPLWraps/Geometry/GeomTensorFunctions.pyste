@@ -1,0 +1,22 @@
+Include("Geometry/GeomSymmetricTensor.hh")
+module_code("""
+  // min
+  def("min", (Spheral::GeomSymmetricTensor<1> (*)(const double, const Spheral::GeomSymmetricTensor<1>&))&Spheral::min<1>);
+  def("min", (Spheral::GeomSymmetricTensor<1> (*)(const Spheral::GeomSymmetricTensor<1>&, const double))&Spheral::min);
+
+  def("min", (Spheral::GeomSymmetricTensor<2> (*)(const double, const Spheral::GeomSymmetricTensor<2>&))&Spheral::min);
+  def("min", (Spheral::GeomSymmetricTensor<2> (*)(const Spheral::GeomSymmetricTensor<2>&, const double))&Spheral::min);
+
+  def("min", (Spheral::GeomSymmetricTensor<3> (*)(const double, const Spheral::GeomSymmetricTensor<3>&))&Spheral::min);
+  def("min", (Spheral::GeomSymmetricTensor<3> (*)(const Spheral::GeomSymmetricTensor<3>&, const double))&Spheral::min);
+
+  // max
+  def("max", (Spheral::GeomSymmetricTensor<1> (*)(const double, const Spheral::GeomSymmetricTensor<1>&))&Spheral::max<1>);
+  def("max", (Spheral::GeomSymmetricTensor<1> (*)(const Spheral::GeomSymmetricTensor<1>&, const double))&Spheral::max);
+
+  def("max", (Spheral::GeomSymmetricTensor<2> (*)(const double, const Spheral::GeomSymmetricTensor<2>&))&Spheral::max);
+  def("max", (Spheral::GeomSymmetricTensor<2> (*)(const Spheral::GeomSymmetricTensor<2>&, const double))&Spheral::max);
+
+  def("max", (Spheral::GeomSymmetricTensor<3> (*)(const double, const Spheral::GeomSymmetricTensor<3>&))&Spheral::max);
+  def("max", (Spheral::GeomSymmetricTensor<3> (*)(const Spheral::GeomSymmetricTensor<3>&, const double))&Spheral::max);
+""")

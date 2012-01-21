@@ -1,0 +1,24 @@
+Exported("Spheral::DataOutput::Restart")
+av = Template("Spheral::ArtificialViscositySpace::ArtificialViscosity",
+              "ExtendArtificialViscosity.hh")
+
+exclude(av.initialize)
+
+set_policy(av.shearMultiplier, return_internal_reference())
+set_policy(av.sigma, return_internal_reference())
+set_policy(av.gradDivVelocity, return_internal_reference())
+
+final(av.valid)
+
+add_property(av, "Cl", "Cl", "setCl")
+add_property(av, "Cq", "Cq", "setCq")
+add_property(av, "limiter", "limiter", "setLimiter")
+add_property(av, "epsilon2", "epsilon2", "setEpsilon2")
+add_property(av, "negligibleSoundSpeed", "negligibleSoundSpeed", "setNegligibleSoundSpeed")
+add_property(av, "csMultiplier", "csMultiplier", "setCsMultiplier")
+add_property(av, "energyMultiplier", "energyMultiplier", "setEnergyMultiplier")
+add_property(av, "balsaraShearCorrection", "balsaraShearCorrection", "setBalsaraShearCorrection")
+
+av1d = av("Spheral::Dim<1>", "ArtificialViscosity1d")
+av2d = av("Spheral::Dim<2>", "ArtificialViscosity2d")
+av3d = av("Spheral::Dim<3>", "ArtificialViscosity3d")

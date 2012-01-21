@@ -1,0 +1,4 @@
+flatFileIO = Class("Spheral::FileIOSpace::FlatFileIO", "ExtendFlatFileIO.hh")
+
+final(flatFileIO.write)
+final(flatFileIO.read)

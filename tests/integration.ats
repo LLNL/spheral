@@ -1,0 +1,45 @@
+#-------------------------------------------------------------------------------
+# This file contains the acceptance tests for committing changes to the 
+# SolidSpheral code to the main repository.  Please verify these all pass 
+# (using the ATS) before pushing changes to that public repot!
+#-------------------------------------------------------------------------------
+
+# Geometry unit tests
+source("../src/Geometry/tests/testVector.py")
+source("../src/Geometry/tests/testTensor.py")
+source("../src/Geometry/tests/testEigen3d.py")
+source("../src/Geometry/tests/testPolygon.py")
+source("../src/Geometry/tests/testPolyhedron.py")
+
+# CSPH unit tests
+source("../src/CSPH/tests/testInterpolation.py")
+
+# Field unit tests
+source("../src/Field/tests/testField.py")
+
+# Neighbor unit tests
+source("../src/Neighbor/tests/testNestedGridNeighbor.py")
+
+# Distributed unit tests
+source("../src/Distributed/tests/distributedUnitTests.py")
+
+# Test the sampling to lattice method.
+source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice.py")
+
+# FileIO tests
+source("../src/FileIO/tests/testGzipFileIO.py")
+
+# Utilities tests
+source("../src/Utilities/tests/testSegmentSegmentIntersection.py")
+source("../src/Utilities/tests/testDistances3d.py")
+source("../src/Utilities/tests/testSegmentIntersectPolygonEdges.py")
+source("../src/Utilities/tests/testSegmentIntersectPolyhedronEdges.py")
+source("../src/Utilities/tests/testSimpsonsIntegration.py")
+
+# Mesh tests.
+source("../src/Mesh/tests/testLineMesh.py")
+source("../src/Mesh/tests/testPolygonalMesh.py")
+source("../src/Mesh/tests/testPolyhedralMesh.py")
+
+# Hydro tests
+source("Hydro/HydroTests.ats")

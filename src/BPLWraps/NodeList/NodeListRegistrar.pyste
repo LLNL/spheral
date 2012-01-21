@@ -1,0 +1,20 @@
+#-------------------------------------------------------------------------------
+# NodeListRegistrar Template
+#-------------------------------------------------------------------------------
+x = Template("Spheral::NodeListRegistrar", "ExtendNodeListRegistrar.hh")
+
+exclude(x.begin)
+exclude(x.end)
+
+#set_policy(x.instance, return_internal_reference())
+set_policy(x.instance, return_value_policy(reference_existing_object))
+
+add_property(x, "registeredNames", "registeredNames")
+add_property(x, "domainDecompositionIndependent", "domainDecompositionIndependent", "domainDecompositionIndependent")
+
+#-------------------------------------------------------------------------------
+# Instantiations.
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "NodeListRegistrar1d")
+x2d = x("Spheral::Dim<2>", "NodeListRegistrar2d")
+x3d = x("Spheral::Dim<3>", "NodeListRegistrar3d")

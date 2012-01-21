@@ -1,0 +1,10 @@
+physicalConstants = Template("Spheral::Material::PhysicalConstants",
+                             "ExtendUnits.hh")
+
+cgsUnits = physicalConstants("Spheral::Material::CGSUnits")
+mksUnits = physicalConstants("Spheral::Material::MKSUnits")
+cosmologicalUnits = physicalConstants("Spheral::Material::CosmologicalUnits")
+
+rename(cgsUnits, "CGSUnits")
+rename(mksUnits, "MKSUnits")
+rename(cosmologicalUnits, "CosmologicalUnits")

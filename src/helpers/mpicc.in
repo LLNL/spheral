@@ -1,0 +1,7 @@
+#!/bin/sh
+MPICH_CC=@CC@
+MPICH_CLINKER=@CC@
+export MPICH_CC
+export MPICH_CLINKER
+mpicc -cc=@CC@ "$@"
+exit $?
