@@ -220,7 +220,7 @@ class Spheral1dVizDump:
             f.write("#    %s  :  %i\n" % (name, id))
         f.write("#")
         for lab in labels:
-            f.write(" %20s" % lab.replace(" ", "_"))
+            f.write(' "%20s"' % lab)
         f.write("\n")
         return
 
