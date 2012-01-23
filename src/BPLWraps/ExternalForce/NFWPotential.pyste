@@ -1,0 +1,6 @@
+NFWPotential = Template("Spheral::PhysicsSpace::NFWPotential",
+                          "ExtendExternalForce.hh")
+
+NFWPotential1d = NFWPotential("Spheral::Dim<1>")
+
+rename(NFWPotential1d, "NFWPotential1d")

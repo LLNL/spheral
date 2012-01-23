@@ -1,0 +1,11 @@
+#-------------------------------------------------------------------------------
+# Plane
+#-------------------------------------------------------------------------------
+Plane = Template("Spheral::GeomPlane", "ExtendGeomPlane.hh")
+
+set_policy(Plane.point, return_internal_reference())
+set_policy(Plane.normal, return_internal_reference())
+
+Plane1d = Plane("Spheral::Dim<1> ", "Plane1d")
+Plane2d = Plane("Spheral::Dim<2> ", "Plane2d")
+Plane3d = Plane("Spheral::Dim<3> ", "Plane3d")

@@ -1,0 +1,20 @@
+#-------------------------------------------------------------------------------
+# Generic template.
+#-------------------------------------------------------------------------------
+x = Template("Spheral::PhysicsSpace::GenericBodyForce",
+             "ExtendGenericBodyForce.hh")
+
+#-------------------------------------------------------------------------------
+# Excluded methods.
+#-------------------------------------------------------------------------------
+## exclude(x.initialize)
+## exclude(x.finalize)
+exclude(x.applyGhostBoundaries)
+exclude(x.enforceBoundaries)
+
+#-------------------------------------------------------------------------------
+# Instantiations.
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "GenericBodyForce1d")
+x2d = x("Spheral::Dim<2>", "GenericBodyForce2d")
+x3d = x("Spheral::Dim<3>", "GenericBodyForce3d")

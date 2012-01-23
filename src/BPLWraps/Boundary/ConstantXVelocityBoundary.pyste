@@ -1,0 +1,13 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+Exported("Spheral::DataOutput::Restart")
+
+constantXVelocityBoundary = Template("Spheral::BoundarySpace::ConstantXVelocityBoundary",
+                                     "ExtendConstantXVelocityBoundary.hh")
+
+exclude(constantXVelocityBoundary.addNodeList)
+
+constantXVelocityBoundary1d = constantXVelocityBoundary("Spheral::Dim<1>", "ConstantXVelocityBoundary1d")
+constantXVelocityBoundary2d = constantXVelocityBoundary("Spheral::Dim<2>", "ConstantXVelocityBoundary2d")
+constantXVelocityBoundary3d = constantXVelocityBoundary("Spheral::Dim<3>", "ConstantXVelocityBoundary3d")

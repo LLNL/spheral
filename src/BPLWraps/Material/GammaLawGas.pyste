@@ -1,0 +1,27 @@
+gammaLawGas = Template("Spheral::Material::GammaLawGas",
+                       "ExtendGammaLawGas.hh")
+
+final(gammaLawGas.setPressure)
+final(gammaLawGas.setTemperature)
+final(gammaLawGas.setSpecificThermalEnergy)
+final(gammaLawGas.setSpecificHeat)
+final(gammaLawGas.setSoundSpeed)
+final(gammaLawGas.setGammaField)
+final(gammaLawGas.pressure)
+final(gammaLawGas.temperature)
+final(gammaLawGas.specificThermalEnergy)
+final(gammaLawGas.specificHeat)
+final(gammaLawGas.soundSpeed)
+final(gammaLawGas.gamma)
+
+gammaLawGasCGS1d = gammaLawGas("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "GammaLawGasCGS1d")
+gammaLawGasMKS1d = gammaLawGas("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "GammaLawGasMKS1d")
+gammaLawGasCosmological1d = gammaLawGas("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "GammaLawGasCosmological1d")
+
+gammaLawGasCGS2d = gammaLawGas("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "GammaLawGasCGS2d")
+gammaLawGasMKS2d = gammaLawGas("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "GammaLawGasMKS2d")
+gammaLawGasCosmological2d = gammaLawGas("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "GammaLawGasCosmological2d")
+
+gammaLawGasCGS3d = gammaLawGas("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "GammaLawGasCGS3d")
+gammaLawGasMKS3d = gammaLawGas("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "GammaLawGasMKS3d")
+gammaLawGasCosmological3d = gammaLawGas("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "GammaLawGasCosmological3d")

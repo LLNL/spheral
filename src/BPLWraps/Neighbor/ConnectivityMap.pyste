@@ -1,0 +1,20 @@
+#-------------------------------------------------------------------------------
+# Generic template
+#-------------------------------------------------------------------------------
+x = Template("Spheral::NeighborSpace::ConnectivityMap",
+             "ExtendConnectivityMap.hh")
+
+#-------------------------------------------------------------------------------
+# Policies
+#-------------------------------------------------------------------------------
+set_policy(x.connectivityForNodeList, return_internal_reference())
+set_policy(x.connectivityForNode, return_internal_reference())
+set_policy(x.nodeList, return_internal_reference())
+set_policy(x.fluidNodeList, return_internal_reference())
+
+#-------------------------------------------------------------------------------
+# Instantiations.
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "ConnectivityMap1d")
+x2d = x("Spheral::Dim<2>", "ConnectivityMap2d")
+x3d = x("Spheral::Dim<3>", "ConnectivityMap3d")

@@ -1,0 +1,28 @@
+# -*-makefile-*-
+# Spheral++ BPLWraps makefile
+#-------------------------------------------------------------------------------
+PKGNAME = SpheralModules
+PKGDIR = PBGWraps
+PBGMODTARGET = $(PKGNAME).$(SHLIBEXT)
+PBGTARGET = SpheralModulesBindings.py
+INSTALLTARGETS = Spheral.pth
+
+SPHERALTOP = ..
+
+EXTRALIBS = -lvisit_writer -lsiloh5
+
+PYTHONPKGS = @PYTHONPKGS@
+PBGPKGS = @PYTHONPKGS@
+SPHERALMODULES = SpheralModules
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_taumaster
+include $(SPHERALTOP)/helpers/makefile_master
+
+#-------------------------------------------------------------------------------
+CP = cp
+
+force_build:
+
+Spheral.pth:	force_build
+	cp -f Spheral.pth $(LIBDIR)/..

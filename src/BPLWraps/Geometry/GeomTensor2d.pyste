@@ -1,0 +1,24 @@
+#-------------------------------------------------------------------------------
+# 2-D Tensor template
+#-------------------------------------------------------------------------------
+execfile("GeomTensor.pyste")
+
+add_property(Tensor, "xy", "xy", "xy")
+add_property(Tensor, "yx", "yx", "yx")
+add_property(Tensor, "yy", "yy", "yy")
+
+Tensor2d = Tensor("2 FullTensorType", "GeomTensor2d")
+
+add_method(Tensor2d, "indexTensor2d")
+rename(Tensor2d.indexTensor2d, "__call__")
+
+add_method(Tensor2d, "printTensor2d")
+rename(Tensor2d.printTensor2d, "__str__")
+
+SymTensor2d = Tensor("2 SymmetricTensorType", "SymGeomTensor2d")
+
+add_method(SymTensor2d, "indexSymTensor2d")
+rename(SymTensor2d.indexSymTensor2d, "__call__")
+
+add_method(SymTensor2d, "printSymTensor2d")
+rename(SymTensor2d.printSymTensor2d, "__str__")

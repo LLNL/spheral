@@ -1,0 +1,31 @@
+polytrope = Template("Spheral::Material::IsothermalEquationOfState",
+                     "ExtendIsothermalEquationOfState.hh")
+
+add_property(polytrope, "K", "K")
+add_property(polytrope, "molecularWeight", "molecularWeight")
+add_property(polytrope, "externalPressure", "externalPressure", "setExternalPressure")
+
+final(polytrope.setPressure)
+final(polytrope.setTemperature)
+final(polytrope.setSpecificThermalEnergy)
+final(polytrope.setSpecificHeat)
+final(polytrope.setSoundSpeed)
+final(polytrope.setGammaField)
+final(polytrope.pressure)
+final(polytrope.temperature)
+final(polytrope.specificThermalEnergy)
+final(polytrope.specificHeat)
+final(polytrope.soundSpeed)
+final(polytrope.gamma)
+
+polytropeCGS1d = polytrope("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "IsothermalEquationOfStateCGS1d")
+polytropeMKS1d = polytrope("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "IsothermalEquationOfStateMKS1d")
+polytropeCosmological1d = polytrope("Spheral::Dim<1> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "IsothermalEquationOfStateCosmological1d")
+
+polytropeCGS2d = polytrope("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "IsothermalEquationOfStateCGS2d")
+polytropeMKS2d = polytrope("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "IsothermalEquationOfStateMKS2d")
+polytropeCosmological2d = polytrope("Spheral::Dim<2> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "IsothermalEquationOfStateCosmological2d")
+
+polytropeCGS3d = polytrope("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::CGSUnits>", "IsothermalEquationOfStateCGS3d")
+polytropeMKS3d = polytrope("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::MKSUnits>", "IsothermalEquationOfStateMKS3d")
+polytropeCosmological3d = polytrope("Spheral::Dim<3> Spheral::Material::PhysicalConstants<Spheral::Material::CosmologicalUnits>", "IsothermalEquationOfStateCosmological3d")
