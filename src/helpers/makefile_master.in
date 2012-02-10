@@ -49,6 +49,7 @@ TAUARCH = @TAUARCH@
 PYSTE = $(PYSTEPATH)/pyste.py
 HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
 BPLINCS = @BPLINCS@
+HDF5FLAGS = @HDF5FLAGS@
 
 UTILDIR = $(SRCTOP)/Utilities
 HDFINCDIR = /usr/local/Spheral++/include
