@@ -345,7 +345,6 @@ idealSmoothingScale(const SymTensor& H,
     CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
 
     // Compute the new vote for the ideal shape.
-    CHECK(psi.Determinant() > 0.0);
     H1hat = psi.Inverse();
 //     H1hat = psi.sqrt() / sqrt(Dimension::rootnu(psi.Determinant()) + 1.0e-80);
     CHECK(fuzzyEqual(H1hat.Determinant(), 1.0, tolerance));
