@@ -38,7 +38,7 @@ findEigenValues3(const TensorType& tin) {
   const double b = onetwentyseventh*(-2.0*c2*c2*c2 + 9.0*c1*c2) - c0;
   const double Q = 0.25*b*b + onetwentyseventh*a*a*a;
 
-  const double x = onethird*(t.Trace());
+  const double x = onethird*c2;
   const TensorType diff = t - x*TensorType::one;
   if (fuzzyEqual(sqrt(diff.doubledot(diff)), 0.0, tol)) {
 
