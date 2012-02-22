@@ -225,9 +225,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = 3.0.2.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/$(EIGENDIST)
-EIGENDIR = eigen-eigen-3.0.2
+EIGENDIST = Eigen-3.0.5.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.0.5.tar.bz2
+EIGENDIR = eigen-eigen-6e7488e20373
 EIGENBUILDDATE = .eigen.date
 
 # Voro++
@@ -1115,8 +1115,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libhdf5.a -a \
-	           -e $(SPHERALDIR)/include/hdf5.h -a \
-	           -e $(SPHERALDIR)/lib/libhdf5.$(DYLIBEXT); then \
+	           -e $(SPHERALDIR)/include/hdf5.h; then \
 	echo "ERROR building HDF5."; \
 	rm -f $(HDF5BUILDDATE); \
 	exit 1; \
