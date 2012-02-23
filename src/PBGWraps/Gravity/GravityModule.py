@@ -90,9 +90,26 @@ class Gravity:
 
         # Constructors.
         x.add_constructor([param("double", "plummerSofteningLength"),
-                           param("double", "maxDeltaVelocity")])
+                           param("double", "maxDeltaVelocity"),
+                           param("double", "G")])
 
         # Methods.
+        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
+                                                   param("const double", "dt"),
+                                                   constrefparam(database, "dataBase"),
+                                                   constrefparam(state, "state"),
+                                                   refparam(derivatives, "derivatives")],
+                     is_const=True, is_virtual=True)
+        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
+                                                  constrefparam(state, "state"),
+                                                  constrefparam(derivatives, "derivatives"),
+                                                  param("double", "time")],
+                     is_const=True, is_virtual=True)
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
         const_ref_return_value(x, me, "%s::potential" % me, scalarfieldlist, [], "potential")
+
+        # Attributes.
+        x.add_instance_attribute("G", "double", getter="G", is_const=True)
+        x.add_instance_attribute("softeningLength", "double", getter="softeningLength", setter="softeningLength")
 
         return

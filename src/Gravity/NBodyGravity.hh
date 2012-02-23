@@ -33,8 +33,9 @@ public:
   //! Constructor.
   //! \param plummerSofteningLength -- The Plummer Softening Length for the model.
   //! \param maxDeltaVelocity -- Maximum factor by which the velocity can be changed by an acceleration per timestep.
-  NBodyGravity(double plummerSofteningLength,
-               double maxDeltaVelocity);
+  NBodyGravity(const double plummerSofteningLength,
+               const double maxDeltaVelocity,
+               const double G);
 
   //! Destructor.
   virtual ~NBodyGravity();
@@ -53,12 +54,8 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
-  //! Make sure that Gadget's internal state is initialized before cycling.
-  virtual void initialize(const Scalar& time, 
-                          const Scalar& dt,
-                          const DataBaseSpace::DataBase<Dimension>& db, 
-                          State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs);
+  //! Initializations on problem start up.
+  virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
 
   //! Return the total energy contribution due to the gravitational potential.
   virtual Scalar extraEnergy() const;
@@ -68,6 +65,13 @@ public:
 
   //! Test if the package is valid, i.e., ready to use.
   virtual bool valid() const;
+
+  //! The gravitational constant we're using.
+  double G() const;
+
+  //! The current softening length.
+  double softeningLength() const;
+  void softeningLength(const double x);
 
 private:
   
@@ -88,6 +92,9 @@ private:
 
   //! The Plummer softening length.
   Scalar mSofteningLength;
+  
+  //! The gravitational constant.
+  Scalar mG;
   
   // Default constructor -- disabled.
   NBodyGravity();
