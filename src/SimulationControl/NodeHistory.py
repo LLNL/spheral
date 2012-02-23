@@ -52,7 +52,7 @@ class NodeHistory(Spheral.RestartableObject):
 
             # Write the optional header string.
             if header:
-                self.file.write(header)
+                self.file.write(header + "\n")
 
             # Write the optional label line
             if labels:
