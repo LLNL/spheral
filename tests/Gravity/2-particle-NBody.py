@@ -156,7 +156,10 @@ def sampleMethod(nodes, indices):
 
 sampleNodes = [0, 1]  # We're going to sample both of our nodes!
 history = NodeHistory(nodes, sampleNodes, sampleMethod,
-                      os.path.join(dataDir, "node_history.txt"))
+                      os.path.join(dataDir, "node_history.txt"),
+                      header = "# Orbit history of a 2 earth (no sun) system.",
+                      labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
+                                "m1", "x1", "y1", "z1", "vx1", "vy1", "vz1"))
 control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
