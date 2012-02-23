@@ -349,6 +349,7 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
+	$(MPICXX) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
 	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(LIBDIR)
 
