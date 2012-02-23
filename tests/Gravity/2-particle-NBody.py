@@ -1,163 +1,192 @@
-from Spheral import *
+#-------------------------------------------------------------------------------
+# Set up a pair of equal mass N-body points in a simple circular orbit of each
+# other.
+#-------------------------------------------------------------------------------
+from Spheral3d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
+from NodeHistory import *
+from SpheralVisitDump import dumpPhysicsState
 from math import *
+
+print "3-D N-Body Gravity test -- two particle problem"
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
-    # Particle positions.
-    r1 = Vector3d(-1.0, 0.0, 0.0),
-    r2 = Vector3d(1.0, 0.0, 0.0),
 
-    # Particle velocities.  We want a circular orbit.
-    v = sqrt(6.672e-8/4.0),
+    # Initial particle stuff
+    r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
+    m0 = 1.0,                     # (earth masses) particle mass
+    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
 
-    # Particle H tensors.
-    H1 = SymTensor3d(100.0, 0.0, 0.0,
-                     0.0, 100.0, 0.0,
-                     0.0,   0.0, 100.0),
-    H2 = SymTensor3d(100.0, 0.0, 0.0,
-                     0.0, 100.0, 0.0,
-                     0.0,   0.0, 100.0),
+    # Problem control
+    numOrbits = 2,                 # How many orbits do we want to follow?
 
-    gamma = 5.0/3.0,
-    mu = 1.0,
-    Cl = 1.0,
-    Cq = 0.75,
-    epsilon2 = 1e-8,
-    HsmoothMin = 0.004,
-    HsmoothMax = 0.5,
-    HsmoothFraction = 0.0,
-    cfl = 0.5,
-
-    neighborSearchType = Neighbor3d.NeighborSearchType.GatherScatter,
-    numGridLevels = 16,
-    topGridCellSize = 0.5,
-    origin = Vector3d(0.0, 0.0, 0.0),
+    # Output
+    dataDir = "Two-Earth-Nbody",
+    baseName = "2_particle_nbody",
+    restoreCycle = None,
+    restartStep = 100,
+    numViz = 100,
     )
 
-v1 = Vector3d(0.0, -v, 0.0)
-v2 = Vector3d(0.0, v, 0.0)
-orbitTime = 2*pi/v
+# Convert to MKS units.
+AU = 149597870700.0  # m
+Mearth = 5.9722e24   # kg
+r0 *= AU
+m0 *= Mearth
+plummerLength *= AU
+
+# Compute the velocity necessary for a circular orbit.
+G = MKS().G
+a = 2*r0
+M = 2*m0
+orbitTime = 2.0*pi*sqrt(a**3/(G*M))
+v0 = 2.0*pi*r0/orbitTime
+
+# Miscellaneous problem control parameters.
 dt = orbitTime / 90
-goalTime = orbitTime * 2
-dtMin, dtMax = dt, dt
+goalTime = orbitTime * numOrbits
+dtMin, dtMax = 0.1*dt, 100.0*dt
 dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
 smoothIters = 0
+vizTime = goalTime / numViz
 
-restoreCycle = 0
-restartStep = 40
-restartBaseName = "2-particle-Gravity"
+restartDir = os.path.join(dataDir, "restarts")
+visitDir = os.path.join(dataDir, "visit")
+restartBaseName = os.path.join(restartDir, baseName + "_restart")
 
 #-------------------------------------------------------------------------------
-title('3-D N-Body Gravity test -- two particle problem')
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+    if not os.path.exists(visitDir):
+        os.makedirs(visitDir)
+mpi.barrier()
 
-# Set the table kernel.
-WT = TableKernel3d(BSplineKernel3d(), 1000)
-output('WT')
+#-------------------------------------------------------------------------------
+# For now we have set up a fluid node list, even though this is collisionless
+# problem.  Fix at some point!
+# In the meantime, set up the hydro objects this script isn't really going to
+# need.
+#-------------------------------------------------------------------------------
+WT = TableKernel(BSplineKernel(), 1000)
+eos = GammaLawGasCGS3d(gamma = 5.0/3.0, mu = 1.0)
 
-# Make an equation of state.
-eos = GammaLawGasCGS3d(gamma, mu)
+#-------------------------------------------------------------------------------
+# Make the NodeList, and set our initial properties.
+#-------------------------------------------------------------------------------
+nodes = makeFluidNodeList("nodes", eos,
+                          numInternal = 2,
+                          topGridCellSize = 100*r0)
+mass = nodes.mass()
+pos = nodes.positions()
+vel = nodes.velocity()
 
-# Create an empty NodeList
-nodes1 = SphNodeList3d("nodes1", eos, WT, WT, 2)
-output('nodes1')
-nodes1.HsmoothFraction = HsmoothFraction
+mass[0] = m0
+mass[1] = m0
 
-# Set particle positions, velocities, and H tensors.
-nodes1.positions()[0] = r1
-nodes1.velocity()[0] = v1
-nodes1.Hfield()[0] = H1
-nodes1.positions()[1] = r2
-nodes1.velocity()[1] = v2
-nodes1.Hfield()[1] = H2
+pos[0] = Vector(-r0, 0.0, 0.0)
+pos[1] = Vector( r0, 0.0, 0.0)
 
-# Manually initialize the mass density for the nodes.
-nodes1.massDensity()[0] = 1.0
-nodes1.mass()[0] = 1.0
-nodes1.massDensity()[1] = 1.0
-nodes1.mass()[1] = 1.0
+vel[0] = Vector(0.0, -v0, 0.0)
+vel[1] = Vector(0.0,  v0, 0.0)
 
-# Construct the neighbor object and associate it with the node list.
-neighbor1 = NestedGridNeighbor3d(nodes1,
-                                 neighborSearchType,
-                                 numGridLevels,
-                                 topGridCellSize,
-                                 origin,
-                                 2) # Kernel extent (sans Kernel... :-P)
-nodes1.registerNeighbor(neighbor1)
+# These are fluid variables we shouldn't need.  Just set them to valid values.
+H = nodes.Hfield()
+rho = nodes.massDensity()
+H[0] = r0*SymTensor.one
+H[1] = r0*SymTensor.one
+rho[0] = 1.0
+rho[1] = 1.0
 
-# Note: No boundary conditions.
+#-------------------------------------------------------------------------------
+# DataBase
+#-------------------------------------------------------------------------------
+db = DataBase()
+db.appendNodeList(nodes)
 
-# Construct a DataBase to hold our node list
-db = DataBase3d()
-output('db')
-output('db.appendNodeList(nodes1)')
-output('db.numNodeLists')
-output('db.numFluidNodeLists')
-
+#-------------------------------------------------------------------------------
 # Gimme gravity.
-plummerLength = 0.001
-dvMax = 2.0
-gravity = NBodyGravity3d(plummerLength, dvMax)
+#-------------------------------------------------------------------------------
+gravity = NBodyGravity(plummerSofteningLength = plummerLength,
+                       maxDeltaVelocity = 1e-2*v0,
+                       G = G)
 
-# Construct a synchronous RK2 integrator, and add the physics package.
-integrator = PredictorCorrectorIntegrator3d(db)
-output('integrator')
+#-------------------------------------------------------------------------------
+# Construct a time integrator.
+#-------------------------------------------------------------------------------
+integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
-output('integrator.havePhysicsPackage(gravity)')
-output('integrator.valid()')
-integrator.lastDt = dt
-output('integrator.lastDt')
+integrator.lastDt = 1e3    # seconds
 if dtMin:
     integrator.dtMin = dtMin
-    output('integrator.dtMin')
 if dtMax:
     integrator.dtMax = dtMax
-    output('integrator.dtMax')
 integrator.dtGrowth = dtGrowth
-output('integrator.dtGrowth')
 
+#-------------------------------------------------------------------------------
+# Build the problem controller to follow the problem evolution.
+#-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
-output('control')
+                            restartBaseName = restartBaseName,
+                            vizBaseName = os.path.join(visitDir, baseName),
+                            vizTime = vizTime,
+                            vizMethod = dumpPhysicsState)
 
-# Smooth the initial conditions.
+#-------------------------------------------------------------------------------
+# Build a diagnostic to maintain the history of our points.
+#-------------------------------------------------------------------------------
+def sampleMethod(nodes, indices):
+    m = nodes.mass()
+    pos = nodes.positions()
+    vel = nodes.velocity()
+    assert nodes.numInternalNodes == 2
+    return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z, 
+            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z)
+
+sampleNodes = [0, 1]  # We're going to sample both of our nodes!
+history = NodeHistory(nodes, sampleNodes, sampleMethod,
+                      os.path.join(dataDir, "node_history.txt"))
+control.appendPeriodicTimeWork(history.sample, vizTime)
+
+#-------------------------------------------------------------------------------
+# If we're restarting, read in the restart file.
+#-------------------------------------------------------------------------------
 if restoreCycle:
     control.loadRestartFile(restoreCycle)
-else:
-    control.smoothState(smoothIters)
 
-##################################################################################
+#-------------------------------------------------------------------------------
 # Advance to the end time.
-position1 = []
-position2 = []
-for t in xrange(0, 100):
-    control.advance(goalTime, 1)
-    position1.append(Vector3d(nodes1.positions()[0]))
-    position2.append(Vector3d(nodes1.positions()[1]))
+#-------------------------------------------------------------------------------
+control.advance(goalTime)
 
 # Plot the final state.
+x1 = [stuff[1]/AU for stuff in history.sampleHistory]
+y1 = [stuff[2]/AU for stuff in history.sampleHistory]
+x2 = [stuff[8]/AU for stuff in history.sampleHistory]
+y2 = [stuff[9]/AU for stuff in history.sampleHistory]
+
 import Gnuplot
-gdata1 = Gnuplot.Data([r.x for r in position1],
-                      [r.y for r in position1],
-                      with = 'linespoints',
+gdata1 = Gnuplot.Data(x1, y1,
+                      with_ = 'linespoints',
                       title = 'Particle 1')
-gdata2 = Gnuplot.Data([r.x for r in position2],
-                      [r.y for r in position2],
-                      with = 'linespoints',
+gdata2 = Gnuplot.Data(x2, y2,
+                      with_ = 'linespoints',
                       title = 'Particle 2')
 plot = Gnuplot.Gnuplot()
 plot.plot(gdata1)
 plot.replot(gdata2)
-plot('set size square')
+plot('set size square; set xrange [-1.1:1.1]; set yrange [-1.1:1.1]')
 plot.xlabel = 'x'
 plot.ylabel = 'y'
 plot.refresh()
-

@@ -21,7 +21,8 @@ PYTHONTARGETS = \
 	findLastRestart.py \
 	Pnorm.py \
 	numericalIntegration.py \
-	newtonRaphson.py
+	newtonRaphson.py \
+	NodeHistory.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
