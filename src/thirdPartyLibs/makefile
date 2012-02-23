@@ -16,6 +16,7 @@ MV = mv
 PATCH = patch
 MKDIR = mkdir -p
 CURL = curl -L
+AR = ar
 
 #-------------------------------------------------------------------------------
 # Targets.
@@ -153,13 +154,13 @@ ATSDIR = $(ATSDIST:.tar.gz=)
 ATSBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ATSDIST))
 
 # FFTW
-FFTWDIST = fftw-3.2.2.tar.gz
-FFTWURL = http://www.fftw.org/fftw-3.2.2.tar.gz
+FFTWDIST = fftw-3.3.tar.gz
+FFTWURL = http://www.fftw.org/$(FFTWDIST)
 FFTWDIR = $(FFTWDIST:.tar.gz=)
 FFTWBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWDIST))
 
 # FFTW++
-FFTWPPDIST = fftw++-1.08.tar.gz
+FFTWPPDIST = fftw++-1.09.tar.gz
 FFTWPPURL = http://sourceforge.net/projects/fftwpp/files/$(FFTWPPDIST)/download
 FFTWPPDIR = $(FFTWPPDIST:.tar.gz=)
 FFTWPPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWPPDIST))
@@ -864,29 +865,6 @@ $(FFTWBUILDDATE):	$(FFTWDIST)
 	touch $(FFTWBUILDDATE)
 
 #-------------------------------------------------------------------------------
-# FFTW++ interface
-#-------------------------------------------------------------------------------
-$(FFTWPPDIST):
-	$(CURL) "$(FFTWPPURL)" > $(FFTWPPDIST)
-
-$(FFTWPPBUILDDATE):	$(FFTWPPDIST)
-	@echo "################################################################################"
-	@echo "# Building $(FFTWPPDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
-	rm -fr $(FFTWPPDIR)
-	$(GZIP) -dc $(FFTWPPDIST) | $(TAR) -xf -
-	$(CP) -f $(FFTWPPDIR)/fftw++.h $(SPHERALDIR)/include
-	$(CP) -f $(FFTWPPDIR)/fftw++.cc $(SPHERALTOP)/FractalGravity
-	@if ! test -e $(SPHERALDIR)/include/fftw++.h -a \
-	           -e $(SPHERALTOP)/FractalGravity/fftw++.cc; then \
-	echo "ERROR building FFTW++."; \
-	exit 1; \
-	fi
-	rm -fr $(FFTWPPBUILDDATE) $(FFTWPPDIR)
-	touch $(FFTWPPBUILDDATE)
-
-#-------------------------------------------------------------------------------
 # ARRAY class for use in fftw++
 #-------------------------------------------------------------------------------
 $(ARRAYDIST):
@@ -897,12 +875,39 @@ $(ARRAYBUILDDATE):	$(ARRAYDIST)
 	@echo "# Building $(ARRAYDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(SPHERALDIR)/include
+	$(PATCH) $(ARRAYDIST) Array_h.patch
 	$(CP) -f $(ARRAYDIST) $(SPHERALDIR)/include
 	@if ! test -e $(SPHERALDIR)/include/$(ARRAYDIST); then \
 	echo "ERROR building ARRAY."; \
 	exit 1; \
 	fi
 	touch $(ARRAYBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# FFTW++ interface
+#-------------------------------------------------------------------------------
+$(FFTWPPDIST):
+	$(CURL) "$(FFTWPPURL)" > $(FFTWPPDIST)
+
+$(FFTWPPBUILDDATE):	$(FFTWPPDIST) $(ARRAYBUILDDATE)
+	@echo "################################################################################"
+	@echo "# Building $(FFTWPPDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(SPHERALDIR)/include
+	rm -fr $(FFTWPPDIR)
+	$(GZIP) -dc $(FFTWPPDIST) | $(TAR) -xf -
+	$(SHELL) -ec 'cd $(FFTWPPDIR); \
+	$(CXX) $(CXXFLAGS) -c -o fftw++.o fftw++.cc; \
+	$(AR) rcs libfftw++.a fftw++.o'
+	$(CP) -f $(FFTWPPDIR)/fftw++.h $(SPHERALDIR)/include
+	$(CP) -f $(FFTWPPDIR)/libfftw++.a $(SPHERALDIR)/lib
+	@if ! test -e $(SPHERALDIR)/include/fftw++.h -a \
+	           -e $(SPHERALDIR)/lib/libfftw++.a; then \
+	echo "ERROR building FFTW++."; \
+	exit 1; \
+	fi
+	rm -fr $(FFTWPPBUILDDATE) $(FFTWPPDIR)
+	touch $(FFTWPPBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # ZLIB

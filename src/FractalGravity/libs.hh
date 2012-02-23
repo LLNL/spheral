@@ -11,3 +11,4 @@
 #include "Array.h"
 #include "fftw++.h"
 using namespace std;
+using namespace Array;

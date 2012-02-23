@@ -129,19 +129,12 @@ CXXPKGLIBS = @CXXPKGLIBS@
 # CXXPKGLIBS = $(filter-out SimulationControl, $(CXXPKGS))
 PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 
-IMPPKGS =    $(CXXPKGLIBS)
-IMPFLAGS =   $(patsubst %, @LDPASSTHROUGH@ -bI:$(LIBDIR)/lib%.imp, $(filter-out $(PKGNAME), $(IMPPKGS)))
-
 #-------------------------------------------------------------------------------
 # Pybindgen stuff
 PYTHONBINDING = @PYTHONBINDING@
-IMPMODS =    @IMPMODS@
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   EXTRAINCLUDES += -I$(SPHERALDIR)/include/python$(PYTHONVERSION)
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
-  IMPMODFILES = $(patsubst %, %.imp, $(FILTEREDPYTHONPKGS))
-  LIBIMPMODFILES = $(patsubst %, $(LIBDIR)/%, $(IMPMODFILES))
-  PKGIMPMODFILES = $(join $(FILTEREDPYTHONPKGS), $(patsubst %, /%, $(IMPMODFILES)))
 
   PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS))
   PBGOBJS = $(PBGSRCS:.C=.o)
@@ -159,11 +152,6 @@ else
 # BPL stuff
   BPLPKGS = @PYTHONPKGS@
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
-  IMPMODFILES = $(patsubst %, %.imp, $(FILTEREDPYTHONPKGS))
-  LIBIMPMODFILES = $(patsubst %, $(LIBDIR)/%, $(IMPMODFILES))
-  PKGIMPMODFILES = $(join $(FILTEREDPYTHONPKGS), $(patsubst %, /%, $(IMPMODFILES)))
-
-  IMPMODFLAGS = $(patsubst %, @LDPASSTHROUGH@ -bI:$(LIBDIR)/lib%.imp, $(IMPPKGS)) $(patsubst %, @LDPASSTHROUGH@ -bI:%, $(LIBIMPMODFILES)) @LDPASSTHROUGH@ -bI:$(LIBDIR)/libboost_python.imp @LDPASSTHROUGH@ -bI:$(LIBDIR)/../../config/python.exp
   PYSTEBASES = $(PYSTETARGETS:.pyste=)
   GENERATEDPYSTECPPS = $(patsubst %, $(PKGNAME)/_%.cpp, $(PYSTEBASES))
   PYSTECPPS = $(patsubst %, .$(PKGNAME)/%, $(PYSTETARGETS:.pyste=.cpp))
@@ -176,10 +164,6 @@ endif
 #-------------------------------------------------------------------------------
 # Set up out special handling for AIX.
 SYSNAME = $(shell uname -s)
-#ifneq "$(SYSNAME)" "AIX"
-IMPFLAGS=
-IMPMODFLAGS=
-#endif
 AIXSHELL=@AIXSHELL@
 CONFIG_SHELL=@CONFIG_SHELL@
 
@@ -218,11 +202,6 @@ force_build:
 
 %.o: %.cc
 	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
-
-%.imp:	$(OBJS) $(PYFFLEOBJS) $(PYSTEOBJS)
-	@mkdir -p $(LIBDIR)
-	$(MAKEIMPORTFILE) $* $(OBJS) $(PYFFLEOBJS) $(PYSTEOBJS)
-	cp -f $*.imp $(LIBDIR)
 
 %.o: %.f
 	$(F77) $(F77FLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
@@ -298,46 +277,22 @@ ifneq "$(PBGTARGET)" ""
 #-include $(PBGTARGET:.py=.d)
 endif
 
-ifneq "$(PYFFLEMODTARGET)" ""
-MODIMPTARGET = $(PYFFLEMODTARGET:.$(SHLIBEXT)=.imp)
-endif
-
-ifneq "$(LIBTARGET)" ""
-LIBIMPTARGET = $(LIBTARGET:.$(DYLIBEXT)=.imp)
-endif
-
-ifneq "$(THIRDPARTYLIBTARGET)" ""
-LIBIMPTARGET = $(THIRDPARTYLIBTARGET:.$(DYLIBEXT)=.imp)
-endif
-
-ifneq "$(MODTARGET)" ""
-MODIMPTARGET = $(MODTARGET:.$(SHLIBEXT)=.imp)
-endif
-
-ifneq "$(BPLMODTARGET)" ""
-BPLMODIMPTARGET = $(BPLMODTARGET:.$(SHLIBEXT)=.imp)
-endif
-
-ifneq "$(PBGMODTARGET)" ""
-PBGMODIMPTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.imp)
-endif
-
 #-------------------------------------------------------------------------------
-$(LIBTARGET): $(LIBIMPTARGET) $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
+$(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "################################################################################"
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(IMPFLAGS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
-$(THIRDPARTYLIBTARGET): $(LIBIMPTARGET) $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
+$(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "################################################################################"
 	@echo "# Building library $(THIRDPARTYLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(THIRDPARTYLIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(IMPFLAGS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(THIRDPARTYLIBTARGET) $(THIRDPARTYLIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -359,41 +314,21 @@ $(PYSTEDATE): $(PYSTETARGETS)
 	done'
 	touch $(PYSTEDATE)
 
-$(MODIMPTARGET): $(BPLOBJS) $(OBJS) $(PYSTEDATE)
-	@echo "################################################################################"
-	@echo "# Building export symbol file $(MODIMPTARGET)"
-	@echo "################################################################################"
-	mkdir -p $(LIBDIR)
-	$(MAKE) $(PYSTEOBJS)
-	$(SHELL) -ec 'export PATH=$(SPHERALDIR)/bin:$$PATH; \
-	env GCCXML_COMPILER=$(GCCXMLCXX) $(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --out=.$(PKGNAME) --multiple --generate-main $(PYSTETARGETS)'
-	$(MAKE) .$(PKGNAME)/_main.o
-	$(MAKEIMPORTFILE) $(PKGNAME) $(OBJS) $(BPLOBJS) $(PYSTEOBJS)
-	cp -f $(MODIMPTARGET) $(LIBDIR)
-
-$(MODTARGET): $(MODIMPTARGET)
+$(MODTARGET): $(BPLOBJS) $(OBJS) $(PYSTEDATE)
 	@echo "################################################################################"
 	@echo "# Building module $(MODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(IMPMODFLAGS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(MODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
-$(BPLMODIMPTARGET): $(BPLOBJS) $(OBJS)
-	@echo "################################################################################"
-	@echo "# Building export symbol file $(BPLMODIMPTARGET)"
-	@echo "################################################################################"
-	mkdir -p $(LIBDIR)
-	$(MAKEIMPORTFILE) $(PKGNAME) $(OBJS) $(BPLOBJS)
-	cp -f $(BPLMODIMPTARGET) $(LIBDIR)
-
-$(BPLMODTARGET): $(BPLMODIMPTARGET)
+$(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(BPLMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(IMPMODFLAGS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(BPLMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -409,21 +344,12 @@ $(PBGSRCS):	$(PBGTARGETDATE)
 
 $(PBGOBJS):	$(PBGSRCS)
 
-$(PBGMODIMPTARGET): $(PBGOBJS)
-	@echo "################################################################################"
-	@echo "# Building export symbol file $(PBGMODIMPTARGET)"
-	@echo "################################################################################"
-	mkdir -p $(LIBDIR)
-	$(MPICXX) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MAKEIMPORTFILE) $(PKGNAME) $(OBJS) $(PBGOBJS) $(PBGMODOBJ)
-	cp -f $(PBGMODIMPTARGET) $(LIBDIR)
-
-$(PBGMODTARGET): $(PBGMODIMPTARGET)
+$(PBGMODTARGET): $(PBGOBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(IMPMODFLAGS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -447,7 +373,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(LIBIMPTARGET) $(MODIMPTARGET) $(PBGMODIMPTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(F77TARGETS:.f=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(F77TARGETS:.f=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:
