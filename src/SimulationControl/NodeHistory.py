@@ -11,7 +11,9 @@ class NodeHistory(Spheral.RestartableObject):
                  nodeList,
                  nodeIndicies,
                  sampleMethod,
-                 filename):
+                 filename,
+                 header = None,
+                 labels = None):
         Spheral.RestartableObject.__init__(self)
         self.nodeList = nodeList
         self.nodeIndicies = nodeIndicies
@@ -47,6 +49,14 @@ class NodeHistory(Spheral.RestartableObject):
         if mpi.rank == 0:
             self.file = open(self.filename, "w")
             assert self.file is not None
+
+            # Write the optional header string.
+            if header:
+                self.file.write(header)
+
+            # Write the optional label line
+            if labels:
+                self.file.write(("# " + ((len(labels) + 2)*'"%20s" ') + "\n") % (("cycle", "time") + labels))
 
         return
 
