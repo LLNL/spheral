@@ -20,3 +20,4 @@ namespace Array {
 #include "fftw++.h"
 using namespace std;
 using namespace Array;
+using namespace fftwpp;
