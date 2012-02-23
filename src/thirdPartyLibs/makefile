@@ -875,7 +875,6 @@ $(ARRAYBUILDDATE):	$(ARRAYDIST)
 	@echo "# Building $(ARRAYDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(SPHERALDIR)/include
-	$(PATCH) $(ARRAYDIST) Array_h.patch
 	$(CP) -f $(ARRAYDIST) $(SPHERALDIR)/include
 	@if ! test -e $(SPHERALDIR)/include/$(ARRAYDIST); then \
 	echo "ERROR building ARRAY."; \
