@@ -14,7 +14,7 @@ AC_ARG_WITH(FractalGravity,
    AC_MSG_RESULT(yes)
    CXXPKGS="$CXXPKGS FractalGravity"
    CXXPKGLIBS="$CXXPKGLIBS FractalGravity"
-   #PYTHONPKGS="$PYTHONPKGS Strength SolidMaterial"
+   PYTHONPKGS="$PYTHONPKGS FractalGravity"
 ],
 [
    AC_MSG_RESULT(no)
