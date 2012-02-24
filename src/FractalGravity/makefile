@@ -54,6 +54,7 @@ SRCTARGETS = \
 	write_rv.cc \
 	cosmos_power.cc \
 	energy_leapfrog.cc \
+	step_leapfrog.cc \
 	halo_force_sph_harm.cc \
 	halo_force_flat.cc \
 	fractal_memory_parameters_cosmo.cc \
