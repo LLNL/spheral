@@ -28,7 +28,7 @@ namespace FractalSpace
     double rand_max=(double)RAND_MAX;
     size_t align=sizeof(Complex);
     array3 <Complex> pot(length,length,nyq+1,align);
-    crfft3d Backward3 (pot);
+    crfft3d Backward3 (nyq+1, pot);
     double pi=4.0*atan(1.0);
     double twopi=2.0*pi;
     double fourpi=4.0*pi;

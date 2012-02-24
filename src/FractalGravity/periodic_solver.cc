@@ -21,8 +21,8 @@ namespace FractalSpace
 	green_1[k]=1.0e-30+pow(2.0*sin(aa),2);
       }
     array3 <Complex> pot(length_1,length_1,length_c,align);
-    rcfft3d Forward3  (pot);
-    crfft3d Backward3 (pot);
+    rcfft3d Forward3  (length_c,pot);
+    crfft3d Backward3 (length_c,pot);
     for(int k=0;k <length_1/2;++k)
       {
 	for(int j=0;j <length_1;++j)

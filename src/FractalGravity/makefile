@@ -23,6 +23,8 @@ SRCTARGETS = \
 	force_at_point_initial.cc \
 	force_shear_at_particle.cc \
 	force_shear_at_point.cc \
+	force_sum_particle.cc \
+	force_test.cc \
 	fractal_gravity.cc \
 	fractal_gravity_wrapper.cc \
 	go_ahead_points.cc \
@@ -48,7 +50,15 @@ SRCTARGETS = \
 	tree_start.cc \
 	try_harder.cc \
 	update_rv.cc \
-	write_rv.cc
+	write_rv.cc \
+	cosmos_power.cc \
+	energy_leapfrog.cc \
+	halo_force_sph_harm.cc \
+	halo_force_flat.cc \
+	fractal_memory_parameters_cosmo.cc \
+	make_particles_cosmo.cc \
+	sor_2.cc \
+	velocities.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
