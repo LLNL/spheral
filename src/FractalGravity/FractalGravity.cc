@@ -25,6 +25,10 @@
 #include "DBC.hh"
 #include "Material/PhysicalConstants.hh"
 
+#include "libs.hh"
+#include "classes.hh"
+#include "headers.hh"
+
 namespace Spheral {
 namespace GravitySpace {
 
@@ -32,6 +36,169 @@ using namespace std;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
+
+//------------------------------------------------------------------------------
+// This is an internal convenience method to create Jens' Fractal_Memory struct.
+// I have no idea what most of the parameters in this thing should be, so I'm 
+// copying one of Jens' examples (fractal_memory_parameters_gal).  
+// This should be reviewed by Jens!
+//------------------------------------------------------------------------------
+FractalSpace::Fractal_Memory* 
+generateFractalMemory(const unsigned numNodes,
+                      const bool periodic,
+                      const unsigned ngrid,
+                      const unsigned minHighParticles,
+                      const unsigned padding,
+                      const double boxlength) {
+  using namespace FractalSpace;
+
+  Fractal_Memory* pmemory = new FractalSpace::Fractal_Memory;
+  pmemory->periodic = periodic;
+  pmemory->grid_length = ngrid;
+  pmemory->minimum_number = minHighParticles;
+  pmemory->padding = padding;
+  pmemory->box_length =boxlength;
+  pmemory->number_particles = numNodes;
+  
+  pmemory->debug=false;
+  pmemory->new_points_gen=9;
+  pmemory->remember_points=true;
+  pmemory->number_steps_total=903;
+  pmemory->redshift_start=99.0;
+  pmemory->max_particles=300000;
+  pmemory->omega_0=0.3;
+  pmemory->omega_lambda=0.7;
+  pmemory->h=0.7;
+  pmemory->steps=-1;
+  pmemory->random_gen=54321;
+  // sets your values for parameters
+  pmemory->amnesia=true; // (true) forget everything after you are done. (false) remember everything.
+  pmemory->mind_wipe=false; // (true) delete everything and then come back without calculating anything.
+  pmemory->fixed_potential=false; // (true) use the fixed potential.
+  pmemory->calc_shear=false;// (true) if we calculate shear of force field
+  pmemory->calc_density_particle=true;
+  pmemory->do_vel=true;
+  pmemory->start_up=true;
+  pmemory->halo=pmemory->halo && !pmemory->periodic;
+  pmemory->halo_fixed=pmemory->halo_fixed && !pmemory->periodic;
+  pmemory->length_ratio=1;
+  pmemory->omega_start=Omega(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
+  pmemory->lambda_start=Lambda(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
+  pmemory->sigma_initial=pmemory->sigma_0*Growth(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
+  pmemory->time=Age_of_the_universe(pmemory->omega_start,pmemory->lambda_start,0.0);
+  pmemory->total_mass=1.0;
+  //
+  pmemory->crash_levels=5;
+  pmemory->crash_pow=2.0;
+  pmemory->density_crash=5.5;
+  pmemory->splits=2;
+  pmemory->splits_center_x.assign(pmemory->splits,0.5);
+  pmemory->splits_center_y.assign(pmemory->splits,0.5);
+  pmemory->splits_center_z.assign(pmemory->splits,0.5);
+  pmemory->splits_rad_x.assign(pmemory->splits,0.5);
+  pmemory->splits_rad_y.assign(pmemory->splits,0.5);
+  pmemory->splits_rad_z.assign(pmemory->splits,0.5);
+  pmemory->splits_many.assign(pmemory->splits,1);
+  pmemory->splits_square.assign(pmemory->splits,true);
+  pmemory->splits_center_x[0]=0.05;
+  pmemory->splits_center_y[0]=0.05;
+  pmemory->splits_center_z[0]=0.05;
+  pmemory->splits_rad_x[0]=0.1;
+  pmemory->splits_rad_y[0]=0.1;
+  pmemory->splits_rad_z[0]=0.1;
+  pmemory->splits_many[0]=2;
+  pmemory->splits_square[0]=false;
+  pmemory->splits_center_x[1]=0.05;
+  pmemory->splits_center_y[1]=0.05;
+  pmemory->splits_center_z[1]=0.05;
+  pmemory->splits_rad_x[1]=0.07;
+  pmemory->splits_rad_y[1]=0.07;
+  pmemory->splits_rad_z[1]=0.07;
+  pmemory->splits_many[1]=3;
+  pmemory->splits_square[1]=false;
+  //
+  pmemory->masks=4;
+  pmemory->masks_center_x.assign(pmemory->masks,0.5);
+  pmemory->masks_center_y.assign(pmemory->masks,0.5);
+  pmemory->masks_center_z.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_x.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_y.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_z.assign(pmemory->masks,0.5);
+  pmemory->masks_level.assign(pmemory->masks,0);
+  pmemory->masks_square.assign(pmemory->masks,true);
+  pmemory->masks_center_x[0]=0.5;
+  pmemory->masks_center_y[0]=0.5;
+  pmemory->masks_center_z[0]=0.5;
+  pmemory->masks_rad_x[0]=0.5;
+  pmemory->masks_rad_y[0]=0.5;
+  pmemory->masks_rad_z[0]=0.5;
+  pmemory->masks_level[0]=0;
+  pmemory->masks_square[0]=true;
+  pmemory->masks_center_x[1]=0.5;
+  pmemory->masks_center_y[1]=0.5;
+  pmemory->masks_center_z[1]=0.5;
+  pmemory->masks_rad_x[1]=0.35;
+  pmemory->masks_rad_y[1]=0.35;
+  pmemory->masks_rad_z[1]=0.35;
+  pmemory->masks_level[1]=2;
+  pmemory->masks_square[2]=true;
+  pmemory->masks_center_x[2]=0.5;
+  pmemory->masks_center_y[2]=0.5;
+  pmemory->masks_center_z[2]=0.5;
+  pmemory->masks_rad_x[2]=0.25;
+  pmemory->masks_rad_y[2]=0.25;
+  pmemory->masks_rad_z[2]=0.25;
+  pmemory->masks_level[2]=4;
+  pmemory->masks_square[2]=true;
+  pmemory->masks_center_x[3]=0.5;
+  pmemory->masks_center_y[3]=0.5;
+  pmemory->masks_center_z[3]=0.5;
+  pmemory->masks_rad_x[3]=0.15;
+  pmemory->masks_rad_y[3]=0.15;
+  pmemory->masks_rad_z[3]=0.15;
+  pmemory->masks_level[3]=8;
+  pmemory->masks_square[3]=true;
+  //
+  pmemory->splits=0;
+  //    pmemory->masks=0;
+  //
+  pmemory->masks_init=3;
+  pmemory->masks_center_x_init.assign(pmemory->masks,0.5);
+  pmemory->masks_center_y_init.assign(pmemory->masks,0.5);
+  pmemory->masks_center_z_init.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_x_init.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_y_init.assign(pmemory->masks,0.5);
+  pmemory->masks_rad_z_init.assign(pmemory->masks,0.5);
+  pmemory->masks_level_init.assign(pmemory->masks,0);
+  pmemory->masks_square_init.assign(pmemory->masks,true);
+  pmemory->masks_center_x_init[0]=0.5;
+  pmemory->masks_center_y_init[0]=0.5;
+  pmemory->masks_center_z_init[0]=0.5;
+  pmemory->masks_rad_x_init[0]=0.5;
+  pmemory->masks_rad_y_init[0]=0.5;
+  pmemory->masks_rad_z_init[0]=0.5;
+  pmemory->masks_level_init[0]=0;
+  pmemory->masks_square_init[0]=true;
+  pmemory->masks_center_x_init[1]=0.5;
+  pmemory->masks_center_y_init[1]=0.5;
+  pmemory->masks_center_z[1]=0.5;
+  pmemory->masks_rad_x_init[1]=0.3;
+  pmemory->masks_rad_y_init[1]=0.3;
+  pmemory->masks_rad_z_init[1]=0.3;
+  pmemory->masks_level_init[1]=2;
+  pmemory->masks_square_init[2]=true;
+  pmemory->masks_center_x_init[2]=0.5;
+  pmemory->masks_center_y_init[2]=0.5;
+  pmemory->masks_center_z_init[2]=0.5;
+  pmemory->masks_rad_x_init[2]=0.2;
+  pmemory->masks_rad_y_init[2]=0.2;
+  pmemory->masks_rad_z_init[2]=0.2;
+  pmemory->masks_level_init[2]=4;
+  pmemory->masks_square_init[2]=true;
+
+  // That's it.
+  return pmemory;
+}
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -103,127 +270,109 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   const double lscale = 1.0/boxlength;
   const double mscale = lscale*lscale*lscale/mG;
 
-  // Create the Fractal memory.
-  FractalSpace::Fractal_memory* pmemory = new Fractal_Memory;
-
-  // Fill in the Fractal_memory struct.
+  // Create the Fractal memory struct, and fill in some of it's parameters.
   // For now we will scale the input to Fractal for unit length and unit total mass.
-  pmemory->periodic = mPeriodic;
-  pmemory->grid_length = mNgrid;
-  pmemory->minimum_number = mMinHighParticles;
-  pmemory->padding = mPadding;
-  pmemory->box_length = 1.0;
-  pmemory->number_particles = numNodes;
+  FractalSpace::Fractal_Memory* pmemory = generateFractalMemory(numNodes,
+                                                                mPeriodic,
+                                                                mNgrid,
+                                                                mMinHighParticles,
+                                                                mPadding,
+                                                                1.0);
 
   // Create the Fractal class.
-  FractalSpace::Fractal* pfrac = new Fractal(pmemory);
+  FractalSpace::Fractal* pfrac = new FractalSpace::Fractal(*pmemory);
   pmemory->p_fractal = pfrac;
-  CHECK(pfrac->number_particles == numNodes);
+  pfrac->particle_list.resize(pmemory->number_particles);
 
-  // Walk the particles and fill in Fractal's particle structures.
-  vector<FractalSpace::Particle> particles;
-  particles.resize(numNodes);
+  // Create the memory for Fractal's particles.
+  vector<FractalSpace::Particle> particles(numNodes);
+  for (unsigned i = 0; i != numNodes; ++i) {
+    particles[i].space_resize(3);    // 3 => pos(x, y, z)
+    particles[i].field_resize(4);    // 4 => fields(pot, fx, fy, fz)
+  }
+
+  // Copy Spheral's particle information to Fractal's particles.
   unsigned j = 0;
   double mtot = 0.0;
+  vector<double> ppos(3);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (unsigned i = 0; i != mass[nodeListi].numInternalElements(); ++i) {
+    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
       CHECK(j < numNodes);
       pfrac->particle_list[j] = &particles[j];
       const Vector xi = (position(nodeListi, i) - mXmin)/lscale;
-      particles[j].mass = mass(nodeListi, i)/mscale;
-      particles[j].phase_space[0] = max(0.0, min(1.0, xi.x()));
-      particles[j].phase_space[1] = max(0.0, min(1.0, xi.y()));
-      particles[j].phase_space[2] = max(0.0, min(1.0, xi.z()));
-      mtot += particles[j].mass;
+      ppos[0] = max(0.0, min(1.0, xi.x()));
+      ppos[1] = max(0.0, min(1.0, xi.y()));
+      ppos[2] = max(0.0, min(1.0, xi.z()));
+      particles[j].set_mass(mass(nodeListi, i)/mscale);
+      particles[j].set_pos(ppos);
+      mtot += particles[j].get_mass();
       ++j;
     }
   }
   pmemory->total_mass = mtot;
 
   // Invoke the gravity solver.
-  fractal_gravity(pfrac, pmemory);
+  pfrac->timing(-2,0);
+  pfrac->timing(-1,29);
+  FractalSpace::fractal_gravity(*pfrac, *pmemory);
+  pfrac->timing(1,29);
+  pfrac->timing(0,0);
 
   // Read the result back to Spheral's data structures.
-  unsigned ifield = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator iitr = dataBase.fluidNodeListBegin();
-       iitr != dataBase.fluidNodeListEnd();
-       ++iitr, ++ifield) {
-    const NodeList<Dimension>& nodeListi = **iitr;
-    const unsigned firstGhostNodei = nodeListi.firstGhostNode();
+  vector<double> f(4);
+  j = 0;
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
+      CHECK(j < numNodes);
+      DxDt(nodeListi, i) += velocity(nodeListi, i);
 
-    for (unsigned i = 0; i != firstGhostNodei; ++i) {
-      unsigned jfield = 0;
+      // Extract field (pot, fx, fy, fz) from the Fractal particle.
+      particles[j].get_field_pf(f);
 
-      // Set the position derivative.
-      DxDt(ifield, i) += velocity(ifield, i);
+      // Update the potential energy.
+      mPotential(nodeListi, i) = f[0] * mscale*lscale*lscale;
+      mExtraEnergy += mass(nodeListi, i) * mPotential(nodeListi, i);
 
-      // Get a reference to the acceleration vector.
-      Vector& acceleration = DvDt(ifield, i);
-    
-      // Zero out the potential of this particle.
-      mPotential(ifield, i) = 0.0;
-
-      for (typename DataBase<Dimension>::ConstFluidNodeListIterator jitr = dataBase.fluidNodeListBegin();
-           jitr != dataBase.fluidNodeListEnd();
-           ++jitr, ++jfield) {
-        const NodeList<Dimension>& nodeListj = **jitr;
-        const unsigned nj = nodeListj.numNodes();
-        for (unsigned j = 0; j != nj; ++j) {
-
-          // Particles can't self-interact, silly!
-          if (ifield != jfield or i != j) {
-
-            // Contribute to the acceleration of this particle.
-            const Vector r = position(ifield, i) - position(jfield, j);
-
-            CHECK(r.magnitude2() != 0.0);
-            Vector rHat = r.unitVector();
-            Scalar distance2 = r.magnitude2() + softeningLength2;
-            CHECK(distance2 != 0.0);
-            acceleration -= mG * mass(jfield, j) * rHat / distance2;
-
-            // Also sum up contributions to the potential and 
-            // total potential energy.
-            mPotential(ifield, i) += mG * mass(jfield, j) / std::sqrt(distance2);
-          }
-        }
-      }
-
-      mExtraEnergy += mG * mass(ifield, i) * mPotential(ifield, i);
+      // Update the acceleration.
+      DvDt(nodeListi, i) += Vector(f[1] * lscale,
+                                   f[2] * lscale,
+                                   f[3] * lscale);
 
       // Capture the maximum acceleration and velocity magnitudes.
-      const Scalar accelMagnitude = acceleration.magnitude();
+      const Scalar accelMagnitude = DvDt(nodeListi, i).magnitude();
       if (mOldMaxAcceleration < accelMagnitude) {
         mOldMaxAcceleration = accelMagnitude + 1e-10;
         CHECK(mOldMaxAcceleration != 0.0);
-      } // end if
+      }
 
-      const Scalar velocityMagnitude = velocity(ifield, i).magnitude();
+      const Scalar velocityMagnitude = velocity(nodeListi, i).magnitude();
       if (mOldMaxVelocity < velocityMagnitude) {
         mOldMaxVelocity = velocityMagnitude;
       }
     }
   }
+
+  // Clean up.
+  delete pfrac, pmemory;
 }
 
 //------------------------------------------------------------------------------
-// initialize()
+// Do start of the problem type tasks.
 //------------------------------------------------------------------------------
-template <typename Dimension>
 void 
-FractalGravity<Dimension>::
+FractalGravity::
 initializeProblemStartup(DataBase<Dimension>& db) {
 
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
 
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-typename FractalGravity<Dimension>::TimeStepType
-FractalGravity<Dimension>::
+// Vote on a time step.  We should fill in a sqrt(G/rho) type thing here!
+//------------------------------------------------------------------------------
+FractalGravity::TimeStepType
+FractalGravity::
 dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
@@ -241,64 +390,96 @@ dt(const DataBase<Dimension>& dataBase,
                << ends;
   return TimeStepType(deltat, reasonStream.str());
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-typename FractalGravity<Dimension>::Scalar 
-FractalGravity<Dimension>::
+// extraEnergy
+//------------------------------------------------------------------------------
+FractalGravity::Scalar 
+FractalGravity::
 extraEnergy() const {
   return mExtraEnergy;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-const FieldList<Dimension, typename FractalGravity<Dimension>::Scalar>&
-FractalGravity<Dimension>::
+// potential
+//------------------------------------------------------------------------------
+const FieldList<Dim<3>, FractalGravity::Scalar>&
+FractalGravity::
 potential() const {
   return mPotential;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-bool 
-FractalGravity<Dimension>::
-valid() const {
-  // We're always valid, sir!  (This is crap, but we can make no other 
-  // assumptions right now.)
-  return true;
-}
-
+// G
 //------------------------------------------------------------------------------
-template <typename Dimension>
 double
-FractalGravity<Dimension>::
+FractalGravity::
 G() const {
   return mG;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-double
-FractalGravity<Dimension>::
-softeningLength() const {
-  return mSofteningLength;
+// xmin
+//------------------------------------------------------------------------------
+FractalGravity::Vector
+FractalGravity::
+xmin() const {
+  return mXmin;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-template <typename Dimension>
-void
-FractalGravity<Dimension>::
-softeningLength(const double x) {
-  VERIFY(x >= 0.0);
-  mSofteningLength = x;
+// xmax
+//------------------------------------------------------------------------------
+FractalGravity::Vector
+FractalGravity::
+xmax() const {
+  return mXmax;
 }
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
+// periodic
+//------------------------------------------------------------------------------
+bool
+FractalGravity::
+periodic() const {
+  return mPeriodic;
+}
+
+//------------------------------------------------------------------------------
+// ngrid
+//------------------------------------------------------------------------------
+unsigned
+FractalGravity::
+ngrid() const {
+  return mNgrid;
+}
+
+//------------------------------------------------------------------------------
+// nlevelmax
+//------------------------------------------------------------------------------
+unsigned
+FractalGravity::
+nlevelmax() const {
+  return mNlevelmax;
+}
+
+//------------------------------------------------------------------------------
+// minHighParticles
+//------------------------------------------------------------------------------
+unsigned
+FractalGravity::
+minHighParticles() const {
+  return mMinHighParticles;
+}
+
+//------------------------------------------------------------------------------
+// padding
+//------------------------------------------------------------------------------
+unsigned
+FractalGravity::
+padding() const {
+  return mPadding;
+}
+
 }
 }

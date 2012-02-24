@@ -82,9 +82,6 @@ public:
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
 
-  //! Test if the package is valid, i.e., ready to use.
-  virtual bool valid() const;
-
   //! The gravitational constant we're using.
   double G() const;
 

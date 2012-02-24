@@ -5,6 +5,7 @@ PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	FractalGravity.cc \
 	adj_nina.cc \
 	assign_density.cc \
 	buffer_points.cc \
