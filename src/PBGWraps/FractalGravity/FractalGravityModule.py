@@ -63,7 +63,7 @@ class FractalGravity:
                            param("unsigned int", "nlevelmax"),
                            param("unsigned int", "minHighParticles"),
                            param("unsigned int", "padding"),
-                           param("unsigned int", "maxDeltaVelocity")])
+                           param("double", "maxDeltaVelocity")])
 
         # Methods.
         x.add_method("evaluateDerivatives", None, [param("const double", "time"),
