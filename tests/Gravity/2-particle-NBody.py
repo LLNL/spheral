@@ -22,7 +22,11 @@ commandLine(
     plummerLength = 1.0e-3,        # (AU) Plummer softening scale
 
     # Problem control
+    steps = None,
     numOrbits = 2,                 # How many orbits do we want to follow?
+
+    # Which N-body method should we use?
+    fractal = False,
 
     # Output
     dataDir = "Two-Earth-Nbody",
@@ -78,7 +82,7 @@ mpi.barrier()
 # need.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-eos = GammaLawGasCGS3d(gamma = 5.0/3.0, mu = 1.0)
+eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 
 #-------------------------------------------------------------------------------
 # Make the NodeList, and set our initial properties.
@@ -116,9 +120,20 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 # Gimme gravity.
 #-------------------------------------------------------------------------------
-gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                       maxDeltaVelocity = 1e-2*v0,
-                       G = G)
+if fractal:
+    gravity = FractalGravity(G = G,
+                             xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
+                             xmax = Vector( 1.5*r0,  1.5*r0,  1.5*r0),
+                             periodic = False,
+                             ngrid = 64,
+                             nlevelmax = 1,
+                             minHighParticles = 10,
+                             padding = 0,
+                             maxDeltaVelocity = 1e-2*v0)
+else:
+    gravity = NBodyGravity(plummerSofteningLength = plummerLength,
+                           maxDeltaVelocity = 1e-2*v0,
+                           G = G)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -171,7 +186,10 @@ if restoreCycle:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-control.advance(goalTime)
+if not steps is None:
+    control.step(steps)
+else:
+    control.advance(goalTime)
 
 # Plot the final state.
 x1 = [stuff[1]/AU for stuff in history.sampleHistory]
