@@ -62,7 +62,7 @@ generateFractalMemory(const unsigned numNodes,
   
   pmemory->debug=false;
   pmemory->new_points_gen=9;
-  pmemory->remember_points=true;
+  pmemory->remember_points=false;
   pmemory->number_steps_total=903;
   pmemory->redshift_start=99.0;
   pmemory->max_particles=300000;
@@ -76,10 +76,10 @@ generateFractalMemory(const unsigned numNodes,
   pmemory->mind_wipe=false; // (true) delete everything and then come back without calculating anything.
   pmemory->fixed_potential=false; // (true) use the fixed potential.
   pmemory->calc_shear=false;// (true) if we calculate shear of force field
-  pmemory->calc_density_particle=true;
-  pmemory->do_vel=true;
-  pmemory->start_up=true;
-  pmemory->halo=pmemory->halo && !pmemory->periodic;
+  pmemory->calc_density_particle=false;
+  pmemory->do_vel=false;
+  pmemory->start_up=false;
+  pmemory->halo=false;
   pmemory->halo_fixed=pmemory->halo_fixed && !pmemory->periodic;
   pmemory->length_ratio=1;
   pmemory->omega_start=Omega(pmemory->omega_0,pmemory->omega_lambda,pmemory->redshift_start);
@@ -91,110 +91,11 @@ generateFractalMemory(const unsigned numNodes,
   pmemory->crash_levels=5;
   pmemory->crash_pow=2.0;
   pmemory->density_crash=5.5;
-  pmemory->splits=2;
-  pmemory->splits_center_x.assign(pmemory->splits,0.5);
-  pmemory->splits_center_y.assign(pmemory->splits,0.5);
-  pmemory->splits_center_z.assign(pmemory->splits,0.5);
-  pmemory->splits_rad_x.assign(pmemory->splits,0.5);
-  pmemory->splits_rad_y.assign(pmemory->splits,0.5);
-  pmemory->splits_rad_z.assign(pmemory->splits,0.5);
-  pmemory->splits_many.assign(pmemory->splits,1);
-  pmemory->splits_square.assign(pmemory->splits,true);
-  pmemory->splits_center_x[0]=0.05;
-  pmemory->splits_center_y[0]=0.05;
-  pmemory->splits_center_z[0]=0.05;
-  pmemory->splits_rad_x[0]=0.1;
-  pmemory->splits_rad_y[0]=0.1;
-  pmemory->splits_rad_z[0]=0.1;
-  pmemory->splits_many[0]=2;
-  pmemory->splits_square[0]=false;
-  pmemory->splits_center_x[1]=0.05;
-  pmemory->splits_center_y[1]=0.05;
-  pmemory->splits_center_z[1]=0.05;
-  pmemory->splits_rad_x[1]=0.07;
-  pmemory->splits_rad_y[1]=0.07;
-  pmemory->splits_rad_z[1]=0.07;
-  pmemory->splits_many[1]=3;
-  pmemory->splits_square[1]=false;
-  //
-  pmemory->masks=4;
-  pmemory->masks_center_x.assign(pmemory->masks,0.5);
-  pmemory->masks_center_y.assign(pmemory->masks,0.5);
-  pmemory->masks_center_z.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_x.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_y.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_z.assign(pmemory->masks,0.5);
-  pmemory->masks_level.assign(pmemory->masks,0);
-  pmemory->masks_square.assign(pmemory->masks,true);
-  pmemory->masks_center_x[0]=0.5;
-  pmemory->masks_center_y[0]=0.5;
-  pmemory->masks_center_z[0]=0.5;
-  pmemory->masks_rad_x[0]=0.5;
-  pmemory->masks_rad_y[0]=0.5;
-  pmemory->masks_rad_z[0]=0.5;
-  pmemory->masks_level[0]=0;
-  pmemory->masks_square[0]=true;
-  pmemory->masks_center_x[1]=0.5;
-  pmemory->masks_center_y[1]=0.5;
-  pmemory->masks_center_z[1]=0.5;
-  pmemory->masks_rad_x[1]=0.35;
-  pmemory->masks_rad_y[1]=0.35;
-  pmemory->masks_rad_z[1]=0.35;
-  pmemory->masks_level[1]=2;
-  pmemory->masks_square[2]=true;
-  pmemory->masks_center_x[2]=0.5;
-  pmemory->masks_center_y[2]=0.5;
-  pmemory->masks_center_z[2]=0.5;
-  pmemory->masks_rad_x[2]=0.25;
-  pmemory->masks_rad_y[2]=0.25;
-  pmemory->masks_rad_z[2]=0.25;
-  pmemory->masks_level[2]=4;
-  pmemory->masks_square[2]=true;
-  pmemory->masks_center_x[3]=0.5;
-  pmemory->masks_center_y[3]=0.5;
-  pmemory->masks_center_z[3]=0.5;
-  pmemory->masks_rad_x[3]=0.15;
-  pmemory->masks_rad_y[3]=0.15;
-  pmemory->masks_rad_z[3]=0.15;
-  pmemory->masks_level[3]=8;
-  pmemory->masks_square[3]=true;
-  //
   pmemory->splits=0;
-  //    pmemory->masks=0;
   //
-  pmemory->masks_init=3;
-  pmemory->masks_center_x_init.assign(pmemory->masks,0.5);
-  pmemory->masks_center_y_init.assign(pmemory->masks,0.5);
-  pmemory->masks_center_z_init.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_x_init.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_y_init.assign(pmemory->masks,0.5);
-  pmemory->masks_rad_z_init.assign(pmemory->masks,0.5);
-  pmemory->masks_level_init.assign(pmemory->masks,0);
-  pmemory->masks_square_init.assign(pmemory->masks,true);
-  pmemory->masks_center_x_init[0]=0.5;
-  pmemory->masks_center_y_init[0]=0.5;
-  pmemory->masks_center_z_init[0]=0.5;
-  pmemory->masks_rad_x_init[0]=0.5;
-  pmemory->masks_rad_y_init[0]=0.5;
-  pmemory->masks_rad_z_init[0]=0.5;
-  pmemory->masks_level_init[0]=0;
-  pmemory->masks_square_init[0]=true;
-  pmemory->masks_center_x_init[1]=0.5;
-  pmemory->masks_center_y_init[1]=0.5;
-  pmemory->masks_center_z[1]=0.5;
-  pmemory->masks_rad_x_init[1]=0.3;
-  pmemory->masks_rad_y_init[1]=0.3;
-  pmemory->masks_rad_z_init[1]=0.3;
-  pmemory->masks_level_init[1]=2;
-  pmemory->masks_square_init[2]=true;
-  pmemory->masks_center_x_init[2]=0.5;
-  pmemory->masks_center_y_init[2]=0.5;
-  pmemory->masks_center_z_init[2]=0.5;
-  pmemory->masks_rad_x_init[2]=0.2;
-  pmemory->masks_rad_y_init[2]=0.2;
-  pmemory->masks_rad_z_init[2]=0.2;
-  pmemory->masks_level_init[2]=4;
-  pmemory->masks_square_init[2]=true;
+  pmemory->masks=0;
+  //
+  pmemory->masks_init=0;
 
   // That's it.
   return pmemory;
@@ -353,7 +254,8 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   }
 
   // Clean up.
-  delete pfrac, pmemory;
+  delete pfrac;
+  delete pmemory;
 }
 
 //------------------------------------------------------------------------------
