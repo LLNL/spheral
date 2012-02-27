@@ -139,18 +139,6 @@ if test "`uname -s`" = "Darwin"; then
   CXXFLAGS="$CXXFLAGS -DBOOST_DATE_TIME_NO_LOCALE"
 fi
 
-# We also have some trouble with the most up to date boost, so
-# for now we'e going back a bit.
-AC_SUBST(BOOSTVER1)
-AC_SUBST(BOOSTVER2)
-if test "`uname -s`" = "Darwin"; then
-   BOOSTVER1="1_48_0"
-   BOOSTVER2="1.48.0"
-else
-   BOOSTVER1="1_48_0"
-   BOOSTVER2="1.48.0"
-fi
-
 # -----------------------------------------------------------------
 # Select the script to use building the WildMagic third party 
 # target.
