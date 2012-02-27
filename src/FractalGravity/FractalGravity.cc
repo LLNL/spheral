@@ -60,7 +60,7 @@ generateFractalMemory(const unsigned numNodes,
   pmemory->box_length =boxlength;
   pmemory->number_particles = numNodes;
   
-  pmemory->debug=false;
+  pmemory->debug=true;
   pmemory->new_points_gen=9;
   pmemory->remember_points=false;
   pmemory->number_steps_total=903;
