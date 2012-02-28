@@ -182,6 +182,7 @@ evaluateDerivatives(const Dim<3>::Scalar time,
 
   // Create the Fractal class.
   FractalSpace::Fractal* pfrac = new FractalSpace::Fractal(*pmemory);
+  pfrac->set_number_particles(numNodes);
   pmemory->p_fractal = pfrac;
   pfrac->particle_list.resize(pmemory->number_particles);
 
