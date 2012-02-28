@@ -249,6 +249,25 @@ GMPURL = ftp://ftp.gmplib.org/pub/gmp-5.0.2/$(GMPDIST)
 GMPDIR = $(GMPDIST:.tar.bz2=)
 GMPBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(GMPDIST))
 
+# OCCTREE 
+OCTTREEDIST = octree_code.zip
+OCTTREEURL = http://nomis80.org/code/$(OCTTREEDIST)
+OCTTREEDIR = $(OCTTREEDIST:.zip=)
+OCTTREEINCDIR = $(SPHERALDIR)/include/octtree
+OCTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(OCTTREEDIST))
+
+# # The FLANN (Fast Library for Approximate Nearest Neighbors) library.
+# FLANNDIST = flann-1.7.1-src.zip
+# FLANNURL = http://people.cs.ubc.ca/~mariusm/uploads/FLANN/$(FLANNDIST)
+# FLANNDIR = $(FLANNDIST:.zip=)
+# FLANNBUILDDATE = $(patsubst %.zip, .%.date, $(FLANNDIST))
+
+# # The Point Cloud Library (PCL)
+# PCLDIST = PCL-1.5.1-Source.tar.bz2
+# PCLURL = http://dev.pointclouds.org/attachments/download/771/$(PCLDIST)
+# PCLDIR = $(PCLDIST:.tar.bz2=)
+# PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(ELEMENTTREEBUILDDATE) \
@@ -279,7 +298,8 @@ all:	$(PYTHONBUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(VOROPPBUILDDATE) \
-	$(VOROPP2DBUILDDATE)
+	$(VOROPP2DBUILDDATE) \
+	$(OCTTREEBUILDDATE)
 
 clean:
 	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
@@ -317,6 +337,7 @@ clean:
 	       $(EIGENDIR) $(EIGENBUILDDATE) \
 	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
 	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
+	       $(OCTTREEDIR) $(OCTTREEBUILDDATE) \
 	       .*.date
 
 .SUFFIXES:	.date .gz .tgz
@@ -1246,4 +1267,80 @@ $(GMPBUILDDATE):  $(GMPDIST)
 	fi
 	rm -fr $(GMPDIR)
 	touch $(GMPBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# FLANN
+#-------------------------------------------------------------------------------
+$(FLANNDIST):
+	$(CURL) "$(FLANNURL)" > $(FLANNDIST)
+
+$(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
+	@echo "################################################################################"
+	@echo "# Building $(FLANNDIST)"
+	@echo "################################################################################"
+	rm -fr $(FLANNDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	$(UNZIP) $(FLANNDIST)
+	$(MKDIR) $(FLANNDIR)/build
+	$(SHELL) -ec "cd $(FLANNDIR)/build; \
+	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libflann_s.a; then \
+	echo "ERROR building Flann."; \
+	rm -f $(FLANNBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(FLANNDIR)
+	touch $(FLANNBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# The Point Cloud Library (PCL)
+#-------------------------------------------------------------------------------
+$(PCLDIST):
+	$(CURL) "$(PCLURL)" > $(PCLDIST)
+
+$(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(FLANNDATE)
+	@echo "################################################################################"
+	@echo "# Building $(PCLDIST)"
+	@echo "################################################################################"
+	rm -fr $(PCLDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	$(BZIP2) -dc $(PCLDIST) | $(TAR) -xf -
+	$(MKDIR) $(PCLDIR)/build
+	$(SHELL) -ec "cd $(PCLDIR)/build; \
+	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libpclstatic.a; then \
+	echo "ERROR building Pcl."; \
+	rm -f $(PCLBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(PCLDIR)
+	touch $(PCLBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# Octtree
+#-------------------------------------------------------------------------------
+$(OCTTREEDIST):
+	$(CURL) "$(OCTTREEURL)" > $(OCTTREEDIST)
+
+$(OCTTREEBUILDDATE):	$(OCTTREEDIST)
+	@echo "################################################################################"
+	@echo "# Building $(OCTTREEDIST)"
+	@echo "################################################################################"
+	rm -fr $(OCTTREEDIR) $(OCTTREEINCDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(OCTTREEINCDIR)
+	$(MKDIR) $(OCTTREEDIR)
+	$(SHELL) -ec "cd $(OCTTREEDIR); \
+	$(UNZIP) ../$(OCTTREEDIST)"
+	$(CP) -f $(OCTTREEDIR)/*.h $(OCTTREEDIR)/*.tcc $(OCTTREEINCDIR)
+	@if ! test -e $(OCTTREEINCDIR)/octree.h; then \
+	echo "ERROR building Octtree."; \
+	rm -f $(OCTTREEBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(OCTTREEDIR)
+	touch $(OCTTREEBUILDDATE)
 
