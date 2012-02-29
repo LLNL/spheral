@@ -8,6 +8,35 @@ namespace Spheral {
 namespace GravitySpace {
 
 //------------------------------------------------------------------------------
+// Build a cell key from coordinate indices.
+//------------------------------------------------------------------------------
+inline
+OctTreeGravity::CellKey
+OctTreeGravity::
+buildCellKey(const OctTreeGravity::CellKey ix,
+             const OctTreeGravity::CellKey iy,
+             const OctTreeGravity::CellKey iz) const {
+  return (std::max(CellKey(0), std::min(max1dKey, iz << 2*num1dbits)) +
+          std::max(CellKey(0), std::min(max1dKey, iy <<   num1dbits)) +
+          std::max(CellKey(0), std::min(max1dKey, ix)));
+}
+
+//------------------------------------------------------------------------------
+// Extract the individual coordinate indices from a cell index.
+//------------------------------------------------------------------------------
+inline
+void
+OctTreeGravity::
+extractCellIndices(const OctTreeGravity::CellKey& key,
+                   OctTreeGravity::CellKey& ix,
+                   OctTreeGravity::CellKey& iy,
+                   OctTreeGravity::CellKey& iz) const {
+  ix = key % (1U << num1dbits);
+  iy = (key >> num1dbits) % num1dbits;
+  iz = (key >> 2*num1dbits);
+}
+
+//------------------------------------------------------------------------------
 // Build the key for a cell based on a position and level.
 //------------------------------------------------------------------------------
 inline
@@ -18,10 +47,9 @@ buildTreeKey(const OctTreeGravity::LevelKey ilevel,
   REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
   REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
   REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
-  const CellKey ckey = 
-    (((std::max(static_cast<CellKey>(0U), std::min(max1dKey, static_cast<CellKey>((xi.z() - mXmin.z())/mBoxLength * max1dKey1 + 0.5)))) << 2*num1dbits) +
-     ((std::max(static_cast<CellKey>(0U), std::min(max1dKey, static_cast<CellKey>((xi.y() - mXmin.y())/mBoxLength * max1dKey1 + 0.5)))) <<   num1dbits) +
-     ((std::max(static_cast<CellKey>(0U), std::min(max1dKey, static_cast<CellKey>((xi.x() - mXmin.x())/mBoxLength * max1dKey1 + 0.5))))));
+  const CellKey ckey = buildCellKey(CellKey((xi.x() - mXmin.x())/mBoxLength * max1dKey1 + 0.5),
+                                    CellKey((xi.y() - mXmin.y())/mBoxLength * max1dKey1 + 0.5),
+                                    CellKey((xi.z() - mXmin.z())/mBoxLength * max1dKey1 + 0.5));
   return std::make_pair(ilevel, ckey);
 }
 

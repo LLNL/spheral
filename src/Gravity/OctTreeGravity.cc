@@ -92,8 +92,9 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   mExtraEnergy = 0.0;
 
   // We'll always be starting with the daughters of the root level.
-  CHECK(mTree.find(TreeKey(0,0)) != mTree.end());
-  const Cell& rootCell = mTree[TreeKey(0,0)];
+  Tree::const_iterator cellItr = mTree.find(TreeKey(0,0));
+  CHECK(cellItr != mTree.end());
+  const Cell& rootCell = cellItr->second;
 
   // Walk each internal node.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -108,39 +109,64 @@ evaluateDerivatives(const Dim<3>::Scalar time,
 
       // Walk the tree.
       unsigned ilevel = 0;
-      vector<Cell> remainingCells = rootCell.daughters();
+      vector<CellKey> remainingCells = rootCell.daughters;
       while ((not remainingCells.empty()) and ++ilevel < num1dbits) {
-        vector<Cell> newDaughters;
+        vector<CellKey> newDaughters;
         const double cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
-        for (typename vector<Cell>::const_iterator cellItr = remainingCells.begin();
-             cellItr != remainingCells.end();
-             ++cellItr) {
-          const Cell& cell = *cellItr;
+        for (vector<CellKey>::const_iterator keyItr = remainingCells.begin();
+             keyItr != remainingCells.end();
+             ++keyItr) {
+          cellItr = mTree.find(TreeKey(ilevel, *keyItr));
+          CHECK(cellItr != mTree.end());
+          const Cell& cell = cellItr->second;
           
           // Can we ignore this cells daughters?
           const Vector dxcell = cell.xcm - xi;
           const double rcell = dxcell.magnitude();
-          const double theta = cellsize/rcell;
-          if (theta < mOpening) {
+          if (rcell > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
 
-            // Yep, treat this cells and all of it's daughters as a single point.
-            Vector nhat = dxcell.unitVector();
+            // Yep, treat this cells and all of its daughters as a single point.
+            const Vector nhat = dxcell.unitVector();
             const double rcell2 = rcell*rcell + soft2;
-            CHECK(r2 > 0.0);
+            CHECK(rcell2 > 0.0);
 
             // Increment the acceleration and potential.
             DvDti -= mG*cell.M/rcell2 * nhat;
-            phii -= mG*cell.M/rcell;
+            phii -= mG*cell.M/sqrt(rcell2);
+
+          } else if (cell.daughters.size() == 0) {
+
+            // This cell represents a leaf (termination of descent.  We just directly
+            // add up the node properties of any nodes in the cell.
+            CHECK(cell.members.size() > 0);
+            for (unsigned k = 0; k != cell.members.size(); ++k) {
+              const unsigned nodeListj = cell.members[k].first;
+              const unsigned j = cell.members[k].second;
+
+              const Vector xji = position(nodeListj, j) - xi;
+              const Vector nhat = xji.unitVector();
+              const double rji2 = xji.magnitude2() + soft2;
+              CHECK(rji2 > 0.0);
+
+              // Increment the acceleration and potential.
+              const double mj = mass(nodeListj, j);
+              DvDti -= mG*mj/rji2 * nhat;
+              phii -= mG*mj/sqrt(rji2);
+            }
 
           } else {
 
-            // Nope, we need to descend into this cells daughters.
+            // We need to walk further down the tree.  Add this cells daughters
+            // to the next set.
+            copy(cell.daughters.begin(), cell.daughters.end(), back_inserter(newDaughters));
 
           }
         }
 
+        // Update the set of cells to check on the next pass.
+        remainingCells = newDaughters;
       }
     }
   }
@@ -192,6 +218,25 @@ initialize(const Scalar time,
     for (size_t i = 0; i != n; ++i) {
       this->addNodeToTree(nodeListi, i, mass(nodeListi, i), position(nodeListi, i));
     }
+  }
+
+  // Make a final pass over the cells and fill in the distance bewteen the 
+  // center of mass and the geometric center.
+  LevelKey ilevel;
+  CellKey ckey, ix, iy, iz;
+  double cellsize;
+  for (Tree::iterator itr = mTree.begin();
+       itr != mTree.end();
+       ++itr) {
+    ilevel = itr->first.first;
+    ckey = itr->first.second;
+    Cell& cell = itr->second;
+    extractCellIndices(ckey, ix, iy, iz);
+    cellsize = mBoxLength/(1U << ilevel);
+    cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
+                                              (iy + 0.5)*cellsize,
+                                              (iz + 0.5)*cellsize))).magnitude();
+    CHECK(cell.rcm2cc < 1.74*cellsize);
   }
 }
 

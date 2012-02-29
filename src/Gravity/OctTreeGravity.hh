@@ -105,19 +105,22 @@ private:
   static unsigned num1dbits;             // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static CellKey max1dKey, max1dKey1;    // The maximum number of cells this corresponds to in a direction.
 
+  //----------------------------------------------------------------------------
   // Cell holds the properties of cells in the tree.
+  //----------------------------------------------------------------------------
   struct Cell {
     Vector xcm;                     // center of mass
+    double rcm2cc;                  // distance between center of mass and geometric center
     double M;                       // total mass
     std::vector<CellKey> daughters; // Keys of any daughter cells on level+1
     std::vector<NodeID> members;    // Any Spheral nodes that terminate in this cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
-    Cell(): xcm(), M(0.0), daughters(), members() {}
+    Cell(): xcm(), rcm2cc(0.0), M(0.0), daughters(), members() {}
     Cell(const Vector& xi, const double mi, const NodeID& nid):
-      xcm(xi), M(mi), daughters(), members(std::vector<NodeID>(1, nid)) {}
+      xcm(xi), rcm2cc(0.0), M(mi), daughters(), members(std::vector<NodeID>(1, nid)) {}
     Cell(const Vector& xi, const double mi, const CellKey& daughter):
-      xcm(xi), M(mi), daughters(std::vector<CellKey>(1, daughter)), members() {}
+      xcm(xi), rcm2cc(0.0), M(mi), daughters(std::vector<CellKey>(1, daughter)), members() {}
   };
 
   typedef boost::unordered_map<TreeKey, Cell> Tree;
@@ -144,7 +147,18 @@ private:
   // Assignment operator -- disabled.
   OctTreeGravity& operator=(const OctTreeGravity&);
 
-  // Build the key for a cell.
+  // Build a cell key based on three indices.
+  CellKey buildCellKey(const CellKey ix,
+                       const CellKey iy,
+                       const CellKey iz) const;
+
+  // Extract the individual coordinate indices from a cell key.
+  void extractCellIndices(const CellKey& key,
+                          CellKey& ix,
+                          CellKey& iy,
+                          CellKey& iz) const;
+
+  // Build the key for a tree cell.
   TreeKey buildTreeKey(const LevelKey ilevel, const Vector& xi) const;
 
   // Add a cell key to the daughters of a cell.
