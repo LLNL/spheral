@@ -123,7 +123,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
             // Also sum up contributions to the potential and 
             // total potential energy.
-            mPotential(ifield, i) += mG * mass(jfield, j) / std::sqrt(distance2);
+            mPotential(ifield, i) -= mG * mass(jfield, j) / std::sqrt(distance2);
           }
         }
       }
