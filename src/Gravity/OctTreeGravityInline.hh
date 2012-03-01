@@ -81,15 +81,21 @@ addNodeToTree(const size_t nodeListi,
   bool terminated = false;
   TreeKey key, parentKey;
   Tree::iterator itr;
+  std::cerr << "addNodeToTree: node " << i << std::endl;
   while (ilevel < OctTreeGravity::num1dbits and not terminated) {
     key = buildTreeKey(ilevel, xi);
     itr = mTree.find(key);
+
+    uint64_t ix, iy, iz;
+    extractCellIndices(key.second, ix, iy, iz);
+    std::cerr << "    level " << ilevel << " : " << key.first << " " << key.second << " : " << ix << " " << iy << " " << iz << std::endl;
 
     if (itr == mTree.end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
       mTree[key] = Cell(xi, mi, nodeID);
+      std::cerr << "            unique cell -- terminated." << std::endl;
 
     } else {
       Cell& cell = itr->second;
@@ -107,11 +113,13 @@ addNodeToTree(const size_t nodeListi,
           mTree[otherKey] = Cell(cell.xcm, cell.M, cell.members[0]);
           cell.daughters = std::vector<CellKey>(1, otherKey.second);
           cell.members = std::vector<NodeID>();
+          std::cerr << "            split cell." << std::endl;
 
         } else {
           // If we've maxed out the levels, then we just huck this node in 
           // the members of this cell.
           cell.members.push_back(nodeID);
+          std::cerr << "            split cell -- end of the line." << std::endl;
         }
       }
 

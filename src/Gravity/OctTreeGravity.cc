@@ -207,10 +207,11 @@ initialize(const Scalar time,
 
   // Determine the box size.
   boundingBox(position, mXmin, mXmax, false, false);
-  CHECK(mXmin.x() < mXmax.x());
-  CHECK(mXmin.y() < mXmax.y());
-  CHECK(mXmin.z() < mXmax.z());
+  CHECK(mXmin.x() <= mXmax.x());
+  CHECK(mXmin.y() <= mXmax.y());
+  CHECK(mXmin.z() <= mXmax.z());
   mBoxLength = (mXmax - mXmin).maxAbsElement();
+  CHECK(mBoxLength > 0.0);
 
   // Walk all the internal nodes and add them to the tree.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
