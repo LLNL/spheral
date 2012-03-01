@@ -184,6 +184,7 @@ class Gravity:
                                           constrefparam(database, "dataBase"),
                                           refparam(state, "state"),
                                           refparam(derivatives, "derivs")], is_virtual=True)
+        x.add_method("dumpTree", "std::string", [], is_const=True)
         const_ref_return_value(x, me, "%s::potential" % me, scalarfieldlist, [], "potential")
 
         # Attributes.
@@ -193,5 +194,6 @@ class Gravity:
         x.add_instance_attribute("ftimestep", "double", getter="ftimestep", setter="ftimestep")
         x.add_instance_attribute("xmin", vector, getter="xmin", is_const=True)
         x.add_instance_attribute("xmax", vector, getter="xmax", is_const=True)
+        x.add_instance_attribute("maxCellDensity", "double", getter="maxCellDensity", is_const=True)
 
         return

@@ -42,13 +42,10 @@ OctTreeGravity(const double G,
   mSofteningLength(softeningLength),
   mftimestep(ftimestep),
   mBoxLength(0.0),
+  mMaxCellDensity(0.0),
   mXmin(),
   mXmax(),
   mTree(),
-  mdt_fieldi(0),
-  mdt_nodei(0),
-  mdt_veli(0.0),
-  mdt_acci(0.0),
   mPotential(FieldList<Dim<3>, Scalar>::Copy),
   mExtraEnergy(0.0) {
   VERIFY(G > 0.0);
@@ -92,11 +89,12 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   mExtraEnergy = 0.0;
 
   // We'll always be starting with the daughters of the root level.
-  Tree::const_iterator cellItr = mTree.find(TreeKey(0,0));
-  CHECK(cellItr != mTree.end());
-  const Cell& rootCell = cellItr->second;
+  const unsigned numLevels = mTree.size();
+  CHECK(numLevels >= 1);
+  const Cell& rootCell = mTree[0].begin()->second;
 
   // Walk each internal node.
+  TreeLevel::const_iterator cellItr;
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
 
@@ -107,10 +105,13 @@ evaluateDerivatives(const Dim<3>::Scalar time,
       Vector& DvDti = DvDt(nodeListi, i);
       Scalar& phii = mPotential(nodeListi, i);
 
+      // Set the position update to Lagrangian.
+      DxDt(nodeListi, i) += velocity(nodeListi, i);
+
       // Walk the tree.
       unsigned ilevel = 0;
       vector<CellKey> remainingCells = rootCell.daughters;
-      while ((not remainingCells.empty()) and ++ilevel < num1dbits) {
+      while ((not remainingCells.empty()) and ++ilevel < numLevels) {
         vector<CellKey> newDaughters;
         const double cellsize = mBoxLength/(1U << ilevel);
 
@@ -118,23 +119,25 @@ evaluateDerivatives(const Dim<3>::Scalar time,
         for (vector<CellKey>::const_iterator keyItr = remainingCells.begin();
              keyItr != remainingCells.end();
              ++keyItr) {
-          cellItr = mTree.find(TreeKey(ilevel, *keyItr));
-          CHECK(cellItr != mTree.end());
+          cellItr = mTree[ilevel].find(*keyItr);
+          CHECK(cellItr != mTree[ilevel].end());
           const Cell& cell = cellItr->second;
           
           // Can we ignore this cells daughters?
-          const Vector dxcell = cell.xcm - xi;
-          const double rcell = dxcell.magnitude();
-          if (rcell > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
+          const Vector xcelli = cell.xcm - xi;
+          const double rcelli = xcelli.magnitude();
+          if (rcelli > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
 
             // Yep, treat this cells and all of its daughters as a single point.
-            const Vector nhat = dxcell.unitVector();
-            const double rcell2 = rcell*rcell + soft2;
-            CHECK(rcell2 > 0.0);
+            const Vector nhat = xcelli.unitVector();
+            const double rcelli2 = rcelli*rcelli + soft2;
+            CHECK(rcelli2 > 0.0);
 
             // Increment the acceleration and potential.
-            DvDti -= mG*cell.M/rcell2 * nhat;
-            phii -= mG*cell.M/sqrt(rcell2);
+            DvDti += mG*cell.M/rcelli2 * nhat;
+            phii -= mG*cell.M/sqrt(rcelli2);
+
+//             cerr << "node "<< i << " interacting with cell (" << ilevel << " " << *keyItr << ") : " << cell.M << " " << rcelli2 << endl;
 
           } else if (cell.daughters.size() == 0) {
 
@@ -145,15 +148,19 @@ evaluateDerivatives(const Dim<3>::Scalar time,
               const unsigned nodeListj = cell.members[k].first;
               const unsigned j = cell.members[k].second;
 
-              const Vector xji = position(nodeListj, j) - xi;
-              const Vector nhat = xji.unitVector();
-              const double rji2 = xji.magnitude2() + soft2;
-              CHECK(rji2 > 0.0);
+              if (nodeListj != nodeListi or j != i) {           // Screen out self-interaction.
+                const Vector xji = position(nodeListj, j) - xi;
+                const Vector nhat = xji.unitVector();
+                const double rji2 = xji.magnitude2() + soft2;
+                CHECK(rji2 > 0.0);
 
-              // Increment the acceleration and potential.
-              const double mj = mass(nodeListj, j);
-              DvDti -= mG*mj/rji2 * nhat;
-              phii -= mG*mj/sqrt(rji2);
+                // Increment the acceleration and potential.
+                const double mj = mass(nodeListj, j);
+                DvDti += mG*mj/rji2 * nhat;
+                phii -= mG*mj/sqrt(rji2);
+
+//                 cerr << "node " << i << " interacting with point (" << ilevel << " " << *keyItr << ") : (" << nodeListj << " " << j << ") : " << mj << " " << rji2 << endl;
+              }
             }
 
           } else {
@@ -221,28 +228,37 @@ initialize(const Scalar time,
     }
   }
 
-  // Make a final pass over the cells and fill in the distance bewteen the 
+  // Make a final pass over the cells and fill in the distance between the 
   // center of mass and the geometric center.
-  LevelKey ilevel;
+  // We also squirrel away the maximum effective cell density for our timestep
+  // determination.
   CellKey ckey, ix, iy, iz;
-  double cellsize;
-  for (Tree::iterator itr = mTree.begin();
-       itr != mTree.end();
-       ++itr) {
-    ilevel = itr->first.first;
-    ckey = itr->first.second;
-    Cell& cell = itr->second;
-    extractCellIndices(ckey, ix, iy, iz);
+  double cellsize, cellvol;
+  mMaxCellDensity = 0.0;
+  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
     cellsize = mBoxLength/(1U << ilevel);
-    cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
-                                              (iy + 0.5)*cellsize,
-                                              (iz + 0.5)*cellsize))).magnitude();
-    CHECK(cell.rcm2cc < 1.74*cellsize);
+    cellvol = cellsize*cellsize*cellsize;
+    for (TreeLevel::iterator itr = mTree[ilevel].begin();
+         itr != mTree[ilevel].end();
+         ++itr) {
+      ckey = itr->first;
+      Cell& cell = itr->second;
+      extractCellIndices(ckey, ix, iy, iz);
+
+      // Update the distance between the cell's center of mass and geometric center.
+      cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
+                                                (iy + 0.5)*cellsize,
+                                                (iz + 0.5)*cellsize))).magnitude();
+      CHECK(cell.rcm2cc < 1.74*cellsize);
+
+      // Update the maximum effective cell density.
+      mMaxCellDensity = max(mMaxCellDensity, cell.M/cellvol);
+    }
   }
 }
 
 //------------------------------------------------------------------------------
-// Vote on a time step.  We should fill in a sqrt(G/rho) type thing here!
+// Vote on a time step.
 //------------------------------------------------------------------------------
 OctTreeGravity::TimeStepType
 OctTreeGravity::
@@ -250,16 +266,16 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
+  REQUIRE(mMaxCellDensity > 0.0);
 
-  // We use the minimum ratio of pmomi/Fi from the last evaluateDerivatives call
-  // to choose the next time step.
-  const double dt = mftimestep * safeInv(mdt_veli/mdt_acci);
+  // We use the gravitational dynamical time (sqrt(G/rho)) to estimate the 
+  // necessary timestep.
+  const double dt = mftimestep * sqrt(mG/mMaxCellDensity);
 
   stringstream reasonStream;
-  reasonStream << "OctTreeGravity: (velocity, acc, dt = ("
-               << mdt_veli << " "
-               << mdt_acci << " " 
-               << dt << ")" << ends;
+  reasonStream << "OctTreeGravity: sqrt(/(G rho)) = sqrt(1/("
+               << mG << " * " << mMaxCellDensity
+               << ")) = " << dt << ends;
   return TimeStepType(dt, reasonStream.str());
 }
 
@@ -279,6 +295,41 @@ const FieldList<Dim<3>, OctTreeGravity::Scalar>&
 OctTreeGravity::
 potential() const {
   return mPotential;
+}
+
+//------------------------------------------------------------------------------
+// dumpTree
+//------------------------------------------------------------------------------
+std::string
+OctTreeGravity::
+dumpTree() const {
+  stringstream ss;
+  CellKey key, ix, iy, iz;
+  ss << "Tree : nlevels = " << mTree.size() << "\n";
+  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+    ss << "--------------------------------------------------------------------------------\n" 
+       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
+    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
+         itr != mTree[ilevel].end();
+         ++itr) {
+      key = itr->first;
+      const Cell& cell = itr->second;
+      extractCellIndices(key, ix, iy, iz);
+      ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << "\n"
+         << "         xcm=" << cell.xcm << " rcm2cc=" << cell.rcm2cc << " M=" << cell.M << "\n"
+         << "         daughters = ( ";
+      for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
+           ditr != cell.daughters.end();
+           ++ditr) ss << *ditr << " ";
+      ss << ")\n"
+         << "         nodes = [";
+      for (vector<NodeID>::const_iterator nitr = cell.members.begin();
+           nitr != cell.members.end();
+           ++nitr) ss << " (" << nitr->first << " " << nitr->second <<")";
+      ss <<" ]\n";
+    }
+  }
+  return ss.str();
 }
 
 //------------------------------------------------------------------------------
@@ -357,11 +408,22 @@ xmax() const {
 }
 
 //------------------------------------------------------------------------------
+// maxCellDensity
+//------------------------------------------------------------------------------
+double
+OctTreeGravity::
+maxCellDensity() const {
+  return mMaxCellDensity;
+}
+
+//------------------------------------------------------------------------------
 // Define our static members.
 //------------------------------------------------------------------------------
 unsigned OctTreeGravity::num1dbits = 21U;
-uint64_t OctTreeGravity::max1dKey = 1U << 21U;
-uint64_t OctTreeGravity::max1dKey1 = (1U << 21U) + 1U;
+uint64_t OctTreeGravity::max1dKey = 1U << OctTreeGravity::num1dbits;
+uint64_t OctTreeGravity::xkeymask = (1U << OctTreeGravity::num1dbits) - 1U;
+uint64_t OctTreeGravity::ykeymask = OctTreeGravity::xkeymask << OctTreeGravity::num1dbits;
+uint64_t OctTreeGravity::zkeymask = OctTreeGravity::ykeymask << OctTreeGravity::num1dbits;
 
 }
 }
