@@ -18,15 +18,17 @@ commandLine(
 
     # Initial particle stuff
     r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
-    m0 = 1.0,                     # (earth masses) particle mass
+    m0 = 1.0,                      # (earth masses) particle mass
     plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
+    fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
     # Problem control
     steps = None,
     numOrbits = 2,                 # How many orbits do we want to follow?
 
     # Which N-body method should we use?
-    fractal = False,
+    nbody = NBodyGravity,
 
     # Output
     dataDir = "Two-Earth-Nbody",
@@ -120,7 +122,11 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 # Gimme gravity.
 #-------------------------------------------------------------------------------
-if fractal:
+if nbody is NBodyGravity:
+    gravity = NBodyGravity(plummerSofteningLength = plummerLength,
+                           maxDeltaVelocity = 1e-2*v0,
+                           G = G)
+elif nbody is FractalGravity:
     gravity = FractalGravity(G = G,
                              xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
                              xmax = Vector( 1.5*r0,  1.5*r0,  1.5*r0),
@@ -130,10 +136,11 @@ if fractal:
                              minHighParticles = 10,
                              padding = 0,
                              maxDeltaVelocity = 1e-2*v0)
-else:
-    gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                           maxDeltaVelocity = 1e-2*v0,
-                           G = G)
+elif nbody is OctTreeGravity:
+    gravity = OctTreeGravity(G = G,
+                             opening = opening,
+                             softeningLength = plummerLength,
+                             ftimestep = fdt)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
