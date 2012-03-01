@@ -11,15 +11,25 @@ namespace GravitySpace {
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
 //inline
-OctTreeGravity::CellKey
+void
 OctTreeGravity::
-buildCellKey(const OctTreeGravity::CellKey ix,
-             const OctTreeGravity::CellKey iy,
-             const OctTreeGravity::CellKey iz) const {
-  std::cerr << "buildCellKey : " << ix  << " "  << iy << " " << iz << std::endl;
-  return ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
-          (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
-          (std::max(CellKey(0), std::min(max1dKey, ix))));
+buildCellKey(const OctTreeGravity::LevelKey ilevel,
+             const OctTreeGravity::Vector& xi,
+             OctTreeGravity::CellKey& key,
+             OctTreeGravity::CellKey& ix,
+             OctTreeGravity::CellKey& iy,
+             OctTreeGravity::CellKey& iz) const {
+  REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
+  REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
+  REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
+  const CellKey ncell = (1U << ilevel);
+  const CellKey maxcell = ncell - 1U;
+  ix = std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell));
+  iy = std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell));
+  iz = std::min(maxcell, CellKey((xi.z() - mXmin.z())/mBoxLength * ncell));
+  key = ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
+         (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
+         (std::max(CellKey(0), std::min(max1dKey, ix))));
 }
 
 //------------------------------------------------------------------------------
@@ -32,31 +42,9 @@ extractCellIndices(const OctTreeGravity::CellKey& key,
                    OctTreeGravity::CellKey& ix,
                    OctTreeGravity::CellKey& iy,
                    OctTreeGravity::CellKey& iz) const {
-  ix = key && ((1U << num1dbits) - 1U);
-  iy = key && (((1U << num1dbits) - 1U) << num1dbits);
-  iz = key && (((1U << num1dbits) - 1U) << 2*num1dbits);
-  // ix = key % (1U << num1dbits);
-  // iy = (key >> num1dbits) % num1dbits;
-  // iz = (key >> 2*num1dbits);
-}
-
-//------------------------------------------------------------------------------
-// Build the key for a cell based on a position and level.
-//------------------------------------------------------------------------------
-//inline
-OctTreeGravity::TreeKey
-OctTreeGravity::
-buildTreeKey(const OctTreeGravity::LevelKey ilevel,
-             const OctTreeGravity::Vector& xi) const {
-  REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
-  REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
-  REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
-  const CellKey ncell = (1U << ilevel);
-  const CellKey maxcell = ncell - 1U;
-  const CellKey ckey = buildCellKey(std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell)),
-                                    std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell)),
-                                    std::min(maxcell, CellKey((xi.z() - mXmin.z())/mBoxLength * ncell)));
-  return std::make_pair(ilevel, ckey);
+  ix = key & xkeymask;
+  iy = (key & ykeymask) >> num1dbits;
+  iz = (key & zkeymask) >> 2*num1dbits;
 }
 
 //------------------------------------------------------------------------------
@@ -85,23 +73,25 @@ addNodeToTree(const size_t nodeListi,
   LevelKey ilevel = 0;
   const NodeID nodeID = std::make_pair(nodeListi, i);
   bool terminated = false;
-  TreeKey key, parentKey;
-  Tree::iterator itr;
-  std::cerr << "addNodeToTree: node " << i << std::endl;
+  CellKey key, parentKey, otherKey, ix, iy, iz;
+  TreeLevel::iterator itr;
+//   std::cerr << "addNodeToTree: node " << i << std::endl;
   while (ilevel < OctTreeGravity::num1dbits and not terminated) {
-    key = buildTreeKey(ilevel, xi);
-    itr = mTree.find(key);
 
-    uint64_t ix, iy, iz;
-    extractCellIndices(key.second, ix, iy, iz);
-    std::cerr << "    level " << ilevel << " : " << key.first << " " << key.second << " : " << ix << " " << iy << " " << iz << std::endl;
+    // Do we need to add another level to the tree?
+    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
 
-    if (itr == mTree.end()) {
+    // Create the key for the cell containing this particle on this level.
+    buildCellKey(ilevel, xi, key, ix, iy, iz);
+    itr = mTree[ilevel].find(key);
+//     std::cerr << "    level " << ilevel << " : " << key << " : " << ix << " " << iy << " " << iz << std::endl;
+
+    if (itr == mTree[ilevel].end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[key] = Cell(xi, mi, nodeID);
-      std::cerr << "            unique cell -- terminated." << std::endl;
+      mTree[ilevel][key] = Cell(xi, mi, nodeID);
+//       std::cerr << "            unique cell -- terminated." << std::endl;
 
     } else {
       Cell& cell = itr->second;
@@ -115,17 +105,18 @@ addNodeToTree(const size_t nodeListi,
           CHECK(cell.members.size() == 1);
           const LevelKey ilevel1 = ilevel + 1;
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
-          const TreeKey otherKey = buildTreeKey(ilevel1, cell.xcm);
-          mTree[otherKey] = Cell(cell.xcm, cell.M, cell.members[0]);
-          cell.daughters = std::vector<CellKey>(1, otherKey.second);
+          if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
+          buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
+          mTree[ilevel1][otherKey] = Cell(cell.xcm, cell.M, cell.members[0]);
+          cell.daughters = std::vector<CellKey>(1, otherKey);
           cell.members = std::vector<NodeID>();
-          std::cerr << "            split cell." << std::endl;
+//           std::cerr << "            split cell." << std::endl;
 
         } else {
           // If we've maxed out the levels, then we just huck this node in 
           // the members of this cell.
           cell.members.push_back(nodeID);
-          std::cerr << "            split cell -- end of the line." << std::endl;
+//           std::cerr << "            split cell -- end of the line." << std::endl;
         }
       }
 
@@ -136,8 +127,8 @@ addNodeToTree(const size_t nodeListi,
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      CHECK(mTree.find(parentKey) != mTree.end());
-      addDaughter(mTree[parentKey], key.second);
+      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
+      addDaughter(mTree[ilevel - 1][parentKey], key);
     }
 
     parentKey = key;

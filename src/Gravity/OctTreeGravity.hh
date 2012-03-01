@@ -74,6 +74,9 @@ public:
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
 
+  //! Return a dump of the tree structure as a string.
+  std::string dumpTree() const;
+
   //! The gravitational constant we're using.
   double G() const;
 
@@ -95,15 +98,18 @@ public:
   //! The upper right corner of the computational cube that was last used.
   Vector xmax() const;
 
+  //! The last computed maximum tree cell density.
+  double maxCellDensity() const;
+
 private:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
   typedef uint64_t CellKey;
-  typedef std::pair<LevelKey, CellKey> TreeKey;
   typedef std::pair<size_t, size_t> NodeID;
 
-  static unsigned num1dbits;             // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
-  static CellKey max1dKey, max1dKey1;    // The maximum number of cells this corresponds to in a direction.
+  static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
+  static CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
+  static CellKey xkeymask, ykeymask, zkeymask; // Bit masks we can use to extract the coordinate specific indices from a cell key.
 
   //----------------------------------------------------------------------------
   // Cell holds the properties of cells in the tree.
@@ -123,16 +129,14 @@ private:
       xcm(xi), rcm2cc(0.0), M(mi), daughters(std::vector<CellKey>(1, daughter)), members() {}
   };
 
-  typedef boost::unordered_map<TreeKey, Cell> Tree;
+  // Define the types we use to build the tree.
+  typedef boost::unordered_map<CellKey, Cell> TreeLevel;
+  typedef std::vector<TreeLevel> Tree;
 
   // Private data.
-  double mG, mOpening, mSofteningLength, mftimestep, mBoxLength;
+  double mG, mOpening, mSofteningLength, mftimestep, mBoxLength, mMaxCellDensity;
   Vector mXmin, mXmax;
   Tree mTree;
-
-  // The time step control info filled in during evaluateDerivatives.
-  mutable size_t mdt_fieldi, mdt_nodei;
-  mutable double mdt_veli, mdt_acci;
 
   // The potential fields filled in during evaluateDerivates.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
@@ -147,19 +151,19 @@ private:
   // Assignment operator -- disabled.
   OctTreeGravity& operator=(const OctTreeGravity&);
 
-  // Build a cell key based on three indices.
-  CellKey buildCellKey(const CellKey ix,
-                       const CellKey iy,
-                       const CellKey iz) const;
+  // Build a cell key based on a level and position.
+  void buildCellKey(const LevelKey ilevel,
+                    const Vector& xi,
+                    CellKey& key,
+                    CellKey& ix,
+                    CellKey& iy,
+                    CellKey& iz) const;
 
   // Extract the individual coordinate indices from a cell key.
   void extractCellIndices(const CellKey& key,
                           CellKey& ix,
                           CellKey& iy,
                           CellKey& iz) const;
-
-  // Build the key for a tree cell.
-  TreeKey buildTreeKey(const LevelKey ilevel, const Vector& xi) const;
 
   // Add a cell key to the daughters of a cell.
   void addDaughter(Cell& cell, const CellKey daughterKey) const;
