@@ -365,3 +365,5 @@ uint64_t OctTreeGravity::max1dKey1 = (1U << 21U) + 1U;
 
 }
 }
+
+#include "OctTreeGravityInline.hh"
