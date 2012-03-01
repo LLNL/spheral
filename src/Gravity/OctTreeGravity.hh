@@ -37,8 +37,8 @@ public:
   //! \param softeningLength -- The Plummer softening length for the model.
   //! \param ftimestep -- safety factor to apply to pmom_i/F_i in setting time steps.
   OctTreeGravity(const double G,
-                 const double opening,
                  const double softeningLength,
+                 const double opening,
                  const double ftimestep);
 
   //! Destructor.
@@ -134,7 +134,7 @@ private:
   typedef std::vector<TreeLevel> Tree;
 
   // Private data.
-  double mG, mOpening, mSofteningLength, mftimestep, mBoxLength, mMaxCellDensity;
+  double mG, mSofteningLength, mOpening, mftimestep, mBoxLength, mMaxCellDensity;
   Vector mXmin, mXmax;
   Tree mTree;
 
@@ -178,6 +178,6 @@ private:
 }
 }
 
-//#include "OctTreeGravityInline.hh"
+#include "OctTreeGravityInline.hh"
 
 #endif

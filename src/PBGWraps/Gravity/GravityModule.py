@@ -162,9 +162,9 @@ class Gravity:
 
         # Constructors.
         x.add_constructor([param("double", "G"),
-                           param("double", "opening"),
                            param("double", "softeningLength"),
-                           param("double", "ftimestep")])
+                           param("double", "opening", default_value="0.5"),
+                           param("double", "ftimestep", default_value="0.1")])
 
         # Methods.
         x.add_method("evaluateDerivatives", None, [param("const double", "time"),
