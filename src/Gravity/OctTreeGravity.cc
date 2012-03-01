@@ -34,12 +34,12 @@ using DataBaseSpace::DataBase;
 //------------------------------------------------------------------------------
 OctTreeGravity::
 OctTreeGravity(const double G,
-               const double opening,
                const double softeningLength,
+               const double opening,
                const double ftimestep):
   mG(G),
-  mOpening(opening),
   mSofteningLength(softeningLength),
+  mOpening(opening),
   mftimestep(ftimestep),
   mBoxLength(0.0),
   mMaxCellDensity(0.0),
@@ -270,10 +270,10 @@ dt(const DataBase<Dimension>& dataBase,
 
   // We use the gravitational dynamical time (sqrt(G/rho)) to estimate the 
   // necessary timestep.
-  const double dt = mftimestep * sqrt(mG/mMaxCellDensity);
+  const double dt = mftimestep * sqrt(1.0/(mG*mMaxCellDensity));
 
   stringstream reasonStream;
-  reasonStream << "OctTreeGravity: sqrt(/(G rho)) = sqrt(1/("
+  reasonStream << "OctTreeGravity: sqrt(1/(G rho)) = sqrt(1/("
                << mG << " * " << mMaxCellDensity
                << ")) = " << dt << ends;
   return TimeStepType(dt, reasonStream.str());
@@ -427,5 +427,3 @@ uint64_t OctTreeGravity::zkeymask = OctTreeGravity::ykeymask << OctTreeGravity::
 
 }
 }
-
-#include "OctTreeGravityInline.hh"

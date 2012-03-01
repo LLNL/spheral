@@ -138,8 +138,8 @@ if nbody is NBodyGravity:
 #                              maxDeltaVelocity = 1e-2*v0)
 elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
-                             opening = opening,
                              softeningLength = plummerLength,
+                             opening = opening,
                              ftimestep = fdt)
 
 #-------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ namespace GravitySpace {
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 buildCellKey(const OctTreeGravity::LevelKey ilevel,
@@ -35,7 +35,7 @@ buildCellKey(const OctTreeGravity::LevelKey ilevel,
 //------------------------------------------------------------------------------
 // Extract the individual coordinate indices from a cell index.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 extractCellIndices(const OctTreeGravity::CellKey& key,
@@ -50,7 +50,7 @@ extractCellIndices(const OctTreeGravity::CellKey& key,
 //------------------------------------------------------------------------------
 // Add a daughter to a cell if not present.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 addDaughter(OctTreeGravity::Cell& cell,
@@ -63,7 +63,7 @@ addDaughter(OctTreeGravity::Cell& cell,
 //------------------------------------------------------------------------------
 // Add a node to the internal Tree structure.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 addNodeToTree(const size_t nodeListi,
@@ -75,7 +75,6 @@ addNodeToTree(const size_t nodeListi,
   bool terminated = false;
   CellKey key, parentKey, otherKey, ix, iy, iz;
   TreeLevel::iterator itr;
-//   std::cerr << "addNodeToTree: node " << i << std::endl;
   while (ilevel < OctTreeGravity::num1dbits and not terminated) {
 
     // Do we need to add another level to the tree?
@@ -84,14 +83,12 @@ addNodeToTree(const size_t nodeListi,
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, key, ix, iy, iz);
     itr = mTree[ilevel].find(key);
-//     std::cerr << "    level " << ilevel << " : " << key << " : " << ix << " " << iy << " " << iz << std::endl;
 
     if (itr == mTree[ilevel].end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
       mTree[ilevel][key] = Cell(xi, mi, nodeID);
-//       std::cerr << "            unique cell -- terminated." << std::endl;
 
     } else {
       Cell& cell = itr->second;
@@ -110,13 +107,11 @@ addNodeToTree(const size_t nodeListi,
           mTree[ilevel1][otherKey] = Cell(cell.xcm, cell.M, cell.members[0]);
           cell.daughters = std::vector<CellKey>(1, otherKey);
           cell.members = std::vector<NodeID>();
-//           std::cerr << "            split cell." << std::endl;
 
         } else {
           // If we've maxed out the levels, then we just huck this node in 
           // the members of this cell.
           cell.members.push_back(nodeID);
-//           std::cerr << "            split cell -- end of the line." << std::endl;
         }
       }
 
