@@ -10,36 +10,40 @@ namespace GravitySpace {
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
-inline
+//inline
 OctTreeGravity::CellKey
 OctTreeGravity::
 buildCellKey(const OctTreeGravity::CellKey ix,
              const OctTreeGravity::CellKey iy,
              const OctTreeGravity::CellKey iz) const {
-  return (std::max(CellKey(0), std::min(max1dKey, iz << 2*num1dbits)) +
-          std::max(CellKey(0), std::min(max1dKey, iy <<   num1dbits)) +
-          std::max(CellKey(0), std::min(max1dKey, ix)));
+  std::cerr << "buildCellKey : " << ix  << " "  << iy << " " << iz << std::endl;
+  return ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
+          (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
+          (std::max(CellKey(0), std::min(max1dKey, ix))));
 }
 
 //------------------------------------------------------------------------------
 // Extract the individual coordinate indices from a cell index.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 extractCellIndices(const OctTreeGravity::CellKey& key,
                    OctTreeGravity::CellKey& ix,
                    OctTreeGravity::CellKey& iy,
                    OctTreeGravity::CellKey& iz) const {
-  ix = key % (1U << num1dbits);
-  iy = (key >> num1dbits) % num1dbits;
-  iz = (key >> 2*num1dbits);
+  ix = key && ((1U << num1dbits) - 1U);
+  iy = key && (((1U << num1dbits) - 1U) << num1dbits);
+  iz = key && (((1U << num1dbits) - 1U) << 2*num1dbits);
+  // ix = key % (1U << num1dbits);
+  // iy = (key >> num1dbits) % num1dbits;
+  // iz = (key >> 2*num1dbits);
 }
 
 //------------------------------------------------------------------------------
 // Build the key for a cell based on a position and level.
 //------------------------------------------------------------------------------
-inline
+//inline
 OctTreeGravity::TreeKey
 OctTreeGravity::
 buildTreeKey(const OctTreeGravity::LevelKey ilevel,
@@ -47,16 +51,18 @@ buildTreeKey(const OctTreeGravity::LevelKey ilevel,
   REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
   REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
   REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
-  const CellKey ckey = buildCellKey(CellKey((xi.x() - mXmin.x())/mBoxLength * max1dKey1 + 0.5),
-                                    CellKey((xi.y() - mXmin.y())/mBoxLength * max1dKey1 + 0.5),
-                                    CellKey((xi.z() - mXmin.z())/mBoxLength * max1dKey1 + 0.5));
+  const CellKey ncell = (1U << ilevel);
+  const CellKey maxcell = ncell - 1U;
+  const CellKey ckey = buildCellKey(std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell)),
+                                    std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell)),
+                                    std::min(maxcell, CellKey((xi.z() - mXmin.z())/mBoxLength * ncell)));
   return std::make_pair(ilevel, ckey);
 }
 
 //------------------------------------------------------------------------------
 // Add a daughter to a cell if not present.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 addDaughter(OctTreeGravity::Cell& cell,
@@ -69,7 +75,7 @@ addDaughter(OctTreeGravity::Cell& cell,
 //------------------------------------------------------------------------------
 // Add a node to the internal Tree structure.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 addNodeToTree(const size_t nodeListi,
