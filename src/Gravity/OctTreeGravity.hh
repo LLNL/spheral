@@ -68,6 +68,9 @@ public:
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
                        
+  //! This package opts out of building connectivity.
+  virtual bool requireConnectivity() const { return false; }
+
   //! Return the total energy contribution due to the gravitational potential.
   virtual Scalar extraEnergy() const;
 

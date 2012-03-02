@@ -168,6 +168,16 @@ postStateUpdate(const DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// By default assume connectivity needs to be constructed.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+Physics<Dimension>::
+requireConnectivity() const {
+  return true;
+}
+
+//------------------------------------------------------------------------------
 // Provide a default method for the extraEnergy method, which will return 0.0
 // for classes that don't have their own energy.
 //------------------------------------------------------------------------------

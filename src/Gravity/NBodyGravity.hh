@@ -57,6 +57,9 @@ public:
   //! Initializations on problem start up.
   virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
 
+  //! This package opts out of building connectivity.
+  virtual bool requireConnectivity() const { return false; }
+
   //! Return the total energy contribution due to the gravitational potential.
   virtual Scalar extraEnergy() const;
 
