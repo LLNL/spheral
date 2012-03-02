@@ -70,6 +70,8 @@ addNodeToTree(const size_t nodeListi,
               const size_t i,
               const double mi,
               const OctTreeGravity::Vector& xi) {
+  mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
+
   LevelKey ilevel = 0;
   const NodeID nodeID = std::make_pair(nodeListi, i);
   bool terminated = false;
