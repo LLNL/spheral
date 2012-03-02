@@ -160,6 +160,7 @@ class Physics:
         x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
                                                refparam(state, "state"),
                                                constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
+        x.add_method("requireConnectivity", "bool", [], is_const=True, is_virtual=False)
         x.add_method("extraEnergy", "double", [], is_const=True, is_virtual=True)
         x.add_method("extraMomentum", vector, [], is_const=True, is_virtual=True)
 
