@@ -249,12 +249,18 @@ GMPURL = ftp://ftp.gmplib.org/pub/gmp-5.0.2/$(GMPDIST)
 GMPDIR = $(GMPDIST:.tar.bz2=)
 GMPBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(GMPDIST))
 
-# OCCTREE 
-OCTTREEDIST = octree_code.zip
-OCTTREEURL = http://nomis80.org/code/$(OCTTREEDIST)
-OCTTREEDIR = $(OCTTREEDIST:.zip=)
-OCTTREEINCDIR = $(SPHERALDIR)/include/octtree
-OCTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(OCTTREEDIST))
+# mpmath -- a python multiprecision math library
+MPMATHDIST = mpmath-0.17.tar.gz
+MPMATHURL = http://mpmath.googlecode.com/files/$(MPMATHDIST)
+MPMATHDIR = $(MPMATHDIST:.tar.gz=)
+MPMATHBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPMATHDIST))
+
+# # OCCTREE 
+# OCTTREEDIST = octree_code.zip
+# OCTTREEURL = http://nomis80.org/code/$(OCTTREEDIST)
+# OCTTREEDIR = $(OCTTREEDIST:.zip=)
+# OCTTREEINCDIR = $(SPHERALDIR)/include/octtree
+# OCTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(OCTTREEDIST))
 
 # # The FLANN (Fast Library for Approximate Nearest Neighbors) library.
 # FLANNDIST = flann-1.7.1-src.zip
@@ -299,7 +305,7 @@ all:	$(PYTHONBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(VOROPPBUILDDATE) \
 	$(VOROPP2DBUILDDATE) \
-	$(OCTTREEBUILDDATE)
+	$(MPMATHBUILDDATE)
 
 clean:
 	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
@@ -337,7 +343,7 @@ clean:
 	       $(EIGENDIR) $(EIGENBUILDDATE) \
 	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
 	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
-	       $(OCTTREEDIR) $(OCTTREEBUILDDATE) \
+	       $(MPMATHDIR) $(MPMATHBUILDDATE) \
 	       .*.date
 
 .SUFFIXES:	.date .gz .tgz
@@ -1267,6 +1273,27 @@ $(GMPBUILDDATE):  $(GMPDIST)
 	fi
 	rm -fr $(GMPDIR)
 	touch $(GMPBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# mpmath
+#-------------------------------------------------------------------------------
+$(MPMATHDIST):
+	$(CURL) "$(MPMATHURL)" > $(MPMATHDIST)
+
+$(MPMATHBUILDDATE):  $(PYTHONBUILDDATE) $(MPMATHDIST)
+	@echo "################################################################################"
+	@echo "# Building $(MPMATHDIST)"
+	@echo "################################################################################"
+	rm -fr $(MPMATHDIR)
+	$(GZIP) -dc $(MPMATHDIST) | $(TAR) -xf -
+	$(SHELL) -ec "cd $(MPMATHDIR); $(PYTHONEXE) setup.py install"
+	@if test -n "`$(PYTHONEXE) -c 'import mpmath'`"; then \
+	echo "ERROR building mpmath python extension."; \
+	rm -f $(MPMATHBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(MPMATHDIR)
+	touch $(MPMATHBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # FLANN
