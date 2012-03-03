@@ -22,13 +22,13 @@ commandLine(
     nr = 100,                      # radial number of particles to seed
     r0 = 1.0,                      # (AU) initial radius of the sphere
     M0 = 1.0,                      # (earth masses) total mass of the sphere
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    plummerLength = 1.0e-2,        # (AU) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
     # Problem control
     steps = None,                  # Optionally advance a fixed number of steps
-    numCollapseTimes = 100.0,      # What time to advance to in units of the collapse time for the sphere
+    numCollapseTimes = 2.0,        # What time to advance to in units of the collapse time for the sphere
 
     # Which N-body method should we use?
     nbody = OctTreeGravity,
@@ -178,4 +178,5 @@ if restoreCycle:
 if not steps is None:
     control.step(steps)
 else:
+    print "Advancing to ", goalTime
     control.advance(goalTime)
