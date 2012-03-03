@@ -108,7 +108,6 @@ private:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
   typedef uint64_t CellKey;
-  typedef std::pair<size_t, size_t> NodeID;
 
   static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
@@ -118,18 +117,19 @@ private:
   // Cell holds the properties of cells in the tree.
   //----------------------------------------------------------------------------
   struct Cell {
+    double M;                       // total mass
     Vector xcm;                     // center of mass
     double rcm2cc;                  // distance between center of mass and geometric center
-    double M;                       // total mass
     std::vector<CellKey> daughters; // Keys of any daughter cells on level+1
-    std::vector<NodeID> members;    // Any Spheral nodes that terminate in this cell.
+    std::vector<double> masses;     // Masses of the nodes that terminate in this cell.
+    std::vector<Vector> positions;  // Positions of the nodes that terminate in this cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
-    Cell(): xcm(), rcm2cc(0.0), M(0.0), daughters(), members() {}
-    Cell(const Vector& xi, const double mi, const NodeID& nid):
-      xcm(xi), rcm2cc(0.0), M(mi), daughters(), members(std::vector<NodeID>(1, nid)) {}
-    Cell(const Vector& xi, const double mi, const CellKey& daughter):
-      xcm(xi), rcm2cc(0.0), M(mi), daughters(std::vector<CellKey>(1, daughter)), members() {}
+    Cell(): M(0.0), xcm(), rcm2cc(0.0), daughters(), masses(), positions() {}
+    Cell(const double mi, const Vector& xi):
+      M(mi), xcm(xi), rcm2cc(0.0), daughters(), masses(1, mi), positions(1, xi) {}
+    Cell(const double mi, const Vector& xi, const CellKey& daughter):
+      M(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), masses(), positions() {}
   };
 
   // Define the types we use to build the tree.
@@ -172,10 +172,16 @@ private:
   void addDaughter(Cell& cell, const CellKey daughterKey) const;
 
   // Add a node to the internal tree.
-  void addNodeToTree(const size_t nodeListi,
-                     const size_t i,
-                     const double mi,
+  void addNodeToTree(const double mi,
                      const Vector& xi);
+
+  // Walk a tree and apply it's forces to a set of points.
+  void applyTreeForces(const Tree& tree,
+                       const FieldSpace::FieldList<Dimension, Scalar>& mass,
+                       const FieldSpace::FieldList<Dimension, Vector>& position,
+                       FieldSpace::FieldList<Dimension, Vector>& DxDt,
+                       FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                       FieldSpace::FieldList<Dimension, Scalar>& potential) const;
 };
 
 }
