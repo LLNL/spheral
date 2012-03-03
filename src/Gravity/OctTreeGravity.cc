@@ -72,14 +72,10 @@ evaluateDerivatives(const Dim<3>::Scalar time,
                     const State<Dim<3> >& state,
                     StateDerivatives<Dim<3> >& derivs) const {
 
-  const double soft2 = mSofteningLength*mSofteningLength;
-
   // Access the pertinent fields in the database.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const unsigned numNodeLists = mass.numFields();
-  const unsigned numNodes = mass.numInternalNodes();
 
   // Get the acceleration and position change vectors we'll be modifying.
   FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -87,96 +83,13 @@ evaluateDerivatives(const Dim<3>::Scalar time,
 
   // Zero out the total gravitational potential energy.
   mExtraEnergy = 0.0;
+  mPotential = 0.0;
 
-  // We'll always be starting with the daughters of the root level.
-  const unsigned numLevels = mTree.size();
-  CHECK(numLevels >= 1);
-  const Cell& rootCell = mTree[0].begin()->second;
+  // Apply the forces from our local tree.
+  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential);
 
-  // Walk each internal node.
-  TreeLevel::const_iterator cellItr;
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
-
-      // State of node i.
-      const double mi = mass(nodeListi, i);
-      const Vector& xi = position(nodeListi, i);
-      const Vector& vi = velocity(nodeListi, i);
-      Vector& DvDti = DvDt(nodeListi, i);
-      Scalar& phii = mPotential(nodeListi, i);
-
-      // Set the position update to Lagrangian.
-      DxDt(nodeListi, i) += velocity(nodeListi, i);
-
-      // Walk the tree.
-      unsigned ilevel = 0;
-      vector<CellKey> remainingCells = rootCell.daughters;
-      while ((not remainingCells.empty()) and ++ilevel < numLevels) {
-        vector<CellKey> newDaughters;
-        const double cellsize = mBoxLength/(1U << ilevel);
-
-        // Walk each of the current set of Cells.
-        for (vector<CellKey>::const_iterator keyItr = remainingCells.begin();
-             keyItr != remainingCells.end();
-             ++keyItr) {
-          cellItr = mTree[ilevel].find(*keyItr);
-          CHECK(cellItr != mTree[ilevel].end());
-          const Cell& cell = cellItr->second;
-          
-          // Can we ignore this cells daughters?
-          const Vector xcelli = cell.xcm - xi;
-          const double rcelli = xcelli.magnitude();
-          if (rcelli > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
-
-            // Yep, treat this cells and all of its daughters as a single point.
-            const Vector nhat = xcelli.unitVector();
-            const double rcelli2 = rcelli*rcelli + soft2;
-            CHECK(rcelli2 > 0.0);
-
-            // Increment the acceleration and potential.
-            DvDti += mG*cell.M/rcelli2 * nhat;
-            phii -= mG*cell.M/sqrt(rcelli2);
-
-//             cerr << "node "<< i << " interacting with cell (" << ilevel << " " << *keyItr << ") : " << cell.M << " " << rcelli2 << endl;
-
-          } else if (cell.daughters.size() == 0) {
-
-            // This cell represents a leaf (termination of descent.  We just directly
-            // add up the node properties of any nodes in the cell.
-            CHECK(cell.members.size() > 0);
-            for (unsigned k = 0; k != cell.members.size(); ++k) {
-              const unsigned nodeListj = cell.members[k].first;
-              const unsigned j = cell.members[k].second;
-
-              if (nodeListj != nodeListi or j != i) {           // Screen out self-interaction.
-                const Vector xji = position(nodeListj, j) - xi;
-                const Vector nhat = xji.unitVector();
-                const double rji2 = xji.magnitude2() + soft2;
-                CHECK(rji2 > 0.0);
-
-                // Increment the acceleration and potential.
-                const double mj = mass(nodeListj, j);
-                DvDti += mG*mj/rji2 * nhat;
-                phii -= mG*mj/sqrt(rji2);
-
-//                 cerr << "node " << i << " interacting with point (" << ilevel << " " << *keyItr << ") : (" << nodeListj << " " << j << ") : " << mj << " " << rji2 << endl;
-              }
-            }
-
-          } else {
-
-            // We need to walk further down the tree.  Add this cells daughters
-            // to the next set.
-            copy(cell.daughters.begin(), cell.daughters.end(), back_inserter(newDaughters));
-
-          }
-        }
-
-        // Update the set of cells to check on the next pass.
-        remainingCells = newDaughters;
-      }
-    }
-  }
+  // Set the motion to be Lagrangian.
+  DxDt.assignFields(velocity);
 }
 
 //------------------------------------------------------------------------------
@@ -224,7 +137,7 @@ initialize(const Scalar time,
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const size_t n = mass[nodeListi]->numInternalElements();
     for (size_t i = 0; i != n; ++i) {
-      this->addNodeToTree(nodeListi, i, mass(nodeListi, i), position(nodeListi, i));
+      this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i));
     }
   }
 
@@ -323,9 +236,9 @@ dumpTree() const {
            ++ditr) ss << *ditr << " ";
       ss << ")\n"
          << "         nodes = [";
-      for (vector<NodeID>::const_iterator nitr = cell.members.begin();
-           nitr != cell.members.end();
-           ++nitr) ss << " (" << nitr->first << " " << nitr->second <<")";
+      for (unsigned k = 0; k != cell.masses.size(); ++k) ss << " ("
+                                                            << cell.masses[k] << " "
+                                                            << cell.positions[k] << ")";
       ss <<" ]\n";
     }
   }
@@ -414,6 +327,106 @@ double
 OctTreeGravity::
 maxCellDensity() const {
   return mMaxCellDensity;
+}
+
+//------------------------------------------------------------------------------
+// Apply the forces from a tree.
+//------------------------------------------------------------------------------
+void 
+OctTreeGravity::
+applyTreeForces(const Tree& tree,
+                const FieldSpace::FieldList<Dimension, Scalar>& mass,
+                const FieldSpace::FieldList<Dimension, Vector>& position,
+                FieldSpace::FieldList<Dimension, Vector>& DxDt,
+                FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                FieldSpace::FieldList<Dimension, Scalar>& potential) const {
+
+  const double soft2 = mSofteningLength*mSofteningLength;
+  const unsigned numNodeLists = mass.numFields();
+  const unsigned numNodes = mass.numInternalNodes();
+
+  // We'll always be starting with the daughters of the root level.
+  const unsigned numLevels = tree.size();
+  CHECK(numLevels >= 1);
+  const Cell& rootCell = tree[0].begin()->second;
+
+  // Walk each internal node.
+  TreeLevel::const_iterator cellItr;
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
+
+      // State of node i.
+      const double mi = mass(nodeListi, i);
+      const Vector& xi = position(nodeListi, i);
+      Vector& DvDti = DvDt(nodeListi, i);
+      Scalar& phii = potential(nodeListi, i);
+
+      // Walk the tree.
+      unsigned ilevel = 0;
+      vector<CellKey> remainingCells = rootCell.daughters;
+      while ((not remainingCells.empty()) and ++ilevel < numLevels) {
+        vector<CellKey> newDaughters;
+        const double cellsize = mBoxLength/(1U << ilevel);
+
+        // Walk each of the current set of Cells.
+        for (vector<CellKey>::const_iterator keyItr = remainingCells.begin();
+             keyItr != remainingCells.end();
+             ++keyItr) {
+          cellItr = tree[ilevel].find(*keyItr);
+          CHECK(cellItr != tree[ilevel].end());
+          const Cell& cell = cellItr->second;
+          
+          // Can we ignore this cells daughters?
+          const Vector xcelli = cell.xcm - xi;
+          const double rcelli = xcelli.magnitude();
+          if (rcelli > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
+
+            // Yep, treat this cells and all of its daughters as a single point.
+            const Vector nhat = xcelli.unitVector();
+            const double rcelli2 = rcelli*rcelli + soft2;
+            CHECK(rcelli2 > 0.0);
+
+            // Increment the acceleration and potential.
+            DvDti += mG*cell.M/rcelli2 * nhat;
+            phii -= mG*cell.M/sqrt(rcelli2);
+
+          } else if (cell.daughters.size() == 0) {
+
+            // This cell represents a leaf (termination of descent.  We just directly
+            // add up the node properties of any nodes in the cell.
+            CHECK(cell.masses.size() > 0 and
+                  cell.positions.size() == cell.masses.size());
+            for (unsigned k = 0; k != cell.masses.size(); ++k) {
+              const Vector& xj = cell.positions[k];
+              const double mj = cell.masses[k];
+              const Vector xji = xj - xi;
+              double rji2 = xji.magnitude2();
+
+              if (rji2/soft2 > 1.0e-10) {           // Screen out self-interaction.
+                const Vector nhat = xji.unitVector();
+                rji2 += soft2;
+                CHECK(rji2 > 0.0);
+
+                // Increment the acceleration and potential.
+                DvDti += mG*mj/rji2 * nhat;
+                phii -= mG*mj/sqrt(rji2);
+              }
+            }
+
+          } else {
+
+            // We need to walk further down the tree.  Add this cells daughters
+            // to the next set.
+            copy(cell.daughters.begin(), cell.daughters.end(), back_inserter(newDaughters));
+
+          }
+        }
+
+        // Update the set of cells to check on the next pass.
+        remainingCells = newDaughters;
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

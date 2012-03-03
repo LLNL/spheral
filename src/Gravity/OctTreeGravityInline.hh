@@ -66,14 +66,11 @@ addDaughter(OctTreeGravity::Cell& cell,
 inline
 void
 OctTreeGravity::
-addNodeToTree(const size_t nodeListi,
-              const size_t i,
-              const double mi,
+addNodeToTree(const double mi,
               const OctTreeGravity::Vector& xi) {
   mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
 
   LevelKey ilevel = 0;
-  const NodeID nodeID = std::make_pair(nodeListi, i);
   bool terminated = false;
   CellKey key, parentKey, otherKey, ix, iy, iz;
   TreeLevel::iterator itr;
@@ -90,30 +87,33 @@ addNodeToTree(const size_t nodeListi,
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[ilevel][key] = Cell(xi, mi, nodeID);
+      mTree[ilevel][key] = Cell(mi, xi);
 
     } else {
       Cell& cell = itr->second;
 
       // Is this cell a single leaf already?
-      if (cell.members.size() > 0) {
+      if (cell.masses.size() > 0) {
+        CHECK(cell.masses.size() == cell.positions.size());
         CHECK(cell.daughters.size() == 0);
 
         // Yep, so we need to split it unless we're at the maximum refinement.
         if (ilevel < OctTreeGravity::num1dbits - 1) {
-          CHECK(cell.members.size() == 1);
+          CHECK(cell.masses.size() == 1);
           const LevelKey ilevel1 = ilevel + 1;
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
           if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
           buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
-          mTree[ilevel1][otherKey] = Cell(cell.xcm, cell.M, cell.members[0]);
+          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm);
           cell.daughters = std::vector<CellKey>(1, otherKey);
-          cell.members = std::vector<NodeID>();
+          cell.masses = std::vector<double>();
+          cell.positions = std::vector<Vector>();
 
         } else {
           // If we've maxed out the levels, then we just huck this node in 
           // the members of this cell.
-          cell.members.push_back(nodeID);
+          cell.masses.push_back(mi);
+          cell.positions.push_back(xi);
         }
       }
 
