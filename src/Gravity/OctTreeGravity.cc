@@ -16,6 +16,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Utilities/boundingBox.hh"
+#include "Utilities/packElement.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -427,6 +428,85 @@ applyTreeForces(const Tree& tree,
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Serialize a tree to a buffer of char.
+//------------------------------------------------------------------------------
+void
+OctTreeGravity::
+serialize(const OctTreeGravity::Tree& tree,
+          std::vector<char>& buffer) const {
+  const unsigned nlevels = tree.size();
+  packElement(nlevels, buffer);
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+    const unsigned ncells = tree[ilevel].size();
+    packElement(ncells, buffer);
+    for (TreeLevel::const_iterator itr = tree[ilevel].begin();
+         itr != tree[ilevel].end();
+         ++itr) {
+      packElement(itr->first, buffer);
+      serialize(itr->second, buffer);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Serialize a cell to a buffer of char.
+//------------------------------------------------------------------------------
+void
+OctTreeGravity::
+serialize(const OctTreeGravity::Cell& cell,
+          std::vector<char>& buffer) const {
+  packElement(cell.M, buffer);
+  packElement(cell.xcm, buffer);
+  packElement(cell.rcm2cc, buffer);
+  packElement(cell.daughters, buffer);
+  packElement(cell.masses, buffer);
+  packElement(cell.positions, buffer);
+}
+
+//------------------------------------------------------------------------------
+// Deserialize a tree from a buffer of char.
+//------------------------------------------------------------------------------
+void
+OctTreeGravity::
+deserialize(OctTreeGravity::Tree& tree,
+            vector<char>::const_iterator& bufItr,
+            const vector<char>::const_iterator& endItr) const {
+  unsigned nlevels, ncells;
+  CellKey key;
+  Cell cell;
+  unpackElement(nlevels, bufItr, endItr);
+  tree.resize(nlevels);
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+    unsigned ncells;
+    unpackElement(ncells, bufItr, endItr);
+    for (unsigned i = 0; i != ncells; ++i) {
+      cell.daughters = vector<CellKey>();
+      cell.masses = vector<double>();
+      cell.positions = vector<Vector>();
+      unpackElement(key, bufItr, endItr);
+      deserialize(cell, bufItr, endItr);
+      tree[ilevel][key] = cell;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Deserialize a cell from a buffer of char.
+//------------------------------------------------------------------------------
+void
+OctTreeGravity::
+deserialize(OctTreeGravity::Cell& cell,
+            vector<char>::const_iterator& bufItr,
+            const vector<char>::const_iterator& endItr) const {
+  unpackElement(cell.M, bufItr, endItr);
+  unpackElement(cell.xcm, bufItr, endItr);
+  unpackElement(cell.rcm2cc, bufItr, endItr);
+  unpackElement(cell.daughters, bufItr, endItr);
+  unpackElement(cell.masses, bufItr, endItr);
+  unpackElement(cell.positions, bufItr, endItr);
 }
 
 //------------------------------------------------------------------------------

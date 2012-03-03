@@ -182,6 +182,14 @@ private:
                        FieldSpace::FieldList<Dimension, Vector>& DxDt,
                        FieldSpace::FieldList<Dimension, Vector>& DvDt,
                        FieldSpace::FieldList<Dimension, Scalar>& potential) const;
+
+  // Methods to help serializing/deserializing Trees to buffers of char.
+  void serialize(const Tree& tree, std::vector<char>& buffer) const;
+  void serialize(const Cell& cell, std::vector<char>& buffer) const;
+
+  // Unpack a tree from a buffer.
+  void deserialize(Tree& tree, std::vector<char>::const_iterator& bufItr, const std::vector<char>::const_iterator& endItr) const;
+  void deserialize(Cell& cell, std::vector<char>::const_iterator& bufItr, const std::vector<char>::const_iterator& endItr) const;
 };
 
 }
