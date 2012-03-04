@@ -458,11 +458,12 @@ applyTreeForces(const Tree& tree,
       unsigned ilevel = 0;
       vector<CellKey> remainingCells = rootCell.daughters;
       while ((not remainingCells.empty()) and ++ilevel < numLevels) {
+        const unsigned nremaining = remainingCells.size();
         vector<CellKey> newDaughters;
+        newDaughters.reserve(8*nremaining);
         const double cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
-        const unsigned nremaining = remainingCells.size();
         for (unsigned k = 0; k != nremaining; ++k) {
           cellItr = tree[ilevel].find(remainingCells[k]);
           CHECK(cellItr != tree[ilevel].end());
