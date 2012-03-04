@@ -117,7 +117,7 @@ private:
   // Cell holds the properties of cells in the tree.
   //----------------------------------------------------------------------------
   struct Cell {
-    double M;                       // total mass
+    double M, Mglobal;              // total mass (and global sum)
     Vector xcm;                     // center of mass
     double rcm2cc;                  // distance between center of mass and geometric center
     std::vector<CellKey> daughters; // Keys of any daughter cells on level+1
@@ -125,11 +125,11 @@ private:
     std::vector<Vector> positions;  // Positions of the nodes that terminate in this cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
-    Cell(): M(0.0), xcm(), rcm2cc(0.0), daughters(), masses(), positions() {}
+    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc(0.0), daughters(), masses(), positions() {}
     Cell(const double mi, const Vector& xi):
-      M(mi), xcm(xi), rcm2cc(0.0), daughters(), masses(1, mi), positions(1, xi) {}
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(), masses(1, mi), positions(1, xi) {}
     Cell(const double mi, const Vector& xi, const CellKey& daughter):
-      M(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), masses(), positions() {}
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), masses(), positions() {}
   };
 
   // Define the types we use to build the tree.
