@@ -136,7 +136,8 @@ private:
   };
 
   // Define the types we use to build the tree.
-  typedef boost::unordered_map<CellKey, Cell> TreeLevel;
+  typedef std::pair<CellKey, Cell> LevelElement;
+  typedef std::vector<LevelElement> TreeLevel;
   typedef std::vector<TreeLevel> Tree;
 
   // Private data.
@@ -198,6 +199,6 @@ private:
 }
 }
 
-#include "OctTreeGravityInline.hh"
+// #include "OctTreeGravityInline.hh"
 
 #endif

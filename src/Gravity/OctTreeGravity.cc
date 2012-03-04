@@ -19,6 +19,7 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/PairComparisons.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -180,6 +181,11 @@ initialize(const Scalar time,
     }
   }
 
+  // Sort each level by the keys, so we can rapidly find cells on each level.
+  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+    sort(mTree[ilevel].begin(), mTree[ilevel].end(), ComparePairsByFirstElement<LevelElement>());
+  }
+
 #ifdef USE_MPI
 
   // We require the true global center of mass for each cell, which means
@@ -219,7 +225,11 @@ initialize(const Scalar time,
            ++myItr) {
         const CellKey key = myItr->first;
         Cell& cell = myItr->second;
-        const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
+        // const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
+        const TreeLevel::const_iterator otherItr = lower_bound(tree[ilevel].begin(),
+                                                               tree[ilevel].end(),
+                                                               key,
+                                                               ComparePairsByFirstElement<LevelElement>());
         if (otherItr != tree[ilevel].end()) {
           const Cell& otherCell = otherItr->second;
           cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
@@ -321,7 +331,7 @@ dumpTree() const {
       key = itr->first;
       const Cell& cell = itr->second;
       extractCellIndices(key, ix, iy, iz);
-      ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << "\n"
+      ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
          << "         xcm=" << cell.xcm << " rcm2cc=" << cell.rcm2cc << " M=" << cell.M << "\n"
          << "         daughters = ( ";
       for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
@@ -492,10 +502,14 @@ applyTreeForces(const Tree& tree,
 
         // Walk each of the current set of Cells.
         for (unsigned k = 0; k != nremaining; ++k) {
-          cellItr = tree[ilevel].find(remainingCells[k]);
+          // cellItr = tree[ilevel].find(remainingCells[k]);
+          cellItr = lower_bound(tree[ilevel].begin(),
+                                tree[ilevel].end(),
+                                remainingCells[k],
+                                ComparePairsByFirstElement<LevelElement>());
           CHECK(cellItr != tree[ilevel].end());
           const Cell& cell = cellItr->second;
-          
+
           // Can we ignore this cells daughters?
           const Vector xcelli = cell.xcm - xi;
           const double rcelli = xcelli.magnitude();
@@ -608,7 +622,7 @@ deserialize(OctTreeGravity::Tree& tree,
       cell.positions = vector<Vector>();
       unpackElement(key, bufItr, endItr);
       deserialize(cell, bufItr, endItr);
-      tree[ilevel][key] = cell;
+      tree[ilevel].push_back(make_pair(key, cell));
     }
   }
 }
@@ -641,3 +655,5 @@ uint64_t OctTreeGravity::zkeymask = OctTreeGravity::ykeymask << OctTreeGravity::
 
 }
 }
+
+#include "OctTreeGravityInline.hh"
