@@ -15,8 +15,10 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Utilities/boundingBox.hh"
+#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packElement.hh"
+#include "Utilities/allReduce.hh"
+#include "Utilities/FastMath.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -86,8 +88,44 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   mExtraEnergy = 0.0;
   mPotential = 0.0;
 
+#ifdef USE_MPI
+
+  // Get the processor information.
+  const unsigned rank = Process::getRank();
+  const unsigned numProcs = Process::getTotalNumberOfProcesses();
+
+  // Pack up the local tree.
+  vector<char> localBuffer, buffer;
+  this->serialize(mTree, localBuffer);
+
+  // Walk each process, and have them send their local tree info to all other
+  // domains.
+  unsigned bufSize;
+  vector<char>::const_iterator bufItr;
+  Tree tree;
+  for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
+
+    // Broadcast the send processor's tree.
+    buffer = localBuffer;
+    bufSize = buffer.size();
+    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+    buffer.resize(bufSize);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    tree = Tree();
+    bufItr = buffer.begin();
+    this->deserialize(tree, bufItr, buffer.end());
+    CHECK(bufItr == buffer.end());
+
+    // Add this partial tree's contribution to our local forces and potentials.
+    applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential);
+  }
+
+#else
+
   // Apply the forces from our local tree.
   applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential);
+
+#endif
 
   // Set the motion to be Lagrangian.
   DxDt.assignFields(velocity);
@@ -127,7 +165,7 @@ initialize(const Scalar time,
   const size_t numNodeLists = mass.numFields();
 
   // Determine the box size.
-  boundingBox(position, mXmin, mXmax, false, false);
+  globalBoundingBox(position, mXmin, mXmax, false);
   CHECK(mXmin.x() <= mXmax.x());
   CHECK(mXmin.y() <= mXmax.y());
   CHECK(mXmin.z() <= mXmax.z());
@@ -141,6 +179,57 @@ initialize(const Scalar time,
       this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i));
     }
   }
+
+#ifdef USE_MPI
+
+  // We require the true global center of mass for each cell, which means
+  // in parallel we need to exchange the local trees and build up this information.
+  // We also build the global total mass in each cell at the same time.
+  // Get the processor information.
+  const unsigned rank = Process::getRank();
+  const unsigned numProcs = Process::getTotalNumberOfProcesses();
+
+  // Pack up the local tree.
+  vector<char> localBuffer, buffer;
+  this->serialize(mTree, localBuffer);
+
+  // Walk each process, and have them send their local tree info to all other
+  // domains.
+  unsigned bufSize;
+  vector<char>::const_iterator bufItr;
+  Tree tree;
+  for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
+
+    // Broadcast the send processor's tree.
+    buffer = localBuffer;
+    bufSize = buffer.size();
+    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+    buffer.resize(bufSize);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    tree = Tree();
+    bufItr = buffer.begin();
+    this->deserialize(tree, bufItr, buffer.end());
+    CHECK(bufItr == buffer.end());
+
+    // Augment any of our local cell calculations for mass and center of mass.
+    const unsigned nlevels = min(mTree.size(), tree.size());
+    for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+      for (TreeLevel::iterator myItr = mTree[ilevel].begin();
+           myItr != mTree[ilevel].end();
+           ++myItr) {
+        const CellKey key = myItr->first;
+        Cell& cell = myItr->second;
+        const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
+        if (otherItr != tree[ilevel].end()) {
+          const Cell& otherCell = otherItr->second;
+          cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
+          cell.Mglobal += otherCell.M;
+        }
+      }
+    }
+  }
+
+#endif
 
   // Make a final pass over the cells and fill in the distance between the 
   // center of mass and the geometric center.
@@ -166,9 +255,12 @@ initialize(const Scalar time,
       CHECK(cell.rcm2cc < 1.74*cellsize);
 
       // Update the maximum effective cell density.
-      mMaxCellDensity = max(mMaxCellDensity, cell.M/cellvol);
+      mMaxCellDensity = max(mMaxCellDensity, cell.Mglobal/cellvol);
     }
   }
+
+  // Get the global max cell density.
+  mMaxCellDensity = allReduce(mMaxCellDensity, MPI_MAX, MPI_COMM_WORLD);
 }
 
 //------------------------------------------------------------------------------
@@ -459,6 +551,7 @@ OctTreeGravity::
 serialize(const OctTreeGravity::Cell& cell,
           std::vector<char>& buffer) const {
   packElement(cell.M, buffer);
+  packElement(cell.Mglobal, buffer);
   packElement(cell.xcm, buffer);
   packElement(cell.rcm2cc, buffer);
   packElement(cell.daughters, buffer);
@@ -502,6 +595,7 @@ deserialize(OctTreeGravity::Cell& cell,
             vector<char>::const_iterator& bufItr,
             const vector<char>::const_iterator& endItr) const {
   unpackElement(cell.M, bufItr, endItr);
+  unpackElement(cell.Mglobal, bufItr, endItr);
   unpackElement(cell.xcm, bufItr, endItr);
   unpackElement(cell.rcm2cc, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);

@@ -120,6 +120,7 @@ addNodeToTree(const double mi,
       // Increment the cell moments.
       cell.xcm = (cell.M*cell.xcm + mi*xi)/(cell.M + mi);
       cell.M += mi;
+      cell.Mglobal = cell.M;
     }
 
     // Link this cell as a daughter of its parent.
