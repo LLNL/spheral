@@ -80,6 +80,9 @@ public:
   //! Return a dump of the tree structure as a string.
   std::string dumpTree() const;
 
+  //! Return a string describing the overall statistics of the tree.
+  std::string dumpTreeStatistics() const;
+
   //! The gravitational constant we're using.
   double G() const;
 
