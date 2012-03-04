@@ -381,13 +381,11 @@ x.add_method("newFluidFieldList", "%(result)s", [param("%(value)s", "value", def
 
         x.add_method("boundingBox", None, [refparam(vector, "xmin"),
                                            refparam(vector, "xmax"),
-                                           param("bool", "ghost", default_value="true"),
-                                           param("bool", "quantize", default_value="true")], is_const=True)
+                                           param("bool", "ghost", default_value="true")], is_const=True)
         x.add_method("boundingBox", None, [refparam(vector, "xmin"),
                                            refparam(vector, "xmax"),
                                            constrefparam(intfieldlist, "mask"),
-                                           param("bool", "ghost", default_value="true"), 
-                                           param("bool", "quantize", default_value="true")], is_const=True)
+                                           param("bool", "ghost", default_value="true")], is_const=True)
         x.add_method("localSamplingBoundingVolume", None, [refparam(vector, "centroid"),
                                                            refparam("double", "radiusNodes"),
                                                            refparam("double", "radiusSample"),

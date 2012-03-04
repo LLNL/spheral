@@ -1031,13 +1031,12 @@ void
 DataBase<Dimension>::
 boundingBox(typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
-            const bool ghost,
-            const bool quantize) const {
+            const bool ghost) const {
 
   // This method is now exported to an external stand-alone.  Maintained here
   // for backwards compatibility.
   const FieldList<Dimension, Vector> positions = this->globalPosition();
-  Spheral::globalBoundingBox(positions, xmin, xmax, ghost, quantize);
+  Spheral::globalBoundingBox(positions, xmin, xmax, ghost);
 }
 
 //------------------------------------------------------------------------------
@@ -1050,8 +1049,7 @@ DataBase<Dimension>::
 boundingBox(typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
             const FieldList<Dimension, int>& mask,
-            const bool ghost,
-            const bool quantize) const {
+            const bool ghost) const {
 
   // Find our local bounds.
   xmin = DBL_MAX;
@@ -1072,15 +1070,6 @@ boundingBox(typename Dimension::Vector& xmin,
   for (int i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
     xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
-  }
-
-  // We make things integer values in an effort to make our result domain 
-  // decomposition independent.
-  if (quantize) {
-    for (int k = 0; k != Dimension::nDim; ++k) {
-      xmin(k) = double(int(xmin(k)) - (xmin(k) < 0.0 ? 1 : 0));
-      xmax(k) = double(int(xmax(k)) + (xmax(k) < 0.0 ? 0 : 1));
-    }
   }
 }
 
