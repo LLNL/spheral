@@ -4,15 +4,13 @@
 // Created by JMO, 2012-02-28
 //----------------------------------------------------------------------------//
 
-#include "Utilities/PairComparisons.hh"
-
 namespace Spheral {
 namespace GravitySpace {
 
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 buildCellKey(const OctTreeGravity::LevelKey ilevel,
@@ -37,7 +35,7 @@ buildCellKey(const OctTreeGravity::LevelKey ilevel,
 //------------------------------------------------------------------------------
 // Extract the individual coordinate indices from a cell index.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 extractCellIndices(const OctTreeGravity::CellKey& key,
@@ -52,7 +50,7 @@ extractCellIndices(const OctTreeGravity::CellKey& key,
 //------------------------------------------------------------------------------
 // Add a daughter to a cell if not present.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 addDaughter(OctTreeGravity::Cell& cell,
@@ -65,7 +63,7 @@ addDaughter(OctTreeGravity::Cell& cell,
 //------------------------------------------------------------------------------
 // Add a node to the internal Tree structure.
 //------------------------------------------------------------------------------
-//inline
+inline
 void
 OctTreeGravity::
 addNodeToTree(const double mi,
@@ -83,13 +81,13 @@ addNodeToTree(const double mi,
 
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, key, ix, iy, iz);
-    itr = std::find_if(mTree[ilevel].begin(), mTree[ilevel].end(), PairFirstElementEqualTo<LevelElement>(key));
+    itr = mTree[ilevel].find(key);
 
     if (itr == mTree[ilevel].end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[ilevel].push_back(std::make_pair(key, Cell(mi, xi)));
+      mTree[ilevel][key] = Cell(mi, xi);
 
     } else {
       Cell& cell = itr->second;
@@ -106,7 +104,7 @@ addNodeToTree(const double mi,
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
           if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
           buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
-          mTree[ilevel1].push_back(std::make_pair(otherKey, Cell(cell.M, cell.xcm)));
+          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm);
           cell.daughters = std::vector<CellKey>(1, otherKey);
           cell.masses = std::vector<double>();
           cell.positions = std::vector<Vector>();
@@ -127,9 +125,8 @@ addNodeToTree(const double mi,
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      itr = std::find_if(mTree[ilevel - 1].begin(), mTree[ilevel - 1].end(), PairFirstElementEqualTo<LevelElement>(parentKey));
-      CHECK(itr != mTree[ilevel - 1].end());
-      addDaughter(itr->second, key);
+      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
+      addDaughter(mTree[ilevel - 1][parentKey], key);
     }
 
     parentKey = key;
