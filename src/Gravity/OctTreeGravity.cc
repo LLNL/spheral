@@ -462,10 +462,9 @@ applyTreeForces(const Tree& tree,
         const double cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
-        for (vector<CellKey>::const_iterator keyItr = remainingCells.begin();
-             keyItr != remainingCells.end();
-             ++keyItr) {
-          cellItr = tree[ilevel].find(*keyItr);
+        const unsigned nremaining = remainingCells.size();
+        for (unsigned k = 0; k != nremaining; ++k) {
+          cellItr = tree[ilevel].find(remainingCells[k]);
           CHECK(cellItr != tree[ilevel].end());
           const Cell& cell = cellItr->second;
           

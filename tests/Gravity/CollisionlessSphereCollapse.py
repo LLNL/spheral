@@ -127,7 +127,7 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                           maxDeltaVelocity = 1e-2*v0,
+                           maxDeltaVelocity = 1e-2*r0/tdyn,
                            G = G)
 # elif nbody is FractalGravity:
 #     gravity = FractalGravity(G = G,
