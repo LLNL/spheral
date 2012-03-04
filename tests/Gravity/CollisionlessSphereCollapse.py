@@ -162,7 +162,8 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            vizBaseName = os.path.join(visitDir, baseName),
+                            vizBaseName = baseName,
+                            vizDir = visitDir,
                             vizTime = vizTime,
                             vizMethod = dumpPhysicsState)
 

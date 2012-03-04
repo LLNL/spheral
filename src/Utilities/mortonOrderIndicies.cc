@@ -115,7 +115,7 @@ mortonOrderIndicies(const DataBase<Dimension>& dataBase) {
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;
-  dataBase.boundingBox(xmin, xmax, true, true);
+  dataBase.boundingBox(xmin, xmax, true);
   const Vector stepSize = (xmax - xmin)/KeyTraits::maxKey1d;
 
   // Go over all nodes.
@@ -152,7 +152,7 @@ mortonOrderIndicies(const DataBase<Dimension>& dataBase,
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;
-  dataBase.boundingBox(xmin, xmax, mask, true, true);
+  dataBase.boundingBox(xmin, xmax, mask, true);
   const Vector stepSize = (xmax - xmin)/KeyTraits::maxKey1d;
 
   // Go over all nodes.

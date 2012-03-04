@@ -94,8 +94,7 @@ void
 globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
                   typename Dimension::Vector& xmin,
                   typename Dimension::Vector& xmax,
-                  const bool ghost,
-                  const bool quantize) {
+                  const bool ghost) {
   typedef typename Dimension::Vector Vector;
 
   // Find our local bounds.
@@ -114,15 +113,6 @@ globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positi
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
     xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
-  }
-
-  // We make things integer values in an effort to make our result domain 
-  // decomposition independent.
-  if (quantize) {
-    for (unsigned k = 0; k != Dimension::nDim; ++k) {
-      xmin(k) = double(int(xmin(k)) - (xmin(k) < 0.0 ? 1 : 0));
-      xmax(k) = double(int(xmax(k)) + (xmax(k) < 0.0 ? 0 : 1));
-    }
   }
 }
 
@@ -179,18 +169,15 @@ namespace Spheral {
 template void globalBoundingBox(const FieldList<Dim<1>, Dim<1>::Vector>& positions,
                                 Dim<1>::Vector& xmin,
                                 Dim<1>::Vector& xmax,
-                                const bool ghost,
-                                const bool quantize);
+                                const bool ghost);
 template void globalBoundingBox(const FieldList<Dim<2>, Dim<2>::Vector>& positions,
                                 Dim<2>::Vector& xmin,
                                 Dim<2>::Vector& xmax,
-                                const bool ghost,
-                                const bool quantize);
+                                const bool ghost);
 template void globalBoundingBox(const FieldList<Dim<3>, Dim<3>::Vector>& positions,
                                 Dim<3>::Vector& xmin,
                                 Dim<3>::Vector& xmax,
-                                const bool ghost,
-                                const bool quantize);
+                                const bool ghost);
 
 template void globalBoundingVolumes<Dim<1> >(const DataBase<Dim<1> >& dataBase, Dim<1>::ConvexHull& nodeVolume, Dim<1>::ConvexHull& sampleVolume);
 template void globalBoundingVolumes<Dim<2> >(const DataBase<Dim<2> >& dataBase, Dim<2>::ConvexHull& nodeVolume, Dim<2>::ConvexHull& sampleVolume);

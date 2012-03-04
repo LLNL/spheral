@@ -25,8 +25,7 @@ template<typename Vector>
 void
 boundingBox(const vector<Vector>& positions,
             Vector& xmin,
-            Vector& xmax,
-            const bool quantize) {
+            Vector& xmax) {
 
   xmin = DBL_MAX;
   xmax = -DBL_MAX;
@@ -34,15 +33,6 @@ boundingBox(const vector<Vector>& positions,
   for (unsigned i = 0; i != n; ++i) {
     xmin = elementWiseMin(xmin, positions[i]);
     xmax = elementWiseMax(xmax, positions[i]);
-  }
-
-  // We make things integer values in an effort to make our result domain 
-  // decomposition independent.
-  if (quantize) {
-    for (unsigned k = 0; k != Vector::nDimensions; ++k) {
-      xmin(k) = double(int(xmin(k)) - (xmin(k) < 0.0 ? 1 : 0));
-      xmax(k) = double(int(xmax(k)) + (xmax(k) < 0.0 ? 0 : 1));
-    }
   }
 }
 
@@ -56,7 +46,6 @@ void
 boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
-            const bool quantize,
             const bool useGhosts) {
   typedef typename Dimension::Vector Vector;
 
@@ -70,15 +59,6 @@ boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& 
       xmax = elementWiseMax(xmax, positions(ifield, i));
     }
   }
-
-  // We make things integer values in an effort to make our result domain 
-  // decomposition independent.
-  if (quantize) {
-    for (unsigned k = 0; k != Vector::nDimensions; ++k) {
-      xmin(k) = double(int(xmin(k)) - (xmin(k) < 0.0 ? 1 : 0));
-      xmax(k) = double(int(xmax(k)) + (xmax(k) < 0.0 ? 0 : 1));
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -86,30 +66,24 @@ boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& 
 //------------------------------------------------------------------------------
 template void boundingBox(const vector<Dim<1>::Vector>& positions,
                           Dim<1>::Vector& xmin,
-                          Dim<1>::Vector& xmax,
-                          const bool quantize);
+                          Dim<1>::Vector& xmax);
 template void boundingBox(const vector<Dim<2>::Vector>& positions,
                           Dim<2>::Vector& xmin,
-                          Dim<2>::Vector& xmax,
-                          const bool quantize);
+                          Dim<2>::Vector& xmax);
 template void boundingBox(const vector<Dim<3>::Vector>& positions,
                           Dim<3>::Vector& xmin,
-                          Dim<3>::Vector& xmax,
-                          const bool quantize);
+                          Dim<3>::Vector& xmax);
 
 template void boundingBox(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positions,
                           Dim<1>::Vector& xmin,
                           Dim<1>::Vector& xmax,
-                          const bool quantize,
                           const bool useGhosts);
 template void boundingBox(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& positions,
                           Dim<2>::Vector& xmin,
                           Dim<2>::Vector& xmax,
-                          const bool quantize,
                           const bool useGhosts);
 template void boundingBox(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& positions,
                           Dim<3>::Vector& xmin,
                           Dim<3>::Vector& xmax,
-                          const bool quantize,
                           const bool useGhosts);
 }

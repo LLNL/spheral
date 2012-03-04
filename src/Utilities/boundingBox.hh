@@ -24,15 +24,13 @@ template<typename Vector>
 void
 boundingBox(const std::vector<Vector>& positions,
             Vector& xmin,
-            Vector& xmax,
-            const bool quantize = true);
+            Vector& xmax);
 
 template<typename Dimension>
 void
 boundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
-            const bool quantize,
             const bool useGhosts);
 
 }
