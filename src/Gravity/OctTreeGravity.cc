@@ -339,6 +339,33 @@ dumpTree() const {
 }
 
 //------------------------------------------------------------------------------
+// dumpTreeStatistics
+//------------------------------------------------------------------------------
+std::string
+OctTreeGravity::
+dumpTreeStatistics() const {
+  stringstream ss;
+  CellKey key, ix, iy, iz;
+  ss << "Tree : nlevels = " << mTree.size() << "\n";
+  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+    ss << "--------------------------------------------------------------------------------\n" 
+       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
+    unsigned ncells = 0, nparticles = 0;
+    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
+         itr != mTree[ilevel].end();
+         ++itr) {
+      key = itr->first;
+      const Cell& cell = itr->second;
+      ++ncells;
+      nparticles += cell.masses.size();
+    }
+    ss << "         : ncells = " << ncells << "\n"
+       << "         : nparts = " << nparticles << "\n";
+  }
+  return ss.str();
+}
+
+//------------------------------------------------------------------------------
 // G
 //------------------------------------------------------------------------------
 double
