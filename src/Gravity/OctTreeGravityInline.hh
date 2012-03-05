@@ -10,7 +10,7 @@ namespace GravitySpace {
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 buildCellKey(const OctTreeGravity::LevelKey ilevel,
@@ -35,7 +35,7 @@ buildCellKey(const OctTreeGravity::LevelKey ilevel,
 //------------------------------------------------------------------------------
 // Extract the individual coordinate indices from a cell index.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 extractCellIndices(const OctTreeGravity::CellKey& key,
@@ -50,11 +50,11 @@ extractCellIndices(const OctTreeGravity::CellKey& key,
 //------------------------------------------------------------------------------
 // Add a daughter to a cell if not present.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 addDaughter(OctTreeGravity::Cell& cell,
-            const OctTreeGravity::CellKey daughterKey) const {
+            const OctTreeGravity::TreeKey& daughterKey) const {
   if (std::find(cell.daughters.begin(), cell.daughters.end(), daughterKey) == cell.daughters.end())
     cell.daughters.push_back(daughterKey);
   ENSURE(cell.daughters.size() <= 8);
@@ -63,36 +63,33 @@ addDaughter(OctTreeGravity::Cell& cell,
 //------------------------------------------------------------------------------
 // Add a node to the internal Tree structure.
 //------------------------------------------------------------------------------
-inline
+//inline
 void
 OctTreeGravity::
 addNodeToTree(const double mi,
               const OctTreeGravity::Vector& xi) {
-  mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
-
   LevelKey ilevel = 0;
   bool terminated = false;
-  CellKey key, parentKey, otherKey, ix, iy, iz;
-  TreeLevel::iterator itr;
+  CellKey cellKey, otherCellKey, ix, iy, iz;;
+  TreeKey key, parentKey, otherKey;
+  Tree::iterator itr;
   while (ilevel < OctTreeGravity::num1dbits and not terminated) {
 
-    // Do we need to add another level to the tree?
-    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
-
     // Create the key for the cell containing this particle on this level.
-    buildCellKey(ilevel, xi, key, ix, iy, iz);
-    itr = mTree[ilevel].find(key);
+    buildCellKey(ilevel, xi, cellKey, ix, iy, iz);
+    key = make_pair(ilevel, cellKey);
+    itr = mTree.find(key);
 
-    if (itr == mTree[ilevel].end()) {
+    if (itr == mTree.end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[ilevel][key] = Cell(mi, xi);
+      mTree[key] = Cell(mi, xi);
 
     } else {
       Cell& cell = itr->second;
 
-      // Is this cell a single leaf already?
+      // Is this cell a single leaf?
       if (cell.masses.size() > 0) {
         CHECK(cell.masses.size() == cell.positions.size());
         CHECK(cell.daughters.size() == 0);
@@ -102,10 +99,10 @@ addNodeToTree(const double mi,
           CHECK(cell.masses.size() == 1);
           const LevelKey ilevel1 = ilevel + 1;
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
-          if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
-          buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
-          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm);
-          cell.daughters = std::vector<CellKey>(1, otherKey);
+          buildCellKey(ilevel1, cell.xcm, otherCellKey, ix, iy, iz);
+          otherKey = make_pair(ilevel1, otherCellKey);
+          mTree[otherKey] = Cell(cell.M, cell.xcm);
+          cell.daughters = std::vector<TreeKey>(1, otherKey);
           cell.masses = std::vector<double>();
           cell.positions = std::vector<Vector>();
 
@@ -125,8 +122,8 @@ addNodeToTree(const double mi,
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
-      addDaughter(mTree[ilevel - 1][parentKey], key);
+      CHECK(mTree.find(parentKey) != mTree.end());
+      addDaughter(mTree[parentKey], key);
     }
 
     parentKey = key;

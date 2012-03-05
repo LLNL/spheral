@@ -111,6 +111,7 @@ private:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
   typedef uint64_t CellKey;
+  typedef std::pair<LevelKey, CellKey> TreeKey;
 
   static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
@@ -123,7 +124,7 @@ private:
     double M, Mglobal;              // total mass (and global sum)
     Vector xcm;                     // center of mass
     double rcm2cc;                  // distance between center of mass and geometric center
-    std::vector<CellKey> daughters; // Keys of any daughter cells on level+1
+    std::vector<TreeKey> daughters; // Keys of any daughter cells
     std::vector<double> masses;     // Masses of the nodes that terminate in this cell.
     std::vector<Vector> positions;  // Positions of the nodes that terminate in this cell.
 
@@ -131,13 +132,12 @@ private:
     Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc(0.0), daughters(), masses(), positions() {}
     Cell(const double mi, const Vector& xi):
       M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(), masses(1, mi), positions(1, xi) {}
-    Cell(const double mi, const Vector& xi, const CellKey& daughter):
+    Cell(const double mi, const Vector& xi, const TreeKey& daughter):
       M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), masses(), positions() {}
   };
 
   // Define the types we use to build the tree.
-  typedef boost::unordered_map<CellKey, Cell> TreeLevel;
-  typedef std::vector<TreeLevel> Tree;
+  typedef boost::unordered_map<TreeKey, Cell> Tree;
 
   // Private data.
   double mG, mSofteningLength, mOpening, mftimestep, mBoxLength, mMaxCellDensity;
@@ -172,11 +172,11 @@ private:
                           CellKey& iz) const;
 
   // Add a cell key to the daughters of a cell.
-  void addDaughter(Cell& cell, const CellKey daughterKey) const;
+  void addDaughter(Cell& cell, const TreeKey& daughterKey) const;
 
   // Add a node to the internal tree.
   void addNodeToTree(const double mi,
-                     const Vector& xi);
+                         const Vector& xi);
 
   // Walk a tree and apply it's forces to a set of points.
   void applyTreeForces(const Tree& tree,
@@ -198,6 +198,6 @@ private:
 }
 }
 
-#include "OctTreeGravityInline.hh"
+//#include "OctTreeGravityInline.hh"
 
 #endif
