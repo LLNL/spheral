@@ -19,6 +19,7 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/PairComparisons.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -212,19 +213,16 @@ initialize(const Scalar time,
     CHECK(bufItr == buffer.end());
 
     // Augment any of our local cell calculations for mass and center of mass.
-    const unsigned nlevels = min(mTree.size(), tree.size());
-    for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
-      for (TreeLevel::iterator myItr = mTree[ilevel].begin();
-           myItr != mTree[ilevel].end();
-           ++myItr) {
-        const CellKey key = myItr->first;
+    for (Tree::iterator myItr = mTree.begin();
+         myItr != mTree.end();
+         ++myItr) {
+      const TreeKey key = myItr->first;
+      const Tree::const_iterator otherItr = tree.find(key);
+      if (otherItr != tree.end()) {
         Cell& cell = myItr->second;
-        const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
-        if (otherItr != tree[ilevel].end()) {
-          const Cell& otherCell = otherItr->second;
-          cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
-          cell.Mglobal += otherCell.M;
-        }
+        const Cell& otherCell = otherItr->second;
+        cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
+        cell.Mglobal += otherCell.M;
       }
     }
   }
@@ -235,28 +233,28 @@ initialize(const Scalar time,
   // center of mass and the geometric center.
   // We also squirrel away the maximum effective cell density for our timestep
   // determination.
+  unsigned ilevel;
   CellKey ckey, ix, iy, iz;
   double cellsize, cellvol;
   mMaxCellDensity = 0.0;
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+  for (Tree::iterator itr = mTree.begin();
+       itr != mTree.end();
+       ++itr) {
+    ilevel = itr->first.first;
+    ckey = itr->first.second;
+    Cell& cell = itr->second;
     cellsize = mBoxLength/(1U << ilevel);
     cellvol = cellsize*cellsize*cellsize;
-    for (TreeLevel::iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
-         ++itr) {
-      ckey = itr->first;
-      Cell& cell = itr->second;
-      extractCellIndices(ckey, ix, iy, iz);
+    extractCellIndices(ckey, ix, iy, iz);
 
-      // Update the distance between the cell's center of mass and geometric center.
-      cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
-                                                (iy + 0.5)*cellsize,
-                                                (iz + 0.5)*cellsize))).magnitude();
-      CHECK(cell.rcm2cc < 1.74*cellsize);
+    // Update the distance between the cell's center of mass and geometric center.
+    cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
+                                              (iy + 0.5)*cellsize,
+                                              (iz + 0.5)*cellsize))).magnitude();
+    CHECK(cell.rcm2cc < 1.74*cellsize);
 
-      // Update the maximum effective cell density.
-      mMaxCellDensity = max(mMaxCellDensity, cell.Mglobal/cellvol);
-    }
+    // Update the maximum effective cell density.
+    mMaxCellDensity = max(mMaxCellDensity, cell.Mglobal/cellvol);
   }
 
   // Get the global max cell density.
@@ -309,24 +307,39 @@ potential() const {
 std::string
 OctTreeGravity::
 dumpTree() const {
+
+  // We want to dump this stuff out level by level, so read out the tree keys
+  // to a vector and sort them.
+  vector<TreeKey> keys;
+  keys.reserve(mTree.size());
+  for (Tree::const_iterator itr = mTree.begin();
+       itr != mTree.end();
+       ++itr) keys.push_back(itr->first);
+  sort(keys.begin(), keys.end(), ComparePairs<TreeKey>());
+  const unsigned nlevels = keys.back().first + 1;
+
   stringstream ss;
   CellKey key, ix, iy, iz;
-  ss << "Tree : nlevels = " << mTree.size() << "\n";
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+  Tree::const_iterator treeItr;
+  vector<TreeKey>::const_iterator itr = keys.begin(), endItr = keys.end(), lastItr;
+
+  ss << "Tree : nlevels = " << nlevels << "\n";
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+    lastItr = lower_bound(itr, endItr, TreeKey(ilevel+1, 0U), ComparePairs<TreeKey>());
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
-    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
-         ++itr) {
-      key = itr->first;
-      const Cell& cell = itr->second;
-      extractCellIndices(key, ix, iy, iz);
-      ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << "\n"
+       << " Level " << ilevel << " : numCells = " 
+       << distance(itr, lastItr) << "\n";
+    for (; itr != lastItr; ++itr) {
+      treeItr = mTree.find(*itr);
+      CHECK(treeItr != mTree.end());
+      const Cell& cell = treeItr->second;
+      extractCellIndices(itr->second, ix, iy, iz);
+      ss << "    Cell key=" << itr->second << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
          << "         xcm=" << cell.xcm << " rcm2cc=" << cell.rcm2cc << " M=" << cell.M << "\n"
          << "         daughters = ( ";
-      for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
+      for (vector<TreeKey>::const_iterator ditr = cell.daughters.begin();
            ditr != cell.daughters.end();
-           ++ditr) ss << *ditr << " ";
+           ++ditr) ss << ditr->second << " ";
       ss << ")\n"
          << "         nodes = [";
       for (unsigned k = 0; k != cell.masses.size(); ++k) ss << " ("
@@ -344,18 +357,33 @@ dumpTree() const {
 std::string
 OctTreeGravity::
 dumpTreeStatistics() const {
+
+  // We want to dump this stuff out level by level, so read out the tree keys
+  // to a vector and sort them.
+  vector<TreeKey> keys;
+  keys.reserve(mTree.size());
+  for (Tree::const_iterator itr = mTree.begin();
+       itr != mTree.end();
+       ++itr) keys.push_back(itr->first);
+  sort(keys.begin(), keys.end(), ComparePairs<TreeKey>());
+  const unsigned nlevels = keys.back().first + 1;
+
   stringstream ss;
   CellKey key, ix, iy, iz;
-  ss << "Tree : nlevels = " << mTree.size() << "\n";
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+  Tree::const_iterator treeItr;
+  vector<TreeKey>::const_iterator itr = keys.begin(), endItr = keys.end(), lastItr;
+
+  ss << "Tree : nlevels = " << nlevels << "\n";
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+    lastItr = lower_bound(itr, endItr, TreeKey(ilevel+1, 0U), ComparePairs<TreeKey>());
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
+       << " Level " << ilevel << " : numCells = " 
+       << distance(itr, lastItr) << "\n";
     unsigned ncells = 0, nparticles = 0;
-    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
-         ++itr) {
-      key = itr->first;
-      const Cell& cell = itr->second;
+    for (; itr != lastItr; ++itr) {
+      treeItr = mTree.find(*itr);
+      CHECK(treeItr != mTree.end());
+      const Cell& cell = treeItr->second;
       ++ncells;
       nparticles += cell.masses.size();
     }
@@ -466,18 +494,18 @@ applyTreeForces(const Tree& tree,
   const unsigned numNodes = mass.numInternalNodes();
 
   // We'll always be starting with the daughters of the root level.
-  const unsigned numLevels = tree.size();
-  CHECK(numLevels >= 1);
-  const Cell& rootCell = tree[0].begin()->second;
+  TreeKey key(0, CellKey(0));
+  Tree::const_iterator itr = tree.find(key);
+  CHECK(itr != tree.end());
+  const Cell& rootCell = itr->second;
 
   // Declare stuff we need when walking the tree.
   unsigned ilevel, nremaining, k;
   double cellsize, rcelli, rcelli2, mj, rji2;
   Vector xcelli, xji, nhat;
-  vector<CellKey> newDaughters, remainingCells;
+  vector<TreeKey> newDaughters, remainingCells;
 
   // Walk each internal node.
-  TreeLevel::const_iterator cellItr;
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
 
@@ -488,19 +516,19 @@ applyTreeForces(const Tree& tree,
       Scalar& phii = potential(nodeListi, i);
 
       // Walk the tree.
-      ilevel = 0;
       remainingCells = rootCell.daughters;
-      while ((not remainingCells.empty()) and ++ilevel < numLevels) {
+      while ((not remainingCells.empty())) {
+        ilevel = remainingCells[0].first;
         nremaining = remainingCells.size();
-        newDaughters = vector<CellKey>();
+        newDaughters = vector<TreeKey>();
         newDaughters.reserve(8*nremaining);
         cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
         for (k = 0; k != nremaining; ++k) {
-          cellItr = tree[ilevel].find(remainingCells[k]);
-          CHECK(cellItr != tree[ilevel].end());
-          const Cell& cell = cellItr->second;
+          itr = tree.find(remainingCells[k]);
+          CHECK(itr != tree.end());
+          const Cell& cell = itr->second;
           
           // Can we ignore this cells daughters?
           xcelli = cell.xcm - xi;
@@ -518,7 +546,7 @@ applyTreeForces(const Tree& tree,
 
           } else if (cell.daughters.size() == 0) {
 
-            // This cell represents a leaf (termination of descent.  We just directly
+            // This cell represents a leaf (termination of descent).  We just directly
             // add up the node properties of any nodes in the cell.
             CHECK(cell.masses.size() > 0 and
                   cell.positions.size() == cell.masses.size());
@@ -561,17 +589,14 @@ void
 OctTreeGravity::
 serialize(const OctTreeGravity::Tree& tree,
           std::vector<char>& buffer) const {
-  const unsigned nlevels = tree.size();
-  packElement(nlevels, buffer);
-  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
-    const unsigned ncells = tree[ilevel].size();
-    packElement(ncells, buffer);
-    for (TreeLevel::const_iterator itr = tree[ilevel].begin();
-         itr != tree[ilevel].end();
-         ++itr) {
-      packElement(itr->first, buffer);
-      serialize(itr->second, buffer);
-    }
+  const unsigned ncells = tree.size();
+  packElement(ncells, buffer);
+  for (Tree::const_iterator itr = tree.begin();
+       itr != tree.end();
+       ++itr) {
+    packElement(itr->first.first, buffer);
+    packElement(itr->first.second, buffer);
+    serialize(itr->second, buffer);
   }
 }
 
@@ -599,22 +624,18 @@ OctTreeGravity::
 deserialize(OctTreeGravity::Tree& tree,
             vector<char>::const_iterator& bufItr,
             const vector<char>::const_iterator& endItr) const {
-  unsigned nlevels, ncells;
-  CellKey key;
+  unsigned ncells;
+  TreeKey key;
   Cell cell;
-  unpackElement(nlevels, bufItr, endItr);
-  tree.resize(nlevels);
-  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
-    unsigned ncells;
-    unpackElement(ncells, bufItr, endItr);
-    for (unsigned i = 0; i != ncells; ++i) {
-      cell.daughters = vector<CellKey>();
-      cell.masses = vector<double>();
-      cell.positions = vector<Vector>();
-      unpackElement(key, bufItr, endItr);
-      deserialize(cell, bufItr, endItr);
-      tree[ilevel][key] = cell;
-    }
+  unpackElement(ncells, bufItr, endItr);
+  for (unsigned i = 0; i != ncells; ++i) {
+    cell.daughters = vector<TreeKey>();
+    cell.masses = vector<double>();
+    cell.positions = vector<Vector>();
+    unpackElement(key.first, bufItr, endItr);
+    unpackElement(key.second, bufItr, endItr);
+    deserialize(cell, bufItr, endItr);
+    tree[key] = cell;
   }
 }
 
@@ -646,3 +667,5 @@ uint64_t OctTreeGravity::zkeymask = OctTreeGravity::ykeymask << OctTreeGravity::
 
 }
 }
+
+#include "OctTreeGravityInline.hh"
