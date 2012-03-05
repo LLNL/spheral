@@ -166,6 +166,16 @@ packElement<double>(const double& value,
   }
 }
 
+// Specialization for a std::pair of known types.
+template<typename T1, typename T2>
+inline
+void
+packElement(const std::pair<T1, T2>& value,
+            std::vector<char>& buffer) {
+  packElement(value.first, buffer);
+  packElement(value.second, buffer);
+}
+
 // Specialization for a boost::tuple of three common elements.
 template<typename T>
 inline
@@ -348,6 +358,17 @@ unpackElement<double>(double& value,
     *(data + i) = *itr;
   }
   ENSURE(itr <= endPackedVector);
+}
+
+// std::pari<T1,T2>
+template<typename T1, typename T2>
+inline
+void
+unpackElement(std::pair<T1, T2>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  unpackElement(value.first, itr, endPackedVector);
+  unpackElement(value.second, itr, endPackedVector);
 }
 
 // boost::tuple<T,T,T>
