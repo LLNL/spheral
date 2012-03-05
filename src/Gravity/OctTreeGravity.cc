@@ -470,6 +470,12 @@ applyTreeForces(const Tree& tree,
   CHECK(numLevels >= 1);
   const Cell& rootCell = tree[0].begin()->second;
 
+  // Declare stuff we need when walking the tree.
+  unsigned ilevel, nremaining, k;
+  double cellsize, rcelli, rcelli2, mj, rji2;
+  Vector xcelli, xji, nhat;
+  vector<CellKey> newDaughters, remainingCells;
+
   // Walk each internal node.
   TreeLevel::const_iterator cellItr;
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -482,28 +488,28 @@ applyTreeForces(const Tree& tree,
       Scalar& phii = potential(nodeListi, i);
 
       // Walk the tree.
-      unsigned ilevel = 0;
-      vector<CellKey> remainingCells = rootCell.daughters;
+      ilevel = 0;
+      remainingCells = rootCell.daughters;
       while ((not remainingCells.empty()) and ++ilevel < numLevels) {
-        const unsigned nremaining = remainingCells.size();
-        vector<CellKey> newDaughters;
+        nremaining = remainingCells.size();
+        newDaughters = vector<CellKey>();
         newDaughters.reserve(8*nremaining);
-        const double cellsize = mBoxLength/(1U << ilevel);
+        cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
-        for (unsigned k = 0; k != nremaining; ++k) {
+        for (k = 0; k != nremaining; ++k) {
           cellItr = tree[ilevel].find(remainingCells[k]);
           CHECK(cellItr != tree[ilevel].end());
           const Cell& cell = cellItr->second;
           
           // Can we ignore this cells daughters?
-          const Vector xcelli = cell.xcm - xi;
-          const double rcelli = xcelli.magnitude();
+          xcelli = cell.xcm - xi;
+          rcelli = xcelli.magnitude();
           if (rcelli > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
 
             // Yep, treat this cells and all of its daughters as a single point.
-            const Vector nhat = xcelli.unitVector();
-            const double rcelli2 = rcelli*rcelli + soft2;
+            nhat = xcelli.unitVector();
+            rcelli2 = rcelli*rcelli + soft2;
             CHECK(rcelli2 > 0.0);
 
             // Increment the acceleration and potential.
@@ -517,13 +523,12 @@ applyTreeForces(const Tree& tree,
             CHECK(cell.masses.size() > 0 and
                   cell.positions.size() == cell.masses.size());
             for (unsigned k = 0; k != cell.masses.size(); ++k) {
-              const Vector& xj = cell.positions[k];
-              const double mj = cell.masses[k];
-              const Vector xji = xj - xi;
-              double rji2 = xji.magnitude2();
+              mj = cell.masses[k];
+              xji = cell.positions[k] - xi;
+              rji2 = xji.magnitude2();
 
               if (rji2/soft2 > 1.0e-10) {           // Screen out self-interaction.
-                const Vector nhat = xji.unitVector();
+                nhat = xji.unitVector();
                 rji2 += soft2;
                 CHECK(rji2 > 0.0);
 
