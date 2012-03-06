@@ -126,18 +126,18 @@ private:
   struct Cell {
     double M, Mglobal;               // total mass (and global sum)
     Vector xcm;                      // center of mass
-    double rcm2cc;                   // distance between center of mass and geometric center
+    double rcm2cc2;                  // square of the distance between center of mass and geometric center
     std::vector<CellKey> daughters;  // Keys of any daughter cells on level+1
     std::vector<Cell*> daughterPtrs; // Pointers to the daughter cells.
     std::vector<double> masses;      // Masses of the nodes that terminate in this cell.
     std::vector<Vector> positions;   // Positions of the nodes that terminate in this cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
-    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc(0.0), daughters(), daughterPtrs(), masses(), positions() {}
+    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc2(0.0), daughters(), daughterPtrs(), masses(), positions() {}
     Cell(const double mi, const Vector& xi):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi) {}
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi) {}
     Cell(const double mi, const Vector& xi, const CellKey& daughter):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), daughterPtrs(), masses(), positions() {}
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), daughters(1, daughter), daughterPtrs(), masses(), positions() {}
   };
 
   // Define the types we use to build the tree.
@@ -145,7 +145,7 @@ private:
   typedef std::vector<TreeLevel> Tree;
 
   // Private data.
-  double mG, mSofteningLength, mOpening, mftimestep, mBoxLength, mMaxCellDensity;
+  double mG, mSofteningLength2, mOpening2, mftimestep, mBoxLength, mMaxCellDensity;
   Vector mXmin, mXmax;
   Tree mTree;
 

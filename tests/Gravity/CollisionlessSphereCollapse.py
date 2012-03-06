@@ -28,7 +28,7 @@ commandLine(
 
     # Problem control
     steps = None,                  # Optionally advance a fixed number of steps
-    numCollapseTimes = 2.0,        # What time to advance to in units of the collapse time for the sphere
+    numCollapseTimes = 1.0,        # What time to advance to in units of the collapse time for the sphere
 
     # Which N-body method should we use?
     nbody = OctTreeGravity,
@@ -179,5 +179,5 @@ if restoreCycle:
 if not steps is None:
     control.step(steps)
 else:
-    print "Advancing to ", goalTime
+    print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
     control.advance(goalTime)

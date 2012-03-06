@@ -42,8 +42,8 @@ OctTreeGravity(const double G,
                const double ftimestep):
   PhysicsSpace::GenericBodyForce<Dim<3> >(),
   mG(G),
-  mSofteningLength(softeningLength),
-  mOpening(opening),
+  mSofteningLength2(softeningLength*softeningLength),
+  mOpening2(opening*opening),
   mftimestep(ftimestep),
   mBoxLength(0.0),
   mMaxCellDensity(0.0),
@@ -264,10 +264,10 @@ initialize(const Scalar time,
       extractCellIndices(ckey, ix, iy, iz);
 
       // Update the distance between the cell's center of mass and geometric center.
-      cell.rcm2cc = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
-                                                (iy + 0.5)*cellsize,
-                                                (iz + 0.5)*cellsize))).magnitude();
-      CHECK(cell.rcm2cc < 1.74*cellsize);
+      cell.rcm2cc2 = (cell.xcm - (mXmin + Vector((ix + 0.5)*cellsize,
+                                                 (iy + 0.5)*cellsize,
+                                                 (iz + 0.5)*cellsize))).magnitude2();
+      CHECK(cell.rcm2cc2 < FastMath::square(1.74*cellsize));
 
       // Update the maximum effective cell density.
       mMaxCellDensity = max(mMaxCellDensity, cell.Mglobal/cellvol);
@@ -337,7 +337,7 @@ dumpTree() const {
       const Cell& cell = itr->second;
       extractCellIndices(key, ix, iy, iz);
       ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
-         << "         xcm=" << cell.xcm << " rcm2cc=" << cell.rcm2cc << " M=" << cell.M << "\n"
+         << "         xcm=" << cell.xcm << " rcm2cc=" << sqrt(cell.rcm2cc2) << " M=" << cell.M << "\n"
          << "         daughters = ( ";
       for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
            ditr != cell.daughters.end();
@@ -395,14 +395,14 @@ G() const {
 double
 OctTreeGravity::
 opening() const {
-  return mOpening;
+  return sqrt(mOpening2);
 }
 
 void
 OctTreeGravity::
 opening(const double x) {
   VERIFY(x > 0.0);
-  mOpening = x;
+  mOpening2 = x*x;
 }
 
 //------------------------------------------------------------------------------
@@ -411,14 +411,14 @@ opening(const double x) {
 double
 OctTreeGravity::
 softeningLength() const {
-  return mSofteningLength;
+  return sqrt(mSofteningLength2);
 }
 
 void
 OctTreeGravity::
 softeningLength(const double x) {
   VERIFY(x > 0.0);
-  mSofteningLength = x;
+  mSofteningLength2 = x*x;
 }
 
 //------------------------------------------------------------------------------
@@ -476,9 +476,15 @@ applyTreeForces(const Tree& tree,
                 FieldSpace::FieldList<Dimension, Vector>& DvDt,
                 FieldSpace::FieldList<Dimension, Scalar>& potential) const {
 
-  const double soft2 = mSofteningLength*mSofteningLength;
   const unsigned numNodeLists = mass.numFields();
   const unsigned numNodes = mass.numInternalNodes();
+  const double boxLength2 = mBoxLength*mBoxLength;
+
+  // Declare variables we're going to need in the loop once.  May help with optimization?
+  unsigned nodeListi, i, j, k, ilevel, nremaining;
+  double mi, mj, cellsize2, rji2;
+  Vector xji, nhat;
+  vector<Cell*> remainingCells, newDaughters;
 
   // We'll always be starting with the daughters of the root level.
   const unsigned numLevels = tree.size();
@@ -487,41 +493,42 @@ applyTreeForces(const Tree& tree,
 
   // Walk each internal node.
   TreeLevel::const_iterator cellItr;
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
+  for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
 
       // State of node i.
-      const double mi = mass(nodeListi, i);
+      mi = mass(nodeListi, i);
       const Vector& xi = position(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
       Scalar& phii = potential(nodeListi, i);
 
       // Walk the tree.
-      unsigned ilevel = 0;
-      vector<Cell*> remainingCells = rootCell.daughterPtrs;
+      ilevel = 0;
+      remainingCells = rootCell.daughterPtrs;
       while ((not remainingCells.empty()) and ++ilevel < numLevels) {
-        const unsigned nremaining = remainingCells.size();
-        vector<Cell*> newDaughters;
+        nremaining = remainingCells.size();
+        newDaughters = vector<Cell*>();
         newDaughters.reserve(8*nremaining);
-        const double cellsize = mBoxLength/(1U << ilevel);
+        cellsize2 = boxLength2/(1U << (2*ilevel));
 
         // Walk each of the current set of Cells.
-        for (unsigned k = 0; k != nremaining; ++k) {
+        for (k = 0; k != nremaining; ++k) {
           const Cell& cell = *remainingCells[k];
           
           // Can we ignore this cells daughters?
-          const Vector xcelli = cell.xcm - xi;
-          const double rcelli = xcelli.magnitude();
-          if (rcelli > cellsize/mOpening + cell.rcm2cc) {      // We use Barnes (1994) modified criterion.
+          xji = cell.xcm - xi;
+          rji2 = xji.magnitude2();
+          if (rji2 > cellsize2/mOpening2 + cell.rcm2cc2) {      // We use Barnes (1994) modified criterion.
+                                                                // Except for the extra square factor here for efficiency.
 
             // Yep, treat this cells and all of its daughters as a single point.
-            const Vector nhat = xcelli.unitVector();
-            const double rcelli2 = rcelli*rcelli + soft2;
-            CHECK(rcelli2 > 0.0);
+            nhat = xji.unitVector();
+            rji2 += mSofteningLength2;
+            CHECK(rji2 > 0.0);
 
             // Increment the acceleration and potential.
-            DvDti += mG*cell.M/rcelli2 * nhat;
-            phii -= mG*cell.M/sqrt(rcelli2);
+            DvDti += mG*cell.M/rji2 * nhat;
+            phii -= mG*cell.M/sqrt(rji2);
 
           } else if (cell.daughterPtrs.size() == 0) {
 
@@ -529,15 +536,15 @@ applyTreeForces(const Tree& tree,
             // add up the node properties of any nodes in the cell.
             CHECK(cell.masses.size() > 0 and
                   cell.positions.size() == cell.masses.size());
-            for (unsigned k = 0; k != cell.masses.size(); ++k) {
-              const Vector& xj = cell.positions[k];
-              const double mj = cell.masses[k];
-              const Vector xji = xj - xi;
-              double rji2 = xji.magnitude2();
+            for (j = 0; j != cell.masses.size(); ++j) {
+              mj = cell.masses[j];
+              const Vector& xj = cell.positions[j];
+              xji = xj - xi;
+              rji2 = xji.magnitude2();
 
-              if (rji2/soft2 > 1.0e-10) {           // Screen out self-interaction.
-                const Vector nhat = xji.unitVector();
-                rji2 += soft2;
+              if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
+                nhat = xji.unitVector();
+                rji2 += mSofteningLength2;
                 CHECK(rji2 > 0.0);
 
                 // Increment the acceleration and potential.
@@ -593,7 +600,7 @@ serialize(const OctTreeGravity::Cell& cell,
   packElement(cell.M, buffer);
   packElement(cell.Mglobal, buffer);
   packElement(cell.xcm, buffer);
-  packElement(cell.rcm2cc, buffer);
+  packElement(cell.rcm2cc2, buffer);
   packElement(cell.daughters, buffer);
   packElement(cell.masses, buffer);
   packElement(cell.positions, buffer);
@@ -638,7 +645,7 @@ deserialize(OctTreeGravity::Cell& cell,
   unpackElement(cell.M, bufItr, endItr);
   unpackElement(cell.Mglobal, bufItr, endItr);
   unpackElement(cell.xcm, bufItr, endItr);
-  unpackElement(cell.rcm2cc, bufItr, endItr);
+  unpackElement(cell.rcm2cc2, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);
   unpackElement(cell.masses, bufItr, endItr);
   unpackElement(cell.positions, bufItr, endItr);
