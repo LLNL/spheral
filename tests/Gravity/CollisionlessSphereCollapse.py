@@ -19,11 +19,11 @@ print "3-D N-Body Gravity test -- collisionless sphere."
 commandLine(
 
     # Initial particle stuff
-    nr = 100,                      # radial number of particles to seed
+    nr = 50,                       # radial number of particles to seed
     r0 = 1.0,                      # (AU) initial radius of the sphere
     M0 = 1.0,                      # (earth masses) total mass of the sphere
     plummerLength = 1.0e-2,        # (AU) Plummer softening scale
-    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
+    opening = 1.0,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
     # Problem control
