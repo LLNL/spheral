@@ -44,6 +44,10 @@ public:
   //! Destructor.
   virtual ~OctTreeGravity();
 
+  //! We augment the generic body force state.
+  virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                             State<Dimension>& state);
+
   //! This is the derivative method that all BodyForce classes must provide.
   virtual 
   void evaluateDerivatives(const Scalar time,
@@ -136,8 +140,30 @@ private:
       M(mi), Mglobal(mi), xcm(xi), rcm2cc(0.0), daughters(1, daughter), masses(), positions() {}
   };
 
+  //----------------------------------------------------------------------------
+  // A functor for sorting Tree elements.
+  //----------------------------------------------------------------------------
+  struct TreeComparatorLessThan {
+    bool operator()(const TreeKey& lhs,
+                    const TreeKey& rhs) const {
+      return (lhs.first < rhs.first   ? true :
+              lhs.first > rhs.first   ? false :
+              lhs.second < rhs.second ? true : 
+                                        false);
+    }
+    bool operator()(const std::pair<TreeKey, Cell>& lhs,
+                    const TreeKey& rhs) const {
+      return this->operator()(lhs.first, rhs);
+    }
+    bool operator()(const std::pair<TreeKey, Cell>& lhs,
+                    const std::pair<TreeKey, Cell>& rhs) const {
+      return this->operator()(lhs.first, rhs.first);
+    }
+  };
+
   // Define the types we use to build the tree.
-  typedef boost::unordered_map<TreeKey, Cell> Tree;
+  typedef boost::unordered_map<TreeKey, Cell> MapTree;
+  typedef std::vector<std::pair<TreeKey, Cell> > Tree;
 
   // Private data.
   double mG, mSofteningLength, mOpening, mftimestep, mBoxLength, mMaxCellDensity;
@@ -175,8 +201,9 @@ private:
   void addDaughter(Cell& cell, const TreeKey& daughterKey) const;
 
   // Add a node to the internal tree.
-  void addNodeToTree(const double mi,
-                         const Vector& xi);
+  void addNodeToTree(MapTree& tree,
+                     const double mi,
+                     const Vector& xi);
 
   // Walk a tree and apply it's forces to a set of points.
   void applyTreeForces(const Tree& tree,

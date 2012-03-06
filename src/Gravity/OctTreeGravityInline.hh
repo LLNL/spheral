@@ -66,25 +66,26 @@ addDaughter(OctTreeGravity::Cell& cell,
 //inline
 void
 OctTreeGravity::
-addNodeToTree(const double mi,
+addNodeToTree(OctTreeGravity::MapTree& tree,
+              const double mi,
               const OctTreeGravity::Vector& xi) {
   LevelKey ilevel = 0;
   bool terminated = false;
   CellKey cellKey, otherCellKey, ix, iy, iz;;
   TreeKey key, parentKey, otherKey;
-  Tree::iterator itr;
+  MapTree::iterator itr;
   while (ilevel < OctTreeGravity::num1dbits and not terminated) {
 
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, cellKey, ix, iy, iz);
     key = make_pair(ilevel, cellKey);
-    itr = mTree.find(key);
+    itr = tree.find(key);
 
-    if (itr == mTree.end()) {
+    if (itr == tree.end()) {
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[key] = Cell(mi, xi);
+      tree[key] = Cell(mi, xi);
 
     } else {
       Cell& cell = itr->second;
@@ -101,7 +102,7 @@ addNodeToTree(const double mi,
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
           buildCellKey(ilevel1, cell.xcm, otherCellKey, ix, iy, iz);
           otherKey = make_pair(ilevel1, otherCellKey);
-          mTree[otherKey] = Cell(cell.M, cell.xcm);
+          tree[otherKey] = Cell(cell.M, cell.xcm);
           cell.daughters = std::vector<TreeKey>(1, otherKey);
           cell.masses = std::vector<double>();
           cell.positions = std::vector<Vector>();
@@ -122,8 +123,8 @@ addNodeToTree(const double mi,
 
     // Link this cell as a daughter of its parent.
     if (ilevel > 0) {
-      CHECK(mTree.find(parentKey) != mTree.end());
-      addDaughter(mTree[parentKey], key);
+      CHECK(tree.find(parentKey) != tree.end());
+      addDaughter(tree[parentKey], key);
     }
 
     parentKey = key;
