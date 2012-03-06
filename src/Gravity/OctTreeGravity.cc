@@ -40,6 +40,7 @@ OctTreeGravity(const double G,
                const double softeningLength,
                const double opening,
                const double ftimestep):
+  PhysicsSpace::GenericBodyForce<Dim<3> >(),
   mG(G),
   mSofteningLength(softeningLength),
   mOpening(opening),
@@ -71,7 +72,7 @@ void
 OctTreeGravity::
 registerState(DataBase<Dim<3> >& dataBase,
               State<Dim<3> >& state) {
-  GenericBodyForce<Dim<3> >::registerState(dataBase, state);
+  PhysicsSpace::GenericBodyForce<Dim<3> >::registerState(dataBase, state);
   state.enrollFieldList(mPotential);
 }
 
