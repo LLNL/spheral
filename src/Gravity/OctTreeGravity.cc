@@ -242,6 +242,9 @@ initialize(const Scalar time,
 
 #endif
 
+  // Set the daughter pointers.
+  constructDaughterPtrs(mTree);
+
   // Make a final pass over the cells and fill in the distance between the 
   // center of mass and the geometric center.
   // We also squirrel away the maximum effective cell density for our timestep
@@ -494,18 +497,16 @@ applyTreeForces(const Tree& tree,
 
       // Walk the tree.
       unsigned ilevel = 0;
-      vector<CellKey> remainingCells = rootCell.daughters;
+      vector<Cell*> remainingCells = rootCell.daughterPtrs;
       while ((not remainingCells.empty()) and ++ilevel < numLevels) {
         const unsigned nremaining = remainingCells.size();
-        vector<CellKey> newDaughters;
+        vector<Cell*> newDaughters;
         newDaughters.reserve(8*nremaining);
         const double cellsize = mBoxLength/(1U << ilevel);
 
         // Walk each of the current set of Cells.
         for (unsigned k = 0; k != nremaining; ++k) {
-          cellItr = tree[ilevel].find(remainingCells[k]);
-          CHECK(cellItr != tree[ilevel].end());
-          const Cell& cell = cellItr->second;
+          const Cell& cell = *remainingCells[k];
           
           // Can we ignore this cells daughters?
           const Vector xcelli = cell.xcm - xi;
@@ -521,7 +522,7 @@ applyTreeForces(const Tree& tree,
             DvDti += mG*cell.M/rcelli2 * nhat;
             phii -= mG*cell.M/sqrt(rcelli2);
 
-          } else if (cell.daughters.size() == 0) {
+          } else if (cell.daughterPtrs.size() == 0) {
 
             // This cell represents a leaf (termination of descent.  We just directly
             // add up the node properties of any nodes in the cell.
@@ -548,7 +549,7 @@ applyTreeForces(const Tree& tree,
 
             // We need to walk further down the tree.  Add this cells daughters
             // to the next set.
-            copy(cell.daughters.begin(), cell.daughters.end(), back_inserter(newDaughters));
+            copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
 
           }
         }
@@ -622,6 +623,7 @@ deserialize(OctTreeGravity::Tree& tree,
       tree[ilevel][key] = cell;
     }
   }
+  constructDaughterPtrs(tree);
 }
 
 //------------------------------------------------------------------------------
