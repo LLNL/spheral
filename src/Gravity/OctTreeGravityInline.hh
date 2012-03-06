@@ -135,5 +135,30 @@ addNodeToTree(const double mi,
 
 }
 
+//------------------------------------------------------------------------------
+// Construct the daughter pointers in a tree.
+//------------------------------------------------------------------------------
+inline
+void
+OctTreeGravity::
+constructDaughterPtrs(OctTreeGravity::Tree& tree) const {
+  const unsigned nlevels = tree.size();
+  for (unsigned ilevel = 0; ilevel < nlevels - 1; ++ilevel) {
+    const unsigned ilevel1 = ilevel + 1;
+    for (TreeLevel::iterator itr = tree[ilevel].begin();
+         itr != tree[ilevel].end();
+         ++itr) {
+      Cell& cell = itr->second;
+      cell.daughterPtrs = std::vector<Cell*>();
+      for (std::vector<CellKey>::const_iterator ditr = cell.daughters.begin();
+           ditr != cell.daughters.end();
+           ++ditr) {
+        cell.daughterPtrs.push_back(&(tree[ilevel1][*ditr]));
+      }
+      CHECK(cell.daughters.size() == cell.daughterPtrs.size());
+    }
+  }
+}
+
 }
 }
