@@ -1,0 +1,57 @@
+#-------------------------------------------------------------------------------
+# FluidNodeList
+#-------------------------------------------------------------------------------
+x = Template("Spheral::NodeSpace::FluidNodeList", "ExtendFluidNodeList.hh")
+
+exclude(x.packNodeFieldValues)
+exclude(x.appendInternalNodes)
+
+set_policy(x.massDensity, return_internal_reference())
+set_policy(x.specificThermalEnergy, return_internal_reference())
+set_policy(x.weight, return_internal_reference())
+set_policy(x.DmassDensityDt, return_internal_reference())
+set_policy(x.DspecificThermalEnergyDt, return_internal_reference())
+set_policy(x.massDensitySum, return_internal_reference())
+set_policy(x.maxViscousPressure, return_internal_reference())
+set_policy(x.velocityGradientCorrection, return_internal_reference())
+set_policy(x.equationOfState, return_internal_reference())
+set_policy(x.equationOfStatePtr, return_internal_reference())
+set_policy(x.omegaGradh, return_internal_reference())
+
+set_policy(x.A, return_internal_reference())
+set_policy(x.B, return_internal_reference())
+set_policy(x.C, return_internal_reference())
+set_policy(x.D, return_internal_reference())
+set_policy(x.gradA, return_internal_reference())
+set_policy(x.gradB, return_internal_reference())
+
+set_policy(x.kernel, return_internal_reference())
+set_policy(x.Qkernel, return_internal_reference())
+
+add_property(x, "compatibleEnergyEvolution", "compatibleEnergyEvolution")
+add_property(x, "CSPHCorrectionFields", "CSPHCorrectionFields")
+add_property(x, "rhoMin", "rhoMin", "rhoMin")
+add_property(x, "rhoMax", "rhoMax", "rhoMax")
+add_property(x, "epsilonTensile", "epsilonTensile", "epsilonTensile")
+add_property(x, "nTensile", "nTensile", "nTensile")
+
+final(x.pressure)
+final(x.temperature)
+final(x.soundSpeed)
+final(x.linearMomentum)
+final(x.updateMass)
+final(x.updateWeight)
+final(x.updateCorrections)
+final(x.calculateMassDensity)
+final(x.calculateDerivatives)
+final(x.initialize)
+final(x.valid)
+final(x.dumpState)
+final(x.restoreState)
+
+#-------------------------------------------------------------------------------
+# Instantiations.
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "FluidNodeList1d")
+x2d = x("Spheral::Dim<2>", "FluidNodeList2d")
+x3d = x("Spheral::Dim<3>", "FluidNodeList3d")

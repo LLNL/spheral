@@ -1,0 +1,16 @@
+#===============================================================================
+# Class definitions.
+#===============================================================================
+x1d = Class("Spheral::PartitionSpace::SortAndDivideRedistributeNodes1d",
+            "ExtendSortAndDivideRedistributeNodes.hh")
+x2d = Class("Spheral::PartitionSpace::SortAndDivideRedistributeNodes2d",
+            "ExtendSortAndDivideRedistributeNodes.hh")
+x3d = Class("Spheral::PartitionSpace::SortAndDivideRedistributeNodes3d",
+            "ExtendSortAndDivideRedistributeNodes.hh")
+
+#===============================================================================
+# Attributes.
+#===============================================================================
+add_property(x1d, "Hextent", "Hextent", "Hextent")
+add_property(x2d, "Hextent", "Hextent", "Hextent")
+add_property(x3d, "Hextent", "Hextent", "Hextent")

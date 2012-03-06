@@ -1,0 +1,29 @@
+#-------------------------------------------------------------------------------
+# ConductingFluidNodeList
+#-------------------------------------------------------------------------------
+
+Exported("Spheral::NodeSpace::NodeList<Spheral::Dim<3> >")
+Exported("Spheral::NodeSpace::FluidNodeList<Spheral::Dim<3> >")
+Exported("Spheral::NodeSpace::SphNodeList<Spheral::Dim<3> >")
+
+ConductingFluidNodeList = Class("Spheral::MHDSpace::ConductingFluidNodeList", "WrapConductingFluidNodeList.hh")
+exclude(ConductingFluidNodeList.neighborPtr)
+exclude(ConductingFluidNodeList.initialize)
+exclude(ConductingFluidNodeList.registeredFieldsBegin)
+exclude(ConductingFluidNodeList.registeredFieldsEnd)
+exclude(ConductingFluidNodeList.packNodeFieldValues)
+exclude(ConductingFluidNodeList.appendInternalNodes)
+exclude(ConductingFluidNodeList.resistivityPolicy)
+
+set_policy(ConductingFluidNodeList.DBDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.resistivity, return_internal_reference())
+set_policy(ConductingFluidNodeList.magneticInduction, return_internal_reference())
+set_policy(ConductingFluidNodeList.magneticDivergence, return_internal_reference())
+set_policy(ConductingFluidNodeList.currentDensity, return_internal_reference())
+set_policy(ConductingFluidNodeList.totalSpecificEnergy, return_internal_reference())
+set_policy(ConductingFluidNodeList.DeDt, return_internal_reference())
+set_policy(ConductingFluidNodeList.resistivityPolicy, return_internal_reference())
+use_shared_ptr(ConductingFluidNodeList)
+
+# Factory for conducting fluid node lists.
+#ConductingFluidFactory = Class("Spheral::MHDSpace::ConductingFluidFactory", "ConductingFluidFactory.hh")

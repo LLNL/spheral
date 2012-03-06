@@ -1,0 +1,9 @@
+gridCellPlane = Template("Spheral::NeighborSpace::GridCellPlane",
+                         "ExtendGridCellPlane.hh")
+
+set_policy(gridCellPlane.point, return_internal_reference())
+set_policy(gridCellPlane.normal, return_internal_reference())
+
+gridCellPlane1d = gridCellPlane("Spheral::Dim<1>", "gridCellPlane1d")
+gridCellPlane2d = gridCellPlane("Spheral::Dim<2>", "gridCellPlane2d")
+gridCellPlane3d = gridCellPlane("Spheral::Dim<3>", "gridCellPlane3d")

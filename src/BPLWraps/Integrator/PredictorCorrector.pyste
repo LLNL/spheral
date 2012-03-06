@@ -1,0 +1,8 @@
+predCorrector = Template("Spheral::IntegratorSpace::PredictorCorrector",
+                         "ExtendPredictorCorrector.hh")
+exclude(predCorrector.MassDensityType)
+set_policy(predCorrector.kernelPtr, return_internal_reference())
+
+predCorrector1d = predCorrector("Spheral::Dim<1>", "PredictorCorrectorIntegrator1d")
+predCorrector2d = predCorrector("Spheral::Dim<2>", "PredictorCorrectorIntegrator2d")
+predCorrector3d = predCorrector("Spheral::Dim<3>", "PredictorCorrectorIntegrator3d")
