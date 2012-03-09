@@ -87,7 +87,7 @@ addNodeToTree(const double mi,
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[ilevel][key] = Cell(mi, xi);
+      mTree[ilevel][key] = Cell(mi, xi, key);
 
     } else {
       Cell& cell = itr->second;
@@ -104,7 +104,7 @@ addNodeToTree(const double mi,
           CHECK(ilevel1 < OctTreeGravity::num1dbits);
           if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
           buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
-          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm);
+          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm, otherKey);
           cell.daughters = std::vector<CellKey>(1, otherKey);
           cell.masses = std::vector<double>();
           cell.positions = std::vector<Vector>();

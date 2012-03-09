@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "boost/unordered_map.hpp"
+#include "boost/unordered_set.hpp"
 
 #include "Geometry/Dimension.hh"
 #include "Physics/GenericBodyForce.hh"
@@ -82,10 +83,10 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
 
   //! Return a dump of the tree structure as a string.
-  std::string dumpTree() const;
+  std::string dumpTree(const bool globalTree) const;
 
   //! Return a string describing the overall statistics of the tree.
-  std::string dumpTreeStatistics() const;
+  std::string dumpTreeStatistics(const bool globalTree) const;
 
   //! The gravitational constant we're using.
   double G() const;
@@ -115,6 +116,8 @@ private:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
   typedef uint64_t CellKey;
+  typedef std::pair<size_t, size_t> NodeID;
+  typedef boost::unordered_map<NodeID, std::vector<boost::unordered_set<CellKey> > > CompletedCellSet;
 
   static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.
@@ -127,17 +130,22 @@ private:
     double M, Mglobal;               // total mass (and global sum)
     Vector xcm;                      // center of mass
     double rcm2cc2;                  // square of the distance between center of mass and geometric center
+    CellKey key;                     // Key for this cell.
     std::vector<CellKey> daughters;  // Keys of any daughter cells on level+1
     std::vector<Cell*> daughterPtrs; // Pointers to the daughter cells.
     std::vector<double> masses;      // Masses of the nodes that terminate in this cell.
     std::vector<Vector> positions;   // Positions of the nodes that terminate in this cell.
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
-    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc2(0.0), daughters(), daughterPtrs(), masses(), positions() {}
-    Cell(const double mi, const Vector& xi):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi) {}
-    Cell(const double mi, const Vector& xi, const CellKey& daughter):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), daughters(1, daughter), daughterPtrs(), masses(), positions() {}
+    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc2(0.0), key(0), daughters(), daughterPtrs(), masses(), positions() {}
+    Cell(const double mi, const Vector& xi, const CellKey& keyi):
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), key(keyi), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi) {}
+    Cell(const double mi, const Vector& xi, const CellKey& keyi, const CellKey& daughter):
+      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), key(keyi), daughters(1, daughter), daughterPtrs(), masses(), positions() {}
+
+    // Throw in comparison operators for help sorting.
+    bool operator==(const Cell& rhs) const { return key == rhs.key; }
+    bool operator<(const Cell& rhs) const { return key < rhs.key; }
   };
 
   // Define the types we use to build the tree.
@@ -192,7 +200,8 @@ private:
                        const FieldSpace::FieldList<Dimension, Vector>& position,
                        FieldSpace::FieldList<Dimension, Vector>& DxDt,
                        FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                       FieldSpace::FieldList<Dimension, Scalar>& potential) const;
+                       FieldSpace::FieldList<Dimension, Scalar>& potential,
+                       CompletedCellSet& cellsCompleted) const;
 
   // Methods to help serializing/deserializing Trees to buffers of char.
   void serialize(const Tree& tree, std::vector<char>& buffer) const;
