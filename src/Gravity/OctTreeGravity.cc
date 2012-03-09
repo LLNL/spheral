@@ -100,6 +100,14 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   mExtraEnergy = 0.0;
   mPotential = 0.0;
 
+  // Prepare the flags to remember which cells have terminated for each node.
+  CompletedCellSet cellsCompleted;
+  for (unsigned nodeListi = 0; nodeListi != mass.numFields(); ++nodeListi) {
+    for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
+      cellsCompleted[NodeID(nodeListi, i)] = vector<boost::unordered_set<CellKey> >(num1dbits);
+    }
+  }
+
 #ifdef USE_MPI
 
   // Get the processor information.
@@ -129,13 +137,13 @@ evaluateDerivatives(const Dim<3>::Scalar time,
     CHECK(bufItr == buffer.end());
 
     // Add this partial tree's contribution to our local forces and potentials.
-    applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential);
+    applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
   }
 
 #else
 
   // Apply the forces from our local tree.
-  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential);
+  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
 
 #endif
 
@@ -224,18 +232,21 @@ initialize(const Scalar time,
     CHECK(bufItr == buffer.end());
 
     // Augment any of our local cell calculations for mass and center of mass.
-    const unsigned nlevels = min(mTree.size(), tree.size());
-    for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
-      for (TreeLevel::iterator myItr = mTree[ilevel].begin();
-           myItr != mTree[ilevel].end();
-           ++myItr) {
-        const CellKey key = myItr->first;
-        Cell& cell = myItr->second;
-        const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
-        if (otherItr != tree[ilevel].end()) {
-          const Cell& otherCell = otherItr->second;
-          cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
-          cell.Mglobal += otherCell.M;
+    if (sendProc != rank) {
+      const unsigned nlevels = min(mTree.size(), tree.size());
+      for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+        for (TreeLevel::iterator myItr = mTree[ilevel].begin();
+             myItr != mTree[ilevel].end();
+             ++myItr) {
+          const CellKey key = myItr->first;
+          Cell& cell = myItr->second;
+          CHECK(cell.key == key);
+          const TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
+          if (otherItr != tree[ilevel].end()) {
+            const Cell& otherCell = otherItr->second;
+            cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
+            cell.Mglobal += otherCell.M;
+          }
         }
       }
     }
@@ -323,21 +334,60 @@ potential() const {
 //------------------------------------------------------------------------------
 std::string
 OctTreeGravity::
-dumpTree() const {
+dumpTree(const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
-  ss << "Tree : nlevels = " << mTree.size() << "\n";
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+  const unsigned numProcs = Process::getTotalNumberOfProcesses();
+  const unsigned rank = Process::getRank();
+  unsigned nlevels = mTree.size();
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+
+  ss << "Tree : nlevels = " << nlevels << "\n";
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+
+    // Gather up the level cells and sort them.
+    vector<Cell> cells;
+    vector<char> localBuffer;
+    cells.reserve(mTree[ilevel].size());
+    if (ilevel < mTree.size()) {
+      for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
+           itr != mTree[ilevel].end();
+           ++itr) {
+        cells.push_back(itr->second);
+        this->serialize(itr->second, localBuffer);
+      }
+    }
+#ifdef USE_MPI
+    if (globalTree) {
+      for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
+        unsigned bufSize = localBuffer.size();
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        if (bufSize > 0) {
+          vector<char> buffer = localBuffer;
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          if (rank != sendProc) {
+            vector<char>::const_iterator itr = buffer.begin();
+            while (itr < buffer.end()) {
+              cells.push_back(Cell());
+              this->deserialize(cells.back(), itr, buffer.end());
+            }
+          }
+        }
+      }
+    }
+#endif
+    sort(cells.begin(), cells.end());
+    cells.erase(unique(cells.begin(), cells.end()), cells.end());
+
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
-    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
+       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+    for (vector<Cell>::const_iterator itr = cells.begin();
+         itr != cells.end();
          ++itr) {
-      key = itr->first;
-      const Cell& cell = itr->second;
-      extractCellIndices(key, ix, iy, iz);
-      ss << "    Cell key=" << key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
-         << "         xcm=" << cell.xcm << " rcm2cc=" << sqrt(cell.rcm2cc2) << " M=" << cell.M << "\n"
+      const Cell& cell = *itr;
+      extractCellIndices(cell.key, ix, iy, iz);
+      ss << "    Cell key=" << cell.key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
+         << "         xcm=" << cell.xcm << " rcm2cc=" << sqrt(cell.rcm2cc2) << " M=" << cell.M  << " Mglobal=" << cell.Mglobal << "\n"
          << "         daughters = ( ";
       for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
            ditr != cell.daughters.end();
@@ -358,24 +408,62 @@ dumpTree() const {
 //------------------------------------------------------------------------------
 std::string
 OctTreeGravity::
-dumpTreeStatistics() const {
+dumpTreeStatistics(const bool globalTree) const {
   stringstream ss;
   CellKey key, ix, iy, iz;
-  ss << "Tree : nlevels = " << mTree.size() << "\n";
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+  const unsigned numProcs = Process::getTotalNumberOfProcesses();
+  const unsigned rank = Process::getRank();
+  unsigned nlevels = mTree.size();
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+
+  ss << "Tree : nlevels = " << nlevels << "\n";
+  for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+
+    // Gather up the level cells and sort them.
+    vector<Cell> cells;
+    vector<char> localBuffer;
+    cells.reserve(mTree[ilevel].size());
+    if (ilevel < mTree.size()) {
+      for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
+           itr != mTree[ilevel].end();
+           ++itr) {
+        cells.push_back(itr->second);
+        this->serialize(itr->second, localBuffer);
+      }
+    }
+#ifdef USE_MPI
+    if (globalTree) {
+      for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
+        unsigned bufSize = localBuffer.size();
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        if (bufSize > 0) {
+          vector<char> buffer = localBuffer;
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          if (rank != sendProc) {
+            vector<char>::const_iterator itr = buffer.begin();
+            while (itr < buffer.end()) {
+              cells.push_back(Cell());
+              this->deserialize(cells.back(), itr, buffer.end());
+            }
+          }
+        }
+      }
+    }
+#endif
+    sort(cells.begin(), cells.end());
+    cells.erase(unique(cells.begin(), cells.end()), cells.end());
+
+    // Count up how much of everything we have.
     ss << "--------------------------------------------------------------------------------\n" 
-       << " Level " << ilevel << " : numCells = " << mTree[ilevel].size() << "\n";
-    unsigned ncells = 0, nparticles = 0;
-    for (TreeLevel::const_iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
+       << " Level " << ilevel << " : numCells = " << cells.size() << "\n";
+    unsigned nparticles = 0;
+    for (vector<Cell>::const_iterator itr = cells.begin();
+         itr != cells.end();
          ++itr) {
-      key = itr->first;
-      const Cell& cell = itr->second;
-      ++ncells;
+      const Cell& cell = *itr;
       nparticles += cell.masses.size();
     }
-    ss << "         : ncells = " << ncells << "\n"
-       << "         : nparts = " << nparticles << "\n";
+    ss << "         : nparts = " << nparticles << "\n";
   }
   return ss.str();
 }
@@ -474,7 +562,8 @@ applyTreeForces(const Tree& tree,
                 const FieldSpace::FieldList<Dimension, Vector>& position,
                 FieldSpace::FieldList<Dimension, Vector>& DxDt,
                 FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                FieldSpace::FieldList<Dimension, Scalar>& potential) const {
+                FieldSpace::FieldList<Dimension, Scalar>& potential,
+                OctTreeGravity::CompletedCellSet& cellsCompleted) const {
 
   const unsigned numNodeLists = mass.numFields();
   const unsigned numNodes = mass.numInternalNodes();
@@ -485,6 +574,7 @@ applyTreeForces(const Tree& tree,
   double mi, mj, cellsize2, rji2;
   Vector xji, nhat;
   vector<Cell*> remainingCells, newDaughters;
+  NodeID inode;
 
   // We'll always be starting with the daughters of the root level.
   const unsigned numLevels = tree.size();
@@ -501,6 +591,7 @@ applyTreeForces(const Tree& tree,
       const Vector& xi = position(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
       Scalar& phii = potential(nodeListi, i);
+      inode = NodeID(nodeListi, i);
 
       // Walk the tree.
       ilevel = 0;
@@ -514,51 +605,55 @@ applyTreeForces(const Tree& tree,
         // Walk each of the current set of Cells.
         for (k = 0; k != nremaining; ++k) {
           const Cell& cell = *remainingCells[k];
-          
+
           // Can we ignore this cells daughters?
-          xji = cell.xcm - xi;
-          rji2 = xji.magnitude2();
-          if (rji2 > cellsize2/mOpening2 + cell.rcm2cc2) {      // We use Barnes (1994) modified criterion.
-                                                                // Except for the extra square factor here for efficiency.
+          if (cellsCompleted[inode][ilevel].find(cell.key) == cellsCompleted[inode][ilevel].end()) {
+            xji = cell.xcm - xi;
+            rji2 = xji.magnitude2();
 
-            // Yep, treat this cells and all of its daughters as a single point.
-            nhat = xji.unitVector();
-            rji2 += mSofteningLength2;
-            CHECK(rji2 > 0.0);
+            // We use Barnes (1994) modified criterion, except for the extra square factor here for efficiency.
+            if (rji2 > cellsize2/mOpening2 + cell.rcm2cc2) {      
 
-            // Increment the acceleration and potential.
-            DvDti += mG*cell.M/rji2 * nhat;
-            phii -= mG*cell.M/sqrt(rji2);
+              // Yep, treat this cells and all of its daughters as a single point.
+              nhat = xji.unitVector();
+              rji2 += mSofteningLength2;
+              CHECK(rji2 > 0.0);
 
-          } else if (cell.daughterPtrs.size() == 0) {
+              // Increment the acceleration and potential.
+              DvDti += mG*cell.Mglobal/rji2 * nhat;
+              phii -= mG*cell.Mglobal/sqrt(rji2);
+              cellsCompleted[inode][ilevel].insert(cell.key);
 
-            // This cell represents a leaf (termination of descent.  We just directly
-            // add up the node properties of any nodes in the cell.
-            CHECK(cell.masses.size() > 0 and
-                  cell.positions.size() == cell.masses.size());
-            for (j = 0; j != cell.masses.size(); ++j) {
-              mj = cell.masses[j];
-              const Vector& xj = cell.positions[j];
-              xji = xj - xi;
-              rji2 = xji.magnitude2();
+            } else if (cell.daughterPtrs.size() == 0) {
 
-              if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
-                nhat = xji.unitVector();
-                rji2 += mSofteningLength2;
-                CHECK(rji2 > 0.0);
+              // This cell represents a leaf (termination of descent.  We just directly
+              // add up the node properties of any nodes in the cell.
+              CHECK(cell.masses.size() > 0 and
+                    cell.positions.size() == cell.masses.size());
+              for (j = 0; j != cell.masses.size(); ++j) {
+                mj = cell.masses[j];
+                const Vector& xj = cell.positions[j];
+                xji = xj - xi;
+                rji2 = xji.magnitude2();
 
-                // Increment the acceleration and potential.
-                DvDti += mG*mj/rji2 * nhat;
-                phii -= mG*mj/sqrt(rji2);
+                if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
+                  nhat = xji.unitVector();
+                  rji2 += mSofteningLength2;
+                  CHECK(rji2 > 0.0);
+
+                  // Increment the acceleration and potential.
+                  DvDti += mG*mj/rji2 * nhat;
+                  phii -= mG*mj/sqrt(rji2);
+                }
               }
+
+            } else {
+
+              // We need to walk further down the tree.  Add this cells daughters
+              // to the next set.
+              copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+
             }
-
-          } else {
-
-            // We need to walk further down the tree.  Add this cells daughters
-            // to the next set.
-            copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
-
           }
         }
 
@@ -601,6 +696,7 @@ serialize(const OctTreeGravity::Cell& cell,
   packElement(cell.Mglobal, buffer);
   packElement(cell.xcm, buffer);
   packElement(cell.rcm2cc2, buffer);
+  packElement(cell.key, buffer);
   packElement(cell.daughters, buffer);
   packElement(cell.masses, buffer);
   packElement(cell.positions, buffer);
@@ -646,6 +742,7 @@ deserialize(OctTreeGravity::Cell& cell,
   unpackElement(cell.Mglobal, bufItr, endItr);
   unpackElement(cell.xcm, bufItr, endItr);
   unpackElement(cell.rcm2cc2, bufItr, endItr);
+  unpackElement(cell.key, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);
   unpackElement(cell.masses, bufItr, endItr);
   unpackElement(cell.positions, bufItr, endItr);
