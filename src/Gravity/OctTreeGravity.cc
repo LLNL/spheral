@@ -117,33 +117,53 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   // Pack up the local tree.
   vector<char> localBuffer, buffer;
   this->serialize(mTree, localBuffer);
+  unsigned localBufSize = localBuffer.size();
 
-  // Walk each process, and have them send their local tree info to all other
-  // domains.
+  // Launch our sends to all other processors.  This may be a bit aggressive.... :)
+  vector<MPI_Request> sendRequests;
+  sendRequests.reserve(2*numProcs);
+  for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
+    if (otherProc != rank) {
+      sendRequests.push_back(MPI_Request());
+      MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &sendRequests.back());
+      if (localBufSize > 0) {
+        sendRequests.push_back(MPI_Request());
+        MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &sendRequests.back());
+      }
+    }
+  }
+  CHECK(sendRequests.size() <= 2*numProcs);
+
+  // Now walk the other processes and get their trees to add to our own.
   unsigned bufSize;
+  MPI_Status recvStatus;
   vector<char>::const_iterator bufItr;
   Tree tree;
-  for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
-
-    // Broadcast the send processor's tree.
-    buffer = localBuffer;
-    bufSize = buffer.size();
-    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-    buffer.resize(bufSize);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
-    tree = Tree();
-    bufItr = buffer.begin();
-    this->deserialize(tree, bufItr, buffer.end());
-    CHECK(bufItr == buffer.end());
-
-    // Add this partial tree's contribution to our local forces and potentials.
-    applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
+  for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
+    if (otherProc != rank) {
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &recvStatus);
+      if (bufSize > 0) {
+        buffer = vector<char>(bufSize);
+        MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &recvStatus);
+        tree = Tree();
+        bufItr = buffer.begin();
+        this->deserialize(tree, bufItr, buffer.end());
+        CHECK(bufItr == buffer.end());
+        applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
+      }
+    }
   }
 
-#else
+#endif
 
   // Apply the forces from our local tree.
   applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
+
+#ifdef USE_MPI
+
+  // Wait until all our sends are complete.
+  vector<MPI_Status> sendStatus(sendRequests.size());
+  MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
 
 #endif
 
