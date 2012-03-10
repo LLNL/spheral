@@ -24,7 +24,8 @@ namespace FractalSpace
 	for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	  {
-	    Group& group=**group_itr;
+	    Group* p_group=*group_itr;
+	    Group& group=*p_group;
 	    double d_inv=pow(2.0,group.get_level()-fractal.get_level_max());
 	    for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	      {
@@ -34,7 +35,7 @@ namespace FractalSpace
 		for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 		  {
 		    Particle& particle=**particle_itr;
-		    if(&group == particle.get_p_highest_level_group())
+		    if(p_group == particle.get_p_highest_level_group())
 		      {
 			if(not_yet)
 			  {

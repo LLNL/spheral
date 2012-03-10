@@ -1087,7 +1087,7 @@ readGenericVector(vector<DataType>& value,
 bool
 FlatFileIO::readyToWrite() const {
   return (mFilePtr != 0 &&
-	  (access() == Write || access() == ReadWrite) || access() == Create);
+	  (access() == Write || access() == ReadWrite || access() == Create));
 }
 
 //------------------------------------------------------------------------------

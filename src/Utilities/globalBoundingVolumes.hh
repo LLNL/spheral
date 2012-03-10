@@ -30,8 +30,7 @@ void
 globalBoundingBox(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
                   typename Dimension::Vector& xmin,
                   typename Dimension::Vector& xmax,
-                  const bool ghost = false,
-                  const bool quantize = true);
+                  const bool ghost = false);
 
 // Minimum volume FacetedVolume for DataBases.
 template<typename Dimension>

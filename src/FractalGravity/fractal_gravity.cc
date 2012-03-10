@@ -168,9 +168,9 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     // Generate tree of groups, if depth of tree greater than zero
     //--------------------------------------------------------------------------
-    // Loop over all chains to generate new group at the end of each chain
-    // if there are high_points in the tail group of the chain. Done recursively until
-    // no group  generates high_points. The n'th recursion generates groups at level "n".
+    // Loop over all levels to generate new groups at next level
+    // if there are high_points in the group. Done recursively until
+    // no group generates high_points. The n'th recursion generates groups at level "n".
     // A group does not generate a new group if (1) no high_points, (2) group is at level=level_max
     // (3) Group only has 27 points
     //--------------------------------------------------------------------------

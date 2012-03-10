@@ -50,7 +50,7 @@ namespace FractalSpace
 		  }	      
 	      }
 	  }
-	rcfft3d Forward3 (rho,green_c);
+	rcfft3d Forward3 (length_2z,rho,green_c);
 	Forward3.fft(rho,green_c);
 	for( int p_z=0;p_z<length_1z;++p_z)
 	  {
@@ -92,7 +92,7 @@ namespace FractalSpace
 	  }
       }
     cout << "isol a " << endl;
-    rcfft3d Forward3 (rho,pot);
+    rcfft3d Forward3 (length_2z,rho,pot);
     Forward3.fft(rho,pot);
     //
     for(int n_z=0;n_z < length_1z;++n_z)
@@ -109,7 +109,7 @@ namespace FractalSpace
 	  }
       }
     cout << "isol b " << endl;
-    crfft3d Backward3 (pot,rho);
+    crfft3d Backward3 (length_2z,pot,rho);
     Backward3.fftNormalized(pot,rho);
     cout << "isol c " << endl;
     for (int n_z=0;n_z <=length_z;++n_z)

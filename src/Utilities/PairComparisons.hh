@@ -102,6 +102,47 @@ struct AddPairSecondElements {
   }
 };
 
+//------------------------------------------------------------------------------
+// Compare pairs for equality.
+//------------------------------------------------------------------------------
+template<typename Pair>
+struct PairsEqualByFirstElement {
+  bool operator()(const Pair& lhs, const Pair& rhs) const {
+    return (lhs.first == rhs.first);
+  }
+};
+
+template<typename Pair>
+struct PairsEqualBySecondElement {
+  bool operator()(const Pair& lhs, const Pair& rhs) const {
+    return (lhs.second == rhs.second);
+  }
+};
+
+template<typename Pair>
+struct PairFirstElementEqualTo {
+  typename Pair::first_type mVal;
+  PairFirstElementEqualTo(const typename Pair::first_type x): mVal(x) {}
+  bool operator()(const Pair& lhs) const {
+    return (lhs.first == mVal);
+  }
+  bool operator()(const Pair& lhs, const typename Pair::first_type& rhs) const {
+    return lhs.first == rhs;
+  }
+};
+
+template<typename Pair>
+struct PairSecondElementEqualTo {
+  typename Pair::second_type mVal;
+  PairSecondElementEqualTo(const typename Pair::second_type x): mVal(x) {}
+  bool operator()(const Pair& lhs) const {
+    return (lhs.second == mVal);
+  }
+  bool operator()(const Pair& lhs, const typename Pair::second_type& rhs) const {
+    return lhs.second == rhs;
+  }
+};
+
 }
 
 #endif

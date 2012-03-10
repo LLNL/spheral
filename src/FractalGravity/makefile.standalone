@@ -1,5 +1,5 @@
 classes = fractal_memory.hh classes.hh point_class.hh  group_class.hh fractal_class.hh misc_class.hh particle_class.hh libs.hh headers.hh
-fopt1 = -pedantic -pg -O3
+fopt1 = -pedantic -O3
 Wopt1 = -Wall
 fftopt1 = -DNDEBUG
 lopt1 = /usr/bin/cygfftw3-3.dll
@@ -89,6 +89,12 @@ force_shear_at_particle.o :	force_shear_at_particle.cc $(classes)
 #
 force_shear_at_point.o :	force_shear_at_point.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c force_shear_at_point.cc
+#
+force_sum_particle.o :	force_sum_particle.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_sum_particle.cc
+#
+force_test.o :	force_test.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c force_test.cc
 #
 fractal_gravity.o :	fractal_gravity.cc  $(classes) 
 	$(compile) $(fopt1) $(Wopt1) -c fractal_gravity.cc
@@ -263,6 +269,8 @@ force_at_point.o \
 force_at_point_initial.o \
 force_shear_at_particle.o \
 force_shear_at_point.o \
+force_sum_particle.o \
+force_test.o \
 fractal_gravity.o \
 fractal_gravity_wrapper.o \
 go_ahead_points.o \
@@ -290,6 +298,6 @@ try_harder.o \
 update_rv.o \
 write_rv.o
 #
-fractal_nbody_nina_vector.exe : 	$(files_fractal_nina_o) $(files_step_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_file).o $(halo_fixed_file).o $(parameter_file).o $(particle_file).o $(poisson_file).o $(step_file).o $(velocity_file).o
+fractal_single : 	$(files_fractal_nina_o) $(files_step_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_file).o $(halo_fixed_file).o $(parameter_file).o $(particle_file).o $(poisson_file).o $(step_file).o $(velocity_file).o
 	$(compile) $(lopt1) -o $(dir)fractal_nbody_nina_vector.exe fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_file).o $(halo_fixed_file).o $(parameter_file).o $(particle_file).o $(poisson_file).o $(step_file).o $(velocity_file).o $(files_fractal_nina_o) $(files_step_o)
 #

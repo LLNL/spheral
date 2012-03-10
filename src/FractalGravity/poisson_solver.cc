@@ -42,6 +42,9 @@ namespace FractalSpace
       dir=1;
     else if(n_xz >= max(n_yz,n_xy))
       dir=3;
+    //
+    dir=1;
+    //
     sor(group,fractal,list_edge[dir],dir);
   }
 }

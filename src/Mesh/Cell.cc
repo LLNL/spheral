@@ -408,7 +408,7 @@ lock(vector<Cell<Dimension> >& cells) {
     ENSURE(mNewVertices.size() <= mOldVertices.size());
     ENSURE(mNewFaceVertices.size() <= mOldFaceVertices.size());
     for (i = 0; i != mNewFaceVertices.size(); ++i) {
-      BOOST_FOREACH(j, mNewFaceVertices[i]) { j < mNewVertices.size(); }
+      BOOST_FOREACH(j, mNewFaceVertices[i]) { ENSURE(j < mNewVertices.size()); }
     }
     ENSURE(mNewNeighbors.size() == mNewFaceVertices.size());
     BOOST_FOREACH(i, mNewNeighbors) { ENSURE(i != DELETED); }

@@ -23,7 +23,6 @@
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Field/NodeIterators.hh"
-#include "cdebug.hh"
 #include "DBC.hh"
 #include "Material/PhysicalConstants.hh"
 
@@ -38,15 +37,14 @@ using DataBaseSpace::DataBase;
 //------------------------------------------------------------------------------
 template <typename Dimension>
 NBodyGravity<Dimension>::
-NBodyGravity(double plummerSofteningLength,
-             double maxDeltaVelocity):
+NBodyGravity(const double plummerSofteningLength,
+             const double maxDeltaVelocity,
+             const double G):
   mPotential(FieldList<Dimension, Scalar>::Copy),
   mExtraEnergy(0.0),
   mMaxDeltaVelocityFactor(maxDeltaVelocity),
-  mSofteningLength(plummerSofteningLength) {
-  using namespace std;
-  cdebug << "NBodyGravity<Dimension>::NBodyGravity()" << endl;
-
+  mSofteningLength(plummerSofteningLength),
+  mG(G) {
 }
 //------------------------------------------------------------------------------
 
@@ -65,13 +63,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const
-{
+                    StateDerivatives<Dimension>& derivs) const {
   using namespace NodeSpace;
-
-  // Don't forget Cavendish's constant.
-  // FIXME: Currently in cgs units.
-  Scalar G = 6.672e-8;
 
   // Find the square of the Plummer softening length.
   Scalar softeningLength2 = mSofteningLength * mSofteningLength;
@@ -89,57 +82,67 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mExtraEnergy = 0.0;
 
   // Loop over each particle...
-  for (InternalNodeIterator<Dimension> ithNodeIter = dataBase.internalNodeBegin();
-       ithNodeIter != dataBase.internalNodeEnd();
-       ++ithNodeIter)
-  {
+  const unsigned numNodeLists = dataBase.numNodeLists();
+  unsigned ifield = 0;
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator iitr = dataBase.fluidNodeListBegin();
+       iitr != dataBase.fluidNodeListEnd();
+       ++iitr, ++ifield) {
+    const NodeList<Dimension>& nodeListi = **iitr;
+    const unsigned firstGhostNodei = nodeListi.firstGhostNode();
 
-    // Set the position derivative.
-    DxDt(ithNodeIter) += velocity(ithNodeIter);
+    for (unsigned i = 0; i != firstGhostNodei; ++i) {
+      unsigned jfield = 0;
 
-    // Get a reference to the acceleration vector.
-    Vector& acceleration = DvDt(ithNodeIter);
+      // Set the position derivative.
+      DxDt(ifield, i) += velocity(ifield, i);
+
+      // Get a reference to the acceleration vector.
+      Vector& acceleration = DvDt(ifield, i);
     
-    // Zero out the potential of this particle.
-    mPotential(ithNodeIter) = 0.0;
+      // Zero out the potential of this particle.
+      mPotential(ifield, i) = 0.0;
 
-    // Now loop over every particle that's not this one...
-    for (InternalNodeIterator<Dimension> jthNodeIter = dataBase.internalNodeBegin();
-         jthNodeIter != dataBase.internalNodeEnd();
-         ++jthNodeIter)
-    {
-      // Particles can't self-interact, silly!
-      if (ithNodeIter != jthNodeIter)
-      {
-        // Contribute to the acceleration of this particle.
-        Vector r = position(ithNodeIter) - position(jthNodeIter);
+      for (typename DataBase<Dimension>::ConstFluidNodeListIterator jitr = dataBase.fluidNodeListBegin();
+           jitr != dataBase.fluidNodeListEnd();
+           ++jitr, ++jfield) {
+        const NodeList<Dimension>& nodeListj = **jitr;
+        const unsigned nj = nodeListj.numNodes();
+        for (unsigned j = 0; j != nj; ++j) {
 
-        CHECK(r.magnitude2() != 0.0);
-        Vector rHat = r.unitVector();
-        Scalar distance2 = r.magnitude2() + softeningLength2;
-        CHECK(distance2 != 0.0);
-        acceleration -= G * mass(jthNodeIter) * rHat / distance2;
+          // Particles can't self-interact, silly!
+          if (ifield != jfield or i != j) {
 
-        // Also sum up contributions to the potential and 
-        // total potential energy.
-        mPotential(ithNodeIter) += G * mass(jthNodeIter) / std::sqrt(distance2);
-        mExtraEnergy += G * mass(ithNodeIter) * mPotential(ithNodeIter);
+            // Contribute to the acceleration of this particle.
+            const Vector r = position(ifield, i) - position(jfield, j);
+
+            CHECK(r.magnitude2() != 0.0);
+            Vector rHat = r.unitVector();
+            Scalar distance2 = r.magnitude2() + softeningLength2;
+            CHECK(distance2 != 0.0);
+            acceleration -= mG * mass(jfield, j) * rHat / distance2;
+
+            // Also sum up contributions to the potential and 
+            // total potential energy.
+            mPotential(ifield, i) -= mG * mass(jfield, j) / std::sqrt(distance2);
+          }
+        }
+      }
+
+      mExtraEnergy += mG * mass(ifield, i) * mPotential(ifield, i);
+
+      // Capture the maximum acceleration and velocity magnitudes.
+      const Scalar accelMagnitude = acceleration.magnitude();
+      if (mOldMaxAcceleration < accelMagnitude) {
+        mOldMaxAcceleration = accelMagnitude + 1e-10;
+        CHECK(mOldMaxAcceleration != 0.0);
       } // end if
-    } // end for
 
-    // Capture the maximum acceleration and velocity magnitudes.
-    Scalar accelMagnitude = acceleration.magnitude();
-    if (mOldMaxAcceleration < accelMagnitude)
-    {
-      mOldMaxAcceleration = accelMagnitude + 1e-10;
-      CHECK(mOldMaxAcceleration != 0.0);
-    } // end if
-    Scalar velocityMagnitude = velocity(ithNodeIter).magnitude();
-    if (mOldMaxVelocity < velocityMagnitude)
-    {
-      mOldMaxVelocity = velocityMagnitude;
-    } // end if
-  } // end for
+      const Scalar velocityMagnitude = velocity(ifield, i).magnitude();
+      if (mOldMaxVelocity < velocityMagnitude) {
+        mOldMaxVelocity = velocityMagnitude;
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -148,17 +151,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template <typename Dimension>
 void 
 NBodyGravity<Dimension>::
-initialize(const Scalar& time, 
-           const Scalar& dt,
-           const DataBase<Dimension>& db, 
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs)
-{
-  // Allocate space for the gravitational potential FieldList if necessary.
-  if (mPotential.numFields() == 0)
-  {
-    mPotential = db.newGlobalFieldList(Scalar());
-  } // end if
+initializeProblemStartup(DataBase<Dimension>& db) {
+
+  // Allocate space for the gravitational potential FieldList.
+  mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
+
 }
 //------------------------------------------------------------------------------
 
@@ -169,8 +166,7 @@ NBodyGravity<Dimension>::
 dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const
-{
+   const Scalar currentTime) const {
 
   // The maximum change in our velocity for the next time cycle is given 
   // by the mMaxDeltaVelocityFactor plus the max velocity and the max 
@@ -190,8 +186,7 @@ dt(const DataBase<Dimension>& dataBase,
 template <typename Dimension>
 typename NBodyGravity<Dimension>::Scalar 
 NBodyGravity<Dimension>::
-extraEnergy() const
-{
+extraEnergy() const {
   return mExtraEnergy;
 }
 //------------------------------------------------------------------------------
@@ -200,8 +195,7 @@ extraEnergy() const
 template <typename Dimension>
 const FieldList<Dimension, typename NBodyGravity<Dimension>::Scalar>&
 NBodyGravity<Dimension>::
-potential() const
-{
+potential() const {
   return mPotential;
 }
 //------------------------------------------------------------------------------
@@ -210,12 +204,39 @@ potential() const
 template <typename Dimension>
 bool 
 NBodyGravity<Dimension>::
-valid() const
-{
+valid() const {
   // We're always valid, sir!  (This is crap, but we can make no other 
   // assumptions right now.)
   return true;
 }
+
+//------------------------------------------------------------------------------
+template <typename Dimension>
+double
+NBodyGravity<Dimension>::
+G() const {
+  return mG;
+}
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+template <typename Dimension>
+double
+NBodyGravity<Dimension>::
+softeningLength() const {
+  return mSofteningLength;
+}
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+template <typename Dimension>
+void
+NBodyGravity<Dimension>::
+softeningLength(const double x) {
+  VERIFY(x >= 0.0);
+  mSofteningLength = x;
+}
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 } // end namespace GravitySpace

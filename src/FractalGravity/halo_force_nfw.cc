@@ -31,15 +31,15 @@ namespace FractalSpace
 	p->add_field_pf(field);
       }
   }
-  double NFWmass(const double& x)
+  inline double NFWmass(const double& x)
   {
     return log(1.0+x)-x/(1.0+x);
   }
-  double NFWforce(const double& x)
+  inline double NFWforce(const double& x)
   {
     return 1.0/((1.0+x)*x)-log(1.0+x)/(x*x);
   }
-  double NFWpot(const double& x)
+  inline double NFWpot(const double& x)
   {
     return -log(1.0+x)/x;
   }

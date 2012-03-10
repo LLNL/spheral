@@ -61,7 +61,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // Find the appropriate renormalization so that we can give Qhull points
     // in a unit box.  Qhull just seems to work better this way.
     Vector xmin, xmax;
-    boundingBox(points, xmin, xmax, false);
+    boundingBox(points, xmin, xmax);
     const double fscale = (xmax - xmin).maxElement();
     CHECK(fscale > 0.0);
 
@@ -543,7 +543,7 @@ operator!=(const GeomPolygon& rhs) const {
 void
 GeomPolygon::
 setBoundingBox() {
-  boundingBox(mVertices, mXmin, mXmax, false);
+  boundingBox(mVertices, mXmin, mXmax);
 }
 
 //------------------------------------------------------------------------------

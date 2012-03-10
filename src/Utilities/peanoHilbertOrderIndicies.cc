@@ -420,7 +420,7 @@ peanoHilbertOrderIndicies(const DataBase<Dimension>& dataBase) {
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;
-  dataBase.boundingBox(xmin, xmax, true, true);
+  dataBase.boundingBox(xmin, xmax, true);
 
   // Go over all nodes and hash each position.
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();

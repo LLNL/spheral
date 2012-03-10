@@ -3,6 +3,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "Gravity/NBodyGravity.hh"
+#include "Gravity/OctTreeGravity.hh"
 
 namespace Spheral {
 namespace GravitySpace {

@@ -1,15 +1,17 @@
 #-------------------------------------------------------------------------------
-# Set up a pair of equal mass N-body points in a simple circular orbit of each
-# other.
+# Create a spherical distribution of collisionless points, which will of course 
+# promptly collapse under their own self-gravity.
 #-------------------------------------------------------------------------------
 from Spheral3d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
+from GenerateNodeDistribution3d import *
+from VoronoiDistributeNodes import distributeNodes3d
 from math import *
 
-print "3-D N-Body Gravity test -- two particle problem"
+print "3-D N-Body Gravity test -- collisionless sphere."
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -17,44 +19,44 @@ print "3-D N-Body Gravity test -- two particle problem"
 commandLine(
 
     # Initial particle stuff
-    r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
-    m0 = 1.0,                      # (earth masses) particle mass
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
-    opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
+    nr = 50,                       # radial number of particles to seed
+    r0 = 1.0,                      # (AU) initial radius of the sphere
+    M0 = 1.0,                      # (earth masses) total mass of the sphere
+    plummerLength = 1.0e-2,        # (AU) Plummer softening scale
+    opening = 1.0,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
     # Problem control
-    steps = None,
-    numOrbits = 2,                 # How many orbits do we want to follow?
+    steps = None,                  # Optionally advance a fixed number of steps
+    numCollapseTimes = 1.0,        # What time to advance to in units of the collapse time for the sphere
 
     # Which N-body method should we use?
-    nbody = NBodyGravity,
+    nbody = OctTreeGravity,
 
     # Output
-    dataDir = "Two-Earth-Nbody",
-    baseName = "2_particle_nbody",
+    dataDir = "Collisionless_Sphere_Collapse",
+    baseNameRoot = "sphere_collapse_%i",
     restoreCycle = None,
     restartStep = 100,
-    numViz = 100,
+    numViz = 200,
     )
 
 # Convert to MKS units.
 AU = 149597870700.0  # m
 Mearth = 5.9722e24   # kg
 r0 *= AU
-m0 *= Mearth
+M0 *= Mearth
 plummerLength *= AU
 
-# Compute the velocity necessary for a circular orbit.
+# Compute the analytically expected collapse time.
 G = MKS().G
-a = 2*r0
-M = 2*m0
-orbitTime = 2.0*pi*sqrt(a**3/(G*M))
-v0 = 2.0*pi*r0/orbitTime
+rho0 = M0/(4.0/3.0*pi*r0*r0*r0)
+tdyn = sqrt(3.0*pi/(16*G*rho0))
+collapseTime = tdyn/sqrt(2.0)
 
 # Miscellaneous problem control parameters.
-dt = orbitTime / 90
-goalTime = orbitTime * numOrbits
+dt = collapseTime / 100
+goalTime = collapseTime * numCollapseTimes
 dtMin, dtMax = 0.1*dt, 100.0*dt
 dtGrowth = 2.0
 maxSteps = None
@@ -62,6 +64,7 @@ statsStep = 10
 smoothIters = 0
 vizTime = goalTime / numViz
 
+baseName = baseNameRoot % nr
 restartDir = os.path.join(dataDir, "restarts")
 visitDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, baseName + "_restart")
@@ -92,26 +95,26 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
                           topGridCellSize = 100*r0)
-mass = nodes.mass()
-pos = nodes.positions()
-vel = nodes.velocity()
 
-mass[0] = m0
-mass[1] = m0
+if restoreCycle is None:
+    generator = GenerateNodeDistribution3d(2*nr, 2*nr, 2*nr, rho0,
+                                           distributionType = "lattice",
+                                           xmin = (-r0, -r0, -r0),
+                                           xmax = ( r0,  r0,  r0),
+                                           rmin = 0.0,
+                                           rmax = r0)
+    distributeNodes3d((nodes, generator))
+    output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
+    output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
+    output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-pos[0] = Vector(-r0, 0.0, 0.0)
-pos[1] = Vector( r0, 0.0, 0.0)
-
-vel[0] = Vector(0.0, -v0, 0.0)
-vel[1] = Vector(0.0,  v0, 0.0)
-
-# These are fluid variables we shouldn't need.  Just set them to valid values.
-H = nodes.Hfield()
-rho = nodes.massDensity()
-H[0] = r0*SymTensor.one
-H[1] = r0*SymTensor.one
-rho[0] = 1.0
-rho[1] = 1.0
+    # Renormalize the node masses to get our desired total mass.
+    mass = nodes.mass()
+    msum = mpi.allreduce(sum(nodes.mass().internalValues()), mpi.SUM)
+    fmass = M0/msum
+    print "Renormalizing masses by ", fmass
+    for i in xrange(nodes.numInternalNodes):
+        mass[i] *= fmass
 
 #-------------------------------------------------------------------------------
 # DataBase
@@ -124,7 +127,7 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                           maxDeltaVelocity = 1e-2*v0,
+                           maxDeltaVelocity = 1e-2*r0/tdyn,
                            G = G)
 # elif nbody is FractalGravity:
 #     gravity = FractalGravity(G = G,
@@ -147,11 +150,9 @@ elif nbody is OctTreeGravity:
 #-------------------------------------------------------------------------------
 integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
-integrator.lastDt = 1e3    # seconds
-if dtMin:
-    integrator.dtMin = dtMin
-if dtMax:
-    integrator.dtMax = dtMax
+integrator.lastDt = dtMin
+integrator.dtMin = dtMin
+integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 
 #-------------------------------------------------------------------------------
@@ -161,28 +162,10 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            vizBaseName = os.path.join(visitDir, baseName),
+                            vizBaseName = baseName,
+                            vizDir = visitDir,
                             vizTime = vizTime,
                             vizMethod = dumpPhysicsState)
-
-#-------------------------------------------------------------------------------
-# Build a diagnostic to maintain the history of our points.
-#-------------------------------------------------------------------------------
-def sampleMethod(nodes, indices):
-    m = nodes.mass()
-    pos = nodes.positions()
-    vel = nodes.velocity()
-    assert nodes.numInternalNodes == 2
-    return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z, 
-            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z)
-
-sampleNodes = [0, 1]  # We're going to sample both of our nodes!
-history = NodeHistory(nodes, sampleNodes, sampleMethod,
-                      os.path.join(dataDir, "node_history.txt"),
-                      header = "# Orbit history of a 2 earth (no sun) system.",
-                      labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
-                                "m1", "x1", "y1", "z1", "vx1", "vy1", "vz1"))
-control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
 # If we're restarting, read in the restart file.
@@ -196,25 +179,5 @@ if restoreCycle:
 if not steps is None:
     control.step(steps)
 else:
+    print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
     control.advance(goalTime)
-
-# Plot the final state.
-x1 = [stuff[1]/AU for stuff in history.sampleHistory]
-y1 = [stuff[2]/AU for stuff in history.sampleHistory]
-x2 = [stuff[8]/AU for stuff in history.sampleHistory]
-y2 = [stuff[9]/AU for stuff in history.sampleHistory]
-
-import Gnuplot
-gdata1 = Gnuplot.Data(x1, y1,
-                      with_ = 'linespoints',
-                      title = 'Particle 1')
-gdata2 = Gnuplot.Data(x2, y2,
-                      with_ = 'linespoints',
-                      title = 'Particle 2')
-plot = Gnuplot.Gnuplot()
-plot.plot(gdata1)
-plot.replot(gdata2)
-plot('set size square; set xrange [-1.1:1.1]; set yrange [-1.1:1.1]')
-plot.xlabel = 'x'
-plot.ylabel = 'y'
-plot.refresh()

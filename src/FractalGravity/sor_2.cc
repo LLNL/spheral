@@ -92,7 +92,6 @@ namespace FractalSpace
 		    << fractal.get_epsilon_sor() << "\t"
 		    << group.get_level() 
 		    << endl;
-	    FileSor.flush();
     assert(n < maxits_real);
   }
   inline bool it_is_inside(Point* p_point)

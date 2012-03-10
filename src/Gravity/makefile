@@ -6,6 +6,7 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	NBodyGravity.cc \
+	OctTreeGravity.cc
 #	SPHGravity.cc
 
 LINKLIST = linklist

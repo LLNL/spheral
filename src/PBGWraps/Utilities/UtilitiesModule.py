@@ -100,15 +100,13 @@ Spheral.add_function("orientedBounding%(name)s", None,
             exec("""
 Spheral.add_function("boundingBox", None, [constrefparam("vector_of_%(vector)s", "positions"),
                                            refparam("%(vector)s", "xmin"),
-                                           refparam("%(vector)s", "xmax"),
-                                           param("bool", "quantize", default_value="true")],
+                                           refparam("%(vector)s", "xmax")],
                                            template_parameters = ["%(vector)s"],
                                            custom_name = "boundingBox")
 Spheral.add_function("globalBoundingBox", None, [constrefparam("Spheral::FieldSpace::VectorFieldList%(dim)s", "positions"),
                                                  refparam("%(vector)s", "xmin"),
                                                  refparam("%(vector)s", "xmax"),
-                                                 param("bool", "ghost", default_value="false"),
-                                                 param("bool", "quantize", default_value="true")],
+                                                 param("bool", "ghost", default_value="false")],
                                                  template_parameters = ["%(inst)s"],
                                                  custom_name = "globalBoundingBox")
 Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(dim)s", "dataBase"),
