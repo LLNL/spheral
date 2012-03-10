@@ -146,7 +146,7 @@ namespace FractalSpace
     int moat=0;
     if(!period) moat=max(max(1,fractal.get_moat_0()),fractal.get_padding());
     double radmin2=0.0;
-    if(halo) radmin2=pow(0.5-(int)moat/(int)fractal.get_grid_length(),2);
+    if(halo) radmin2=pow(0.5-(double)moat/(double)fractal.get_grid_length(),2);
     vector <double> pos(3);
     bool do_it;
     int grid_x,grid_y,grid_z;

@@ -139,6 +139,9 @@ public:
                        State<Dimension>& state,
                        const StateDerivatives<Dimension>& derivatives) const;
 
+  // Some physics does not require the connectivity be constructed.
+  virtual bool requireConnectivity() const;
+
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)
   virtual Scalar extraEnergy() const;

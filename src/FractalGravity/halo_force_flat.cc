@@ -31,15 +31,15 @@ namespace FractalSpace
 	p->add_field_pf(field);
       }
   }
-  double FLATmass(const double& x)
+  inline double FLATmass(const double& x)
   {
     return x-atan(x);
   }
-  double FLATforce(const double& x)
+  inline double FLATforce(const double& x)
   {
     return -(x-atan(x))/x/x;
   }
-  double FLATpot(const double& x)
+  inline double FLATpot(const double& x)
   {
     return 0.5*log(1.0+x*x)+atan(x)/x-1.0;
   }

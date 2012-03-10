@@ -16,6 +16,7 @@ MV = mv
 PATCH = patch
 MKDIR = mkdir -p
 CURL = curl -L
+AR = ar
 
 #-------------------------------------------------------------------------------
 # Targets.
@@ -51,8 +52,8 @@ ELEMENTTREEDIR = $(ELEMENTTREEDIST:.zip=)
 ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_$(BOOSTVER1).tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/$(BOOSTVER2)/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_49_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.49.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -153,13 +154,13 @@ ATSDIR = $(ATSDIST:.tar.gz=)
 ATSBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ATSDIST))
 
 # FFTW
-FFTWDIST = fftw-3.2.2.tar.gz
-FFTWURL = http://www.fftw.org/fftw-3.2.2.tar.gz
+FFTWDIST = fftw-3.3.tar.gz
+FFTWURL = http://www.fftw.org/$(FFTWDIST)
 FFTWDIR = $(FFTWDIST:.tar.gz=)
 FFTWBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWDIST))
 
 # FFTW++
-FFTWPPDIST = fftw++-1.08.tar.gz
+FFTWPPDIST = fftw++-1.09.tar.gz
 FFTWPPURL = http://sourceforge.net/projects/fftwpp/files/$(FFTWPPDIST)/download
 FFTWPPDIR = $(FFTWPPDIST:.tar.gz=)
 FFTWPPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(FFTWPPDIST))
@@ -225,9 +226,9 @@ SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
 # Eigen
-EIGENDIST = 3.0.2.tar.bz2
-EIGENURL = http://bitbucket.org/eigen/eigen/get/$(EIGENDIST)
-EIGENDIR = eigen-eigen-3.0.2
+EIGENDIST = Eigen-3.0.5.tar.bz2
+EIGENURL = http://bitbucket.org/eigen/eigen/get/3.0.5.tar.bz2
+EIGENDIR = eigen-eigen-6e7488e20373
 EIGENBUILDDATE = .eigen.date
 
 # Voro++
@@ -247,6 +248,31 @@ GMPDIST = gmp-5.0.2.tar.bz2
 GMPURL = ftp://ftp.gmplib.org/pub/gmp-5.0.2/$(GMPDIST)
 GMPDIR = $(GMPDIST:.tar.bz2=)
 GMPBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(GMPDIST))
+
+# mpmath -- a python multiprecision math library
+MPMATHDIST = mpmath-0.17.tar.gz
+MPMATHURL = http://mpmath.googlecode.com/files/$(MPMATHDIST)
+MPMATHDIR = $(MPMATHDIST:.tar.gz=)
+MPMATHBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPMATHDIST))
+
+# # OCCTREE 
+# OCTTREEDIST = octree_code.zip
+# OCTTREEURL = http://nomis80.org/code/$(OCTTREEDIST)
+# OCTTREEDIR = $(OCTTREEDIST:.zip=)
+# OCTTREEINCDIR = $(SPHERALDIR)/include/octtree
+# OCTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(OCTTREEDIST))
+
+# # The FLANN (Fast Library for Approximate Nearest Neighbors) library.
+# FLANNDIST = flann-1.7.1-src.zip
+# FLANNURL = http://people.cs.ubc.ca/~mariusm/uploads/FLANN/$(FLANNDIST)
+# FLANNDIR = $(FLANNDIST:.zip=)
+# FLANNBUILDDATE = $(patsubst %.zip, .%.date, $(FLANNDIST))
+
+# # The Point Cloud Library (PCL)
+# PCLDIST = PCL-1.5.1-Source.tar.bz2
+# PCLURL = http://dev.pointclouds.org/attachments/download/771/$(PCLDIST)
+# PCLDIR = $(PCLDIST:.tar.bz2=)
+# PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
@@ -278,7 +304,8 @@ all:	$(PYTHONBUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(VOROPPBUILDDATE) \
-	$(VOROPP2DBUILDDATE)
+	$(VOROPP2DBUILDDATE) \
+	$(MPMATHBUILDDATE)
 
 clean:
 	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
@@ -316,6 +343,7 @@ clean:
 	       $(EIGENDIR) $(EIGENBUILDDATE) \
 	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
 	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
+	       $(MPMATHDIR) $(MPMATHBUILDDATE) \
 	       .*.date
 
 .SUFFIXES:	.date .gz .tgz
@@ -864,29 +892,6 @@ $(FFTWBUILDDATE):	$(FFTWDIST)
 	touch $(FFTWBUILDDATE)
 
 #-------------------------------------------------------------------------------
-# FFTW++ interface
-#-------------------------------------------------------------------------------
-$(FFTWPPDIST):
-	$(CURL) "$(FFTWPPURL)" > $(FFTWPPDIST)
-
-$(FFTWPPBUILDDATE):	$(FFTWPPDIST)
-	@echo "################################################################################"
-	@echo "# Building $(FFTWPPDIST)"
-	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
-	rm -fr $(FFTWPPDIR)
-	$(GZIP) -dc $(FFTWPPDIST) | $(TAR) -xf -
-	$(CP) -f $(FFTWPPDIR)/fftw++.h $(SPHERALDIR)/include
-	$(CP) -f $(FFTWPPDIR)/fftw++.cc $(SPHERALTOP)/FractalGravity
-	@if ! test -e $(SPHERALDIR)/include/fftw++.h -a \
-	           -e $(SPHERALTOP)/FractalGravity/fftw++.cc; then \
-	echo "ERROR building FFTW++."; \
-	exit 1; \
-	fi
-	rm -fr $(FFTWPPBUILDDATE) $(FFTWPPDIR)
-	touch $(FFTWPPBUILDDATE)
-
-#-------------------------------------------------------------------------------
 # ARRAY class for use in fftw++
 #-------------------------------------------------------------------------------
 $(ARRAYDIST):
@@ -903,6 +908,32 @@ $(ARRAYBUILDDATE):	$(ARRAYDIST)
 	exit 1; \
 	fi
 	touch $(ARRAYBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# FFTW++ interface
+#-------------------------------------------------------------------------------
+$(FFTWPPDIST):
+	$(CURL) "$(FFTWPPURL)" > $(FFTWPPDIST)
+
+$(FFTWPPBUILDDATE):	$(FFTWPPDIST) $(ARRAYBUILDDATE)
+	@echo "################################################################################"
+	@echo "# Building $(FFTWPPDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) $(SPHERALDIR)/include
+	rm -fr $(FFTWPPDIR)
+	$(GZIP) -dc $(FFTWPPDIST) | $(TAR) -xf -
+	$(SHELL) -ec 'cd $(FFTWPPDIR); \
+	$(CXX) $(CXXFLAGS) -c -o fftw++.o fftw++.cc; \
+	$(AR) rcs libfftw++.a fftw++.o'
+	$(CP) -f $(FFTWPPDIR)/fftw++.h $(SPHERALDIR)/include
+	$(CP) -f $(FFTWPPDIR)/libfftw++.a $(SPHERALDIR)/lib
+	@if ! test -e $(SPHERALDIR)/include/fftw++.h -a \
+	           -e $(SPHERALDIR)/lib/libfftw++.a; then \
+	echo "ERROR building FFTW++."; \
+	exit 1; \
+	fi
+	rm -fr $(FFTWPPBUILDDATE) $(FFTWPPDIR)
+	touch $(FFTWPPBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # ZLIB
@@ -1111,12 +1142,11 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HDF5DIR); \
-	env CC=$(CC) CXX=$(CXX) ./configure --prefix=$(SPHERALDIR) ; \
+	env CC=$(MPICC) CXX=$(MPICXX) CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libhdf5.a -a \
-	           -e $(SPHERALDIR)/include/hdf5.h -a \
-	           -e $(SPHERALDIR)/lib/libhdf5.$(DYLIBEXT); then \
+	           -e $(SPHERALDIR)/include/hdf5.h; then \
 	echo "ERROR building HDF5."; \
 	rm -f $(HDF5BUILDDATE); \
 	exit 1; \
@@ -1138,7 +1168,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC=$(CC) CXX=$(CXX) $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
+	env CC=$(MPICC) CXX=$(MPICXX) $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
@@ -1243,4 +1273,101 @@ $(GMPBUILDDATE):  $(GMPDIST)
 	fi
 	rm -fr $(GMPDIR)
 	touch $(GMPBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# mpmath
+#-------------------------------------------------------------------------------
+$(MPMATHDIST):
+	$(CURL) "$(MPMATHURL)" > $(MPMATHDIST)
+
+$(MPMATHBUILDDATE):  $(PYTHONBUILDDATE) $(MPMATHDIST)
+	@echo "################################################################################"
+	@echo "# Building $(MPMATHDIST)"
+	@echo "################################################################################"
+	rm -fr $(MPMATHDIR)
+	$(GZIP) -dc $(MPMATHDIST) | $(TAR) -xf -
+	$(SHELL) -ec "cd $(MPMATHDIR); $(PYTHONEXE) setup.py install"
+	@if test -n "`$(PYTHONEXE) -c 'import mpmath'`"; then \
+	echo "ERROR building mpmath python extension."; \
+	rm -f $(MPMATHBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(MPMATHDIR)
+	touch $(MPMATHBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# FLANN
+#-------------------------------------------------------------------------------
+$(FLANNDIST):
+	$(CURL) "$(FLANNURL)" > $(FLANNDIST)
+
+$(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
+	@echo "################################################################################"
+	@echo "# Building $(FLANNDIST)"
+	@echo "################################################################################"
+	rm -fr $(FLANNDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	$(UNZIP) $(FLANNDIST)
+	$(MKDIR) $(FLANNDIR)/build
+	$(SHELL) -ec "cd $(FLANNDIR)/build; \
+	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libflann_s.a; then \
+	echo "ERROR building Flann."; \
+	rm -f $(FLANNBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(FLANNDIR)
+	touch $(FLANNBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# The Point Cloud Library (PCL)
+#-------------------------------------------------------------------------------
+$(PCLDIST):
+	$(CURL) "$(PCLURL)" > $(PCLDIST)
+
+$(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(FLANNDATE)
+	@echo "################################################################################"
+	@echo "# Building $(PCLDIST)"
+	@echo "################################################################################"
+	rm -fr $(PCLDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	$(BZIP2) -dc $(PCLDIST) | $(TAR) -xf -
+	$(MKDIR) $(PCLDIR)/build
+	$(SHELL) -ec "cd $(PCLDIR)/build; \
+	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libpclstatic.a; then \
+	echo "ERROR building Pcl."; \
+	rm -f $(PCLBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(PCLDIR)
+	touch $(PCLBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# Octtree
+#-------------------------------------------------------------------------------
+$(OCTTREEDIST):
+	$(CURL) "$(OCTTREEURL)" > $(OCTTREEDIST)
+
+$(OCTTREEBUILDDATE):	$(OCTTREEDIST)
+	@echo "################################################################################"
+	@echo "# Building $(OCTTREEDIST)"
+	@echo "################################################################################"
+	rm -fr $(OCTTREEDIR) $(OCTTREEINCDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(OCTTREEINCDIR)
+	$(MKDIR) $(OCTTREEDIR)
+	$(SHELL) -ec "cd $(OCTTREEDIR); \
+	$(UNZIP) ../$(OCTTREEDIST)"
+	$(CP) -f $(OCTTREEDIR)/*.h $(OCTTREEDIR)/*.tcc $(OCTTREEINCDIR)
+	@if ! test -e $(OCTTREEINCDIR)/octree.h; then \
+	echo "ERROR building Octtree."; \
+	rm -f $(OCTTREEBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(OCTTREEDIR)
+	touch $(OCTTREEBUILDDATE)
 

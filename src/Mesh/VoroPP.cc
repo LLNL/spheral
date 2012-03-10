@@ -27,7 +27,6 @@ using namespace std;
 using std::min;
 using std::max;
 using std::abs;
-using namespace boost;
 
 //------------------------------------------------------------------------------
 // Provide a few specialized classes to help reading Voro++ formatted data.

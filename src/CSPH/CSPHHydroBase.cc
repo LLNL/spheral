@@ -140,7 +140,7 @@ registerState(DataBase<Dimension>& dataBase,
     size_t nodeListi = 0;
     for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
-         ++itr, nodeListi) {
+         ++itr, ++nodeListi) {
       *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
       (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
     }

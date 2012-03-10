@@ -60,8 +60,7 @@ update(const KeyType& key,
   Vector xmin, xmax;
   const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
   globalBoundingBox<Dimension>(positions, xmin, xmax, 
-                               false,      // ghost points
-                               true);      // quantize results
+                               false);     // ghost points
 
   // Puff things up a bit.
   const Vector delta = xmax - xmin;

@@ -41,7 +41,8 @@ class SpheralController(RestartableObject):
                  vizDir =  ".",
                  vizStep = None,
                  vizTime = None,
-                 vizMethod = None):
+                 vizMethod = None,
+                 initialTime = 0.0):
         RestartableObject.__init__(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -67,6 +68,7 @@ class SpheralController(RestartableObject):
 
         # Generic initialization work.
         self.reinitializeProblem(restartBaseName,
+                                 initialTime = initialTime,
                                  statsStep = statsStep,
                                  printStep = printStep,
                                  garbageCollectionStep = garbageCollectionStep,

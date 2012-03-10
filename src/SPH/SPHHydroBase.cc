@@ -1013,8 +1013,7 @@ updateVolume(State<Dimension>& state,
   Vector xmin, xmax;
   const FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
   globalBoundingBox<Dimension>(positions, xmin, xmax, 
-                               false,      // ghost points
-                               false);     // quantize results
+                               false);     // ghost points
 
   // Puff things up a bit.
   const Vector delta = 0.1*(xmax - xmin);

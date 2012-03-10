@@ -1,6 +1,7 @@
 #-------------------------------------------------------------------------------
-# Set up a pair of equal mass N-body points in a simple circular orbit of each
-# other.
+# An idealized (infinitely thin) collisionless disk of self-gravitating fluid.
+#
+# See Binney & Tremaine "Galactic Dynamics" p. 77 on Mestel's disk.
 #-------------------------------------------------------------------------------
 from Spheral3d import *
 from SpheralTestUtilities import *
@@ -9,16 +10,17 @@ from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
 from math import *
 
-print "3-D N-Body Gravity test -- two particle problem"
+print "3-D N-Body Gravity test -- collisionless Kuzmin disk"
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
 
-    # Initial particle stuff
-    r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
-    m0 = 1.0,                      # (earth masses) particle mass
+    n = 10000,                     # Total number of paticles
+    M0 = 1.0,                      # (earth masses) total mass inside R0
+    R0 = 1.0,                      # (AU) characteristic scale of disk
+    Rcut = 10.0,                   # (AU) cutoff for the disk outer edge
     plummerLength = 1.0e-3,        # (AU) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
@@ -28,25 +30,31 @@ commandLine(
     numOrbits = 2,                 # How many orbits do we want to follow?
 
     # Which N-body method should we use?
-    nbody = NBodyGravity,
+    nbody = OctTreeGravity,
 
     # Output
-    dataDir = "Two-Earth-Nbody",
-    baseName = "2_particle_nbody",
+    dataDir = "MestelsDisk_nbody",
+    baseName = "MestelsDisk_nbody",
     restoreCycle = None,
     restartStep = 100,
     numViz = 100,
     )
 
 # Convert to MKS units.
-AU = 149597870700.0  # m
 Mearth = 5.9722e24   # kg
-r0 *= AU
-m0 *= Mearth
+AU = 149597870700.0  # m
+M0 *= Mearth
+R0 *= AU
+Rcut *= AU
 plummerLength *= AU
 
-# Compute the velocity necessary for a circular orbit.
+# The surface density constant.
+Sigma0 = 
+
+# The time for a single orbit at r = R0.
 G = MKS().G
+
+
 a = 2*r0
 M = 2*m0
 orbitTime = 2.0*pi*sqrt(a**3/(G*M))

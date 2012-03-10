@@ -139,49 +139,6 @@ if test "`uname -s`" = "Darwin"; then
   CXXFLAGS="$CXXFLAGS -DBOOST_DATE_TIME_NO_LOCALE"
 fi
 
-# We also have some trouble with the most up to date boost, so
-# for now we'e going back a bit.
-AC_SUBST(BOOSTVER1)
-AC_SUBST(BOOSTVER2)
-if test "`uname -s`" = "Darwin"; then
-   BOOSTVER1="1_48_0"
-   BOOSTVER2="1.48.0"
-else
-   BOOSTVER1="1_48_0"
-   BOOSTVER2="1.48.0"
-fi
-
-# -----------------------------------------------------------------
-# Choose whether to use the accelerated eigenvector calculation
-# rather than the default iterative Jacobi solve in 3-D.
-# -----------------------------------------------------------------
-AC_MSG_CHECKING(for jacobi)
-AC_ARG_WITH(jacobi,
-[  --with-jacobi ............................ optionally use Jacobi iteration for 3-D eigen vectors],
-[
-   AC_MSG_RESULT(yes)
-   CXXFLAGS="$CXXFLAGS -DUSEJACOBI"
-],
-[
-   AC_MSG_RESULT(no)
-]
-)
-
-# -----------------------------------------------------------------
-# Alternatively we can use the Eigen library to solve for eigen values.
-# -----------------------------------------------------------------
-AC_MSG_CHECKING(for eigen)
-AC_ARG_WITH(eigen,
-[  --with-eigen ............................. optionally use the Eigen library to evaluate 3-D eigen vectors],
-[
-   AC_MSG_RESULT(yes)
-   CXXFLAGS="$CXXFLAGS -DUSEEIGEN"
-],
-[
-   AC_MSG_RESULT(no)
-]
-)
-
 # -----------------------------------------------------------------
 # Select the script to use building the WildMagic third party 
 # target.

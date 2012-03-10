@@ -250,12 +250,10 @@ public:
 
   // Compute coordinates bounding all nodes in the DataBase.
   void boundingBox(Vector& xmin, Vector& xmax,
-                   const bool ghost = true,
-                   const bool quantize = true) const;
+                   const bool ghost = true) const;
   void boundingBox(Vector& xmin, Vector& xmax,
                    const FieldSpace::FieldList<Dimension, int>& mask,
-                   const bool ghost = true,
-                   const bool quantize = true) const;
+                   const bool ghost = true) const;
 
   // Return the local and global max sampling extents.
   void localSamplingBoundingVolume(Vector& centroid, double& radiusNodes, double& radiusSample,

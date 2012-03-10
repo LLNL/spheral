@@ -17,9 +17,7 @@ using namespace std;
 
 #include "Jacobi2.hh"
 
-#ifdef USEEIGEN
 #include <Eigen/Dense>
-#endif
 
 namespace Spheral {
 
@@ -56,16 +54,16 @@ GeomSymmetricTensor<3>::eigenVectors() const {
   const double fscalei = 1.0/fscale;
   const SymTensor A = (*this)*fscalei;
 
-#ifdef USEJACOBI
+// #ifdef USEJACOBI
 
-  // Use the Jacobi iterative diagonalization method to determine
-  // the eigen values/vectors.
-  const int nrot = jacobiDiagonalize<Dim<3> >(A,
-                                              result.eigenVectors,
-                                              result.eigenValues);
-  result.eigenValues *= fscale;
+//   // Use the Jacobi iterative diagonalization method to determine
+//   // the eigen values/vectors.
+//   const int nrot = jacobiDiagonalize<Dim<3> >(A,
+//                                               result.eigenVectors,
+//                                               result.eigenValues);
+//   result.eigenValues *= fscale;
 
-#elif USEEIGEN
+// #elif USEEIGEN
 
   // Use the Eigen library to determine the eigen values/vectors.
   {
@@ -83,89 +81,89 @@ GeomSymmetricTensor<3>::eigenVectors() const {
                                  Bvecs(2,0), Bvecs(2,1), Bvecs(2,2));
   }
 
-#else
+// #else
 
-  // Compute the scaled eigen-values, and sort them.
-  Vector lambdaVec = A.eigenValues();
-  sort(lambdaVec.begin(), lambdaVec.end());
-  CHECK(lambdaVec.x() <= lambdaVec.y() and
-        lambdaVec.y() <= lambdaVec.z());
+//   // Compute the scaled eigen-values, and sort them.
+//   Vector lambdaVec = A.eigenValues();
+//   sort(lambdaVec.begin(), lambdaVec.end());
+//   CHECK(lambdaVec.x() <= lambdaVec.y() and
+//         lambdaVec.y() <= lambdaVec.z());
 
-  // Assign the true eigen-values in the result.
-  result.eigenValues = fscale*lambdaVec;
-  result.eigenVectors = SymTensor::one;
+//   // Assign the true eigen-values in the result.
+//   result.eigenValues = fscale*lambdaVec;
+//   result.eigenVectors = SymTensor::one;
 
-  // If any of the eigen-values result in a tensor that is not positive-rank 
-  // (all zero elements), we assume the eigen-values are equal and punt
-  // with the identity tensor for the eigen-vectors.
-  // We simultaneously compute the row containing the maximum absolute value 
-  // element for each eigen-value.
-  bool punt = false;
-  double maxEVelement = -1.0;
-  Vector maxEVrow;
-  int iFirst = -1;
-  for (int ivalue = 0; ivalue != 3; ++ivalue) {
-    const SymTensor M = A - lambdaVec(ivalue)*SymTensor::one;
-    if (M.maxAbsElement() < degenerate) punt = true;
-    for (int irow = 0; irow != 3; ++irow) {
-      const Vector Mvec = M.getRow(irow);
-      const double thpt = Mvec.maxAbsElement();
-      if (thpt > maxEVelement) {
-        maxEVelement = thpt;
-        maxEVrow = Mvec;
-        iFirst = ivalue;
-      }
-    }
-  }
+//   // If any of the eigen-values result in a tensor that is not positive-rank 
+//   // (all zero elements), we assume the eigen-values are equal and punt
+//   // with the identity tensor for the eigen-vectors.
+//   // We simultaneously compute the row containing the maximum absolute value 
+//   // element for each eigen-value.
+//   bool punt = false;
+//   double maxEVelement = -1.0;
+//   Vector maxEVrow;
+//   int iFirst = -1;
+//   for (int ivalue = 0; ivalue != 3; ++ivalue) {
+//     const SymTensor M = A - lambdaVec(ivalue)*SymTensor::one;
+//     if (M.maxAbsElement() < degenerate) punt = true;
+//     for (int irow = 0; irow != 3; ++irow) {
+//       const Vector Mvec = M.getRow(irow);
+//       const double thpt = Mvec.maxAbsElement();
+//       if (thpt > maxEVelement) {
+//         maxEVelement = thpt;
+//         maxEVrow = Mvec;
+//         iFirst = ivalue;
+//       }
+//     }
+//   }
 
-  // If we found an all zero M (= A - lambda*I) matrix, we punt and accept the identity
-  // tensor as our eigen-vectors.  Otherwise, continue the compuation.
-  if (!punt) {
-    CHECK(iFirst >= 0 and iFirst < 3);
+//   // If we found an all zero M (= A - lambda*I) matrix, we punt and accept the identity
+//   // tensor as our eigen-vectors.  Otherwise, continue the compuation.
+//   if (!punt) {
+//     CHECK(iFirst >= 0 and iFirst < 3);
 
-    // Select the ordering we'll go through the eigen-values in, starting
-    // with the row with the largest absolute value element.
-    const int iSecond = (iFirst + 1) % 3;
-    const int iThird = (iSecond + 1) % 3;
-    CHECK(iFirst + iSecond + iThird == 3);
+//     // Select the ordering we'll go through the eigen-values in, starting
+//     // with the row with the largest absolute value element.
+//     const int iSecond = (iFirst + 1) % 3;
+//     const int iThird = (iSecond + 1) % 3;
+//     CHECK(iFirst + iSecond + iThird == 3);
 
-    // We need two orthogonal unit vectors in the plane perpendicular to
-    // the maximum row selected previously.  We can do this by finding the
-    // rotational transformation wherein x' axis is aligned with this row, and 
-    // taking our two vectors as the other two rows of this transform.
-    const Vector R = maxEVrow.unitVector();
-    const Tensor Tr = rotationMatrix(R);
-    const Vector U0 = Tr.getRow(1);
-    const Vector U1 = Tr.getRow(2);
+//     // We need two orthogonal unit vectors in the plane perpendicular to
+//     // the maximum row selected previously.  We can do this by finding the
+//     // rotational transformation wherein x' axis is aligned with this row, and 
+//     // taking our two vectors as the other two rows of this transform.
+//     const Vector R = maxEVrow.unitVector();
+//     const Tensor Tr = rotationMatrix(R);
+//     const Vector U0 = Tr.getRow(1);
+//     const Vector U1 = Tr.getRow(2);
     
-    // Now we can compute the eigen-vector corresponding the first eigen-value
-    // selected previously.
-    const Vector V0 = buildUniqueEigenVector(A, 
-                                             lambdaVec(iFirst),
-                                             U0,
-                                             U1);
-    result.eigenVectors.setColumn(iFirst, V0);
+//     // Now we can compute the eigen-vector corresponding the first eigen-value
+//     // selected previously.
+//     const Vector V0 = buildUniqueEigenVector(A, 
+//                                              lambdaVec(iFirst),
+//                                              U0,
+//                                              U1);
+//     result.eigenVectors.setColumn(iFirst, V0);
 
-    // Now we know the remaining eigen-vectors are in the plane perpendicular to
-    // V0.  We know R is in that plane, and so is R x V0.  With that knowledge
-    // we can basically repeat the same procedure for the next eigen-vector.
-    Vector S = R.cross(V0);
-    CHECK(fuzzyEqual(S.magnitude2(), 1.0, tolerance));
-    const Vector V1 = buildUniqueEigenVector(A,
-                                             lambdaVec(iSecond),
-                                             R,
-                                             S);
-    result.eigenVectors.setColumn(iSecond, V1);
+//     // Now we know the remaining eigen-vectors are in the plane perpendicular to
+//     // V0.  We know R is in that plane, and so is R x V0.  With that knowledge
+//     // we can basically repeat the same procedure for the next eigen-vector.
+//     Vector S = R.cross(V0);
+//     CHECK(fuzzyEqual(S.magnitude2(), 1.0, tolerance));
+//     const Vector V1 = buildUniqueEigenVector(A,
+//                                              lambdaVec(iSecond),
+//                                              R,
+//                                              S);
+//     result.eigenVectors.setColumn(iSecond, V1);
     
-    // The last eigen-vector is orthogonal to the first two, so we can find it
-    // simply by taking the cross-product of the previous eigen-vectors.
-    const Vector V2 = V0.cross(V1);
-    CHECK(fuzzyEqual(V2.magnitude2(), 1.0, tolerance));
-    CHECK(fuzzyEqual(((A - lambdaVec(iThird)*SymTensor::one)*V2).maxAbsElement(), 0.0, tolerance));
-    result.eigenVectors.setColumn(iThird, V2);
-  }
+//     // The last eigen-vector is orthogonal to the first two, so we can find it
+//     // simply by taking the cross-product of the previous eigen-vectors.
+//     const Vector V2 = V0.cross(V1);
+//     CHECK(fuzzyEqual(V2.magnitude2(), 1.0, tolerance));
+//     CHECK(fuzzyEqual(((A - lambdaVec(iThird)*SymTensor::one)*V2).maxAbsElement(), 0.0, tolerance));
+//     result.eigenVectors.setColumn(iThird, V2);
+//   }
 
-#endif
+// #endif
 
   BEGIN_CONTRACT_SCOPE;
   // Check the result.
