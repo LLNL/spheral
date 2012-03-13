@@ -126,16 +126,16 @@ if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
                            maxDeltaVelocity = 1e-2*v0,
                            G = G)
-# elif nbody is FractalGravity:
-#     gravity = FractalGravity(G = G,
-#                              xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
-#                              xmax = Vector( 1.5*r0,  1.5*r0,  1.5*r0),
-#                              periodic = False,
-#                              ngrid = 64,
-#                              nlevelmax = 1,
-#                              minHighParticles = 10,
-#                              padding = 0,
-#                              maxDeltaVelocity = 1e-2*v0)
+elif nbody is FractalGravity:
+    gravity = FractalGravity(G = G,
+                             xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
+                             xmax = Vector( 1.5*r0,  1.5*r0,  1.5*r0),
+                             periodic = False,
+                             ngrid = 64,
+                             nlevelmax = 1,
+                             minHighParticles = 10,
+                             padding = 0,
+                             maxDeltaVelocity = 1e-2*v0)
 elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
                              softeningLength = plummerLength,

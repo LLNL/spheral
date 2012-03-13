@@ -170,6 +170,8 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   VERIFY(boxlength > 0.0);
   const double lscale = 1.0/boxlength;
   const double mscale = lscale*lscale*lscale/mG;
+  const double lunscale = 1.0/lscale;
+  const double munscale = 1.0/mscale;
 
   // Create the Fractal memory struct, and fill in some of it's parameters.
   // For now we will scale the input to Fractal for unit length and unit total mass.
@@ -201,11 +203,11 @@ evaluateDerivatives(const Dim<3>::Scalar time,
     for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
       CHECK(j < numNodes);
       pfrac->particle_list[j] = &particles[j];
-      const Vector xi = (position(nodeListi, i) - mXmin)/lscale;
+      const Vector xi = (position(nodeListi, i) - mXmin)*lscale;
       ppos[0] = max(0.0, min(1.0, xi.x()));
       ppos[1] = max(0.0, min(1.0, xi.y()));
       ppos[2] = max(0.0, min(1.0, xi.z()));
-      particles[j].set_mass(mass(nodeListi, i)/mscale);
+      particles[j].set_mass(mass(nodeListi, i)*mscale);
       particles[j].set_pos(ppos);
       mtot += particles[j].get_mass();
       ++j;
@@ -232,13 +234,13 @@ evaluateDerivatives(const Dim<3>::Scalar time,
       particles[j].get_field_pf(f);
 
       // Update the potential energy.
-      mPotential(nodeListi, i) = f[0] * mscale*lscale*lscale;
+      mPotential(nodeListi, i) = f[0] * munscale*lunscale*lunscale;
       mExtraEnergy += mass(nodeListi, i) * mPotential(nodeListi, i);
 
       // Update the acceleration.
-      DvDt(nodeListi, i) += Vector(f[1] * lscale,
-                                   f[2] * lscale,
-                                   f[3] * lscale);
+      DvDt(nodeListi, i) += Vector(f[1] * lunscale,
+                                   f[2] * lunscale,
+                                   f[3] * lunscale);
 
       // Capture the maximum acceleration and velocity magnitudes.
       const Scalar accelMagnitude = DvDt(nodeListi, i).magnitude();
