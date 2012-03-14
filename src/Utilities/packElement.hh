@@ -417,6 +417,7 @@ unpackElement(std::vector<DataType>& value,
 // Compute the size of a buffer necessary to hold the given field data.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
+inline
 int
 computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
@@ -429,6 +430,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, DataType>& field,
 
 // Specialization for a std::vector
 template<typename Dimension, typename DataType>
+inline
 int
 computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
                   const std::vector<int>& packIndicies,
@@ -473,6 +475,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
 // Pack the given Field values into a 1-D array for transmission.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
+inline
 std::vector<char>
 packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
                 const std::vector<int>& packIndicies) {
@@ -497,6 +500,7 @@ packFieldValues(const FieldSpace::Field<Dimension, DataType>& field,
 // indicies.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
+inline
 void
 unpackFieldValues(FieldSpace::Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndicies,
