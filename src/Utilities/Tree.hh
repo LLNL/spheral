@@ -52,11 +52,14 @@ public:
     CellValue value;                 // The value associated with this cell.
 
     // Constructors.
-    Cell(): key(0), daughters(), daughterPtrs() {}
-    Cell(const Vector& xi, const CellKey& keyi):
-      key(keyi), daughters(), daughterPtrs(), positions(1, xi) {}
-    Cell(const Vector& xi, const CellKey& keyi, const CellKey& daughter):
-      key(keyi), daughters(1, daughter), daughterPtrs(), positions() {}
+    Cell(): 
+      key(0), daughters(), daughterPtrs(), positions(), value() {}
+
+    Cell(const CellKey& keyi, const Vector& xi, const CellValue& valuei):
+      key(keyi), daughters(), daughterPtrs(), positions(1, xi), value(valuei) {}
+
+    Cell(const CellKey& keyi, const CellKey& daughter, const Vector& xi, const CellValue& valuei):
+      key(keyi), daughters(1, daughter), daughterPtrs(), positions(1, xi), value(valuei) {}
 
     // Throw in comparison operators for help sorting.
     bool operator==(const Cell& rhs) const { return key == rhs.key; }
