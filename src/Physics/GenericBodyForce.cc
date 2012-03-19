@@ -56,6 +56,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->mass());
     state.enroll((*itr)->positions(), positionPolicy);
     state.enroll((*itr)->velocity(), velocityPolicy);
+    state.enroll((*itr)->Hfield());
   }
 }
 
