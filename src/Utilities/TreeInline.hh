@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// Tree
+// Tree implementation.
 //----------------------------------------------------------------------------//
 #include "Geometry/Dimension.hh"
 
@@ -133,7 +133,7 @@ CellKeyComputer<Spheral::Dim<3>, CellValue, LeafPolicy>{
 template<typename Dimension, typename CellValue, typename LeafPolicy>
 inline
 void
-Tree::
+Tree<Dimension, CellValue, LeafPolicy>::
 buildCellKey(const typename Tree<Dimension, CellValue, LeafPolicy>::LevelKey ilevel,
              const typename Dimension::Vector& xi,
              typename Tree<Dimension, CellValue, LeafPolicy>::CellKey& key,
@@ -150,7 +150,7 @@ buildCellKey(const typename Tree<Dimension, CellValue, LeafPolicy>::LevelKey ile
 template<typename Dimension, typename CellValue, typename LeafPolicy>
 inline
 void
-Tree::
+Tree<Dimension, CellValue, LeafPolicy>::
 extractCellIndices(const typename Tree<Dimension, CellValue, LeafPolicy>::CellKey& key,
                    typename Tree<Dimension, CellValue, LeafPolicy>::CoordHash& ix,
                    typename Tree<Dimension, CellValue, LeafPolicy>::CoordHash& iy,
@@ -165,7 +165,7 @@ extractCellIndices(const typename Tree<Dimension, CellValue, LeafPolicy>::CellKe
 template<typename Dimension, typename CellValue, typename LeafPolicy>
 inline
 void
-Tree::
+Tree<Dimension, CellValue, LeafPolicy>::
 addDaughter(typename Tree<Dimension, CellValue, LeafPolicy>::Cell& cell,
             const Tree<Dimension, CellValue, LeafPolicy>::CellKey& daughterKey) const {
   if (std::find(cell.daughters.begin(), cell.daughters.end(), daughterKey) == cell.daughters.end())
@@ -177,10 +177,13 @@ addDaughter(typename Tree<Dimension, CellValue, LeafPolicy>::Cell& cell,
 // Add a node to the internal Tree structure.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename CellValue, typename LeafPolicy>
+template<typename NodeID, typename CellValueFactory>
 inline
 void
 Tree<Dimension, CellValue, LeafPolicy>::
-addNodeToTree(const Tree::Vector& xi) {
+addNodeToTree(const Tree::Vector& xi, 
+              const NodeID& nodeID,
+              CellValueFactory& factory) {
   const unsigned nb1d = this->num1dbits();
   mTree.reserve(nb1d);                    // This is necessary to avoid memory errors!
 
@@ -191,23 +194,38 @@ addNodeToTree(const Tree::Vector& xi) {
   while (ilevel < nb1d and not terminated) {
 
     // Do we need to add another level to the tree?
-    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
+    if (ilevel == mTree.size() and ilevel < nb1d - 1) mTree.push_back(TreeLevel());
 
     // Create the key for the cell containing this particle on this level.
     buildCellKey(ilevel, xi, key, ix, iy, iz);
     itr = mTree[ilevel].find(key);
 
+    // Check if this node should terminate on this level or not.
+    terminated = (ilevel == nb1d - 1 or
+                  LeafPolicy::terminate(xi, nodeID, ilevel, *this));
+
     if (itr == mTree[ilevel].end()) {
-      // If this is an unregistered cell, add it with this node as the sole leaf
-      // and we're done.
-      terminated = true;
-      mTree[ilevel][key] = Cell(xi, key);
+
+      // This is a new cell.
+      mTree[ilevel][key] = Cell(key, xi, factory.newCellValue(nodeID));
 
     } else {
+
+      // This is an existing cell.  Augment it's value as needed.
       Cell& cell = itr->second;
+      factory.augmentCellValue(xi, nodeID, ilevel, *this, cell);
+
+      if (terminated) {
+
+        // If we're terminating in this cell just add to the member data.
+        cell.positions.push_back(xi);
+
+      } else {
+
+        // Fork a new descendant
 
       // Is this cell a single leaf already?
-      if (cell.masses.size() > 0) {
+      if (cell.positions.size() > 0) {
         CHECK(cell.masses.size() == cell.positions.size());
         CHECK(cell.daughters.size() == 0);
 
