@@ -46,6 +46,7 @@ private:
   static const double mpMKS;
   static const double meMKS;
   static const double qeMKS;
+  static const double qeCGS;
   static const double GMKS;
   static const double cMKS;
   static const double kBMKS;

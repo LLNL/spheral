@@ -240,6 +240,7 @@ IsothermalEquationOfState<Dimension, Constants>::valid() const {
 #include "MKSUnits.hh"
 #include "CGSUnits.hh"
 #include "CosmologicalUnits.hh"
+#include "SolarUnits.hh"
 namespace Spheral {
   namespace Material {
     template class IsothermalEquationOfState<Dim<1>, PhysicalConstants<MKSUnits> >;
@@ -251,5 +252,8 @@ namespace Spheral {
     template class IsothermalEquationOfState<Dim<1>, PhysicalConstants<CosmologicalUnits> >;
     template class IsothermalEquationOfState<Dim<2>, PhysicalConstants<CosmologicalUnits> >;
     template class IsothermalEquationOfState<Dim<3>, PhysicalConstants<CosmologicalUnits> >;
+    template class IsothermalEquationOfState<Dim<1>, PhysicalConstants<SolarUnits> >;
+    template class IsothermalEquationOfState<Dim<2>, PhysicalConstants<SolarUnits> >;
+    template class IsothermalEquationOfState<Dim<3>, PhysicalConstants<SolarUnits> >;
   }
 }
