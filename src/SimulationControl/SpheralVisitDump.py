@@ -386,7 +386,7 @@ class SpheralVisitDump:
     # Private method to write an atomic DataType element to a file.
     #---------------------------------------------------------------------------
     def _dumpFloat(self, element, file):
-        file.write("%g\n" % element)
+        file.write("%30.25g\n" % element)
         return
 
     #---------------------------------------------------------------------------
@@ -395,7 +395,7 @@ class SpheralVisitDump:
     def _dumpArray(self, element, file):
         buf = ""
         for x in element:
-            buf += "%g " % x
+            buf += "%30.25g " % x
         buf += "\n"
         file.write(buf)
         return
@@ -406,7 +406,7 @@ class SpheralVisitDump:
     def _dumpVector(self, element, file):
         buf = ""
         for i in xrange(type(element).nDimensions):
-            buf += "%g " % element(i)
+            buf += "%30.25g " % element(i)
         buf += "\n"
         file.write(buf)
         return
@@ -419,7 +419,7 @@ class SpheralVisitDump:
         ndim = type(element).nDimensions
         for i in xrange(ndim):
             for j in xrange(ndim):
-                buf += "%g " % element(i,j)
+                buf += "%30.25g " % element(i,j)
         buf += "\n"
         file.write(buf)
         return
