@@ -1,0 +1,21 @@
+#-------------------------------------------------------------------------------
+# Physics template
+#-------------------------------------------------------------------------------
+x = Template("Spheral::PhysicsSpace::Physics", "ExtendPhysics.hh")
+
+#-------------------------------------------------------------------------------
+# Excluded methods.
+#-------------------------------------------------------------------------------
+## exclude(x.initialize)
+## exclude(x.finalize)
+## exclude(x.applyGhostBoundaries)
+## exclude(x.enforceBoundaries)
+exclude(x.boundaryBegin)
+exclude(x.boundaryEnd)
+
+#-------------------------------------------------------------------------------
+# Instantiations.
+#-------------------------------------------------------------------------------
+x1d = x("Spheral::Dim<1>", "Physics1d")
+x2d = x("Spheral::Dim<2>", "Physics2d")
+x3d = x("Spheral::Dim<3>", "Physics3d")

@@ -1,0 +1,33 @@
+#-------------------------------------------------------------------------------
+# 3-D Tensor template
+#-------------------------------------------------------------------------------
+execfile("GeomTensor.pyste")
+
+add_property(Tensor, "xy", "xy", "xy")
+add_property(Tensor, "yx", "yx", "yx")
+add_property(Tensor, "yy", "yy", "yy")
+
+add_property(Tensor, "xz", "xz", "xz")
+add_property(Tensor, "yz", "yz", "yz")
+add_property(Tensor, "zx", "zx", "zx")
+add_property(Tensor, "zy", "zy", "zy")
+add_property(Tensor, "zz", "zz", "zz")
+
+Tensor3d = Tensor("3 FullTensorType", "GeomTensor3d")
+
+add_method(Tensor3d, "indexTensor3d")
+rename(Tensor3d.indexTensor3d, "__call__")
+
+add_method(Tensor3d, "printTensor3d")
+rename(Tensor3d.printTensor3d, "__str__")
+
+SymTensor3d = Tensor("3 SymmetricTensorType", "SymGeomTensor3d")
+
+add_method(SymTensor3d, "indexSymTensor3d")
+rename(SymTensor3d.indexSymTensor3d, "__call__")
+
+add_method(SymTensor3d, "printSymTensor3d")
+rename(SymTensor3d.printSymTensor3d, "__str__")
+
+# Also wrap the jacobiDiagonalize standalone function.
+Function("jacobiDiagonalize3d", "ExtendJacobi.hh")

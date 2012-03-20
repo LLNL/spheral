@@ -1,0 +1,15 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+Exported("Spheral::DataOutput::Restart")
+
+constantRVelocityBoundary = Template("Spheral::BoundarySpace::ConstantRVelocityBoundary",
+                                     "ExtendConstantRVelocityBoundary.hh")
+
+exclude(constantRVelocityBoundary.addNodeList)
+
+set_policy(constantRVelocityBoundary.nodeListPtr, return_internal_reference())
+
+constantRVelocityBoundary1d = constantRVelocityBoundary("Spheral::Dim<1>", "ConstantRVelocityBoundary1d")
+constantRVelocityBoundary2d = constantRVelocityBoundary("Spheral::Dim<2>", "ConstantRVelocityBoundary2d")
+constantRVelocityBoundary3d = constantRVelocityBoundary("Spheral::Dim<3>", "ConstantRVelocityBoundary3d")

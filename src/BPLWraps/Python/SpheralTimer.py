@@ -1,0 +1,68 @@
+import time
+
+################################################################################
+# Provide a timing class
+################################################################################
+from Spheral import RestartableObject
+class SpheralTimer(RestartableObject):
+
+    def __init__(self, label=None):
+        RestartableObject.__init__(self)
+        self.numInvocations = 0
+        self.lastStartTime = 0.0
+        self.lastStopTime = 0.0
+        self.lastInterval = 0.0
+        self.elapsedTime = 0.0
+        self.inTimeCycle = 0
+        self._label = label
+
+    def start(self):
+        if self.inTimeCycle:
+            print "Error in timer, attempt to start before last stop."
+        else:
+            self.lastStartTime = time.time()
+            self.inTimeCycle = 1
+
+    def stop(self):
+        if not self.inTimeCycle:
+            print "Error in timer, attempt to stop before start."
+        else:
+            self.lastStopTime = time.time()
+            self.inTimeCycle = 0
+            self.numInvocations = self.numInvocations + 1
+            self.lastInterval = self.lastStopTime - self.lastStartTime
+            self.elapsedTime = self.elapsedTime + self.lastInterval
+
+    def printStatus(self):
+        print "################################################################################"
+        if self._label:
+            print "Timing statistics for ", self._label
+        print "Last interval time: \t", self.lastInterval
+        print "Total elapsed time: \t", self.elapsedTime
+        print "Total number of times invoked: \t", self.numInvocations
+        print "Average time interval: \t", self.elapsedTime/(self.numInvocations + 1.0e-30)
+        print "################################################################################"
+
+    def label(self):
+        return "SpheralTimer"
+
+    def dumpState(self, file, path):
+        file.writeObject(self.numInvocations, path + "/numInvocations")
+        file.writeObject(self.lastStartTime, path + "/lastStartTime")
+        file.writeObject(self.lastStopTime, path + "/lastStopTime")
+        file.writeObject(self.lastInterval, path + "/lastInterval")
+        file.writeObject(self.elapsedTime, path + "/elapsedTime")
+        file.writeObject(self.inTimeCycle, path + "/inTimeCycle")
+        file.writeObject(self._label, path + "/_label")
+        return
+
+    def restoreState(self, file, path):
+        self.numInvocations = file.readObject(path + "/numInvocations")
+        self.lastStartTime = file.readObject(path + "/lastStartTime")
+        self.lastStopTime = file.readObject(path + "/lastStopTime")
+        self.lastInterval = file.readObject(path + "/lastInterval")
+        self.elapsedTime = file.readObject(path + "/elapsedTime")
+        self.inTimeCycle = file.readObject(path + "/inTimeCycle")
+        self._label = file.readObject(path + "/_label")
+        return
+

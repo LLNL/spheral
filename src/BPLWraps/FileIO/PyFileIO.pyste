@@ -1,0 +1,3 @@
+x = Class("Spheral::FileIOSpace::PyFileIO", "ExtendPyFileIO.hh")
+final(x.read)
+set_policy(x.readObject, return_value_policy(return_by_value))

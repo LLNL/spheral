@@ -1,0 +1,76 @@
+Include("Geometry/EigenStruct.hh")
+
+#-------------------------------------------------------------------------------
+# Tensor template
+#-------------------------------------------------------------------------------
+Tensor = Template("Spheral::GeomSymmetricTensor", "ExtendGeomTensor.hh")
+
+class_code(Tensor, ".def(other<double>() * self)")
+
+exclude(Tensor.operator["()"])
+exclude(Tensor.dot)
+exclude(Tensor.begin)
+exclude(Tensor.end)
+
+add_property(Tensor, "xx", "xx", "xx")
+
+set_policy(Tensor.rotationalTransform, return_internal_reference())
+
+#-------------------------------------------------------------------------------
+# 1-D
+#-------------------------------------------------------------------------------
+Tensor1d = Tensor("1", "GeomSymTensor1d")
+
+add_method(Tensor1d, "Spheral::indexSymTensor1d")
+rename(Tensor1d.indexSymTensor1d, "__call__")
+
+add_method(Tensor1d, "Spheral::printSymTensor1d")
+rename(Tensor1d.printSymTensor1d, "__str__")
+
+add_method(Tensor1d, "Spheral::symTensorElements1d")
+rename(Tensor1d.symTensorElements1d, "elements")
+
+#-------------------------------------------------------------------------------
+# 2-D
+#-------------------------------------------------------------------------------
+add_property(Tensor, "xy", "xy", "xy")
+add_property(Tensor, "yx", "yx", "yx")
+add_property(Tensor, "yy", "yy", "yy")
+
+Tensor2d = Tensor("2", "GeomSymTensor2d")
+
+add_method(Tensor2d, "Spheral::indexSymTensor2d")
+rename(Tensor2d.indexSymTensor2d, "__call__")
+
+add_method(Tensor2d, "Spheral::printSymTensor2d")
+rename(Tensor2d.printSymTensor2d, "__str__")
+
+add_method(Tensor2d, "Spheral::symTensorElements2d")
+rename(Tensor2d.symTensorElements2d, "elements")
+
+#-------------------------------------------------------------------------------
+# 3-D
+#-------------------------------------------------------------------------------
+add_property(Tensor, "xy", "xy", "xy")
+add_property(Tensor, "yx", "yx", "yx")
+add_property(Tensor, "yy", "yy", "yy")
+
+add_property(Tensor, "xz", "xz", "xz")
+add_property(Tensor, "yz", "yz", "yz")
+add_property(Tensor, "zx", "zx", "zx")
+add_property(Tensor, "zy", "zy", "zy")
+add_property(Tensor, "zz", "zz", "zz")
+
+Tensor3d = Tensor("3", "GeomSymTensor3d")
+
+add_method(Tensor3d, "Spheral::indexSymTensor3d")
+rename(Tensor3d.indexSymTensor3d, "__call__")
+
+add_method(Tensor3d, "Spheral::printSymTensor3d")
+rename(Tensor3d.printSymTensor3d, "__str__")
+
+add_method(Tensor3d, "Spheral::symTensorElements3d")
+rename(Tensor3d.symTensorElements3d, "elements")
+
+# Also wrap the jacobiDiagonalize standalone function.
+Function("Spheral::jacobiDiagonalize3d", "ExtendJacobi.hh")

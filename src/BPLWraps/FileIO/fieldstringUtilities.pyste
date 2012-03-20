@@ -1,0 +1,61 @@
+Include("fieldstringUtilities.hh")
+
+################################################################################
+# field -> string
+################################################################################
+module_code('''
+  def("fieldint2string1d", &Spheral::field2string<Spheral::Dim<1>, int>);
+  def("fieldint2string2d", &Spheral::field2string<Spheral::Dim<2>, int>);
+  def("fieldint2string3d", &Spheral::field2string<Spheral::Dim<3>, int>);
+
+  def("fieldScalar2string1d", &Spheral::field2string<Spheral::Dim<1>, Spheral::Dim<1>::Scalar>);
+  def("fieldScalar2string2d", &Spheral::field2string<Spheral::Dim<2>, Spheral::Dim<2>::Scalar>);
+  def("fieldScalar2string3d", &Spheral::field2string<Spheral::Dim<3>, Spheral::Dim<3>::Scalar>);
+
+  def("fieldVector2string1d", &Spheral::field2string<Spheral::Dim<1>, Spheral::Dim<1>::Vector>);
+  def("fieldVector2string2d", &Spheral::field2string<Spheral::Dim<2>, Spheral::Dim<2>::Vector>);
+  def("fieldVector2string3d", &Spheral::field2string<Spheral::Dim<3>, Spheral::Dim<3>::Vector>);
+
+  def("fieldTensor2string1d", &Spheral::field2string<Spheral::Dim<1>, Spheral::Dim<1>::Tensor>);
+  def("fieldTensor2string2d", &Spheral::field2string<Spheral::Dim<2>, Spheral::Dim<2>::Tensor>);
+  def("fieldTensor2string3d", &Spheral::field2string<Spheral::Dim<3>, Spheral::Dim<3>::Tensor>);
+
+  def("fieldSymTensor2string1d", &Spheral::field2string<Spheral::Dim<1>, Spheral::Dim<1>::SymTensor>);
+  def("fieldSymTensor2string2d", &Spheral::field2string<Spheral::Dim<2>, Spheral::Dim<2>::SymTensor>);
+  def("fieldSymTensor2string3d", &Spheral::field2string<Spheral::Dim<3>, Spheral::Dim<3>::SymTensor>);
+
+  def("fieldThirdRankTensor2string1d", &Spheral::field2string<Spheral::Dim<1>, Spheral::Dim<1>::ThirdRankTensor>);
+  def("fieldThirdRankTensor2string2d", &Spheral::field2string<Spheral::Dim<2>, Spheral::Dim<2>::ThirdRankTensor>);
+  def("fieldThirdRankTensor2string3d", &Spheral::field2string<Spheral::Dim<3>, Spheral::Dim<3>::ThirdRankTensor>);
+
+  ''')
+
+################################################################################
+#  string -> vector
+################################################################################
+module_code('''
+  def("string2fieldint1d", &Spheral::string2field<Spheral::Dim<1>, int>);
+  def("string2fieldint2d", &Spheral::string2field<Spheral::Dim<2>, int>);
+  def("string2fieldint3d", &Spheral::string2field<Spheral::Dim<3>, int>);
+
+  def("string2fieldScalar1d", &Spheral::string2field<Spheral::Dim<1>, Spheral::Dim<1>::Scalar>);
+  def("string2fieldScalar2d", &Spheral::string2field<Spheral::Dim<2>, Spheral::Dim<2>::Scalar>);
+  def("string2fieldScalar3d", &Spheral::string2field<Spheral::Dim<3>, Spheral::Dim<3>::Scalar>);
+
+  def("string2fieldVector1d", &Spheral::string2field<Spheral::Dim<1>, Spheral::Dim<1>::Vector>);
+  def("string2fieldVector2d", &Spheral::string2field<Spheral::Dim<2>, Spheral::Dim<2>::Vector>);
+  def("string2fieldVector3d", &Spheral::string2field<Spheral::Dim<3>, Spheral::Dim<3>::Vector>);
+
+  def("string2fieldTensor1d", &Spheral::string2field<Spheral::Dim<1>, Spheral::Dim<1>::Tensor>);
+  def("string2fieldTensor2d", &Spheral::string2field<Spheral::Dim<2>, Spheral::Dim<2>::Tensor>);
+  def("string2fieldTensor3d", &Spheral::string2field<Spheral::Dim<3>, Spheral::Dim<3>::Tensor>);
+
+  def("string2fieldSymTensor1d", &Spheral::string2field<Spheral::Dim<1>, Spheral::Dim<1>::SymTensor>);
+  def("string2fieldSymTensor2d", &Spheral::string2field<Spheral::Dim<2>, Spheral::Dim<2>::SymTensor>);
+  def("string2fieldSymTensor3d", &Spheral::string2field<Spheral::Dim<3>, Spheral::Dim<3>::SymTensor>);
+
+  def("string2fieldThirdRankTensor1d", &Spheral::string2field<Spheral::Dim<1>, Spheral::Dim<1>::ThirdRankTensor>);
+  def("string2fieldThirdRankTensor2d", &Spheral::string2field<Spheral::Dim<2>, Spheral::Dim<2>::ThirdRankTensor>);
+  def("string2fieldThirdRankTensor3d", &Spheral::string2field<Spheral::Dim<3>, Spheral::Dim<3>::ThirdRankTensor>);
+
+  ''')

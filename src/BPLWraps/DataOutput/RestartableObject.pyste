@@ -1,0 +1,2 @@
+Include("FileIO/FileIO.hh")
+Class("Spheral::DataOutput::RestartableObject", "DataOutput/RestartableObject.hh")

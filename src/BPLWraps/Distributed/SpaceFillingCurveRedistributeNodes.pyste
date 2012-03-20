@@ -1,0 +1,11 @@
+x = Template("Spheral::PartitionSpace::SpaceFillingCurveRedistributeNodes",
+             "ExtendSpaceFillingCurveRedistribute.hh")
+add_property(x, "workBalance", "workBalance", "workBalance")
+add_property(x, "localReorderOnly", "localReorderOnly", "localReorderOnly")
+
+# We exclude this only 'cause FieldList<unsigned long> is not wrapped.
+exclude(x.findUpperKey)
+
+x1d = x("Spheral::Dim<1>", "SpaceFillingCurveRedistributeNodes1d")
+x2d = x("Spheral::Dim<2>", "SpaceFillingCurveRedistributeNodes2d")
+x3d = x("Spheral::Dim<3>", "SpaceFillingCurveRedistributeNodes3d")

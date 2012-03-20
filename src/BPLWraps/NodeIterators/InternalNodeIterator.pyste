@@ -1,0 +1,17 @@
+#-------------------------------------------------------------------------------
+# InternalNodeIterator
+#-------------------------------------------------------------------------------
+InternalNodeIterator = Template("Spheral::InternalNodeIterator",
+                                "ExtendInternalNodeIterator.hh")
+
+exclude(InternalNodeIterator.nodeListIterator)
+
+final(InternalNodeIterator.ensureValidElement)
+final(InternalNodeIterator.valid)
+
+set_policy(InternalNodeIterator.nodeListPtr, return_internal_reference())
+set_policy(InternalNodeIterator.fluidNodeListPtr, return_internal_reference())
+
+InternalNodeIterator1d = InternalNodeIterator("Spheral::Dim<1>", "InternalNodeIterator1d")
+InternalNodeIterator2d = InternalNodeIterator("Spheral::Dim<2>", "InternalNodeIterator2d")
+InternalNodeIterator3d = InternalNodeIterator("Spheral::Dim<3>", "InternalNodeIterator3d")

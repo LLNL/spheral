@@ -1,0 +1,6 @@
+dn = Template("Spheral::PartitionSpace::DomainNode",
+              "ExtendDomainNode.hh")
+
+dn1d = dn("Spheral::Dim<1>", "DomainNode1d")
+dn2d = dn("Spheral::Dim<2>", "DomainNode2d")
+dn3d = dn("Spheral::Dim<3>", "DomainNode3d")

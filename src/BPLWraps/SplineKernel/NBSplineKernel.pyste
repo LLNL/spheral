@@ -1,0 +1,9 @@
+NBSplineKernel = Template("Spheral::KernelSpace::NBSplineKernel",
+                          "ExtendNBSplineKernel.hh")
+exclude(NBSplineKernel.asDescendent)
+
+final(NBSplineKernel.valid)
+
+NBSplineKernel1d = NBSplineKernel("Spheral::Dim<1>", "NBSplineKernel1d")
+NBSplineKernel2d = NBSplineKernel("Spheral::Dim<2>", "NBSplineKernel2d")
+NBSplineKernel3d = NBSplineKernel("Spheral::Dim<3>", "NBSplineKernel3d")
