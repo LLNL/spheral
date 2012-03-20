@@ -154,10 +154,10 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
     vector<char> localBuffer;
     packElement(domainNodeBoundingVolume[procID], localBuffer);
     packElement(domainSampleBoundingVolume[procID], localBuffer);
-    if (localBuffer.size() > 0) {
-      for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
-        int bufSize = localBuffer.size();
-        MPI_Bcast(&bufSize, 1, MPI_INT, sendProc, mCommunicator);
+    for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
+      unsigned bufSize = localBuffer.size();
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, mCommunicator);
+      if (bufSize > 0) {
         vector<char> buffer = localBuffer;
         buffer.resize(bufSize);
         MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, mCommunicator);
