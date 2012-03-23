@@ -213,16 +213,27 @@ addNodeToTree(const Tree::Vector& xi,
 
       // This is an existing cell.  Augment it's value as needed.
       Cell& cell = itr->second;
-      factory.augmentCellValue(xi, nodeID, ilevel, *this, cell);
+      factory.augmentCellValue(xi, nodeID, ilevel, cell, *this);
 
       if (terminated) {
 
         // If we're terminating in this cell just add to the member data.
         cell.positions.push_back(xi);
+        factory.terminateNodeInCell(xi, nodeID, ilevel, cell, *this);
 
       } else {
 
-        // Fork a new descendant
+        // Fork a new descendant on the next level.
+        const LevelKey ilevel1 = ilevel + 1;
+        CHECK(ilevel1 < Tree::num1dbits);
+        if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
+        buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
+          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm, otherKey);
+          cell.daughters = std::vector<CellKey>(1, otherKey);
+
+
+        if (cell.daughters.find(key)
+
 
       // Is this cell a single leaf already?
       if (cell.positions.size() > 0) {
