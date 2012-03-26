@@ -9,6 +9,7 @@ SRCTARGETS = \
 	GridCellPlane.cc \
 	Neighbor.cc \
 	NestedGridNeighbor.cc \
+	TreeNeighbor.cc \
 	ConnectivityMap.cc
 
 LINKLIST = linklist
