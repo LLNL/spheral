@@ -24,6 +24,14 @@ namespace Spheral {
 
 namespace Spheral {
 
+// Minimum bounding box for a Field of positions.
+template<typename Dimension>
+void
+globalBoundingBox(const FieldSpace::Field<Dimension, typename Dimension::Vector>& positions,
+                  typename Dimension::Vector& xmin,
+                  typename Dimension::Vector& xmax,
+                  const bool ghost = false);
+
 // Minimum bounding box for a FieldList of positions.
 template<typename Dimension>
 void

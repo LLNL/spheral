@@ -42,6 +42,10 @@ class Neighbor:
         self.NestedGridNeighbor2d = addObject(space, "NestedGridNeighbor2d", parent=self.Neighbor2d)
         self.NestedGridNeighbor3d = addObject(space, "NestedGridNeighbor3d", parent=self.Neighbor3d)
 
+        self.TreeNeighbor1d = addObject(space, "TreeNeighbor1d", parent=self.Neighbor1d)
+        self.TreeNeighbor2d = addObject(space, "TreeNeighbor2d", parent=self.Neighbor2d)
+        self.TreeNeighbor3d = addObject(space, "TreeNeighbor3d", parent=self.Neighbor3d)
+
         self.ConnectivityMap1d = addObject(space, "ConnectivityMap1d", allow_subclassing=True)
         self.ConnectivityMap2d = addObject(space, "ConnectivityMap2d", allow_subclassing=True)
         self.ConnectivityMap3d = addObject(space, "ConnectivityMap3d", allow_subclassing=True)
@@ -78,6 +82,10 @@ class Neighbor:
         self.generateNestedGridNeighborBindings(self.NestedGridNeighbor1d, 1)
         self.generateNestedGridNeighborBindings(self.NestedGridNeighbor2d, 2)
         self.generateNestedGridNeighborBindings(self.NestedGridNeighbor3d, 3)
+
+        self.generateTreeNeighborBindings(self.TreeNeighbor1d, 1)
+        self.generateTreeNeighborBindings(self.TreeNeighbor2d, 2)
+        self.generateTreeNeighborBindings(self.TreeNeighbor3d, 3)
 
         self.generateConnectivityMapBindings(self.ConnectivityMap1d, 1)
         self.generateConnectivityMapBindings(self.ConnectivityMap2d, 2)
@@ -217,7 +225,9 @@ class Neighbor:
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
 
         # Constructors.
-        x.add_constructor([refparam(nodelist, "nodeList"), param("NeighborSearchType", "searchType")])
+        x.add_constructor([refparam(nodelist, "nodeList"), 
+                           param("NeighborSearchType", "searchType"),
+                           param("double", "kernelExtent")])
 
         # Methods.
         x.add_method("HExtent", vector, [param("double", "H"), param("double", "kernelExtent")], is_static=True)
@@ -363,6 +373,38 @@ class Neighbor:
         x.add_instance_attribute("masterGridLevel", "int", getter="masterGridLevel", is_const=True)
         x.add_instance_attribute("masterGridCellIndex", gridcellindex, getter="masterGridCellIndex", is_const=True)
         x.add_instance_attribute("endOfLinkList", "int", getter="endOfLinkList", is_const=True)
+
+        # Add the base virtual methods.
+        self.generateNeighborVirtualBindings(x, ndim, False)
+
+        return
+    
+    #---------------------------------------------------------------------------
+    # TreeNeighbor
+    #---------------------------------------------------------------------------
+    def generateTreeNeighborBindings(self, x, ndim):
+
+        # Objects.
+        me = "Spheral::NeighborSpace::TreeNeighbor%id" % ndim
+        dim = "Spheral::Dim<%i>" % ndim
+        nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        plane = "Plane%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
+
+        # Constructors.
+        x.add_constructor([refparam(nodelist, "nodeList"),
+                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::GatherScatter"),
+                           param("double", "kernelExtent", default_value="2.0")])
+
+        # Methods.
+        x.add_method("gridLevel", "unsigned", [param("double", "h")], is_const=True)
+        x.add_method("gridLevel", "unsigned", [param("SymTensor", "H")], is_const=True)
+        x.add_method("dumpTree", "std::string", [param("bool", "globalTree")], is_const=True)
+        x.add_method("dumpTreeStatistics", "std::string", [param("bool", "globalTree")], is_const=True)
 
         # Add the base virtual methods.
         self.generateNeighborVirtualBindings(x, ndim, False)

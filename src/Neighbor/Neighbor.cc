@@ -23,10 +23,12 @@ using NodeSpace::NodeList;
 // Construct with the given NodeList and search type.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-Neighbor<Dimension>::Neighbor(NodeList<Dimension>& nodeList,
-                              const NeighborSearchType searchType):
-  mKernelExtent(0.0),
+Neighbor<Dimension>::
+Neighbor(NodeList<Dimension>& nodeList,
+         const NeighborSearchType searchType,
+         const double kernelExtent):
   mSearchType(searchType),
+  mKernelExtent(kernelExtent),
   mMasterListPtr(new vector<int>()),
   mCoarseNeighborListPtr(new vector<int>()),
   mRefineNeighborListPtr(new vector<int>()), // (mCoarseNeighborListPtr),
@@ -39,7 +41,8 @@ Neighbor<Dimension>::Neighbor(NodeList<Dimension>& nodeList,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-Neighbor<Dimension>::~Neighbor() {
+Neighbor<Dimension>::
+~Neighbor() {
   if (mNodeListPtr) mNodeListPtr->unregisterNeighbor();
   delete mMasterListPtr;
   delete mCoarseNeighborListPtr;
@@ -51,7 +54,8 @@ Neighbor<Dimension>::~Neighbor() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 NeighborSearchType
-Neighbor<Dimension>::neighborSearchType() const {
+Neighbor<Dimension>::
+neighborSearchType() const {
   return mSearchType;
 }
 
@@ -72,8 +76,9 @@ neighborSearchType(NeighborSearchType searchType) {
 // scalar representing the inverse smoothing scale.
 template<typename Dimension>
 typename Dimension::Vector
-Neighbor<Dimension>::HExtent(const typename Dimension::Scalar& H, 
-                             const double kernelExtent) {
+Neighbor<Dimension>::
+HExtent(const typename Dimension::Scalar& H, 
+        const double kernelExtent) {
   CHECK(H > 0.0);
   const double r = kernelExtent/H;
   return Vector(r);
@@ -83,8 +88,9 @@ Neighbor<Dimension>::HExtent(const typename Dimension::Scalar& H,
 // The ASPH tensor has units of inverse length.
 template<>
 Dim<1>::Vector
-Neighbor< Dim<1> >::HExtent(const Dim<1>::SymTensor& H,
-                            const double kernelExtent) {
+Neighbor< Dim<1> >::
+HExtent(const Dim<1>::SymTensor& H,
+        const double kernelExtent) {
   CHECK(H.Determinant() > 0.0);
   const double r = kernelExtent/H.xx();
   return Vector(r);
@@ -92,8 +98,9 @@ Neighbor< Dim<1> >::HExtent(const Dim<1>::SymTensor& H,
 
 template<>
 Dim<2>::Vector
-Neighbor< Dim<2> >::HExtent(const Dim<2>::SymTensor& H,
-                            const double kernelExtent) {
+Neighbor< Dim<2> >::
+HExtent(const Dim<2>::SymTensor& H,
+        const double kernelExtent) {
   const double Hdet = H.Determinant();
   const SymTensor M = H.square();
   CHECK(Hdet > 0.0);
@@ -102,8 +109,9 @@ Neighbor< Dim<2> >::HExtent(const Dim<2>::SymTensor& H,
   
 template<>
 Dim<3>::Vector
-Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor& H,
-                            const double kernelExtent) {
+Neighbor< Dim<3> >::
+HExtent(const Dim<3>::SymTensor& H,
+        const double kernelExtent) {
   const double Hdet = H.Determinant();
   const SymTensor M = H.square();
   CHECK(Hdet > 0.0);
@@ -117,14 +125,16 @@ Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor& H,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 const Field<Dimension, typename Dimension::Vector>&
-Neighbor<Dimension>::nodeExtentField() const {
+Neighbor<Dimension>::
+nodeExtentField() const {
   return mNodeExtent;
 }
 
 // Allow read/write access to the node extent Field for descendent classes.
 template<typename Dimension>
 Field<Dimension, typename Dimension::Vector>&
-Neighbor<Dimension>::accessNodeExtentField() {
+Neighbor<Dimension>::
+accessNodeExtentField() {
   return mNodeExtent;
 }
 
@@ -133,14 +143,16 @@ Neighbor<Dimension>::accessNodeExtentField() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 const NodeList<Dimension>&
-Neighbor<Dimension>::nodeList() const {
+Neighbor<Dimension>::
+nodeList() const {
   CHECK(mNodeListPtr);
   return *mNodeListPtr;
 }
 
 template<typename Dimension>
 const NodeList<Dimension>*
-Neighbor<Dimension>::nodeListPtr() const {
+Neighbor<Dimension>::
+nodeListPtr() const {
   return mNodeListPtr;
 }
 
@@ -149,7 +161,8 @@ Neighbor<Dimension>::nodeListPtr() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::nodeList(NodeList<Dimension>& nodeList) {
+Neighbor<Dimension>::
+nodeList(NodeList<Dimension>& nodeList) {
   CHECK(&nodeList);
   mNodeListPtr = &nodeList;
   mNodeExtent.setNodeList(nodeList);
@@ -157,7 +170,8 @@ Neighbor<Dimension>::nodeList(NodeList<Dimension>& nodeList) {
 
 template<typename Dimension>
 void
-Neighbor<Dimension>::nodeListPtr(NodeList<Dimension>* nodeListPtr) {
+Neighbor<Dimension>::
+nodeListPtr(NodeList<Dimension>* nodeListPtr) {
   CHECK(nodeListPtr);
   mNodeListPtr = nodeListPtr;
   mNodeExtent.setNodeList(*nodeListPtr);
@@ -168,7 +182,8 @@ Neighbor<Dimension>::nodeListPtr(NodeList<Dimension>* nodeListPtr) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::unregisterNodeList() {
+Neighbor<Dimension>::
+unregisterNodeList() {
   mNodeListPtr = 0;
 }
 
@@ -177,7 +192,8 @@ Neighbor<Dimension>::unregisterNodeList() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Vector
-Neighbor<Dimension>::nodeExtent(int nodeID) const {
+Neighbor<Dimension>::
+nodeExtent(int nodeID) const {
   CHECK(nodeID >= 0 and nodeID < nodeList().numNodes());
   return HExtent(nodeList().Hfield()(nodeID), kernelExtent());
 }
@@ -187,7 +203,8 @@ Neighbor<Dimension>::nodeExtent(int nodeID) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::setNodeExtents() {
+Neighbor<Dimension>::
+setNodeExtents() {
   for (int nodeID = 0; nodeID < nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
@@ -195,7 +212,8 @@ Neighbor<Dimension>::setNodeExtents() {
 
 template<typename Dimension>
 void
-Neighbor<Dimension>::setNodeExtents(const vector<int>& nodeIDs) {
+Neighbor<Dimension>::
+setNodeExtents(const vector<int>& nodeIDs) {
   for (typename vector<int>::const_iterator nodeIDItr = nodeIDs.begin();
        nodeIDItr < nodeIDs.end();
        ++nodeIDItr) {
@@ -206,7 +224,8 @@ Neighbor<Dimension>::setNodeExtents(const vector<int>& nodeIDs) {
 
 template<typename Dimension>
 void
-Neighbor<Dimension>::setInternalNodeExtents() {
+Neighbor<Dimension>::
+setInternalNodeExtents() {
   for (int nodeID = 0; nodeID < nodeList().numInternalNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
@@ -214,7 +233,8 @@ Neighbor<Dimension>::setInternalNodeExtents() {
 
 template<typename Dimension>
 void
-Neighbor<Dimension>::setGhostNodeExtents() {
+Neighbor<Dimension>::
+setGhostNodeExtents() {
   for (int nodeID = nodeList().firstGhostNode(); nodeID < nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
@@ -225,7 +245,8 @@ Neighbor<Dimension>::setGhostNodeExtents() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::setMasterList(int nodeID) {
+Neighbor<Dimension>::
+setMasterList(int nodeID) {
   CHECK(valid());
   CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
   vector<int>& masterList = accessMasterList();
@@ -240,7 +261,8 @@ Neighbor<Dimension>::setMasterList(int nodeID) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::setRefineNeighborList(int nodeID) {
+Neighbor<Dimension>::
+setRefineNeighborList(int nodeID) {
   CHECK(valid());
   CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
   CHECK(find(accessMasterList().begin(), accessMasterList().end(), nodeID) !=
@@ -338,7 +360,8 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Neighbor<Dimension>::precullForLocalNodeList() {
+Neighbor<Dimension>::
+precullForLocalNodeList() {
 
   // Grab the state.
   const Field<Dimension, Vector>& r = this->nodeList().positions();
@@ -376,7 +399,8 @@ Neighbor<Dimension>::precullForLocalNodeList() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-Neighbor<Dimension>::valid() const {
+Neighbor<Dimension>::
+valid() const {
   return (kernelExtent() > 0.0 and
           neighborSearchType() != None);
 }

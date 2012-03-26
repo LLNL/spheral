@@ -48,7 +48,9 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors and destructors
-  Neighbor(NodeSpace::NodeList<Dimension>& nodeList, const NeighborSearchType searchType);
+  Neighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+           const NeighborSearchType searchType,
+           const double kernelExtent);
   virtual ~Neighbor();
 
   // Choose the type of neighbor search we wish to use.
@@ -170,8 +172,8 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mKernelExtent;
   NeighborSearchType mSearchType;
+  double mKernelExtent;
 
   std::vector<int>* mMasterListPtr;
   std::vector<int>* mCoarseNeighborListPtr;
