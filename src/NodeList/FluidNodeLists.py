@@ -17,6 +17,7 @@ def makeFluidNodeList%(dim)s(name,
                              maxNumNeighbors = 500,
                              rhoMin = 1.0e-10,
                              rhoMax = 1e10,
+                             NeighborType = NestedGridNeighbor%(dim)s,
                              searchType = GatherScatter,
                              numGridLevels = 31,
                              topGridCellSize = 100.0,
@@ -27,10 +28,13 @@ def makeFluidNodeList%(dim)s(name,
                                   hmin, hmax, hminratio, 
                                   nPerh, maxNumNeighbors,
                                   rhoMin, rhoMax)
-    result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
-                                                 numGridLevels, topGridCellSize, 
-                                                 origin, kernelExtent, 
-                                                 gridCellInfluenceRadius)
+    if NeighborType == NestedGridNeighbor%(dim)s:
+        result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
+                                                     numGridLevels, topGridCellSize, 
+                                                     origin, kernelExtent, 
+                                                     gridCellInfluenceRadius)
+    else:
+        result._neighbor = NeighborType(result, searchType, kernelExtent)
     result.registerNeighbor(result._neighbor)
     return result
 """
