@@ -148,7 +148,7 @@ updateNodes() {
   globalBoundingBox(positions, mXmin, mXmax, false);
   mBoxLength = (mXmax - mXmin).maxElement();
   CHECK(mBoxLength > 0.0);
-  mGridLevelConst0 = log(mBoxLength)/log(2.0);
+  mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
 
   // Walk all the internal nodes and add them to the tree.
   const size_t n = nodes.numInternalNodes();
@@ -178,11 +178,17 @@ template<typename Dimension>
 unsigned
 TreeNeighbor<Dimension>::
 gridLevel(const double& h) const {   
-  const unsigned result = std::max(0U, 
-                                   std::min(num1dbits - 1U,
-                                            unsigned(mGridLevelConst0 - log(h)/log(2.0))));
-  ENSURE(fuzzyLessThanOrEqual(mBoxLength/(1U << result), h*this->kernelExtent(), 1.0e-10) and
-         fuzzyGreaterThanOrEqual(mBoxLength/(1U << (result + 1U)), h*this->kernelExtent(), 1.0e-10));
+  REQUIRE(this->kernelExtent()*h <= mBoxLength);
+  const unsigned result = std::max(0, 
+                                   std::min(int(num1dbits) - 1,
+                                            int(mGridLevelConst0 - log(h)/log(2.0))));
+  ENSURE2(fuzzyLessThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << result), 1.0e-10) and
+          fuzzyGreaterThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << (result + 1U)), 1.0e-10),
+          result << " " << h*this->kernelExtent() << " in? ["
+          << mBoxLength/(1U << (result + 1U)) << " " 
+          << mBoxLength/(1U << result) << "]\n"
+          << mBoxLength << " " << mGridLevelConst0);
+          
   return result;
 }
 
@@ -454,9 +460,9 @@ buildCellKey(const typename TreeNeighbor<Dimension>::LevelKey ilevel,
              typename TreeNeighbor<Dimension>::CellKey& ix,
              typename TreeNeighbor<Dimension>::CellKey& iy,
              typename TreeNeighbor<Dimension>::CellKey& iz) const {
-  REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
-  REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
-  REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
+  REQUIRE2(xi.x() >= mXmin.x() and xi.x() <= mXmax.x(), xi << " " << mXmin << " " << mXmax);
+  REQUIRE2(xi.y() >= mXmin.y() and xi.y() <= mXmax.y(), xi << " " << mXmin << " " << mXmax);
+  REQUIRE2(xi.z() >= mXmin.z() and xi.z() <= mXmax.z(), xi << " " << mXmin << " " << mXmax);
   const CellKey ncell = (1U << ilevel);
   const CellKey maxcell = ncell - 1U;
   ix = std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell));
@@ -688,6 +694,9 @@ findTreeNeighbors(const LevelKey& masterLevel,
         copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
       }
     }
+
+    // Update the daughters to check on the next pass.
+    remainingDaughters = newDaughters;
   }
 
   // That's it.

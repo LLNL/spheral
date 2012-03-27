@@ -401,8 +401,8 @@ class Neighbor:
                            param("double", "kernelExtent", default_value="2.0")])
 
         # Methods.
-        x.add_method("gridLevel", "unsigned", [param("double", "h")], is_const=True)
-        x.add_method("gridLevel", "unsigned", [param("SymTensor", "H")], is_const=True)
+        x.add_method("gridLevel", "unsigned int", [param("double", "h")], is_const=True)
+        x.add_method("gridLevel", "unsigned int", [param(symtensor, "H")], is_const=True)
         x.add_method("dumpTree", "std::string", [param("bool", "globalTree")], is_const=True)
         x.add_method("dumpTreeStatistics", "std::string", [param("bool", "globalTree")], is_const=True)
 
