@@ -74,6 +74,11 @@ public:
   // Return a string describing the overall statistics of the tree.
   std::string dumpTreeStatistics(const bool globalTree) const;
 
+  // Access internal attributes.
+  double boxLength() const;
+  Vector xmin() const;
+  Vector xmax() const;
+
   // Methods to serialize/deserialize the state of TreeNeighbor.
   void serialize(std::vector<char>& buffer) const;
   void deserialize(std::vector<char>::const_iterator& itr,
@@ -100,10 +105,8 @@ private:
 
     // Convenience constructors for OctTreeGravity::addNodeToTree.
     Cell(): key(0), daughters(), daughterPtrs(), members() {}
-    Cell(const CellKey& keyi, const unsigned i):
-      key(keyi), daughters(), daughterPtrs(), members(1, i) {}
-    Cell(const CellKey& keyi, const unsigned i, const CellKey& daughter):
-      key(keyi), daughters(1, daughter), daughterPtrs(), members(1, i) {}
+    Cell(const CellKey& keyi):
+      key(keyi), daughters(), daughterPtrs(), members() {}
 
     // Throw in comparison operators for help sorting.
     bool operator==(const Cell& rhs) const { return key == rhs.key; }
@@ -178,6 +181,7 @@ private:
 
   // Private data.
   double mBoxLength, mGridLevelConst0;
+  Vector mXmin, mXmax;
   Tree mTree;
 };
 
