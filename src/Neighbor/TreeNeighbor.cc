@@ -44,6 +44,8 @@ TreeNeighbor(NodeList<Dimension>& nodeList,
   Neighbor<Dimension>(nodeList, searchType, kernelExtent),
   mBoxLength(0.0),
   mGridLevelConst0(0.0),
+  mXmin(),
+  mXmax(),
   mTree() {
 }
 
@@ -143,9 +145,8 @@ updateNodes() {
   const Field<Dimension, SymTensor>& H = nodes.Hfield();
 
   // Recompute the current box size.
-  Vector xmin, xmax;
-  globalBoundingBox(positions, xmin, xmax, false);
-  mBoxLength = (xmax - xmin).maxElement();
+  globalBoundingBox(positions, mXmin, mXmax, false);
+  mBoxLength = (mXmax - mXmin).maxElement();
   CHECK(mBoxLength > 0.0);
   mGridLevelConst0 = log(mBoxLength)/log(2.0);
 
@@ -369,6 +370,36 @@ serialize(const TreeNeighbor<Dimension>::Cell& cell,
 }
 
 //------------------------------------------------------------------------------
+// boxlength
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+TreeNeighbor<Dimension>::
+boxLength() const {
+  return mBoxLength;
+}
+
+//------------------------------------------------------------------------------
+// xmin
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Vector
+TreeNeighbor<Dimension>::
+xmin() const {
+  return mXmin;
+}
+
+//------------------------------------------------------------------------------
+// xmax
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Vector
+TreeNeighbor<Dimension>::
+xmax() const {
+  return mXmax;
+}
+
+//------------------------------------------------------------------------------
 // Deserialize a tree from a buffer of char.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -412,6 +443,136 @@ deserialize(typename TreeNeighbor<Dimension>::Cell& cell,
 }
 
 //------------------------------------------------------------------------------
+// Build a cell key from coordinate indices.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+buildCellKey(const typename TreeNeighbor<Dimension>::LevelKey ilevel,
+             const typename TreeNeighbor<Dimension>::Vector& xi,
+             typename TreeNeighbor<Dimension>::CellKey& key,
+             typename TreeNeighbor<Dimension>::CellKey& ix,
+             typename TreeNeighbor<Dimension>::CellKey& iy,
+             typename TreeNeighbor<Dimension>::CellKey& iz) const {
+  REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
+  REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
+  REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());
+  const CellKey ncell = (1U << ilevel);
+  const CellKey maxcell = ncell - 1U;
+  ix = std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell));
+  iy = std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell));
+  iz = std::min(maxcell, CellKey((xi.z() - mXmin.z())/mBoxLength * ncell));
+  key = ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
+         (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
+         (std::max(CellKey(0), std::min(max1dKey, ix))));
+}
+
+//------------------------------------------------------------------------------
+// Extract the individual coordinate indices from a cell index.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+extractCellIndices(const typename TreeNeighbor<Dimension>::CellKey& key,
+                   typename TreeNeighbor<Dimension>::CellKey& ix,
+                   typename TreeNeighbor<Dimension>::CellKey& iy,
+                   typename TreeNeighbor<Dimension>::CellKey& iz) const {
+  ix = key & xkeymask;
+  iy = (key & ykeymask) >> num1dbits;
+  iz = (key & zkeymask) >> 2*num1dbits;
+}
+
+//------------------------------------------------------------------------------
+// Add a daughter to a cell if not present.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+addDaughter(typename TreeNeighbor<Dimension>::Cell& cell,
+            const typename TreeNeighbor<Dimension>::CellKey daughterKey) const {
+  if (std::find(cell.daughters.begin(), cell.daughters.end(), daughterKey) == cell.daughters.end())
+    cell.daughters.push_back(daughterKey);
+  ENSURE(cell.daughters.size() <= (1U << Dimension::nDim));
+}
+
+//------------------------------------------------------------------------------
+// Add a node to the internal Tree structure.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+addNodeToTree(const typename Dimension::Vector& xi,
+              const typename Dimension::SymTensor& Hi,
+              const unsigned i) {
+  mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
+
+  // Determine the level for this point.
+  const LevelKey homeLevel = this->gridLevel(Hi);
+
+  LevelKey ilevel = 0;
+  CellKey key, parentKey, otherKey, ix, iy, iz;
+  typename TreeLevel::iterator itr;
+
+  // First walk the tree for all levels above our native level.
+  while (ilevel < homeLevel + 1) {
+
+    // Do we need to add another level to the tree?
+    if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
+
+    // Create the key for the cell containing this particle on this level.
+    buildCellKey(ilevel, xi, key, ix, iy, iz);
+    itr = mTree[ilevel].find(key);
+
+    // Is this a new cell?
+    if (itr == mTree[ilevel].end()) {
+      mTree[ilevel][key] = Cell(key);
+      itr = mTree[ilevel].find(key);
+    }
+
+    // Link this cell as a daughter of its parent.
+    if (ilevel > 0) {
+      CHECK(mTree[ilevel - 1].find(parentKey) != mTree[ilevel - 1].end());
+      addDaughter(mTree[ilevel - 1][parentKey], key);
+    }
+
+    // Is this the final level for this node?
+    if (ilevel == homeLevel) {
+      itr->second.members.push_back(i);
+    }
+
+    // Prepare for the next level.
+    parentKey = key;
+    ++ilevel;
+  }
+
+}
+
+//------------------------------------------------------------------------------
+// Construct the daughter pointers in a tree.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeNeighbor<Dimension>::
+constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
+  const unsigned nlevels = tree.size();
+  for (unsigned ilevel = 0; ilevel < nlevels - 1; ++ilevel) {
+    const unsigned ilevel1 = ilevel + 1;
+    for (typename TreeLevel::iterator itr = tree[ilevel].begin();
+         itr != tree[ilevel].end();
+         ++itr) {
+      Cell& cell = itr->second;
+      cell.daughterPtrs = std::vector<Cell*>();
+      for (typename std::vector<CellKey>::const_iterator ditr = cell.daughters.begin();
+           ditr != cell.daughters.end();
+           ++ditr) {
+        cell.daughterPtrs.push_back(&(tree[ilevel1][*ditr]));
+      }
+      CHECK(cell.daughters.size() == cell.daughterPtrs.size());
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the master & coarse neighbor sets by walking the tree.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -447,7 +608,6 @@ setTreeMasterList(const typename Dimension::Vector& position,
 // Produce the refined list of potential neighbors for a single node.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
 void
 TreeNeighbor<Dimension>::
 setTreeRefineNeighborList(const typename Dimension::Vector& position,
@@ -581,6 +741,8 @@ template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::zkeymask = 
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 template class TreeNeighbor<Dim<1> >;
+template class TreeNeighbor<Dim<2> >;
+template class TreeNeighbor<Dim<3> >;
 
 }
 }
