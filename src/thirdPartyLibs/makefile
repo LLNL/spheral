@@ -84,7 +84,7 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 
 # Tau
 TAUURL=http://tau.uoregon.edu/$(TAUDIST)
-TAUDIR = $(TAUDIST:.tgz=-2.21.1)
+TAUDIR = $(TAUDIST:.tgz=-2.21.2)
 TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
 TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
 
