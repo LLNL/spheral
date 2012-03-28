@@ -1,0 +1,9 @@
+SincKernel = Template("Spheral::KernelSpace::SincKernel",
+                      "ExtendSincKernel.hh")
+exclude(SincKernel.asDescendent)
+
+final(SincKernel.valid)
+
+SincKernel1d = SincKernel("Spheral::Dim<1>", "SincKernel1d")
+SincKernel2d = SincKernel("Spheral::Dim<2>", "SincKernel2d")
+SincKernel3d = SincKernel("Spheral::Dim<3>", "SincKernel3d")

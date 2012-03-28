@@ -1,0 +1,60 @@
+#-------------------------------------------------------------------------------
+# Vector
+#-------------------------------------------------------------------------------
+Vector = Template("Spheral::GeomVector", "ExtendGeomVector.hh")
+
+class_code(Vector, ".def(other<double>() + self)")
+class_code(Vector, ".def(other<double>() * self)")
+
+exclude(Vector.operator["()"])
+exclude(Vector.begin)
+exclude(Vector.end)
+
+add_property(Vector, "x", "x", "x")
+
+#-------------------------------------------------------------------------------
+# 1-D
+#-------------------------------------------------------------------------------
+Vector1d = Vector("1", "GeomVector1d")
+
+add_method(Vector1d, "Spheral::indexVector1d")
+rename(Vector1d.indexVector1d, "__call__")
+
+add_method(Vector1d, "Spheral::printGeomVector1d")
+rename(Vector1d.printGeomVector1d, "__str__")
+
+add_method(Vector1d, "Spheral::vectorElements1d")
+rename(Vector1d.vectorElements1d, "elements")
+
+#-------------------------------------------------------------------------------
+# 2-D
+#-------------------------------------------------------------------------------
+add_property(Vector, "y", "y", "y")
+
+Vector2d = Vector("2", "GeomVector2d")
+
+add_method(Vector2d, "Spheral::indexVector2d")
+rename(Vector2d.indexVector2d, "__call__")
+
+add_method(Vector2d, "Spheral::printGeomVector2d")
+rename(Vector2d.printGeomVector2d, "__str__")
+
+add_method(Vector2d, "Spheral::vectorElements2d")
+rename(Vector2d.vectorElements2d, "elements")
+
+#-------------------------------------------------------------------------------
+# 3-D
+#-------------------------------------------------------------------------------
+add_property(Vector, "z", "z", "z")
+
+Vector3d = Vector("3", "GeomVector3d")
+
+add_method(Vector3d, "Spheral::indexVector3d")
+rename(Vector3d.indexVector3d, "__call__")
+
+add_method(Vector3d, "Spheral::printGeomVector3d")
+rename(Vector3d.printGeomVector3d, "__str__")
+
+add_method(Vector3d, "Spheral::vectorElements3d")
+rename(Vector3d.vectorElements3d, "elements")
+

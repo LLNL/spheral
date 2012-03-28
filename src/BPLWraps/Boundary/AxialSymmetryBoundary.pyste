@@ -1,0 +1,14 @@
+#-------------------------------------------------------------------------------
+# Externally exported classes.
+#-------------------------------------------------------------------------------
+axialSymBoundary = Class("Spheral::BoundarySpace::AxialSymmetryBoundary",
+                         "ExtendAxialSymmetryBoundary.hh")
+
+exclude(axialSymBoundary.addNodeList)
+
+final(axialSymBoundary.applyGhostBoundary)
+final(axialSymBoundary.enforceBoundary)
+final(axialSymBoundary.setGhostNodes)
+final(axialSymBoundary.updateGhostNodes)
+final(axialSymBoundary.setViolationNodes)
+final(axialSymBoundary.updateViolationNodes)
