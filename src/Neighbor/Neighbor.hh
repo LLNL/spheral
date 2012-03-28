@@ -61,11 +61,6 @@ public:
   double kernelExtent() const;
   void kernelExtent(double kernelExtent);
 
-  // Determine the maximum extent of a given H smoothing scale along the
-  // Cartesian axes.
-  static Vector HExtent(const Scalar& H, const double kernelExtent);
-  static Vector HExtent(const SymTensor& H, const double kernelExtent);
-
   // Allow access to the field of node extents.
   const FieldSpace::Field<Dimension, Vector>& nodeExtentField() const;
 
@@ -161,6 +156,11 @@ public:
                                      const NodeListIteratorType& nodeListBegin,
                                      const NodeListIteratorType& nodeListEnd,
                                      const double kernelExtent);
+
+  // Determine the maximum extent of a given H smoothing scale along the
+  // Cartesian axes.
+  static Vector HExtent(const Scalar& H, const double kernelExtent);
+  static Vector HExtent(const SymTensor& H, const double kernelExtent);
 
 protected:
   //-------------------------- Protected Interface --------------------------//

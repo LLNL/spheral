@@ -5,10 +5,13 @@
 //----------------------------------------------------------------------------//
 #include "Neighbor.hh"
 
+#include "Geometry/Dimension.hh"
+#include "Geometry/GeomPlane.hh"
 #include "DBC.hh"
 #include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
-#include "Geometry/GeomPlane.hh"
+#include "NodeList/NodeListRegistrar.hh"
 #include "Utilities/testBoxIntersection.hh"
 
 namespace Spheral {
@@ -17,6 +20,7 @@ namespace NeighborSpace {
 using namespace std;
 
 using FieldSpace::Field;
+using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
@@ -404,17 +408,36 @@ valid() const {
   return (kernelExtent() > 0.0 and
           neighborSearchType() != None);
 }
-}
-}
+
+// //------------------------------------------------------------------------------
+// // Set the global bounding box.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// Neighbor<Dimension>::
+// setBoundingBox() {
+//   const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
+//   FieldList<Dimension, Vector> positions(FieldSpace::FieldListBase::Reference);
+//   for (typename NodeListRegistrar<Dimension>::const_fluid_iterator itr = registrar.fluidBegin();
+//        itr != registrar.fluidEnd();
+//        ++itr) {
+//     positions.appendField((**itr).positions());
+//   }
+//   globalBoundingBox(positions, mXmin, mXmax, false);
+// }
+
+// //------------------------------------------------------------------------------
+// // Static initializations.
+// //------------------------------------------------------------------------------
+// template<typename Dimension> typename Dimension::Vector Neighbor<Dimension>::mXmin = Dimension::Vector::zero;
+// template<typename Dimension> typename Dimension::Vector Neighbor<Dimension>::mXmax = Dimension::Vector::zero;
 
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  namespace NeighborSpace {
-    template class Neighbor< Dim<1> >;
-    template class Neighbor< Dim<2> >;
-    template class Neighbor< Dim<3> >;
-  }
+template class Neighbor< Dim<1> >;
+template class Neighbor< Dim<2> >;
+template class Neighbor< Dim<3> >;
+
+}
 }
