@@ -35,7 +35,9 @@ public:
   // Constructors and destructors
   TreeNeighbor(NodeSpace::NodeList<Dimension>& nodeList, 
                const NeighborSearchType searchType,
-               const double kernelExtent);
+               const double kernelExtent,
+               const Vector& xmin,
+               const Vector& xmax);
   virtual ~TreeNeighbor();
 
   // ********** Descendent Neighbor types must provide these methods. **********
@@ -75,9 +77,9 @@ public:
   std::string dumpTreeStatistics(const bool globalTree) const;
 
   // Access internal attributes.
+  const Vector& xmin() const;
+  const Vector& xmax() const;
   double boxLength() const;
-  Vector xmin() const;
-  Vector xmax() const;
 
   // Methods to serialize/deserialize the state of TreeNeighbor.
   void serialize(std::vector<char>& buffer) const;

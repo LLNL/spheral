@@ -230,8 +230,6 @@ class Neighbor:
                            param("double", "kernelExtent")])
 
         # Methods.
-        x.add_method("HExtent", vector, [param("double", "H"), param("double", "kernelExtent")], is_static=True)
-        x.add_method("HExtent", vector, [constrefparam(symtensor, "H"), param("double", "kernelExtent")], is_static=True)
         const_ref_return_value(x, me, "%s::nodeExtentField" % me, vectorfield, [], "nodeExtentField")
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
         x.add_method("nodeList", None, [refparam(nodelist, "nodeList")], custom_name="nodeList")
@@ -250,6 +248,8 @@ class Neighbor:
                                                       constrefparam("vector_of_int", "coarseList")], is_const=True)
         x.add_method("precullForLocalNodeList", None, [])
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+        x.add_method("HExtent", vector, [param("double", "H"), param("double", "kernelExtent")], is_static=True)
+        x.add_method("HExtent", vector, [constrefparam(symtensor, "H"), param("double", "kernelExtent")], is_static=True)
 
         # Attributes.
         x.add_instance_attribute("neighborSearchType", "NeighborSearchType", getter="neighborSearchType", setter="neighborSearchType")
@@ -397,14 +397,21 @@ class Neighbor:
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"),
-                           param("NeighborSearchType", "searchType", default_value="Spheral::NeighborSpace::GatherScatter"),
-                           param("double", "kernelExtent", default_value="2.0")])
+                           param("NeighborSearchType", "searchType"),
+                           param("double", "kernelExtent"),
+                           constrefparam(vector, "xmin"),
+                           constrefparam(vector, "xmax")])
 
         # Methods.
         x.add_method("gridLevel", "unsigned int", [param("double", "h")], is_const=True)
         x.add_method("gridLevel", "unsigned int", [param(symtensor, "H")], is_const=True)
         x.add_method("dumpTree", "std::string", [param("bool", "globalTree")], is_const=True)
         x.add_method("dumpTreeStatistics", "std::string", [param("bool", "globalTree")], is_const=True)
+
+        # Attributes.
+        x.add_instance_attribute("xmin", vector, getter="xmin", is_const=True)
+        x.add_instance_attribute("xmax", vector, getter="xmax", is_const=True)
+        x.add_instance_attribute("boxLength", "double", getter="boxLength", is_const=True)
 
         # Add the base virtual methods.
         self.generateNeighborVirtualBindings(x, ndim, False)

@@ -23,7 +23,9 @@ def makeFluidNodeList%(dim)s(name,
                              topGridCellSize = 100.0,
                              origin = Vector%(dim)s.zero,
                              kernelExtent = 2.0,
-                             gridCellInfluenceRadius = 1):
+                             gridCellInfluenceRadius = 1,
+                             xmin = Vector%(dim)s.one * -10.0,
+                             xmax = Vector%(dim)s.one *  10.0):
     result = FluidNodeList%(dim)s(name, eos, numInternal, numGhost, 
                                   hmin, hmax, hminratio, 
                                   nPerh, maxNumNeighbors,
@@ -34,7 +36,8 @@ def makeFluidNodeList%(dim)s(name,
                                                      origin, kernelExtent, 
                                                      gridCellInfluenceRadius)
     else:
-        result._neighbor = NeighborType(result, searchType, kernelExtent)
+        result._neighbor = NeighborType(result, searchType, kernelExtent,
+                                        xmin, xmax)
     result.registerNeighbor(result._neighbor)
     return result
 """
