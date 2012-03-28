@@ -40,12 +40,14 @@ template<typename Dimension>
 TreeNeighbor<Dimension>::
 TreeNeighbor(NodeList<Dimension>& nodeList,
              const NeighborSearchType searchType,
-             const double kernelExtent):
+             const double kernelExtent,
+             const Vector& xmin,
+             const Vector& xmax):
   Neighbor<Dimension>(nodeList, searchType, kernelExtent),
-  mBoxLength(0.0),
-  mGridLevelConst0(0.0),
-  mXmin(),
-  mXmax(),
+  mBoxLength((xmax - xmin).maxElement()),
+  mGridLevelConst0(log(mBoxLength/kernelExtent)/log(2.0)),
+  mXmin(xmin),
+  mXmax(xmax),
   mTree() {
 }
 
@@ -144,11 +146,11 @@ updateNodes() {
   const Field<Dimension, Vector>& positions = nodes.positions();
   const Field<Dimension, SymTensor>& H = nodes.Hfield();
 
-  // Recompute the current box size.
-  globalBoundingBox(positions, mXmin, mXmax, false);
-  mBoxLength = (mXmax - mXmin).maxElement();
-  CHECK(mBoxLength > 0.0);
-  mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
+  // // Recompute the current box size.  We assume xmin & xmax have
+  // // already been set.
+  // mBoxLength = (this->mXmax - this->mXmin).maxElement();
+  // CHECK(mBoxLength > 0.0);
+  // mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
 
   // Walk all the internal nodes and add them to the tree.
   const size_t n = nodes.numInternalNodes();
@@ -178,7 +180,8 @@ template<typename Dimension>
 unsigned
 TreeNeighbor<Dimension>::
 gridLevel(const double& h) const {   
-  REQUIRE(this->kernelExtent()*h <= mBoxLength);
+  REQUIRE2(this->kernelExtent()*h <= mBoxLength,
+           "h larger than box size: " << this->kernelExtent()*h << " " << mBoxLength);
   const unsigned result = std::max(0, 
                                    std::min(int(num1dbits) - 1,
                                             int(mGridLevelConst0 - log(h)/log(2.0))));
@@ -340,6 +343,36 @@ dumpTreeStatistics(const bool globalTree) const {
 }
 
 //------------------------------------------------------------------------------
+// xmin
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const typename Dimension::Vector&
+TreeNeighbor<Dimension>::
+xmin() const {
+  return mXmin;
+}
+
+//------------------------------------------------------------------------------
+// xmax
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const typename Dimension::Vector&
+TreeNeighbor<Dimension>::
+xmax() const {
+  return mXmax;
+}
+
+//------------------------------------------------------------------------------
+// boxlength
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+TreeNeighbor<Dimension>::
+boxLength() const {
+  return mBoxLength;
+}
+
+//------------------------------------------------------------------------------
 // Serialize to a buffer of char.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -348,6 +381,8 @@ TreeNeighbor<Dimension>::
 serialize(std::vector<char>& buffer) const {
   packElement(mBoxLength, buffer);
   packElement(mGridLevelConst0, buffer);
+  packElement(mXmin, buffer);
+  packElement(mXmax, buffer);
   const unsigned nlevels = mTree.size();
   packElement(nlevels, buffer);
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -376,36 +411,6 @@ serialize(const TreeNeighbor<Dimension>::Cell& cell,
 }
 
 //------------------------------------------------------------------------------
-// boxlength
-//------------------------------------------------------------------------------
-template<typename Dimension>
-double
-TreeNeighbor<Dimension>::
-boxLength() const {
-  return mBoxLength;
-}
-
-//------------------------------------------------------------------------------
-// xmin
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Vector
-TreeNeighbor<Dimension>::
-xmin() const {
-  return mXmin;
-}
-
-//------------------------------------------------------------------------------
-// xmax
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Vector
-TreeNeighbor<Dimension>::
-xmax() const {
-  return mXmax;
-}
-
-//------------------------------------------------------------------------------
 // Deserialize a tree from a buffer of char.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -415,6 +420,8 @@ deserialize(vector<char>::const_iterator& bufItr,
             const vector<char>::const_iterator& endItr) {
   unpackElement(mBoxLength, bufItr, endItr);
   unpackElement(mGridLevelConst0, bufItr, endItr);
+  unpackElement(mXmin, bufItr, endItr);
+  unpackElement(mXmax, bufItr, endItr);
   unsigned nlevels, ncells;
   CellKey key;
   Cell cell;
@@ -460,14 +467,14 @@ buildCellKey(const typename TreeNeighbor<Dimension>::LevelKey ilevel,
              typename TreeNeighbor<Dimension>::CellKey& ix,
              typename TreeNeighbor<Dimension>::CellKey& iy,
              typename TreeNeighbor<Dimension>::CellKey& iz) const {
-  REQUIRE2(xi.x() >= mXmin.x() and xi.x() <= mXmax.x(), xi << " " << mXmin << " " << mXmax);
-  REQUIRE2(xi.y() >= mXmin.y() and xi.y() <= mXmax.y(), xi << " " << mXmin << " " << mXmax);
-  REQUIRE2(xi.z() >= mXmin.z() and xi.z() <= mXmax.z(), xi << " " << mXmin << " " << mXmax);
+  REQUIRE2(xi.x() >= this->mXmin.x() and xi.x() <= this->mXmax.x(), xi << " " << this->mXmin << " " << this->mXmax);
+  REQUIRE2(xi.y() >= this->mXmin.y() and xi.y() <= this->mXmax.y(), xi << " " << this->mXmin << " " << this->mXmax);
+  REQUIRE2(xi.z() >= this->mXmin.z() and xi.z() <= this->mXmax.z(), xi << " " << this->mXmin << " " << this->mXmax);
   const CellKey ncell = (1U << ilevel);
   const CellKey maxcell = ncell - 1U;
-  ix = std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell));
-  iy = std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell));
-  iz = std::min(maxcell, CellKey((xi.z() - mXmin.z())/mBoxLength * ncell));
+  ix = std::min(maxcell, CellKey((xi.x() - this->mXmin.x())/mBoxLength * ncell));
+  iy = std::min(maxcell, CellKey((xi.y() - this->mXmin.y())/mBoxLength * ncell));
+  iz = std::min(maxcell, CellKey((xi.z() - this->mXmin.z())/mBoxLength * ncell));
   key = ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
          (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
          (std::max(CellKey(0), std::min(max1dKey, ix))));
@@ -596,14 +603,15 @@ setTreeMasterList(const typename Dimension::Vector& position,
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
-  // Set the master list.
+  // Grab the lists we're going to fill in.
   vector<int>& masterList = this->accessMasterList();
+  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
+
+  // Set the master list.
   typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-  CHECK(masterItr != mTree[masterLevel].end());
   masterList = masterItr->second.members;
 
   // Find all the potential neighbors.
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
   coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
 
   // Post conditions.

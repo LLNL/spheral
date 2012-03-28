@@ -155,8 +155,8 @@ def distributeNodesInRange1d(listOfNodeTuples,
             nCumulative += n
 
     # Set neighbor information.
-    for nodeTuple in listOfNodeTuples:
-        nodes = nodeTuple[0]
+    #Neighbor1d.setBoundingBox()
+    for nodes, n, rho0, (x0, x1) in listOfNodeTuples:
         nodes.neighbor().updateNodes()
         assert nodes.neighbor().valid()
 
@@ -216,7 +216,9 @@ def distributeNodesInSphericalRange3d(listOfNodeTuples,
             nodeList.massDensity()[localNodeID] = rho
             nodeList.Hfield()[localNodeID] = Hi
 
-        # Make sure the neighbor is up to date!
+    # Make sure the neighbor info is up to date!
+    #Neighbor3d.setBoundingBox()
+    for (nodeList, n, rho, (r0, r1)) in listOfNodeTuples:
         nodeList.neighbor().updateNodes()
         assert nodeList.neighbor().valid()
         #nodeList.updateWeight()
