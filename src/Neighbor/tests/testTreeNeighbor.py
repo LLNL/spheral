@@ -189,49 +189,50 @@ class TestTreeNeighborBase(SetupNodeDistributions):
                     print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
                 assert test
 
-# #===============================================================================
-# # Radom node distribution -- 1-D.
-# #===============================================================================
-# class TestTreeNeighborRandom1d(unittest.TestCase, TestTreeNeighborBase):
+#===============================================================================
+# Radom node distribution -- 1-D.
+#===============================================================================
+class TestTreeNeighborRandom1d(unittest.TestCase, TestTreeNeighborBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "1-D TreeNeighbor random test."
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "1-D TreeNeighbor random test."
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 10
+        self.ncheck = 10
 
-#         # Generic parameters for 1-D tests.
-#         n1 = 1000
-#         n2 = 2500
-#         n3 = 500
+        # Generic parameters for 1-D tests.
+        n1 = 1000
+        n2 = 2500
+        n3 = 500
 
-#         range1 = ((-2.0, -1.0),)
-#         range2 = ((-1.0, 0.5),)
-#         range3 = ((0.5, 2.0),)
+        range1 = ((-2.0, -1.0),)
+        range2 = ((-1.0, 0.5),)
+        range3 = ((0.5, 2.0),)
 
-#         searchType = GatherScatter
-#         numGridLevels = 20
-#         topGridCellSize = 100.0
-#         self.kernelExtent = 2.0
+        searchType = GatherScatter
+        numGridLevels = 20
+        topGridCellSize = 100.0
+        self.kernelExtent = 2.0
 
-#         self.genericSetUp(n1, n2, n3,
-#                           range1, range2, range3,
-#                           GammaLawGasMKS1d,
-#                           makeFluidNodeList1d,
-#                           TableKernel1d,
-#                           BSplineKernel1d,
-#                           Vector1d,
-#                           SymTensor1d,
-#                           TreeNeighbor1d,
-#                           DataBase1d,
-#                           self.randomDistribute)
+        self.genericSetUp(n1, n2, n3,
+                          range1, range2, range3,
+                          GammaLawGasMKS1d,
+                          makeFluidNodeList1d,
+                          TableKernel1d,
+                          BSplineKernel1d,
+                          Vector1d,
+                          SymTensor1d,
+                          TreeNeighbor1d,
+                          DataBase1d,
+                          self.randomDistribute)
+        print self.nodes1._neighbor.dumpTreeStatistics(True)
 
-#         return
+        return
 
 #===============================================================================
 # Radom node distribution -- 2-D.

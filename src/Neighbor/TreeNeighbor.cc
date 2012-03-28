@@ -603,14 +603,15 @@ setTreeMasterList(const typename Dimension::Vector& position,
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
-  // Set the master list.
+  // Grab the lists we're going to fill in.
   vector<int>& masterList = this->accessMasterList();
+  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
+
+  // Set the master list.
   typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-  CHECK(masterItr != mTree[masterLevel].end());
   masterList = masterItr->second.members;
 
   // Find all the potential neighbors.
-  vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
   coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
 
   // Post conditions.
