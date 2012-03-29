@@ -115,6 +115,9 @@ gradientPairWise
             case NeighborSpace::Scatter:
               Wij = kernel(etaj, Hj);
               break;
+
+            default:
+              VERIFY2(false, "Unhandled neighbor search type.");
             }
 
             // Add this nodes contribution to the master value.

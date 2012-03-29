@@ -140,6 +140,9 @@ sampleFieldsMash(const FieldList<Dimension, DataType>& fieldList,
             Wij = Wj;
             weightij = weightj;
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.

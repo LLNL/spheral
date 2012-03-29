@@ -151,6 +151,9 @@ gradDivVectorFieldListGolden2
               gWij = gWj;
               g2Wij = g2Wj;
               break;
+
+            default:
+              VERIFY2(false, "Unhandled neighbor search type.");
             }
 
             // Sum this pairs contribution to the elements.

@@ -143,6 +143,9 @@ gradDivVectorFieldListPairWise
               Wij = Wj;
               gWij = gWj;
               break;
+
+            default:
+              VERIFY2(false, "Unhandled neighbor search type.");
             }
 
             // Sum this pairs contribution to the elements.

@@ -114,6 +114,9 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
               Wij = kernel(etaj, 1.0);
               gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
               break;
+
+            default:
+              VERIFY2(false, "Unhandled neighbor search type.");
             }
 
             // Add this nodes contribution to the master value.
@@ -245,6 +248,9 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             Wij = kernel(etaj, 1.0);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Sum this nodes contributions to the fitting parameters.
@@ -343,6 +349,9 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.
@@ -446,6 +455,9 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
             Wij = kernel(etaj, 1.0);
             gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
           Wij *= a(masterItr) + b(masterItr)*rij.x();
           gradWij = ((a(masterItr) + b(masterItr)*rij.x())*gradWij -
