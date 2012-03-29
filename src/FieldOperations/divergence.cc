@@ -111,6 +111,9 @@ divergence(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             gradWij = Hj*etajNorm*kernel.grad(etaj, Hj);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.

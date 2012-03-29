@@ -117,6 +117,9 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             Wij = kernel(etaj, 1.0);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Sum this nodes contributions to the fitting parameters.
@@ -166,6 +169,9 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             Wij0 = kernel(etaj, 1.0);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
           Scalar Wij1 = Wij0*(a(masterItr) + b(masterItr)*rij.x());
 
@@ -264,6 +270,9 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           case NeighborSpace::Scatter:
             Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.
