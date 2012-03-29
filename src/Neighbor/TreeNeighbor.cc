@@ -609,7 +609,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Set the master list.
   typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-  masterList = masterItr->second.members;
+  masterList = masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members;
 
   // Find all the potential neighbors.
   coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
@@ -658,30 +658,26 @@ findTreeNeighbors(const LevelKey& masterLevel,
 
   // Declare variables.
   LevelKey ilevel = 0;
-  CellKey ix_min, iy_min, iz_min, ix_max, iy_max, iz_max;
+  CellKey ix, iy, iz, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max, delta;
   vector<Cell*> remainingDaughters(mTree[0].begin()->second.daughterPtrs), newDaughters;
-  vector<int> result;
-
-  // Determine the grid cell range on the master level.
-  const CellKey ix_master_min = ix_master == 0        ? ix_master : ix_master - 1;
-  const CellKey iy_master_min = iy_master == 0        ? iy_master : iy_master - 1;
-  const CellKey iz_master_min = iz_master == 0        ? iz_master : iz_master - 1;
-  const CellKey ix_master_max = ix_master == max1dKey ? ix_master : ix_master + 1;
-  const CellKey iy_master_max = iy_master == max1dKey ? iy_master : iy_master + 1;
-  const CellKey iz_master_max = iz_master == max1dKey ? iz_master : iz_master + 1;
+  vector<int> result = mTree[0].begin()->second.members;
 
   // Walk the tree until we run out of daughters to check.
   while (remainingDaughters.size() > 0) {
     newDaughters = vector<Cell*>();
     ++ilevel;
+    delta = 1U << (ilevel - std::min(ilevel, masterLevel));
 
     // Find the target range of keys on this level.
-    ix_min = shiftKeyLevel(ix_master_min, masterLevel, ilevel);
-    iy_min = shiftKeyLevel(iy_master_min, masterLevel, ilevel);
-    iz_min = shiftKeyLevel(iz_master_min, masterLevel, ilevel);
-    ix_max = shiftKeyLevel(ix_master_max, masterLevel, ilevel);
-    iy_max = shiftKeyLevel(iy_master_max, masterLevel, ilevel);
-    iz_max = shiftKeyLevel(iz_master_max, masterLevel, ilevel);
+    ix = shiftKeyLevel(ix_master, masterLevel, ilevel);
+    iy = shiftKeyLevel(iy_master, masterLevel, ilevel);
+    iz = shiftKeyLevel(iz_master, masterLevel, ilevel);
+    ix_min = (ix >= delta           ? ix - delta : 0U);
+    iy_min = (iy >= delta           ? iy - delta : 0U);
+    iz_min = (iz >= delta           ? iz - delta : 0U);
+    ix_max = (max1dKey - ix > delta ? ix + delta : max1dKey);
+    iy_max = (max1dKey - iy > delta ? iy + delta : max1dKey);
+    iz_max = (max1dKey - iz > delta ? iz + delta : max1dKey);
     CHECK(ix_min <= ix_max and ix_max <= max1dKey);
     CHECK(iy_min <= iy_max and iy_max <= max1dKey);
     CHECK(iz_min <= iz_max and iz_max <= max1dKey);
