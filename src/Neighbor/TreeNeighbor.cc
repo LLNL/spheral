@@ -527,7 +527,7 @@ addNodeToTree(const typename Dimension::Vector& xi,
   typename TreeLevel::iterator itr;
 
   // First walk the tree for all levels above our native level.
-  while (ilevel < homeLevel + 1) {
+  while (ilevel <= homeLevel) {
 
     // Do we need to add another level to the tree?
     if (ilevel == mTree.size()) mTree.push_back(TreeLevel());
@@ -613,6 +613,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Find all the potential neighbors.
   coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
+  cerr << "   -----> initial coarse list : " << coarseNeighborList.size() << endl;
 
   // Post conditions.
   ENSURE(coarseNeighborList.size() >= this->masterList().size());
@@ -638,7 +639,8 @@ setTreeRefineNeighborList(const typename Dimension::Vector& position,
   // Use precull to set the refined neighbor list.
   const std::vector<int>& coarseList = this->coarseNeighborList();
   std::vector<int>& refineList = this->accessRefineNeighborList();
-  refineList = this->precullList(position, position, minExtent, maxExtent, coarseList);
+  refineList = coarseList; // this->precullList(position, position, minExtent, maxExtent, coarseList);
+  cerr << "   -----> selected " << refineList.size() << " of " << coarseList.size() << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -666,18 +668,18 @@ findTreeNeighbors(const LevelKey& masterLevel,
   while (remainingDaughters.size() > 0) {
     newDaughters = vector<Cell*>();
     ++ilevel;
-    delta = 1U << (ilevel - std::min(ilevel, masterLevel));
+    delta = (ilevel <= masterLevel ? 1U : (1U << (ilevel - masterLevel)));
 
     // Find the target range of keys on this level.
     ix = shiftKeyLevel(ix_master, masterLevel, ilevel);
     iy = shiftKeyLevel(iy_master, masterLevel, ilevel);
     iz = shiftKeyLevel(iz_master, masterLevel, ilevel);
-    ix_min = (ix >= delta           ? ix - delta : 0U);
-    iy_min = (iy >= delta           ? iy - delta : 0U);
-    iz_min = (iz >= delta           ? iz - delta : 0U);
-    ix_max = (max1dKey - ix > delta ? ix + delta : max1dKey);
-    iy_max = (max1dKey - iy > delta ? iy + delta : max1dKey);
-    iz_max = (max1dKey - iz > delta ? iz + delta : max1dKey);
+    ix_min = (ix > delta              ? ix - delta : 0U);
+    iy_min = (iy > delta              ? iy - delta : 0U);
+    iz_min = (iz > delta              ? iz - delta : 0U);
+    ix_max = ((max1dKey - ix) > delta ? ix + delta : max1dKey);
+    iy_max = ((max1dKey - iy) > delta ? iy + delta : max1dKey);
+    iz_max = ((max1dKey - iz) > delta ? iz + delta : max1dKey);
     CHECK(ix_min <= ix_max and ix_max <= max1dKey);
     CHECK(iy_min <= iy_max and iy_max <= max1dKey);
     CHECK(iz_min <= iz_max and iz_max <= max1dKey);
@@ -687,7 +689,7 @@ findTreeNeighbors(const LevelKey& masterLevel,
          itr != remainingDaughters.end();
          ++itr) {
       const Cell& cell = **itr;
-      
+
       // Is this daughter in range?
       if (keyInRange(cell.key, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max)) {
         
