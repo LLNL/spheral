@@ -149,22 +149,25 @@ class TestTreeNeighborBase(SetupNodeDistributions):
 
         # Iterate over the NodeLists.
         for nodes in self.dataBase.nodeLists():
+            pos = nodes.positions()
+            H = nodes.Hfield()
 
             # Randomly select nodes from each NodeList to explicitly test.
             for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
-                pos = nodes.positions()
-                H = nodes.Hfield()
                 ri = pos[nodeID]
                 Hi = H[nodeID]
 
                 # Have the neighbor objects select neighbors for this node.
                 t0 = time.time()
                 self.dataBase.setMasterNodeLists(ri, Hi)
+                for nds in self.dataBase.nodeLists():
+                    print " python thinks coarse neighbors: ", len(nds.neighbor().coarseNeighborList)
                 self.dataBase.setRefineNodeLists(ri, Hi)
                 neighborIDs = []
                 offset = 0
                 for nds in self.dataBase.nodeLists():
                     neighborIDs.extend([i + offset for i in nds.neighbor().refineNeighborList])
+                    print "  # refine neighbors: ", len(nds.neighbor().refineNeighborList)
                     offset += nds.numInternalNodes
                 t1 = time.time()
 
@@ -182,12 +185,12 @@ class TestTreeNeighborBase(SetupNodeDistributions):
                 if not test:
                     neighborIDs.sort()
                     answerIDs.sort()
-                    print 'SPH Nested Neighbor test FAILED'
+                    print 'SPH Tree Neighbor test FAILED'
                     print ' refine: ', neighborIDs
                     print ' answer: ', answerIDs
                     missing = [i for i in answerIDs if i not in neighborIDs]
                     print 'missing: ', missing
-                    print 'deltas: ', [((Hi*(pos[i] - ri)).magnitude(), (H[i]*(pos[i] - ri)).magnitude()) for i in missing]
+                    print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
                 else:
                     print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
                 assert test
