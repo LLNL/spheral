@@ -196,38 +196,39 @@ setMasterNeighborGroup(const typename Dimension::Vector& position,
     }
   }
 
-//   // Don't forget to compare these positions and extents with the given 
-//   // position/extent. :-P
-//   const Vector extent = HExtent(H, kernelExtent);
-//   const Vector minExtenti = position - extent;
-//   const Vector maxExtenti = position + extent;
-//   for (int i = 0; i < Dimension::nDim; ++i) {
-//     minMasterPosition(i) = std::min(minMasterPosition(i), position(i));
-//     maxMasterPosition(i) = std::max(maxMasterPosition(i), position(i));
-//     minMasterExtent(i) = std::min(minMasterExtent(i), minExtenti(i));
-//     maxMasterExtent(i) = std::max(maxMasterExtent(i), maxExtenti(i));
-//   }
+  // Don't forget to compare these positions and extents with the given 
+  // position/extent. :-P
+  const Vector extent = HExtent(H, kernelExtent);
+  const Vector minExtenti = position - extent;
+  const Vector maxExtenti = position + extent;
+  for (int i = 0; i < Dimension::nDim; ++i) {
+    minMasterPosition(i) = std::min(minMasterPosition(i), position(i));
+    maxMasterPosition(i) = std::max(maxMasterPosition(i), position(i));
+    minMasterExtent(i) = std::min(minMasterExtent(i), minExtenti(i));
+    maxMasterExtent(i) = std::max(maxMasterExtent(i), maxExtenti(i));
+  }
 
-//   // Loop over the nodes again, and cull the coarse neighbor lists according
-//   // to the overall min/max master distribution we just calcuated.
-//   // WARNING!  After this step the neighbor information in the NodeLists is only
-//   // guaranteed complete for the set of NodeLists passed to this method!
-//   for (NodeListIteratorType nodeListItr = nodeListBegin;
-//        nodeListItr != nodeListEnd;
-//        ++nodeListItr) {
+  // Loop over the nodes again, and cull the coarse neighbor lists according
+  // to the overall min/max master distribution we just calcuated.
+  // WARNING!  After this step the neighbor information in the NodeLists is only
+  // guaranteed complete for the set of NodeLists passed to this method!
+  for (NodeListIteratorType nodeListItr = nodeListBegin;
+       nodeListItr != nodeListEnd;
+       ++nodeListItr) {
 
-//     // Get the current set of coarse neighbors for this NodeList.
-//     Neighbor<Dimension>& neighbor = (*nodeListItr)->neighbor();
-//     std::vector<int>& coarseNeighbors = neighbor.accessCoarseNeighborList();
+    // Get the current set of coarse neighbors for this NodeList.
+    Neighbor<Dimension>& neighbor = (*nodeListItr)->neighbor();
+    std::vector<int>& coarseNeighbors = neighbor.accessCoarseNeighborList();
 
-//     // Now cull the set of coarse neighbors.
-//     coarseNeighbors = neighbor.precullList(minMasterPosition, maxMasterPosition,
-//                                            minMasterExtent, maxMasterExtent,
-//                                            coarseNeighbors);
+    // Now cull the set of coarse neighbors.
+    coarseNeighbors = neighbor.precullList(minMasterPosition, maxMasterPosition,
+                                           minMasterExtent, maxMasterExtent,
+                                           coarseNeighbors);
 
-// //     // Set the per field coarse data caches for this NodeList.
-// //     (*nodeListItr)->notifyFieldsCacheCoarseValues();
-//   }
+//     // Set the per field coarse data caches for this NodeList.
+//     (*nodeListItr)->notifyFieldsCacheCoarseValues();
+  }
 }
+
 }
 }
