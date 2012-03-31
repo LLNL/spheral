@@ -160,6 +160,9 @@ updateNodes() {
 
   // Set the daughter pointers.
   constructDaughterPtrs(mTree);
+
+  // Force the node extents to be calculated.
+  this->setNodeExtents();
 }
 
 //------------------------------------------------------------------------------
@@ -185,6 +188,7 @@ gridLevel(const double& h) const {
   const unsigned result = std::max(0, 
                                    std::min(int(num1dbits) - 1,
                                             int(mGridLevelConst0 - log(h)/log(2.0))));
+  ENSURE(result < num1dbits);
   ENSURE2(fuzzyLessThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << result), 1.0e-10) and
           fuzzyGreaterThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << (result + 1U)), 1.0e-10),
           result << " " << h*this->kernelExtent() << " in? ["
@@ -599,7 +603,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
-  const LevelKey masterLevel = gridLevel(h);
+  const LevelKey masterLevel = std::min(gridLevel(h), LevelKey(mTree.size() - 1));
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
