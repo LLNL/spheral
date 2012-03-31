@@ -613,7 +613,6 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Find all the potential neighbors.
   coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
-  cerr << "   -----> initial coarse list : " << coarseNeighborList.size() << endl;
 
   // Post conditions.
   ENSURE(coarseNeighborList.size() >= this->masterList().size());
@@ -640,7 +639,6 @@ setTreeRefineNeighborList(const typename Dimension::Vector& position,
   const std::vector<int>& coarseList = this->coarseNeighborList();
   std::vector<int>& refineList = this->accessRefineNeighborList();
   refineList = coarseList; // this->precullList(position, position, minExtent, maxExtent, coarseList);
-  cerr << "   -----> selected " << refineList.size() << " of " << coarseList.size() << endl;
 }
 
 //------------------------------------------------------------------------------

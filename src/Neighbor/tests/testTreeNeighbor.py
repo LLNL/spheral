@@ -160,14 +160,11 @@ class TestTreeNeighborBase(SetupNodeDistributions):
                 # Have the neighbor objects select neighbors for this node.
                 t0 = time.time()
                 self.dataBase.setMasterNodeLists(ri, Hi)
-                for nds in self.dataBase.nodeLists():
-                    print " python thinks coarse neighbors: ", len(nds.neighbor().coarseNeighborList)
                 self.dataBase.setRefineNodeLists(ri, Hi)
                 neighborIDs = []
                 offset = 0
                 for nds in self.dataBase.nodeLists():
                     neighborIDs.extend([i + offset for i in nds.neighbor().refineNeighborList])
-                    print "  # refine neighbors: ", len(nds.neighbor().refineNeighborList)
                     offset += nds.numInternalNodes
                 t1 = time.time()
 
@@ -236,132 +233,131 @@ class TestTreeNeighborRandom1d(unittest.TestCase, TestTreeNeighborBase):
                           TreeNeighbor1d,
                           DataBase1d,
                           self.randomDistribute)
-        print self.nodes1._neighbor.dumpTreeStatistics(True)
 
         return
 
-# #===============================================================================
-# # Radom node distribution -- 2-D.
-# #===============================================================================
-# class TestTreeNeighborRandom2d(unittest.TestCase, TestTreeNeighborBase):
+#===============================================================================
+# Radom node distribution -- 2-D.
+#===============================================================================
+class TestTreeNeighborRandom2d(unittest.TestCase, TestTreeNeighborBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "2-D TreeNeighbor random test."
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "2-D TreeNeighbor random test."
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 10
+        self.ncheck = 10
 
-#         # Generic parameters for 2-D tests.
-#         n1 = 10000
-#         n2 = 25000
-#         n3 = 5000
+        # Generic parameters for 2-D tests.
+        n1 = 10000
+        n2 = 25000
+        n3 = 5000
 
-#         range1 = ((-2.0, -1.0), (0.0, 1.0))
-#         range2 = ((-1.0, -0.5), (0.0, 1.0))
-#         range3 = ((-0.5, 0.0), (0.0, 1.0))
+        range1 = ((-2.0, -1.0), (0.0, 1.0))
+        range2 = ((-1.0, -0.5), (0.0, 1.0))
+        range3 = ((-0.5, 0.0), (0.0, 1.0))
 
-#         self.kernelExtent = 2.0
+        self.kernelExtent = 2.0
 
-#         self.genericSetUp(n1, n2, n3,
-#                           range1, range2, range3,
-#                           GammaLawGasMKS2d,
-#                           makeFluidNodeList2d,
-#                           TableKernel2d,
-#                           BSplineKernel2d,
-#                           Vector2d,
-#                           SymTensor2d,
-#                           TreeNeighbor2d,
-#                           DataBase2d,
-#                           self.randomDistribute)
+        self.genericSetUp(n1, n2, n3,
+                          range1, range2, range3,
+                          GammaLawGasMKS2d,
+                          makeFluidNodeList2d,
+                          TableKernel2d,
+                          BSplineKernel2d,
+                          Vector2d,
+                          SymTensor2d,
+                          TreeNeighbor2d,
+                          DataBase2d,
+                          self.randomDistribute)
 
-#         return
+        return
 
-# #===============================================================================
-# # Radom node distribution -- 3-D.
-# #===============================================================================
-# class TestTreeNeighborRandom3d(unittest.TestCase, TestTreeNeighborBase):
+#===============================================================================
+# Radom node distribution -- 3-D.
+#===============================================================================
+class TestTreeNeighborRandom3d(unittest.TestCase, TestTreeNeighborBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "3-D TreeNeighbor random test."
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "3-D TreeNeighbor random test."
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 10
+        self.ncheck = 10
 
-#         # Generic parameters for 3-D tests.
-#         n1 = 1000
-#         n2 = 2500
-#         n3 = 1500
+        # Generic parameters for 3-D tests.
+        n1 = 1000
+        n2 = 2500
+        n3 = 1500
 
-#         range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
-#         range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
-#         range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
+        range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
+        range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
 
-#         searchType = GatherScatter
-#         numGridLevels = 20
-#         topGridCellSize = 100.0
-#         origin = Vector3d(0.0, 0.0, 0.0)
-#         self.kernelExtent = 2.0
+        searchType = GatherScatter
+        numGridLevels = 20
+        topGridCellSize = 100.0
+        origin = Vector3d(0.0, 0.0, 0.0)
+        self.kernelExtent = 2.0
 
-#         self.genericSetUp(n1, n2, n3,
-#                           range1, range2, range3,
-#                           GammaLawGasMKS3d,
-#                           makeFluidNodeList3d,
-#                           TableKernel3d,
-#                           BSplineKernel3d,
-#                           Vector3d,
-#                           SymTensor3d,
-#                           TreeNeighbor3d,
-#                           DataBase3d,
-#                           self.randomDistribute)
+        self.genericSetUp(n1, n2, n3,
+                          range1, range2, range3,
+                          GammaLawGasMKS3d,
+                          makeFluidNodeList3d,
+                          TableKernel3d,
+                          BSplineKernel3d,
+                          Vector3d,
+                          SymTensor3d,
+                          TreeNeighbor3d,
+                          DataBase3d,
+                          self.randomDistribute)
 
 
-#         return
+        return
 
-# #===============================================================================
-# # Cylindrical node distribution -- 2-D.
-# #===============================================================================
-# class TestTreeNeighborCylindrical2d(unittest.TestCase, TestTreeNeighborBase):
+#===============================================================================
+# Cylindrical node distribution -- 2-D.
+#===============================================================================
+class TestTreeNeighborCylindrical2d(unittest.TestCase, TestTreeNeighborBase):
 
-#     #---------------------------------------------------------------------------
-#     # Set up method called before test is run.
-#     #---------------------------------------------------------------------------
-#     def setUp(self):
+    #---------------------------------------------------------------------------
+    # Set up method called before test is run.
+    #---------------------------------------------------------------------------
+    def setUp(self):
 
-#         print "--------------------------------------------------------------------------------"
-#         print "2-D TreeNeighbor regular cylindrical test."
-#         print "--------------------------------------------------------------------------------"
+        print "--------------------------------------------------------------------------------"
+        print "2-D TreeNeighbor regular cylindrical test."
+        print "--------------------------------------------------------------------------------"
 
-#         self.ncheck = 50
+        self.ncheck = 50
 
-#         from GenerateNodeDistribution2d import GenerateNodeDistribution2d
-#         from DistributeNodes import distributeNodes2d
-#         self.eos = GammaLawGasMKS2d(2.0, 2.0)
-#         self.WT = TableKernel2d(BSplineKernel2d(), 100)
-#         self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos, NeighborType=TreeNeighbor2d)
-#         self.kernelExtent = 2.0
-#         generator = GenerateNodeDistribution2d(nRadial = 100,
-#                                                nTheta = 100,
-#                                                rho = 1.0,
-#                                                distributionType = "constantDTheta",
-#                                                rmin = 0.0,
-#                                                rmax = 1.0,
-#                                                theta = 0.5*pi,
-#                                                nNodePerh = 2.01)
-#         distributeNodes2d((self.nodes1, generator))
-#         self.dataBase = DataBase2d()
-#         self.dataBase.appendNodeList(self.nodes1)
+        from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+        from DistributeNodes import distributeNodes2d
+        self.eos = GammaLawGasMKS2d(2.0, 2.0)
+        self.WT = TableKernel2d(BSplineKernel2d(), 100)
+        self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos, NeighborType=TreeNeighbor2d)
+        self.kernelExtent = 2.0
+        generator = GenerateNodeDistribution2d(nRadial = 100,
+                                               nTheta = 100,
+                                               rho = 1.0,
+                                               distributionType = "constantDTheta",
+                                               rmin = 0.0,
+                                               rmax = 1.0,
+                                               theta = 0.5*pi,
+                                               nNodePerh = 2.01)
+        distributeNodes2d((self.nodes1, generator))
+        self.dataBase = DataBase2d()
+        self.dataBase.appendNodeList(self.nodes1)
 
-#         return
+        return
 
 #===============================================================================
 # Run the tests
