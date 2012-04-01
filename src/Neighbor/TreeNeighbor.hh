@@ -175,6 +175,15 @@ private:
                   const CellKey& ix_min, const CellKey& iy_min, const CellKey& iz_min,
                   const CellKey& ix_max, const CellKey& iy_max, const CellKey& iz_max) const;
 
+  // Find the minimum distance from a cell/level to a plane.
+  double distanceToCell(const LevelKey& ilevel, const CellKey& key, const GeomPlane<Dimension>& plane) const;
+
+  // Map a cell key/level through an entrance/exit plane pair, returning the set of cells
+  // that overlap the mapped cell.
+  std::vector<CellKey> mapKey(const LevelKey& ilevel, const CellKey& key, 
+                              const GeomPlane<Dimension>& enterPlane,
+                              const GeomPlane<Dimension>& exitPlane) const;
+
   // Seralize/deserialize cells.
   void serialize(const Cell& cell, std::vector<char>& buffer) const;
   void deserialize(Cell& cell, 

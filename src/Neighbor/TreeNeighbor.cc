@@ -22,7 +22,9 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/FastMath.hh"
+#include "Boundary/mapPositionThroughPlanes.hh"
 #include "Geometry/Dimension.hh"
+#include "Geometry/GeomPlane.hh"
 #include "DBC.hh"
 
 namespace Spheral {
@@ -32,6 +34,111 @@ using namespace std;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NodeSpace::NodeList;
+
+//------------------------------------------------------------------------------
+// Compute the vertex coordinates for a cell.
+//------------------------------------------------------------------------------
+// 1D
+vector<Dim<1>::Vector>
+findCellVertices(const Dim<1>::Vector& xmin,
+                 const double& boxLength,
+                 const uint32_t& ilevel,
+                 const uint64_t& ix,
+                 const uint64_t& iy,
+                 const uint64_t& iz) {
+  typedef Dim<1>::Vector Vector;
+  const double cellSize = boxLength/(1U << ilevel);
+  vector<Vector> result;
+  result.push_back(xmin + Vector(ix       *cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize));
+  return result;
+}
+
+// 2D
+vector<Dim<2>::Vector>
+findCellVertices(const Dim<2>::Vector& xmin,
+                 const double& boxLength,
+                 const uint32_t& ilevel,
+                 const uint64_t& ix,
+                 const uint64_t& iy,
+                 const uint64_t& iz) {
+  typedef Dim<2>::Vector Vector;
+  const double cellSize = boxLength/(1U << ilevel);
+  vector<Vector> result;
+  result.push_back(xmin + Vector(ix       *cellSize, iy       *cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, iy       *cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, (iy + 1U)*cellSize));
+  result.push_back(xmin + Vector(ix       *cellSize, (iy + 1U)*cellSize));
+  return result;
+}
+
+// 3D
+vector<Dim<3>::Vector>
+findCellVertices(const Dim<3>::Vector& xmin,
+                 const double& boxLength,
+                 const uint32_t& ilevel,
+                 const uint64_t& ix,
+                 const uint64_t& iy,
+                 const uint64_t& iz) {
+  typedef Dim<3>::Vector Vector;
+  const double cellSize = boxLength/(1U << ilevel);
+  vector<Vector> result;
+  result.push_back(xmin + Vector(ix       *cellSize, iy       *cellSize, iz       *cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, iy       *cellSize, iz       *cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, (iy + 1U)*cellSize, iz       *cellSize));
+  result.push_back(xmin + Vector(ix       *cellSize, (iy + 1U)*cellSize, iz       *cellSize));
+  result.push_back(xmin + Vector(ix       *cellSize, iy       *cellSize, (iz + 1U)*cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, iy       *cellSize, (iz + 1U)*cellSize));
+  result.push_back(xmin + Vector((ix + 1U)*cellSize, (iy + 1U)*cellSize, (iz + 1U)*cellSize));
+  result.push_back(xmin + Vector(ix       *cellSize, (iy + 1U)*cellSize, (iz + 1U)*cellSize));
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Squeeze the vertices of a cell a bit closer together.
+//------------------------------------------------------------------------------
+// 1D
+void
+squeezeCell(vector<Dim<1>::Vector>& vertices,
+            const double& smidgen) {
+  typedef Dim<1>::Vector Vector;
+  REQUIRE(vertices.size() == 2);
+  const Vector centroid = 0.5*smidgen*(vertices[0] + vertices[1]);
+  vertices[0] = centroid + (1.0 - smidgen)*vertices[0];
+  vertices[1] = centroid + (1.0 - smidgen)*vertices[1];
+}
+
+// 2D
+void
+squeezeCell(vector<Dim<2>::Vector>& vertices,
+            const double& smidgen) {
+  typedef Dim<2>::Vector Vector;
+  REQUIRE(vertices.size() == 4);
+  const Vector centroid = 0.25*smidgen*(vertices[0] + vertices[1] + 
+                                        vertices[2] + vertices[3]);
+  vertices[0] = centroid + (1.0 - smidgen)*vertices[0];
+  vertices[1] = centroid + (1.0 - smidgen)*vertices[1];
+  vertices[2] = centroid + (1.0 - smidgen)*vertices[2];
+  vertices[3] = centroid + (1.0 - smidgen)*vertices[3];
+}
+
+// 3D
+void
+squeezeCell(vector<Dim<3>::Vector>& vertices,
+            const double& smidgen) {
+  typedef Dim<3>::Vector Vector;
+  REQUIRE(vertices.size() == 8);
+  const Vector centroid = 0.125*smidgen*(vertices[0] + vertices[1] + vertices[2] + vertices[3] +
+                                         vertices[4] + vertices[5] + vertices[6] + vertices[7]);
+  vertices[0] = centroid + (1.0 - smidgen)*vertices[0];
+  vertices[1] = centroid + (1.0 - smidgen)*vertices[1];
+  vertices[2] = centroid + (1.0 - smidgen)*vertices[2];
+  vertices[3] = centroid + (1.0 - smidgen)*vertices[3];
+  vertices[4] = centroid + (1.0 - smidgen)*vertices[4];
+  vertices[5] = centroid + (1.0 - smidgen)*vertices[5];
+  vertices[6] = centroid + (1.0 - smidgen)*vertices[6];
+  vertices[7] = centroid + (1.0 - smidgen)*vertices[7];
+}
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -127,7 +234,68 @@ void
 TreeNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
               const GeomPlane<Dimension>& exitPlane) {
-  // FIXME
+
+  // TAU timers.
+  TAU_PROFILE("TreeNeighbor", "::setMasterList(Plane, Plane)", TAU_USER);
+
+  // Get the master and coarse lists.
+  vector<int>& masterList = this->accessMasterList();
+  vector<int>& coarseList = this->accessCoarseNeighborList();
+  masterList = vector<int>();
+  coarseList = vector<int>();
+  CHECK(mTree[0].begin()->second.members.size() == 0);
+
+  // Declare a bunch of variables we're going to need.
+  LevelKey ilevel = 0;
+  CellKey ix, iy, iz;
+  double cellSize;
+  vector<Cell*> remainingDaughters(mTree[0].begin()->second.daughterPtrs), newDaughters;
+
+  // Walk the tree, looking for any master cells that are in range of the 
+  // entrance plane.
+  while (remainingDaughters.size() > 0) {
+    newDaughters = vector<Cell*>();
+    ++ilevel;
+    cellSize = mBoxLength/(1U << ilevel);
+    
+    // Walk the candidates.
+    for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
+         itr != remainingDaughters.end();
+         ++itr) {
+      const Cell& cell = **itr;
+
+      // Is this cell in range of the entrance plane?
+      if (this->distanceToCell(ilevel, cell.key, enterPlane) <= cellSize) {
+
+        // Add the daughters as candidates for the next level.
+        copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+
+        // This cell can only be a master if it has some nodes!
+        if (cell.members.size() > 0) {
+          copy(cell.members.begin(), cell.members.end(), back_inserter(masterList));
+
+          // Map the cell key through to the exit plane (which may result in more
+          // than one equivalent key).  Then find all the neighbors for those cells,
+          // and add them to the coarse set.
+          const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, enterPlane, exitPlane);
+          for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
+               keyItr != mappedKeys.end();
+               ++keyItr) {
+            this->extractCellIndices(*keyItr, ix, iy, iz);
+            const vector<int> neighbors = this->findTreeNeighbors(ilevel, ix, iy, iz);
+            copy(neighbors.begin(), neighbors.end(), back_inserter(coarseList));
+          }
+        }
+      }
+
+      // Update the set of daughters to check on the next pass.
+      remainingDaughters = newDaughters;
+    }
+  }
+
+  // The coarse neighbor set may contain duplicates -- make it unique.
+  sort(coarseList.begin(), coarseList.end());
+  coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
 }
 
 //------------------------------------------------------------------------------
@@ -743,6 +911,75 @@ keyInRange(const typename TreeNeighbor<Dimension>::CellKey& key,
   return (ix >= ix_min and ix <= ix_max and
           iy >= iy_min and iy <= iy_max and
           iz >= iz_min and iz <= iz_max);
+}
+
+//------------------------------------------------------------------------------
+// Find the minimum distance from a cell to a plane.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+TreeNeighbor<Dimension>::
+distanceToCell(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
+               const typename TreeNeighbor<Dimension>::CellKey& key,
+               const GeomPlane<Dimension>& plane) const {
+  CellKey ix, iy, iz;
+  this->extractCellIndices(key, ix, iy, iz);
+  const vector<Vector> cellVertices = findCellVertices(mXmin, mBoxLength, 
+                                                       ilevel, ix, iy, iz);
+  const unsigned n = cellVertices.size();
+  CHECK(n == (1U << Dimension::nDim));
+  unsigned i;
+  double dist, minDist = plane.signedDistance(cellVertices[0]);
+  for (unsigned i = 1; i < cellVertices.size(); ++i) {
+    dist = plane.signedDistance(cellVertices[i]);
+    if (dist*minDist < 0.0) {
+      minDist = 0.0;
+    } else if (abs(dist) < abs(minDist)) {
+      minDist = dist;
+    }
+  }
+  return abs(minDist);
+}
+
+//------------------------------------------------------------------------------
+// Map a cell key/level through an entrance/exit plane pair, returning the set 
+// of cells that overlap the mapped cell.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<typename TreeNeighbor<Dimension>::CellKey>
+TreeNeighbor<Dimension>::
+mapKey(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
+       const typename TreeNeighbor<Dimension>::CellKey& key,
+       const GeomPlane<Dimension>& enterPlane,
+       const GeomPlane<Dimension>& exitPlane) const {
+  CellKey ix, iy, iz, newKey;
+  this->extractCellIndices(key, ix, iy, iz);
+  vector<Vector> vertices = findCellVertices(mXmin, mBoxLength,
+                                             ilevel, ix, iy, iz);
+  const unsigned n = vertices.size();
+  CHECK(n == (1U << Dimension::nDim));
+
+  // Squeeze the vertices in smidgen so that if we are exactly overlaying a 
+  // new cell all the vertices have a better chance of landing in it.
+  const double smidgen = 1.0e-4*(mBoxLength/(1U << ilevel));
+  squeezeCell(vertices, smidgen);
+
+  // Now we can find the cells we map to.
+  vector<CellKey> result;
+  unsigned i;
+  for (i = 0; i != n; ++i) {
+    buildCellKey(ilevel,
+                 mapPositionThroughPlanes(vertices[i], enterPlane, exitPlane),
+                 newKey, ix, iy, iz);
+    result.push_back(newKey);
+  }
+
+  // Reduce to the unique set.
+  sort(result.begin(), result.end());
+  result.erase(unique(result.begin(), result.end()), result.end());
+
+  // That's it.
+  return result;
 }
 
 //------------------------------------------------------------------------------
