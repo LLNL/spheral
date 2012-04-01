@@ -832,9 +832,10 @@ findTreeNeighbors(const LevelKey& masterLevel,
   LevelKey ilevel = 0;
   CellKey ix, iy, iz, ix_min, iy_min, iz_min, ix_max, iy_max, iz_max, delta;
   vector<Cell*> remainingDaughters(mTree[0].begin()->second.daughterPtrs), newDaughters;
-  vector<int> result = mTree[0].begin()->second.members;
+  vector<int> result;
 
   // Walk the tree until we run out of daughters to check.
+  CHECK(mTree[0].begin()->second.members.size() == 0);
   while (remainingDaughters.size() > 0) {
     newDaughters = vector<Cell*>();
     ++ilevel;
@@ -847,9 +848,9 @@ findTreeNeighbors(const LevelKey& masterLevel,
     ix_min = (ix > delta              ? ix - delta : 0U);
     iy_min = (iy > delta              ? iy - delta : 0U);
     iz_min = (iz > delta              ? iz - delta : 0U);
-    ix_max = ((max1dKey - ix) > delta ? ix + delta : max1dKey);
-    iy_max = ((max1dKey - iy) > delta ? iy + delta : max1dKey);
-    iz_max = ((max1dKey - iz) > delta ? iz + delta : max1dKey);
+    ix_max = ((max1dKey - ix) > delta ? ix + 2*delta - 1U : max1dKey);
+    iy_max = ((max1dKey - iy) > delta ? iy + 2*delta - 1U : max1dKey);
+    iz_max = ((max1dKey - iz) > delta ? iz + 2*delta - 1U : max1dKey);
     CHECK(ix_min <= ix_max and ix_max <= max1dKey);
     CHECK(iy_min <= iy_max and iy_max <= max1dKey);
     CHECK(iz_min <= iz_max and iz_max <= max1dKey);
