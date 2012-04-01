@@ -42,6 +42,9 @@ public:
   // Negative operator (reverses sign of normal).
   GeomPlane operator-() const;
 
+  // Calculate the signed distance between a given point and the plane.
+  double signedDistance(const Vector& point) const;
+
   // Calculate the minimum distance between a given point and the plane.
   double minimumDistance(const Vector& point) const;
 

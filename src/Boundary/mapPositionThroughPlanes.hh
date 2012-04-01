@@ -4,10 +4,8 @@
 //
 // Created by JMO, Fri Dec  6 13:48:48 PST 2002
 //----------------------------------------------------------------------------//
-//#include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Infrastructure/SpheralFunctions.hh"
-#include "cdebug.hh"
 #include "DBC.hh"
 
 namespace Spheral {
@@ -16,9 +14,7 @@ typename Dimension::Vector
 mapPositionThroughPlanes(const typename Dimension::Vector& position,
                          const GeomPlane<Dimension>& enterPlane,
                          const GeomPlane<Dimension>& exitPlane) {
-  cdebug << "mapPositionThroughPlanes(r, enterPlane, exitPlane): " << std::endl;
   REQUIRE(enterPlane.valid() && exitPlane.valid());
-//   REQUIRE(enterPlane.parallel(exitPlane));
   typedef typename Dimension::Vector Vector;
   const Vector deltaEnter = (position - enterPlane.point()).dot(enterPlane.normal())*enterPlane.normal();
   const Vector deltaExit = (position - exitPlane.point()).dot(exitPlane.normal())*exitPlane.normal();
