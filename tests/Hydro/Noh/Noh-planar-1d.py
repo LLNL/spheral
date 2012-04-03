@@ -85,25 +85,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0613813   ,
-            L2rho =   0.225713    ,
-            Linfrho = 1.54809     ,
+            L1rho =   0.0622862   ,
+            L2rho =   0.226227    ,
+            Linfrho = 1.53012     ,
                                                         
-            L1P =     0.0223507   ,
-            L2P =     0.0888578   ,
-            LinfP =   0.630458    ,
+            L1P =     0.0223858   ,
+            L2P =     0.0886198   ,
+            LinfP =   0.61721     ,
                                                         
-            L1v =     0.0230331   ,
-            L2v =     0.113194    ,
-            Linfv =   0.812404    ,
+            L1v =     0.023289    ,
+            L2v =     0.11406     ,
+            Linfv =   0.809769    ,
                                                         
-            L1eps =   0.01134     ,
-            L2eps =   0.0525237   ,
-            Linfeps = 0.371136    ,
+            L1eps =   0.0114214   ,
+            L2eps =   0.0522108   ,
+            Linfeps = 0.365918    ,
                                             
-            L1h =     0.000345751 ,
-            L2h =     0.00130054  ,
-            Linfh =   0.00756392  ,
+            L1h =     0.000341588 ,
+            L2h =     0.00128347  ,
+            Linfh =   0.00748636  ,
 
             tol = 1.0e-5,
 
@@ -420,15 +420,15 @@ if checkError:
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                   L1,
                                                                                                   L1expect)
             if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                   L2,
                                                                                                   L2expect)
             if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                     Linf,
                                                                                                     Linfexpect)
 
