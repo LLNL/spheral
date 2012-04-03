@@ -71,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             compatibleEnergy = True,
             gradhCorrection = True,
             domainIndependent = True,
+            cullGhostNodes = True,
 
             clearDirectories = True,
             checkError = True,
@@ -261,6 +262,7 @@ integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.updateBoundaryFrequency = updateBoundaryFrequency
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.cullGhostNodes = cullGhostNodes
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")

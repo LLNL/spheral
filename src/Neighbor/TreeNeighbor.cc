@@ -243,35 +243,38 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
   vector<int>& coarseList = this->accessCoarseNeighborList();
   masterList = vector<int>();
   coarseList = vector<int>();
-  CHECK(mTree[0].begin()->second.members.size() == 0);
+  if (mTree.size() > 0) {
+    CHECK(mTree[0].size() == 1);
+    CHECK(mTree[0].begin()->second.members.size() == 0);
 
-  // Declare a bunch of variables we're going to need.
-  LevelKey ilevel = 0;
-  CellKey ix, iy, iz;
-  double cellSize;
-  vector<Cell*> remainingDaughters(mTree[0].begin()->second.daughterPtrs), newDaughters;
+    // Declare a bunch of variables we're going to need.
+    LevelKey ilevel = 0;
+    CellKey ix, iy, iz;
+    double cellSize;
+    vector<Cell*> remainingDaughters(mTree[0].begin()->second.daughterPtrs), newDaughters;
 
-  // Walk the tree, looking for any master cells that are in range of the 
-  // entrance plane.
-  while (remainingDaughters.size() > 0) {
-    newDaughters = vector<Cell*>();
-    ++ilevel;
-    cellSize = mBoxLength/(1U << ilevel);
+    // Walk the tree, looking for any master cells that are in range of the 
+    // entrance plane.
+    while (remainingDaughters.size() > 0) {
+      newDaughters = vector<Cell*>();
+      ++ilevel;
+      cellSize = mBoxLength/(1U << ilevel);
     
-    // Walk the candidates.
-    for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
-         itr != remainingDaughters.end();
-         ++itr) {
-      const Cell& cell = **itr;
+      // Walk the candidates.
+      for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
+           itr != remainingDaughters.end();
+           ++itr) {
+        const Cell& cell = **itr;
 
-      // Is this cell in range of the entrance plane?
-      if (this->distanceToCell(ilevel, cell.key, enterPlane) <= cellSize) {
+        // Check if we're in range of either plane.
+        const bool entranceCheck = (this->distanceToCell(ilevel, cell.key, enterPlane) <= cellSize);
+        const bool exitCheck = (this->distanceToCell(ilevel, cell.key, exitPlane) <= cellSize);
 
-        // Add the daughters as candidates for the next level.
-        copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+        // If so, add the daughters to check on the next pass.
+        if (entranceCheck or exitCheck) copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
 
-        // This cell can only be a master if it has some nodes!
-        if (cell.members.size() > 0) {
+        // Does this cell have members in range of the entrance plane?
+        if (entranceCheck and cell.members.size() > 0) {
           copy(cell.members.begin(), cell.members.end(), back_inserter(masterList));
 
           // Map the cell key through to the exit plane (which may result in more
@@ -286,16 +289,36 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
             copy(neighbors.begin(), neighbors.end(), back_inserter(coarseList));
           }
         }
+
+        // Does this cell have members in range of the exit plane?
+        if (exitCheck and cell.members.size() > 0) {
+          copy(cell.members.begin(), cell.members.end(), back_inserter(coarseList));
+
+          // // Map the cell key through to the entrance plane.  Any nodes we interact
+          // // with on that side are potential masters.
+          // const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, exitPlane, enterPlane);
+          // for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
+          //      keyItr != mappedKeys.end();
+          //      ++keyItr) {
+          //   TreeLevel::const_iterator cellItr = mTree[ilevel].find(*keyItr);
+          //   if (cellItr != mTree[ilevel].end()) {
+          //   this->extractCellIndices(*keyItr, ix, iy, iz);
+          //   const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
+          //   copy(masters.begin(), masters.end(), back_inserter(masterList));
+          // }
+        }
       }
 
       // Update the set of daughters to check on the next pass.
       remainingDaughters = newDaughters;
     }
-  }
 
-  // The coarse neighbor set may contain duplicates -- make it unique.
-  sort(coarseList.begin(), coarseList.end());
-  coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
+    // Remove duplicates from the master and coarse sets.
+    sort(masterList.begin(), masterList.end());
+    masterList.erase(unique(masterList.begin(), masterList.end()), masterList.end());
+    sort(coarseList.begin(), coarseList.end());
+    coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -321,7 +344,7 @@ updateNodes() {
   // mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
 
   // Walk all the internal nodes and add them to the tree.
-  const size_t n = nodes.numInternalNodes();
+  const size_t n = nodes.numNodes();
   for (unsigned i = 0; i != n; ++i) {
     this->addNodeToTree(positions(i), H(i), i);
   }
@@ -778,13 +801,17 @@ setTreeMasterList(const typename Dimension::Vector& position,
   // Grab the lists we're going to fill in.
   vector<int>& masterList = this->accessMasterList();
   vector<int>& coarseNeighborList = this->accessCoarseNeighborList();
+  masterList = vector<int>();
+  coarseNeighborList = vector<int>();
 
   // Set the master list.
-  typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-  masterList = masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members;
+  if (mTree.size() > 0) {
+    typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
+    masterList = masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members;
 
-  // Find all the potential neighbors.
-  coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
+    // Find all the potential neighbors.
+    coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
+  }
 
   // Post conditions.
   ENSURE(coarseNeighborList.size() >= this->masterList().size());
@@ -802,10 +829,10 @@ setTreeRefineNeighborList(const typename Dimension::Vector& position,
   // TAU timers.
   TAU_PROFILE("TreeNeighbor", "::setTreeRefineNeighborList", TAU_USER);
 
-  // Determine the maximum extent of this H tensor in each dimension.
-  const Vector extent = this->HExtent(H, this->kernelExtent());
-  const Vector minExtent = position - extent;
-  const Vector maxExtent = position + extent;
+  // // Determine the maximum extent of this H tensor in each dimension.
+  // const Vector extent = this->HExtent(H, this->kernelExtent());
+  // const Vector minExtent = position - extent;
+  // const Vector maxExtent = position + extent;
 
   // Use precull to set the refined neighbor list.
   const std::vector<int>& coarseList = this->coarseNeighborList();
