@@ -662,14 +662,14 @@ buildCellKey(const typename TreeNeighbor<Dimension>::LevelKey ilevel,
              typename TreeNeighbor<Dimension>::CellKey& ix,
              typename TreeNeighbor<Dimension>::CellKey& iy,
              typename TreeNeighbor<Dimension>::CellKey& iz) const {
-  REQUIRE2(xi.x() >= this->mXmin.x() and xi.x() <= this->mXmax.x(), xi << " " << this->mXmin << " " << this->mXmax);
-  REQUIRE2(xi.y() >= this->mXmin.y() and xi.y() <= this->mXmax.y(), xi << " " << this->mXmin << " " << this->mXmax);
-  REQUIRE2(xi.z() >= this->mXmin.z() and xi.z() <= this->mXmax.z(), xi << " " << this->mXmin << " " << this->mXmax);
+//   REQUIRE2(xi.x() >= this->mXmin.x() and xi.x() <= this->mXmax.x(), xi << " " << this->mXmin << " " << this->mXmax);
+//   REQUIRE2(xi.y() >= this->mXmin.y() and xi.y() <= this->mXmax.y(), xi << " " << this->mXmin << " " << this->mXmax);
+//   REQUIRE2(xi.z() >= this->mXmin.z() and xi.z() <= this->mXmax.z(), xi << " " << this->mXmin << " " << this->mXmax);
   const CellKey ncell = (1U << ilevel);
   const CellKey maxcell = ncell - 1U;
-  ix = std::min(maxcell, CellKey((xi.x() - this->mXmin.x())/mBoxLength * ncell));
-  iy = std::min(maxcell, CellKey((xi.y() - this->mXmin.y())/mBoxLength * ncell));
-  iz = std::min(maxcell, CellKey((xi.z() - this->mXmin.z())/mBoxLength * ncell));
+  ix = std::min(maxcell, CellKey(std::max(0.0, std::min(1.0, (xi.x() - this->mXmin.x())/mBoxLength)) * ncell));
+  iy = std::min(maxcell, CellKey(std::max(0.0, std::min(1.0, (xi.y() - this->mXmin.y())/mBoxLength)) * ncell));
+  iz = std::min(maxcell, CellKey(std::max(0.0, std::min(1.0, (xi.z() - this->mXmin.z())/mBoxLength)) * ncell));
   key = ((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
          (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
          (std::max(CellKey(0), std::min(max1dKey, ix))));
