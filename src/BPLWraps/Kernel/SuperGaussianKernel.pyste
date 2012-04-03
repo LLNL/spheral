@@ -1,9 +1,0 @@
-SuperGaussianKernel = Template("Spheral::KernelSpace::SuperGaussianKernel",
-                               "ExtendSuperGaussianKernel.hh")
-exclude(SuperGaussianKernel.asDescendent)
-
-final(SuperGaussianKernel.valid)
-
-SuperGaussianKernel1d = SuperGaussianKernel("Spheral::Dim<1>", "SuperGaussianKernel1d")
-SuperGaussianKernel2d = SuperGaussianKernel("Spheral::Dim<2>", "SuperGaussianKernel2d")
-SuperGaussianKernel3d = SuperGaussianKernel("Spheral::Dim<3>", "SuperGaussianKernel3d")

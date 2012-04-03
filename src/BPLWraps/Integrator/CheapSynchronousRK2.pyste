@@ -1,6 +1,0 @@
-cheapSyncRK2 = Template("Spheral::IntegratorSpace::CheapSynchronousRK2",
-                        "ExtendCheapSynchronousRK2.hh")
-
-cheapSyncRK21d = cheapSyncRK2("Spheral::Dim<1>", "CheapSynchronousRK2Integrator1d")
-cheapSyncRK22d = cheapSyncRK2("Spheral::Dim<2>", "CheapSynchronousRK2Integrator2d")
-cheapSyncRK23d = cheapSyncRK2("Spheral::Dim<3>", "CheapSynchronousRK2Integrator3d")
