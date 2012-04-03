@@ -1,5 +1,0 @@
-x = Template("Spheral::PartitionSpace::ParmetisRedistributeNodes",
-             "ExtendParmetisRedistribute.hh")
-
-x2d = x("Spheral::Dim<2>", "ParmetisRedistributeNodes2d")
-x3d = x("Spheral::Dim<3>", "ParmetisRedistributeNodes3d")

@@ -1,8 +1,0 @@
-syncRK1 = Template("Spheral::IntegratorSpace::SynchronousRK1",
-                   "ExtendSynchronousRK1.hh")
-exclude(syncRK1.MassDensityType)
-set_policy(syncRK1.kernelPtr, return_internal_reference())
-
-syncRK11d = syncRK1("Spheral::Dim<1>", "SynchronousRK1Integrator1d")
-syncRK12d = syncRK1("Spheral::Dim<2>", "SynchronousRK1Integrator2d")
-syncRK13d = syncRK1("Spheral::Dim<3>", "SynchronousRK1Integrator3d")

@@ -1,8 +1,0 @@
-Function("Spheral::FieldSpace::sampleMultipleFields2Lattice1d",
-         "ExtendSampleMultipleFields2Lattice.hh")
-
-Function("Spheral::FieldSpace::sampleMultipleFields2Lattice2d",
-         "ExtendSampleMultipleFields2Lattice.hh")
-
-Function("Spheral::FieldSpace::sampleMultipleFields2Lattice3d",
-         "ExtendSampleMultipleFields2Lattice.hh")
