@@ -99,9 +99,9 @@ class SetupNodeDistributions:
         # Construct the NodeLists to be distributed
         self.eos = EOS(2.0, 2.0)
         self.WT = TableKernel(BSplineKernel(), 100)
-        self.nodes1 = makeFluidNodeList("nodes 1", self.eos)
-        self.nodes2 = makeFluidNodeList("nodes 2", self.eos)
-        self.nodes3 = makeFluidNodeList("nodes 3", self.eos)
+        self.nodes1 = makeFluidNodeList("nodes 1", self.eos, NeighborType=NestedGridNeighbor)
+        self.nodes2 = makeFluidNodeList("nodes 2", self.eos, NeighborType=NestedGridNeighbor)
+        self.nodes3 = makeFluidNodeList("nodes 3", self.eos, NeighborType=NestedGridNeighbor)
         for nodes, nGlobal, range in ((self.nodes1, n1, range1),
                                       (self.nodes2, n2, range2),
                                       (self.nodes3, n3, range3)):
