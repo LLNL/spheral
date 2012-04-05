@@ -319,6 +319,10 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     masterList.erase(unique(masterList.begin(), masterList.end()), masterList.end());
     sort(coarseList.begin(), coarseList.end());
     coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
+
+    // We don't allow ghost nodes to be masters.
+    const int firstGhostNode = this->nodeList().firstGhostNode();
+    masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
   }
 }
 
@@ -816,8 +820,14 @@ setTreeMasterList(const typename Dimension::Vector& position,
     coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
   }
 
+  // Remove all ghost nodes from the master list.
+  const unsigned firstGhostNode = this->nodeList().firstGhostNode();
+  sort(masterList.begin(), masterList.end());
+  masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+
   // Post conditions.
   ENSURE(coarseNeighborList.size() >= this->masterList().size());
+  ENSURE(masterList.size() == 0 or *max_element(masterList.begin(), masterList.end()) < firstGhostNode);
 }
 
 //------------------------------------------------------------------------------
