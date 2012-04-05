@@ -484,7 +484,7 @@ Integrator<Dimension>::setGhostNodes() {
     db.updateConnectivityMap();
 
     // If we're culling ghost nodes, do it now.
-    if (mCullGhostNodes) {
+    if (mCullGhostNodes and not this->domainDecompositionIndependent()) {
 
       // First build the set of flags indicating which nodes are used.
       FieldList<Dimension, int> flags = db.newGlobalFieldList(int(0), "active nodes");

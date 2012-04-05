@@ -2,8 +2,8 @@
 #ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
 #ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem -- 1-D (parallel)")
 #ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
-#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing'--domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
-#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing'--domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
+#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
+#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
 #-------------------------------------------------------------------------------
 # The Planar Noh test case run in 1-D.
 #
@@ -443,7 +443,7 @@ if outputFile != "None":
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
         f = open(outputFile, "w")
         for xi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((6*"%16.12e " + "%i\n") % (xi, rhoi, Pi, vi, epsi, hi, mi))
+            f.write((6*"%16.12e " + "%i" + '\n') % (xi, rhoi, Pi, vi, epsi, hi, mi))
             f.write((6*"%i " + "\n") % (unpackElementUL(packElementDouble(xi)),
                                         unpackElementUL(packElementDouble(rhoi)),
                                         unpackElementUL(packElementDouble(Pi)),
