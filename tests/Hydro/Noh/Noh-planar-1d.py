@@ -279,13 +279,12 @@ output("integrator.cullGhostNodes")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
 
 # Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
+if restoreCycle is None:
     control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):

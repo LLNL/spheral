@@ -36,6 +36,7 @@ class SpheralController(RestartableObject):
                  restartBaseName = "restart",
                  restartObjects = [],
                  restartFileConstructor = GzipFileIO,
+                 restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,
                  vizDir =  ".",
@@ -75,14 +76,17 @@ class SpheralController(RestartableObject):
                                  garbageCollectionStep = garbageCollectionStep,
                                  redistributeStep = redistributeStep,
                                  restartStep = restartStep,
+                                 restoreCycle = restoreCycle,
                                  initializeDerivatives = initializeDerivatives,
                                  vizDir = vizDir,
                                  vizStep = vizStep,
                                  vizTime = vizTime)
 
-        # Add the dynamic redistribution object to the controller.
-        self.addRedistributeNodes(self.kernel)
-
+        # Read the restart information if requested.
+        if not restoreCycle is None:
+            print "Reading from restart file ", restoreCycle
+            self.loadRestartFile(restoreCycle)
+        
         return
 
     #--------------------------------------------------------------------------
@@ -97,6 +101,7 @@ class SpheralController(RestartableObject):
                             garbageCollectionStep = 100,
                             redistributeStep = None,
                             restartStep = None,
+                            restoreCycle = None,
                             initializeDerivatives = False,
                             vizDir = None,
                             vizStep = None,
@@ -144,6 +149,9 @@ class SpheralController(RestartableObject):
         self.appendPeriodicWork(self.updateDomainDistribution, redistributeStep)
         self.appendPeriodicWork(self.updateRestart, restartStep)
 
+        # Add the dynamic redistribution object to the controller.
+        self.addRedistributeNodes(self.kernel)
+
         # Set up any visualization required.
         if not vizBaseName is None:
             assert not vizDir is None
@@ -151,7 +159,8 @@ class SpheralController(RestartableObject):
             self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime)
 
         # Force the periodic work to fire at problem initalization.
-        self.doPeriodicWork(force=True)
+        if restoreCycle is None:
+            self.doPeriodicWork(force=True)
 
         return
 

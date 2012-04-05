@@ -52,9 +52,9 @@ class TestDistributedBoundary2d:
 
         # Construct the NodeLists to be distributed
         self.eos = GammaLawGasMKS2d(2.0, 2.0)
-        self.nodes1 = makeFluidNodeList2d("nodes1", self.eos)
-        self.nodes2 = makeFluidNodeList2d("nodes2", self.eos)
-        self.nodes3 = makeFluidNodeList2d("nodes3", self.eos)
+        self.nodes1 = makeFluidNodeList2d("nodes1", self.eos, NeighborType = NestedGridNeighbor2d)
+        self.nodes2 = makeFluidNodeList2d("nodes2", self.eos, NeighborType = NestedGridNeighbor2d)
+        self.nodes3 = makeFluidNodeList2d("nodes3", self.eos, NeighborType = NestedGridNeighbor2d)
 
         # Distribute the nodes.
         distributeNodes2d((self.nodes1, generator1),
