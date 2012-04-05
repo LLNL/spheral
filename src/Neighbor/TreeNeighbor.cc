@@ -294,18 +294,19 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
         if (exitCheck and cell.members.size() > 0) {
           copy(cell.members.begin(), cell.members.end(), back_inserter(coarseList));
 
-          // // Map the cell key through to the entrance plane.  Any nodes we interact
-          // // with on that side are potential masters.
-          // const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, exitPlane, enterPlane);
-          // for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
-          //      keyItr != mappedKeys.end();
-          //      ++keyItr) {
-          //   TreeLevel::const_iterator cellItr = mTree[ilevel].find(*keyItr);
-          //   if (cellItr != mTree[ilevel].end()) {
-          //   this->extractCellIndices(*keyItr, ix, iy, iz);
-          //   const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
-          //   copy(masters.begin(), masters.end(), back_inserter(masterList));
-          // }
+//           // Map the cell key through to the entrance plane.  Any nodes we interact
+//           // with on that side are potential masters.
+//           const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, exitPlane, enterPlane);
+//           for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
+//                keyItr != mappedKeys.end();
+//                ++keyItr) {
+//             TreeLevel::const_iterator cellItr = mTree[ilevel].find(*keyItr);
+//             if (cellItr != mTree[ilevel].end()) {
+//               this->extractCellIndices(*keyItr, ix, iy, iz);
+//               const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
+//               copy(masters.begin(), masters.end(), back_inserter(masterList));
+//             }
+//           }
         }
       }
 
@@ -763,8 +764,10 @@ void
 TreeNeighbor<Dimension>::
 constructDaughterPtrs(typename TreeNeighbor<Dimension>::Tree& tree) const {
   const unsigned nlevels = tree.size();
-  for (unsigned ilevel = 0; ilevel < nlevels - 1; ++ilevel) {
-    const unsigned ilevel1 = ilevel + 1;
+  const unsigned n = nlevels > 0 ? nlevels - 1 : nlevels;
+  unsigned ilevel, ilevel1;
+  for (ilevel = 0; ilevel != n; ++ilevel) {
+    ilevel1 = ilevel + 1;
     for (typename TreeLevel::iterator itr = tree[ilevel].begin();
          itr != tree[ilevel].end();
          ++itr) {

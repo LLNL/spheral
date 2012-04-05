@@ -143,8 +143,10 @@ void
 OctTreeGravity::
 constructDaughterPtrs(OctTreeGravity::Tree& tree) const {
   const unsigned nlevels = tree.size();
-  for (unsigned ilevel = 0; ilevel < nlevels - 1; ++ilevel) {
-    const unsigned ilevel1 = ilevel + 1;
+  const unsigned n = nlevels > 0 ? nlevels - 1 : nlevels;
+  unsigned ilevel, ilevel1;
+  for (ilevel = 0; ilevel != n; ++ilevel) {
+    ilevel1 = ilevel + 1;
     for (TreeLevel::iterator itr = tree[ilevel].begin();
          itr != tree[ilevel].end();
          ++itr) {
