@@ -85,25 +85,24 @@ AC_CHECK_PROG(GCC343TEST, gcc-3.4.3, `which gcc-3.4.3`, nope)
 AC_CHECK_PROG(GCC410TEST, gcc-4.1.0, `which gcc-4.1.0`, nope)
 AC_CHECK_PROG(GCC411TEST, gcc-4.1.1, `which gcc-4.1.1`, nope)
 AC_CHECK_PROG(GCC411TEST, gcc-4.3.2, `which gcc-4.3.2`, nope)
-AC_CHECK_PROG(GCC411TEST, gcc-4.4.0, `which gcc-4.4.0`, nope)
+AC_CHECK_PROG(GCC441TEST, gcc-4.4.0, `which gcc-4.4.0`, nope)
+AC_CHECK_PROG(GCC446TEST, gcc-4.4.6, `which gcc-4.4.6`, nope)
 case $COMPILERS in
    gnu)
-      if test "$OSNAME" = "AIX" -a "$GCC411TEST" != "nope"; then
-         CC=gcc-4.1.1
-         CXX=g++-4.1.1
+      if test $OSNAME = "Linux" -a "$GCC446TEST" != "nope"; then
+         CC=gcc-4.4.6
+         CXX=g++-4.4.6
          F77=g77
-         MPICC="mpgcc-4.1.1" # "$SRCDIR/helpers/mpgcc-aix -cc=gcc-4.1.1"
-         MPICXX="mpg++-4.1.1" # "$SRCDIR/helpers/mpg++-aix -cc=g++-4.1.1"
-         CMAKECC=xlc
-         CMAKECXX=xlC
-         GCCXMLCC=$CC
-         GCCXMLCXX=$CXX
+         MPICC="mpicc -cc=$CC"
+         MPICXX="mpig++ -cc=$CXX"
+         CMAKECC=$CC
+         CMAKECXX=$CXX
+         GCCXMLCC=$CMAKECC
+         GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC
          PYTHONCXX=$CXX
-         PYTHONCFLAGS="-fexceptions"
-         PYTHONCONFFLAGS="'--with-libs=-lpthreads'"
-         PARMETISCC=mpcc
-         #LIBS="$LIBS -lpthreads"
+         PARMETISCC=$MPICC
+         JAMTOOLSETOPTS=" : 4.4 : gcc-4.4.6 "
 
       elif test $OSNAME = "Linux" -a "$GCC440TEST" != "nope"; then
          CC=gcc-4.4.0
