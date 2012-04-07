@@ -366,7 +366,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	rm -fr $(PYTHONDIR)
 	$(BZIP2) -dc $(PYTHONDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYTHONDIR); \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC=$(PYTHONCC) CXX=$(PYTHONCXX) CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc=$(PYTHONCC) --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
+	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' 
 	$(MAKE) -C $(PYTHONDIR) install
 	@if ! test -e $(PYTHONEXE); then \
@@ -510,7 +510,7 @@ $(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
 	$(BZIP2) -dc $(GCCXMLDIST) | $(TAR) -xf -
 	$(MKDIR) $(GCCXMLDIR)/build
 	$(SHELL) -ec 'cd $(GCCXMLDIR)/build; \
-	env CC=$(GCCXMLCC) CXX=$(GCCXMLCXX) $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
+	env CC='$(GCCXMLCC)' CXX='$(GCCXMLCXX)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
 	@if ! test -e $(SPHERALDIR)/bin/gccxml_cc1plus -a -e $(SPHERALDIR)/bin/gccxml; then \
 	echo "ERROR building gccxml."; \
 	rm -f $(GCCXMLDATE); \
@@ -532,7 +532,7 @@ $(CMAKEEXE):	$(CMAKEDIST)
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc $(CMAKEDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(CMAKEDIR); \
-	env CC=$(CMAKECC) CXX=$(CMAKECXX) ./bootstrap --prefix=$(SPHERALDIR); \
+	env CC='$(CMAKECC)' CXX='$(CMAKECXX)' ./bootstrap --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install'
 	@if ! test -e $(CMAKEEXE); then \
@@ -635,7 +635,7 @@ $(PYGTKBUILDDATE):  $(NUMPYBUILDDATE) $(PYGTKDIST)
 	rm -fr $(PYGTKDIR) $(PYGTKDUMMYDATE)
 	$(GZIP) -dc $(PYGTKDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYGTKDIR); \
-	env CC=$(PYTHONCC) CXX=$(PYTHONCXX) PYTHON=$(PYTHONEXE) ./configure --enable-thread --prefix=$(SPHERALDIR); \
+	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' PYTHON=$(PYTHONEXE) ./configure --enable-thread --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install"
 	@if test -n "`$(PYTHONEXE) -c 'import pygtk'`"; then \
@@ -726,7 +726,7 @@ $(GSLBUILDDATE): $(GSLDIST)
 	rm -fr $(GSLDIR)
 	$(GZIP) -dc $(GSLDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(GSLDIR); \
-	env CC=$(CC) CXX=$(CXX) ./configure --prefix=$(SPHERALDIR) ; \
+	env CC='$(CC)' CXX='$(CXX)' ./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/$(GSLLIBSO) -o \
@@ -819,7 +819,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 	@$(MKDIR) $(SPHERALDIR)/include
 	$(GZIP) -dc $(HASHMAPDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HASHMAPDIR); \
-	env cc='$(CC)' CXX='$(CXX)' ./configure --enable-namespace=google --prefix=$(SPHERALDIR); \
+	env CC='$(CC)' CXX='$(CXX)' ./configure --enable-namespace=google --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/include/google; then \
@@ -978,7 +978,7 @@ $(JPEGBUILDDATE):	$(JPEGDIST)
 	rm -fr $(JPEGDIR)
 	$(GZIP) -dc $(JPEGDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(JPEGDIR); \
-	env CC=$(CC) CXX=$(CXX) CFLAGS="-fPIC" ./configure --prefix=$(SPHERALDIR) ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS="-fPIC" ./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
 	$(MAKE) install ; \
 	$(CP) -f jpeglib.h jerror.h jconfig.h jmorecfg.h $(SPHERALDIR)/include ; \
@@ -1099,7 +1099,7 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
@@ -1146,7 +1146,8 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HDF5DIR); \
-	env CC=$(MPICC) CXX=$(MPICXX) CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
+	rm -f test.conf ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libhdf5.a -a \
@@ -1172,7 +1173,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC=$(MPICC) CXX=$(MPICXX) $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
@@ -1239,7 +1240,7 @@ $(VOROPP2DBUILDDATE):  $(VOROPP2DDIST)
 	rm -fr $(VOROPP2DDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(MKDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(BZIP2) -dc $(VOROPP2DDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(VOROPP2DDIR)/src; $(MAKE) CC=$(CC) CXX=$(CXX) CFLAGS="-fPIC"; \
+	$(SHELL) -ec 'cd $(VOROPP2DDIR)/src; $(MAKE) CC='$(CC)' CXX='$(CXX)' CFLAGS="-fPIC"; \
 	$(CP) -r *.hh $(SPHERALDIR)/include/$(VOROPP2DINC); \
 	$(CP) *.a  $(SPHERALDIR)/lib'
 	@if ! test -e $(SPHERALDIR)/include/$(VOROPP2DINC)/voro++_2d.hh -a \
@@ -1314,7 +1315,7 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
 	$(UNZIP) $(FLANNDIST)
 	$(MKDIR) $(FLANNDIR)/build
 	$(SHELL) -ec "cd $(FLANNDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libflann_s.a; then \
@@ -1340,7 +1341,7 @@ $(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(BOOSTDATE) $(EIGENDATE) $(QHULLDATE) $
 	$(BZIP2) -dc $(PCLDIST) | $(TAR) -xf -
 	$(MKDIR) $(PCLDIR)/build
 	$(SHELL) -ec "cd $(PCLDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DFLANN_INCLUDE_DIR=$(SPHERALDIR)/spheral/src/thirdPartyLibs/$(FLANNDIR) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DFLANN_INCLUDE_DIR=$(SPHERALDIR)/spheral/src/thirdPartyLibs/$(FLANNDIR) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libpclstatic.a; then \
