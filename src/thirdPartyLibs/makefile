@@ -101,8 +101,8 @@ MATPLOTLIBDIR = $(MATPLOTLIBDIST:.tar.gz=)
 MATPLOTLIBBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MATPLOTLIBDIST))
 
 # Scipy
-SCIPYDIST = scipy-0.6.0.tar.gz
-SCIPYURL = http://easynews.dl.sourceforge.net/sourceforge/scipy/$(SCIPYDIST)
+SCIPYDIST = scipy-0.10.1.tar.gz
+SCIPYURL = http://sourceforge.net/projects/scipy/files/scipy/0.10.1/$(SCIPYDIST)/download
 SCIPYDIR = $(SCIPYDIST:.tar.gz=)
 SCIPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SCIPYDIST))
 
