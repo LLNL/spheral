@@ -28,8 +28,8 @@ PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
 PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.5.1.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.5.1/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.6.1.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -391,7 +391,7 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
+	#$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
 	$(SHELL) -ec 'cd $(NUMPYDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \

@@ -282,6 +282,11 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam("Vector3d", "normal")],
                              docstring = "Test if the given 3-D point p is in a polygon.")
 
+        # Boost.math functions.
+        Spheral.add_function("legendre_p", "double", 
+                             [param("int", "l"), param("int", "m"), param("double", "x")],
+                             docstring = "Compute the associated Legendre polynomial.")
+
         # Add the KeyTraits attributes.
         self.KeyTraits.add_static_attribute("numbits", "int",  is_const=True)
         self.KeyTraits.add_static_attribute("numbits1d", "int",  is_const=True)
