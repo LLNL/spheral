@@ -43,14 +43,13 @@ template<typename UnitsType> const double PhysicalConstants<UnitsType>::MolarGas
 template<typename UnitsType> const double PhysicalConstants<UnitsType>::KelvinsToEnergyPerMole = unitMkg*FastMath::square(unitLm/unitTsec)/kBMKS*NAvogadro;
 
 // The electron charge is kind of funny due to the definition of the Coulomb
-template<>                   const double PhysicalConstants<MKSUnits>::ElectronCharge = qeMKS;
 template<typename UnitsType> const double PhysicalConstants<UnitsType>::ElectronCharge = qeCGS / (std::sqrt(1000.0*unitMkg*FastMath::cube(100.0*unitLm))/unitTsec);
 
-// Explicit instantiation for each of the descendent types.
-template class PhysicalConstants<MKSUnits>;
-template class PhysicalConstants<CGSUnits>;
-template class PhysicalConstants<CosmologicalUnits>;
-template class PhysicalConstants<SolarUnits>;
+// // Explicit instantiation for each of the descendent types.
+// template class PhysicalConstants<MKSUnits>;
+// template class PhysicalConstants<CGSUnits>;
+// template class PhysicalConstants<CosmologicalUnits>;
+// template class PhysicalConstants<SolarUnits>;
 
 }
 }
