@@ -114,6 +114,9 @@ divergenceMash(const FieldList<Dimension, DataType>& fieldList,
             Wij = kernel(etaj, 1.0);
             gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.

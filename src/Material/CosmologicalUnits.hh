@@ -3,21 +3,23 @@
 //
 // Created by JMO, Fri Mar 31 17:07:41 PST 2000
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_CosmologicalUnits__
+#define __Spheral_CosmologicalUnits__
 
-#ifndef CosmologicalUnits_HH
-#define CosmologicalUnits_HH
+#include "PhysicalConstants.hh"
 
 namespace Spheral {
 namespace Material {
 
-class CosmologicalUnits {
-
+class CosmologicalUnits: public PhysicalConstants<CosmologicalUnits> {
 public:
   //--------------------------- Public Interface ---------------------------//
+  CosmologicalUnits();
   static const double unitLm;
   static const double unitMkg;
   static const double unitTsec;
 };
+
 }
 }
 

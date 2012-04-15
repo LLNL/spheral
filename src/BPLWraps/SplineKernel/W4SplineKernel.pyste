@@ -1,9 +1,0 @@
-W4SplineKernel = Template("Spheral::KernelSpace::W4SplineKernel",
-                          "ExtendW4SplineKernel.hh")
-exclude(W4SplineKernel.asDescendent)
-
-final(W4SplineKernel.valid)
-
-W4SplineKernel1d = W4SplineKernel("Spheral::Dim<1>", "W4SplineKernel1d")
-W4SplineKernel2d = W4SplineKernel("Spheral::Dim<2>", "W4SplineKernel2d")
-W4SplineKernel3d = W4SplineKernel("Spheral::Dim<3>", "W4SplineKernel3d")

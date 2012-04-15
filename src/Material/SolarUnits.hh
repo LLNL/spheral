@@ -1,20 +1,20 @@
 //---------------------------------Spheral++----------------------------------//
-// CGSUnits -- The base for the CGS unit system.
+// SolarUnits -- The base for the Solar unit system.
 //
-// Created by JMO, Fri Mar 31 17:07:41 PST 2000
+// Created by JMO, Tue Mar 20 10:35:56 PDT 2012
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_CGSUnits__
-#define __Spheral_CGSUnits__
+#ifndef __Spheral_SolarUnits__
+#define __Spheral_SolarUnits__
 
 #include "PhysicalConstants.hh"
 
 namespace Spheral {
 namespace Material {
 
-class CGSUnits: public PhysicalConstants<CGSUnits> {
+class SolarUnits: public PhysicalConstants<SolarUnits> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  CGSUnits();
+  SolarUnits();
   static const double unitLm;
   static const double unitMkg;
   static const double unitTsec;
@@ -26,7 +26,7 @@ public:
 // Forward declaration.
 namespace Spheral {
   namespace Material {
-    class CGSUnits;
+    class SolarUnits;
   }
 }
 

@@ -86,6 +86,35 @@ appendSamplingPositions(const Dim<3>::Vector& position,
 }
 
 //------------------------------------------------------------------------------
+// Compute the minimum volume box containing all the points in a Field of
+// positions.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+globalBoundingBox(const Field<Dimension, typename Dimension::Vector>& positions,
+                  typename Dimension::Vector& xmin,
+                  typename Dimension::Vector& xmax,
+                  const bool ghost) {
+  typedef typename Dimension::Vector Vector;
+
+  // Find our local bounds.
+  xmin = DBL_MAX;
+  xmax = -DBL_MAX;
+  const unsigned n = ghost ? positions.numElements() : positions.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    const Vector& xi = positions(i);
+    xmin = elementWiseMin(xmin, xi);
+    xmax = elementWiseMax(xmax, xi);
+  }
+
+  // Now find the global bounds across all processors.
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
+    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Compute the minimum volume box containing all the points in a FieldList of
 // positions.
 //------------------------------------------------------------------------------
@@ -165,6 +194,19 @@ globalBoundingVolumes(const DataBase<Dimension>& dataBase,
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 namespace Spheral {
+
+template void globalBoundingBox(const Field<Dim<1>, Dim<1>::Vector>& positions,
+                                Dim<1>::Vector& xmin,
+                                Dim<1>::Vector& xmax,
+                                const bool ghost);
+template void globalBoundingBox(const Field<Dim<2>, Dim<2>::Vector>& positions,
+                                Dim<2>::Vector& xmin,
+                                Dim<2>::Vector& xmax,
+                                const bool ghost);
+template void globalBoundingBox(const Field<Dim<3>, Dim<3>::Vector>& positions,
+                                Dim<3>::Vector& xmin,
+                                Dim<3>::Vector& xmax,
+                                const bool ghost);
 
 template void globalBoundingBox(const FieldList<Dim<1>, Dim<1>::Vector>& positions,
                                 Dim<1>::Vector& xmin,

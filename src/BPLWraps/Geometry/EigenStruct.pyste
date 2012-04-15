@@ -1,7 +1,0 @@
-#-------------------------------------------------------------------------------
-# EigenStruct
-#-------------------------------------------------------------------------------
-Eigen = Template("Spheral::EigenStruct", "Geometry/EigenStruct.hh")
-EigenStruct1d = Eigen("1", "EigenStruct1d")
-EigenStruct2d = Eigen("2", "EigenStruct2d")
-EigenStruct3d = Eigen("3", "EigenStruct3d")

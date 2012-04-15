@@ -1,6 +1,0 @@
-FieldListSet = Template("Spheral::FieldSpace::FieldListSet",
-                        "ExtendFieldListSet.hh")
-
-FieldListSet1d = FieldListSet("Spheral::Dim<1>", "FieldListSet1d")
-FieldListSet2d = FieldListSet("Spheral::Dim<2>", "FieldListSet2d")
-FieldListSet3d = FieldListSet("Spheral::Dim<3>", "FieldListSet3d")

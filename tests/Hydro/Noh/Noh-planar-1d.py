@@ -2,8 +2,8 @@
 #ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
 #ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem -- 1-D (parallel)")
 #ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
-#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing'--domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
-#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing'--domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
+#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
+#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
 #-------------------------------------------------------------------------------
 # The Planar Noh test case run in 1-D.
 #
@@ -27,6 +27,7 @@ commandLine(KernelConstructor = BSplineKernel,
             x1 = 1.0,
             xwall = 0.0,
             nPerh = 1.25,
+            NeighborType = NestedGridNeighbor,
 
             vr0 = -1.0, 
             vrSlope = 0.0,
@@ -70,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             compatibleEnergy = True,
             gradhCorrection = True,
             domainIndependent = True,
+            cullGhostNodes = True,
 
             clearDirectories = True,
             checkError = True,
@@ -83,25 +85,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0613813   ,
-            L2rho =   0.225713    ,
-            Linfrho = 1.54809     ,
+            L1rho =   0.0622862   ,
+            L2rho =   0.226227    ,
+            Linfrho = 1.53012     ,
                                                         
-            L1P =     0.0223507   ,
-            L2P =     0.0888578   ,
-            LinfP =   0.630458    ,
+            L1P =     0.0223858   ,
+            L2P =     0.0886198   ,
+            LinfP =   0.61721     ,
                                                         
-            L1v =     0.0230331   ,
-            L2v =     0.113194    ,
-            Linfv =   0.812404    ,
+            L1v =     0.023289    ,
+            L2v =     0.11406     ,
+            Linfv =   0.809769    ,
                                                         
-            L1eps =   0.01134     ,
-            L2eps =   0.0525237   ,
-            Linfeps = 0.371136    ,
+            L1eps =   0.0114214   ,
+            L2eps =   0.0522108   ,
+            Linfeps = 0.365918    ,
                                             
-            L1h =     0.000345751 ,
-            L2h =     0.00130054  ,
-            Linfh =   0.00756392  ,
+            L1h =     0.000341588 ,
+            L2h =     0.00128347  ,
+            Linfh =   0.00748636  ,
 
             tol = 1.0e-5,
 
@@ -143,7 +145,8 @@ output("WTPi")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
-                           nPerh = nPerh)
+                           nPerh = nPerh,
+                           NeighborType = NeighborType)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
@@ -259,6 +262,7 @@ integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
 integrator.updateBoundaryFrequency = updateBoundaryFrequency
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.cullGhostNodes = cullGhostNodes
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
@@ -275,13 +279,12 @@ output("integrator.cullGhostNodes")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
 
 # Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
+if restoreCycle is None:
     control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
@@ -416,15 +419,15 @@ if checkError:
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                   L1,
                                                                                                   L1expect)
             if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                   L2,
                                                                                                   L2expect)
             if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                raise ValueError, "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                                     Linf,
                                                                                                     Linfexpect)
 
@@ -440,7 +443,7 @@ if outputFile != "None":
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
         f = open(outputFile, "w")
         for xi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((6*"%16.12e " + "%i\n") % (xi, rhoi, Pi, vi, epsi, hi, mi))
+            f.write((6*"%16.12e " + "%i" + '\n') % (xi, rhoi, Pi, vi, epsi, hi, mi))
             f.write((6*"%i " + "\n") % (unpackElementUL(packElementDouble(xi)),
                                         unpackElementUL(packElementDouble(rhoi)),
                                         unpackElementUL(packElementDouble(Pi)),

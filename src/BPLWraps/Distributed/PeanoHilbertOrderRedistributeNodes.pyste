@@ -1,9 +1,0 @@
-x = Template("Spheral::PartitionSpace::PeanoHilbertOrderRedistributeNodes",
-             "ExtendPeanoHilbertOrderRedistribute.hh")
-
-# We exclude this only 'cause FieldList<unsigned long> is not wrapped.
-exclude(x.computeHashedIndicies)
-
-x1d = x("Spheral::Dim<1>", "PeanoHilbertOrderRedistributeNodes1d")
-x2d = x("Spheral::Dim<2>", "PeanoHilbertOrderRedistributeNodes2d")
-x3d = x("Spheral::Dim<3>", "PeanoHilbertOrderRedistributeNodes3d")

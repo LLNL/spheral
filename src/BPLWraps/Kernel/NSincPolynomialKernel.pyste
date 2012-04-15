@@ -1,9 +1,0 @@
-NSincPolynomialKernel = Template("Spheral::KernelSpace::NSincPolynomialKernel",
-                                 "ExtendNSincPolynomialKernel.hh")
-exclude(NSincPolynomialKernel.asDescendent)
-
-final(NSincPolynomialKernel.valid)
-
-NSincPolynomialKernel1d = NSincPolynomialKernel("Spheral::Dim<1>", "NSincPolynomialKernel1d")
-NSincPolynomialKernel2d = NSincPolynomialKernel("Spheral::Dim<2>", "NSincPolynomialKernel2d")
-NSincPolynomialKernel3d = NSincPolynomialKernel("Spheral::Dim<3>", "NSincPolynomialKernel3d")

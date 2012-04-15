@@ -192,6 +192,9 @@ gradDivVectorFieldListGolden
                 gWij = gWj;
                 g2Wij = g2Wj;
                 break;
+
+              default:
+                VERIFY2(false, "Unhandled neighbor search type.");
               }
 //               TAU_PROFILE_STOP(TimeGoldenSecondW);
 

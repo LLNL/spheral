@@ -86,6 +86,8 @@ FlatFileIO::open(const string fileName, AccessType access) {
   case ReadWrite:
     mode = ios::in | ios::out;
     break;
+  default:
+    VERIFY2(false, "Unhandled case in switch!");
   }
 
   if (mFileFormat == binary) mode = mode | ios::binary;

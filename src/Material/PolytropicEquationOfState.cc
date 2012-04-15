@@ -258,6 +258,7 @@ PolytropicEquationOfState<Dimension, Constants>::valid() const {
 #include "MKSUnits.hh"
 #include "CGSUnits.hh"
 #include "CosmologicalUnits.hh"
+#include "SolarUnits.hh"
 namespace Spheral {
   namespace Material {
     template class PolytropicEquationOfState<Dim<1>, PhysicalConstants<MKSUnits> >;
@@ -269,5 +270,8 @@ namespace Spheral {
     template class PolytropicEquationOfState<Dim<1>, PhysicalConstants<CosmologicalUnits> >;
     template class PolytropicEquationOfState<Dim<2>, PhysicalConstants<CosmologicalUnits> >;
     template class PolytropicEquationOfState<Dim<3>, PhysicalConstants<CosmologicalUnits> >;
+    template class PolytropicEquationOfState<Dim<1>, PhysicalConstants<SolarUnits> >;
+    template class PolytropicEquationOfState<Dim<2>, PhysicalConstants<SolarUnits> >;
+    template class PolytropicEquationOfState<Dim<3>, PhysicalConstants<SolarUnits> >;
   }
 }

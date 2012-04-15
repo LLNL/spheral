@@ -1,6 +1,7 @@
 #ifndef __PBGWRAP_UTILITIESTYPES__
 #define __PBGWRAP_UTILITIESTYPES__
 
+#include "boost/math/special_functions/legendre.hpp"
 #include "Utilities/initializeTau.hh"
 #include "Utilities/erff.hh"
 #include "Utilities/newtonRaphson.hh"
@@ -31,6 +32,9 @@ typedef std::pair<double, double> pair_double_double;
 using namespace Spheral::FieldSpace;
 
 namespace Spheral {
+
+// Expose some stuff from boost::math
+using boost::math::legendre_p;
 
 //------------------------------------------------------------------------------
 // An overridable python class functor for use with the Newton-Raphson root 

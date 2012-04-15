@@ -1,9 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// CGSUnits -- The base for the CGS unit system.
+// SolarUnits -- The base for the Solar unit system.
 //
-// Created by JMO, Fri Mar 31 17:07:41 PST 2000
+// Created by JMO, Tue Mar 20 10:35:56 PDT 2012
 //----------------------------------------------------------------------------//
-#include "CGSUnits.hh"
+#include "SolarUnits.hh"
 #include "PhysicalConstants.cc"
 
 namespace Spheral {
@@ -12,16 +12,16 @@ namespace Material {
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-CGSUnits::CGSUnits(): PhysicalConstants<CGSUnits>() {}
+SolarUnits::SolarUnits(): PhysicalConstants<SolarUnits>() {}
 
 //------------------------------------------------------------------------------
 // Set the static variables.
 //------------------------------------------------------------------------------
-const double CGSUnits::unitLm = 0.01; // unit length in meters
-const double CGSUnits::unitMkg = 0.001; // unit mass in kg
-const double CGSUnits::unitTsec = 1.0; // unit time in sec
+const double SolarUnits::unitLm = 149597870700.0;   // unit length in meters (1 AU)
+const double SolarUnits::unitMkg = 1.98892e30;      // unit mass in kg (1 Msun)
+const double SolarUnits::unitTsec = 365.25*3600*24; // unit time in sec (1 year)
 
-template class PhysicalConstants<CGSUnits>;
+template class PhysicalConstants<SolarUnits>;
 
 }
 }
