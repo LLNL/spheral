@@ -542,6 +542,7 @@ class Geometry:
         x.add_unary_numeric_operator("-")
 
         # Methods.
+        x.add_method("signedDistance", "double", [param(vec, "point")], is_const = True)
         x.add_method("minimumDistance", "double", [param(vec, "point")], is_const = True)
         x.add_method("parallel", "bool", [param(me, "rhs")], is_const = True)
         x.add_method("valid", "bool", [], is_const = True)

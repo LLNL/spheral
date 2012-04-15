@@ -271,6 +271,7 @@ GammaLawGas<Dimension, Constants>::valid() const {
 #include "MKSUnits.hh"
 #include "CGSUnits.hh"
 #include "CosmologicalUnits.hh"
+#include "SolarUnits.hh"
 namespace Spheral {
   namespace Material {
     template class GammaLawGas<Dim<1>, PhysicalConstants<MKSUnits> >;
@@ -282,5 +283,8 @@ namespace Spheral {
     template class GammaLawGas<Dim<1>, PhysicalConstants<CosmologicalUnits> >;
     template class GammaLawGas<Dim<2>, PhysicalConstants<CosmologicalUnits> >;
     template class GammaLawGas<Dim<3>, PhysicalConstants<CosmologicalUnits> >;
+    template class GammaLawGas<Dim<1>, PhysicalConstants<SolarUnits> >;
+    template class GammaLawGas<Dim<2>, PhysicalConstants<SolarUnits> >;
+    template class GammaLawGas<Dim<3>, PhysicalConstants<SolarUnits> >;
   }
 }

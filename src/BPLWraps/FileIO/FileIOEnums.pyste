@@ -1,2 +1,0 @@
-Enum("Spheral::FileIOSpace::AccessType", "FileIO/FileIO.hh")
-Enum("Spheral::FileIOSpace::FlatFileFormat", "FileIO/FlatFileIO.hh")

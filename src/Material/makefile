@@ -9,7 +9,7 @@ SRCTARGETS = \
 	MKSUnits.cc \
 	CGSUnits.cc \
 	CosmologicalUnits.cc \
-	PhysicalConstants.cc \
+	SolarUnits.cc \
 	GammaLawGas.cc \
 	PolytropicEquationOfState.cc \
 	IsothermalEquationOfState.cc

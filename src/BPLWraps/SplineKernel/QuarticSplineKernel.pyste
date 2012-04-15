@@ -1,9 +1,0 @@
-QuarticSplineKernel = Template("Spheral::KernelSpace::QuarticSplineKernel",
-                               "ExtendQuarticSplineKernel.hh")
-exclude(QuarticSplineKernel.asDescendent)
-
-final(QuarticSplineKernel.valid)
-
-QuarticSplineKernel1d = QuarticSplineKernel("Spheral::Dim<1>", "QuarticSplineKernel1d")
-QuarticSplineKernel2d = QuarticSplineKernel("Spheral::Dim<2>", "QuarticSplineKernel2d")
-QuarticSplineKernel3d = QuarticSplineKernel("Spheral::Dim<3>", "QuarticSplineKernel3d")

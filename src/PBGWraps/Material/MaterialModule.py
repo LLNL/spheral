@@ -86,50 +86,21 @@ class Material:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("Material")
 
+        self.unitSet = ("CGS", "MKS", "Cosmological", "Solar")
+        self.dimSet = (1, 2, 3)
+
         # Expose types.
-        self.CGSUnits = addObject(space, "CGS")
-        self.MKSUnits = addObject(space, "MKS")
-        self.CosmologicalUnits = addObject(space, "Cosmological")
-
-        self.EquationOfState1d = addObject(space, "EquationOfState1d", allow_subclassing=True)
-        self.EquationOfState2d = addObject(space, "EquationOfState2d", allow_subclassing=True)
-        self.EquationOfState3d = addObject(space, "EquationOfState3d", allow_subclassing=True)
-
-        self.GammaLawGasCGS1d = addObject(space, "GammaLawGasCGS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.GammaLawGasCGS2d = addObject(space, "GammaLawGasCGS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.GammaLawGasCGS3d = addObject(space, "GammaLawGasCGS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.GammaLawGasMKS1d = addObject(space, "GammaLawGasMKS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.GammaLawGasMKS2d = addObject(space, "GammaLawGasMKS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.GammaLawGasMKS3d = addObject(space, "GammaLawGasMKS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.GammaLawGasCosmological1d = addObject(space, "GammaLawGasCosmological1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.GammaLawGasCosmological2d = addObject(space, "GammaLawGasCosmological2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.GammaLawGasCosmological3d = addObject(space, "GammaLawGasCosmological3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.PolytropicEquationOfStateCGS1d = addObject(space, "PolytropicEquationOfStateCGS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.PolytropicEquationOfStateCGS2d = addObject(space, "PolytropicEquationOfStateCGS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.PolytropicEquationOfStateCGS3d = addObject(space, "PolytropicEquationOfStateCGS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.PolytropicEquationOfStateMKS1d = addObject(space, "PolytropicEquationOfStateMKS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.PolytropicEquationOfStateMKS2d = addObject(space, "PolytropicEquationOfStateMKS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.PolytropicEquationOfStateMKS3d = addObject(space, "PolytropicEquationOfStateMKS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.PolytropicEquationOfStateCosmological1d = addObject(space, "PolytropicEquationOfStateCosmological1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.PolytropicEquationOfStateCosmological2d = addObject(space, "PolytropicEquationOfStateCosmological2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.PolytropicEquationOfStateCosmological3d = addObject(space, "PolytropicEquationOfStateCosmological3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.IsothermalEquationOfStateCGS1d = addObject(space, "IsothermalEquationOfStateCGS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.IsothermalEquationOfStateCGS2d = addObject(space, "IsothermalEquationOfStateCGS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.IsothermalEquationOfStateCGS3d = addObject(space, "IsothermalEquationOfStateCGS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.IsothermalEquationOfStateMKS1d = addObject(space, "IsothermalEquationOfStateMKS1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.IsothermalEquationOfStateMKS2d = addObject(space, "IsothermalEquationOfStateMKS2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.IsothermalEquationOfStateMKS3d = addObject(space, "IsothermalEquationOfStateMKS3d", allow_subclassing=True, parent=self.EquationOfState3d)
-
-        self.IsothermalEquationOfStateCosmological1d = addObject(space, "IsothermalEquationOfStateCosmological1d", allow_subclassing=True, parent=self.EquationOfState1d)
-        self.IsothermalEquationOfStateCosmological2d = addObject(space, "IsothermalEquationOfStateCosmological2d", allow_subclassing=True, parent=self.EquationOfState2d)
-        self.IsothermalEquationOfStateCosmological3d = addObject(space, "IsothermalEquationOfStateCosmological3d", allow_subclassing=True, parent=self.EquationOfState3d)
+        for dim in self.dimSet:
+            exec('''self.EquationOfState%(dim)id = addObject(space, "EquationOfState%(dim)id", allow_subclassing=True)''' % {"dim" : dim})
+        for units in self.unitSet:
+            exec('''self.%(units)sUnits = addObject(space, "%(units)s")''' % {"units" : units})
+            for dim in self.dimSet:
+                exec('''
+self.GammaLawGas%(units)s%(dim)id = addObject(space, "GammaLawGas%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
+self.PolytropicEquationOfState%(units)s%(dim)id = addObject(space, "PolytropicEquationOfState%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
+self.IsothermalEquationOfState%(units)s%(dim)id = addObject(space, "IsothermalEquationOfState%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
+''' % {"units" : units,
+       "dim" : dim})
 
         return
 
@@ -138,43 +109,19 @@ class Material:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateUnitsBindings(self.CGSUnits)
-        self.generateUnitsBindings(self.MKSUnits)
-        self.generateUnitsBindings(self.CosmologicalUnits)
+        for dim in self.dimSet:
+            exec('self.generateEquationOfStateBindings(self.EquationOfState%(dim)id, %(dim)i)' % {"dim" : dim})
 
-        self.generateEquationOfStateBindings(self.EquationOfState1d, 1)
-        self.generateEquationOfStateBindings(self.EquationOfState2d, 2)
-        self.generateEquationOfStateBindings(self.EquationOfState3d, 3)
+        for units in self.unitSet:
+            exec('self.generateUnitsBindings(self.%sUnits)' % units)
 
-        self.generateGammaLawGasBindings(self.GammaLawGasCGS1d, 1)
-        self.generateGammaLawGasBindings(self.GammaLawGasCGS2d, 2)
-        self.generateGammaLawGasBindings(self.GammaLawGasCGS3d, 3)
-        self.generateGammaLawGasBindings(self.GammaLawGasMKS1d, 1)
-        self.generateGammaLawGasBindings(self.GammaLawGasMKS2d, 2)
-        self.generateGammaLawGasBindings(self.GammaLawGasMKS3d, 3)
-        self.generateGammaLawGasBindings(self.GammaLawGasCosmological1d, 1)
-        self.generateGammaLawGasBindings(self.GammaLawGasCosmological2d, 2)
-        self.generateGammaLawGasBindings(self.GammaLawGasCosmological3d, 3)
-
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCGS1d, 1)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCGS2d, 2)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCGS3d, 3)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateMKS1d, 1)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateMKS2d, 2)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateMKS3d, 3)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCosmological1d, 1)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCosmological2d, 2)
-        self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfStateCosmological3d, 3)
-
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCGS1d, 1)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCGS2d, 2)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCGS3d, 3)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateMKS1d, 1)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateMKS2d, 2)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateMKS3d, 3)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCosmological1d, 1)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCosmological2d, 2)
-        self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfStateCosmological3d, 3)
+            for dim in self.dimSet:
+                exec('''
+self.generateGammaLawGasBindings(self.GammaLawGas%(units)s%(dim)id, %(dim)i)
+self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfState%(units)s%(dim)id, %(dim)i)
+self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(units)s%(dim)id, %(dim)i)
+''' % {"units" : units,
+       "dim"   : dim})
 
         return
 

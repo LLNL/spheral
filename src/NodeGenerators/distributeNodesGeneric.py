@@ -45,15 +45,19 @@ def distributeNodesGeneric(listOfNodeTuples,
             H[i] = generator.localHtensor(i)
         H.applyScalarMin(hmaxInv)
         H.applyScalarMax(hminInv)
-        nodes.neighbor().updateNodes()
-##         if (isinstance(nodes, Spheral.FluidNodeList1d) or
-##             isinstance(nodes, Spheral.FluidNodeList2d) or
-##             isinstance(nodes, Spheral.FluidNodeList3d)):
-##             nodes.updateWeight()
 
         # Put this NodeList into the DataBase.
         db.appendNodeList(nodes)
         print "  distributeNodesGeneric: %s initially finished" % nodes.name
+
+    # # Update Neighbor information.
+    # exec("Spheral.Neighbor%id.setBoundingBox()" % db.nDim)
+    # for (nodes, generator) in listOfNodeTuples:
+    #     nodes.neighbor().updateNodes()
+    #     if (isinstance(nodes, Spheral.FluidNodeList1d) or
+    #         isinstance(nodes, Spheral.FluidNodeList2d) or
+    #         isinstance(nodes, Spheral.FluidNodeList3d)):
+    #         nodes.updateWeight()
 
     # Report the initial breakdown.
     numNodesPerProcess = mpi.allreduce(numNodesPerProcess, mpi.SUM)
@@ -69,6 +73,7 @@ def distributeNodesGeneric(listOfNodeTuples,
     print "distributeNodesGeneric: redistribution done."
 
     # Update the neighboring info.
+    #exec("Spheral.Neighbor%id.setBoundingBox()" % db.nDim)
     for nodes in db.nodeLists():
         nodes.neighbor().updateNodes()
 

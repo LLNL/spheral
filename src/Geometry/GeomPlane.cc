@@ -102,6 +102,17 @@ GeomPlane<Dimension>::operator-() const {
 }
 
 //------------------------------------------------------------------------------
+// Calculate the signed distance from a point to the plane.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+GeomPlane<Dimension>::
+signedDistance(const typename Dimension::Vector& point) const {
+  CHECK(valid());
+  return mNormal.dot(point - mPoint);
+}
+
+//------------------------------------------------------------------------------
 // Calculate the minimum distance from a point to the plane.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -109,7 +120,7 @@ double
 GeomPlane<Dimension>::
 minimumDistance(const typename Dimension::Vector& point) const {
   CHECK(valid());
-  return fabs(mNormal.dot(point - mPoint));
+  return std::abs(mNormal.dot(point - mPoint));
 }
 
 //------------------------------------------------------------------------------

@@ -19,6 +19,7 @@ source("../src/Field/tests/testField.py")
 
 # Neighbor unit tests
 source("../src/Neighbor/tests/testNestedGridNeighbor.py")
+source("../src/Neighbor/tests/testTreeNeighbor.py")
 
 # Distributed unit tests
 source("../src/Distributed/tests/distributedUnitTests.py")

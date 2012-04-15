@@ -17,7 +17,6 @@ SRCTARGETS = \
 	buildEigenVector.cc \
 	EigenStruct.cc \
 	computeEigenValues.cc \
-	DataNameTraits.cc \
 	fakemain.cc \
 	GeomFacet2d.cc \
 	GeomFacet3d.cc \

@@ -48,7 +48,9 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors and destructors
-  Neighbor(NodeSpace::NodeList<Dimension>& nodeList, const NeighborSearchType searchType);
+  Neighbor(NodeSpace::NodeList<Dimension>& nodeList, 
+           const NeighborSearchType searchType,
+           const double kernelExtent);
   virtual ~Neighbor();
 
   // Choose the type of neighbor search we wish to use.
@@ -58,11 +60,6 @@ public:
   // All neighboring classes need to now how far to sample.
   double kernelExtent() const;
   void kernelExtent(double kernelExtent);
-
-  // Determine the maximum extent of a given H smoothing scale along the
-  // Cartesian axes.
-  static Vector HExtent(const Scalar& H, const double kernelExtent);
-  static Vector HExtent(const SymTensor& H, const double kernelExtent);
 
   // Allow access to the field of node extents.
   const FieldSpace::Field<Dimension, Vector>& nodeExtentField() const;
@@ -160,6 +157,11 @@ public:
                                      const NodeListIteratorType& nodeListEnd,
                                      const double kernelExtent);
 
+  // Determine the maximum extent of a given H smoothing scale along the
+  // Cartesian axes.
+  static Vector HExtent(const Scalar& H, const double kernelExtent);
+  static Vector HExtent(const SymTensor& H, const double kernelExtent);
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Provide read/write access to the node index vectors for descendent classes.
@@ -170,8 +172,8 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mKernelExtent;
   NeighborSearchType mSearchType;
+  double mKernelExtent;
 
   std::vector<int>* mMasterListPtr;
   std::vector<int>* mCoarseNeighborListPtr;

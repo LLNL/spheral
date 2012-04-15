@@ -515,7 +515,7 @@ computeConnectivity() {
   TAU_PROFILE_STOP(TimeCMAllocate);
 
   // Predeclare stuff we're going to use in the loop.
-  unsigned iiNodeList, ii, iNodeList, jNodeList;
+  unsigned iiNodeList, ii, iNodeList, jNodeList, firstGhostNode;
   int i, firstGhostNodej, j, k;
   typename Neighbor<Dimension>::const_iterator masterItr, neighborItr;
   Time start;
@@ -526,6 +526,7 @@ computeConnectivity() {
 
   // Iterate over the NodeLists.
   TAU_PROFILE_START(TimeCMMain);
+  CHECK(mConnectivity.size() == numNodeLists);
   for (iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
 
     // Iterate over the internal nodes in this NodeList, and look
@@ -545,92 +546,96 @@ computeConnectivity() {
           const Neighbor<Dimension>& neighbori = mNodeLists[iNodeList]->neighbor();
           CHECK(neighbori.valid());
           Field<Dimension, Scalar>& worki = mNodeLists[iNodeList]->work();
+          firstGhostNode = mNodeLists[iNodeList]->firstGhostNode();
 
           // Iterate over the master nodes in this NodeList.
           for (masterItr = neighbori.masterBegin();
                masterItr != neighbori.masterEnd();
                ++masterItr) {
             i = *masterItr;
-            start = Timing::currentTime();
-            CHECK(flagNodeDone(iNodeList, i) == 0);
+            if (mDomainDecompIndependent or i < firstGhostNode) {
+              CHECK(i < mConnectivity[iNodeList]->size());
+              start = Timing::currentTime();
+              CHECK(flagNodeDone(iNodeList, i) == 0);
 
-            // Get the neighbor set we're building for this node.
-            vector< vector<int> >& neighbors = *(*mConnectivity[iNodeList])[i];
-            CHECK(neighbors.size() == numNodeLists);
+              // Get the neighbor set we're building for this node.
+              vector< vector<int> >& neighbors = *(*mConnectivity[iNodeList])[i];
+              CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-            // We keep track of the Morton indicies.
-            keys = vector<vector<pair<int, Key> > >(numNodeLists);
+              // We keep track of the Morton indicies.
+              keys = vector<vector<pair<int, Key> > >(numNodeLists);
 
-            // Get the state for this node.
-            const Vector& ri = position(iNodeList, i);
-            const SymTensor& Hi = H(iNodeList, i);
+              // Get the state for this node.
+              const Vector& ri = position(iNodeList, i);
+              const SymTensor& Hi = H(iNodeList, i);
 
-            // Iterate over the neighbor NodeLists.
-            for (jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
-              Neighbor<Dimension>& neighborj = mNodeLists[jNodeList]->neighbor();
-              firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+              // Iterate over the neighbor NodeLists.
+              for (jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+                Neighbor<Dimension>& neighborj = mNodeLists[jNodeList]->neighbor();
+                firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
 
-              // Set the refine neighbors.
-              neighborj.setRefineNeighborList(ri, Hi);
+                // Set the refine neighbors.
+                neighborj.setRefineNeighborList(ri, Hi);
 
-              // Iterate over the neighbors in this NodeList.
-              for (neighborItr = neighborj.refineNeighborBegin();
-                   neighborItr != neighborj.refineNeighborEnd();
-                   ++neighborItr) {
-                j = *neighborItr;
+                // Iterate over the neighbors in this NodeList.
+                for (neighborItr = neighborj.refineNeighborBegin();
+                     neighborItr != neighborj.refineNeighborEnd();
+                     ++neighborItr) {
+                  j = *neighborItr;
 
-                // Get the neighbor state.
-                const Vector& rj = position(jNodeList, j);
-                const SymTensor& Hj = H(jNodeList, j);
+                  // Get the neighbor state.
+                  const Vector& rj = position(jNodeList, j);
+                  const SymTensor& Hj = H(jNodeList, j);
 
-                // Compute the normalized distance between this pair.
-                rij = ri - rj;
-                eta2i = (Hi*rij).magnitude2();
-                eta2j = (Hj*rij).magnitude2();
+                  // Compute the normalized distance between this pair.
+                  rij = ri - rj;
+                  eta2i = (Hi*rij).magnitude2();
+                  eta2j = (Hj*rij).magnitude2();
 
-                // If this pair is significant, add it to the list.
-                if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+                  // If this pair is significant, add it to the list.
+                  if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-                  // We don't include self-interactions.
-                  if ((iNodeList != jNodeList) or (i != j)) {
-                    neighbors[jNodeList].push_back(j);
+                    // We don't include self-interactions.
+                    if ((iNodeList != jNodeList) or (i != j)) {
+                      neighbors[jNodeList].push_back(j);
 
-                    if (mDomainDecompIndependent) {
-                      keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
-                      // In this case we also need to have ghost nodes aware of any internal neighbors.
-                      if (j >= firstGhostNodej) {
-                        vector< vector<int> >& otherNeighbors = *(*mConnectivity[jNodeList])[j];
-                        CHECK(otherNeighbors.size() == numNodeLists);
-                        otherNeighbors[iNodeList].push_back(i);
+                      if (mDomainDecompIndependent) {
+                        keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                        // In this case we also need to have ghost nodes aware of any internal neighbors.
+                        if (j >= firstGhostNodej) {
+                          vector< vector<int> >& otherNeighbors = *(*mConnectivity[jNodeList])[j];
+                          CHECK(otherNeighbors.size() == numNodeLists);
+                          otherNeighbors[iNodeList].push_back(i);
+                        }
                       }
-                    }
 
+                    }
                   }
                 }
               }
-            }
-            CHECK(neighbors.size() == numNodeLists);
-            CHECK(keys.size() == numNodeLists);
+              CHECK(neighbors.size() == numNodeLists);
+              CHECK(keys.size() == numNodeLists);
         
-            // We have a few options for how to order the neighbors for this node.
-            for (k = 0; k != numNodeLists; ++k) {
+              // We have a few options for how to order the neighbors for this node.
+              for (k = 0; k != numNodeLists; ++k) {
 
-              if (mDomainDecompIndependent) {
-                // Sort in a domain independent manner.
-                CHECK(keys[k].size() == neighbors[k].size());
-                sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
-                for (j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
+                if (mDomainDecompIndependent) {
+                  // Sort in a domain independent manner.
+                  CHECK(keys[k].size() == neighbors[k].size());
+                  sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
+                  for (j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
 
-              } else {
-                // Sort in an attempt to be cache friendly.
-                sort(neighbors[k].begin(), neighbors[k].end());
+                } else {
+                  // Sort in an attempt to be cache friendly.
+                  sort(neighbors[k].begin(), neighbors[k].end());
 
+                }
               }
-            }
 
-            // Flag this master node as done.
-            flagNodeDone(iNodeList, i) = 1;
-            worki(i) += Timing::difference(start, Timing::currentTime());
+              // Flag this master node as done.
+              flagNodeDone(iNodeList, i) = 1;
+              worki(i) += Timing::difference(start, Timing::currentTime());
+            }
           }
         }
       }

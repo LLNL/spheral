@@ -46,7 +46,7 @@ NestedGridNeighbor(NodeList<Dimension>& aNodeList,
                    const typename Dimension::Vector origin,
                    const double kernelExtent,
 		   const int gridCellInfluenceRadius):
-  Neighbor<Dimension>(aNodeList, aSearchType),
+  Neighbor<Dimension>(aNodeList, aSearchType, kernelExtent),
   mMaxGridLevels(numGridLevels),
   mFirstParentGridLevel(0),
   mGridCellInfluenceRadius(gridCellInfluenceRadius),

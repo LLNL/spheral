@@ -28,8 +28,8 @@ PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
 PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.5.1.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.5.1/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.6.1.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -55,7 +55,7 @@ ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 BOOSTDIST = boost_1_49_0.tar.bz2
 BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.49.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
-BOOSTBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
+BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
 BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
@@ -84,7 +84,7 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 
 # Tau
 TAUURL=http://tau.uoregon.edu/$(TAUDIST)
-TAUDIR = $(TAUDIST:.tgz=-2.21.1)
+TAUDIR = $(TAUDIST:.tgz=-2.21.2)
 TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
 TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
 
@@ -101,8 +101,8 @@ MATPLOTLIBDIR = $(MATPLOTLIBDIST:.tar.gz=)
 MATPLOTLIBBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MATPLOTLIBDIST))
 
 # Scipy
-SCIPYDIST = scipy-0.6.0.tar.gz
-SCIPYURL = http://easynews.dl.sourceforge.net/sourceforge/scipy/$(SCIPYDIST)
+SCIPYDIST = scipy-0.10.1.tar.gz
+SCIPYURL = http://sourceforge.net/projects/scipy/files/scipy/0.10.1/$(SCIPYDIST)/download
 SCIPYDIR = $(SCIPYDIST:.tar.gz=)
 SCIPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SCIPYDIST))
 
@@ -171,7 +171,7 @@ ARRAYURL = http://www.math.ualberta.ca/~bowman/$(ARRAYDIST)
 ARRAYBUILDDATE = $(patsubst %.h, .%.date, $(ARRAYDIST))
 
 # ZLIB
-ZLIBDIST = zlib-1.2.5.tar.bz2
+ZLIBDIST = zlib-1.2.6.tar.bz2
 ZLIBURL = http://www.zlib.net/$(ZLIBDIST)
 ZLIBDIR = $(ZLIBDIST:.tar.bz2=)
 ZLIBBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(ZLIBDIST))
@@ -205,7 +205,7 @@ QHULLDIST = qhull-2011.2-src.tgz
 QHULLURL = http://www.qhull.org/download/$(QHULLDIST)
 QHULLDIR = $(QHULLDIST:-src.tgz=)
 QHULLINCDIR = $(SPHERALDIR)/include/qhull
-QHULLBUILDDATE = $(patsubst %-src.tgz, .%.date, $(QHULLDIST))
+QHULLDATE = $(patsubst %-src.tgz, .%.date, $(QHULLDIST))
 
 # mpi4py
 MPI4PYDIST = mpi4py-1.2.2.tar.gz
@@ -262,22 +262,22 @@ MPMATHBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPMATHDIST))
 # OCTTREEINCDIR = $(SPHERALDIR)/include/octtree
 # OCTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(OCTTREEDIST))
 
-# # The FLANN (Fast Library for Approximate Nearest Neighbors) library.
-# FLANNDIST = flann-1.7.1-src.zip
-# FLANNURL = http://people.cs.ubc.ca/~mariusm/uploads/FLANN/$(FLANNDIST)
-# FLANNDIR = $(FLANNDIST:.zip=)
-# FLANNBUILDDATE = $(patsubst %.zip, .%.date, $(FLANNDIST))
+# The FLANN (Fast Library for Approximate Nearest Neighbors) library.
+FLANNDIST = flann-1.7.1-src.zip
+FLANNURL = http://people.cs.ubc.ca/~mariusm/uploads/FLANN/$(FLANNDIST)
+FLANNDIR = $(FLANNDIST:.zip=)
+FLANNBUILDDATE = $(patsubst %.zip, .%.date, $(FLANNDIST))
 
-# # The Point Cloud Library (PCL)
-# PCLDIST = PCL-1.5.1-Source.tar.bz2
-# PCLURL = http://dev.pointclouds.org/attachments/download/771/$(PCLDIST)
-# PCLDIR = $(PCLDIST:.tar.bz2=)
-# PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
+# The Point Cloud Library (PCL)
+PCLDIST = PCL-1.5.1-Source.tar.bz2
+PCLURL = http://dev.pointclouds.org/attachments/download/771/$(PCLDIST)
+PCLDIR = $(PCLDIST:.tar.bz2=)
+PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(ELEMENTTREEBUILDDATE) \
-	$(BOOSTBUILDDATE) \
+	$(BOOSTDATE) \
 	$(GCCXMLTARGETS) \
 	$(NUMPYTHIRDPARTYTARGETS) \
 	$(PSYCOTHIRDPARTYTARGET) \
@@ -299,13 +299,15 @@ all:	$(PYTHONBUILDDATE) \
 	$(PILBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
 	$(WILDMAGICBUILDDATE) \
-	$(QHULLBUILDDATE) \
+	$(QHULLDATE) \
 	$(HDF5BUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(VOROPPBUILDDATE) \
 	$(VOROPP2DBUILDDATE) \
-	$(MPMATHBUILDDATE)
+	$(MPMATHBUILDDATE) \
+#	$(FLANNBUILDDATE) \
+#	$(PCLBUILDDATE)
 
 clean:
 	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
@@ -314,7 +316,7 @@ clean:
 	       $(ELEMENTTREEDIR) $(ELEMENTTREEBUILDDATE) \
 	       $(PSYCODIR) $(PSYCOBUILDDATE) \
 	       $(ELEMENTTREEDIR) $(ELEMENTTREEBUILDDATE) \
-	       $(BOOSTDIR) $(BOOSTBUILDDATE) \
+	       $(BOOSTDIR) $(BOOSTDATE) \
                $(CMAKEDIR) \
                $(GCCXMLDIR) $(GCCXMLDATE) \
 	       $(PSYCODIR) $(PSYCOTHIRDPARTYTARGET) \
@@ -337,13 +339,15 @@ clean:
 	       $(PILDIR) $(PILBUILDDATE) \
 	       $(PYBINDGENDIR) $(PYBINDGENBUILDDATE) \
 	       $(WILDMAGICDIR) $(WILDMAGICBUILDDATE) \
-	       $(QHULLDIR) $(QHULLBUILDDATE) \
+	       $(QHULLDIR) $(QHULLDATE) \
 	       $(HDF5DIR) $(HDF5BUILDDATE) \
 	       $(SILODIR) $(SILOBUILDDATE) \
 	       $(EIGENDIR) $(EIGENBUILDDATE) \
 	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
 	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
 	       $(MPMATHDIR) $(MPMATHBUILDDATE) \
+	       $(FLANNDIR) $(FLANNBUILDDATE) \
+	       $(PCLDIR) $(PCLBUILDDATE) \
 	       .*.date
 
 .SUFFIXES:	.date .gz .tgz
@@ -362,7 +366,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	rm -fr $(PYTHONDIR)
 	$(BZIP2) -dc $(PYTHONDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYTHONDIR); \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC=$(PYTHONCC) CXX=$(PYTHONCXX) CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc=$(PYTHONCC) --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
+	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' 
 	$(MAKE) -C $(PYTHONDIR) install
 	@if ! test -e $(PYTHONEXE); then \
@@ -387,7 +391,7 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
+	#$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
 	$(SHELL) -ec 'cd $(NUMPYDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
@@ -466,7 +470,7 @@ $(ELEMENTTREEBUILDDATE):	$(PYTHONBUILDDATE) $(ELEMENTTREEDIST)
 $(BOOSTDIST):
 	$(CURL) "$(BOOSTURL)" > $(BOOSTDIST)
 
-$(BOOSTBUILDDATE):	$(BOOSTDIST)
+$(BOOSTDATE):	$(BOOSTDIST)
 	@echo "################################################################################"
 	@echo "# Building $(BOOSTDIST)"
 	@echo "################################################################################"
@@ -475,11 +479,11 @@ $(BOOSTBUILDDATE):	$(BOOSTDIST)
 	$(BZIP2) -dc $(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(SPHERALDIR)/bin:$$PATH; export PATH; \
-	./bootstrap.sh --without-libraries=date_time,filesystem,graph,graph_parallel,iostreams,math,mpi,program_options,python,regex,serialization,signals,system,test,thread,wave --prefix=$(SPHERALDIR); \
+	./bootstrap.sh --without-libraries=graph,graph_parallel,math,mpi,program_options,python,regex,serialization,signals,system,test,wave --prefix=$(SPHERALDIR); \
 	./bjam install;'
 	@if test "$(BOOSTPYTHONTARGET)" = "python" -a ! -e $(SPHERALDIR)/lib/$(BOOSTPYTHONLIB0) ; then \
 	echo "ERROR building local boost distribution. (1, no $(BOOSTPYTHONLIB0))"; \
-	rm -f $(BOOSTBUILDDATE); \
+	rm -f $(BOOSTDATE); \
 	exit 1; \
 	fi
 	@if test "$(BOOSTPYTHONTARGET)" = "python"; then \
@@ -488,11 +492,11 @@ $(BOOSTBUILDDATE):	$(BOOSTDIST)
 	fi
 	@if test "$(BOOSTPYTHONTARGET)" = "python" -a ! -e $(LIBDIR)/$(BOOSTPYTHONLIB); then \
 	echo "ERROR building local boost distribution. (2)"; \
-	rm -f $(BOOSTBUILDDATE); \
+	rm -f $(BOOSTDATE); \
 	exit 1; \
 	fi
 	rm -fr $(BOOSTDIR)
-	touch $(BOOSTBUILDDATE)
+	touch $(BOOSTDATE)
 
 #-------------------------------------------------------------------------------
 # gccxml
@@ -506,7 +510,7 @@ $(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
 	$(BZIP2) -dc $(GCCXMLDIST) | $(TAR) -xf -
 	$(MKDIR) $(GCCXMLDIR)/build
 	$(SHELL) -ec 'cd $(GCCXMLDIR)/build; \
-	env CC=$(GCCXMLCC) CXX=$(GCCXMLCXX) $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
+	env CC='$(GCCXMLCC)' CXX='$(GCCXMLCXX)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) ..; $(MAKE); $(MAKE) install'
 	@if ! test -e $(SPHERALDIR)/bin/gccxml_cc1plus -a -e $(SPHERALDIR)/bin/gccxml; then \
 	echo "ERROR building gccxml."; \
 	rm -f $(GCCXMLDATE); \
@@ -528,7 +532,7 @@ $(CMAKEEXE):	$(CMAKEDIST)
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc $(CMAKEDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(CMAKEDIR); \
-	env CC=$(CMAKECC) CXX=$(CMAKECXX) ./bootstrap --prefix=$(SPHERALDIR); \
+	env CC='$(CMAKECC)' CXX='$(CMAKECXX)' ./bootstrap --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install'
 	@if ! test -e $(CMAKEEXE); then \
@@ -631,7 +635,7 @@ $(PYGTKBUILDDATE):  $(NUMPYBUILDDATE) $(PYGTKDIST)
 	rm -fr $(PYGTKDIR) $(PYGTKDUMMYDATE)
 	$(GZIP) -dc $(PYGTKDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYGTKDIR); \
-	env CC=$(PYTHONCC) CXX=$(PYTHONCXX) PYTHON=$(PYTHONEXE) ./configure --enable-thread --prefix=$(SPHERALDIR); \
+	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' PYTHON=$(PYTHONEXE) ./configure --enable-thread --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install"
 	@if test -n "`$(PYTHONEXE) -c 'import pygtk'`"; then \
@@ -722,7 +726,7 @@ $(GSLBUILDDATE): $(GSLDIST)
 	rm -fr $(GSLDIR)
 	$(GZIP) -dc $(GSLDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(GSLDIR); \
-	env CC=$(CC) CXX=$(CXX) ./configure --prefix=$(SPHERALDIR) ; \
+	env CC='$(CC)' CXX='$(CXX)' ./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/$(GSLLIBSO) -o \
@@ -815,7 +819,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 	@$(MKDIR) $(SPHERALDIR)/include
 	$(GZIP) -dc $(HASHMAPDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HASHMAPDIR); \
-	env cc='$(CC)' CXX='$(CXX)' ./configure --enable-namespace=google --prefix=$(SPHERALDIR); \
+	env CC='$(CC)' CXX='$(CXX)' ./configure --enable-namespace=google --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/include/google; then \
@@ -974,7 +978,7 @@ $(JPEGBUILDDATE):	$(JPEGDIST)
 	rm -fr $(JPEGDIR)
 	$(GZIP) -dc $(JPEGDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(JPEGDIR); \
-	env CC=$(CC) CXX=$(CXX) CFLAGS="-fPIC" ./configure --prefix=$(SPHERALDIR) ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS="-fPIC" ./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
 	$(MAKE) install ; \
 	$(CP) -f jpeglib.h jerror.h jconfig.h jmorecfg.h $(SPHERALDIR)/include ; \
@@ -1087,7 +1091,7 @@ $(WILDMAGICBUILDDATE):	$(PYTHONBUILDDATE) $(WILDMAGICDIST)
 $(QHULLDIST):
 	$(CURL) "$(QHULLURL)" > $(QHULLDIST)
 
-$(QHULLBUILDDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
+$(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(QHULLDIST)"
 	@echo "################################################################################"
@@ -1095,16 +1099,16 @@ $(QHULLBUILDDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
 	echo "ERROR building Qhull."; \
-	rm -f $(QHULLBUILDDATE); \
+	rm -f $(QHULLDATE); \
 	exit 1; \
 	fi
 	rm -fr $(QHULLDIR)
-	touch $(QHULLBUILDDATE)
+	touch $(QHULLDATE)
 
 #-------------------------------------------------------------------------------
 # mpi4py
@@ -1142,7 +1146,8 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HDF5DIR); \
-	env CC=$(MPICC) CXX=$(MPICXX) CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
+	rm -f test.conf ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libhdf5.a -a \
@@ -1168,7 +1173,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC=$(MPICC) CXX=$(MPICXX) $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
@@ -1235,7 +1240,7 @@ $(VOROPP2DBUILDDATE):  $(VOROPP2DDIST)
 	rm -fr $(VOROPP2DDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(MKDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(BZIP2) -dc $(VOROPP2DDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(VOROPP2DDIR)/src; $(MAKE) CC=$(CC) CXX=$(CXX) CFLAGS="-fPIC"; \
+	$(SHELL) -ec 'cd $(VOROPP2DDIR)/src; $(MAKE) CC='$(CC)' CXX='$(CXX)' CFLAGS="-fPIC"; \
 	$(CP) -r *.hh $(SPHERALDIR)/include/$(VOROPP2DINC); \
 	$(CP) *.a  $(SPHERALDIR)/lib'
 	@if ! test -e $(SPHERALDIR)/include/$(VOROPP2DINC)/voro++_2d.hh -a \
@@ -1310,7 +1315,7 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
 	$(UNZIP) $(FLANNDIST)
 	$(MKDIR) $(FLANNDIR)/build
 	$(SHELL) -ec "cd $(FLANNDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libflann_s.a; then \
@@ -1318,7 +1323,7 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
 	rm -f $(FLANNBUILDDATE); \
 	exit 1; \
 	fi
-	rm -fr $(FLANNDIR)
+	rm -fr $(FLANNDIR)/build
 	touch $(FLANNBUILDDATE)
 
 #-------------------------------------------------------------------------------
@@ -1327,7 +1332,7 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
 $(PCLDIST):
 	$(CURL) "$(PCLURL)" > $(PCLDIST)
 
-$(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(FLANNDATE)
+$(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(BOOSTDATE) $(EIGENDATE) $(QHULLDATE) $(FLANNDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PCLDIST)"
 	@echo "################################################################################"
@@ -1336,7 +1341,7 @@ $(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(FLANNDATE)
 	$(BZIP2) -dc $(PCLDIST) | $(TAR) -xf -
 	$(MKDIR) $(PCLDIR)/build
 	$(SHELL) -ec "cd $(PCLDIR)/build; \
-	env CC=$(CC) CXX=$(CXX) CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DFLANN_INCLUDE_DIR=$(SPHERALDIR)/spheral/src/thirdPartyLibs/$(FLANNDIR) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libpclstatic.a; then \

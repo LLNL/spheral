@@ -230,6 +230,9 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
             Wij = Wj;
             weightij = weightj;
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Add this nodes contribution to the master value.
@@ -275,6 +278,9 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
             Wij = Wj;
             weightij = weightj;
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Loop over all the FieldLists we're sampling from, and add their contributions

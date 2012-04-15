@@ -1,4 +1,4 @@
-#ATS:test(SELF, np=1, label="NestedGridNeighbor unit tests")
+#ATS:test(SELF, np=1, label="TreeNeighbor unit tests")
 from math import *
 import unittest
 import random
@@ -54,7 +54,7 @@ class SetupNodeDistributions:
         for i in xrange(SymTensor.nDimensions):
             vol *= range[i][1] - range[i][0]
         assert vol > 0.0
-        dx0 = vol**adim
+        dx0 = (vol/n)**adim
 
         globalNodeIDs = []
         nodePositions = []
@@ -92,16 +92,16 @@ class SetupNodeDistributions:
                      BSplineKernel,
                      Vector,
                      SymTensor,
-                     NestedGridNeighbor,
+                     TreeNeighbor,
                      DataBase,
                      Seeder):
         
         # Construct the NodeLists to be distributed
         self.eos = EOS(2.0, 2.0)
         self.WT = TableKernel(BSplineKernel(), 100)
-        self.nodes1 = makeFluidNodeList("nodes 1", self.eos, NeighborType=NestedGridNeighbor)
-        self.nodes2 = makeFluidNodeList("nodes 2", self.eos, NeighborType=NestedGridNeighbor)
-        self.nodes3 = makeFluidNodeList("nodes 3", self.eos, NeighborType=NestedGridNeighbor)
+        self.nodes1 = makeFluidNodeList("nodes 1", self.eos, NeighborType=TreeNeighbor)
+        self.nodes2 = makeFluidNodeList("nodes 2", self.eos, NeighborType=TreeNeighbor)
+        self.nodes3 = makeFluidNodeList("nodes 3", self.eos, NeighborType=TreeNeighbor)
         for nodes, nGlobal, range in ((self.nodes1, n1, range1),
                                       (self.nodes2, n2, range2),
                                       (self.nodes3, n3, range3)):
@@ -116,13 +116,16 @@ class SetupNodeDistributions:
                 nodes.positions()[i] = xyNodes[i]
                 nodes.Hfield()[i] = H[i]
 
-            nodes.neighbor().updateNodes()
-
         # Put the distributed NodeLists into a DataBase.
         self.dataBase = DataBase()
         self.dataBase.appendNodeList(self.nodes1)
         self.dataBase.appendNodeList(self.nodes2)
         self.dataBase.appendNodeList(self.nodes3)
+
+        # Update all the Neighbor info.
+        #TreeNeighbor.setBoundingBox()
+        for n in (self.nodes1, self.nodes2, self.nodes3):
+            n.neighbor().updateNodes()
 
         return
 
@@ -133,9 +136,9 @@ class SetupNodeDistributions:
         return
 
 #===============================================================================
-# Base class to implement NestedGridNeighbor test.
+# Base class to implement TreeNeighbor test.
 #===============================================================================
-class TestNestedGridNeighborBase(SetupNodeDistributions):
+class TestTreeNeighborBase(SetupNodeDistributions):
 
     #---------------------------------------------------------------------------
     # The actual test itself!
@@ -146,11 +149,13 @@ class TestNestedGridNeighborBase(SetupNodeDistributions):
 
         # Iterate over the NodeLists.
         for nodes in self.dataBase.nodeLists():
+            pos = nodes.positions()
+            H = nodes.Hfield()
 
             # Randomly select nodes from each NodeList to explicitly test.
             for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
-                ri = nodes.positions()[nodeID]
-                Hi = nodes.Hfield()[nodeID]
+                ri = pos[nodeID]
+                Hi = H[nodeID]
 
                 # Have the neighbor objects select neighbors for this node.
                 t0 = time.time()
@@ -177,11 +182,12 @@ class TestNestedGridNeighborBase(SetupNodeDistributions):
                 if not test:
                     neighborIDs.sort()
                     answerIDs.sort()
-                    print 'SPH Nested Neighbor test FAILED'
+                    print 'SPH Tree Neighbor test FAILED'
                     print ' refine: ', neighborIDs
                     print ' answer: ', answerIDs
                     missing = [i for i in answerIDs if i not in neighborIDs]
                     print 'missing: ', missing
+                    print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
                 else:
                     print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
                 assert test
@@ -189,7 +195,7 @@ class TestNestedGridNeighborBase(SetupNodeDistributions):
 #===============================================================================
 # Radom node distribution -- 1-D.
 #===============================================================================
-class TestNestedGridNeighborRandom1d(unittest.TestCase, TestNestedGridNeighborBase):
+class TestTreeNeighborRandom1d(unittest.TestCase, TestTreeNeighborBase):
 
     #---------------------------------------------------------------------------
     # Set up method called before test is run.
@@ -197,7 +203,7 @@ class TestNestedGridNeighborRandom1d(unittest.TestCase, TestNestedGridNeighborBa
     def setUp(self):
 
         print "--------------------------------------------------------------------------------"
-        print "1-D NestedGridNeighbor random test."
+        print "1-D TreeNeighbor random test."
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
@@ -224,7 +230,7 @@ class TestNestedGridNeighborRandom1d(unittest.TestCase, TestNestedGridNeighborBa
                           BSplineKernel1d,
                           Vector1d,
                           SymTensor1d,
-                          NestedGridNeighbor1d,
+                          TreeNeighbor1d,
                           DataBase1d,
                           self.randomDistribute)
 
@@ -233,7 +239,7 @@ class TestNestedGridNeighborRandom1d(unittest.TestCase, TestNestedGridNeighborBa
 #===============================================================================
 # Radom node distribution -- 2-D.
 #===============================================================================
-class TestNestedGridNeighborRandom2d(unittest.TestCase, TestNestedGridNeighborBase):
+class TestTreeNeighborRandom2d(unittest.TestCase, TestTreeNeighborBase):
 
     #---------------------------------------------------------------------------
     # Set up method called before test is run.
@@ -241,7 +247,7 @@ class TestNestedGridNeighborRandom2d(unittest.TestCase, TestNestedGridNeighborBa
     def setUp(self):
 
         print "--------------------------------------------------------------------------------"
-        print "2-D NestedGridNeighbor random test."
+        print "2-D TreeNeighbor random test."
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
@@ -265,7 +271,7 @@ class TestNestedGridNeighborRandom2d(unittest.TestCase, TestNestedGridNeighborBa
                           BSplineKernel2d,
                           Vector2d,
                           SymTensor2d,
-                          NestedGridNeighbor2d,
+                          TreeNeighbor2d,
                           DataBase2d,
                           self.randomDistribute)
 
@@ -274,7 +280,7 @@ class TestNestedGridNeighborRandom2d(unittest.TestCase, TestNestedGridNeighborBa
 #===============================================================================
 # Radom node distribution -- 3-D.
 #===============================================================================
-class TestNestedGridNeighborRandom3d(unittest.TestCase, TestNestedGridNeighborBase):
+class TestTreeNeighborRandom3d(unittest.TestCase, TestTreeNeighborBase):
 
     #---------------------------------------------------------------------------
     # Set up method called before test is run.
@@ -282,7 +288,7 @@ class TestNestedGridNeighborRandom3d(unittest.TestCase, TestNestedGridNeighborBa
     def setUp(self):
 
         print "--------------------------------------------------------------------------------"
-        print "3-D NestedGridNeighbor random test."
+        print "3-D TreeNeighbor random test."
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 10
@@ -310,7 +316,7 @@ class TestNestedGridNeighborRandom3d(unittest.TestCase, TestNestedGridNeighborBa
                           BSplineKernel3d,
                           Vector3d,
                           SymTensor3d,
-                          NestedGridNeighbor3d,
+                          TreeNeighbor3d,
                           DataBase3d,
                           self.randomDistribute)
 
@@ -320,7 +326,7 @@ class TestNestedGridNeighborRandom3d(unittest.TestCase, TestNestedGridNeighborBa
 #===============================================================================
 # Cylindrical node distribution -- 2-D.
 #===============================================================================
-class TestNestedGridNeighborCylindrical2d(unittest.TestCase, TestNestedGridNeighborBase):
+class TestTreeNeighborCylindrical2d(unittest.TestCase, TestTreeNeighborBase):
 
     #---------------------------------------------------------------------------
     # Set up method called before test is run.
@@ -328,7 +334,7 @@ class TestNestedGridNeighborCylindrical2d(unittest.TestCase, TestNestedGridNeigh
     def setUp(self):
 
         print "--------------------------------------------------------------------------------"
-        print "2-D NestedGridNeighbor regular cylindrical test."
+        print "2-D TreeNeighbor regular cylindrical test."
         print "--------------------------------------------------------------------------------"
 
         self.ncheck = 50
@@ -337,7 +343,7 @@ class TestNestedGridNeighborCylindrical2d(unittest.TestCase, TestNestedGridNeigh
         from DistributeNodes import distributeNodes2d
         self.eos = GammaLawGasMKS2d(2.0, 2.0)
         self.WT = TableKernel2d(BSplineKernel2d(), 100)
-        self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos)
+        self.nodes1 = makeFluidNodeList2d("cylindrical nodes 1", self.eos, NeighborType=TreeNeighbor2d)
         self.kernelExtent = 2.0
         generator = GenerateNodeDistribution2d(nRadial = 100,
                                                nTheta = 100,

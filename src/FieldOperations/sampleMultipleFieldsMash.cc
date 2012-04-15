@@ -226,6 +226,9 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
             Wij = Wj;
             weightij = weightj;
             break;
+
+          default:
+            VERIFY2(false, "Unhandled neighbor search type.");
           }
 
           // Increment the MASH normalization.

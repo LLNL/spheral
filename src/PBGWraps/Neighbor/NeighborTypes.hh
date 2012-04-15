@@ -6,6 +6,7 @@
 #include "Neighbor/GridCellPlane.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Neighbor/NestedGridNeighbor.hh"
+#include "Neighbor/TreeNeighbor.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
 namespace Spheral {
@@ -29,6 +30,10 @@ typedef Neighbor<Dim<3> > Neighbor3d;
 typedef NestedGridNeighbor<Dim<1> > NestedGridNeighbor1d;
 typedef NestedGridNeighbor<Dim<2> > NestedGridNeighbor2d;
 typedef NestedGridNeighbor<Dim<3> > NestedGridNeighbor3d;
+
+typedef TreeNeighbor<Dim<1> > TreeNeighbor1d;
+typedef TreeNeighbor<Dim<2> > TreeNeighbor2d;
+typedef TreeNeighbor<Dim<3> > TreeNeighbor3d;
 
 typedef ConnectivityMap<Dim<1> > ConnectivityMap1d;
 typedef ConnectivityMap<Dim<2> > ConnectivityMap2d;

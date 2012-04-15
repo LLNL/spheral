@@ -3,17 +3,19 @@
 //
 // Created by JMO, Fri Mar 31 17:07:41 PST 2000
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_MKSUnits__
+#define __Spheral_MKSUnits__
 
-#ifndef MKSUnits_HH
-#define MKSUnits_HH
+#include "PhysicalConstants.hh"
 
 namespace Spheral {
 namespace Material {
 
-class MKSUnits {
+class MKSUnits: public PhysicalConstants<MKSUnits> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  MKSUnits();
   static const double unitLm;
   static const double unitMkg;
   static const double unitTsec;
