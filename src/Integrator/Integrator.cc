@@ -53,6 +53,7 @@ Integrator<Dimension>::Integrator():
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mRequireConnectivity(true),
   mDtThreshold(1.0e-10),
   mDataBasePtr(0),
   mPhysicsPackages(0),
@@ -76,6 +77,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mRequireConnectivity(true),
   mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
@@ -100,6 +102,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mCurrentTime(0.0),
   mCurrentCycle(0),
   mVerbose(false),
+  mRequireConnectivity(true),
   mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(physicsPackages),
@@ -137,6 +140,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
     mCullGhostNodes = rhs.mCullGhostNodes;
     mVerbose = rhs.mVerbose;
+    mRequireConnectivity = rhs.mRequireConnectivity;
     mDtThreshold = rhs.mDtThreshold;
   }
   return *this;
