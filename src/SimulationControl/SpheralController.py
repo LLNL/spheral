@@ -8,6 +8,8 @@ from SpheralModules.Spheral import FileIOSpace
 from SpheralModules.Spheral import State1d, State2d, State3d
 from SpheralModules.Spheral import StateDerivatives1d, StateDerivatives2d, StateDerivatives3d
 from SpheralModules.Spheral import iterateIdealH1d, iterateIdealH2d, iterateIdealH3d
+from SpheralModules.Spheral.NodeSpace import ASPHSmoothingScale1d, ASPHSmoothingScale2d, ASPHSmoothingScale3d
+from SpheralModules.Spheral.NodeSpace import SPHSmoothingScale1d, SPHSmoothingScale2d, SPHSmoothingScale3d
 from SpheralModules.Spheral.KernelSpace import TableKernel1d, TableKernel2d, TableKernel3d
 from SpheralModules.Spheral.KernelSpace import BSplineKernel1d, BSplineKernel2d, BSplineKernel3d
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
@@ -43,12 +45,14 @@ class SpheralController(RestartableObject):
                  vizStep = None,
                  vizTime = None,
                  vizMethod = None,
-                 initialTime = 0.0):
+                 initialTime = 0.0,
+                 SPH = False):
         RestartableObject.__init__(self)
         self.integrator = integrator
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
+        self.SPH = SPH
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase().nDim
@@ -160,6 +164,7 @@ class SpheralController(RestartableObject):
 
         # Force the periodic work to fire at problem initalization.
         if restoreCycle is None:
+            self.iterateIdealH()
             self.doPeriodicWork(force=True)
 
         return
@@ -627,6 +632,7 @@ class SpheralController(RestartableObject):
                 cycle = None,
                 Time = None,
                 dt = None):
+        mpi.barrier()
         self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
                        self.vizBaseName,
@@ -640,14 +646,18 @@ class SpheralController(RestartableObject):
     # Iteratively set the H tensors, until the desired convergence criteria
     # are met.
     #--------------------------------------------------------------------------
-    def iterateIdealH(self, hydro,
+    def iterateIdealH(self, 
                       maxIdealHIterations = 100,
                       idealHTolerance = 1.0e-4):
         print "SpheralController: Initializing H's..."
         db = self.integrator.dataBase()
         bcs = self.integrator.uniqueBoundaryConditions()
+        if self.SPH:
+            method = eval("SPHSmoothingScale%s()" % self.dim)
+        else:
+            method = eval("ASPHSmoothingScale%s()" % self.dim)
         iterateIdealH = eval("iterateIdealH%s" % self.dim)
-        iterateIdealH(db, bcs, hydro.kernel(), hydro.smoothingScaleMethod(), maxIdealHIterations, idealHTolerance, 0.0, False, False)
+        iterateIdealH(db, bcs, self.kernel, method, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
         return
 
