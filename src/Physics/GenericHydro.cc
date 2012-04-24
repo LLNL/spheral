@@ -155,7 +155,8 @@ dt(const DataBase<Dimension>& dataBase,
       if (mask(nodeListi, i) == 1) {
 
         // Get this nodes minimum characteristic smoothing scale.
-        CHECK(distinctlyGreaterThan(H(nodeListi, i).Determinant(), 0.0));
+        CHECK2(H(nodeListi, i).Determinant() >  0.0,
+               "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
         const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
         //     const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
 
