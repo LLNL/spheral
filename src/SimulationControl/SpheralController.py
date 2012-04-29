@@ -647,7 +647,7 @@ class SpheralController(RestartableObject):
     # are met.
     #--------------------------------------------------------------------------
     def iterateIdealH(self, 
-                      maxIdealHIterations = 100,
+                      maxIdealHIterations = 50,
                       idealHTolerance = 1.0e-4):
         print "SpheralController: Initializing H's..."
         db = self.integrator.dataBase()
