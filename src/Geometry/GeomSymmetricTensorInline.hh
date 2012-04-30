@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <string>
-#include <limits.h>
+#include <limits>
 #include "GeomVector.hh"
 #include "GeomTensor.hh"
 #include "EigenStruct.hh"
@@ -2212,8 +2212,8 @@ template<>
 inline
 GeomVector<3>
 GeomSymmetricTensor<3>::eigenValues() const {
-  const double fscale = std::max(1.0, this->maxAbsElement()); 
-  CHECK(fscale >= 1.0);
+  const double fscale = std::max(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
+  CHECK(fscale > 0.0);
   const double fscalei = 1.0/fscale;
   const double a00 = this->xx()*fscalei;
   const double a01 = this->xy()*fscalei;
@@ -2259,8 +2259,8 @@ template<>
 inline
 EigenStruct<2>
 GeomSymmetricTensor<2>::eigenVectors() const {
-  const double fscale = std::max(1.0, this->maxAbsElement());
-  CHECK(fscale >= 1.0);
+  const double fscale = std::max(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
+  CHECK(fscale > 0.0);
   const double fscalei = 1.0/fscale;
   const double axx = mxx*fscalei;
   const double axy = mxy*fscalei;
