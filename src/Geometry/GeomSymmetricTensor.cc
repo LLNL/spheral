@@ -2,7 +2,7 @@
 // GeomSymmetricTensor -- the symmetric tensor class
 //----------------------------------------------------------------------------//
 #include <cmath>
-#include <limits.h>
+#include <limits>
 #include <float.h>
 #include <vector>
 using namespace std;
@@ -49,10 +49,18 @@ GeomSymmetricTensor<3>::eigenVectors() const {
   EigenStruct<3> result;
 
   // Create a scaled version of this tensor, with all elements in the range [-1,1].
-  const double fscale = max(1.0, this->maxAbsElement());
-  CHECK(fscale >= 1.0);
+  const double fscale = max(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement());
+  CHECK(fscale > 0.0);
   const double fscalei = 1.0/fscale;
-  const SymTensor A = (*this)*fscalei;
+  SymTensor A = (*this)*fscalei;
+
+  // Check for any degenerate elements, and just zero 'em out.
+  A.xx(abs(A.xx()) < degenerate ? 0.0 : A.xx());
+  A.xy(abs(A.xy()) < degenerate ? 0.0 : A.xy());
+  A.xz(abs(A.xz()) < degenerate ? 0.0 : A.xz());
+  A.yy(abs(A.yy()) < degenerate ? 0.0 : A.yy());
+  A.yz(abs(A.yz()) < degenerate ? 0.0 : A.yz());
+  A.zz(abs(A.zz()) < degenerate ? 0.0 : A.zz());
 
 // #ifdef USEJACOBI
 
@@ -76,9 +84,12 @@ GeomSymmetricTensor<3>::eigenVectors() const {
     const Eigen::Vector3d& Bvals = eigensolver.eigenvalues();
     const Eigen::Matrix3d& Bvecs = eigensolver.eigenvectors();
     result.eigenValues = Vector(Bvals(0), Bvals(1), Bvals(2)) * fscale;
-    result.eigenVectors = Tensor(Bvecs(0,0), Bvecs(0,1), Bvecs(0,2),
-                                 Bvecs(1,0), Bvecs(1,1), Bvecs(1,2),
-                                 Bvecs(2,0), Bvecs(2,1), Bvecs(2,2));
+    const double x1 = 1.0/std::sqrt(Bvecs(0,0)*Bvecs(0,0) + Bvecs(1,0)*Bvecs(1,0) + Bvecs(2,0)*Bvecs(2,0));
+    const double x2 = 1.0/std::sqrt(Bvecs(0,1)*Bvecs(0,1) + Bvecs(1,1)*Bvecs(1,1) + Bvecs(2,1)*Bvecs(2,1));
+    const double x3 = 1.0/std::sqrt(Bvecs(0,2)*Bvecs(0,2) + Bvecs(1,2)*Bvecs(1,2) + Bvecs(2,2)*Bvecs(2,2));
+    result.eigenVectors = Tensor(Bvecs(0,0)*x1, Bvecs(0,1)*x2, Bvecs(0,2)*x3,
+                                 Bvecs(1,0)*x1, Bvecs(1,1)*x2, Bvecs(1,2)*x3,
+                                 Bvecs(2,0)*x1, Bvecs(2,1)*x2, Bvecs(2,2)*x3);
   }
 
 // #else
@@ -173,17 +184,19 @@ GeomSymmetricTensor<3>::eigenVectors() const {
   const Vector v1 = result.eigenVectors.getColumn(0);
   const Vector v2 = result.eigenVectors.getColumn(1);
   const Vector v3 = result.eigenVectors.getColumn(2);
-  ENSURE(fuzzyEqual(v1.dot(v2), 0.0, tolerance) and 
-         fuzzyEqual(v1.dot(v3), 0.0, tolerance) and 
-         fuzzyEqual(v2.dot(v3), 0.0, tolerance));
-  ENSURE(fuzzyEqual(v1.magnitude2(), 1.0, tolerance) and
-         fuzzyEqual(v2.magnitude2(), 1.0, tolerance) and
-         fuzzyEqual(v3.magnitude2(), 1.0, tolerance));
+  ENSURE2(fuzzyEqual(v1.dot(v2), 0.0, tolerance) and 
+          fuzzyEqual(v1.dot(v3), 0.0, tolerance) and 
+          fuzzyEqual(v2.dot(v3), 0.0, tolerance),
+          v1 << " " << v2 << " " << v3 << " : " << *this);
+  ENSURE2(fuzzyEqual(v1.magnitude2(), 1.0, tolerance) and
+          fuzzyEqual(v2.magnitude2(), 1.0, tolerance) and
+          fuzzyEqual(v3.magnitude2(), 1.0, tolerance),
+          v1 << " " << v2 << " " << v3);
   const double tol = tolerance*max(1.0, this->maxAbsElement());
   ENSURE2(fuzzyEqual((SymTensor(xx() - lambda1, xy(), xz(),
                                 yx(), yy() - lambda1, yz(),
                                 zx(), zy(), zz() - lambda1)*v1).maxAbsElement(), 0.0, tol),
-          *this << " " << lambda1 << " " << v1 << " " << tol << " "
+          *this << " " << A << " " << lambda1 << " " << v1 << " " << tol << " "
           << SymTensor(xx() - lambda1, xy(), xz(),
                        yx(), yy() - lambda1, yz(),
                        zx(), zy(), zz() - lambda1)*v1);
