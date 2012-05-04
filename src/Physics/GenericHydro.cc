@@ -176,13 +176,13 @@ dt(const DataBase<Dimension>& dataBase,
           reason = "artificial viscosity sound speed limit";
         }
 
-//         // Velocity divergence limit.
-//         const Scalar divVelocity = DvDx(nodeListi, i).Trace();
-//         const double divvDt = 1.0/(std::abs(divVelocity) + FLT_MIN);
-//         if (divvDt < minDt) {
-//           minDt = divvDt;
-//           reason = "velocity divergence";
-//         }
+        // Velocity divergence limit.
+        const Scalar divVelocity = DvDx(nodeListi, i).Trace();
+        const double divvDt = 1.0/(std::abs(divVelocity) + FLT_MIN);
+        if (divvDt < minDt) {
+          minDt = divvDt;
+          reason = "velocity divergence";
+        }
 
         //     // Eigenvalues of the stress-strain tensor.
         //     Vector eigenValues = DvDx(nodeListi, i).Symmetric().eigenValues();
@@ -231,7 +231,7 @@ dt(const DataBase<Dimension>& dataBase,
           lastRho = rho(nodeListi, i);
           lastEps = eps(nodeListi, i);
           lastVelocity = velocity(nodeListi, i);
-//           lastDivVelocity = divVelocity;
+          lastDivVelocity = divVelocity;
           //       lastShearVelocity = shearVelocity;
         }
       }
@@ -250,8 +250,8 @@ dt(const DataBase<Dimension>& dataBase,
                << "  eps = " << lastEps << endl
                << "  velocity = " << lastVelocity << endl
                << "  dtcs = " << lastNodeScale/(lastCs + FLT_MIN) << endl
+               << "  divVelocity = " << lastDivVelocity << endl
 //               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
-//                << "  divVelocity = " << lastDivVelocity << endl
 //                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
 //                << "  shearVelocity = " << lastShearVelocity << endl
                << ends;
