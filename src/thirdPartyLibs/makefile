@@ -274,6 +274,12 @@ PCLURL = http://dev.pointclouds.org/attachments/download/771/$(PCLDIST)
 PCLDIR = $(PCLDIST:.tar.bz2=)
 PCLBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PCLDIST))
 
+# HYPRE parallel linear solver
+HYPREDIST = hypre-2.8.0b.tar.gz
+HYPREURL = https://computation.llnl.gov/casc/hypre/download/$(HYPREDIST)
+HYPREDIR = $(HYPREDIST:.tar.gz=)
+HYPREBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HYPREDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(ELEMENTTREEBUILDDATE) \
@@ -306,6 +312,7 @@ all:	$(PYTHONBUILDDATE) \
 	$(VOROPPBUILDDATE) \
 	$(VOROPP2DBUILDDATE) \
 	$(MPMATHBUILDDATE) \
+	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
 
@@ -346,6 +353,7 @@ clean:
 	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
 	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
 	       $(MPMATHDIR) $(MPMATHBUILDDATE) \
+	       $(HYPREDIR) $(HYPREBUILDDATE) \
 	       $(FLANNDIR) $(FLANNBUILDDATE) \
 	       $(PCLDIR) $(PCLBUILDDATE) \
 	       .*.date
@@ -1299,6 +1307,32 @@ $(MPMATHBUILDDATE):  $(PYTHONBUILDDATE) $(MPMATHDIST)
 	fi
 	rm -fr $(MPMATHDIR)
 	touch $(MPMATHBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# The HYPRE linear solver library
+#-------------------------------------------------------------------------------
+$(HYPREDIST):
+	$(CURL) "$(HYPREURL)" > $(HYPREDIST)
+
+$(HYPREBUILDDATE):	$(HYPREDIST)
+	@echo "################################################################################"
+	@echo "# Building $(HYPREDIST)"
+	@echo "################################################################################"
+	rm -fr $(HYPREDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	$(GZIP) -dc $(HYPREDIST) | $(TAR) -xf -
+	$(SHELL) -ec "cd $(HYPREDIR)/src; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAG='$(CFLAGS)' CXXFLAG='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) ;\
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libHYPRE.a -a \
+	           -e $(SPHERALDIR)/include/HYPRE.h; then \
+	echo "ERROR building Hypre."; \
+	rm -f $(HYPREBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(HYPREDIR)
+	touch $(HYPREBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # FLANN
