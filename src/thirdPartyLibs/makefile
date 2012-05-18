@@ -171,7 +171,7 @@ ARRAYURL = http://www.math.ualberta.ca/~bowman/$(ARRAYDIST)
 ARRAYBUILDDATE = $(patsubst %.h, .%.date, $(ARRAYDIST))
 
 # ZLIB
-ZLIBDIST = zlib-1.2.6.tar.bz2
+ZLIBDIST = zlib-1.2.7.tar.bz2
 ZLIBURL = http://www.zlib.net/$(ZLIBDIST)
 ZLIBDIR = $(ZLIBDIST:.tar.bz2=)
 ZLIBBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(ZLIBDIST))
