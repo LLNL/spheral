@@ -3,7 +3,12 @@
 // given our standard SPH momentum equation.
 // We only cover the 3D case here.
 //------------------------------------------------------------------------------
-#include "HYPRE.h"
+#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
+
+#include "Eigen/Core"
+#include "Eigen/Sparse"
+#include "Eigen/SVD"
+#include "Eigen/LU"
 
 #include "Geometry/Dimension.hh"
 #include "computeHydrostaticEquilibriumPressure.hh"
@@ -12,6 +17,7 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Utilities/globalNodeIDs.hh"
 
 namespace Spheral {
 namespace SPHSpace {
@@ -24,75 +30,86 @@ using std::abs;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
+using DataBaseSpace::DataBase;
 using NodeSpace::NodeList;
 
+
 void
-computeSPHHydrostaticEquilibriumPressure(const NeighborSpace::ConnectivityMap<Dim<3> >& connectivityMap,
+computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
                                          const KernelSpace::TableKernel<Dim<3> >& W,
-                                         const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& position,
-                                         const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& mass,
-                                         const FieldSpace::FieldList<Dim<3>, Dim<3>::SymTensor>& H,
                                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
-                                         const FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& massDensity,
-                                         const double tolerance,
-                                         const unsigned maxIterations,
-                                         FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& pressure) {
+                                         FieldList<Dim<3>, Dim<3>::Scalar>& pressure) {
 
   // TAU timers.
   TAU_PROFILE("computeHydrostaticEquilibriumPressure", "", TAU_USER);
 
   // Pre-conditions.
-  const unsigned numNodeLists = pressure.size();
-  REQUIRE(position.size() == numNodeLists);
-  REQUIRE(mass.size() == numNodeLists);
-  REQUIRE(H.size() == numNodeLists);
+  const unsigned numNodeLists = db.numFluidNodeLists();
   REQUIRE(acceleration.size() == numNodeLists);
-  REQUIRE(massDensity.size() == numNodeLists);
-  REQUIRE(position.numGhostNodes() == 0);
+  REQUIRE(pressure.size() == numNodeLists);
 
+  typedef Dim<3> Dimension;
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::Tensor Tensor;
   typedef Dim<3>::SymTensor SymTensor;
 
+  // Grab the state fields from the data base.
+  const FieldList<Dimension, Vector> position = db.fluidPosition();
+  const FieldList<Dimension, Scalar> mass = db.fluidMass();
+  const FieldList<Dimension, Scalar> massDensity = db.fluidMassDensity();
+  const FieldList<Dimension, SymTensor> H = db.fluidHfield();
+  CHECK(position.size() == numNodeLists);
+  CHECK(mass.size() == numNodeLists);
+  CHECK(massDensity.size() == numNodeLists);
+  CHECK(H.size() == numNodeLists);
+  CHECK(position.numGhostNodes() == 0);
+
   // Zero out the result.
   pressure = 0.0;
 
-  // Figure out the offsets for each NodeList.
-  vector<unsigned> offset(1, 0);
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    offset.push_back(pressure[nodeListi]->numInternalElements());
-  }
-  CHECK(offset.size() == numNodeLists + 1);
+  // We assume that the Connectivity in the DataBase has already been updated!
+  const ConnectivityMap<Dim<3> >& connectivityMap = db.connectivityMap();
+
+  // Get the global IDs for all nodes.
+  const FieldList<Dim<3>, int> globalIDs = NodeSpace::globalNodeIDs<Dim<3>, DataBase<Dim<3> >::ConstFluidNodeListIterator>(db.fluidNodeListBegin(), db.fluidNodeListEnd());
 
   // Build the sparse matrix that represents the full pressure gradient operator.
   // We have one of these matrix operators for each dimension, hence the 3 vector.
   const unsigned n = pressure.numInternalNodes();
-  vector<Eigen::SparseMatrix<double, Eigen::RowMajor> > M(3, Eigen::SparseMatrix<double, Eigen::RowMajor>(n, n));
-  unsigned iglobal = 0;
+  vector<Eigen::DynamicSparseMatrix<double, Eigen::RowMajor> > M(3, Eigen::DynamicSparseMatrix<double, Eigen::RowMajor>(n, n));
+  vector<Eigen::VectorXd> s(3, Eigen::VectorXd(n));
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = pressure[nodeList]->numInternalElements();
+    const unsigned n = pressure[nodeListi]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
-      const unsigned iglobal = offset[nodeListi] + i;
+      const unsigned iglobal = globalIDs(nodeListi, i);
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      const Scalar& rhoi = massDensity(nodeListi, i);
+      const Vector& gi = acceleration(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
+      // Build the s vector.
+      s[0][iglobal] = rhoi*gi.x();
+      s[1][iglobal] = rhoi*gi.y();
+      s[2][iglobal] = rhoi*gi.z();
+
       // Get the neighbors for this node (in this NodeList).
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      CHECK(fullConnectivity.size() == numNodeLists);
+      const vector<vector<int> >& connectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      CHECK(connectivity.size() == numNodeLists);
       for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
+        for (vector<int>::const_iterator jItr = connectivity[nodeListj].begin();
+             jItr != connectivity[nodeListj].end();
              ++jItr) {
           const unsigned j = *jItr;
-          const unsigned jglobal = offset[nodeListj] + j;
+          const unsigned jglobal = globalIDs(nodeListj, j);
 
           // State for node j.
           const Vector& rj = position(nodeListj, j);
           const Scalar& mj = mass(nodeListj, j);
+          const Scalar& rhoj = massDensity(nodeListj, j);
           const SymTensor& Hj = H(nodeListj, j);
           const Scalar Hdetj = Hj.Determinant();
 
@@ -104,13 +121,15 @@ computeSPHHydrostaticEquilibriumPressure(const NeighborSpace::ConnectivityMap<Di
           const Scalar etaMagj = etaj.magnitude();
           const Vector gradWij = 0.5*(etai*W.gradValue(etaMagi, Hdeti) +
                                       etaj*W.gradValue(etaMagj, Hdetj));
-          M[0](iglobal, jglobal) = mj*gradWij.x();
-          M[1](iglobal, jglobal) = mj*gradWij.y();
-          M[2](iglobal, jglobal) = mj*gradWij.z();
+          M[0].insert(iglobal, jglobal) = mj/rhoj*gradWij.x();
+          M[1].insert(iglobal, jglobal) = mj/rhoj*gradWij.y();
+          M[2].insert(iglobal, jglobal) = mj/rhoj*gradWij.z();
         }
       }
     }
   }
+
+  // 
 }
 
 }

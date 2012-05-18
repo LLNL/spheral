@@ -11,6 +11,9 @@ namespace Spheral {
   namespace NeighborSpace {
     template<typename Dimension> class ConnectivityMap;
   }
+  namespace DataBaseSpace {
+    template<typename Dimension> class DataBase;
+  }
   namespace KernelSpace {
     template<typename Dimension> class TableKernel;
   }
@@ -20,16 +23,11 @@ namespace Spheral {
 
   namespace SPHSpace {
 
-    template<typename Dimension>
     void
-    computeSPHHydrostaticEquilibriumPressure(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                                             const KernelSpace::TableKernel<Dimension>& W,
-                                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& acceleration,
-                                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity,
-                                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& pressure);
+    computeSPHHydrostaticEquilibriumPressure(const DataBaseSpace::DataBase<Dim<3> >& db,
+                                             const KernelSpace::TableKernel<Dim<3> >& W,
+                                             const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
+                                             FieldSpace::FieldList<Dim<3>, Dim<3>::Scalar>& pressure);
 
   }
 }

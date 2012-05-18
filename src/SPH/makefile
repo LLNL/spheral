@@ -8,6 +8,7 @@ SRCTARGETS = \
 	computeSPHSumMassDensity.cc \
 	computeSPHOmegaGradhCorrection.cc \
 	computeSumVoronoiCellMassDensity.cc \
+	computeHydrostaticEquilibriumPressure.cc \
 	SPHHydroBase.cc
 
 PYTHONTARGETS = \
