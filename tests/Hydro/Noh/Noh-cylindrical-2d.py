@@ -343,7 +343,6 @@ output("control")
 
 # Do some startup stuff (unless we're restarting).
 if restoreCycle is None:
-    control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
 ##     if hourglass:
 ##         print "Relaxing initial node distribution."

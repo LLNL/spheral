@@ -285,7 +285,6 @@ output("control")
 
 # Smooth the initial conditions.
 if restoreCycle is None:
-    control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
         print "Reinitializing node masses."
