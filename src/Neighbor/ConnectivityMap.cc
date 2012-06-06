@@ -436,6 +436,17 @@ computeConnectivity() {
   typedef typename Dimension::SymTensor SymTensor;
   typedef Timing::Time Time;
 
+  // Pre-conditions.
+  BEGIN_CONTRACT_SCOPE;
+  {
+    for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
+         itr != mNodeLists.end();
+         ++itr) {
+      REQUIRE((**itr).neighbor().valid());
+    }
+  }
+  END_CONTRACT_SCOPE;
+
   // Erase any prior information.
   TAU_PROFILE_START(TimeCMBuildDB);
   mConnectivity = ConnectivityStorageType();
