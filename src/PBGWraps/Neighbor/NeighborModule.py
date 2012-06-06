@@ -407,6 +407,7 @@ class Neighbor:
         x.add_method("gridLevel", "unsigned int", [param(symtensor, "H")], is_const=True)
         x.add_method("dumpTree", "std::string", [param("bool", "globalTree")], is_const=True)
         x.add_method("dumpTreeStatistics", "std::string", [param("bool", "globalTree")], is_const=True)
+        x.add_method("valid", "bool", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("xmin", vector, getter="xmin", is_const=True)

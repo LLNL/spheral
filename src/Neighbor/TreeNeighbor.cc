@@ -359,6 +359,8 @@ updateNodes() {
 
   // Force the node extents to be calculated.
   this->setNodeExtents();
+
+  ENSURE(valid());
 }
 
 //------------------------------------------------------------------------------
@@ -801,7 +803,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
 
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
-  const LevelKey masterLevel = std::min(gridLevel(h), LevelKey(mTree.size() - 1));
+  const LevelKey masterLevel = this->gridLevel(h);
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
   CHECK(masterLevel >= 0 and masterLevel < num1dbits);
 
@@ -812,11 +814,13 @@ setTreeMasterList(const typename Dimension::Vector& position,
   coarseNeighborList = vector<int>();
 
   // Set the master list.
-  if (mTree.size() > 0) {
+  if (mTree.size() > masterLevel) {
     typename TreeLevel::const_iterator masterItr = mTree[masterLevel].find(masterKey);
-    masterList = masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members;
+    masterList = (masterItr == mTree[masterLevel].end() ? vector<int>() : masterItr->second.members);
+  }
 
-    // Find all the potential neighbors.
+  // Set the coarse list.
+  if (mTree.size() > 0) {
     coarseNeighborList = this->findTreeNeighbors(masterLevel, ix_master, iy_master, iz_master);
   }
 
@@ -1020,6 +1024,51 @@ mapKey(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
   result.erase(unique(result.begin(), result.end()), result.end());
 
   // That's it.
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Internal consistency checks.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+TreeNeighbor<Dimension>::
+valid() const {
+  bool result = true;
+
+  // Make sure each node is listed only once.
+  map<unsigned, unsigned> nodeCount;
+  for (typename Tree::const_iterator levelItr = mTree.begin(); 
+       levelItr != mTree.end();
+       ++levelItr) {
+    for (typename TreeLevel::const_iterator cellItr = levelItr->begin();
+         cellItr != levelItr->end();
+         ++cellItr) {
+      const Cell& cell = cellItr->second;
+      for (vector<int>::const_iterator iitr = cell.members.begin();
+           iitr != cell.members.end();
+           ++iitr) {
+        map<unsigned, unsigned>::iterator itr = nodeCount.find(*iitr);
+        if (itr == nodeCount.end()) {
+          itr->second = 1;
+        } else {
+          ++(itr->second);
+        }
+      }
+    }
+  }
+
+  for (typename map<unsigned, unsigned>::const_iterator itr = nodeCount.begin();
+       itr != nodeCount.end();
+       ++itr) {
+    const unsigned i = itr->first;
+    const unsigned count = itr->second;
+    if (count != 1) {
+      cerr << "TreeNeighor::valid failing test of nodes uniquely assigned to cell: " << i << " " << count << endl;
+      result = false;
+    }
+  }
+
   return result;
 }
 

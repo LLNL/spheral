@@ -66,6 +66,9 @@ public:
   virtual void updateNodes(const std::vector<int>& nodeIDs);
   //****************************************************************************
 
+  // Checks for internal validity.
+  virtual bool valid() const;
+
   // Compute the grid level appropriate for the given smoothing scale.
   unsigned gridLevel(const double& h) const;        // units of length
   unsigned gridLevel(const SymTensor& H) const;     // units of 1/length
