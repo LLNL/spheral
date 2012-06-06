@@ -58,7 +58,7 @@ FluidNodeList(string name,
   mRhoMax(rhoMax),
   mMassDensity(HydroFieldNames::massDensity, *this),
   mSpecificThermalEnergy(HydroFieldNames::specificThermalEnergy, *this),
-  mEos(eos) {
+  mEosPtr(&eos) {
   NodeListRegistrar<Dimension>::instance().registerNodeList(*this);
 }
 
@@ -101,7 +101,7 @@ void
 FluidNodeList<Dimension>::
 pressure(Field<Dimension, typename Dimension::Scalar>& field) const {
   REQUIRE(field.nodeListPtr() == this);
-  mEos.setPressure(field, mMassDensity, mSpecificThermalEnergy);
+  mEosPtr->setPressure(field, mMassDensity, mSpecificThermalEnergy);
   field.name(HydroFieldNames::pressure);
 }
 
@@ -113,7 +113,7 @@ void
 FluidNodeList<Dimension>::
 temperature(Field<Dimension, typename Dimension::Scalar>& field) const {
   REQUIRE(field.nodeListPtr() == this);
-  mEos.setTemperature(field, mMassDensity, mSpecificThermalEnergy);
+  mEosPtr->setTemperature(field, mMassDensity, mSpecificThermalEnergy);
   field.name(HydroFieldNames::temperature);
 }
 
@@ -125,7 +125,7 @@ void
 FluidNodeList<Dimension>::
 soundSpeed(Field<Dimension, typename Dimension::Scalar>& field) const {
   REQUIRE(field.nodeListPtr() == this);
-  mEos.setSoundSpeed(field, mMassDensity, mSpecificThermalEnergy);
+  mEosPtr->setSoundSpeed(field, mMassDensity, mSpecificThermalEnergy);
   field.name(HydroFieldNames::soundSpeed);
 }
 

@@ -50,7 +50,14 @@ template<typename Dimension>
 inline
 const Material::EquationOfState<Dimension>&
 FluidNodeList<Dimension>::equationOfState() const {
-  return mEos;
+  return *mEosPtr;
+}
+
+template<typename Dimension>
+inline
+void
+FluidNodeList<Dimension>::equationOfState(const Material::EquationOfState<Dimension>& eos) {
+  mEosPtr = &eos;
 }
 
 //------------------------------------------------------------------------------
