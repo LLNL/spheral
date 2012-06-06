@@ -96,6 +96,7 @@ public:
 
   // Access the equation of state.
   const Material::EquationOfState<Dimension>& equationOfState() const;
+  void equationOfState(const Material::EquationOfState<Dimension>& eos);
 
   // Optional bounding mass densities for use when time integrating
   // the density.
@@ -124,7 +125,7 @@ private:
   FieldSpace::Field<Dimension, Scalar> mSpecificThermalEnergy;
 
   // Equation of state.
-  Material::EquationOfState<Dimension>& mEos;
+  const Material::EquationOfState<Dimension>* mEosPtr;
 #endif
 
   // No default constructor or copying.

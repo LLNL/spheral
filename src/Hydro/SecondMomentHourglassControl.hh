@@ -67,6 +67,9 @@ public:
   virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs);
 
+  // Label
+  virtual std::string label() const { return "SecondMomentHourglassControl"; }
+
   //******************************************************************************//
 
   // Parameter controlling the maximum allowed acceleration due to the 

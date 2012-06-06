@@ -75,6 +75,10 @@ public:
   virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) = 0;
 
+  // It's useful to have labels for Physics packages.  We'll require this to have
+  // the same signature as the restart label.
+  virtual std::string label() const = 0;
+
   //******************************************************************************//
   // Methods for handling boundary conditions.
   // Add a Boundary condition.

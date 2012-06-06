@@ -84,6 +84,10 @@ public:
                         DataBaseSpace::DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs);
+
+  // Label
+  virtual std::string label() const { return "SecondMomentHourglassControl"; }
+
   //******************************************************************************//
   // The order for the density fit in a cell:
   //   0 => constant

@@ -294,6 +294,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         x.add_method("totalEnergy", None, [refparam(scalarfield, "result")], is_const=True, is_virtual=True)
 
         const_ref_return_value(x, me, "%s::equationOfState" % me, equationofstate, [], "equationOfState")
+        x.add_method("equationOfState", None, [constrefparam(equationofstate, "equationOfState")])
 
         x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
         x.add_method("dumpState", None, [refparam(fileio, "fileIO"),

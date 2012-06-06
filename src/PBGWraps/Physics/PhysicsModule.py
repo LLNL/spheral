@@ -42,6 +42,7 @@ def generatePhysicsVirtualBindings(x, ndim, pureVirtual):
     x.add_method("registerDerivatives", None, [refparam(database, "dataBase"),
                                                refparam(derivatives, "derivatives")],
                  is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("label", "std::string", [], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     return
 
