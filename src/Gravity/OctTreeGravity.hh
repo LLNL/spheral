@@ -73,6 +73,9 @@ public:
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
                        
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "OctTreeGravity"; }
+
   //! This package opts out of building connectivity.
   virtual bool requireConnectivity() const;
 
