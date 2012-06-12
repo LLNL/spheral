@@ -54,6 +54,9 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "PointPotential"; }
+
   // Get the cumulative potential energy calculated in the last 
   // evaluateDerivatives.
   virtual Scalar extraEnergy() const;

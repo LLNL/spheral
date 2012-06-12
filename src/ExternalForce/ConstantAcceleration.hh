@@ -63,6 +63,9 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "ConstantAcceleration"; }
+
   // Access the constant acceleration.
   Vector a0() const;
 

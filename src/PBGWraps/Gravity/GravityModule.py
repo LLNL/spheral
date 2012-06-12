@@ -5,6 +5,9 @@ sys.path.append("..")
 from PBGutils import *
 from ref_return_value import *
 
+sys.path.append("../Physics")
+from PhysicsModule import generatePhysicsVirtualBindings
+
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -98,19 +101,10 @@ class Gravity:
                            param("double", "maxDeltaVelocity"),
                            param("double", "G")])
 
+        # Wrap the generic physics methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
         # Methods.
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
-        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
-                                                  constrefparam(state, "state"),
-                                                  constrefparam(derivatives, "derivatives"),
-                                                  param("double", "time")],
-                     is_const=True, is_virtual=True)
-        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
         const_ref_return_value(x, me, "%s::potential" % me, scalarfieldlist, [], "potential")
 
         # Attributes.
@@ -166,25 +160,10 @@ class Gravity:
                            param("double", "opening", default_value="0.5"),
                            param("double", "ftimestep", default_value="0.1")])
 
+        # Wrap the generic physics methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
         # Methods.
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
-        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
-                                                  constrefparam(state, "state"),
-                                                  constrefparam(derivatives, "derivatives"),
-                                                  param("double", "time")],
-                     is_const=True, is_virtual=True)
-        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
-        x.add_method("initialize", None, [param("const double", "time"),
-                                          param("const double", "dt"),
-                                          constrefparam(database, "dataBase"),
-                                          refparam(state, "state"),
-                                          refparam(derivatives, "derivs")], is_virtual=True)
-        x.add_method("label", "std::string", [], is_virtual=True, is_const=True)
         x.add_method("dumpTree", "std::string", [param("bool", "globalTree")], is_const=True)
         x.add_method("dumpTreeStatistics", "std::string", [param("bool", "globalTree")], is_const=True)
         const_ref_return_value(x, me, "%s::potential" % me, scalarfieldlist, [], "potential")

@@ -57,6 +57,9 @@ public:
   //! Initializations on problem start up.
   virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& db);
 
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "NBodyGravity"; }
+
   //! This package opts out of building connectivity.
   virtual bool requireConnectivity() const { return false; }
 
