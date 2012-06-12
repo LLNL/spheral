@@ -5,6 +5,9 @@ sys.path.append("..")
 from PBGutils import *
 from ref_return_value import *
 
+sys.path.append("../Physics")
+from PhysicsModule import generatePhysicsVirtualBindings
+
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -111,18 +114,10 @@ class ExternalForce:
                            param("double", "coreRadius"),
                            constrefparam(vector, "origin")])
 
+        # Wrap the generic physics methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
         # Methods.
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
-        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
-                                                  constrefparam(state, "state"),
-                                                  constrefparam(derivatives, "derivatives"),
-                                                  param("double", "time")],
-                     is_const=True, is_virtual=True)
         x.add_method("specificPotential", "double", [constrefparam(vector, "r")], is_const=True)
 
         # Attributes.
@@ -179,19 +174,10 @@ class ExternalForce:
                            constrefparam(nodelist, "nodeList"),
                            constrefparam("vector_of_int", "indicies")])
 
-        # Methods.
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
-        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
-                                                  constrefparam(state, "state"),
-                                                  constrefparam(derivatives, "derivatives"),
-                                                  param("double", "time")],
-                     is_const=True, is_virtual=True)
+        # Wrap the generic physics methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
 
+        # Methods.
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
         const_ref_return_value(x, me, "%s::indicies" % me, "vector_of_int", [], "indicies")
 
@@ -244,18 +230,8 @@ class ExternalForce:
         x.add_constructor([param("double", "a0"),
                            param("double", "aslope")])
 
-        # Methods.
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
-        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
-                                                  constrefparam(state, "state"),
-                                                  constrefparam(derivatives, "derivatives"),
-                                                  param("double", "time")],
-                     is_const=True, is_virtual=True)
+        # Wrap the generic physics methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
 
         # Attributes.
         x.add_instance_attribute("a0", "double", getter="a0", is_const=True)

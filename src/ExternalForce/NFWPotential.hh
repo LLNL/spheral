@@ -77,6 +77,9 @@ public:
   // evaluateDerivatives.
   virtual Scalar extraEnergy() const;
 
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "NFWPotential"; }
+
   // Calculate the mass density as a function of radius.
   Scalar massDensity(Scalar r) const;
 

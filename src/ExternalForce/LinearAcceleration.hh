@@ -56,6 +56,9 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
+  //! Required label for Physics interface.
+  virtual std::string label() const { return "LinearAcceleration"; }
+
   // Access the acceleration parameters.
   Scalar a0() const;
   Scalar aslope() const;

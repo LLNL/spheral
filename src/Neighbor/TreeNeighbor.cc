@@ -387,8 +387,9 @@ gridLevel(const double& h) const {
                                    std::min(int(num1dbits) - 1,
                                             int(mGridLevelConst0 - log(h)/log(2.0))));
   ENSURE(result < num1dbits);
-  ENSURE2(fuzzyLessThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << result), 1.0e-10) and
-          fuzzyGreaterThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << (result + 1U)), 1.0e-10),
+  ENSURE2((result == 0) or (result == num1dbits - 1) or
+          (fuzzyLessThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << result), 1.0e-10) and
+           fuzzyGreaterThanOrEqual(h*this->kernelExtent(), mBoxLength/(1U << (result + 1U)), 1.0e-10)),
           result << " " << h*this->kernelExtent() << " in? ["
           << mBoxLength/(1U << (result + 1U)) << " " 
           << mBoxLength/(1U << result) << "]\n"
