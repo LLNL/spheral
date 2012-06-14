@@ -23,25 +23,15 @@ class Integrator:
         space = Spheral.add_cpp_namespace("IntegratorSpace")
 
         # Expose types.
-        self.Integrator1d = addObject(space, "Integrator1d", allow_subclassing=True)
-        self.Integrator2d = addObject(space, "Integrator2d", allow_subclassing=True)
-        self.Integrator3d = addObject(space, "Integrator3d", allow_subclassing=True)
-
-        self.PredictorCorrector1d = addObject(space, "PredictorCorrectorIntegrator1d", parent=self.Integrator1d)
-        self.PredictorCorrector2d = addObject(space, "PredictorCorrectorIntegrator2d", parent=self.Integrator2d)
-        self.PredictorCorrector3d = addObject(space, "PredictorCorrectorIntegrator3d", parent=self.Integrator3d)
-
-        self.SynchronousRK1Integrator1d = addObject(space, "SynchronousRK1Integrator1d", parent=self.Integrator1d)
-        self.SynchronousRK1Integrator2d = addObject(space, "SynchronousRK1Integrator2d", parent=self.Integrator2d)
-        self.SynchronousRK1Integrator3d = addObject(space, "SynchronousRK1Integrator3d", parent=self.Integrator3d)
-
-        self.SynchronousRK2Integrator1d = addObject(space, "SynchronousRK2Integrator1d", parent=self.Integrator1d)
-        self.SynchronousRK2Integrator2d = addObject(space, "SynchronousRK2Integrator2d", parent=self.Integrator2d)
-        self.SynchronousRK2Integrator3d = addObject(space, "SynchronousRK2Integrator3d", parent=self.Integrator3d)
-
-        self.CheapSynchronousRK2Integrator1d = addObject(space, "CheapSynchronousRK2Integrator1d", parent=self.Integrator1d)
-        self.CheapSynchronousRK2Integrator2d = addObject(space, "CheapSynchronousRK2Integrator2d", parent=self.Integrator2d)
-        self.CheapSynchronousRK2Integrator3d = addObject(space, "CheapSynchronousRK2Integrator3d", parent=self.Integrator3d)
+        for dim in xrange(3):
+            exec('''
+self.Integrator%(dim)id = addObject(space, "Integrator%(dim)id", allow_subclassing=True)
+self.PredictorCorrector%(dim)id = addObject(space, "PredictorCorrectorIntegrator%(dim)id", parent=self.Integrator%(dim)id)
+self.SynchronousRK1Integrator%(dim)id = addObject(space, "SynchronousRK1Integrator%(dim)id", parent=self.Integrator%(dim)id)
+self.SynchronousRK2Integrator%(dim)id = addObject(space, "SynchronousRK2Integrator%(dim)id", parent=self.Integrator%(dim)id)
+self.SynchronousRK4Integrator%(dim)id = addObject(space, "SynchronousRK4Integrator%(dim)id", parent=self.Integrator%(dim)id)
+self.CheapSynchronousRK2Integrator%(dim)id = addObject(space, "CheapSynchronousRK2Integrator%(dim)id", parent=self.Integrator%(dim)id)
+''' % {"dim" : dim + 1})
 
         return
 
@@ -50,25 +40,15 @@ class Integrator:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateIntegratorBindings(self.Integrator1d, 1)
-        self.generateIntegratorBindings(self.Integrator2d, 2)
-        self.generateIntegratorBindings(self.Integrator3d, 3)
-        
-        self.generateIntegratorDescendentBindings(self.PredictorCorrector1d, 1)
-        self.generateIntegratorDescendentBindings(self.PredictorCorrector2d, 2)
-        self.generateIntegratorDescendentBindings(self.PredictorCorrector3d, 3)
-
-        self.generateIntegratorDescendentBindings(self.SynchronousRK1Integrator1d, 1)
-        self.generateIntegratorDescendentBindings(self.SynchronousRK1Integrator2d, 2)
-        self.generateIntegratorDescendentBindings(self.SynchronousRK1Integrator3d, 3)
-
-        self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator1d, 1)
-        self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator2d, 2)
-        self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator3d, 3)
-
-        self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator1d, 1)
-        self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator2d, 2)
-        self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator3d, 3)
+        for dim in xrange(3):
+            exec('''
+self.generateIntegratorBindings(self.Integrator%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.PredictorCorrector%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.SynchronousRK1Integrator%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.SynchronousRK4Integrator%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator%(dim)id, %(dim)i)
+''' % {"dim" : dim + 1})
 
         return
 

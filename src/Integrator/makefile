@@ -9,6 +9,7 @@ SRCTARGETS = \
 	PredictorCorrector.cc \
 	SynchronousRK1.cc \
 	SynchronousRK2.cc \
+	SynchronousRK4.cc \
 	CheapSynchronousRK2.cc \
 
 LINKLIST = linklist
