@@ -91,6 +91,9 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
     }
     CHECK(ghostNodes.size() == mNumConstantNodes);
 
+    // Set us up as our own control nodes.
+    boundaryNodes.controlNodes = ghostNodes;
+
     // Set the ghost node positions and H.
     this->updateGhostNodes(nodeList);
   }
