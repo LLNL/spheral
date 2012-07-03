@@ -52,8 +52,8 @@ ELEMENTTREEDIR = $(ELEMENTTREEDIST:.zip=)
 ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_49_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.49.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_50_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.50.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
