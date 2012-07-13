@@ -349,6 +349,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         x.add_constructor([param("std::string", "name"),
                            constrefparam(nodelist, "nodeList"),
                            param(val, "value")])
+        x.add_constructor([constrefparam(me, "field")])
 
         # Methods.
         x.add_method("Zero", None, [], is_virtual=True)
