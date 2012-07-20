@@ -50,8 +50,8 @@ AC_ARG_WITH(geometry-only,
    GEOMETRY_ONLY=1
 ],[
    AC_MSG_RESULT(no)
-   CXXPKGS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SimulationControl SPH CSPH Mesh $CXXPKGS"
-   CXXPKGLIBS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SPH CSPH Mesh $CXXPKGLIBS"
+   CXXPKGS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SimulationControl SPH CSPH Mesh Damage SolidMaterial SolidSPH Strength $CXXPKGS"
+   CXXPKGLIBS="Geometry NodeList Field FieldOperations Kernel Material Neighbor DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator FileIO DataOutput Utilities NodeGenerators SPH CSPH Mesh Damage SolidMaterial SolidSPH Strength $CXXPKGLIBS"
    GEOMETRY_ONLY=0
 ])
 
