@@ -8,6 +8,10 @@ PYTHONTARGETS = \
 	Spheral1d.py \
 	Spheral2d.py \
 	Spheral3d.py \
+	SolidSpheral.py \
+	SolidSpheral1d.py \
+	SolidSpheral2d.py \
+	SolidSpheral3d.py \
 	SpheralPickle.py \
 	SpheralTestUtilities.py \
 	SpheralTimer.py \
@@ -22,7 +26,9 @@ PYTHONTARGETS = \
 	Pnorm.py \
 	numericalIntegration.py \
 	newtonRaphson.py \
-	NodeHistory.py
+	NodeHistory.py \
+	AverageStrain.py \
+	SpheralHadesDump.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
