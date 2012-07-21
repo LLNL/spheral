@@ -82,7 +82,7 @@ commandLine(# Geometry
 
             # Diagnostics
             graphics = True,
-            testtol = 1.0e-5,
+            testtol = 1.0e-3,
             clearDirectories = False,
             referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20120405.txt",
             dataDirBase = "dumps-CollidingPlates-1d",

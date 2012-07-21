@@ -12,7 +12,7 @@ class SolidMaterial:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, SpheralBindings):
+    def __init__(self, mod):
 
         # Includes.
         mod.add_include('"SolidMaterial/SolidMaterialTypes.hh"')
@@ -21,7 +21,7 @@ class SolidMaterial:
         SolidSpheral = mod.add_cpp_namespace("Spheral")
         space = SolidSpheral.add_cpp_namespace("SolidMaterial")
 
-        Spheral = SpheralBindings.mod.add_cpp_namespace("Spheral")
+        Spheral = mod.add_cpp_namespace("Spheral")
         Material = Spheral.add_cpp_namespace("Material")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 

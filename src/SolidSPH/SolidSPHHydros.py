@@ -1,8 +1,8 @@
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
-from SolidSpheralModules.Spheral.SolidSPHSpace import *
-from SolidSpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.SolidSPHSpace import *
+from SpheralModules.Spheral.PhysicsSpace import *
 
 #-------------------------------------------------------------------------------
 # The generic SolidSPHHydro pattern.

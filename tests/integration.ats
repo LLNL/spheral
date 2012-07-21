@@ -44,3 +44,10 @@ source("../src/Mesh/tests/testPolyhedralMesh.py")
 
 # Hydro tests
 source("Hydro/HydroTests.ats")
+
+# Strength tests.
+#source("Strength/PlateImpact/PlateImpact-1d.py")
+source("Strength/CollidingPlates/CollidingPlates-1d.py")
+
+# Damage tests.
+source("Damage/TensileRod/TensileRod-GradyKipp-1d.py")
