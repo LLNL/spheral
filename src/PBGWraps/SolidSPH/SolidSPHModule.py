@@ -11,7 +11,7 @@ class SolidSPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, SpheralBindings):
+    def __init__(self, mod):
 
         # Includes.
         mod.add_include('"SolidSPH/SolidSPHTypes.hh"')
@@ -20,7 +20,7 @@ class SolidSPH:
         SolidSpheral = mod.add_cpp_namespace("Spheral")
         space = SolidSpheral.add_cpp_namespace("SolidSPHSpace")
 
-        Spheral = SpheralBindings.mod.add_cpp_namespace("Spheral")
+        Spheral = mod.add_cpp_namespace("Spheral")
         SPHSpace = Spheral.add_cpp_namespace("SPHSpace")
 
         sphhydrobase1d = SPHSpace.wrapObjs["SPHHydroBase1d"]

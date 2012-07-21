@@ -11,7 +11,7 @@ class Damage:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, SpheralBindings):
+    def __init__(self, mod):
 
         # Includes.
         mod.add_include('"Damage/DamageTypes.hh"')
@@ -20,7 +20,7 @@ class Damage:
         SolidSpheral = mod.add_cpp_namespace("Spheral")
         space = SolidSpheral.add_cpp_namespace("PhysicsSpace")
 
-        Spheral = SpheralBindings.mod.add_cpp_namespace("Spheral")
+        Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
         Physics1d = PhysicsSpace.wrapObjs["Physics1d"]
