@@ -30,6 +30,7 @@ namespace FractalSpace
     }
     ~Mess()
     {
+      cout << " cleaned up a mess " << endl;
       FFTWFinal();
       MPIFinal();
     }
@@ -212,11 +213,11 @@ namespace FractalSpace
 	  send_counter=0;
 	}
     }
-    void recv_data(vector < vector <double> >& data,vector <int>& fromRanks,vector <int>& buffsize)
+    void recv_data(vector < vector <double> >& data,vector <int>& fromBoxes,vector <int>& buffsize)
     {
-      int SBNodes=fromRanks.size();
+      int SBNodes=fromBoxes.size();
       for(int SB=0;SB<SBNodes;SB++)
-	recv_requests[SB] = FractalWorld.Irecv(&data[SB],buffsize[SB],MPI::DOUBLE,fromRanks[SB],0);
+	recv_requests[SB] = FractalWorld.Irecv(&data[SB],buffsize[SB],MPI::DOUBLE,fromBoxes[SB],0);
       MPI::Request black_knight;
       black_knight.Waitall(SBNodes,recv_requests);
     }
