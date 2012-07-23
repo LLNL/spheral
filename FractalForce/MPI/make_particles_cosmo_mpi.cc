@@ -1,0 +1,117 @@
+#include "libs.hh"
+#include "classes.hh"
+#include "headers.hh"
+namespace FractalSpace
+{
+  string Fractal::particles="cosmos_zel";
+  //
+  template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash)
+  {
+    vector <int> Box(6);
+    frac.getBox(Box);
+    vector <int> BoxLength(3);
+    BoxLength[0]=Box[1]-Box[0]+1;
+    BoxLength[1]=Box[3]-Box[2]+1;
+    BoxLength[2]=Box[5]-Box[4]+1;
+    int total=BoxLength[0]*BoxLength[1]*BoxLength[2];
+    mem.number_particles=total;
+    int length=mem.grid_length;
+    double delta=1.0/(double)length;
+    double x0,y0,z0;
+    if(!crash)
+      {
+	frac.particle_list.resize(mem.number_particles);
+	for(int nx=Box[0];nx<Box[1];nx++)
+	  {
+	    x0=(static_cast<double>(nx)+mem.off_x)*delta;
+	    for(int ny=Box[2];ny<=Box[3];ny++)
+	      {
+		y0=(static_cast<double>(ny)+mem.off_y)*delta;
+		for(int nz=Box[4];nz<=Box[5];nz++)
+		  {
+		    z0=(static_cast<double>(nz)+mem.off_z)*delta;
+		    int many=split_particle(mem,frac,x0,y0,z0,count,m,1,true);
+		    assert(many > 0);
+		  }
+	      }
+	  }
+      }
+    else
+      {
+	int iimax=100;
+	double crash_0=mem.redshift_start+1.0;
+	double scale_crash=pow(crash_0,1.0/(double)(iimax+1));
+	for(int ii=0;ii<=iimax;ii++)
+	  {
+	    int n=0;
+	    count=0;
+	    for(int nx=Box[0];nx<Box[1];nx++)
+	      {
+		x0=(static_cast<double>(nx)+mem.off_x)*delta;
+		for(int ny=Box[2];ny<=Box[3];ny++)
+		  {
+		    y0=(static_cast<double>(ny)+mem.off_y)*delta;
+		    for(int nz=Box[4];nz<=Box[5];nz++)
+		      {
+			z0=(static_cast<double>(nz)+mem.off_z)*delta;
+			Particle& particle=*frac.particle_list[n];
+			int split_to=1;
+			if(particle.get_rad_max() < 0.0)
+			  {
+			    split_to=pow(-crash_0/particle.get_rad_max(),mem.crash_pow);
+			    split_to=min(max(1,split_to),mem.crash_levels);
+			  }
+			n++;
+			int many=split_particle(mem,frac,x0,y0,z0,count,m,split_to,false);
+			assert(many > 0);
+			if(count > mem.max_particles) break;
+		      }
+		  }
+	      }
+	    cout << "iimax " << ii << " " << crash_0 << " " << count << endl;
+	    if(count <= mem.max_particles) break;
+	    crash_0/=scale_crash;
+	  }
+	vector <double> crash(mem.number_particles);
+	for(int n=0;n<mem.number_particles;++n)
+	  {
+	    Particle& particle=*frac.particle_list[n];
+	    crash[n]=particle.get_rad_max();
+	    delete frac.particle_list[n];
+	    frac.particle_list[n]=0;
+	  }
+	//
+	frac.particle_list.resize(count);
+	frac.set_number_particles(count);
+	double x0,y0,z0;
+	count=0;
+	int n=0;
+	for(int nx=Box[0];nx<Box[1];nx++)
+	  {
+	    x0=(static_cast<double>(nx)+mem.off_x)*delta;
+	    for(int ny=Box[2];ny<=Box[3];ny++)
+	      {
+		y0=(static_cast<double>(ny)+mem.off_y)*delta;
+		for(int nz=Box[4];nz<=Box[5];nz++)
+		  {
+		    z0=(static_cast<double>(nz)+mem.off_z)*delta;
+		    int split_to=1;
+		    if(crash[n] < 0.0)
+		      {
+			split_to=pow(-crash_0/crash[n],mem.crash_pow);
+			split_to=min(max(1,split_to),mem.crash_levels);
+		      }
+		    int many=split_particle(mem,frac,x0,y0,z0,count,m,split_to,true);
+		    assert(many > 0);
+		    assert(count < mem.max_particles);
+		    n++;
+		  }
+	      }
+	  }
+	crash.clear();
+	cout << "startit " << count << " " << crash_0 << " " << mem.crash_levels << endl;
+	mem.number_particles=count;
+      }
+  }
+  template void make_particles(Fractal_Memory& mem,Fractal& frac,int& count,const double& m,const bool& crash);
+}
