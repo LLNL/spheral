@@ -8,14 +8,14 @@
 ***   I am only interested in your solutions.
      
 ***  Sirian Cybernetics Corporation:
-***  Share and Enjoy.
+***   Share and Enjoy.
 ***  Its fundamental design flaws are obscured
 ***   by its superficial design flaws.
 
 ***  JV Villumsen:
 ***  The Answer to Life, the Universe and Everything is 42.
 ***   My dorm room number at Aarhus University was 42.
-***    To quote Douglas Adams: "I thinks that's terribly significant".
+***    Douglas Adams: "I thinks that's terribly significant".
 ***  Should died many years ago.
 ***  If all else fails read the instructions.
 ***  !the_Messiah = a_naughty_boy.
