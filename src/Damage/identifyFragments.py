@@ -85,12 +85,15 @@ def fragmentProperties(nodeList,
     if isinstance(nodeList, SolidSpheral.NodeList1d):
         Vector = SolidSpheral.Vector1d
         SymTensor = SolidSpheral.SymTensor1d
+        ScalarField = SolidSpheral.ScalarField1d
     elif isinstance(nodeList, SolidSpheral.NodeList2d):
         Vector = SolidSpheral.Vector2d
         SymTensor = SolidSpheral.SymTensor2d
+        ScalarField = SolidSpheral.ScalarField2d
     elif isinstance(nodeList, SolidSpheral.NodeList3d):
         Vector = SolidSpheral.Vector3d
         SymTensor = SolidSpheral.SymTensor3d
+        ScalarField = SolidSpheral.ScalarField3d
     else:
         raise "fragmentProperties ERROR: What the heck is %s!  I expected a NodeList." % str(nodeList)
 
@@ -127,7 +130,8 @@ def fragmentProperties(nodeList,
     velocity = nodeList.velocity()
     rho = nodeList.massDensity()
     u = nodeList.specificThermalEnergy()
-    P = nodeList.pressure()
+    P = ScalarField(nodeList, "pressure")
+    nodeList.pressure(P)
 
     # Now iterate over the nodes and accumulate the local result.
     for i in xrange(nodeList.numInternalNodes):
