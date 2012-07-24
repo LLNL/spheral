@@ -22,8 +22,8 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.2.tar.bz2
-PYTHONURL = http://www.python.org/ftp/python/2.7.2/Python-2.7.2.tar.bz2
+PYTHONDIST = Python-2.7.3.tar.bz2
+PYTHONURL = http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tar.bz2
 PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
 PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
 
@@ -1154,7 +1154,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HDF5DIR); \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' CXXFLAGS='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) $(HDF5FLAGS) ; \
 	rm -f test.conf ; \
 	$(MAKE) ; \
 	$(MAKE) install"
