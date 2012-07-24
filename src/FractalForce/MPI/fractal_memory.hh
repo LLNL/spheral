@@ -53,7 +53,7 @@ namespace FractalSpace
     int highest_level_init;
     int norm_what;
     int spectrum_number;
-    long number_particles;
+    int number_particles;
     int grid_length;
     int moat_0;
     unsigned int minimum_number;

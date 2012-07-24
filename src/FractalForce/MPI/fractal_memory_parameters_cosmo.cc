@@ -9,6 +9,14 @@ namespace FractalSpace
   {
     // These are the parameters you need to set.
     // For the others you should use my values for now.
+    mem.FractalNodes0=1;
+    //number of nodes in x-direction
+    mem.FractalNodes1=1;
+    //number of nodes in y-direction
+    mem.FractalNodes2=1;
+    //number of nodes in z-direction
+    mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
+    //
     mem.periodic = true ;
     //true for periodic BC and false for isolated BC
     //    mem.number_particles = 262144 ; 

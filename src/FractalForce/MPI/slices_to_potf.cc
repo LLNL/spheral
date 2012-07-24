@@ -6,7 +6,7 @@ namespace FractalSpace
   void slices_to_potf(Fractal_Memory& mem,Fractal& frac,const int& length)
   {
     int Slice=mem.p_mess->FractalRank;
-    vector <int>BBox(6);
+    vector <int> BBox(6);
     vector <int> BoxS(6);
     BoxS[0]=mem.p_mess->Slices[Slice][0];
     BoxS[1]=mem.p_mess->Slices[Slice][1];
