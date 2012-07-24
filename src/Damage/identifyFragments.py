@@ -130,7 +130,7 @@ def fragmentProperties(nodeList,
     velocity = nodeList.velocity()
     rho = nodeList.massDensity()
     u = nodeList.specificThermalEnergy()
-    P = ScalarField(nodeList, "pressure")
+    P = ScalarField("pressure", nodeList)
     nodeList.pressure(P)
 
     # Now iterate over the nodes and accumulate the local result.
