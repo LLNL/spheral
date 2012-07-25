@@ -172,7 +172,7 @@ it_is_inside.o :	it_is_inside.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c it_is_inside.cc
 #
 left_right.o :	left_right.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c left_right.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c left_right.cc 
 #
 list_buffer.o :	list_buffer.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c list_buffer.cc
@@ -196,10 +196,10 @@ nbody_fractal.o :	nbody_fractal.cc $(classes) nbody.hh
 	$(compile) $(fopt1) $(Wopt1) -c nbody_fractal.cc
 #
 offset.o :	offset.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c offset.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c offset.cc
 #
 overlap.o :	overlap.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c overlap.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c overlap.cc
 #
 particle_lists.o :	particle_lists.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c particle_lists.cc
