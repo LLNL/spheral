@@ -11,11 +11,9 @@ namespace FractalSpace
     const int length_11=length_1+1;
     const int length_2=2*length_1;
     ptrdiff_t total_memory,start_x,length_x;
+    static vector <double> green;
     if(Fractal::first_time_solver)
-      {
-	Fractal::first_time_solver=false;
-	return;
-      }
+      return;
     //
     cout << "isol 0 " << endl;
     total_memory=fftw_mpi_local_size_3d(length_2,length_2,length_11,MPI::COMM_WORLD,&length_x,&start_x);
@@ -38,9 +36,9 @@ namespace FractalSpace
 	      {
 		int n_c=min(n_z,length_2-n_z);
 		int wherexyz=mem.fftw_where(n_x,n_y,n_z,length_2,length_11);
-		int whereabc=mem.fftw_where(n_a,n_b,n_c,length_11,length_11);
-		mem.p_mess->potC[wherexyz][0]*=mem.p_mess->green[whereabc];
-		mem.p_mess->potC[wherexyz][1]*=mem.p_mess->green[whereabc];
+		int whereabc=mem.fftw_where(n_a+start_x,n_b,n_c,length_11,length_11);
+		mem.p_mess->potC[wherexyz][0]*=green[whereabc];
+		mem.p_mess->potC[wherexyz][1]*=green[whereabc];
 	      }
 	  }
       }

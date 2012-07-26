@@ -611,6 +611,7 @@ namespace FractalSpace
     }
     void timing_lev(const int& what,const int& level)
     {
+      //      cout << "timing lev " << what << " " << level << endl;
       static ofstream FileTimeLev;
       if(!FileTimeLev.is_open())
 	FileTimeLev.open("timing_lev.d");
@@ -642,8 +643,13 @@ namespace FractalSpace
       else
 	assert(0);
     }
+    void timing_copy()
+    {
+
+    }
     void timing(const int& what, const int& which)
     {
+      //      cout << "timing " << what << " " << which << endl;
       static ofstream FileTime;
       if(!FileTime.is_open())
 	FileTime.open("timing.d");

@@ -24,6 +24,15 @@ namespace FractalSpace
     cout << " generating points in treestart" << endl;
     vector <int> Box;
     fractal.getBox(Box);
+    cout << "Box ";
+    cout << Box[0] << " ";
+    cout << Box[1] << " ";
+    cout << Box[2] << " ";
+    cout << Box[3] << " ";
+    cout << Box[4] << " ";
+    cout << Box[5] << " ";
+    cout << Periods[0] << Periods[1] << Periods[2];
+    cout << endl;
     bool MPIrun=mem.MPIrun;
     group.set_buffer_group(MPIrun);
     if(!MPIrun)
@@ -60,6 +69,20 @@ namespace FractalSpace
     group.list_new_points.push_back(new_points);
     group.list_points.reserve(volume);
     cout << " generated points in treestart" << endl;
+    cout << " Box ";
+    cout << Box[0] << " ";
+    cout << Box[1] << " ";
+    cout << Box[2] << " ";
+    cout << Box[3] << " ";
+    cout << Box[4] << " ";
+    cout << Box[5] << endl;
+    cout << " Buffer ";
+    cout << Buffer[0] << " ";
+    cout << Buffer[1] << " ";
+    cout << Buffer[2] << " ";
+    cout << Buffer[3] << " ";
+    cout << Buffer[4] << " ";
+    cout << Buffer[5] << endl;
     //
     vector <int>grid(3);
     bool inside;

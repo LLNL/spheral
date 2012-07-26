@@ -24,6 +24,7 @@ namespace FractalSpace
 			  vector <bool>& periods,bool& inside,vector <bool>& buff,vector <bool>& edge);
   template <class M>  void energy_simple(M& mem, Fractal& fractal);
   void equivalence_class(Group& group);
+  //  int fftw_where(const int& i,const int& j,const int& k,const int& l1,const int& l2);
   void fix_memory(Fractal& frac,const int& ispace,const int& jfield);
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve);
   void force_at_particle(vector <vector <Group*> >& all_groups, Fractal& fractal);
