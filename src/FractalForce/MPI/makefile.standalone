@@ -9,10 +9,8 @@ head_dir_fftw = ../fftw-3.3.2/mpi
 head_dir_hypre = ../hypre-2.8.0b/src/hypre/include
 compile = mpig++ -mpicpp -I $(head_dir_fftw) -I $(head_dir_hypre)
 #compile = mpicxx -I $(head_dir)
-#
-#
-#
 cosmos_power_file = cosmos_power
+#halo_file = halo_force_sph_harm
 halo_fixed_file = halo_force_flat
 hypre_interface = hypre_empty
 parameter_file = fractal_memory_parameters_cosmo
@@ -24,8 +22,6 @@ poisson_file = sor_2
 velocity_file = velocities
 energy_file = energy_leapfrog
 step_file = step_leapfrog
-#
-#
 #
 add_dens.o :	add_dens.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c add_dens.cc
@@ -171,9 +167,6 @@ interface_fake.o :	interface_fake.cc $(classes)
 it_is_inside.o :	it_is_inside.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c it_is_inside.cc
 #
-left_right.o :	left_right.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c left_right.cc 
-#
 list_buffer.o :	list_buffer.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c list_buffer.cc
 #
@@ -196,10 +189,7 @@ nbody_fractal.o :	nbody_fractal.cc $(classes) nbody.hh
 	$(compile) $(fopt1) $(Wopt1) -c nbody_fractal.cc
 #
 offset.o :	offset.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c offset.cc
-#
-overlap.o :	overlap.cc $(classes)
-	$(compile) $(fopt1) $(Wopt1) -c overlap.cc
+	$(compile) $(fopt1) $(Wopt1) -c offset.cc $(classes)
 #
 particle_lists.o :	particle_lists.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c particle_lists.cc
@@ -285,13 +275,14 @@ wrap.o :	wrap.cc $(classes)
 write_rv.o :	write_rv.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c write_rv.cc
 #
-#
-#
 $(cosmos_power_file).o :	$(cosmos_power_file).cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c $(cosmos_power_file).cc
 #
 $(energy_file).o :	$(energy_file).cc $(classes) 
 	$(compile) $(fopt1) $(Wopt1) -c $(energy_file).cc
+#
+$(halo_file).o :	$(halo_file).cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c $(halo_file).cc
 #
 $(halo_fixed_file).o :	$(halo_fixed_file).cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c $(halo_fixed_file).cc
@@ -349,11 +340,9 @@ heavies.o \
 high_groups.o \
 high_pairs.o \
 high_points.o \
-left_right.o \
 list_buffer.o \
 max_predict.o \
 neighbor_easy.o \
-overlap.o \
 particle_lists.o \
 particle_lists_fixed.o \
 poisson_solver.o \

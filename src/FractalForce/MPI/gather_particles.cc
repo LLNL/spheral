@@ -68,8 +68,8 @@ namespace FractalSpace
 	for(int c=0;c<countsI_in[FR];c++)
 	  {
 	    pp=potfI_in[particle];
-	    assert(pp >= 0);
-	    assert(pp < totals);
+	    assert(pp>=0);
+	    assert(pp<totals);
 	    P=frac.particle_list_world[pp];
 	    p4=particle*4;
 	    P->set_field_pf(potfR_in[p4],potfR_in[p4+1],potfR_in[p4+2],potfR_in[p4+3]);
@@ -80,7 +80,6 @@ namespace FractalSpace
     frac.particle_list=frac.particle_list_world;
     frac.particle_list_world.clear();
     delete [] mem.p_mess->parts_tmp;
-    mem.p_mess->parts_tmp=0;
   }
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right)
   {
@@ -97,5 +96,17 @@ namespace FractalSpace
 	  }
       }
   }	
+  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright)
+  {
+    return (xleft[0] <= yright[0] && xright[0] >= yleft[0] && 
+	    xleft[1] <= yright[1] && xright[1] >= yleft[1] &&
+	    xleft[2] <= yright[2] && xright[2] >= yleft[2]);
+  }
+  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleftright)
+  {
+    return (xleft[0] <= yleftright[3] && xright[0] >= yleftright[0] && 
+	    xleft[1] <= yleftright[4] && xright[1] >= yleftright[1] &&
+	    xleft[2] <= yleftright[5] && xright[2] >= yleftright[2]);
+  }
 }
 

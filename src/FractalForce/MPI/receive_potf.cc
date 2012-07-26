@@ -6,7 +6,7 @@ namespace FractalSpace
   void receive_potf(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
     int FractalRank=mem.p_mess->FractalRank;
-    vector <int> BBox(6);
+    vector <int>BBox(6);
     BBox=mem.BBoxes[FractalRank];
     int SNodes=mem.Box_from_Slices[FractalRank].size();
     vector < vector <double> >potf;

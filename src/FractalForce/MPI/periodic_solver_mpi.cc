@@ -10,7 +10,7 @@ namespace FractalSpace
     const int length_1=frac.get_grid_length();  
     const int length_c=(length_1+2)/2;
     const int length_2=length_1*length_1;
-    const double length_3=static_cast<double>(length_1*length_2);
+    const double length_3=(double)(length_1*length_2);
     const double pi=4.0*atan(1.0);
     group.set_force_const(4.0*pi/static_cast<double>(length_2));
     size_t sizeR=sizeof(double);
@@ -20,7 +20,7 @@ namespace FractalSpace
     vector <double> green_1(length_1+1);
     for (int k=0;k <length_1+1;++k)
       {
-	double aa=pi*static_cast<double>(k)/static_cast<double>(length_1);
+	double aa=pi*(double)(k)/(double)(length_1);
 	green_1[k]=1.0e-30+pow(2.0*sin(aa),2);
       }
     receive_dens(mem,frac,length_1);

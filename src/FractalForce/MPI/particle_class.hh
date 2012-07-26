@@ -33,6 +33,8 @@ namespace FractalSpace
       node_world(-1),
       number_world(-1)
     {
+      //      phase_space.reserve(6);
+      //      field.reserve(6);
       phase_space.resize(i);
       field.resize(j);
       number_particles++;

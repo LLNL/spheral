@@ -52,7 +52,7 @@ namespace FractalSpace
 		    posmR_out[FR].push_back(pos[0]);
 		    posmR_out[FR].push_back(pos[1]);
 		    posmR_out[FR].push_back(pos[2]);
-		    posmR_out[FR].push_back(P->get_mass());
+		    posmR_out[FR].push_back(frac.particle_list[particle]->get_mass());
 		    posmI_out[FR].push_back(particle);
 		    counts++;
 		  }
@@ -87,4 +87,139 @@ namespace FractalSpace
       }
     frac.set_number_particles(particle+count_stay);
   }
+  void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right)
+  {
+    pos_left.assign(3,1.0e30);
+    pos_right.assign(3,-1.0e30);
+    vector <double> pos(3);
+    for(int particle=0; particle < frac.get_number_particles(); ++particle)
+      {
+	(frac.particle_list[particle])->get_pos(pos);
+	for(int ni=0;ni<3;ni++)
+	  {
+	    pos_left[ni]=min(pos_left[ni],pos[ni]);
+	    pos_right[ni]=max(pos_right[ni],pos[ni]);
+	  }
+      }
+  }	
+  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright)
+  {
+    return (xleft[0] <= yright[0] && xright[0] >= yleft[0] && 
+	    xleft[1] <= yright[1] && xright[1] >= yleft[1] &&
+	    xleft[2] <= yright[2] && xright[2] >= yleft[2]);
+  }
+  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleftright)
+  {
+    return (xleft[0] <= yleftright[3] && xright[0] >= yleftright[0] && 
+	    xleft[1] <= yleftright[4] && xright[1] >= yleftright[1] &&
+	    xleft[2] <= yleftright[5] && xright[2] >= yleftright[2]);
+  }
 }
+
+
+
+
+
+
+/*
+
+
+
+
+
+    int FRR=-1
+    for(int particle=0; particle < frac.get_number_particles(); ++particle)
+      {
+	Particle* p=frac.particle_list[particle];
+	p->get_world(FR0,haha);
+	p->get_pos(pos);
+	for(int FR=0;FR<FractalNodes;FR++)
+	  {
+	      {
+		parts[FR]++;
+		p->set_world(FR,particle);
+		FRR=FR;
+		break;
+	      }
+	  }
+	if(FRR == -1)
+	  {
+	    p->set_world(FractalRank,particle);
+	    p->set_field_pf(0.0);
+	  }
+      }
+    int home_parts=parts[FractalRank];
+    parts[FractalRank]=0;
+    vector <int> counts(FractalNodes);
+    starts[0]=0;
+    counts[0]=0;
+    for(int ni=1;ni<FractalNodes,ni++)
+      {
+	starts[ni]=starts[ni-1]+parts[ni-1];
+	counts[ni]=starts[ni];
+      }
+    unsigned int total_parts=starts[FractalNodes-1]+parts[FractalNodes-1];
+    int* mpos= new int[4*total_parts];
+    int* Ipos=new int[total_parts];
+    int counts4=-1;
+    int FR=-1;
+    int haha=-1;
+    for(int particle=0; particle < frac.get_number_particles(); ++particle)
+      {
+	Particle* p=frac.particle_list[particle];
+	p->get_world(FR,haha);
+	if(FR == FractalRank)
+	  continue;
+	p->get_posm(pos,mass);
+	Ipos[counts[FR]]=particle;
+	counts4=4*counts[FR];
+	mpos[counts4]=mass;
+	mpos[counts4+1]=pos[0];
+	mpos[counts4+2]=pos[1];
+	mpos[counts4+3]=pos[2];
+	counts[FR]++;	
+      }
+    vector <int>startss;
+    vector <int>partss;
+    vector <double>mposs;
+    vector <int>Iposs;
+    bool success=mem.p_mess->send_particles_somewhere(mpos,Ipos,starts,parts,
+						 mposs,Iposs,startss,partss);
+    delete[] mpos;
+    delete[] Ipos;
+
+    int total_parts_tmp=Iposs.size()+home_parts;
+    Particle* part_list_tmp= new particle[total_parts_tmp];
+    frac.particle_list_world=frac.particle_list;
+    frac.particle_list.resize(total_parts_tmp);
+    int FRR=-1;
+    for(int FR=0;FR<FractalNodes;FR++)
+      {
+	int ni=startss[FR];
+	for(int pa=0;pa<partss[FR];pa++)
+	  {
+	    int ni4=ni*4;
+	    mass=mposs[ni4];
+	    pos[0]=mposs[ni4+1];
+	    pos[1]=mposs[ni4+2];
+	    pos[2]=mposs[ni4+3];
+	    frac.particle_list[ni]=&part_list_tmp[ni];
+	    frac.particle_list[ni]->set_posm(pos,mass);
+	    frac.particle_list[ni]->set_world(FR,Iposs[ni]);
+	    ni++;
+	  }
+      }
+    for(unsigned int nw=0;nw<frac.particle_list_world.size();nw++)
+      {
+	frac.particle_list[nw]->get_world(FRR,haha);
+	if(FRR != FractalRank)
+	  continue;
+	frac.list_particles[ni]=frac.list_particles_world[nw];
+	frac.list_particles[ni]->set_world(FractalRank,nw);
+	ni++;
+      }
+    int num=frac.list_particles.size();
+    frac.set_number_particles(num);
+  }
+}
+*/
