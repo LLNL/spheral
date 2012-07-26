@@ -232,46 +232,31 @@ namespace FractalSpace
     {
       cout << "Ending Fractal_Memory " << this << endl;
     }
-    void calc_RealBoxes()
-    {
-      RealBoxes.resize(FractalNodes);
-      RealPBoxes.resize(FractalNodes);
-      double glinv=1.0/static_cast<double>(grid_length);
-      for(int b=0;b<FractalNodes;b++)
-	{
-	  RealBoxes[b].resize(6);
-	  RealPBoxes[b].resize(6);
-	  for(int ni=0;ni<6;ni+=2)
-	    {
-	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
-	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
-	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
-	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
-	    }
-	}
-    }
     void calc_FractalNodes()
     {
       FractalNodes=FractalNodes0*FractalNodes1*FractalNodes2;
       MPIrun=FractalNodes > 1;
       Boxes.resize(FractalNodes);
+      int length=grid_length;
+      if(!periodic)
+	length++;
       int count=0;
       int j0b=-1;
       for(int m0=0;m0<FractalNodes0;m0++)
 	{
 	  int j0a=j0b+1;
-	  j0b=((m0+1)*grid_length)/FractalNodes0-1;
+	  j0b=((m0+1)*length)/FractalNodes0-1;
 	  int j1b=-1;
 	  for(int m1=0;m1<FractalNodes1;m1++)
 	    {
 	      int j1a=j1b+1;
-	      j1b=((m1+1)*grid_length)/FractalNodes1-1;
+	      j1b=((m1+1)*length)/FractalNodes1-1;
 	      int j2b=-1;
 	      for(int m2=0;m2<FractalNodes2;m2++)
 		{
 		  Boxes[count].resize(6);
 		  int j2a=j2b+1;
-		  j2b=((m2+1)*grid_length)/FractalNodes2-1;
+		  j2b=((m2+1)*length)/FractalNodes2-1;
 		  Boxes[count][0]=j0a;
 		  Boxes[count][1]=j0b;
 		  Boxes[count][2]=j1a;
@@ -312,7 +297,7 @@ namespace FractalSpace
 		Buffers[count][2*n]=0;
 	      else
 		Buffers[count][2*n]=1;
-	      if(Periods[count][n] || (Boxes[count][2*n+1] == grid_length-1 && !periodic))
+	      if(Periods[count][n] || (Boxes[count][2*n+1] == grid_length && !periodic))
 		Buffers[count][2*n+1]=0;
 	      else
 		Buffers[count][2*n+1]=1;
@@ -352,6 +337,26 @@ namespace FractalSpace
 		  PBoxesLev[count][lev][2*n+1]=BBoxesLev[count][lev][2*n+1]+zoom*Buffers[count][2*n+1];
 		  PBoxesLev[count][lev][2*n]=BBoxesLev[count][lev][2*n]-zoom*Buffers[count][2*n];
 		}
+	    }
+	}
+    }
+    void calc_RealBoxes()
+    {
+      RealBoxes.resize(FractalNodes);
+      RealPBoxes.resize(FractalNodes);
+      double glinv=1.0/static_cast<double>(grid_length);
+      for(int b=0;b<FractalNodes;b++)
+	{
+	  RealBoxes[b].resize(6);
+	  RealPBoxes[b].resize(6);
+	  for(int ni=0;ni<6;ni+=2)
+	    {
+	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
+	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
+	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
+	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
+	      if(!periodic && Boxes[b][ni+1] == grid_length)
+		RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1])*glinv;
 	    }
 	}
     }
