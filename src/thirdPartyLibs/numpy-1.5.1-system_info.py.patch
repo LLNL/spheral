@@ -1,0 +1,28 @@
+1258,1261c1258
+<                 if intel:
+<                     args.extend(['-msse3'])
+<                 else:
+<                     args.extend(['-faltivec'])
+---
+>                 args.extend(['-msse3'])
+1264,1267c1261
+<                 if intel:
+<                     args.extend(['-msse3'])
+<                 else:
+<                     args.extend(['-faltivec'])
+---
+>                 args.extend(['-msse3'])
+1355,1358c1349
+<                 if intel:
+<                     args.extend(['-msse3'])
+<                 else:
+<                     args.extend(['-faltivec'])
+---
+>                 args.extend(['-msse3'])
+1363,1366c1354
+<                 if intel:
+<                     args.extend(['-msse3'])
+<                 else:
+<                     args.extend(['-faltivec'])
+---
+>                 args.extend(['-msse3'])
