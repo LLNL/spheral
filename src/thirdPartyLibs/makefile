@@ -231,17 +231,17 @@ EIGENURL = http://bitbucket.org/eigen/eigen/get/3.0.5.tar.bz2
 EIGENDIR = eigen-eigen-6e7488e20373
 EIGENBUILDDATE = .eigen.date
 
-# Voro++
-VOROPPDIST = voro++_0.3.1.tar.gz
-VOROPPURL = http://math.lbl.gov/voro++/download/dir/$(VOROPPDIST)
-VOROPPDIR = voro++
-VOROPPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(VOROPPDIST))
+# # Voro++
+# VOROPPDIST = voro++_0.3.1.tar.gz
+# VOROPPURL = http://math.lbl.gov/voro++/download/dir/$(VOROPPDIST)
+# VOROPPDIR = voro++
+# VOROPPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(VOROPPDIST))
 
-# Voro++ 2d specialization
-VOROPP2DDIST = voro++_2d.tbz
-VOROPP2DDIR = voro++_2d
-VOROPP2DINC = voro++_2d
-VOROPP2DBUILDDATE = $(patsubst %.tbz, .%.date, $(VOROPP2DDIST))
+# # Voro++ 2d specialization
+# VOROPP2DDIST = voro++_2d.tbz
+# VOROPP2DDIR = voro++_2d
+# VOROPP2DINC = voro++_2d
+# VOROPP2DBUILDDATE = $(patsubst %.tbz, .%.date, $(VOROPP2DDIST))
 
 # GNU multiprecision library.
 GMPDIST = gmp-5.0.2.tar.bz2
@@ -280,6 +280,18 @@ HYPREURL = https://computation.llnl.gov/casc/hypre/download/$(HYPREDIST)
 HYPREDIR = $(HYPREDIST:.tar.gz=)
 HYPREBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HYPREDIST))
 
+# Triangle (needed by polytope)
+TRIANGLEDIST = triangle.zip
+TRIANGLEURL = http://www.netlib.org/voronoi/$(TRIANGLEDIST)
+TRIANGLEDIR = $(TRIANGLEDIST:.zip=)
+
+# Polytope
+POLYTOPEVER = 90511ea47e3f
+POLYTOPEDIST = jjphatt-polytope-$(POLYTOPEVER).tar.bz2
+POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/get/$(POLYTOPEVER).tar.bz2
+POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
+POLYTOPEBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(POLYTOPEDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(ELEMENTTREEBUILDDATE) \
@@ -309,9 +321,8 @@ all:	$(PYTHONBUILDDATE) \
 	$(HDF5BUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
-	$(VOROPPBUILDDATE) \
-	$(VOROPP2DBUILDDATE) \
 	$(MPMATHBUILDDATE) \
+	$(POLYTOPEBUILDDATE) \
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
 #	$(PCLBUILDDATE)
@@ -350,9 +361,8 @@ clean:
 	       $(HDF5DIR) $(HDF5BUILDDATE) \
 	       $(SILODIR) $(SILOBUILDDATE) \
 	       $(EIGENDIR) $(EIGENBUILDDATE) \
-	       $(VOROPPDIR) $(VOROPPBUILDDATE) \
-	       $(VOROPP2DDIR) $(VOROPP2DBUILDDATE) \
 	       $(MPMATHDIR) $(MPMATHBUILDDATE) \
+	       $(POLYTOPEDIR) $(POLYTOPEBUILDDATE) \
 	       $(HYPREDIR) $(HYPREBUILDDATE) \
 	       $(FLANNDIR) $(FLANNBUILDDATE) \
 	       $(PCLDIR) $(PCLBUILDDATE) \
@@ -1409,4 +1419,38 @@ $(OCTTREEBUILDDATE):	$(OCTTREEDIST)
 	fi
 	rm -fr $(OCTTREEDIR)
 	touch $(OCTTREEBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# polytope
+#-------------------------------------------------------------------------------
+$(TRIANGLEDIST):
+	$(CURL) "$(TRIANGLEURL)" > $(TRIANGLEDIST)
+
+$(POLYTOPEDIST):
+	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
+
+$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(POLYTOPEDIST) $(CMAKEEXE)
+	@echo "################################################################################"
+	@echo "# Building $(POLYTOPEDIST)"
+	@echo "################################################################################"
+	rm -fr $(POLYTOPEDIR) $(POLYTOPEINCDIR) $(TRIANGLEDIR)
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(POLYTOPEINCDIR) $(TRIANGLEDIR)
+	$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"
+	$(BZIP2) -dc $(POLYTOPEDIST) | $(TAR) -xf -
+	$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src
+	$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src
+	env PATH=$(SPHERALDIR)/bin:$(PATH) $(SHELL) -ec "cd $(POLYTOPEDIR); \
+	$(MAKE) $(POLYTOPEFLAGS) config; \
+	$(MAKE) $(POLYTOPEFLAGS); \
+	$(MAKE) $(POLYTOPEFLAGS) install"
+	@if ! test -e $(SPHERALDIR)/lib/libpolytope.a -a \
+	           -e $(SPHERALDIR)/lib/libvoro_2d.a -a \
+	           -e $(SPHERALDIR)/lib/libvoro_3d.a -a \
+	           -e $(SPHERALDIR)/include/polytope/polytope.hh; then \
+	echo "ERROR building Polytope."; \
+	rm -f $(POLYTOPEBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR)
+	touch $(POLYTOPEBUILDDATE)
 

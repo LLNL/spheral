@@ -6,8 +6,6 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	Cell.cc \
-	VoroPP2d.cc \
-	VoroPP.cc \
 	MeshConstructionUtilities.cc \
 	findMatchingVertex.cc \
 	LineMesh.cc \
@@ -30,7 +28,8 @@ PYTHONTARGETS = \
 	generateMesh.py \
 	siloMeshDump.py
 
-EXTRALIBS = -lvoro++_2d
+EXTRAINCLUDES = -I $(SPHERALDIR)/include/polytope
+EXTRALIBS = -l polytope
 
 LINKLIST = linklist
 SPHERALTOP = ..
