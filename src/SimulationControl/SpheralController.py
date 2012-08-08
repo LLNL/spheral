@@ -46,7 +46,8 @@ class SpheralController(RestartableObject):
                  vizTime = None,
                  vizMethod = None,
                  initialTime = 0.0,
-                 SPH = False):
+                 SPH = False,
+                 skipInitialPeriodicWork = False):
         RestartableObject.__init__(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -84,7 +85,8 @@ class SpheralController(RestartableObject):
                                  initializeDerivatives = initializeDerivatives,
                                  vizDir = vizDir,
                                  vizStep = vizStep,
-                                 vizTime = vizTime)
+                                 vizTime = vizTime,
+                                 skipInitialPeriodicWork = skipInitialPeriodicWork)
 
         # Read the restart information if requested.
         if not restoreCycle is None:
@@ -109,7 +111,8 @@ class SpheralController(RestartableObject):
                             initializeDerivatives = False,
                             vizDir = None,
                             vizStep = None,
-                            vizTime = None):
+                            vizTime = None,
+                            skipInitialPeriodicWork = False):
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -163,7 +166,7 @@ class SpheralController(RestartableObject):
             self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime)
 
         # Force the periodic work to fire at problem initalization.
-        if restoreCycle is None:
+        if (not skipInitialPeriodicWork) and (restoreCycle is None):
             self.iterateIdealH()
             self.doPeriodicWork(force=True)
 

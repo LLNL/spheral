@@ -607,87 +607,88 @@ applyTreeForces(const Tree& tree,
 
   // We'll always be starting with the daughters of the root level.
   const unsigned numLevels = tree.size();
-  CHECK(numLevels >= 1);
-  const Cell& rootCell = tree[0].begin()->second;
+  if (numLevels >= 1) {
+    const Cell& rootCell = tree[0].begin()->second;
 
-  // Walk each internal node.
-  TreeLevel::const_iterator cellItr;
-  for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
+    // Walk each internal node.
+    TreeLevel::const_iterator cellItr;
+    for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
 
-      // State of node i.
-      mi = mass(nodeListi, i);
-      const Vector& xi = position(nodeListi, i);
-      Vector& DvDti = DvDt(nodeListi, i);
-      Scalar& phii = potential(nodeListi, i);
-      inode = NodeID(nodeListi, i);
+        // State of node i.
+        mi = mass(nodeListi, i);
+        const Vector& xi = position(nodeListi, i);
+        Vector& DvDti = DvDt(nodeListi, i);
+        Scalar& phii = potential(nodeListi, i);
+        inode = NodeID(nodeListi, i);
 
-      // Walk the tree.
-      ilevel = 0;
-      remainingCells = rootCell.daughterPtrs;
-      while ((not remainingCells.empty()) and ++ilevel < numLevels) {
-        nremaining = remainingCells.size();
-        newDaughters = vector<Cell*>();
-        newDaughters.reserve(8*nremaining);
-        cellsize2 = boxLength2/(1U << (2*ilevel));
+        // Walk the tree.
+        ilevel = 0;
+        remainingCells = rootCell.daughterPtrs;
+        while ((not remainingCells.empty()) and ++ilevel < numLevels) {
+          nremaining = remainingCells.size();
+          newDaughters = vector<Cell*>();
+          newDaughters.reserve(8*nremaining);
+          cellsize2 = boxLength2/(1U << (2*ilevel));
 
-        // Walk each of the current set of Cells.
-        for (k = 0; k != nremaining; ++k) {
-          const Cell& cell = *remainingCells[k];
+          // Walk each of the current set of Cells.
+          for (k = 0; k != nremaining; ++k) {
+            const Cell& cell = *remainingCells[k];
 
-          // Can we ignore this cells daughters?
-          if (cellsCompleted[inode][ilevel].find(cell.key) == cellsCompleted[inode][ilevel].end()) {
-            xji = cell.xcm - xi;
-            rji2 = xji.magnitude2();
+            // Can we ignore this cells daughters?
+            if (cellsCompleted[inode][ilevel].find(cell.key) == cellsCompleted[inode][ilevel].end()) {
+              xji = cell.xcm - xi;
+              rji2 = xji.magnitude2();
 
-            // We use Barnes (1994) modified criterion, except for the extra square factor here for efficiency.
-            if (rji2 > cellsize2/mOpening2 + cell.rcm2cc2) {      
+              // We use Barnes (1994) modified criterion, except for the extra square factor here for efficiency.
+              if (rji2 > cellsize2/mOpening2 + cell.rcm2cc2) {      
 
-              // Yep, treat this cells and all of its daughters as a single point.
-              nhat = xji.unitVector();
-              rji2 += mSofteningLength2;
-              CHECK(rji2 > 0.0);
+                // Yep, treat this cells and all of its daughters as a single point.
+                nhat = xji.unitVector();
+                rji2 += mSofteningLength2;
+                CHECK(rji2 > 0.0);
 
-              // Increment the acceleration and potential.
-              DvDti += mG*cell.Mglobal/rji2 * nhat;
-              phii -= mG*cell.Mglobal/sqrt(rji2);
-              cellsCompleted[inode][ilevel].insert(cell.key);
+                // Increment the acceleration and potential.
+                DvDti += mG*cell.Mglobal/rji2 * nhat;
+                phii -= mG*cell.Mglobal/sqrt(rji2);
+                cellsCompleted[inode][ilevel].insert(cell.key);
 
-            } else if (cell.daughterPtrs.size() == 0) {
+              } else if (cell.daughterPtrs.size() == 0) {
 
-              // This cell represents a leaf (termination of descent.  We just directly
-              // add up the node properties of any nodes in the cell.
-              CHECK(cell.masses.size() > 0 and
-                    cell.positions.size() == cell.masses.size());
-              for (j = 0; j != cell.masses.size(); ++j) {
-                mj = cell.masses[j];
-                const Vector& xj = cell.positions[j];
-                xji = xj - xi;
-                rji2 = xji.magnitude2();
+                // This cell represents a leaf (termination of descent.  We just directly
+                // add up the node properties of any nodes in the cell.
+                CHECK(cell.masses.size() > 0 and
+                      cell.positions.size() == cell.masses.size());
+                for (j = 0; j != cell.masses.size(); ++j) {
+                  mj = cell.masses[j];
+                  const Vector& xj = cell.positions[j];
+                  xji = xj - xi;
+                  rji2 = xji.magnitude2();
 
-                if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
-                  nhat = xji.unitVector();
-                  rji2 += mSofteningLength2;
-                  CHECK(rji2 > 0.0);
+                  if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
+                    nhat = xji.unitVector();
+                    rji2 += mSofteningLength2;
+                    CHECK(rji2 > 0.0);
 
-                  // Increment the acceleration and potential.
-                  DvDti += mG*mj/rji2 * nhat;
-                  phii -= mG*mj/sqrt(rji2);
+                    // Increment the acceleration and potential.
+                    DvDti += mG*mj/rji2 * nhat;
+                    phii -= mG*mj/sqrt(rji2);
+                  }
                 }
+
+              } else {
+
+                // We need to walk further down the tree.  Add this cells daughters
+                // to the next set.
+                copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
+
               }
-
-            } else {
-
-              // We need to walk further down the tree.  Add this cells daughters
-              // to the next set.
-              copy(cell.daughterPtrs.begin(), cell.daughterPtrs.end(), back_inserter(newDaughters));
-
             }
           }
-        }
 
-        // Update the set of cells to check on the next pass.
-        remainingCells = newDaughters;
+          // Update the set of cells to check on the next pass.
+          remainingCells = newDaughters;
+        }
       }
     }
   }
