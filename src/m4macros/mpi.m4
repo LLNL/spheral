@@ -13,6 +13,7 @@ AC_SUBST(MPIPYTHONINTERFACETARGET)
 AC_SUBST(MPICC)
 AC_SUBST(MPICXX)
 AC_SUBST(HDF5FLAGS)
+AC_SUBST(POLYTOPEFLAGS)
 
 HDF5FLAGS=
 
@@ -40,6 +41,7 @@ AC_ARG_WITH(mpi,
     MPICC=$CC
     MPICXX=$CXX
     MPIENABLED="yes"
+    POLYTOPEFLAGS="$POLYTOPEFLAGS MPI=1"
 
     # # On Apple we will exclude the C++ bindings.
     # if test "`uname -s`" = "Darwin"; then
