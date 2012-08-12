@@ -1,7 +1,6 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/cdebug.hh"
 #include "Geometry/Dimension.hh"
-#include "Mesh/MeshWall.hh"
 
 namespace Spheral {
 namespace BoundarySpace {

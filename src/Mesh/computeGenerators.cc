@@ -140,33 +140,33 @@ computeGenerators(NodeListIterator nodeListBegin,
     nlocal += (**nodeListItr).numInternalNodes();
   }
 
-  // Look for any boundaries whose ghost nodes we should include.
-  for (BoundaryIterator bcItr = boundaryBegin;
-       bcItr != boundaryEnd;
-       ++bcItr) {
-    for (NodeListIterator nodeListItr = nodeListBegin; nodeListItr != nodeListEnd; ++nodeListItr) {
-      if ((*bcItr)->meshGhostNodes() and (*bcItr)->haveNodeList(**nodeListItr)) {
-        const Field<Dimension, Vector>& pos = (**nodeListItr).positions();
-        const Field<Dimension, SymTensor>& H = (**nodeListItr).Hfield();
-        const vector<int>& ghostNodes = (*bcItr)->ghostNodes(**nodeListItr);
-        for (k = 0; k != ghostNodes.size(); ++k) {
-          i = ghostNodes[k];
-//           if (!(i < pos.numElements())) {
-//             cerr << "Blago!  " << ghostNodes.size() << endl << "  ---> ";
-//             for (unsigned kk = 0; kk != ghostNodes.size(); ++kk) cerr << ghostNodes[kk] << " ";
-//             cerr << endl;
+//   // Look for any boundaries whose ghost nodes we should include.
+//   for (BoundaryIterator bcItr = boundaryBegin;
+//        bcItr != boundaryEnd;
+//        ++bcItr) {
+//     for (NodeListIterator nodeListItr = nodeListBegin; nodeListItr != nodeListEnd; ++nodeListItr) {
+//       if ((*bcItr)->meshGhostNodes() and (*bcItr)->haveNodeList(**nodeListItr)) {
+//         const Field<Dimension, Vector>& pos = (**nodeListItr).positions();
+//         const Field<Dimension, SymTensor>& H = (**nodeListItr).Hfield();
+//         const vector<int>& ghostNodes = (*bcItr)->ghostNodes(**nodeListItr);
+//         for (k = 0; k != ghostNodes.size(); ++k) {
+//           i = ghostNodes[k];
+// //           if (!(i < pos.numElements())) {
+// //             cerr << "Blago!  " << ghostNodes.size() << endl << "  ---> ";
+// //             for (unsigned kk = 0; kk != ghostNodes.size(); ++kk) cerr << ghostNodes[kk] << " ";
+// //             cerr << endl;
+// //           }
+//           CHECK2(i < pos.numElements(), "Out of bounds:  " << i << " " << pos.numElements());
+//           if (testPointInBox(pos(i), xmin, xmax)) {
+//             ++offsets.back();
+//             ++nlocal;
+//             localPositions.push_back(pos(i));
+//             localHs.push_back(H(i));
 //           }
-          CHECK2(i < pos.numElements(), "Out of bounds:  " << i << " " << pos.numElements());
-          if (testPointInBox(pos(i), xmin, xmax)) {
-            ++offsets.back();
-            ++nlocal;
-            localPositions.push_back(pos(i));
-            localHs.push_back(H(i));
-          }
-        }
-      }
-    }
-  }
+//         }
+//       }
+//     }
+//   }
   CHECK(localPositions.size() == nlocal);
   CHECK(localHs.size() == nlocal);
   CHECK(offsets.size() == numNodeLists + 1);

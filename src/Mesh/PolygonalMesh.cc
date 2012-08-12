@@ -4,7 +4,6 @@
 // Created by JMO, Tue Nov 16 14:18:20 PST 2010
 //----------------------------------------------------------------------------//
 #include <limits>
-#include <algorithm>
 #include <set>
 #include <sstream>
 #include "boost/foreach.hpp"
@@ -12,14 +11,6 @@
 #include "polytope.hh"
 
 #include "Mesh.hh"
-// #include "MeshConstructionUtilities.hh"
-// #include "findMatchingVertex.hh"
-// #include "Infrastructure/SpheralFunctions.hh"
-// #include "Utilities/testBoxIntersection.hh"
-// #include "Utilities/boundPointWithinBox.hh"
-// #include "Utilities/lineSegmentIntersections.hh"
-// #include "Utilities/CounterClockwiseComparator.hh"
-#include "Utilities/hashes.hh"
 #include "Utilities/DBC.hh"
 
 #include "Utilities/timingUtilities.hh"
@@ -42,7 +33,6 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Some useful typedefs.
   typedef Dim<2> Dimension;
-  typedef pair<unsigned, unsigned> EdgeHash;
 
   // Is there anything to do?
   if (generators.size() == 0) return;
@@ -152,6 +142,10 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     mZones.push_back(Zone(*this, i, faceIDs));
   }
   CHECK(mZones.size() == numGens);
+
+  // Copy the parallel info.
+  mNeighborDomains = tessellation.neighborDomains;
+  mSharedNodes = tessellation.sharedNodes;
 
   // Report our final timing and we're done.
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 

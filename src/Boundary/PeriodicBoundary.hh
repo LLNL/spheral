@@ -26,7 +26,6 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Boundary<Dimension>::MeshWallPtr MeshWallPtr;
 
   // Constructors and destructors.
   PeriodicBoundary();
@@ -72,11 +71,6 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
-
-  // Periodic boundaries should have their ghost nodes meshed, and don't return
-  // MeshWalls.
-  virtual bool meshGhostNodes() const;
-  virtual MeshWallPtr meshWall() const;
 
   // Override the base reset method.
   virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);

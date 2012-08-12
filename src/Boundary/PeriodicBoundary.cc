@@ -387,26 +387,6 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 }
 
 //------------------------------------------------------------------------------
-// Default that the ghost nodes should not be meshed.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-PeriodicBoundary<Dimension>::
-meshGhostNodes() const {
-  return true;
-}
-
-//------------------------------------------------------------------------------
-// Default no-op for a MeshWall.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Boundary<Dimension>::MeshWallPtr
-PeriodicBoundary<Dimension>::
-meshWall() const {
-  return MeshWallPtr(new MeshSpace::MeshWall<Dimension>());
-}
-
-//------------------------------------------------------------------------------
 // Clear out any preexisting control/ghost node info.
 //------------------------------------------------------------------------------
 template<typename Dimension>

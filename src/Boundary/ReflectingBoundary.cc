@@ -342,17 +342,6 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 }
 
 //------------------------------------------------------------------------------
-// Serve up a MeshWall.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename ReflectingBoundary<Dimension>::MeshWallPtr
-ReflectingBoundary<Dimension>::
-meshWall() const {
-  return MeshWallPtr(new MeshSpace::PlanarMeshWall<Dimension>(this->enterPlane()));
-}
-
-//------------------------------------------------------------------------------
 // Dump state.
 //------------------------------------------------------------------------------
 template<typename Dimension>

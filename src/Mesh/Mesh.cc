@@ -50,8 +50,7 @@ Mesh():
   mNeighborDomains(),
   mSharedNodes(),
   mNodeListNameOffsets(),
-  mNodeListIndexOffsets(),
-  mWallPtrs() {
+  mNodeListIndexOffsets() {
 }
 
 //------------------------------------------------------------------------------
@@ -70,8 +69,7 @@ Mesh(const vector<typename Dimension::Vector>& generators,
   mNeighborDomains(),
   mSharedNodes(),
   mNodeListNameOffsets(),
-  mNodeListIndexOffsets(),
-  mWallPtrs() {
+  mNodeListIndexOffsets() {
   this->reconstruct(generators, xmin, xmax);
 }
 
@@ -90,8 +88,7 @@ Mesh(const vector<typename Dimension::Vector>& generators,
   mNeighborDomains(),
   mSharedNodes(),
   mNodeListNameOffsets(),
-  mNodeListIndexOffsets(),
-  mWallPtrs() {
+  mNodeListIndexOffsets() {
   this->reconstruct(generators, boundary);
 }
 
@@ -111,8 +108,7 @@ Mesh(const vector<Vector>& nodePositions,
   mFaces(),
   mZones(),
   mNodeListNameOffsets(),
-  mNodeListIndexOffsets(),
-  mWallPtrs() {
+  mNodeListIndexOffsets() {
 
   // Reverse the zoneFace structure.
   vector<vector<unsigned> > faceZones(faceEdges.size());
@@ -196,7 +192,6 @@ operator=(const Mesh<Dimension>& rhs) {
     mSharedNodes = rhs.mSharedNodes;
     mNodeListNameOffsets = rhs.mNodeListNameOffsets;
     mNodeListIndexOffsets = rhs.mNodeListIndexOffsets;
-    mWallPtrs = rhs.mWallPtrs;
 
     // Set the mesh pointers appropriately.
     for (typename vector<Node>::iterator itr = mNodes.begin();
@@ -231,7 +226,6 @@ clear() {
   mSharedNodes =          vector<vector<unsigned> >();
   mNodeListNameOffsets =  map<string, unsigned>();
   mNodeListIndexOffsets = vector<unsigned>();
-  mWallPtrs =             vector<MeshWallPtr>();
 }
 
 //------------------------------------------------------------------------------
@@ -256,7 +250,6 @@ Mesh<Dimension>::
 reconstruct(const vector<typename Dimension::Vector>& generators,
             const typename Dimension::FacetedVolume& boundary) {
   this->clear();
-  this->addWall(MeshWallPtr(new FacetedMeshWall<Dimension>(boundary)));
   this->reconstructInternal(generators, boundary.xmin(), boundary.xmax());
 }
 

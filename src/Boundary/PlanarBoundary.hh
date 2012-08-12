@@ -42,7 +42,6 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
-  typedef typename Boundary<Dimension>::MeshWallPtr MeshWallPtr;
 
   // Constructors and destructors.
   PlanarBoundary();
@@ -58,9 +57,6 @@ public:
   // For planar boundaries this is any node that is "behind" the enter plane.
   virtual void setViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
   virtual void updateViolationNodes(NodeSpace::NodeList<Dimension>& nodeList);
-
-  // Serve up a MeshWall representing our planes.
-  virtual MeshWallPtr meshWall() const;
 
   // Set the ghost nodes for a predefined set of control nodes.
   void setGhostNodes(NodeSpace::NodeList<Dimension>& nodeList, 

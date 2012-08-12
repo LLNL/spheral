@@ -26,6 +26,7 @@ AC_ARG_WITH(mpi,
     MPITHIRDPARTYTARGETS=""
     MPIENABLED="no"
     CXXPKGS="$CXXPKGS PythonMPIInterfaces"
+    POLYTOPEFLAGS="$POLYTOPEFLAGS CC='$(CC)' CXX='$(CXX)'"
 ],
 [
     AC_MSG_RESULT(no)
@@ -41,7 +42,7 @@ AC_ARG_WITH(mpi,
     MPICC=$CC
     MPICXX=$CXX
     MPIENABLED="yes"
-    POLYTOPEFLAGS="$POLYTOPEFLAGS MPI=1"
+    POLYTOPEFLAGS="$POLYTOPEFLAGS CC='$(MPICC)' CXX='$(MPICXX)' MPI=1"
 
     # # On Apple we will exclude the C++ bindings.
     # if test "`uname -s`" = "Darwin"; then

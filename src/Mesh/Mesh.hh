@@ -17,8 +17,6 @@
 #include "boost/tuple/tuple.hpp"
 
 #include "Geometry/Dimension.hh"
-#include "VoroPP.hh"
-#include "MeshWall.hh"
 
 namespace Spheral {
 
@@ -62,8 +60,6 @@ public:
   typedef typename FaceContainer::const_iterator FaceIterator;
   typedef typename ZoneContainer::const_iterator ZoneIterator;
 
-  typedef boost::shared_ptr<MeshWall<Dimension> > MeshWallPtr;
-
   //---------------------------------------------------------------------------
   // Static methods.
   //---------------------------------------------------------------------------
@@ -87,9 +83,6 @@ public:
 
   // Clear out any exising data in the mesh.
   void clear();
-
-  // Add walls to this mesh (for generation).
-  void addWall(MeshWallPtr wallPtr);
 
   // Reconstruct from a set of generators.
   void reconstruct(const std::vector<Vector>& generators,
@@ -194,9 +187,6 @@ private:
   // The offsets into the zones for each NodeList.
   std::map<std::string, unsigned> mNodeListNameOffsets;
   std::vector<unsigned> mNodeListIndexOffsets;
-
-  // The set of MeshWalls.
-  std::vector<MeshWallPtr> mWallPtrs;
 
   // Internal method to recompute IDs based on a mask indicating which 
   // elements are to be kept/removed.

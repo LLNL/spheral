@@ -9,8 +9,6 @@
 #include "Mesh/Zone.hh"
 #include "Mesh/computeGenerators.hh"
 #include "Mesh/generateMesh.hh"
-#include "Mesh/VoroPP.hh"
-#include "Mesh/MeshWall.hh"
 #include "Mesh/MeshConstructionUtilities.hh"
 
 //------------------------------------------------------------------------------
@@ -22,21 +20,6 @@ namespace MeshSpace {
 typedef Mesh<Dim<1> > LineMesh;
 typedef Mesh<Dim<2> > PolygonalMesh;
 typedef Mesh<Dim<3> > PolyhedralMesh;
-
-typedef VoroPP<Dim<2> > VoroPP2d;
-typedef VoroPP<Dim<3> > VoroPP3d;
-
-typedef MeshWall<Dim<1> > MeshWall1d;
-typedef MeshWall<Dim<2> > MeshWall2d;
-typedef MeshWall<Dim<3> > MeshWall3d;
-
-typedef PlanarMeshWall<Dim<1> > PlanarMeshWall1d;
-typedef PlanarMeshWall<Dim<2> > PlanarMeshWall2d;
-typedef PlanarMeshWall<Dim<3> > PlanarMeshWall3d;
-
-typedef FacetedMeshWall<Dim<1> > FacetedMeshWall1d;
-typedef FacetedMeshWall<Dim<2> > FacetedMeshWall2d;
-typedef FacetedMeshWall<Dim<3> > FacetedMeshWall3d;
 
 //------------------------------------------------------------------------------
 // Provide a non-iterator based interface to computeGenerators.
