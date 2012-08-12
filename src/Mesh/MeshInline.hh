@@ -26,17 +26,6 @@ Mesh<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// Add a wall for mesh construction.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-Mesh<Dimension>::
-addWall(typename Mesh<Dimension>::MeshWallPtr wallPtr) {
-  mWallPtrs.push_back(wallPtr);
-}
-
-//------------------------------------------------------------------------------
 // Mesh::reconstruct(generators, xmin, xmax, boundaryBegin, boundaryEnd)
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -50,11 +39,6 @@ reconstruct(const std::vector<typename Dimension::Vector>& generators,
             const BoundaryIterator boundaryBegin,
             const BoundaryIterator boundaryEnd) {
   this->clear();
-
-  // Add the boundary conditions.
-  for (BoundaryIterator itr = boundaryBegin; itr != boundaryEnd; ++itr) {
-    this->addWall((**itr).meshWall());
-  }
 
   // Dispatch the build.
   this->reconstructInternal(generators, xmin, xmax);
@@ -73,14 +57,6 @@ reconstruct(const std::vector<typename Dimension::Vector>& generators,
             const BoundaryIterator boundaryBegin,
             const BoundaryIterator boundaryEnd) {
   this->clear();
-
-  // Add the facted volume as a wall.
-  this->addWall(MeshWallPtr(new FacetedMeshWall<Dimension>(boundary)));
-
-  // Add the boundary conditions.
-  for (BoundaryIterator itr = boundaryBegin; itr != boundaryEnd; ++itr) {
-    this->addWall((**itr).meshWall());
-  }
 
   // Dispatch the build.
   this->reconstructInternal(generators, boundary.xmin(), boundary.xmax());

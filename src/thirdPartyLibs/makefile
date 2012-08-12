@@ -285,8 +285,13 @@ TRIANGLEDIST = triangle.zip
 TRIANGLEURL = http://www.netlib.org/voronoi/$(TRIANGLEDIST)
 TRIANGLEDIR = $(TRIANGLEDIST:.zip=)
 
+# Tetgen (needed by polytope)
+TETGENDIST = tetgen1.4.3.tar.gz
+TETGENURL = http://tetgen.org/files/$(TETGENDIST)
+TETGENDIR = $(TETGENDIST:.tar.gz=)
+
 # Polytope
-POLYTOPEVER = 90511ea47e3f
+POLYTOPEVER = 151463bc9dba
 POLYTOPEDIST = jjphatt-polytope-$(POLYTOPEVER).tar.bz2
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/get/$(POLYTOPEVER).tar.bz2
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
@@ -1426,19 +1431,25 @@ $(OCTTREEBUILDDATE):	$(OCTTREEDIST)
 $(TRIANGLEDIST):
 	$(CURL) "$(TRIANGLEURL)" > $(TRIANGLEDIST)
 
+$(TETGENDIST):
+	$(CURL) "$(TETGENURL)" > $(TETGENDIST)
+
 $(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(POLYTOPEDIST) $(CMAKEEXE)
+$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
 	rm -fr $(POLYTOPEDIR) $(POLYTOPEINCDIR) $(TRIANGLEDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(POLYTOPEINCDIR) $(TRIANGLEDIR)
 	$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"
+	$(GZIP) -cd $(TETGENDIST) | $(TAR) -xf -
 	$(BZIP2) -dc $(POLYTOPEDIST) | $(TAR) -xf -
 	$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src
 	$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src
+	$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src
+	$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src
 	env PATH=$(SPHERALDIR)/bin:$(PATH) $(SHELL) -ec "cd $(POLYTOPEDIR); \
 	$(MAKE) $(POLYTOPEFLAGS) config; \
 	$(MAKE) $(POLYTOPEFLAGS); \

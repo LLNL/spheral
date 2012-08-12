@@ -38,8 +38,8 @@ template<>
 void
 Mesh<Dim<1> >::
 reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
-                    const Mesh<Dim<1> >::Vector& xmin_in,
-                    const Mesh<Dim<1> >::Vector& xmax_in) {
+                    const Mesh<Dim<1> >::Vector& xmin,
+                    const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
   if (generators.size() == 0) return;
@@ -47,24 +47,14 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
-    REQUIRE(xmin_in < xmax_in);
+    REQUIRE(xmin < xmax);
     for (vector<Vector>::const_iterator itr = generators.begin();
          itr != generators.end();
          ++itr) {
-      REQUIRE2(xmin_in <= *itr and *itr <= xmax_in, "Node out of bounds:  " << *itr << " not in [" << xmin_in << " " << xmax_in << "]");
+      REQUIRE2(xmin <= *itr and *itr <= xmax, "Node out of bounds:  " << *itr << " not in [" << xmin << " " << xmax << "]");
     }
   }
   END_CONTRACT_SCOPE;
-
-  // Find the effective xmin and xmax including the walls.  For now we don't allow
-  // walls to be interior to the problem.
-  Vector xmin = xmin_in, xmax = xmax_in;
-  for (vector<MeshWallPtr>::const_iterator itr = mWallPtrs.begin();
-       itr != mWallPtrs.end();
-       ++itr) {
-    xmin.x(std::max(xmin.x(), (*itr)->xmin().x()));
-    xmax.x(std::min(xmax.x(), (*itr)->xmax().x()));
-  }
 
   // Find the sorted order for the zones by index.
   vector<unsigned> zoneOrder;

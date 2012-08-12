@@ -25,7 +25,6 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Boundary<Dimension>::MeshWallPtr MeshWallPtr;
 
   // Constructors and destructors.
   ReflectingBoundary();
@@ -53,9 +52,6 @@ public:
 
   // Allow read only access to the reflection operator.
   const Tensor& reflectOperator() const;
-
-  // Serve up a MeshWall representing our planes.
-  virtual MeshWallPtr meshWall() const;
 
   // Valid test.
   virtual bool valid() const;

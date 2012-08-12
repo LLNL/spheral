@@ -273,26 +273,6 @@ Boundary<Dimension>::addNodeList(NodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
-// Default that the ghost nodes should not be meshed.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-Boundary<Dimension>::
-meshGhostNodes() const {
-  return false;
-}
-
-//------------------------------------------------------------------------------
-// Default no-op for a MeshWall.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Boundary<Dimension>::MeshWallPtr
-Boundary<Dimension>::
-meshWall() const {
-  return MeshWallPtr(new MeshSpace::MeshWall<Dimension>());
-}
-
-//------------------------------------------------------------------------------
 // Clear out any NodeList information that is currently present.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -201,18 +201,6 @@ PlanarBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
 }    
 
 //------------------------------------------------------------------------------
-// Serve up a MeshWall.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Boundary<Dimension>::MeshWallPtr
-PlanarBoundary<Dimension>::
-meshWall() const {
-  return MeshWallPtr(new MeshSpace::PlanarMeshWall<Dimension>(mEnterPlane, 
-                                                              mExitPlane));
-}
-
-//------------------------------------------------------------------------------
 // Function to map a position through the enter to the exit plane.
 //------------------------------------------------------------------------------
 template<typename Dimension>

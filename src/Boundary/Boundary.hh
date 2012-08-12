@@ -25,9 +25,6 @@ namespace Spheral {
   namespace DataBaseSpace {
     template<typename Dimension> class DataBase;
   }
-  namespace MeshSpace {
-    template<typename Dimension> class MeshWall;
-  }
 }
 
 namespace Spheral {
@@ -44,7 +41,6 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef boost::shared_ptr<MeshSpace::MeshWall<Dimension> > MeshWallPtr;
 
   // An internal type to hold the paired control/ghost node indicies.
   // Also maintains a list of any internal nodes that are in violation
@@ -149,11 +145,6 @@ public:
   // Provide an optional hook that is to be called when all ghost boundaries are
   // to have been set.
   virtual void finalizeGhostBoundary() const {};
-
-  // Optionally a boundary can serve up a MeshWall object for use enforcing boundaries
-  // on Meshes.
-  virtual bool meshGhostNodes() const;
-  virtual MeshWallPtr meshWall() const;
 
   // Overridable hook for clearing out the boundary condition.
   virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);

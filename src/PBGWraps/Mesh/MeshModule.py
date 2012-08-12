@@ -33,13 +33,13 @@ self.%(prefix)sMeshEdge = addObject(self.space, "Edge", outer_class=self.%(prefi
 self.%(prefix)sMeshFace = addObject(self.space, "Face", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
 self.%(prefix)sMeshZone = addObject(self.space, "Zone", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
 
-self.MeshWall%(dim)s = addObject(self.space, "MeshWall%(dim)s", allow_subclassing=True)
-self.PlanarMeshWall%(dim)s = addObject(self.space, "PlanarMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
-self.FacetedMeshWall%(dim)s = addObject(self.space, "FacetedMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
+##self.MeshWall%(dim)s = addObject(self.space, "MeshWall%(dim)s", allow_subclassing=True)
+##self.PlanarMeshWall%(dim)s = addObject(self.space, "PlanarMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
+##self.FacetedMeshWall%(dim)s = addObject(self.space, "FacetedMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
 """ % {"prefix" : prefix, "dim" : dim})
 
-        self.VoroPP2d = addObject(self.space, "VoroPP2d", allow_subclassing=True)
-        self.VoroPP3d = addObject(self.space, "VoroPP3d", allow_subclassing=True)
+        # self.VoroPP2d = addObject(self.space, "VoroPP2d", allow_subclassing=True)
+        # self.VoroPP3d = addObject(self.space, "VoroPP3d", allow_subclassing=True)
 
         return
 
@@ -59,17 +59,17 @@ self.generateEdgeBindings(self.%(prefix)sMeshEdge, "%(prefix)sMesh", %(ndim)i)
 self.generateFaceBindings(self.%(prefix)sMeshFace, "%(prefix)sMesh", %(ndim)i)
 self.generateZoneBindings(self.%(prefix)sMeshZone, "%(prefix)sMesh", %(ndim)i)
 
-self.generateMeshWallBindings(self.MeshWall%(dim)s, %(ndim)i)
-self.generatePlanarMeshWallBindings(self.PlanarMeshWall%(dim)s, %(ndim)i)
-self.generateFacetedMeshWallBindings(self.FacetedMeshWall%(dim)s, %(ndim)i)
+# self.generateMeshWallBindings(self.MeshWall%(dim)s, %(ndim)i)
+# self.generatePlanarMeshWallBindings(self.PlanarMeshWall%(dim)s, %(ndim)i)
+# self.generateFacetedMeshWallBindings(self.FacetedMeshWall%(dim)s, %(ndim)i)
 
 self.addFunctions("%(prefix)sMesh", %(ndim)i)
 """ % {"prefix" : prefix, 
        "ndim" : ndim, 
        "dim" : "%id" % ndim})
 
-        self.generateVoroPPBindings(self.VoroPP2d, "VoroPP2d", 2)
-        self.generateVoroPPBindings(self.VoroPP3d, "VoroPP3d", 3)
+        # self.generateVoroPPBindings(self.VoroPP2d, "VoroPP2d", 2)
+        # self.generateVoroPPBindings(self.VoroPP3d, "VoroPP3d", 3)
 
         return
 
