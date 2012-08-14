@@ -95,8 +95,10 @@ case $COMPILERS in
          CC=gcc-4.4.6
          CXX=g++-4.4.6
          F77=g77
-         MPICC="mpicc -cc=$CC"
-         MPICXX="mpig++ -cc=$CXX"
+         MPICC=mpicc
+         MPICXX=mpig++
+         MPICCFLAGS="-cc=$CC"
+         MPICXXFLAGS="-cc=$CXX"
          CMAKECC=$CC
          CMAKECXX=$CXX
          GCCXMLCC=$CMAKECC
@@ -110,8 +112,10 @@ case $COMPILERS in
          CC=gcc-4.4.0
          CXX=g++-4.4.0
          F77=g77
-         MPICC="mpicc -cc=$CC"
-         MPICXX="mpig++ -cc=$CXX"
+         MPICC=mpicc
+         MPICXX=mpig++
+         MPICCFLAGS="-cc=$CC"
+         MPICXXFLAGS="-cc=$CXX"
          CMAKECC=gcc-4.1.2
          CMAKECXX=g++-4.1.2
          GCCXMLCC=$CMAKECC
@@ -125,8 +129,10 @@ case $COMPILERS in
          CC=gcc-4.3.2
          CXX=g++-4.3.2
          F77=g77
-         MPICC="mpicc -cc=$CC"
-         MPICXX="mpig++ -cc=$CXX"
+         MPICC=mpicc
+         MPICXX=mpig++
+         MPICCFLAGS="-cc=$CC"
+         MPICXXFLAGS="-cc=$CXX"
          CMAKECC=gcc-4.1.2
          CMAKECXX=g++-4.1.2
          GCCXMLCC=$CMAKECC

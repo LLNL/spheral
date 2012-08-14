@@ -15,7 +15,7 @@ CP = cp
 MV = mv
 PATCH = patch
 MKDIR = mkdir -p
-CURL = curl -L
+CURL = curl -k -L
 AR = ar
 
 #-------------------------------------------------------------------------------
@@ -195,7 +195,7 @@ PYBINDGENDIR = $(PYBINDGENDIST:.zip=)
 PYBINDGENBUILDDATE = $(patsubst %.zip, .%.date, $(PYBINDGENDIST))
 
 # WildMagic
-WILDMAGICDIST = WildMagic5p8.zip
+WILDMAGICDIST = WildMagic5p9.zip
 WILDMAGICURL = http://www.geometrictools.com/Downloads/$(WILDMAGICDIST)
 WILDMAGICDIR = GeometricTools
 WILDMAGICBUILDDATE = $(patsubst %.zip, .%.date, $(WILDMAGICDIST))
@@ -1437,7 +1437,7 @@ $(TETGENDIST):
 $(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE)
+$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
@@ -1451,9 +1451,8 @@ $(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE)
 	$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src
 	$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src
 	env PATH=$(SPHERALDIR)/bin:$(PATH) $(SHELL) -ec "cd $(POLYTOPEDIR); \
-	$(MAKE) $(POLYTOPEFLAGS) config; \
-	$(MAKE) $(POLYTOPEFLAGS); \
-	$(MAKE) $(POLYTOPEFLAGS) install"
+	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
+	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
 	@if ! test -e $(SPHERALDIR)/lib/libpolytope.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_2d.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_3d.a -a \
@@ -1462,6 +1461,6 @@ $(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE)
 	rm -f $(POLYTOPEBUILDDATE); \
 	exit 1; \
 	fi
-	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR)
+	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR) $(TETGENDIR)
 	touch $(POLYTOPEBUILDDATE)
 
