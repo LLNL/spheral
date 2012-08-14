@@ -291,7 +291,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 151463bc9dba
+POLYTOPEVER = 3b4692116f80
 POLYTOPEDIST = jjphatt-polytope-$(POLYTOPEVER).tar.bz2
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/get/$(POLYTOPEVER).tar.bz2
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
@@ -578,7 +578,7 @@ $(PYMPIBUILDDATE):  $(PYTHONBUILDDATE) $(WILDMAGICBUILDDATE) $(PYMPIDIST)
 	$(BZIP2) -dc $(PYMPIDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYMPIDIR); \
 	PATH=$(SPHERALDIR)/bin:$$PATH; export PATH; \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(MPICXX)' CXX='$(MPICXX)' LDFLAGS='$(LDFLAGS) $(LIBS) $(OPTFLAGS)' ./configure --prefix=$(SPHERALDIR); \
+	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(MPICXX)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' LDFLAGS='$(LDFLAGS) $(LIBS) $(OPTFLAGS)' ./configure --prefix=$(SPHERALDIR); \
 	$(MAKE) MAKEFLAGS= ; \
 	$(MAKE) install"
 	@if ! test -e $(PYMPIEXE); then \
@@ -603,7 +603,7 @@ $(PARMETISBUILDDATE):  $(PARMETISDIST) $(CMAKEEXE)
 	@$(MKDIR) $(SPHERALDIR)/lib $(SPHERALDIR)/include
 	rm -fr $(PARMETISDIR)
 	$(GZIP) -dc $(PARMETISDIST) | $(TAR) -xf -
-	env PATH="$(SPHERALDIR)/bin:$$PATH" CC="$(MPICC)" CXX="$(MPICXX)" $(MAKE) -C $(PARMETISDIR) config shared=1 prefix=$(SPHERALDIR)
+	env PATH="$(SPHERALDIR)/bin:$$PATH" CC="$(MPICC)" CXX="$(MPICXX)" CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(MAKE) -C $(PARMETISDIR) config shared=1 prefix=$(SPHERALDIR)
 	$(MAKE) MAKEFLAGS= -C $(PARMETISDIR) 
 	$(MAKE) MAKEFLAGS= -C $(PARMETISDIR) install
 	@if ! test -e $(SPHERALDIR)/lib/libparmetis.so -a \
@@ -1196,7 +1196,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC='$(MPICC)' CXX='$(MPICXX)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
@@ -1337,7 +1337,7 @@ $(HYPREBUILDDATE):	$(HYPREDIST)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
 	$(GZIP) -dc $(HYPREDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HYPREDIR)/src; \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAG='$(CFLAGS)' CXXFLAG='$(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) ;\
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) ;\
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libHYPRE.a -a \

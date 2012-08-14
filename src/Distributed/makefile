@@ -31,7 +31,7 @@ ARCH = $(SPHERALARCH)
 include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master
 
-EXTRAFLAGS += $(PARMETISINCS) -std=c++0x
+#EXTRAFLAGS += $(PARMETISINCS) -std=c++0x
 EXTRALIBS += $(PARMETISLIBS)
 
 #-------------------------------------------------------------------------------

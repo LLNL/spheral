@@ -50,6 +50,8 @@ AC_SUBST(LDPASSTHROUGH)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(F77FLAGS)
 AC_SUBST(CFLAGS)
+AC_SUBST(MPICCFLAGS)
+AC_SUBST(MPICXXFLAGS)
 AC_SUBST(DEPFLAG)
 
 AC_SUBST(PYTHONCFLAGS)
@@ -206,8 +208,12 @@ case $COMPILERS in
          CC=clang
          CXX=clang++
          F77=f77
-         MPICC='mpicc -cc=$(CC)'
-         MPICXX='mpicxx -cxx=$(CXX)'
+         MPICC=mpicc
+         MPICXX=mpicxx
+         MPICCFLAGS="-cc=clang"
+         MPICXXFLAGS="-cxx=clang++"
+         CMAKECC=clang
+         CMAKECXX=clang++
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX
          PYTHONCC=$CC

@@ -104,6 +104,8 @@ TAUFLAGS = @TAUFLAGS@
 DEPFLAG  =   @DEPFLAG@   
 CFLAGS   =   @CFLAGS@ $(INCS) $(TAUFLAGS)
 CXXFLAGS =   @CXXFLAGS@ $(INCS) $(TAUFLAGS)
+MPICCFLAGS = @MPICCFLAGS@
+MPICXXFLAGS = @MPICXXFLAGS@
 F77FLAGS =   @F77FLAGS@
 DYNLIBFLAG = @DYNLIBFLAG@
 SHAREDFLAG = @SHAREDFLAG@
@@ -188,19 +190,19 @@ force_build:
 # 	chmod 644 $(LIBDIR)/$*.py
 
 %.exe: %.cc force_build
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS)  $(PKGLIBS) $(LDFLAGS) $< -o $*.exe
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS)  $(PKGLIBS) $(LDFLAGS) $< -o $*.exe
 
 %Methods.o: %Methods.pw
 	@mkdir -p .MethodsSource
 	@rm -f .MethodsSource/$*Methods.cc
 	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$*Methods.cc
-	$(MPICXX) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$*Methods.cc -o $*Methods.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$*Methods.cc -o $*Methods.o
 
 %Wrap.o: %Wrap.cc
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 %.o: %.f
 	$(F77) $(F77FLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
@@ -213,7 +215,7 @@ force_build:
 
 # %.o: %.py
 # 	$(PYTHONEXE) $< $(PYTHONPKGS) .$*.C
-# 	$(MPICXX) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$*.C -o $*.o
+# 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$*.C -o $*.o
 # 	@rm -f .$*.C
 
 #%.cpp:	%.pyste
@@ -226,7 +228,7 @@ force_build:
 #%.o:	%.pyste
 #	@rm -fr .$(PKGNAME)
 #	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS)
-#	$(MPICXX) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/_$*.cpp -o $*.o
+#	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/_$*.cpp -o $*.o
 
 #.$(PKGNAME)/%.cpp:  %.pyste
 #	$(SHELL) -ec 'if ! test -a $(LASTPYSTEMAKE); then \
@@ -236,13 +238,13 @@ force_build:
 #	mv .$(PKGNAME)/_$*.cpp .$(PKGNAME)/$*.cpp
 
 %.o:	.$(PKGNAME)/%.cpp
-	$(MPICXX) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/$*.cpp -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/$*.cpp -o $*.o
 
 %.o:	%.cpp
-	$(MPICXX) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
 
 %.o:	%.C
-	$(MPICXX) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
 
 # Machine dependent rules for generating dependency files.
 include $(SRCTOP)/helpers/@DEPENDRULES@
@@ -282,7 +284,7 @@ $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -291,7 +293,7 @@ $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(THIRDPARTYLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(THIRDPARTYLIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(THIRDPARTYLIBTARGET) $(THIRDPARTYLIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -318,7 +320,7 @@ $(MODTARGET): $(BPLOBJS) $(OBJS) $(PYSTEDATE)
 	@echo "# Building module $(MODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(MODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -327,7 +329,7 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	@echo "# Building module $(BPLMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(BPLMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -348,8 +350,8 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MPICXX) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
