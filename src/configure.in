@@ -96,11 +96,6 @@ SETUP_MHD
 SETUP_FRACTALGRAVITY
 
 # -------------------------------------------------
-# setup Strength stuff (m4macros/strength.m4)
-# -------------------------------------------------
-SETUP_STRENGTH
-
-# -------------------------------------------------
 # setup timers (m4macros/timers.m4
 # -------------------------------------------------
 SETUP_TAU
