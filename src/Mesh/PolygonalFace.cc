@@ -35,8 +35,8 @@ Face(const Mesh<Dim<2> >& mesh,
   mNodeIDs.push_back(mMeshPtr->mEdges[mEdgeIDs[0]].node1ID());
   mNodeIDs.push_back(mMeshPtr->mEdges[mEdgeIDs[0]].node2ID());
   REQUIRE(mNodeIDs.size() == 2);
-  REQUIRE(mNodeIDs[0] < mMeshPtr->mNodes.size() and 
-          mNodeIDs[1] < mMeshPtr->mNodes.size());
+  REQUIRE(mNodeIDs[0] < mMeshPtr->mNodePositions.size() and 
+          mNodeIDs[1] < mMeshPtr->mNodePositions.size());
 }
 
 //------------------------------------------------------------------------------
