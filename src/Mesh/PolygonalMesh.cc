@@ -105,7 +105,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   // Simultaneously build up the node->zone connectivity.
   const unsigned numEdges = tessellation.faces.size();
   unsigned inode, jnode;
-  vector<set<unsigned> > nodeZones;
+  map<unsigned, set<unsigned> > nodeZones;
   for (i = 0; i != numEdges; ++i) {
     CHECK(tessellation.faces[i].size() == 2);
     CHECK(tessellation.faceCells[i].size() == 1 or

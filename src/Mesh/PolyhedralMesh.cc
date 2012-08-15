@@ -112,7 +112,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   EdgeHash ehash;
   map<EdgeHash, unsigned> edgeHash2ID;
   map<EdgeHash, unsigned>::iterator emapItr;
-  vector<set<unsigned> > nodeZones;
+  map<unsigned, set<unsigned> > nodeZones;
   for (i = 0; i != numFaces; ++i) {
     n = tessellation.faces[i].size();
     CHECK(n >= 3);

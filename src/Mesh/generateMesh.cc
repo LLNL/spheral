@@ -122,15 +122,15 @@ generateMesh(const NodeListIterator nodeListBegin,
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to remove boundary elements." << endl;
 
-  // If requested we also compute the parallel connectivity.
-  // if (Process::getRank() == 0) cerr << "Computing parallel connectivity" << endl;
-  if (generateParallelConnectivity) {
-    t0 = Timing::currentTime();
-    mesh.generateDomainInfo();
-    if (Process::getRank() == 0) cerr << "generateMesh:: required " 
-                                      << Timing::difference(t0, Timing::currentTime())
-                                      << " seconds to generate parallel connectivity." << endl;
-  }
+  // // If requested we also compute the parallel connectivity.
+  // // if (Process::getRank() == 0) cerr << "Computing parallel connectivity" << endl;
+  // if (generateParallelConnectivity) {
+  //   t0 = Timing::currentTime();
+  //   mesh.generateDomainInfo();
+  //   if (Process::getRank() == 0) cerr << "generateMesh:: required " 
+  //                                     << Timing::difference(t0, Timing::currentTime())
+  //                                     << " seconds to generate parallel connectivity." << endl;
+  // }
 
   // Fill in the offset information.
   mesh.storeNodeListOffsets(nodeListBegin, nodeListEnd, offsets);
