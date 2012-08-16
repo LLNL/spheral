@@ -608,7 +608,7 @@ def readField2String(materialName,
                     found = True
                     break
         if not found:
-            raise "Unable to find %s %s" % (materialName, fieldName)
+            raise ValueError, "Unable to find %s %s" % (materialName, fieldName)
 
     result = mpi.bcast(result, 0)
     return result
