@@ -108,12 +108,3 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class LongitudinalSoundSpeedPolicy<Dim<1> >;
-  template class LongitudinalSoundSpeedPolicy<Dim<2> >;
-  template class LongitudinalSoundSpeedPolicy<Dim<3> >;
-}

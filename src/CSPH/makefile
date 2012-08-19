@@ -5,9 +5,9 @@ PKGNAME = CSPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	computeCSPHSumMassDensity.cc \
-	computeCSPHCorrections.cc \
-	CSPHHydroBase.cc
+	computeCSPHSumMassDensityInst.cc \
+	computeCSPHCorrectionsInst.cc \
+	CSPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
 	CSPHHydros.py

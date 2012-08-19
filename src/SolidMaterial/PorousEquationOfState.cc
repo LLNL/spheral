@@ -203,13 +203,3 @@ alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  namespace SolidMaterial {
-    template class PorousEquationOfState<Dim<1> >;
-    template class PorousEquationOfState<Dim<2> >;
-    template class PorousEquationOfState<Dim<3> >;
-  }
-}

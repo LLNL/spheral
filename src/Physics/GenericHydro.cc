@@ -265,13 +265,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explict instantiation.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  namespace PhysicsSpace {
-    template class GenericHydro< Dim<1> >;
-    template class GenericHydro< Dim<2> >;
-    template class GenericHydro< Dim<3> >;
-  }
-}

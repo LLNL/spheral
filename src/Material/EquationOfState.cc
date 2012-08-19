@@ -28,12 +28,5 @@ template<typename Dimension>
 EquationOfState<Dimension>::~EquationOfState() {
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-template class EquationOfState< Dim<1> >;
-template class EquationOfState< Dim<2> >;
-template class EquationOfState< Dim<3> >;
-
 }
 }

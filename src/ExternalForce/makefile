@@ -5,10 +5,10 @@ PKGNAME = ExternalForce
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	PointPotential.cc \
-	NFWPotential.cc \
-	ConstantAcceleration.cc \
-	LinearAcceleration.cc
+	PointPotentialInst.cc \
+	NFWPotentialInst.cc \
+	ConstantAccelerationInst.cc \
+	LinearAccelerationInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

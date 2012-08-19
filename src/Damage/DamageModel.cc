@@ -456,12 +456,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 }
 
-//------------------------------------------------------------------------------
-// Instantiations.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class PhysicsSpace::DamageModel<Dim<1> >;
-  template class PhysicsSpace::DamageModel<Dim<2> >;
-  template class PhysicsSpace::DamageModel<Dim<3> >;
-}

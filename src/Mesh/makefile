@@ -5,9 +5,8 @@ PKGNAME = Mesh
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	Cell.cc \
 	MeshConstructionUtilities.cc \
-	findMatchingVertex.cc \
+	findMatchingVertexInst.cc \
 	LineMesh.cc \
 	LineEdge.cc \
 	LineFace.cc \
@@ -20,9 +19,9 @@ SRCTARGETS = \
 	PolyhedralEdge.cc \
 	PolyhedralFace.cc \
 	PolyhedralZone.cc \
-	computeGenerators.cc \
-	generateMesh.cc \
-	MeshPolicy.cc
+	computeGeneratorsInst.cc \
+	generateMeshInst.cc \
+	MeshPolicyInst.cc
 
 PYTHONTARGETS = \
 	generateMesh.py \

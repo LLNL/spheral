@@ -405,16 +405,3 @@ RigidBoundary<Dimension>::valid() const {
 
 }
 }
-
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-
-namespace Spheral {
-namespace BoundarySpace {
-template class RigidBoundary< Dim<1> >;
-template class RigidBoundary< Dim<2> >;
-template class RigidBoundary< Dim<3> >;
-}
-}

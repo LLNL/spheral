@@ -5,9 +5,9 @@ PKGNAME = Physics
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	Physics.cc \
-	GenericHydro.cc \
-	GenericBodyForce.cc
+	PhysicsInst.cc \
+	GenericHydroInst.cc \
+	GenericBodyForceInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

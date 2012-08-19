@@ -14,7 +14,6 @@
 #include <algorithm>
 
 #include "NBodyGravity.hh"
-#include "Geometry/Dimension.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
@@ -240,19 +239,5 @@ softeningLength(const double x) {
 
 //------------------------------------------------------------------------------
 } // end namespace GravitySpace
-} // end namespace Spheral
-
-//------------------------------------------------------------------------------
-// Explict instantiations.
-//------------------------------------------------------------------------------
-
-namespace Spheral {
-  namespace GravitySpace {
-
-    template class NBodyGravity<Dim<1> >;
-    template class NBodyGravity<Dim<2> >;
-    template class NBodyGravity<Dim<3> >;
-
-  } // end namespace GravitySpace
 } // end namespace Spheral
 

@@ -5,11 +5,11 @@ PKGNAME = SPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	computeSPHSumMassDensity.cc \
-	computeSPHOmegaGradhCorrection.cc \
-	computeSumVoronoiCellMassDensity.cc \
+	computeSPHSumMassDensityInst.cc \
+	computeSPHOmegaGradhCorrectionInst.cc \
+	computeSumVoronoiCellMassDensityInst.cc \
 	computeHydrostaticEquilibriumPressure.cc \
-	SPHHydroBase.cc
+	SPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
 	SPHHydros.py \

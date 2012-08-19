@@ -273,13 +273,3 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explict instantiation.
-//------------------------------------------------------------------------------
-namespace Spheral {
-namespace PhysicsSpace {
-template class SecondMomentHourglassControl< Dim<1> >;
-template class SecondMomentHourglassControl< Dim<2> >;
-// template class SecondMomentHourglassControl< Dim<3> >;
-}
-}

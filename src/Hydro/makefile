@@ -6,16 +6,16 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	HydroFieldNames.cc \
-	PressurePolicy.cc \
-	SoundSpeedPolicy.cc \
-	SpecificThermalEnergyPolicy.cc \
-	PositionPolicy.cc \
-	VolumePolicy.cc \
-	VoronoiMassDensityPolicy.cc \
-	SumVoronoiMassDensityPolicy.cc \
-	SecondMomentHourglassControl.cc \
-	ThirdMomentHourglassControl.cc \
-	VoronoiHourglassControl.cc
+	PressurePolicyInst.cc \
+	SoundSpeedPolicyInst.cc \
+	SpecificThermalEnergyPolicyInst.cc \
+	PositionPolicyInst.cc \
+	VolumePolicyInst.cc \
+	VoronoiMassDensityPolicyInst.cc \
+	SumVoronoiMassDensityPolicyInst.cc \
+	SecondMomentHourglassControlInst.cc \
+	ThirdMomentHourglassControlInst.cc \
+	VoronoiHourglassControlInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
@@ -43,4 +43,4 @@ include $(SPHERALTOP)/helpers/makefile_master
 #	Integrator
 #PKGLIBS := $(patsubst %, -l%, $(CXXPKGS))
 #TestSod:
-#	$(CXX) $(PURIFY) $(CXXFLAGS) $(EXTRAFLAGS) -Bstatic -o tests/TestSod tests/TestSod.cc -L$(SRCTOP)/lib $(PKGLIBS) $(PKGLIBS) $(PKGLIBS) -lm
+#	$(CXX) $(PURIFY) $(CXXFLAGS) $(EXTRAFLAGS) -Bstatic -o tests/TestSod tests/TestSodInst.cc -L$(SRCTOP)/lib $(PKGLIBS) $(PKGLIBS) $(PKGLIBS) -lm

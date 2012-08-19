@@ -12,12 +12,12 @@ SRCTARGETS = \
 	PiGaussianKernel.cc \
 	HatKernel.cc \
 	SincKernel.cc \
-	NSincPolynomialKernel.cc \
-	NBSplineKernel.cc \
+	NSincPolynomialKernelInst.cc \
+	NBSplineKernelInst.cc \
 	QuarticSplineKernel.cc \
 	QuinticSplineKernel.cc \
-	TableKernel.cc \
-	VolumeIntegrationFunctions.cc
+	TableKernelInst.cc \
+	VolumeIntegrationFunctionsInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

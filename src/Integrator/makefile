@@ -5,12 +5,12 @@ PKGNAME = Integrator
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	Integrator.cc \
-	PredictorCorrector.cc \
-	SynchronousRK1.cc \
-	SynchronousRK2.cc \
-	SynchronousRK4.cc \
-	CheapSynchronousRK2.cc \
+	IntegratorInst.cc \
+	PredictorCorrectorInst.cc \
+	SynchronousRK1Inst.cc \
+	SynchronousRK2Inst.cc \
+	SynchronousRK4Inst.cc \
+	CheapSynchronousRK2Inst.cc \
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

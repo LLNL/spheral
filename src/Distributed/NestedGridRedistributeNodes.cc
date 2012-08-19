@@ -881,15 +881,3 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace PartitionSpace {
-template class NestedGridRedistributeNodes< Dim<1> >;
-template class NestedGridRedistributeNodes< Dim<2> >;
-template class NestedGridRedistributeNodes< Dim<3> >;
-}
-}
-

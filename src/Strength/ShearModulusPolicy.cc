@@ -131,13 +131,3 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class ShearModulusPolicy<Dim<1> >;
-  template class ShearModulusPolicy<Dim<2> >;
-  template class ShearModulusPolicy<Dim<3> >;
-}
-

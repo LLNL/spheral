@@ -913,15 +913,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 }
 
-//------------------------------------------------------------------------------
-// Explict instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-
-namespace Spheral {
-  namespace CSPHSpace {
-    template class CSPHHydroBase< Dim<1> >;
-    template class CSPHHydroBase< Dim<2> >;
-    template class CSPHHydroBase< Dim<3> >;
-  }
-}

@@ -643,14 +643,3 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace BoundarySpace {
-template class NestedGridDistributedBoundary< Dim<1> >;
-template class NestedGridDistributedBoundary< Dim<2> >;
-template class NestedGridDistributedBoundary< Dim<3> >;
-}
-}

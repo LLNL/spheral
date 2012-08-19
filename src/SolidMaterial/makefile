@@ -5,14 +5,14 @@ PKGNAME = SolidMaterial
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	LinearPolynomialEquationOfState.cc \
-	GruneisenEquationOfState.cc \
-	MurnahanEquationOfState.cc \
-	TillotsonEquationOfState.cc \
-	SteinbergGuinanStrength.cc \
-	SteinbergGuinanLundStrength.cc \
-	PorousEquationOfState.cc \
-	StrainPorosity.cc
+	LinearPolynomialEquationOfStateInst.cc \
+	GruneisenEquationOfStateInst.cc \
+	MurnahanEquationOfStateInst.cc \
+	TillotsonEquationOfStateInst.cc \
+	SteinbergGuinanStrengthInst.cc \
+	SteinbergGuinanLundStrengthInst.cc \
+	PorousEquationOfStateInst.cc \
+	StrainPorosityInst.cc
 
 SPHERALTOP = ../../../spheral/src
 SOLIDTOP = ..

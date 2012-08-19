@@ -186,13 +186,3 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  namespace SolidMaterial {
-    template class SolidNodeList< Dim<1> >;
-    template class SolidNodeList< Dim<2> >;
-    template class SolidNodeList< Dim<3> >;
-  }
-}

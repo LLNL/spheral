@@ -5,15 +5,15 @@ PKGNAME = Damage
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	DamageModel.cc \
-	TensorDamageModel.cc \
-	StrainPolicy.cc \
-	TensorStrainPolicy.cc \
-	TensorDamagePolicy.cc \
-	YoungsModulusPolicy.cc \
-	LongitudinalSoundSpeedPolicy.cc \
-	weibullFlawDistribution.cc \
-	computeFragmentField.cc
+	DamageModelInst.cc \
+	TensorDamageModelInst.cc \
+	StrainPolicyInst.cc \
+	TensorStrainPolicyInst.cc \
+	TensorDamagePolicyInst.cc \
+	YoungsModulusPolicyInst.cc \
+	LongitudinalSoundSpeedPolicyInst.cc \
+	weibullFlawDistributionInst.cc \
+	computeFragmentFieldInst.cc
 
 PYTHONTARGETS = \
 	identifyFragments.py \

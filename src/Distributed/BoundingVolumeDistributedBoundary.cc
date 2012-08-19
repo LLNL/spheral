@@ -260,14 +260,3 @@ packNodeListBuffers(const DataBase<Dimension>& dataBase,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace BoundarySpace {
-template class BoundingVolumeDistributedBoundary< Dim<1> >;
-template class BoundingVolumeDistributedBoundary< Dim<2> >;
-template class BoundingVolumeDistributedBoundary< Dim<3> >;
-}
-}
