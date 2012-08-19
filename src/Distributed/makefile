@@ -5,20 +5,20 @@ PKGNAME = Distributed
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	DistributedBoundary.cc \
-	NestedGridDistributedBoundary.cc \
-	BoundingVolumeDistributedBoundary.cc \
-	RedistributeNodes.cc \
-	DistributeByXPosition.cc \
-	NestedGridRedistributeNodes.cc \
-	SortAndDivideRedistributeNodes.cc \
+	DistributedBoundaryInst.cc \
+	NestedGridDistributedBoundaryInst.cc \
+	BoundingVolumeDistributedBoundaryInst.cc \
+	RedistributeNodesInst.cc \
+	DistributeByXPositionInst.cc \
+	NestedGridRedistributeNodesInst.cc \
+	SortAndDivideRedistributeNodesInst.cc \
 	SortAndDivideRedistributeNodes1d.cc \
 	SortAndDivideRedistributeNodes2d.cc \
 	SortAndDivideRedistributeNodes3d.cc \
-	SpaceFillingCurveRedistributeNodes.cc \
-	MortonOrderRedistributeNodes.cc \
-	PeanoHilbertOrderRedistributeNodes.cc \
-	VoronoiRedistributeNodes.cc \
+	SpaceFillingCurveRedistributeNodesInst.cc \
+	MortonOrderRedistributeNodesInst.cc \
+	PeanoHilbertOrderRedistributeNodesInst.cc \
+	VoronoiRedistributeNodesInst.cc \
 	waitAllWithDeadlockDetection.cc \
 	$(PARMETISTARGET)
 
