@@ -7,25 +7,25 @@ LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	DBC.cc \
 	Process.cc \
-	iterateIdealH.cc \
+	iterateIdealHInst.cc \
 	KeyTraits.cc \
-	mortonOrderIndicies.cc \
-	peanoHilbertOrderIndicies.cc \
+	mortonOrderIndiciesInst.cc \
+	peanoHilbertOrderIndiciesInst.cc \
 	PeanoHilbertTransform.cc \
-	nodeOrdering.cc \
+	nodeOrderingInst.cc \
 	RegisterMPIDataTypes.cc \
 	RedistributionRegistrar.cc \
-	spheralWildMagicConverters.cc \
-	orientedBoundingBox.cc \
-	nodeBoundingBoxes.cc \
-	boundingBox.cc \
-	globalBoundingVolumes.cc \
+	spheralWildMagicConvertersInst.cc \
+	orientedBoundingBoxInst.cc \
+	nodeBoundingBoxesInst.cc \
+	boundingBoxInst.cc \
+	globalBoundingVolumesInst.cc \
 	lineSegmentIntersections.cc \
 	pointDistances.cc \
-	integrateThroughMeshAlongSegment.cc \
-	numberDensity.cc \
-	medianPosition.cc \
-	coarsenBinnedValues.cc \
+	integrateThroughMeshAlongSegmentInst.cc \
+	numberDensityInst.cc \
+	medianPositionInst.cc \
+	coarsenBinnedValuesInst.cc \
 	segmentIntersectEdges.cc \
 	pointOnPolygon.cc \
 	pointInPolygon.cc \

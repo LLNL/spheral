@@ -135,12 +135,3 @@ initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class CoarseNodeIterator< Dim<1> >;
-  template class CoarseNodeIterator< Dim<2> >;
-  template class CoarseNodeIterator< Dim<3> >;
-}

@@ -480,15 +480,3 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
 }
 }
-
-//------------------------------------------------------------------------------
-// Explict instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace ArtificialViscositySpace {
-template class ArtificialViscosity< Dim<1> >;
-template class ArtificialViscosity< Dim<2> >;
-template class ArtificialViscosity< Dim<3> >;
-}
-}

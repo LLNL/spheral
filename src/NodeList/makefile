@@ -5,15 +5,15 @@ PKGNAME = NodeList
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	NodeListRegistrar.cc \
-	NodeList.cc \
-	FluidNodeList.cc \
-	SmoothingScaleBase.cc \
-	FixedSmoothingScale.cc \
-	SPHSmoothingScale.cc \
-	ASPHSmoothingScale.cc \
-	nthNodalMoment.cc \
-	generateVoidNodes.cc
+	NodeListRegistrarInst.cc \
+	NodeListInst.cc \
+	FluidNodeListInst.cc \
+	SmoothingScaleBaseInst.cc \
+	FixedSmoothingScaleInst.cc \
+	SPHSmoothingScaleInst.cc \
+	ASPHSmoothingScaleInst.cc \
+	nthNodalMomentInst.cc \
+	generateVoidNodesInst.cc
 
 PYTHONTARGETS = \
 	FluidNodeLists.py \

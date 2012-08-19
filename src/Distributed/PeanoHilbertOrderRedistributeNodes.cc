@@ -55,17 +55,3 @@ computeHashedIndicies(const DataBase<Dimension>& dataBase) const {
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace PartitionSpace {
-
-template class PeanoHilbertOrderRedistributeNodes< Dim<1> >;
-template class PeanoHilbertOrderRedistributeNodes< Dim<2> >;
-template class PeanoHilbertOrderRedistributeNodes< Dim<3> >;
-
-}
-}
-

@@ -1110,14 +1110,3 @@ symmetricConnectivity(const map<int, vector<pair<int, double> > >& neighbors) co
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace PartitionSpace {
-template class ParmetisRedistributeNodes< Dim<2> >;
-template class ParmetisRedistributeNodes< Dim<3> >;
-}
-}
-

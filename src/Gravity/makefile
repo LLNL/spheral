@@ -5,7 +5,7 @@ PKGNAME = Gravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	NBodyGravity.cc \
+	NBodyGravityInst.cc \
 	OctTreeGravity.cc
 #	SPHGravity.cc
 

@@ -260,11 +260,3 @@ policyKeys() const {
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instation.
-//------------------------------------------------------------------------------
-namespace Spheral {
-  template class State<Dim<1> >;
-  template class State<Dim<2> >;
-  template class State<Dim<3> >;
-}

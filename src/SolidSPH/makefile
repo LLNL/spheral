@@ -5,7 +5,7 @@ PKGNAME = SolidSPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	SolidSPHHydroBase.cc
+	SolidSPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
 	SolidSPHHydros.py

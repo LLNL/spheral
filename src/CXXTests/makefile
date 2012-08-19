@@ -5,7 +5,7 @@ PKGNAME = CXXTests
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	testNodeIterators.cc
+	testNodeIteratorsInst.cc
 SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
 

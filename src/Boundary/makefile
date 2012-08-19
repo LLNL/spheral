@@ -5,17 +5,17 @@ PKGNAME = Boundary
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	Boundary.cc \
-	PlanarBoundary.cc \
-	ReflectingBoundary.cc \
-	RigidBoundary.cc \
-	PeriodicBoundary.cc \
-	ConstantVelocityBoundary.cc \
-	ConstantXVelocityBoundary.cc \
-	ConstantYVelocityBoundary.cc \
-	ConstantZVelocityBoundary.cc \
-	ConstantRVelocityBoundary.cc \
-	ConstantBoundary.cc \
+	BoundaryInst.cc \
+	PlanarBoundaryInst.cc \
+	ReflectingBoundaryInst.cc \
+	RigidBoundaryInst.cc \
+	PeriodicBoundaryInst.cc \
+	ConstantVelocityBoundaryInst.cc \
+	ConstantXVelocityBoundaryInst.cc \
+	ConstantYVelocityBoundaryInst.cc \
+	ConstantZVelocityBoundaryInst.cc \
+	ConstantRVelocityBoundaryInst.cc \
+	ConstantBoundaryInst.cc \
 	SphericalBoundary.cc \
 	CylindricalBoundary.cc \
 	AxialSymmetryBoundary.cc

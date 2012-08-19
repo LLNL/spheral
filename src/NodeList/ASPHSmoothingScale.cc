@@ -457,13 +457,6 @@ newSmoothingScale(const SymTensor& H,
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-template class ASPHSmoothingScale<Dim<1> >;
-template class ASPHSmoothingScale<Dim<2> >;
-template class ASPHSmoothingScale<Dim<3> >;
-
 }
 }
 

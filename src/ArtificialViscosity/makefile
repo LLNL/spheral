@@ -5,9 +5,9 @@ PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	ArtificialViscosity.cc \
-	MonaghanGingoldViscosity.cc \
-	TMGViscosity.cc \
+	ArtificialViscosityInst.cc \
+	MonaghanGingoldViscosityInst.cc \
+	TensorMonaghanGingoldViscosityInst.cc \
 #	MonaghanGingoldViscosityRZ.cc \
 #	GradPressureViscosity.cc \
 #	ArtificialViscosityList.cc \

@@ -5,13 +5,13 @@ PKGNAME = Field
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	NodeIteratorBase.cc \
-	AllNodeIterator.cc \
-	InternalNodeIterator.cc \
-	GhostNodeIterator.cc \
-	MasterNodeIterator.cc \
-	CoarseNodeIterator.cc \
-	RefineNodeIterator.cc
+	NodeIteratorBaseInst.cc \
+	AllNodeIteratorInst.cc \
+	InternalNodeIteratorInst.cc \
+	GhostNodeIteratorInst.cc \
+	MasterNodeIteratorInst.cc \
+	CoarseNodeIteratorInst.cc \
+	RefineNodeIteratorInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

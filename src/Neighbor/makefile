@@ -5,12 +5,12 @@ PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	GridCellIndex.cc \
-	GridCellPlane.cc \
-	Neighbor.cc \
-	NestedGridNeighbor.cc \
-	TreeNeighbor.cc \
-	ConnectivityMap.cc
+	GridCellIndexInst.cc \
+	GridCellPlaneInst.cc \
+	NeighborInst.cc \
+	NestedGridNeighborInst.cc \
+	TreeNeighborInst.cc \
+	ConnectivityMapInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

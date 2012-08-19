@@ -5,7 +5,7 @@ PKGNAME = SPHGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	SPHGravity.cc 
+	SPHGravityInst.cc 
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

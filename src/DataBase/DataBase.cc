@@ -1431,14 +1431,3 @@ int DataBase<Dimension>::nDim = Dimension::nDim;
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  namespace DataBaseSpace {
-    template class DataBase< Dim<1> >;
-    template class DataBase< Dim<2> >;
-    template class DataBase< Dim<3> >;
-  }
-}

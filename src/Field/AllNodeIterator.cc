@@ -67,12 +67,3 @@ AllNodeIterator<Dimension>::
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class AllNodeIterator< Dim<1> >;
-  template class AllNodeIterator< Dim<2> >;
-  template class AllNodeIterator< Dim<3> >;
-}

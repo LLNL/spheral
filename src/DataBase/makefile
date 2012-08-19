@@ -5,15 +5,15 @@ PKGNAME = DataBase
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	StateBase.cc \
-	State.cc \
-	StateDerivatives.cc \
-	DataBase.cc \
-	IncrementState.cc \
-	IncrementBoundedState.cc \
-	ReplaceState.cc \
-	ReplaceBoundedState.cc \
-	CopyState.cc
+	StateBaseInst.cc \
+	StateInst.cc \
+	StateDerivativesInst.cc \
+	DataBaseInst.cc \
+	IncrementStateInst.cc \
+	IncrementBoundedStateInst.cc \
+	ReplaceStateInst.cc \
+	ReplaceBoundedStateInst.cc \
+	CopyStateInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

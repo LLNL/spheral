@@ -693,13 +693,6 @@ restoreState(const FileIO& file, const string& pathName) {
 //     (*fieldItr)->notifyNewRefineNodes();
 //   }
 // }
-
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-template class NodeList< Dim<1> >;
-template class NodeList< Dim<2> >;
-template class NodeList< Dim<3> >;
 }
 }
 

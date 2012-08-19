@@ -6,13 +6,13 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	SolidFieldNames.cc \
-	SolidNodeList.cc \
-	DeviatoricStressPolicy.cc \
-	PlasticStrainPolicy.cc \
-	BulkModulusPolicy.cc \
-	ShearModulusPolicy.cc \
-	YieldStrengthPolicy.cc \
-	StrengthSoundSpeedPolicy.cc
+	SolidNodeListInst.cc \
+	DeviatoricStressPolicyInst.cc \
+	PlasticStrainPolicyInst.cc \
+	BulkModulusPolicyInst.cc \
+	ShearModulusPolicyInst.cc \
+	YieldStrengthPolicyInst.cc \
+	StrengthSoundSpeedPolicyInst.cc
 
 PYTHONTARGETS = \
 	SolidNodeLists.py

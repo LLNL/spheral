@@ -117,12 +117,5 @@ initializeKernel() {
   this->setVolumeNormalization(1.0/volumeIntegral);
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-template class NBSplineKernel< Dim<1> >;
-template class NBSplineKernel< Dim<2> >;
-template class NBSplineKernel< Dim<3> >;
-
 }
 }

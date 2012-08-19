@@ -135,15 +135,3 @@ dt(const DataBase<Dimension>& dataBase,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-
-namespace Spheral {
-namespace PhysicsSpace {
-template class PointPotential< Dim<1> >;
-template class PointPotential< Dim<2> >;
-template class PointPotential< Dim<3> >;
-}
-}

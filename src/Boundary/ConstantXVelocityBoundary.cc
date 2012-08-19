@@ -69,16 +69,3 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 
 }
 }
-
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-
-namespace Spheral {
-namespace BoundarySpace {
-template class ConstantXVelocityBoundary< Dim<1> >;
-template class ConstantXVelocityBoundary< Dim<2> >;
-template class ConstantXVelocityBoundary< Dim<3> >;
-}
-}

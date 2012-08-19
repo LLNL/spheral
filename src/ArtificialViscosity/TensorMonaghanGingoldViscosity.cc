@@ -151,14 +151,3 @@ Piij(const unsigned nodeListi, const unsigned i,
 }
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  namespace ArtificialViscositySpace {
-    template class TensorMonaghanGingoldViscosity< Dim<1> >;
-    template class TensorMonaghanGingoldViscosity< Dim<2> >;
-    template class TensorMonaghanGingoldViscosity< Dim<3> >;
-  }
-}

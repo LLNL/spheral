@@ -116,12 +116,3 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
 }
 
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-  template class Spheral::StrainPolicy<Dim<1> >;
-  template class Spheral::StrainPolicy<Dim<2> >;
-  template class Spheral::StrainPolicy<Dim<3> >;
-}
