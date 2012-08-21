@@ -24,7 +24,7 @@ namespace Spheral {
 namespace Spheral {
 namespace SolidMaterial {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class LinearPolynomialEquationOfState: public SolidEquationOfState<Dimension> {
 
 public:
@@ -46,6 +46,7 @@ public:
                                   const double b1,
                                   const double b2,
                                   const double atomicWeight,
+                                  const Material::PhysicalConstants& constants,
                                   const double externalPressure = 0.0,
                                   const double minimumPressure = -std::numeric_limits<double>::max(),
                                   const double maximumPressure = std::numeric_limits<double>::max());
@@ -158,7 +159,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    template<typename Dimension, typename Constants> class LinearPolynomialEquationOfState;
+    template<typename Dimension> class LinearPolynomialEquationOfState;
   }
 }
 

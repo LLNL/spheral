@@ -2,6 +2,16 @@ namespace Spheral {
 namespace Material {
 
 //------------------------------------------------------------------------------
+// Units.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const PhysicalConstants&
+EquationOfState<Dimension>::constants() const {
+  return mConstants;
+}
+
+//------------------------------------------------------------------------------
 // Min pressure.
 //------------------------------------------------------------------------------
 template<typename Dimension>

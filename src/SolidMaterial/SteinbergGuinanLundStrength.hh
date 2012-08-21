@@ -17,8 +17,8 @@
 namespace Spheral {
 namespace SolidMaterial {
 
-template<typename Dimension, typename Constants>
-class SteinbergGuinanLundStrength: public SteinbergGuinanStrength<Dimension, Constants> {
+template<typename Dimension>
+class SteinbergGuinanLundStrength: public SteinbergGuinanStrength<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -77,7 +77,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    template<typename Dimension, typename Constants> class SteinbergGuinanLundStrength;
+    template<typename Dimension> class SteinbergGuinanLundStrength;
   }
 }
 

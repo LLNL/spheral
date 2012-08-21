@@ -23,27 +23,29 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-MurnahanEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+MurnahanEquationOfState<Dimension>::
 MurnahanEquationOfState(const double referenceDensity,
                         const double etamin,
                         const double etamax,
                         const double n,
                         const double K,
                         const double atomicWeight,
+                        const Material::PhysicalConstants& constants,
                         const double externalPressure,
                         const double minimumPressure,
                         const double maximumPressure):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
+                                  constants,
                                   minimumPressure,
                                   maximumPressure),
   mn(n),
   mK(K),
   mAtomicWeight(atomicWeight),
   mExternalPressure(externalPressure),
-  mCv(3.0 * referenceDensity * Constants::MolarGasConstant / atomicWeight),
+  mCv(3.0 * referenceDensity * constants.molarGasConstant() / atomicWeight),
   mnKi(1.0/(n*K)) {
   REQUIRE(distinctlyGreaterThan(n, 0.0));
   REQUIRE(distinctlyGreaterThan(K, 0.0));
@@ -54,17 +56,17 @@ MurnahanEquationOfState(const double referenceDensity,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-MurnahanEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+MurnahanEquationOfState<Dimension>::
 ~MurnahanEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -77,9 +79,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -92,9 +94,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -107,9 +109,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
@@ -120,9 +122,9 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -135,9 +137,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -148,9 +150,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 //------------------------------------------------------------------------------
 // Set the bulk modulus (rho DP/Drho).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -163,9 +165,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -181,9 +183,9 @@ pressure(const Scalar massDensity,
 // This is a *hokey* definition -- have to do better if we ever really care
 // about the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -193,9 +195,9 @@ temperature(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   REQUIRE(valid());
@@ -205,9 +207,9 @@ specificThermalEnergy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   REQUIRE(valid());
@@ -217,9 +219,9 @@ specificHeat(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -231,9 +233,9 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   throw SpheralError("MurnahanEquationOfState::gamma UNIMPLEMENTED.");
@@ -243,9 +245,9 @@ gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate the individual bulk modulus.  
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -255,9 +257,9 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Compute (\partial P)/(\partial rho).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -272,9 +274,9 @@ computeDPDrho(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-MurnahanEquationOfState<Dimension, Constants>::valid() const {
+MurnahanEquationOfState<Dimension>::valid() const {
   return (SolidEquationOfState<Dimension>::valid() && 
           mn > 0.0 &&
           mK > 0.0 &&

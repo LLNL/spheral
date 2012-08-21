@@ -26,6 +26,7 @@ PorousEquationOfState(const SolidEquationOfState<Dimension>& solidEOS):
   SolidEquationOfState<Dimension>(solidEOS.referenceDensity(),
                                   solidEOS.etamin(),
                                   solidEOS.etamax(),
+                                  solidEOS.constants(),
                                   solidEOS.minimumPressure(),
                                   solidEOS.maximumPressure()),
   mSolidEOS(solidEOS),

@@ -27,8 +27,8 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Construct with the given coefficients.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-LinearPolynomialEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+LinearPolynomialEquationOfState<Dimension>::
 LinearPolynomialEquationOfState(const double referenceDensity,
                                 const double etamin,
                                 const double etamax,
@@ -40,12 +40,14 @@ LinearPolynomialEquationOfState(const double referenceDensity,
                                 const double b1,
                                 const double b2,
                                 const double atomicWeight,
+                                const Material::PhysicalConstants& constants,
                                 const double externalPressure,
                                 const double minimumPressure,
                                 const double maximumPressure):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
+                                  constants,
                                   minimumPressure,
                                   maximumPressure),
   mA0(a0),
@@ -56,7 +58,7 @@ LinearPolynomialEquationOfState(const double referenceDensity,
   mB1(b1),
   mB2(b2),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * referenceDensity * Constants::MolarGasConstant / atomicWeight),
+  mCv(3.0 * referenceDensity * constants.molarGasConstant() / atomicWeight),
   mGamma(mB0 + 1.0),
   mExternalPressure(externalPressure) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
@@ -66,17 +68,17 @@ LinearPolynomialEquationOfState(const double referenceDensity,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-LinearPolynomialEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+LinearPolynomialEquationOfState<Dimension>::
 ~LinearPolynomialEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -89,9 +91,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -104,9 +106,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -119,9 +121,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
@@ -132,9 +134,9 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -147,9 +149,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -161,9 +163,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 // Set the bulk modulus (rho DP/Drho).  This is just the pressure for a 
 // polytropic gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -176,9 +178,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -195,9 +197,9 @@ pressure(const Scalar massDensity,
 // This is a *hokey* definition -- have to do better if we ever really care
 // about the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -207,9 +209,9 @@ temperature(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   REQUIRE(valid());
@@ -219,9 +221,9 @@ specificThermalEnergy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   REQUIRE(valid());
@@ -231,9 +233,9 @@ specificHeat(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -245,9 +247,9 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   return mGamma;
@@ -256,9 +258,9 @@ gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate the individual bulk modulus.  
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -273,9 +275,9 @@ bulkModulus(const Scalar massDensity,
 // ------------   = -------------|      + ------  -------------|
 // \partial \rho    \partial \rho|_\eps   \rho^2  \partial \eps|_\rho
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-LinearPolynomialEquationOfState<Dimension, Constants>::
+LinearPolynomialEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -296,9 +298,9 @@ computeDPDrho(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-LinearPolynomialEquationOfState<Dimension, Constants>::valid() const {
+LinearPolynomialEquationOfState<Dimension>::valid() const {
   return (SolidEquationOfState<Dimension>::valid() && 
           mAtomicWeight > 0.0 &&
           mCv > 0.0 &&

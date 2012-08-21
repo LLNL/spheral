@@ -67,8 +67,8 @@ class ThermalYieldFunctor {
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-SteinbergGuinanLundStrength<Dimension, Constants>::
+template<typename Dimension>
+SteinbergGuinanLundStrength<Dimension>::
 SteinbergGuinanLundStrength(const SolidEquationOfState<Dimension>& eos,
                             const double G0,     
                             const double A,      
@@ -86,7 +86,7 @@ SteinbergGuinanLundStrength(const SolidEquationOfState<Dimension>& eos,
                             const double YTmax,
                             const NinthOrderPolynomialFit& coldEnergyFit,
                             const NinthOrderPolynomialFit& meltEnergyFit):
-  SteinbergGuinanStrength<Dimension, Constants>(eos,
+  SteinbergGuinanStrength<Dimension>(eos,
                                                 G0,
                                                 A,
                                                 B,
@@ -108,17 +108,17 @@ SteinbergGuinanLundStrength(const SolidEquationOfState<Dimension>& eos,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-SteinbergGuinanLundStrength<Dimension, Constants>::
+template<typename Dimension>
+SteinbergGuinanLundStrength<Dimension>::
 ~SteinbergGuinanLundStrength() {
 }
 
 //------------------------------------------------------------------------------
 // Compute the yield strength.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 yieldStrength(const double density,
               const double specificThermalEnergy,
               const double pressure,
@@ -164,7 +164,7 @@ yieldStrength(const double density,
   const double YT = newtonRaphson(func, x1, x2);
 
   // Get the athermal yield.
-  const double yieldAthermal = SteinbergGuinanStrength<Dimension, Constants>::yieldStrength(density,
+  const double yieldAthermal = SteinbergGuinanStrength<Dimension>::yieldStrength(density,
                                                                                             specificThermalEnergy,
                                                                                             pressure,
                                                                                             plasticStrain,
@@ -181,37 +181,37 @@ yieldStrength(const double density,
 //------------------------------------------------------------------------------
 // Access the strength parameters.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 C1() const {
   return mC1;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 C2() const {
   return mC2;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 UK() const {
   return mUK;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 YP() const {
   return mYP;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanLundStrength<Dimension, Constants>::
+SteinbergGuinanLundStrength<Dimension>::
 YTmax() const {
   return mYTmax;
 }

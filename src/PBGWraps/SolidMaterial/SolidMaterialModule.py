@@ -25,7 +25,6 @@ class SolidMaterial:
         Material = Spheral.add_cpp_namespace("Material")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        self.unitSet = ("CGS", "MKS", "Solar")
         self.dimSet = (1, 2, 3)
 
         self.StrengthModel = addObject(space, "StrengthModel", allow_subclassing=True)
@@ -40,17 +39,13 @@ Physics%(dim)id = PhysicsSpace.wrapObjs["Physics%(dim)id"]
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 self.PorousEquationOfState%(dim)id = addObject(space, "PorousEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=[Physics%(dim)id], allow_subclassing=True)
+self.LinearPolynomialEquationOfState%(dim)id = addObject(space, "LinearPolynomialEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.GruneisenEquationOfState%(dim)id = addObject(space, "GruneisenEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.TillotsonEquationOfState%(dim)id = addObject(space, "TillotsonEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.MurnahanEquationOfState%(dim)id = addObject(space, "MurnahanEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength%(dim)id", parent=self.StrengthModel, allow_subclassing=True)
+self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(dim)id", parent=self.SteinbergGuinanStrength%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
-            for units in self.unitSet:
-                exec('''
-self.LinearPolynomialEquationOfState%(units)s%(dim)id = addObject(space, "LinearPolynomialEquationOfState%(units)s%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.GruneisenEquationOfState%(units)s%(dim)id = addObject(space, "GruneisenEquationOfState%(units)s%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.TillotsonEquationOfState%(units)s%(dim)id = addObject(space, "TillotsonEquationOfState%(units)s%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.MurnahanEquationOfState%(units)s%(dim)id = addObject(space, "MurnahanEquationOfState%(units)s%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.SteinbergGuinanStrength%(units)s%(dim)id = addObject(space, "SteinbergGuinanStrength%(units)s%(dim)id", parent=self.StrengthModel, allow_subclassing=True)
-self.SteinbergGuinanLundStrength%(units)s%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(units)s%(dim)id", parent=self.SteinbergGuinanStrength%(units)s%(dim)id, allow_subclassing=True)
-''' % {"dim" : dim,
-       "units" : units})
 
         return
 
@@ -69,19 +64,14 @@ self.SteinbergGuinanLundStrength%(units)s%(dim)id = addObject(space, "SteinbergG
 generateSolidEquationOfStateBindings(self.SolidEquationOfState%(dim)id, %(dim)i)
 generatePorousEquationOfStateBindings(self.PorousEquationOfState%(dim)id, %(dim)i)
 generateStrainPorosityBindings(self.StrainPorosity%(dim)id, %(dim)i)
+generateLinearPolynomialEquationOfStateBindings(self.LinearPolynomialEquationOfState%(dim)id, %(dim)i)
+generateGruneisenEquationOfStateBindings(self.GruneisenEquationOfState%(dim)id, %(dim)i)
+generateTillotsonEquationOfStateBindings(self.TillotsonEquationOfState%(dim)id, %(dim)i)
+generateMurnahanEquationOfStateBindings(self.MurnahanEquationOfState%(dim)id, %(dim)i)
+
+generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(dim)i)
+generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
-
-            for units in self.unitSet:
-                exec('''
-generateLinearPolynomialEquationOfStateBindings(self.LinearPolynomialEquationOfState%(units)s%(dim)id, %(dim)i)
-generateGruneisenEquationOfStateBindings(self.GruneisenEquationOfState%(units)s%(dim)id, %(dim)i)
-generateTillotsonEquationOfStateBindings(self.TillotsonEquationOfState%(units)s%(dim)id, %(dim)i)
-generateMurnahanEquationOfStateBindings(self.MurnahanEquationOfState%(units)s%(dim)id, %(dim)i)
-
-generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(units)s%(dim)id, %(dim)i)
-generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(units)s%(dim)id, %(dim)i)
-''' % {"dim" : dim,
-       "units" : units})
 
         return
 
@@ -100,6 +90,7 @@ def generateSolidEquationOfStateBindings(x, ndim):
     x.add_constructor([param("double", "referenceDensity"),
                        param("double", "etamin"),
                        param("double", "etamax"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
 
@@ -152,6 +143,7 @@ def generateLinearPolynomialEquationOfStateBindings(x, ndim):
                        param("double", "b1"),
                        param("double", "b2"),
                        param("double", "atomicWeight"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
@@ -194,6 +186,7 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
                        param("double", "gamma0"),
                        param("double", "b"),
                        param("double", "atomicWeight"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
@@ -237,6 +230,7 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
                        param("double", "epsLiquid"),
                        param("double", "epsVapor"),
                        param("double", "atomicWeight"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
@@ -286,6 +280,7 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
                        param("double", "n"),
                        param("double", "K"),
                        param("double", "atomicWeight"),
+                       constrefparam("PhysicalConstants", "constants"),
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])

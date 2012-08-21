@@ -9,3 +9,10 @@ from SpheralModules.Spheral.SolidSPHSpace import *
 from SolidNodeLists import *
 from GradyKippTensorDamage import *
 from SolidSPHHydros import *
+
+# ------------------------------------------------------------------------------
+# Import the SolidMaterial python extensions.
+# ------------------------------------------------------------------------------
+from SolidMaterialUnits import *
+from SolidMaterialEquationsOfState import *
+

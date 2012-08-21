@@ -45,6 +45,12 @@ from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Wm5 import *
 
 # ------------------------------------------------------------------------------
+# Import the Material python extensions.
+# ------------------------------------------------------------------------------
+from MaterialUnits import *
+from MaterialEquationsOfState import *
+
+# ------------------------------------------------------------------------------
 # Import the various FluidNodeLists.
 # ------------------------------------------------------------------------------
 from FluidNodeLists import *

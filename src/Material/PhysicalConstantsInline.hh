@@ -2,93 +2,111 @@ namespace Spheral {
 namespace Material {
 
 //------------------------------------------------------------------------------
-// Proton mass.
+// Unit length in meters.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::protonMass() const {
+PhysicalConstants::unitLengthMeters() const {
+  return mUnitLm;
+}
+
+//------------------------------------------------------------------------------
+// Unit mass in kg.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitMassKg() const {
+  return mUnitMkg;
+}
+
+//------------------------------------------------------------------------------
+// Unit time in sec.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitTimeSec() const {
+  return mUnitTsec;
+}
+
+//------------------------------------------------------------------------------
+// Proton mass.
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::protonMass() const {
   return ProtonMass;
 }
 
 //------------------------------------------------------------------------------
 // Electron mass.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::electronMass() const {
+PhysicalConstants::electronMass() const {
   return ElectronMass;
 }
 
 //------------------------------------------------------------------------------
 // Electron charge.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::electronCharge() const {
+PhysicalConstants::electronCharge() const {
   return ElectronCharge;
 }
 
 //------------------------------------------------------------------------------
 // Gravitational constant.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::G() const {
+PhysicalConstants::G() const {
   return GGravity;
 }
 
 //------------------------------------------------------------------------------
 // Speed of light.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::c() const {
+PhysicalConstants::c() const {
   return cLight;
 }
 
 //------------------------------------------------------------------------------
-// Speed of light.
+// Boltzmann constant.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::kB() const {
+PhysicalConstants::kB() const {
   return kBoltzmann;
 }
 
 //------------------------------------------------------------------------------
-// Unit length in meters.
+// Avagadro's constant.
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::unitLengthMeters() const {
-  return unitLm;
+PhysicalConstants::Navogadro() const {
+  return NAvogadro;
 }
 
 //------------------------------------------------------------------------------
-// Unit mass in kg.
+// molar constant
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::unitMassKg() const {
-  return unitMkg;
+PhysicalConstants::molarGasConstant() const {
+  return MolarGasConstant;
 }
 
 //------------------------------------------------------------------------------
-// Unit time in sec.
+// 
 //------------------------------------------------------------------------------
-template<typename UnitsType>
 inline
 double
-PhysicalConstants<UnitsType>::unitTimeSec() const {
-  return unitTsec;
+PhysicalConstants::kelvinsToEnergyPerMole() const {
+  return KelvinsToEnergyPerMole;
 }
 
 }

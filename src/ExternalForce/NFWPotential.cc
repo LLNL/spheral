@@ -39,15 +39,17 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-NFWPotential<Dimension, Constants>::
+template<typename Dimension>
+NFWPotential<Dimension>::
 NFWPotential(double deltac, double rs, double h0, 
-             const typename Dimension::Vector& origin):
+             const typename Dimension::Vector& origin,
+             const Material::PhysicalConstants& constants):
   GenericBodyForce<Dimension>(),
   mDeltac(deltac),
   mRs(rs),
   mh0(h0),
   mOrigin(origin),
+  mConstants(constants),
   mDeltaPhiFraction(0.01),
   mCriticalDensity(0.0),
   mPotentialEnergy(0.0) {
@@ -64,8 +66,8 @@ NFWPotential(double deltac, double rs, double h0,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-NFWPotential<Dimension, Constants>::
+template<typename Dimension>
+NFWPotential<Dimension>::
 ~NFWPotential() {
   cdebug << "NFWPotential::~NFWPotential()" << endl;
 }
@@ -73,9 +75,9 @@ NFWPotential<Dimension, Constants>::
 //------------------------------------------------------------------------------
 // Calculate the acceleration due to the potential of the profile.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -102,7 +104,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar rsoft2 = r.magnitude2() + 1.0e-10;
     const Scalar rsoft = sqrt(rsoft2);
     const Scalar Mr = enclosedMass(rsoft);
-    const Scalar thpt = Constants::GGravity*Mr;
+    const Scalar thpt = mConstants.G()*Mr;
     DxDt(nodeItr) += velocity(nodeItr);
     DvDt(nodeItr) -= thpt/rsoft2*runit;
     mPotentialEnergy -= thpt*mnode(nodeItr)/rsoft;
@@ -112,9 +114,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 // Calculate the timestep constraint.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-typename NFWPotential<Dimension, Constants>::TimeStepType
-NFWPotential<Dimension, Constants>::
+template<typename Dimension>
+typename NFWPotential<Dimension>::TimeStepType
+NFWPotential<Dimension>::
 dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,

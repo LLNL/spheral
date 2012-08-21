@@ -4,10 +4,10 @@ namespace Material {
 //------------------------------------------------------------------------------
 // Access the polytropic constant.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 polytropicConstant() const {
   return mPolytropicConstant;
 }
@@ -15,10 +15,10 @@ polytropicConstant() const {
 //------------------------------------------------------------------------------
 // Access the polytropic index.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 polytropicIndex() const {
   return mPolytropicIndex;
 }
@@ -26,10 +26,10 @@ polytropicIndex() const {
 //------------------------------------------------------------------------------
 // Access gamma ( (n+1)/n ).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 gamma() const {
   return mGamma;
 }
@@ -37,10 +37,10 @@ gamma() const {
 //------------------------------------------------------------------------------
 // Access the molecular weight.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 molecularWeight() const {
   return mMolecularWeight;
 }
@@ -48,18 +48,18 @@ molecularWeight() const {
 //------------------------------------------------------------------------------
 // Access the external pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setExternalPressure(double P) {
   mExternalPressure = P;
 }

@@ -15,13 +15,14 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-IsothermalEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+IsothermalEquationOfState<Dimension>::
 IsothermalEquationOfState(const double K,
                           const double mu,
+                          const PhysicalConstants& constants,
                           const double minimumPressure,
                           const double maximumPressure):
-  EquationOfState<Dimension>(minimumPressure, maximumPressure),
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
   mK(K),
   mCs(sqrt(K)),
   mMolecularWeight(mu),
@@ -31,16 +32,17 @@ IsothermalEquationOfState(const double K,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-IsothermalEquationOfState<Dimension, Constants>::~IsothermalEquationOfState() {
+template<typename Dimension>
+IsothermalEquationOfState<Dimension>::
+~IsothermalEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -56,9 +58,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -69,9 +71,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -82,9 +84,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
@@ -95,9 +97,9 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -108,9 +110,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -122,9 +124,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 // Set the bulk modulus (rho DP/Drho).  This is just the pressure for an
 // isothermal gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -136,9 +138,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -150,9 +152,9 @@ pressure(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -162,9 +164,9 @@ temperature(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   REQUIRE(valid());
@@ -174,9 +176,9 @@ specificThermalEnergy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   REQUIRE(valid());
@@ -186,9 +188,9 @@ specificHeat(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -198,9 +200,9 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   return 1.0;
@@ -210,9 +212,9 @@ gamma(const Scalar massDensity,
 // Calculate an individual bulk modulus.  
 // This is just the pressure for a polytropic gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -222,9 +224,9 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-IsothermalEquationOfState<Dimension, Constants>::valid() const {
+IsothermalEquationOfState<Dimension>::valid() const {
   return (mK > 0.0 &&
           mCs > 0.0 &&
           mMolecularWeight > 0.0);

@@ -17,12 +17,14 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Construct with the given gamma and mu.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-GammaLawGas<Dimension, Constants>::GammaLawGas(const double gamma,
-                                               const double mu,
-                                               const double minimumPressure,
-                                               const double maximumPressure):
-  EquationOfState<Dimension>(minimumPressure, maximumPressure),
+template<typename Dimension>
+GammaLawGas<Dimension>::
+GammaLawGas(const double gamma,
+            const double mu,
+            const PhysicalConstants& constants,
+            const double minimumPressure,
+            const double maximumPressure):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
   mGamma(gamma),
   mMolecularWeight(mu) {
   mGamma1 = mGamma - 1.0;
@@ -31,16 +33,17 @@ GammaLawGas<Dimension, Constants>::GammaLawGas(const double gamma,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-GammaLawGas<Dimension, Constants>::~GammaLawGas() {
+template<typename Dimension>
+GammaLawGas<Dimension>::
+~GammaLawGas() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -53,9 +56,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -68,9 +71,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -83,23 +86,25 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  double Cv = Constants::kBoltzmann/(mGamma1*mMolecularWeight*Constants::ProtonMass);
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  double Cv = kB/(mGamma1*mMolecularWeight*mp);
   specificHeat = Cv;
 }
 
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -112,9 +117,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -126,9 +131,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 // Set the bulk modulus (rho DP/Drho).  This is just the pressure for a gamma
 // law gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -139,9 +144,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -152,45 +157,50 @@ pressure(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return mGamma1*mMolecularWeight*Constants::ProtonMass/Constants::kBoltzmann*specificThermalEnergy;
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   CHECK(valid());
-  return Constants::kBoltzmann/(mGamma1*mMolecularWeight)*temperature;
+  const double kB = mConstants.kB();
+  return kB/(mGamma1*mMolecularWeight)*temperature;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   CHECK(valid());
-  return Constants::kBoltzmann/(mGamma1*mMolecularWeight*Constants::ProtonMass);
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp);
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -201,9 +211,9 @@ soundSpeed(const Scalar massDensity,
 // Calculate an individual bulk modulus.  
 // This is just the pressure for a gamma law gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::
+GammaLawGas<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -213,9 +223,9 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension, Constants>::gamma(const Scalar massDensity,
+GammaLawGas<Dimension>::gamma(const Scalar massDensity,
 					 const Scalar specificThermalEnergy) const {
   return mGamma;
 }
@@ -223,15 +233,15 @@ GammaLawGas<Dimension, Constants>::gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get and set gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-GammaLawGas<Dimension, Constants>::getGamma() const {
+GammaLawGas<Dimension>::getGamma() const {
   return mGamma;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::setGamma(double gamma) {
+GammaLawGas<Dimension>::setGamma(double gamma) {
   mGamma = gamma;
   mGamma1 = mGamma - 1.0;
 }
@@ -239,24 +249,24 @@ GammaLawGas<Dimension, Constants>::setGamma(double gamma) {
 //------------------------------------------------------------------------------
 // Get and set the molecular weight.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-GammaLawGas<Dimension, Constants>::getMolecularWeight() const {
+GammaLawGas<Dimension>::getMolecularWeight() const {
   return mMolecularWeight;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GammaLawGas<Dimension, Constants>::setMolecularWeight(double molecularWeight) {
+GammaLawGas<Dimension>::setMolecularWeight(double molecularWeight) {
   mMolecularWeight = molecularWeight;
 }
 
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-GammaLawGas<Dimension, Constants>::valid() const {
+GammaLawGas<Dimension>::valid() const {
   return (mGamma > 0.0 &&
           mMolecularWeight > 0.0 &&
           mGamma1 == mGamma - 1.0);

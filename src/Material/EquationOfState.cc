@@ -14,8 +14,10 @@ namespace Material {
 // Default constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-EquationOfState<Dimension>::EquationOfState(const double minimumPressure,
+EquationOfState<Dimension>::EquationOfState(const PhysicalConstants& constants,
+                                            const double minimumPressure,
                                             const double maximumPressure):
+  mConstants(constants),
   mMinimumPressure(minimumPressure),
   mMaximumPressure(maximumPressure) {
   REQUIRE(mMinimumPressure <= mMaximumPressure);

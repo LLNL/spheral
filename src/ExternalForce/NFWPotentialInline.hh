@@ -7,10 +7,10 @@ namespace PhysicsSpace {
 //------------------------------------------------------------------------------
 // Return the total potential energy calculated in the last evaluateDerivatives.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 extraEnergy() const {
   return mPotentialEnergy;
 }
@@ -18,10 +18,10 @@ extraEnergy() const {
 //------------------------------------------------------------------------------
 // The mass density as a function of radius.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 massDensity(typename Dimension::Scalar r) const {
   REQUIRE(r >= 0.0);
   CHECK(mRs > 0.0);
@@ -33,10 +33,10 @@ massDensity(typename Dimension::Scalar r) const {
 //------------------------------------------------------------------------------
 // The enclosed mass as a function of radius.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 enclosedMass(typename Dimension::Scalar r) const {
   REQUIRE(r >= 0.0);
   CHECK(mRs > 0.0);
@@ -48,10 +48,10 @@ enclosedMass(typename Dimension::Scalar r) const {
 //------------------------------------------------------------------------------
 // The orbital velocity as a function of radius.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 orbitalVelocity(typename Dimension::Scalar r) const {
   REQUIRE(r >= 0.0);
   CHECK(mRs > 0.0);
@@ -61,25 +61,25 @@ orbitalVelocity(typename Dimension::Scalar r) const {
   const Scalar r1 = 1.0 + r0;
   const Scalar rinverse = r/(r*r + 1.0e-20);
   const Scalar v2 = 4.0/3.0*M_PI*mDeltac*mCriticalDensity*mRs*mRs*mRs*mRs*
-    Constants::GGravity*((1.0/r1 + 2.0*log(r1) - 1.0)*rinverse + 1.0/(r1*r1) - 2.0/r1);
+    mConstants.G()*((1.0/r1 + 2.0*log(r1) - 1.0)*rinverse + 1.0/(r1*r1) - 2.0/r1);
   return sqrt(v2);
 }
 
 //------------------------------------------------------------------------------
 // The characteristic density.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 characteristicDensity() const {
   return mDeltac;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 setCharacteristicDensity(const typename Dimension::Scalar x) {
   REQUIRE(x > 0.0);
   mDeltac = x;
@@ -88,18 +88,18 @@ setCharacteristicDensity(const typename Dimension::Scalar x) {
 //------------------------------------------------------------------------------
 // The scale radius.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 scaleRadius() const {
   return mRs;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 setScaleRadius(const typename Dimension::Scalar x) {
   REQUIRE(x >= 0.0);
   mRs = x;
@@ -108,34 +108,34 @@ setScaleRadius(const typename Dimension::Scalar x) {
 //------------------------------------------------------------------------------
 // The hubble constant (in units of 100 km/sec/Mpc
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 h0() const {
   return mh0;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 seth0(const typename Dimension::Scalar x) {
   REQUIRE(x > 0.0);
   mh0 = x;
 
   // Set the critical density, which is 3 H0^2 / (8 pi G).
-  const Scalar H0 = 100.0 * 1.0e5 / 3.086e24 * h0() * Constants::unitTsec;
-  mCriticalDensity = 3.0*H0*H0/(8.0 * M_PI * Constants::GGravity);
+  const Scalar H0 = 100.0 * 1.0e5 / 3.086e24 * h0() * mConstants.unitTimeSec();
+  mCriticalDensity = 3.0*H0*H0/(8.0 * M_PI * mConstants.G());
 }
 
 //------------------------------------------------------------------------------
 // The critical (closure) density.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 criticalDensity() const {
   return mCriticalDensity;
 }
@@ -143,18 +143,18 @@ criticalDensity() const {
 //------------------------------------------------------------------------------
 // Access the origin of the profile.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 const typename Dimension::Vector&
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 origin() const {
   return mOrigin;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 setOrigin(const typename Dimension::Vector& origin) {
   mOrigin = origin;
 }
@@ -163,18 +163,18 @@ setOrigin(const typename Dimension::Vector& origin) {
 // The maximum allowed fractional change in a particles potential (for 
 // setting the timestep).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 typename Dimension::Scalar
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 deltaPotentialFraction() const {
   return mDeltaPhiFraction;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-NFWPotential<Dimension, Constants>::
+NFWPotential<Dimension>::
 setDeltaPotentialFraction(const typename Dimension::Scalar deltaPhi) {
   REQUIRE(deltaPhi > 0.0);
   mDeltaPhiFraction = deltaPhi;

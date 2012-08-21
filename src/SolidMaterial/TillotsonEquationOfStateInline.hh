@@ -6,18 +6,18 @@ namespace SolidMaterial {
 //------------------------------------------------------------------------------
 // a
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 a() const {
   return ma;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 a(const double x) {
   ma = x;
 }
@@ -25,18 +25,18 @@ a(const double x) {
 //------------------------------------------------------------------------------
 // b
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 b() const {
   return mb;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 b(const double x) {
   mb = x;
 }
@@ -44,18 +44,18 @@ b(const double x) {
 //------------------------------------------------------------------------------
 // A
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 A() const {
   return mA;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 A(const double x) {
   mA = x;
 }
@@ -63,18 +63,18 @@ A(const double x) {
 //------------------------------------------------------------------------------
 // B
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 B() const {
   return mB;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 B(const double x) {
   mB = x;
 }
@@ -82,18 +82,18 @@ B(const double x) {
 //------------------------------------------------------------------------------
 // alpha
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 alpha() const {
   return malpha;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 alpha(const double x) {
   malpha = x;
 }
@@ -101,18 +101,18 @@ alpha(const double x) {
 //------------------------------------------------------------------------------
 // beta
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 beta() const {
   return mbeta;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 beta(const double x) {
   mbeta = x;
 }
@@ -120,18 +120,18 @@ beta(const double x) {
 //------------------------------------------------------------------------------
 // eps0
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 eps0() const {
   return meps0;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 eps0(const double x) {
   meps0 = x;
 }
@@ -139,18 +139,18 @@ eps0(const double x) {
 //------------------------------------------------------------------------------
 // epsLiquid
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 epsLiquid() const {
   return mepsLiquid;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 epsLiquid(const double x) {
   mepsLiquid = x;
 }
@@ -158,18 +158,18 @@ epsLiquid(const double x) {
 //------------------------------------------------------------------------------
 // epsVapor
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 epsVapor() const {
   return mepsVapor;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 epsVapor(const double x) {
   mepsVapor = x;
 }
@@ -177,18 +177,18 @@ epsVapor(const double x) {
 //------------------------------------------------------------------------------
 // Access the atomic weight
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 atomicWeight() const {
   return mAtomicWeight;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 atomicWeight(const double x) {
   mAtomicWeight = x;
 }
@@ -196,18 +196,18 @@ atomicWeight(const double x) {
 //------------------------------------------------------------------------------
 // Get and set the external pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 externalPressure(const double val) {
   mExternalPressure = val;
 }
@@ -215,38 +215,38 @@ externalPressure(const double val) {
 //------------------------------------------------------------------------------
 // The internal helper methods for computing components of the EOS.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 computePhi(const double& eta, const double& eps) const {
   return mb/(1.0 + eps/(meps0*eta*eta));
 }
 
 // P1
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 computeP1(const double& mu, const double& P2) const {
   return P2 + mB*mu*mu;
 }
 
 // P2
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 computeP2(const double& phi, const double& mu,
           const double& rho, const double& eps) const {
   return (ma + phi)*rho*eps + mA*mu;
 }
 
 // P4
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 computeP4(const double& phi, const double& mu, const double& eta,
           const double& rho, const double& eps) const {
   const double thpt = 1.0 - 1.0/eta;
@@ -254,38 +254,38 @@ computeP4(const double& phi, const double& mu, const double& eta,
 }
 
 // dphi/drho|_eps
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dphidrho_eps(const double& rho0, const double& eta, const double& eps) const {
   return 2.0*mb*eps/(rho0*meps0*eta*eta*eta*FastMath::square(1.0 + eps/(meps0*eta*eta)));
 }
 
 // dP1/drho|_eps
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dP1drho_eps(const double& rho0, const double& mu, const double& dP2drho_eps) const {
   return dP2drho_eps + 2.0*mB*mu/rho0;
 }
 
 // dP2/drho|_eps
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dP2drho_eps(const double& phi, const double& dphidrho_eps, const double& rho0,
                     const double& rho, const double& eps) const {
   return (ma + phi + rho*dphidrho_eps)*eps + mA/rho0;
 }
 
 // dP4/drho|_eps
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dP4drho_eps(const double& phi, const double& dphidrho_eps, const double& rho0,
                     const double& eta, const double& mu,
                     const double& rho, const double& eps) const {
@@ -301,29 +301,29 @@ compute_dP4drho_eps(const double& phi, const double& dphidrho_eps, const double&
 }
 
 // dphi/deps|_rho
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dphideps_rho(const double& eta, const double& eps) const {
   return -mb/(meps0*eta*eta*FastMath::square(1.0 + eps/(meps0*eta*eta)));
 }
 
 // dP2/deps|_rho
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dP2deps_rho(const double& phi, const double& dphideps_rho,
                     const double& rho, const double& eps) const {
   return (ma + phi + eps*dphideps_rho)*rho;
 }
 
 // dP4/deps|_rho
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-TillotsonEquationOfState<Dimension, Constants>::
+TillotsonEquationOfState<Dimension>::
 compute_dP4deps_rho(const double& phi, const double& dphideps_rho, const double& eta,
                     const double& rho, const double& eps) const {
   const double thpt = 1.0 - 1.0/eta;

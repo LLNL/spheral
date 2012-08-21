@@ -12,7 +12,7 @@
 namespace Spheral {
 namespace Material {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class GammaLawGas: public EquationOfState<Dimension> {
 
 public:
@@ -25,6 +25,7 @@ public:
   // Constructors, destructors.
   GammaLawGas(const double gamma,
               const double mu,
+              const PhysicalConstants& constants,
               const double minimumPressure = -std::numeric_limits<double>::max(),
               const double maximumPressure = std::numeric_limits<double>::max());
   ~GammaLawGas();
@@ -100,6 +101,7 @@ private:
   GammaLawGas(const GammaLawGas&);
   GammaLawGas& operator=(const GammaLawGas&);
   
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }
@@ -110,7 +112,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace Material {
-    template<typename Dimension, typename Constants> class GammaLawGas;
+    template<typename Dimension> class GammaLawGas;
   }
 }
 

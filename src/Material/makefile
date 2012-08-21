@@ -5,14 +5,15 @@ PKGNAME = Material
 PKGDIR = $(PKGNAME)/
 LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	PhysicalConstants.cc \
 	EquationOfStateInst.cc \
-	MKSUnits.cc \
-	CGSUnits.cc \
-	CosmologicalUnits.cc \
-	SolarUnits.cc \
 	GammaLawGasInst.cc \
 	PolytropicEquationOfStateInst.cc \
 	IsothermalEquationOfStateInst.cc
+
+PYTHONTARGETS = \
+	MaterialUnits.py \
+	MaterialEquationsOfState.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

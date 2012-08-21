@@ -19,14 +19,15 @@ using FieldSpace::Field;
 // Construct with the given polytropic constant, index and mean molecular 
 // weight.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-PolytropicEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+PolytropicEquationOfState<Dimension>::
 PolytropicEquationOfState(const double K,
                           const double index,
                           const double mu,
+                          const PhysicalConstants& constants,
                           const double minimumPressure,
                           const double maximumPressure):
-  EquationOfState<Dimension>(minimumPressure, maximumPressure),
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
   mPolytropicConstant(K),
   mPolytropicIndex(index),
   mGamma(0.0),
@@ -41,16 +42,17 @@ PolytropicEquationOfState(const double K,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-PolytropicEquationOfState<Dimension, Constants>::~PolytropicEquationOfState() {
+template<typename Dimension>
+PolytropicEquationOfState<Dimension>::
+~PolytropicEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -63,9 +65,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -78,9 +80,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -93,23 +95,25 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  const double Cv = Constants::kBoltzmann/(mGamma1*mMolecularWeight*Constants::ProtonMass);
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  const double Cv = kB/(mGamma1*mMolecularWeight*mp);
   specificHeat = Cv;
 }
 
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -122,9 +126,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -136,9 +140,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 // Set the bulk modulus (rho DP/Drho).  This is just the pressure for a 
 // polytropic gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -150,9 +154,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -164,45 +168,50 @@ pressure(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return mGamma1*mMolecularWeight*Constants::ProtonMass/Constants::kBoltzmann*specificThermalEnergy;
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   CHECK(valid());
-  return Constants::kBoltzmann/(mGamma1*mMolecularWeight)*temperature;
+  const double kB = mConstants.kB();
+  return kB/(mGamma1*mMolecularWeight)*temperature;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   CHECK(valid());
-  return Constants::kBoltzmann/(mGamma1*mMolecularWeight*Constants::ProtonMass);
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp);
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -214,9 +223,9 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   return mGamma;
@@ -226,9 +235,9 @@ gamma(const Scalar massDensity,
 // Calculate an individual bulk modulus.  
 // This is just the pressure for a polytropic gas.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-PolytropicEquationOfState<Dimension, Constants>::
+PolytropicEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -238,9 +247,9 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-PolytropicEquationOfState<Dimension, Constants>::valid() const {
+PolytropicEquationOfState<Dimension>::valid() const {
   return (mPolytropicConstant >= 0.0 &&
           mPolytropicIndex > 0.0 &&
           fuzzyEqual(mGamma, 1.0/mPolytropicIndex + 1.0) &&
