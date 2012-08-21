@@ -416,7 +416,7 @@ class GzipFileNodeGeneratorRZto3D(GzipFileNodeGeneratorRZto2D):
             yi = self.y[i]
             H2d = H2dlist[i]
 
-            hxy0 = 1.0/(H2d.eigenValues().minElement())
+            hxy0 = 0.5*(H2d.Inverse().Trace())
             dphi = CylindricalBoundary.angularSpacing(yi, hxy0, nNodePerh, 2.0)
             nhoop = int(2.0*pi/dphi + 0.5)
             dphi = 2.0*pi/nhoop
