@@ -122,7 +122,7 @@ class MurnahanEquationOfState%(units)s%(dim)id(MurnahanEquationOfState%(dim)id):
                                                  etamin,
                                                  etamax,
                                                  n,
-                                                 K,                                                         a0,
+                                                 K,
                                                  atomicWeight,
                                                  self._units,
                                                  externalPressure,
