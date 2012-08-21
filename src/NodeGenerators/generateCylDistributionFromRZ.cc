@@ -56,9 +56,12 @@ generateCylDistributionFromRZ(vector<double>& x,
   int ntot = 0;
   for (int i = 0; i != n; ++i) {
     const SymTensor Hi = H[i];
-    const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
+    // const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
+    const double hzi = Hi.Inverse().Trace()/3.0;
     const double yi = y[i];
-    double dphi = CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent);
+    // const double dphi = CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent);
+    const int nhoopsegment = max(1, int(phi*yi/(hzi/nNodePerh) + 0.5));
+    const double dphi = phi/nhoopsegment;
     CHECK(distinctlyGreaterThan(dphi, 0.0));
     const int nsegment = max(1, int(phi/dphi + 0.5));
     ntot += nsegment;
@@ -92,11 +95,13 @@ generateCylDistributionFromRZ(vector<double>& x,
   int globalID = 0;
   for (int i = 0; i != n; ++i) {
     const SymTensor Hi = Hrz[i];
-    const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
+    // const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
+    const double hzi = Hi.Inverse().Trace()/3.0;
     const double xi = xrz[i];
     const double yi = yrz[i];
     const double mi = mrz[i];
-    const int nhoopsegment = max(1, int(phi/CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent) + 0.5));
+    // const int nhoopsegment = max(1, int(phi/CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent) + 0.5));
+    const int nhoopsegment = max(1, int(phi*yi/(hzi/nNodePerh) + 0.5));
     const double dphi = phi/nhoopsegment;
     double phii = 0.0;
     const Vector posi = Vector(xi, yi, 0.0);
