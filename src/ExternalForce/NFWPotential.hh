@@ -23,6 +23,7 @@
 #define NFWPotential_HH
 
 #include "Physics/GenericBodyForce.hh"
+#include "Material/PhysicalConstants.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -34,12 +35,15 @@ namespace Spheral {
   namespace DataBaseSpace {
     template<typename Dimension> class DataBase;
   }
+  namespace Material {
+    class PhysicalConstants;
+  }
 }
 
 namespace Spheral {
 namespace PhysicsSpace {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class NFWPotential: public GenericBodyForce<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -54,7 +58,11 @@ public:
   // deltac = characteristic dimensionless density
   // rs = scale radius
   // h0 = Hubble constant (units of 100 km/sec/Mpc)
-  NFWPotential(double deltac, double rs, double h0, const Vector& origin);
+  NFWPotential(double deltac,
+               double rs,
+               double h0,
+               const Vector& origin,
+               const Material::PhysicalConstants& constants);
 
   // Destructor.
   virtual ~NFWPotential();
@@ -119,9 +127,11 @@ private:
   Scalar mRs;
   Scalar mh0;
   Vector mOrigin;
+  Material::PhysicalConstants mConstants;
   Scalar mDeltaPhiFraction;
   Scalar mCriticalDensity;
   mutable Scalar mPotentialEnergy;
+
 
   // No default constructor, copying, or assignment.
   NFWPotential();
@@ -141,7 +151,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace PhysicsSpace {
-    template<typename Dimension, typename Constants> class NFWPotential;
+    template<typename Dimension> class NFWPotential;
   }
 }
 

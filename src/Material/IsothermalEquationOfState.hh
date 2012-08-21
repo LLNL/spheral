@@ -11,7 +11,7 @@
 namespace Spheral {
 namespace Material {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class IsothermalEquationOfState: public EquationOfState<Dimension> {
 
 public:
@@ -24,6 +24,7 @@ public:
   // Constructors, destructors.
   IsothermalEquationOfState(const double K,
                             const double mu,
+                            const PhysicalConstants& constants,
                             const double minimumPressure = -std::numeric_limits<double>::max(),
                             const double maximumPressure = std::numeric_limits<double>::max());
   ~IsothermalEquationOfState();
@@ -102,6 +103,7 @@ private:
   IsothermalEquationOfState(const IsothermalEquationOfState&);
   IsothermalEquationOfState& operator=(const IsothermalEquationOfState&);
 
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }
@@ -116,7 +118,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace Material {
-    template<typename Dimension, typename Constants> class IsothermalEquationOfState;
+    template<typename Dimension> class IsothermalEquationOfState;
   }
 }
 

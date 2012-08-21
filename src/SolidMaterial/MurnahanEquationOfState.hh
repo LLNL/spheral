@@ -15,7 +15,7 @@
 namespace Spheral {
 namespace SolidMaterial {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class MurnahanEquationOfState: public SolidEquationOfState<Dimension> {
 
 public:
@@ -32,6 +32,7 @@ public:
                           const double n,
                           const double K,
                           const double atomicWeight,
+                          const Material::PhysicalConstants& constants,
                           const double externalPressure = 0.0,
                           const double minimumPressure = -std::numeric_limits<double>::max(),
                           const double maximumPressure = std::numeric_limits<double>::max());
@@ -119,6 +120,7 @@ private:
   // Disallow default constructor
   MurnahanEquationOfState();
 
+  using Material::EquationOfState<Dimension>::mConstants;
 };
 
 }
@@ -133,7 +135,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    template<typename Dimension, typename Constants> class MurnahanEquationOfState;
+    template<typename Dimension> class MurnahanEquationOfState;
   }
 }
 

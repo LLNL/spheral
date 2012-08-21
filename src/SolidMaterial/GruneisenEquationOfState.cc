@@ -22,8 +22,8 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 // Construct with the given Gruneisen constants.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-GruneisenEquationOfState<Dimension, Constants>::
+template<typename Dimension>
+GruneisenEquationOfState<Dimension>::
 GruneisenEquationOfState(const double referenceDensity,
                          const double etamin,
                          const double etamax,
@@ -34,12 +34,14 @@ GruneisenEquationOfState(const double referenceDensity,
                          const double gamma0,
                          const double b,
                          const double atomicWeight,
+                         const Material::PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
+                                  constants,
                                   minimumPressure,
                                   maximumPressure),
   mC0(C0),
@@ -53,23 +55,23 @@ GruneisenEquationOfState(const double referenceDensity,
   mExternalPressure(externalPressure) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
 //   mCv = 3.0 * 1000.0*Constants::ElectronCharge*Constants::NAvogadro / mAtomicWeight;
-  mCv = 3.0 * this->referenceDensity() * Constants::MolarGasConstant / mAtomicWeight;
+  mCv = 3.0 * this->referenceDensity() * constants.molarGasConstant() / mAtomicWeight;
   ENSURE(valid());
 }
 
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-GruneisenEquationOfState<Dimension, Constants>::~GruneisenEquationOfState() {
+template<typename Dimension>
+GruneisenEquationOfState<Dimension>::~GruneisenEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
 // Set the pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -82,9 +84,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -97,9 +99,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 // Set the specific thermal energy.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -112,9 +114,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 // Set the specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
@@ -125,9 +127,9 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 // Set the sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -140,9 +142,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 // Set gamma (ratio of specific heats).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -155,9 +157,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 //------------------------------------------------------------------------------
 // Set the bulk modulus (rho DP/Drho).
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 void
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -170,9 +172,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -207,40 +209,43 @@ pressure(const Scalar massDensity,
 // Calculate an individual temperature.
 // Need a real temperature relation here
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
   const double xmu = this->boundedEta(massDensity) - 1.0; 
   CHECK(xmu>-1.);
   const double gamma1=(mgamma0 + mb*xmu) / (1. + xmu) - 1.; 
-  return gamma1*mAtomicWeight*Constants::ProtonMass/Constants::kBoltzmann*specificThermalEnergy;
+  const double kB = mConstants.kB();
+  const double mp = mConstants.protonMass();
+  return gamma1*mAtomicWeight*mp/kB*specificThermalEnergy;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific thermal energy.
 // Need a real energy relation here
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   CHECK(valid());
   const double xmu = this->boundedEta(massDensity) - 1.; 
   CHECK(xmu>-1.);
   const double gamma1=(mgamma0 + mb*xmu) / (1. + xmu) - 1.; 
-  return Constants::kBoltzmann/(gamma1)*temperature;
+  const double kB = mConstants.kB();
+  return kB/(gamma1)*temperature;
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual specific heat.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   CHECK(valid());
@@ -250,9 +255,9 @@ specificHeat(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Calculate an individual sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   const double dPdrho = computeDPDrho(massDensity, specificThermalEnergy);
@@ -263,9 +268,9 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get gamma.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::gamma(const Scalar massDensity,
+GruneisenEquationOfState<Dimension>::gamma(const Scalar massDensity,
 					 const Scalar specificThermalEnergy) const {
   const double xmu = this->boundedEta(massDensity) - 1.;
   CHECK(xmu!=-1.);
@@ -275,9 +280,9 @@ GruneisenEquationOfState<Dimension, Constants>::gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Get the bulk modulus.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
 
@@ -292,9 +297,9 @@ bulkModulus(const Scalar massDensity,
 // ------------   = -------------|      + ------  -------------|
 // \partial \rho    \partial \rho|_\eps   \rho^2  \partial \eps|_\rho
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 typename Dimension::Scalar
-GruneisenEquationOfState<Dimension, Constants>::
+GruneisenEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -329,9 +334,9 @@ computeDPDrho(const Scalar massDensity,
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 bool
-GruneisenEquationOfState<Dimension, Constants>::valid() const {
+GruneisenEquationOfState<Dimension>::valid() const {
   return (mC0 > 0.0 &&
           mS1 > 0.0 &&
           mCv > 0.0);

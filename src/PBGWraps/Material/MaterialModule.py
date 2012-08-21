@@ -5,6 +5,166 @@ sys.path.append("..")
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
+# The class to handle wrapping this module.
+#-------------------------------------------------------------------------------
+class Material:
+
+    #---------------------------------------------------------------------------
+    # Add the types to the given module.
+    #---------------------------------------------------------------------------
+    def __init__(self, mod):
+
+        # Includes.
+        mod.add_include('"Material/MaterialTypes.hh"')
+    
+        # Namespace.
+        Spheral = mod.add_cpp_namespace("Spheral")
+        space = Spheral.add_cpp_namespace("Material")
+
+        self.dimSet = (1, 2, 3)
+
+        # Expose types.
+        self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
+        for dim in self.dimSet:
+            exec('''
+self.EquationOfState%(dim)id = addObject(space, "EquationOfState%(dim)id", allow_subclassing=True)
+self.GammaLawGas%(dim)id = addObject(space, "GammaLawGas%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)
+self.PolytropicEquationOfState%(dim)id = addObject(space, "PolytropicEquationOfState%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)
+self.IsothermalEquationOfState%(dim)id = addObject(space, "IsothermalEquationOfState%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)
+''' % {"dim" : dim})
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Add the types to the given module.
+    #---------------------------------------------------------------------------
+    def generateBindings(self, mod):
+        self.generatePhysicalConstantsBindings(self.PhysicalConstants)
+        for dim in self.dimSet:
+            exec('''
+self.generateEquationOfStateBindings(self.EquationOfState%(dim)id, %(dim)i)
+self.generateGammaLawGasBindings(self.GammaLawGas%(dim)id, %(dim)i)
+self.generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfState%(dim)id, %(dim)i)
+self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(dim)id, %(dim)i)
+''' % {"dim"   : dim})
+
+        return
+
+    #---------------------------------------------------------------------------
+    # The new sub modules (namespaces) introduced.
+    #---------------------------------------------------------------------------
+    def newSubModules(self):
+        return ["Material"]
+
+    #---------------------------------------------------------------------------
+    # PhysicalConstants
+    #---------------------------------------------------------------------------
+    def generatePhysicalConstantsBindings(self, x):
+
+        # Constructor.
+        x.add_constructor([param("double", "unitLm"),
+                           param("double", "unitMkg"),
+                           param("double", "unitTsec")])
+
+        # Attributes
+        x.add_instance_attribute("unitLengthMeters", "double", getter="unitLengthMeters", is_const=True)
+        x.add_instance_attribute("unitMassKg", "double", getter="unitMassKg", is_const=True)
+        x.add_instance_attribute("unitTimeSec", "double", getter="unitTimeSec", is_const=True)
+        x.add_instance_attribute("protonMass", "double", getter="protonMass", is_const=True)
+        x.add_instance_attribute("electronMass", "double", getter="electronMass", is_const=True)
+        x.add_instance_attribute("electronCharge", "double", getter="electronCharge", is_const=True)
+        x.add_instance_attribute("G", "double", getter="G", is_const=True)
+        x.add_instance_attribute("c", "double", getter="c", is_const=True)
+        x.add_instance_attribute("kB", "double", getter="kB", is_const=True)
+        x.add_instance_attribute("NAvogadro", "double", getter="Navogadro", is_const=True)
+        x.add_instance_attribute("molarGasConstant", "double", getter="molarGasConstant", is_const=True)
+        x.add_instance_attribute("kelvinsToEnergyPerMole", "double", getter="kelvinsToEnergyPerMole", is_const=True)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # EquationOfState
+    #---------------------------------------------------------------------------
+    def generateEquationOfStateBindings(self, x, ndim):
+
+        # Constructors.
+        x.add_constructor([constrefparam("PhysicalConstants", "constants"),
+                           param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+
+        # Attributes.
+        x.add_instance_attribute("constants", "PhysicalConstants", getter="constants", is_const=True)
+        x.add_instance_attribute("minimumPressure", "double", getter="minimumPressure", setter="minimumPressure")
+        x.add_instance_attribute("maximumPressure", "double", getter="maximumPressure", setter="maximumPressure")
+
+        generateEquationOfStateVirtualBindings(x, ndim, True)
+
+    #---------------------------------------------------------------------------
+    # GammaLawGas
+    #---------------------------------------------------------------------------
+    def generateGammaLawGasBindings(self, x, ndim):
+
+        # Constructor.
+        x.add_constructor([param("double", "gamma"),
+                           param("double", "mu"),
+                           constrefparam("PhysicalConstants", "constants"),
+                           param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+
+        # Attributes.
+        x.add_instance_attribute("gamma", "double", getter="getGamma", setter="setGamma")
+        x.add_instance_attribute("mu", "double", getter="getMolecularWeight", setter="setMolecularWeight")
+
+        generateEquationOfStateVirtualBindings(x, ndim, False)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # PolytropicEquationOfState
+    #---------------------------------------------------------------------------
+    def generatePolytropicEquationOfStateBindings(self, x, ndim):
+
+        # Constructor.
+        x.add_constructor([param("double", "K"),
+                           param("double", "index"),
+                           param("double", "mu"),
+                           constrefparam("PhysicalConstants", "constants"),
+                           param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+
+        # Attributes.
+        x.add_instance_attribute("polytropicConstant", "double", getter="polytropicConstant", is_const=True)
+        x.add_instance_attribute("polytropicIndex", "double", getter="polytropicIndex", is_const=True)
+        x.add_instance_attribute("gamma_", "double", getter="gamma", is_const=True)
+        x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
+        x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
+
+        generateEquationOfStateVirtualBindings(x, ndim, False)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # IsothermalEquationOfState
+    #---------------------------------------------------------------------------
+    def generateIsothermalEquationOfStateBindings(self, x, ndim):
+
+        # Constructor.
+        x.add_constructor([param("double", "K"),
+                           param("double", "mu"),
+                           constrefparam("PhysicalConstants", "constants"),
+                           param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+
+        # Attributes.
+        x.add_instance_attribute("K", "double", getter="K", is_const=True)
+        x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
+        x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
+
+        generateEquationOfStateVirtualBindings(x, ndim, False)
+
+        return
+
+#-------------------------------------------------------------------------------
 # EquationOfState virtual bindings
 #-------------------------------------------------------------------------------
 def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
@@ -66,167 +226,4 @@ def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     return
-
-#---------------------------------------------------------------------------
-# GammaLawGas
-#---------------------------------------------------------------------------
-def generateGammaLawGasBindings(x, ndim):
-
-    # Constructor.
-    x.add_constructor([param("double", "gamma"),
-                       param("double", "mu"),
-                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
-
-    # Attributes.
-    x.add_instance_attribute("gamma", "double", getter="getGamma", setter="setGamma")
-    x.add_instance_attribute("mu", "double", getter="getMolecularWeight", setter="setMolecularWeight")
-
-    generateEquationOfStateVirtualBindings(x, ndim, False)
-
-    return
-
-#---------------------------------------------------------------------------
-# PolytropicEquationOfState
-#---------------------------------------------------------------------------
-def generatePolytropicEquationOfStateBindings(x, ndim):
-
-    # Constructor.
-    x.add_constructor([param("double", "K"),
-                       param("double", "index"),
-                       param("double", "mu"),
-                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
-
-    # Attributes.
-    x.add_instance_attribute("polytropicConstant", "double", getter="polytropicConstant", is_const=True)
-    x.add_instance_attribute("polytropicIndex", "double", getter="polytropicIndex", is_const=True)
-    x.add_instance_attribute("gamma_", "double", getter="gamma", is_const=True)
-    x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
-    x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
-
-    generateEquationOfStateVirtualBindings(x, ndim, False)
-
-    return
-
-#---------------------------------------------------------------------------
-# IsothermalEquationOfState
-#---------------------------------------------------------------------------
-def generateIsothermalEquationOfStateBindings(x, ndim):
-
-    # Constructor.
-    x.add_constructor([param("double", "K"),
-                       param("double", "mu"),
-                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
-
-    # Attributes.
-    x.add_instance_attribute("K", "double", getter="K", is_const=True)
-    x.add_instance_attribute("molecularWeight", "double", getter="molecularWeight", is_const=True)
-    x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="setExternalPressure")
-
-    generateEquationOfStateVirtualBindings(x, ndim, False)
-
-    return
-
-#-------------------------------------------------------------------------------
-# The class to handle wrapping this module.
-#-------------------------------------------------------------------------------
-class Material:
-
-    #---------------------------------------------------------------------------
-    # Add the types to the given module.
-    #---------------------------------------------------------------------------
-    def __init__(self, mod):
-
-        # Includes.
-        mod.add_include('"Material/MaterialTypes.hh"')
-    
-        # Namespace.
-        Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("Material")
-
-        self.unitSet = ("CGS", "MKS", "Cosmological", "Solar")
-        self.dimSet = (1, 2, 3)
-
-        # Expose types.
-        for dim in self.dimSet:
-            exec('''self.EquationOfState%(dim)id = addObject(space, "EquationOfState%(dim)id", allow_subclassing=True)''' % {"dim" : dim})
-        for units in self.unitSet:
-            exec('''self.%(units)sUnits = addObject(space, "%(units)s")''' % {"units" : units})
-            for dim in self.dimSet:
-                exec('''
-self.GammaLawGas%(units)s%(dim)id = addObject(space, "GammaLawGas%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
-self.PolytropicEquationOfState%(units)s%(dim)id = addObject(space, "PolytropicEquationOfState%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
-self.IsothermalEquationOfState%(units)s%(dim)id = addObject(space, "IsothermalEquationOfState%(units)s%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)                
-''' % {"units" : units,
-       "dim" : dim})
-
-        return
-
-    #---------------------------------------------------------------------------
-    # Add the types to the given module.
-    #---------------------------------------------------------------------------
-    def generateBindings(self, mod):
-
-        for dim in self.dimSet:
-            exec('self.generateEquationOfStateBindings(self.EquationOfState%(dim)id, %(dim)i)' % {"dim" : dim})
-
-        for units in self.unitSet:
-            exec('self.generateUnitsBindings(self.%sUnits)' % units)
-
-            for dim in self.dimSet:
-                exec('''
-generateGammaLawGasBindings(self.GammaLawGas%(units)s%(dim)id, %(dim)i)
-generatePolytropicEquationOfStateBindings(self.PolytropicEquationOfState%(units)s%(dim)id, %(dim)i)
-generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(units)s%(dim)id, %(dim)i)
-''' % {"units" : units,
-       "dim"   : dim})
-
-        return
-
-    #---------------------------------------------------------------------------
-    # The new sub modules (namespaces) introduced.
-    #---------------------------------------------------------------------------
-    def newSubModules(self):
-        return ["Material"]
-
-    #---------------------------------------------------------------------------
-    # CGSUnits
-    #---------------------------------------------------------------------------
-    def generateUnitsBindings(self, x):
-
-        # Constructor.
-        x.add_constructor([])
-
-        # Attributes
-        x.add_instance_attribute("protonMass", "double", getter="protonMass", is_const=True)
-        x.add_instance_attribute("electronMass", "double", getter="electronMass", is_const=True)
-        x.add_instance_attribute("electronCharge", "double", getter="electronCharge", is_const=True)
-        x.add_instance_attribute("G", "double", getter="G", is_const=True)
-        x.add_instance_attribute("c", "double", getter="c", is_const=True)
-        x.add_instance_attribute("kB", "double", getter="kB", is_const=True)
-        x.add_instance_attribute("unitLengthMeters", "double", getter="unitLengthMeters", is_const=True)
-        x.add_instance_attribute("unitMassKg", "double", getter="unitMassKg", is_const=True)
-        x.add_instance_attribute("unitTimeSec", "double", getter="unitTimeSec", is_const=True)
-        x.add_instance_attribute("NAvogadro", "double", is_const=True)
-        x.add_instance_attribute("MolarGasConstant", "double", is_const=True)
-        x.add_instance_attribute("KelvinsToEnergyPerMole", "double", is_const=True)
-
-        return
-
-    #---------------------------------------------------------------------------
-    # EquationOfState
-    #---------------------------------------------------------------------------
-    def generateEquationOfStateBindings(self, x, ndim):
-
-        # Constructors.
-        x.add_constructor([param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
-
-        # Attributes.
-        x.add_instance_attribute("minimumPressure", "double", getter="minimumPressure", setter="minimumPressure")
-        x.add_instance_attribute("maximumPressure", "double", getter="maximumPressure", setter="maximumPressure")
-
-        generateEquationOfStateVirtualBindings(x, ndim, True)
 

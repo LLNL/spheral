@@ -21,7 +21,7 @@ namespace Spheral {
 namespace Spheral {
 namespace SolidMaterial {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class GruneisenEquationOfState: public SolidEquationOfState<Dimension> { 
 
 public:
@@ -42,6 +42,7 @@ public:
                            const double gamma0,
                            const double b,
                            const double atomicWeight,
+                           const Material::PhysicalConstants& constants,
                            const double externalPressure = 0.0,
                            const double minimumPressure = -std::numeric_limits<double>::max(),
                            const double maximumPressure = std::numeric_limits<double>::max());
@@ -144,6 +145,8 @@ private:
   GruneisenEquationOfState();
   GruneisenEquationOfState(const GruneisenEquationOfState&);
   GruneisenEquationOfState& operator=(const GruneisenEquationOfState&);
+
+  using Material::EquationOfState<Dimension>::mConstants;
 };
 
 }
@@ -157,7 +160,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    template<typename Dimension,  typename Constants> class GruneisenEquationOfState;
+    template<typename Dimension> class GruneisenEquationOfState;
   }
 }
 

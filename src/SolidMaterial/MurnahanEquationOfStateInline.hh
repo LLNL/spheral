@@ -4,18 +4,18 @@ namespace SolidMaterial {
 //------------------------------------------------------------------------------
 // Access the coefficients. (n)
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 n() const {
   return mn;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 n(const double x) {
   mn = x;
 }
@@ -23,18 +23,18 @@ n(const double x) {
 //------------------------------------------------------------------------------
 // Access the polynomial coefficients. (K)
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 K() const {
   return mK;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 K(const double x) {
   mK = x;
 }
@@ -42,18 +42,18 @@ K(const double x) {
 //------------------------------------------------------------------------------
 // Access the atomic weight
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 atomicWeight() const {
   return mAtomicWeight;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 atomicWeight(const double x) {
   mAtomicWeight = x;
 }
@@ -61,18 +61,18 @@ atomicWeight(const double x) {
 //------------------------------------------------------------------------------
 // Get and set the external pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension, Constants>::
+MurnahanEquationOfState<Dimension>::
 externalPressure(const double val) {
   mExternalPressure = val;
 }

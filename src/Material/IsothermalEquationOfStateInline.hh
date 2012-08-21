@@ -4,10 +4,10 @@ namespace Material {
 //------------------------------------------------------------------------------
 // Access the polytropic constant.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 K() const {
   return mK;
 }
@@ -15,10 +15,10 @@ K() const {
 //------------------------------------------------------------------------------
 // Access the molecular weight.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 molecularWeight() const {
   return mMolecularWeight;
 }
@@ -26,18 +26,18 @@ molecularWeight() const {
 //------------------------------------------------------------------------------
 // Access the external pressure.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 double
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 inline
 void
-IsothermalEquationOfState<Dimension, Constants>::
+IsothermalEquationOfState<Dimension>::
 setExternalPressure(double P) {
   mExternalPressure = P;
 }

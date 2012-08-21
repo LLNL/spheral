@@ -7,6 +7,7 @@
 #define __Spheral_EquationOfState_hh__
 
 #include <limits>
+#include "PhysicalConstants.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -29,7 +30,8 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  EquationOfState(const double minimumPressure = -std::numeric_limits<double>::max(),
+  EquationOfState(const PhysicalConstants& constants,
+                  const double minimumPressure = -std::numeric_limits<double>::max(),
                   const double maximumPressure = std::numeric_limits<double>::max());
 
   virtual ~EquationOfState();
@@ -87,6 +89,9 @@ public:
   virtual Scalar bulkModulus(const Scalar massDensity,
                              const Scalar specificThermalEnergy) const = 0;
 
+  // The set of constants defining our units.
+  const PhysicalConstants& constants() const;
+
   // The min and max allowed pressures.
   double minimumPressure() const;
   double maximumPressure() const;
@@ -96,8 +101,14 @@ public:
   // Equations of state should have a valid test.
   virtual bool valid() const = 0;
 
+protected:
+  PhysicalConstants mConstants;
+
 private:
   double mMinimumPressure, mMaximumPressure;
+
+  // No default constructor.
+  EquationOfState();
 };
 
 }

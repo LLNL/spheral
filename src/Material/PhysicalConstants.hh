@@ -10,39 +10,48 @@
 namespace Spheral {
 namespace Material {
 
-template<typename UnitsType>
 class PhysicalConstants {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  
+  // You must provide the base mass, length, and time in MKS.
+  PhysicalConstants(const double unitLm,
+                    const double unitMkg,
+                    const double unitTsec);
 
+  // The fundamental independent quantities.
+  double unitLengthMeters() const;
+  double unitMassKg() const;
+  double unitTimeSec() const;
+
+  // All the stuff we provide.
   double protonMass() const;
   double electronMass() const;
   double electronCharge() const;
   double G() const;
   double c() const;
   double kB() const;
-  double unitLengthMeters() const;
-  double unitMassKg() const;
-  double unitTimeSec() const;
-
-  static const double ProtonMass;
-  static const double ElectronMass;
-  static const double ElectronCharge;
-  static const double GGravity;
-  static const double cLight;
-  static const double kBoltzmann;
-
-  static const double unitLm;
-  static const double unitMkg;
-  static const double unitTsec;
-
-  static const double NAvogadro;
-  static const double MolarGasConstant;
-  static const double KelvinsToEnergyPerMole;
+  double Navogadro() const;
+  double molarGasConstant() const;
+  double kelvinsToEnergyPerMole() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  // Independent variables.
+  double mUnitLm, mUnitMkg, mUnitTsec;
+
+  // Dependent variables.
+  const double ProtonMass;
+  const double ElectronMass;
+  const double ElectronCharge;
+  const double GGravity;
+  const double cLight;
+  const double kBoltzmann;
+  const double MolarGasConstant;
+  const double KelvinsToEnergyPerMole;
+
+  // The reference MKS data we base our values on.
   static const double mpMKS;
   static const double meMKS;
   static const double qeMKS;
@@ -51,6 +60,7 @@ private:
   static const double cMKS;
   static const double kBMKS;
   static const double RgasMKS;
+  static const double NAvogadro;
 
 };
 
@@ -66,7 +76,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace Material {
-    template<typename UnitsType> class PhysicalConstants;
+    class PhysicalConstants;
   }
 }
 

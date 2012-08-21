@@ -14,6 +14,10 @@ SRCTARGETS = \
 	PorousEquationOfStateInst.cc \
 	StrainPorosityInst.cc
 
+PYTHONTARGETS = \
+	SolidMaterialUnits.py \
+	SolidMaterialEquationsOfState.py
+
 SPHERALTOP = ../../../spheral/src
 SOLIDTOP = ..
 ARCH = $(SPHERALARCH)

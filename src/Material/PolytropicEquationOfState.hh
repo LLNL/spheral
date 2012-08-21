@@ -11,7 +11,7 @@
 namespace Spheral {
 namespace Material {
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 class PolytropicEquationOfState: public EquationOfState<Dimension> {
 
 public:
@@ -25,6 +25,7 @@ public:
   PolytropicEquationOfState(const double K,
                             const double index,
                             const double mu,
+                            const PhysicalConstants& constants,
                             const double minimumPressure = -std::numeric_limits<double>::max(),
                             const double maximumPressure = std::numeric_limits<double>::max());
   ~PolytropicEquationOfState();
@@ -108,6 +109,7 @@ private:
   PolytropicEquationOfState(const PolytropicEquationOfState&);
   PolytropicEquationOfState& operator=(const PolytropicEquationOfState&);
 
+  using EquationOfState<Dimension>::mConstants;
 };
 
 }
@@ -122,7 +124,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace Material {
-    template<typename Dimension, typename Constants> class PolytropicEquationOfState;
+    template<typename Dimension> class PolytropicEquationOfState;
   }
 }
 

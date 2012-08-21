@@ -20,8 +20,8 @@ using std::max;
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-SteinbergGuinanStrength<Dimension, Constants>::
+template<typename Dimension>
+SteinbergGuinanStrength<Dimension>::
 SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
                         const double G0,     
                         const double A,      
@@ -52,17 +52,17 @@ SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
-SteinbergGuinanStrength<Dimension, Constants>::
+template<typename Dimension>
+SteinbergGuinanStrength<Dimension>::
 ~SteinbergGuinanStrength() {
 }
 
 //------------------------------------------------------------------------------
 // Compute the shear modulus.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 shearModulus(const double density,
              const double specificThermalEnergy,
              const double pressure) const {
@@ -90,9 +90,9 @@ shearModulus(const double density,
 //------------------------------------------------------------------------------
 // Compute the yield strength.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 yieldStrength(const double density,
               const double specificThermalEnergy,
               const double pressure,
@@ -119,9 +119,9 @@ yieldStrength(const double density,
 //------------------------------------------------------------------------------
 // Compute the full sound speed.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 soundSpeed(const double density,
            const double specificThermalEnergy,
            const double pressure,
@@ -136,9 +136,9 @@ soundSpeed(const double density,
 //------------------------------------------------------------------------------
 // Compute the melt attenuation.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 meltAttenuation(const double density, const double specificThermalEnergy) const {
   const double tiny = 1.0e-5;
   const double rho0 = mEOSPtr->referenceDensity();
@@ -166,9 +166,9 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
 //------------------------------------------------------------------------------
 // Compute the Steinberg-Guinan effective temperature.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 computeTemperature(const double density, const double specificThermalEnergy) const {
   const double Cv = mEOSPtr->specificHeat(density, specificThermalEnergy);
   const double rho0 = mEOSPtr->referenceDensity();
@@ -182,79 +182,79 @@ computeTemperature(const double density, const double specificThermalEnergy) con
 //------------------------------------------------------------------------------
 // Access the strength parameters.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 G0() const {
   return mG0;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 A() const {
   return mA;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 B() const {
   return mB;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 Y0() const {
   return mY0;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 Ymax() const {
   return mYmax;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 Yp() const {
   return mYp;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 beta() const {
   return mbeta;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 gamma0() const {
   return mgamma0;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 double
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 nhard() const {
   return mnhard;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 const NinthOrderPolynomialFit&
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 coldEnergyFit() const {
   return mColdEnergyFit;
 }
 
-template<typename Dimension, typename Constants>
+template<typename Dimension>
 const NinthOrderPolynomialFit&
-SteinbergGuinanStrength<Dimension, Constants>::
+SteinbergGuinanStrength<Dimension>::
 meltEnergyFit() const {
   return mMeltEnergyFit;
 }
