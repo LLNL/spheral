@@ -307,12 +307,13 @@ idealSmoothingScale(const SymTensor& H,
   }
   CHECK(currentNodesPerSmoothingScale > 0.0);
 
-  // Determine if we should limit the new h by the total number of neighbors.
-  // number of neighbors.
-  const Scalar maxNeighborLimit = Dimension::rootnu(double(maxNumNeighbors)/double(max(1, numNeighbors)));
+  // // Determine if we should limit the new h by the total number of neighbors.
+  // // number of neighbors.
+  // const Scalar maxNeighborLimit = Dimension::rootnu(double(maxNumNeighbors)/double(max(1, numNeighbors)));
+  // const Scalar s = min(maxNeighborLimit, min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
 
   // The (limited) ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(maxNeighborLimit, min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
+  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
 
   // Determine a weighting factor for how confident we are in the second
   // moment measurement, as a function of the effective number of nodes we're 
