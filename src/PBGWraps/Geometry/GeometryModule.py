@@ -717,6 +717,9 @@ class Geometry:
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
 
+        # String representation.
+        x.add_output_stream_operator()
+
         return
 
     #-------------------------------------------------------------------------------

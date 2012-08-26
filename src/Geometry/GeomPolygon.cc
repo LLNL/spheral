@@ -12,6 +12,9 @@
 
 #include "boost/foreach.hpp"
 
+#include "polytope/polytope.hh"
+#include "polytope/convexHull_2d.hh"
+
 #include "GeomPolygon.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
@@ -20,10 +23,6 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
-
-extern "C" {
-#include "libqhull/qhull_a.h"
-}
 
 namespace Spheral {
 
@@ -58,55 +57,44 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     REQUIRE(points.size() > 2);
 
-    // Find the appropriate renormalization so that we can give Qhull points
-    // in a unit box.  Qhull just seems to work better this way.
+    // Find the appropriate renormalization so that we can do the convex hull
+    // in a unit box.
     Vector xmin, xmax;
     boundingBox(points, xmin, xmax);
     const double fscale = (xmax - xmin).maxElement();
     CHECK(fscale > 0.0);
 
-    // Copy the point coordinates to a Qhull point array.
-    std::vector<coordT> points_qhull;
-    points_qhull.reserve(2 * points.size());
+    // Copy the point coordinates to a polytope point array.
+    vector<double> points_polytope;
+    points_polytope.reserve(2 * points.size());
     BOOST_FOREACH(Vector vec, points) {
-      points_qhull.push_back((vec.x() - xmin.x())/fscale);
-      points_qhull.push_back((vec.y() - xmin.y())/fscale);
+      points_polytope.push_back((vec.x() - xmin.x())/fscale);
+      points_polytope.push_back((vec.y() - xmin.y())/fscale);
     }
-    CHECK(points_qhull.size() == 2*points.size());
+    CHECK(points_polytope.size() == 2*points.size());
 
-    // Call Qhull to generate the hull (C interface).
-    boolT ismalloc = False;   /* True if qhull should free points in qh_freeqhull() or reallocation */
-    char flags[250];          /* option flags for qhull, see qh_opt.htm */
-//     FILE *outfile= NULL;      /* output from qh_produce_output()
-//                                  use NULL to skip qh_produce_output() */
-//     FILE *errfile= stderr;    /* error messages from qhull code */
-//     FILE *outfile= fopen("/dev/null", "w");
-//     FILE *outfile = fopen("qhull.barf", "w");
-//     FILE *errfile= fopen("/dev/null", "w");    /* error messages from qhull code */
-    facetT *facet;            /* set by FORALLfacets */
-    int curlong, totlong;     /* memory remaining after qh_memfreeshort */
-    sprintf(flags, "qhull s Tcv");
-    const int exitcode_qhull = qh_new_qhull(2, points.size(), &points_qhull.front(), ismalloc, flags, mDevnull, mDevnull);
-    VERIFY2(exitcode_qhull == 0,
-            "Qhull emitted an error code while generating GeomPolygon");
+    // Call the polytope method for computing the convex hull.
+    vector<double> low(2, 0.0);
+    polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-10);
+    const unsigned numVertices = plc.facets.size();
+    CHECK(numVertices >= 3);
 
-    // Copy Qhull's vertex information.
-    vertexT *vertex, **vertexp;
-    FORALLvertices {
-      mVertices.push_back(fscale*Vector(vertex->point[0], vertex->point[1]) + xmin);
+    // Extract the hull information back to our local convention.  We use the fact that
+    // polytope's convex hull method sorts the vertices in counter-clockwise here.
+    // Start with the vertices.
+    mVertices.reserve(numVertices);
+    int i, j;
+    for (j = 0; j != numVertices; ++j) {
+      CHECK(plc.facets[j].size() == 2);
+      i = plc.facets[j][0];
+      CHECK(i >= 0 and i < points.size());
+      mVertices.push_back(points[i]);
     }
 
-    // Free Qhull's resources.
-    qh_freeqhull(!qh_ALL);
-    qh_memfreeshort(&curlong, &totlong);
-
-    // Ensure the vertices are arranged counter-clockwise.
-    CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
-    sort(mVertices.begin() + 1, mVertices.end(), nodeComparator);
-
-    // Generate the facets.
-    for (unsigned i = 0; i != mVertices.size(); ++i) {
-      const unsigned j = (i + 1) % mVertices.size();
+    // Now the facets.
+    mFacets.reserve(numVertices);
+    for (i = 0; i != numVertices; ++i) {
+      j = (i + 1) % numVertices;
       mFacets.push_back(Facet(mVertices, i, j));
     }
 
@@ -117,13 +105,18 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     BEGIN_CONTRACT_SCOPE;
     {
       // Ensure the facet node ordering is correct.
+      CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, mVertices[0]);
       BOOST_FOREACH(const Facet& facet, mFacets) ENSURE(nodeComparator(facet.point1(), facet.point2()) >= 0);
 
       // All normals should be outward facing.
       Vector centroid, vec;
       BOOST_FOREACH(vec, mVertices) centroid += vec;
       centroid /= mVertices.size();
-      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0);
+      BOOST_FOREACH(const Facet& facet, mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
+                                                         facet.point1() << " " << facet.point2() << " : "
+                                                         << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
+                                                         << facet.normal() << " : "
+                                                         << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
 
       // Ensure the vertices are listed in counter-clockwise order.
       for (unsigned i = 0; i != mVertices.size(); ++i) {
@@ -567,6 +560,21 @@ convex(const double tol) const {
     ++vertexItr;
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// ostream operator.
+//------------------------------------------------------------------------------
+ostream& operator<<(ostream& os, const GeomPolygon& polygon) {
+  typedef GeomPolygon::Vector Vector;
+  typedef GeomPolygon::Facet Facet;
+  const vector<Vector>& vertices = polygon.vertices();
+  if (vertices.size() > 0) {
+    for (unsigned i = 0; i != vertices.size(); ++i) {
+      os << vertices[i].x() << " " << vertices[i].y() << endl;
+    }
+  }
+  return os;
 }
 
 //------------------------------------------------------------------------------
