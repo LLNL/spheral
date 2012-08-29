@@ -6,6 +6,7 @@
 #include <numeric>
 #include <limits>
 #include <algorithm>
+#include "boost/foreach.hpp"
 
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
@@ -186,6 +187,14 @@ face(const unsigned i) const {
   return mFaces[i];
 }
 
+template<typename Dimension>
+inline
+const typename Mesh<Dimension>::Face&
+Mesh<Dimension>::
+face(const int i) const {
+  return this->face(unsigned(i < 0 ? ~i : i));
+}
+
 //------------------------------------------------------------------------------
 // Mesh::faceBegin
 //------------------------------------------------------------------------------
@@ -218,6 +227,14 @@ Mesh<Dimension>::
 zone(const unsigned i) const {
   REQUIRE2(i < mZones.size(), i << " " << mZones.size());
   return mZones[i];
+}
+
+template<typename Dimension>
+inline
+const typename Mesh<Dimension>::Zone&
+Mesh<Dimension>::
+zone(const int i) const {
+  return this->zone(unsigned(i < 0 ? ~i : i));
 }
 
 //------------------------------------------------------------------------------
@@ -322,6 +339,8 @@ double
 Mesh<Dimension>::
 minimumScale() const {
   
+  using namespace boost;
+
   // Minimum edge length.
   double result = std::numeric_limits<double>::max();
   for (unsigned i = 0; i != numEdges(); ++i) {
@@ -333,11 +352,9 @@ minimumScale() const {
   for (unsigned izone = 0; izone != numZones(); ++izone) {
     const Zone& zone = this->zone(izone);
     const Vector zonePosition = zone.position();
-    const std::vector<unsigned>& faces = zone.faceIDs();
-    for (std::vector<unsigned>::const_iterator itr = faces.begin();
-         itr != faces.end();
-         ++itr) {
-      const Face& face = this->face(*itr);
+    const std::vector<int>& faces = zone.faceIDs();
+    BOOST_FOREACH(int i, faces) {
+      const Face& face = this->face(i);
       result = std::min(result, (face.position() - zonePosition).magnitude2());
     }
   }
@@ -405,6 +422,22 @@ reassignIDs(std::vector<unsigned>& ids,
   }
 }
 
+template<typename Dimension>
+inline
+void
+Mesh<Dimension>::
+reassignIDs(std::vector<int>& ids,
+            const std::vector<unsigned>& old2new) const {
+  unsigned id;
+  for (size_t k = 0; k != ids.size(); ++k) {
+    id = this->positiveID(ids[k]);
+    if (id != UNSETID) {
+      CHECK(id < old2new.size());
+      ids[k] = (ids[k] < 0 ? ~old2new[id] : old2new[id]);
+    }
+  }
+}
+
 //------------------------------------------------------------------------------
 // Mesh::removeUNSETIDs
 //------------------------------------------------------------------------------
@@ -416,6 +449,19 @@ removeUNSETIDs(std::vector<unsigned>& ids) const {
   std::vector<unsigned> kill;
   for (size_t k = 0; k != ids.size(); ++k) {
     if (ids[k] == UNSETID) kill.push_back(k);
+  }
+  removeElements(ids, kill);
+}
+
+template<typename Dimension>
+inline
+void
+Mesh<Dimension>::
+removeUNSETIDs(std::vector<int>& ids) const {
+  std::vector<unsigned> kill;
+  for (size_t k = 0; k != ids.size(); ++k) {
+    if ( ids[k] ==  UNSETID or
+        ~ids[k] == ~UNSETID) kill.push_back(k);
   }
   removeElements(ids, kill);
 }
@@ -445,6 +491,17 @@ storeNodeListOffsets(NodeListIterator begin,
     mNodeListNameOffsets[(**itr).name()] = offsets[i];
     mNodeListIndexOffsets.push_back(offsets[i]);
   }
+}
+
+//------------------------------------------------------------------------------
+// A convenience for getting the actual (positive) ID of a signed id.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+Mesh<Dimension>::
+positiveID(const int id) const {
+  return id < 0 ? ~id : id;
 }
 
 }

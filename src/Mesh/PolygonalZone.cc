@@ -45,7 +45,7 @@ template<>
 Mesh<Dim<2> >::Zone::
 Zone(const Mesh<Dim<2> >& mesh,
      const unsigned ID,
-     const vector<unsigned>& faceIDs):
+     const vector<int>& faceIDs):
   mMeshPtr(&mesh),
   mID(ID),
   mNodeIDs(),
@@ -56,29 +56,27 @@ Zone(const Mesh<Dim<2> >& mesh,
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(mFaceIDs.size() > 2);
-    for (vector<unsigned>::const_iterator itr = mFaceIDs.begin();
-         itr != mFaceIDs.end();
-         ++itr) {
-      REQUIRE(*itr < mMeshPtr->mFaces.size());
-      REQUIRE(mMeshPtr->mFaces[*itr].mEdgeIDs.size() == 1);
-      REQUIRE(mMeshPtr->mFaces[*itr].mEdgeIDs[0] == *itr);
+    BOOST_FOREACH(int i, mFaceIDs) {
+      int j = (i < 0 ? ~i : i);
+      REQUIRE(j < mMeshPtr->mFaces.size());
+      REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs.size() == 1);
+      REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs[0] == j);
     }
   }
   END_CONTRACT_SCOPE;
   
-//   // Sort the faces to be counter-clockwise around the zone.
-//   CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, mFaceIDs[0]);
-//   sort(mFaceIDs.begin() + 1, mFaceIDs.end(), faceComparator);
-
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
-  mEdgeIDs = mFaceIDs;
+  int faceID;
+  BOOST_FOREACH(faceID, mFaceIDs) mEdgeIDs.push_back(faceID < 0 ? ~faceID : faceID);
 
-  // We need the nodes sorted counter-clockwise around the zone.  Since the edges
-  // are now sorted correctly, we can get this by taking the common node for each edge pair
-  // around the zone.
+  // We need the nodes sorted counter-clockwise around the zone.  The faces
+  // are already sorted, so we can leverage that info.  Note we are using the
+  // fact that faces and edges are degenerate here.
   const unsigned numEdges = mEdgeIDs.size();
-  unsigned i , j, n1i, n2i, n1j, n2j;
-  for (i = 0; i != numEdges; ++i) {
+  int i;
+  unsigned j, n1i, n2i, n1j, n2j;
+  BOOST_FOREACH(faceID, mFaceIDs) {
+    i = (faceID < 0 ? ~faceID : faceID);
     j = (i + 1) % numEdges;
     n1i = mMeshPtr->mEdges[mEdgeIDs[i]].node1ID();
     n2i = mMeshPtr->mEdges[mEdgeIDs[i]].node2ID();
@@ -111,7 +109,8 @@ Zone(const Mesh<Dim<2> >& mesh,
     for (unsigned i = 0; i != mFaceIDs.size(); ++i) {
       ENSURE(mNodeIDs[i] < mMeshPtr->mNodes.size());
       ENSURE(mEdgeIDs[i] < mMeshPtr->mEdges.size());
-      ENSURE(mFaceIDs[i] < mMeshPtr->mFaces.size());
+      ENSURE((mFaceIDs[i] < 0 and ~mFaceIDs[i] < mMeshPtr->mFaces.size()) or
+             mFaceIDs[i] < mMeshPtr->mFaces.size());
     }
 
     // Make sure the elements are unique!
@@ -121,7 +120,8 @@ Zone(const Mesh<Dim<2> >& mesh,
     vector<unsigned> edgeIDs(mEdgeIDs);
     sort(edgeIDs.begin(), edgeIDs.end());
     ENSURE(unique(edgeIDs.begin(), edgeIDs.end()) == edgeIDs.end());
-    vector<unsigned> faceIDs(mFaceIDs);
+    vector<unsigned> faceIDs;
+    BOOST_FOREACH(i, mFaceIDs) faceIDs.push_back(i < 0 ? ~i : i);
     sort(faceIDs.begin(), faceIDs.end());
     ENSURE(unique(faceIDs.begin(), faceIDs.end()) == faceIDs.end());
 

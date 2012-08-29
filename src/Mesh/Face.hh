@@ -19,8 +19,8 @@ public:
   //---------------------------------------------------------------------------
   Face(const Mesh<Dimension>& mesh,
        const unsigned ID,
-       const unsigned zone1ID,
-       const unsigned zone2ID,
+       const int zone1ID,
+       const int zone2ID,
        const std::vector<unsigned>& edgeIDs);
 
   // The ID of this Face.
@@ -35,8 +35,8 @@ public:
   const std::vector<unsigned>& edgeIDs() const;
 
   // ID's of the zones that share this face.
-  unsigned zone1ID() const;
-  unsigned zone2ID() const;
+  int zone1ID() const;
+  int zone2ID() const;
 
   // Position of the face.
   Vector position() const;
@@ -48,7 +48,7 @@ public:
   Vector unitNormal() const;
 
   // Return the other zone sharing this face.
-  unsigned oppositeZoneID(const unsigned zoneID) const;
+  int oppositeZoneID(const int zoneID) const;
 
   // Is the given point above, below, or coplanar with the facet?
   int compare(const Vector& point,
@@ -57,7 +57,8 @@ public:
   //--------------------------- Private Interface ---------------------------//
 private:
   const Mesh<Dimension>* mMeshPtr;
-  unsigned mID, mZone1ID, mZone2ID;
+  unsigned mID;
+  int mZone1ID, mZone2ID;
   std::vector<unsigned> mNodeIDs, mEdgeIDs;
   Face();
 

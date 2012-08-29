@@ -118,17 +118,17 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
   mFaces.push_back(Face(*this,
                         0,
                         UNSETID,
-                        zoneOrder[0],
+                        ~zoneOrder[0],
                         vector<unsigned>(1, 0)));
   for (unsigned i = 1; i < mNodePositions.size() - 1; ++i) mFaces.push_back(Face(*this,
                                                                                  i,
                                                                                  zoneOrder[i - 1],
-                                                                                 zoneOrder[i],
+                                                                                 ~zoneOrder[i],
                                                                                  vector<unsigned>(1, i)));
   mFaces.push_back(Face(*this,
                         mNodePositions.size() - 1,
                         zoneOrder[mNodePositions.size() - 2],
-                        UNSETID,
+                        ~UNSETID,
                         vector<unsigned>(1, mNodePositions.size() - 1)));
   CHECK(mFaces.size() == mNodePositions.size());
   // for (unsigned i = 0; i != mFaces.size(); ++i) {
@@ -141,8 +141,8 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
 
   // Finally construct the zones.
   for (unsigned igen = 0; igen != generators.size(); ++igen) {
-    const unsigned node1 = sortedZoneIDs[igen];
-    const unsigned node2 = node1 + 1;
+    const int node1 = sortedZoneIDs[igen];
+    const int node2 = node1 + 1;
     CHECK2(generators[igen].x() > mNodePositions[node1].x() and
            generators[igen].x() < mNodePositions[node2].x(),
            "Generator outside node boundaries!  "
@@ -153,9 +153,9 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
 
     // Now we can build the zone.
     // We use the fact that there is a one to one mapping of nodes->faces.
-    vector<unsigned> faceIDs;
+    vector<int> faceIDs;
     faceIDs.push_back(node1);
-    faceIDs.push_back(node2);
+    faceIDs.push_back(~node2);
     mZones.push_back(Zone(*this, igen, faceIDs));
   }
 

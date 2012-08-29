@@ -391,6 +391,9 @@ class PolygonalMeshGenericTests:
                                            generateVoid = False,
                                            generateParallelConnectivity = True)
         bs = mesh.boundingSurface()
+        f = open("surface.gnu", "w")
+        f.write(str(bs))
+        f.close()
 
 ##         if mpi.rank == 0:
 ##             p = plotPolygon(bs, plotNormals=True, persist=True)
