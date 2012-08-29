@@ -83,10 +83,11 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 #PARMETISMAKEFILE = Makefile.ParMETIS
 
 # Tau
-TAUURL=http://tau.uoregon.edu/$(TAUDIST)
-TAUDIR = $(TAUDIST:.tgz=-2.21.3)
-TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
-TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
+TAUDIST = tau-$(TAUVERSION).tar.gz
+TAUURL=http://www.cs.uoregon.edu/Research/tau/tau_releases/$(TAUDIST)
+TAUDIR = $(TAUDIST:.tar.gz=)
+TAUBUILDDATE = $(patsubst %.tar.gz, .%.date, $(TAUDIST))
+TAUDUMMYDATE = $(patsubst %.tar.gz, .%.dummydate, $(TAUDIST))
 
 # Pygtk
 PYGTKDIST = pygtk-2.12.1.tar.gz
