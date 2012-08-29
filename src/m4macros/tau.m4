@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------
 AC_SUBST(TAUFLAGS)
 AC_SUBST(TAULIBS)
-AC_SUBST(TAUDIST)
+AC_SUBST(TAUVERSION)
 AC_SUBST(TAUTARGET)
 AC_SUBST(TAUCONFIGUREFLAGS)
 AC_SUBST(TAUMAKEFILE)
@@ -18,7 +18,7 @@ AC_SUBST(OPT)
 AC_SUBST(DISTRIBUTEDOPT)
 
 AC_DEFUN([SETUP_TAU],[
-TAUDIST="tau.tgz"
+TAUVERSION=2.21.3
 AC_MSG_CHECKING(for --with-tau)
 AC_ARG_WITH(tau,
 [  --with-tau ............................... turn on Tau class profiling],
@@ -26,7 +26,7 @@ AC_ARG_WITH(tau,
   AC_MSG_RESULT(yes)
   TAUFLAGS="\$(TAU_INCLUDE) \$(TAU_MPI_INCLUDE) \$(TAU_DEFS) -DPROFILING_ON"
   TAULIBS="\$(TAU_MPI_LIBS) \$(TAU_LDFLAGS) \$(TAU_SHLIBS)"
-  TAUTARGET=".tau.date"
+  TAUTARGET=".tau-\$(TAUVERSION).date"
 
   OSNAME=`uname -s`
   OSMACH=`uname -m`
@@ -68,12 +68,12 @@ AC_ARG_WITH(tau,
   else
     TAUCONFIGUREFLAGS="$TAUCONFIGUREFLAGS"
   fi
-  TAUMAKEFILE="include \$(SPHERALTOP)/thirdPartyLibs/tau-2.21.3/Makefile.tau"
+  TAUMAKEFILE="include \$(SPHERALTOP)/thirdPartyLibs/tau-$(TAUVERSION)/Makefile.tau"
 ],
 [
   AC_MSG_RESULT(no)
-  TAUTARGET=".tau.dummydate"
-  TAUFLAGS="-I \$(SPHERALTOP)/thirdPartyLibs/tau-2.21.3/include"
+  TAUTARGET=".tau-\$(TAUVERSION).dummydate"
+  TAUFLAGS="-I \$(SPHERALTOP)/thirdPartyLibs/tau-\$(TAUVERSION)/include"
   TAUMAKEFILE="TAU_INCLUDE = \$(TAUFLAGS)"
 ])
 
