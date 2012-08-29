@@ -19,7 +19,7 @@ public:
   //---------------------------------------------------------------------------
   Zone(const Mesh<Dimension>& mesh,
        const unsigned ID,
-       const std::vector<unsigned>& faceIDs);
+       const std::vector<int>& faceIDs);
 
   // ID of the zone.
   unsigned ID() const;
@@ -32,7 +32,7 @@ public:
   // The ID's of the subelements that make up the zone.
   const std::vector<unsigned>& nodeIDs() const;
   const std::vector<unsigned>& edgeIDs() const;
-  const std::vector<unsigned>& faceIDs() const;
+  const std::vector<int>& faceIDs() const;
 
   // Position.
   Vector position() const;
@@ -47,7 +47,8 @@ public:
 private:
   const Mesh<Dimension>* mMeshPtr;
   unsigned mID;
-  std::vector<unsigned> mNodeIDs, mEdgeIDs, mFaceIDs;
+  std::vector<unsigned> mNodeIDs, mEdgeIDs;
+  std::vector<int> mFaceIDs;
   Zone();
 
   friend class Mesh<Dimension>;

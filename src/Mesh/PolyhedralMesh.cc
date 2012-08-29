@@ -43,7 +43,8 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   const double xtol2 = xtol*xtol;
 
   // Pre-conditions.
-  unsigned i, j, k, igen, jgen, numGens = generators.size();
+  int i, j, k, igen, jgen;
+  const unsigned numGens = generators.size();
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin.x() < xmax.x() and
@@ -87,7 +88,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                                                             true);    // Build parallel connectivity
     tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #else
-    polytope::TetGenTessellator<double> tessellator;
+    polytope::TetgenTessellator<double> tessellator;
     tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
   }
@@ -119,9 +120,8 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     CHECK(tessellation.faceCells[i].size() == 1 or
           tessellation.faceCells[i].size() == 2);
     igen = tessellation.faceCells[i][0];
-    jgen = (tessellation.faceCells[i].size() == 2 ? 
-            tessellation.faceCells[i][1] :
-            UNSETID);
+    jgen = (tessellation.faceCells[i].size() == 2 ? tessellation.faceCells[i][1] :
+            igen < 0 ? UNSETID : ~UNSETID);
     vector<unsigned> faceEdges;
     for (j = 0; j != n; ++j) {
       inode = tessellation.faces[i][j];
@@ -139,6 +139,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     }
     mFaces.push_back(Face(*this, i, igen, jgen, faceEdges));
     BOOST_FOREACH(j, tessellation.faceCells[i]) {
+      j = this->positiveID(j);
       nodeZones[inode].insert(j);
       nodeZones[jnode].insert(j);
     }
@@ -153,13 +154,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   CHECK(mNodes.size() == numNodes);
 
   // Construct the zones.
-  for (i = 0; i != numGens; ++i) {
-    vector<unsigned> faceIDs;
-    BOOST_FOREACH(int f, tessellation.cells[i]) {
-      faceIDs.push_back(f >= 0 ? f : ~f);
-    }
-    mZones.push_back(Zone(*this, i, faceIDs));
-  }
+  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(*this, i, tessellation.cells[i]));
   CHECK(mZones.size() == numGens);
 
   // Copy the parallel info.

@@ -118,6 +118,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
             UNSETID);
     mEdges.push_back(Edge(*this, i, inode, jnode));
     mFaces.push_back(Face(*this, i, igen, jgen, vector<unsigned>(1, i)));
+
     BOOST_FOREACH(j, tessellation.faceCells[i]) {
       nodeZones[inode].insert(j);
       nodeZones[jnode].insert(j);
@@ -134,13 +135,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   CHECK(mNodes.size() == numNodes);
 
   // Construct the zones.
-  for (i = 0; i != numGens; ++i) {
-    vector<unsigned> faceIDs;
-    BOOST_FOREACH(int f, tessellation.cells[i]) {
-      faceIDs.push_back(f >= 0 ? f : ~f);
-    }
-    mZones.push_back(Zone(*this, i, faceIDs));
-  }
+  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(*this, i, tessellation.cells[i]));
   CHECK(mZones.size() == numGens);
 
   // Copy the parallel info.

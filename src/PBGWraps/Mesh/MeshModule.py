@@ -117,8 +117,8 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("cleanEdges", None, [param("double", "edgeTol")])
         x.add_method("node", node, [param("unsigned int", "i")], is_const=True)
         x.add_method("edge", edge, [param("unsigned int", "i")], is_const=True)
-        x.add_method("face", face, [param("unsigned int", "i")], is_const=True)
-        x.add_method("zone", zone, [param("unsigned int", "i")], is_const=True)
+        x.add_method("face", face, [param("int", "i")], is_const=True)
+        x.add_method("zone", zone, [param("int", "i")], is_const=True)
         x.add_method("zone", zone, [constrefparam(nodelist, "nodeList"), param("unsigned int", "i")], is_const=True)
         x.add_method("zone", zone, [param("unsigned int", "nodeListi"), param("unsigned int", "i")], is_const=True)
         x.add_method("offset", "unsigned int", [constrefparam(nodelist, "nodeList")], is_const=True)
@@ -228,23 +228,23 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         # Constructors.
         x.add_constructor([constrefparam(mesh, "mesh"),
                            param("unsigned int", "ID"),
-                           param("unsigned int", "zone1ID"),
-                           param("unsigned int", "zone2ID"),
+                           param("int", "zone1ID"),
+                           param("int", "zone2ID"),
                            param("vector_of_unsigned", "edgeIDs")])
 
         # Methods.
         x.add_method("position", vector, [], is_const=True)
         x.add_method("area", "double", [], is_const=True)
         x.add_method("unitNormal", vector, [], is_const=True)
-        x.add_method("oppositeZoneID", "unsigned int", [param("unsigned int", "zoneID")], is_const=True)
+        x.add_method("oppositeZoneID", "int", [param("int", "zoneID")], is_const=True)
         x.add_method("compare", "int", [constrefparam(vector, "point"), param("double", "tol", default_value="1.0e-8")], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
         x.add_instance_attribute("numNodes", "unsigned int", getter="numNodes", is_const=True)
         x.add_instance_attribute("numEdges", "unsigned int", getter="numEdges", is_const=True)
-        x.add_instance_attribute("zone1ID", "unsigned int", getter="zone1ID", is_const=True)
-        x.add_instance_attribute("zone2ID", "unsigned int", getter="zone2ID", is_const=True)
+        x.add_instance_attribute("zone1ID", "int", getter="zone1ID", is_const=True)
+        x.add_instance_attribute("zone2ID", "int", getter="zone2ID", is_const=True)
         x.add_instance_attribute("nodeIDs", "vector_of_unsigned", getter="nodeIDs", is_const=True)
         x.add_instance_attribute("edgeIDs", "vector_of_unsigned", getter="edgeIDs", is_const=True)
 
@@ -268,7 +268,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         # Constructors.
         x.add_constructor([constrefparam(mesh, "mesh"),
                            param("unsigned int", "ID"),
-                           param("vector_of_unsigned", "faceIDs")])
+                           param("vector_of_int", "faceIDs")])
 
         # Methods.
         x.add_method("position", vector, [], is_const=True)
@@ -282,7 +282,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_instance_attribute("numFaces", "unsigned int", getter="numFaces", is_const=True)
         x.add_instance_attribute("nodeIDs", "vector_of_unsigned", getter="nodeIDs", is_const=True)
         x.add_instance_attribute("edgeIDs", "vector_of_unsigned", getter="edgeIDs", is_const=True)
-        x.add_instance_attribute("faceIDs", "vector_of_unsigned", getter="faceIDs", is_const=True)
+        x.add_instance_attribute("faceIDs", "vector_of_int", getter="faceIDs", is_const=True)
 
         return
 

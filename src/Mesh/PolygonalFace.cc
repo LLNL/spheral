@@ -18,8 +18,8 @@ template<>
 Mesh<Dim<2> >::Face::
 Face(const Mesh<Dim<2> >& mesh,
      const unsigned ID,
-     const unsigned zone1ID,
-     const unsigned zone2ID,
+     const int zone1ID,
+     const int zone2ID,
      const vector<unsigned>& edgeIDs):
   mMeshPtr(&mesh),
   mID(ID),
@@ -29,7 +29,10 @@ Face(const Mesh<Dim<2> >& mesh,
   mEdgeIDs(edgeIDs) {
 //   REQUIRE(mZone1ID < mMeshPtr->mZones.size() or mZone1ID == UNSETID);
 //   REQUIRE(mZone2ID < mMeshPtr->mZones.size() or mZone2ID == UNSETID);
-  REQUIRE(not (mZone1ID == UNSETID and mZone2ID == UNSETID));
+  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID ==  UNSETID));
+  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID ==  UNSETID));
+  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID == ~UNSETID));
+  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID == ~UNSETID));
   REQUIRE(mEdgeIDs.size() == 1);
   REQUIRE(mEdgeIDs[0] < mMeshPtr->mEdges.size());
   mNodeIDs.push_back(mMeshPtr->mEdges[mEdgeIDs[0]].node1ID());
