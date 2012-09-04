@@ -107,7 +107,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_constructor([constrefparam(vector_of_vector, "nodePositions"),
                            constrefparam("vector_of_vector_of_unsigned", "edgeNodes"),
                            constrefparam("vector_of_vector_of_unsigned", "faceEdges"),
-                           constrefparam("vector_of_vector_of_unsigned", "zoneFaces")])
+                           constrefparam("vector_of_vector_of_int", "zoneFaces")])
 
         # Methods.
         x.add_method("clear", None, [])
@@ -130,6 +130,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("storeNodeListOffsets", None,
                      [constrefparam(vector_of_nodelist, "nodeLists"), constrefparam("vector_of_unsigned", "offsets")])
         x.add_method("boundingSurface", facetedvolume, [], is_const=True)
+        x.add_method("positiveID", "int", [param("int", "id")], is_static=True)
 
         # Attributes.
         x.add_instance_attribute("nDim", "int", getter="nDim", is_const=True)
