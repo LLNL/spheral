@@ -131,7 +131,7 @@ Mesh(const vector<Vector>& nodePositions,
   for (unsigned izone = 0; izone != zoneFaces.size(); ++izone) {
     const vector<int>& zf = zoneFaces[izone];
     for (unsigned i = 0; i != zf.size(); ++i) {
-      const unsigned iface = this->positiveID(zf[i]);
+      const unsigned iface = positiveID(zf[i]);
       CHECK(iface < faceEdges.size());
       const vector<unsigned>& fe = faceEdges[iface];
       for (unsigned j = 0; j != fe.size(); ++j) {
@@ -296,7 +296,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
       for (vector<int>::const_iterator itr = faceIDs.begin();
            itr != faceIDs.end();
            ++itr) {
-        int fid = this->positiveID(*itr);
+        int fid = positiveID(*itr);
         CHECK(fid < mFaces.size());
         faceMask[fid] = 1;
       }
@@ -335,8 +335,8 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
     face.mID = newFaceIDs[i];
     s1 = isgn(face.mZone1ID);
     s2 = isgn(face.mZone2ID);
-    z1ID = this->positiveID(face.mZone1ID);
-    z2ID = this->positiveID(face.mZone2ID);
+    z1ID = positiveID(face.mZone1ID);
+    z2ID = positiveID(face.mZone2ID);
     if (z1ID != UNSETID) face.mZone1ID = (s1 == 1 ? newZoneIDs[z1ID] : ~newZoneIDs[z1ID]);
     if (z2ID != UNSETID) face.mZone2ID = (s2 == 1 ? newZoneIDs[z2ID] : ~newZoneIDs[z2ID]);
     this->reassignIDs(face.mNodeIDs, newNodeIDs);

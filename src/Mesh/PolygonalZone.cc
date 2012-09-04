@@ -68,35 +68,19 @@ Zone(const Mesh<Dim<2> >& mesh,
   // Copy the face IDs as the edge IDs (they are degenerate after all!).
   int faceID;
   BOOST_FOREACH(faceID, mFaceIDs) mEdgeIDs.push_back(faceID < 0 ? ~faceID : faceID);
+  CHECK(mEdgeIDs.size() == mFaceIDs.size());
 
   // We need the nodes sorted counter-clockwise around the zone.  The faces
   // are already sorted, so we can leverage that info.  Note we are using the
   // fact that faces and edges are degenerate here.
   const unsigned numEdges = mEdgeIDs.size();
   int i;
-  unsigned j, n1i, n2i, n1j, n2j;
+  unsigned j, n1, n2;
   BOOST_FOREACH(faceID, mFaceIDs) {
     i = (faceID < 0 ? ~faceID : faceID);
-    j = (i + 1) % numEdges;
-    n1i = mMeshPtr->mEdges[mEdgeIDs[i]].node1ID();
-    n2i = mMeshPtr->mEdges[mEdgeIDs[i]].node2ID();
-    n1j = mMeshPtr->mEdges[mEdgeIDs[j]].node1ID();
-    n2j = mMeshPtr->mEdges[mEdgeIDs[j]].node2ID();
-//     if (!(n1i == n1j or n1i == n2j or
-//           n2i == n1j or n2i == n2j)) {
-//       cerr << "Bad nodes/edges to zone:  " << endl
-//            << "  Nodes for edges:" << endl;
-//       for (unsigned ii = 0; ii != numEdges; ++ii) {
-//         cerr << "  --> " 
-//              << mMeshPtr->mEdges[mEdgeIDs[ii]].node1ID() << " "
-//              << mMeshPtr->mEdges[mEdgeIDs[ii]].node2ID() << " : "
-//              << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[ii]].node1ID()] << " "
-//              << mMeshPtr->mNodePositions[mMeshPtr->mEdges[mEdgeIDs[ii]].node2ID()] << endl;
-//       }
-//     }
-    CHECK2(n1i == n1j or n1i == n2j or
-           n2i == n1j or n2i == n2j, "Bad node IDs:  " << n1i << " " << n2i << " " << n1j << " " << n2j);
-    mNodeIDs.push_back((n1i == n1j) or (n1i == n2j) ? n1i : n2i);
+    n1 = mMeshPtr->mEdges[i].node1ID();
+    n2 = mMeshPtr->mEdges[i].node2ID();
+    mNodeIDs.push_back(faceID < 0 ? n2 : n1);
   }
   CHECK(mNodeIDs.size() == mEdgeIDs.size());
 
@@ -121,15 +105,15 @@ Zone(const Mesh<Dim<2> >& mesh,
     sort(edgeIDs.begin(), edgeIDs.end());
     ENSURE(unique(edgeIDs.begin(), edgeIDs.end()) == edgeIDs.end());
     vector<unsigned> faceIDs;
-    BOOST_FOREACH(i, mFaceIDs) faceIDs.push_back(i < 0 ? ~i : i);
+    BOOST_FOREACH(i, mFaceIDs) faceIDs.push_back(Mesh<Dim<2> >::positiveID(i));
     sort(faceIDs.begin(), faceIDs.end());
     ENSURE(unique(faceIDs.begin(), faceIDs.end()) == faceIDs.end());
 
     // Make sure elements are listed counter-clockwise.
     CounterClockwiseCompareElements<Node, Vector> nodeComparator(mMeshPtr->mNodes, mNodeIDs[0]);
     CounterClockwiseCompareElements<Edge, Vector> edgeComparator(mMeshPtr->mEdges, mEdgeIDs[0]);
-    CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, mFaceIDs[0]);
-    for (unsigned i = 0; i < mFaceIDs.size() - 1; ++i) {
+    CounterClockwiseCompareElements<Face, Vector> faceComparator(mMeshPtr->mFaces, faceIDs[0]);
+    for (unsigned i = 0; i < faceIDs.size() - 1; ++i) {
       ENSURE2(nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) >= 0,
               nodeComparator(mNodeIDs[i], mNodeIDs[i + 1]) << " "
               << mMeshPtr->mNodes[mNodeIDs[0]].position() << " "
@@ -140,11 +124,13 @@ Zone(const Mesh<Dim<2> >& mesh,
               << mMeshPtr->mEdges[mEdgeIDs[0]].position() << " "
               << mMeshPtr->mEdges[mEdgeIDs[i]].position() << " "
               << mMeshPtr->mEdges[mEdgeIDs[i + 1]].position());
-      ENSURE2(faceComparator(mFaceIDs[i], mFaceIDs[i + 1]) >= 0,
-              faceComparator(mFaceIDs[i], mFaceIDs[i + 1]) << " "
-              << mMeshPtr->mFaces[mFaceIDs[0]].position() << " "
-              << mMeshPtr->mFaces[mFaceIDs[i]].position() << " "
-              << mMeshPtr->mFaces[mFaceIDs[i + 1]].position());
+      int id1 = Mesh<Dim<2> >::positiveID(mFaceIDs[i]),
+          id2 = Mesh<Dim<2> >::positiveID(mFaceIDs[i + 1]);
+      ENSURE2(faceComparator(id1, id2) >= 0,
+              faceComparator(id1, id2) << " "
+              << mMeshPtr->mFaces[Mesh<Dim<2> >::positiveID(mFaceIDs[0])].position() << " "
+              << mMeshPtr->mFaces[id1].position() << " "
+              << mMeshPtr->mFaces[id2].position());
     }
   }
   END_CONTRACT_SCOPE;

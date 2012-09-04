@@ -173,6 +173,9 @@ public:
   // Compute the bounding surface of the mesh.
   FacetedVolume boundingSurface() const;
 
+  // Encapsulate the ones complement for signed (oriented) IDs.
+  static int positiveID(const int id);
+
   //--------------------------- Private Interface ---------------------------//
 private:
   // The mesh data.
@@ -209,9 +212,6 @@ private:
   void reconstructInternal(const std::vector<Vector>& generators,
                            const Vector& xmin, 
                            const Vector& xmax);
-
-  // Encapsulate the ones complement for signed (oriented) IDs.
-  int positiveID(const int id) const;
 };
 
 // Mesh::cleanEdges does not make sense in 1D.

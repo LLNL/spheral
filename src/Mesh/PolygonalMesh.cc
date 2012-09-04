@@ -92,6 +92,16 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct polytope tessellation." << endl;
 
+  // // Blago!
+  // {
+  //   vector<double> index(tessellation.cells.size());
+  //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
+  //   map<string, double*> fields;
+  //   fields["cell_index"] = &index[0];
+  //   polytope::SiloWriter<2, double>::write(tessellation, fields, "polygonal_blago");
+  // }
+  // // Blago!
+
   // Read out and construct the Mesh node positions.
   t0 = Timing::currentTime();
   const unsigned numNodes = tessellation.nodes.size()/2;
@@ -120,8 +130,8 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     mFaces.push_back(Face(*this, i, igen, jgen, vector<unsigned>(1, i)));
 
     BOOST_FOREACH(j, tessellation.faceCells[i]) {
-      nodeZones[inode].insert(j);
-      nodeZones[jnode].insert(j);
+      nodeZones[inode].insert(positiveID(j));
+      nodeZones[jnode].insert(positiveID(j));
     }
   }
   CHECK(mEdges.size() == numEdges);
@@ -135,6 +145,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   CHECK(mNodes.size() == numNodes);
 
   // Construct the zones.
+  mZones.reserve(numGens);
   for (i = 0; i != numGens; ++i) mZones.push_back(Zone(*this, i, tessellation.cells[i]));
   CHECK(mZones.size() == numGens);
 
@@ -169,6 +180,7 @@ boundingSurface() const {
 
   // Look for the faces that bound the mesh.  We build up the global
   // vertex indices, and the associated positions.
+  int id1, id2;
   unsigned i, j, iglobal, jglobal;
   map<unsigned, Vector> globalVertexPositions;
   vector<vector<unsigned> > facetIndices;
@@ -176,11 +188,14 @@ boundingSurface() const {
     CHECK(face.mNodeIDs.size() == 2);
     i = face.mNodeIDs[0];
     j = face.mNodeIDs[1];
-    if ((face.zone1ID() == UNSETID or face.zone2ID() == UNSETID) and
+    id1 = face.zone1ID();
+    id2 = face.zone2ID();
+    if ((positiveID(id1) == UNSETID or positiveID(id2) == UNSETID) and
         (sharedNodes.find(i) == sharedNodes.end() or
          sharedNodes.find(j) == sharedNodes.end())) {
       iglobal = local2globalIDs[i];
       jglobal = local2globalIDs[j];
+      if (id1 == ~UNSETID or id2 == ~UNSETID) swap(iglobal, jglobal);
       globalVertexPositions[iglobal] = mNodePositions[i];
       globalVertexPositions[jglobal] = mNodePositions[j];
       vector<unsigned> ids;

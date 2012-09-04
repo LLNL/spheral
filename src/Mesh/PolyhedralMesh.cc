@@ -139,7 +139,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     }
     mFaces.push_back(Face(*this, i, igen, jgen, faceEdges));
     BOOST_FOREACH(j, tessellation.faceCells[i]) {
-      j = this->positiveID(j);
+      j = positiveID(j);
       nodeZones[inode].insert(j);
       nodeZones[jnode].insert(j);
     }

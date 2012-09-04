@@ -93,8 +93,10 @@ inline
 int
 Mesh<Dimension>::Face::
 oppositeZoneID(const int zoneID) const {
-  REQUIRE(zoneID == mZone1ID or ~zoneID == mZone1ID or
-          zoneID == mZone2ID or ~zoneID == mZone2ID);
+  VERIFY2(zoneID == mZone1ID or ~zoneID == mZone1ID or
+          zoneID == mZone2ID or ~zoneID == mZone2ID,
+          "Face::oppositeZoneID called with bad zone index : "
+          << zoneID << " " << mZone1ID << " " << mZone2ID);
   return (zoneID == mZone1ID or zoneID == ~mZone1ID) ? mZone2ID : mZone1ID;
 }
 

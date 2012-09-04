@@ -416,7 +416,7 @@ reassignIDs(std::vector<unsigned>& ids,
             const std::vector<unsigned>& old2new) const {
   for (size_t k = 0; k != ids.size(); ++k) {
     if (ids[k] != UNSETID) {
-      CHECK(ids[k] < old2new.size());
+      CHECK2(ids[k] < old2new.size(), k << " " << ids[k] << " " << old2new.size());
       ids[k] = old2new[ids[k]];
     }
   }
@@ -430,7 +430,7 @@ reassignIDs(std::vector<int>& ids,
             const std::vector<unsigned>& old2new) const {
   unsigned id;
   for (size_t k = 0; k != ids.size(); ++k) {
-    id = this->positiveID(ids[k]);
+    id = positiveID(ids[k]);
     if (id != UNSETID) {
       CHECK(id < old2new.size());
       ids[k] = (ids[k] < 0 ? ~old2new[id] : old2new[id]);
@@ -500,7 +500,7 @@ template<typename Dimension>
 inline
 int
 Mesh<Dimension>::
-positiveID(const int id) const {
+positiveID(const int id) {
   return id < 0 ? ~id : id;
 }
 

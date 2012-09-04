@@ -50,6 +50,8 @@ Dim<2>::Vector
 Mesh<Dim<2> >::Face::
 position() const {
   REQUIRE(mEdgeIDs.size() == 1);
+  REQUIRE(mEdgeIDs[0] == mID);
+  REQUIRE(mID < mMeshPtr->mEdges.size());
   return mMeshPtr->mEdges[mEdgeIDs[0]].position();
 }
 
