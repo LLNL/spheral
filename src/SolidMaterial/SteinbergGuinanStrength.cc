@@ -146,7 +146,7 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
   CHECK(rho0 > 0.0);
   CHECK(mu >= -1.0);
   const double emelt = mMeltEnergyFit(mu)/rho0;
-  CHECK(fuzzyGreaterThanOrEqual(emelt, 0.0));
+  // CHECK(fuzzyGreaterThanOrEqual(emelt, 0.0));
 
   double result;
   if (fuzzyEqual(emelt, 0.0) || specificThermalEnergy < 0.0) {
