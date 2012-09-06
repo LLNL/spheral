@@ -22,8 +22,8 @@ template<>
 Mesh<Dim<3> >::Face::
 Face(const Mesh<Dim<3> >& mesh,
      const unsigned ID,
-     const unsigned zone1ID,
-     const unsigned zone2ID,
+     const int zone1ID,
+     const int zone2ID,
      const vector<unsigned>& edgeIDs):
   mMeshPtr(&mesh),
   mID(ID),
@@ -31,7 +31,10 @@ Face(const Mesh<Dim<3> >& mesh,
   mZone2ID(zone2ID),
   mNodeIDs(),
   mEdgeIDs(edgeIDs) {
-  REQUIRE(not (mZone1ID == UNSETID and mZone2ID == UNSETID));
+  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID ==  UNSETID));
+  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID ==  UNSETID));
+  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID == ~UNSETID));
+  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID == ~UNSETID));
   REQUIRE(mEdgeIDs.size() > 2);
   REQUIRE(*std::max_element(mEdgeIDs.begin(), mEdgeIDs.end()) < mMeshPtr->mEdges.size());
 

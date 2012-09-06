@@ -21,8 +21,8 @@ template<>
 Mesh<Dim<1> >::Face::
 Face(const Mesh<Dim<1> >& mesh,
      const unsigned ID,
-     const unsigned zone1ID,
-     const unsigned zone2ID,
+     const int zone1ID,
+     const int zone2ID,
      const vector<unsigned>& edgeIDs):
   mMeshPtr(&mesh),
   mID(ID),

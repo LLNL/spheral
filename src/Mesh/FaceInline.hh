@@ -68,7 +68,7 @@ edgeIDs() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-unsigned
+int
 Mesh<Dimension>::Face::
 zone1ID() const {
   return mZone1ID;
@@ -79,7 +79,7 @@ zone1ID() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-unsigned
+int
 Mesh<Dimension>::Face::
 zone2ID() const {
   return mZone2ID;
@@ -90,11 +90,14 @@ zone2ID() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-unsigned
+int
 Mesh<Dimension>::Face::
-oppositeZoneID(const unsigned zoneID) const {
-  REQUIRE(zoneID == mZone1ID or zoneID == mZone2ID);
-  return zoneID == mZone1ID ? mZone2ID : mZone1ID;
+oppositeZoneID(const int zoneID) const {
+  VERIFY2(zoneID == mZone1ID or ~zoneID == mZone1ID or
+          zoneID == mZone2ID or ~zoneID == mZone2ID,
+          "Face::oppositeZoneID called with bad zone index : "
+          << zoneID << " " << mZone1ID << " " << mZone2ID);
+  return (zoneID == mZone1ID or zoneID == ~mZone1ID) ? mZone2ID : mZone1ID;
 }
 
 //------------------------------------------------------------------------------
