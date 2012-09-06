@@ -225,10 +225,8 @@ contains(const GeomPolygon::Vector& point,
          const bool countBoundary,
          const double tol) const {
   if (mConvex) {
-    cerr << "GeomPolygon : executing convex test." << endl;
     return this->convexContains(point, countBoundary, tol);
   } else {
-    cerr << "GeomPolygon : executing non-convex test." << endl;
     return pointInPolygon(point, *this, countBoundary, tol);
   }
 }
@@ -248,17 +246,11 @@ convexContains(const GeomPolygon::Vector& point,
   if (countBoundary) {
     while (facetItr != mFacets.end() and result) {
       result = (facetItr->compare(point, tol) <= 0);
-      if (not result) {
-        cerr << "Failing facet test : " << *facetItr << " " << point << endl;
-      }
       ++facetItr;
     }
   } else {
     while (facetItr != mFacets.end() and result) {
       result = (facetItr->compare(point, tol) < 0);
-      if (not result) {
-        cerr << "Failing facet test : " << *facetItr << " " << point << endl;
-      }
       ++facetItr;
     }
   }
@@ -563,9 +555,6 @@ convex(const double tol) const {
     vector<Facet>::const_iterator facetItr = mFacets.begin();
     while (facetItr != mFacets.end() and result) {
       result = (facetItr->compare(*vertexItr, reltol) <= 0);
-      if (not result) {
-        cerr << "Convex test failing for " << *facetItr << " " << *vertexItr << endl;
-      }
       ++facetItr;
     }
     ++vertexItr;
