@@ -112,6 +112,8 @@ private:
   static FILE* mDevnull;
 };
 
+std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon);
+
 }
 
 #include "GeomPolygonInline.hh"

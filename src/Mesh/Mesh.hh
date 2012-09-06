@@ -77,7 +77,7 @@ public:
   Mesh(const std::vector<Vector>& nodePositions,
        const std::vector<std::vector<unsigned> >& edgeNodes,
        const std::vector<std::vector<unsigned> >& faceEdges,
-       const std::vector<std::vector<unsigned> >& zoneFaces);
+       const std::vector<std::vector<int> >& zoneFaces);
   Mesh& operator=(const Mesh& rhs);
   ~Mesh();
 
@@ -126,10 +126,12 @@ public:
   EdgeIterator edgeEnd() const;
 
   const Face& face(const unsigned i) const;
+  const Face& face(const int i) const;
   FaceIterator faceBegin() const;
   FaceIterator faceEnd() const;
 
   const Zone& zone(const unsigned i) const;
+  const Zone& zone(const int i) const;
   ZoneIterator zoneBegin() const;
   ZoneIterator zoneEnd() const;
 
@@ -171,6 +173,9 @@ public:
   // Compute the bounding surface of the mesh.
   FacetedVolume boundingSurface() const;
 
+  // Encapsulate the ones complement for signed (oriented) IDs.
+  static int positiveID(const int id);
+
   //--------------------------- Private Interface ---------------------------//
 private:
   // The mesh data.
@@ -195,9 +200,12 @@ private:
   // Reassign IDs in a vector of IDs based on an map of old -> new IDs.
   void reassignIDs(std::vector<unsigned>& ids,
                    const std::vector<unsigned>& old2new) const;
+  void reassignIDs(std::vector<int>& ids,
+                   const std::vector<unsigned>& old2new) const;
 
   // Delete any elements in the list which are set to UNSETID.
   void removeUNSETIDs(std::vector<unsigned>& ids) const;
+  void removeUNSETIDs(std::vector<int>& ids) const;
 
   // Internal method to handle reconstructing the mesh after boundary
   // conditions and such have all been provided.

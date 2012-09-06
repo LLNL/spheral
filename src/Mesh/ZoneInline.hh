@@ -79,7 +79,7 @@ edgeIDs() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<unsigned>&
+const std::vector<int>&
 Mesh<Dimension>::Zone::
 faceIDs() const {
   return mFaceIDs;

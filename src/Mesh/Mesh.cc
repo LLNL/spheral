@@ -101,7 +101,7 @@ Mesh<Dimension>::
 Mesh(const vector<Vector>& nodePositions,
      const vector<vector<unsigned> >& edgeNodes,
      const vector<vector<unsigned> >& faceEdges,
-     const vector<vector<unsigned> >& zoneFaces):
+     const vector<vector<int> >& zoneFaces):
   mNodePositions(nodePositions),
   mNodes(),
   mEdges(),
@@ -110,22 +110,28 @@ Mesh(const vector<Vector>& nodePositions,
   mNodeListNameOffsets(),
   mNodeListIndexOffsets() {
 
-  // Reverse the zoneFace structure.
-  vector<vector<unsigned> > faceZones(faceEdges.size());
-  for (unsigned izone = 0; izone != zoneFaces.size(); ++izone) {
-    const vector<unsigned>& zf = zoneFaces[izone];
+  // Invert the zoneFace structure.
+  vector<vector<int> > faceZones(faceEdges.size());
+  for (int izone = 0; izone != zoneFaces.size(); ++izone) {
+    const vector<int>& zf = zoneFaces[izone];
     for (unsigned j = 0; j != zf.size(); ++j) {
-      VERIFY(zf[j] < faceZones.size());
-      faceZones[zf[j]].push_back(izone);
+      if (zf[j] < 0) {
+        const int k = ~zf[j];
+        VERIFY(k < faceZones.size());
+        faceZones[k].push_back(~izone);
+      } else {
+        VERIFY(zf[j] < faceZones.size());
+        faceZones[zf[j]].push_back(izone);
+      }
     }
   }
 
   // Back out the set of zones for each node.
   vector<set<unsigned> > nodeZones(nodePositions.size());
   for (unsigned izone = 0; izone != zoneFaces.size(); ++izone) {
-    const vector<unsigned>& zf = zoneFaces[izone];
+    const vector<int>& zf = zoneFaces[izone];
     for (unsigned i = 0; i != zf.size(); ++i) {
-      const unsigned iface = zf[i];
+      const unsigned iface = positiveID(zf[i]);
       CHECK(iface < faceEdges.size());
       const vector<unsigned>& fe = faceEdges[iface];
       for (unsigned j = 0; j != fe.size(); ++j) {
@@ -274,7 +280,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
       const Zone& zone = mZones[izone];
       const vector<unsigned>& nodeIDs = zone.nodeIDs();
       const vector<unsigned>& edgeIDs = zone.edgeIDs();
-      const vector<unsigned>& faceIDs = zone.faceIDs();
+      const vector<int>& faceIDs = zone.faceIDs();
       for (vector<unsigned>::const_iterator itr = nodeIDs.begin();
            itr != nodeIDs.end();
            ++itr) {
@@ -287,11 +293,12 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
         CHECK(*itr < mEdges.size());
         edgeMask[*itr] = 1;
       }
-      for (vector<unsigned>::const_iterator itr = faceIDs.begin();
+      for (vector<int>::const_iterator itr = faceIDs.begin();
            itr != faceIDs.end();
            ++itr) {
-        CHECK(*itr < mFaces.size());
-        faceMask[*itr] = 1;
+        int fid = positiveID(*itr);
+        CHECK(fid < mFaces.size());
+        faceMask[fid] = 1;
       }
     }
   }
@@ -322,11 +329,16 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   }
 
   // Update the IDs of faces and their internal data.
+  int z1ID, z2ID, s1, s2;
   for (unsigned i = 0; i != mFaces.size(); ++i) {
     Face& face = mFaces[i];
     face.mID = newFaceIDs[i];
-    if (face.mZone1ID != UNSETID) face.mZone1ID = newZoneIDs[face.mZone1ID];
-    if (face.mZone2ID != UNSETID) face.mZone2ID = newZoneIDs[face.mZone2ID];
+    s1 = isgn(face.mZone1ID);
+    s2 = isgn(face.mZone2ID);
+    z1ID = positiveID(face.mZone1ID);
+    z2ID = positiveID(face.mZone2ID);
+    if (z1ID != UNSETID) face.mZone1ID = (s1 == 1 ? newZoneIDs[z1ID] : ~newZoneIDs[z1ID]);
+    if (z2ID != UNSETID) face.mZone2ID = (s2 == 1 ? newZoneIDs[z2ID] : ~newZoneIDs[z2ID]);
     this->reassignIDs(face.mNodeIDs, newNodeIDs);
     this->reassignIDs(face.mEdgeIDs, newEdgeIDs);
   }
@@ -572,7 +584,7 @@ cleanEdges(const double edgeTol) {
       vector<unsigned> kill;
       for (unsigned i = 0; i != mZones.size(); ++i) {
         Zone& zone = mZones[i];
-        vector<unsigned> faceIDs = zone.mFaceIDs;
+        vector<int> faceIDs = zone.mFaceIDs;
         this->reassignIDs(faceIDs, newFaceIDs);
         this->removeUNSETIDs(faceIDs);
         zone = Zone(*this, i, faceIDs);
@@ -1173,6 +1185,6 @@ storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
 // Static initializations.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const unsigned Mesh<Dimension>::UNSETID = numeric_limits<unsigned>::max();
+const unsigned Mesh<Dimension>::UNSETID = numeric_limits<int>::max();
 }
 }

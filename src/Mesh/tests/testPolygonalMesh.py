@@ -320,18 +320,18 @@ class PolygonalMeshGenericTests:
         for izone in xrange(mesh.numZones):
             faces = mesh.zone(izone).faceIDs
             for iface in faces:
-                answer[iface].append(izone)
+                answer[mesh.positiveID(iface)].append(izone)
 
         for iface in xrange(mesh.numFaces):
             face = mesh.face(iface)
             zoneIDs = answer[iface]
             assert len(zoneIDs) in (1, 2)
             if len(zoneIDs) == 2:
-                self.failUnless(face.oppositeZoneID(zoneIDs[0]) == zoneIDs[1],
+                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == zoneIDs[1],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
-                self.failUnless(face.oppositeZoneID(zoneIDs[1]) == zoneIDs[0],
+                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[1])) == zoneIDs[0],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
@@ -391,6 +391,9 @@ class PolygonalMeshGenericTests:
                                            generateVoid = False,
                                            generateParallelConnectivity = True)
         bs = mesh.boundingSurface()
+        f = open("surface.gnu", "w")
+        f.write(str(bs))
+        f.close()
 
 ##         if mpi.rank == 0:
 ##             p = plotPolygon(bs, plotNormals=True, persist=True)

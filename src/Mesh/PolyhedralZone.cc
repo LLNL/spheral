@@ -44,7 +44,7 @@ template<>
 Mesh<Dim<3> >::Zone::
 Zone(const Mesh<Dim<3> >& mesh,
      const unsigned ID,
-     const vector<unsigned>& faceIDs):
+     const vector<int>& faceIDs):
   mMeshPtr(&mesh),
   mID(ID),
   mNodeIDs(),
@@ -55,17 +55,16 @@ Zone(const Mesh<Dim<3> >& mesh,
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(mFaceIDs.size() > 3);
-    for (vector<unsigned>::const_iterator itr = mFaceIDs.begin();
-         itr != mFaceIDs.end();
-         ++itr) REQUIRE(*itr < mMeshPtr->mFaces.size());
+    BOOST_FOREACH(int i, mFaceIDs) REQUIRE((i < 0 ? ~i : i) < mMeshPtr->mFaces.size());
   }
   END_CONTRACT_SCOPE;
   
   // Construct the edge and node IDs.
-  for (vector<unsigned>::const_iterator faceItr = mFaceIDs.begin();
-       faceItr != mFaceIDs.end();
-       ++faceItr) {
-    const Face& face = mMeshPtr->mFaces[*faceItr];
+  int faceID;
+  unsigned i;
+  BOOST_FOREACH(faceID, mFaceIDs) {
+    i = faceID < 0 ? ~faceID : faceID;
+    const Face& face = mMeshPtr->mFaces[i];
     const vector<unsigned>& edgeIDs = face.edgeIDs();
     const vector<unsigned>& nodeIDs = face.nodeIDs();
     CHECK(edgeIDs.size() > 2);
@@ -92,7 +91,7 @@ Dim<3>::Vector
 Mesh<Dim<3> >::Zone::
 position() const {
   Vector result;
-  for (unsigned i = 0; i != mFaceIDs.size(); ++i) result += mMeshPtr->mFaces[mFaceIDs[i]].position();
+  BOOST_FOREACH(int i, mFaceIDs) result += mMeshPtr->mFaces[i < 0 ? ~i : i].position();
   result /= mFaceIDs.size();
   return result;
 }
@@ -107,14 +106,17 @@ Mesh<Dim<3> >::Zone::
 volume() const {
   double result = 0.0;
   const Vector xzone = this->position();
-  for (vector<unsigned>::const_iterator faceItr = mFaceIDs.begin();
-       faceItr != mFaceIDs.end();
-       ++faceItr) {
-    const Face& face = mMeshPtr->mFaces[*faceItr];
-    const Vector xface = face.position();
-    const Vector faceHat = face.unitNormal();
-    const double faceArea = face.area();
-    result += abs((xface - xzone).dot(faceHat)) * faceArea;
+  int faceID;
+  unsigned i;
+  double faceArea;
+  Vector xface, faceHat;
+  BOOST_FOREACH(faceID, mFaceIDs) {
+    i = faceID < 0 ? ~faceID : faceID;
+    const Face& face = mMeshPtr->mFaces[i];
+    xface = face.position();
+    faceHat = face.unitNormal();
+    faceArea = face.area();
+    result += std::abs((xface - xzone).dot(faceHat)) * faceArea;
   }
   result /= 3.0;
   return result;
