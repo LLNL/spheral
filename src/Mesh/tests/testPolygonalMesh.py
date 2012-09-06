@@ -391,18 +391,9 @@ class PolygonalMeshGenericTests:
                                            generateVoid = False,
                                            generateParallelConnectivity = True)
         bs = mesh.boundingSurface()
-        f = open("surface.gnu", "w")
-        f.write(str(bs))
-        f.close()
-
-##         if mpi.rank == 0:
-##             p = plotPolygon(bs, plotNormals=True, persist=True)
-##             p("set xrange [-0.1:1.1]; set yrange [-0.1:1.1]; set size square"); p.refresh()
-
-##         for facet in bs.facets():
-##             self.failUnless(facet.compare(Vector(0.5, 0.5)) == -1,
-##                             "Bluh? %s %s %i" % (facet.position, facet.normal, 
-##                                                 facet.compare(Vector(0.5, 0.5))))
+        # f = open("surface.gnu", "w")
+        # f.write(str(bs))
+        # f.close()
 
         # Check that all the generators are contained.
         pos = self.nodes.positions()
