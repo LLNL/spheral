@@ -415,7 +415,6 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	#$(PATCH) $(NUMPYDIR)/numpy/distutils/system_info.py $(NUMPYDIR)-system_info.py.patch 
 	$(SHELL) -ec 'cd $(NUMPYDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
