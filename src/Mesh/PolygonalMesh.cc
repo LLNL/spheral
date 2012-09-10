@@ -59,19 +59,14 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   }
   END_CONTRACT_SCOPE;
 
-  // The inverse box scale.
-  const Vector box = xmax - xmin;
-  const Vector boxInv(safeInv(box.x()),
-                      safeInv(box.y()));
-
   // Build the normalized generator positions.
-  vector<double> normGens;
-  normGens.reserve(2*generators.size());
+  vector<double> gens;
+  gens.reserve(2*generators.size());
   for (igen = 0; igen != numGens; ++igen) {
-    normGens.push_back((generators[igen].x() - xmin.x())*boxInv.x());
-    normGens.push_back((generators[igen].y() - xmin.y())*boxInv.y());
+    gens.push_back(generators[igen].x());
+    gens.push_back(generators[igen].y());
   }
-  CHECK(normGens.size() == 2*numGens);
+  CHECK(gens.size() == 2*numGens);
 
   // Do the polytope tessellation.  We use the Triangle based tessellator for now.
   Timing::Time t0 = Timing::currentTime();
@@ -81,10 +76,10 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     polytope::DistributedTessellator<2, double> tessellator(new polytope::TriangleTessellator<double>(),
                                                             true,     // Manage memory for serial tessellator
                                                             true);    // Build parallel connectivity
-    tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #else
     polytope::TriangleTessellator<double> tessellator;
-    tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
   }
   CHECK(tessellation.cells.size() == numGens);
@@ -107,8 +102,8 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   const unsigned numNodes = tessellation.nodes.size()/2;
   mNodePositions.reserve(numNodes);
   for (i = 0; i != numNodes; ++i) {
-    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), xmin.x() + tessellation.nodes[2*i]*box.x())),
-                                    max(xmin.y(), min(xmax.y(), xmin.y() + tessellation.nodes[2*i+1]*box.y()))));
+    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), tessellation.nodes[2*i])),
+                                    max(xmin.y(), min(xmax.y(), tessellation.nodes[2*i+1]))));
   }
 
   // Build the edges and faces, which are degnerate in 2D.
