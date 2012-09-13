@@ -883,7 +883,8 @@ globalMeshNodeIDs() const {
   // Pre-conditions.
   VERIFY2(numDomains == 1 or
           mNeighborDomains.size() > 0 and mSharedNodes.size() == mNeighborDomains.size(),
-          "You must call Mesh::generateDomainInfo before calling Mesh::globalMeshNodeIDs!");
+          "You must call Mesh::generateDomainInfo before calling Mesh::globalMeshNodeIDs: "
+          << numDomains << " " << mNeighborDomains.size() << " " << mSharedNodes.size());
 
   // If we're serial this is easy!
   vector<unsigned> result(nlocal, UNSETID);

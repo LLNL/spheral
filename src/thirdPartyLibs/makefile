@@ -61,7 +61,7 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(SPHERALDIR)/bin/cmake
-CMAKEDIST = cmake-2.8.7.tar.gz
+CMAKEDIST = cmake-2.8.9.tar.gz
 CMAKEURL = http://www.cmake.org/files/v2.8/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
