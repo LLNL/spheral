@@ -90,7 +90,7 @@ Zone(const Mesh<Dim<2> >& mesh,
     ENSURE(mNodeIDs.size() == mFaceIDs.size());
     ENSURE(mEdgeIDs.size() == mFaceIDs.size());
     ENSURE(mFaceIDs.size() > 2);
-    for (unsigned i = 0; i != mFaceIDs.size(); ++i) {
+    for (i = 0; i != mFaceIDs.size(); ++i) {
       ENSURE(mNodeIDs[i] < mMeshPtr->mNodes.size());
       ENSURE(mEdgeIDs[i] < mMeshPtr->mEdges.size());
       ENSURE((mFaceIDs[i] < 0 and ~mFaceIDs[i] < mMeshPtr->mFaces.size()) or
