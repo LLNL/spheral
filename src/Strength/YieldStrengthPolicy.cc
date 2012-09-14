@@ -87,10 +87,7 @@ update(const KeyType& key,
   const SolidMaterial::StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
 
   // Now set the yield strength.
-  for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-    stateField(i) = strengthModel.yieldStrength(massDensity(i), energy(i), P(i),
-                                                PS(i), PSR(i));
-  }
+  strengthModel.yieldStrength(stateField, massDensity, energy, P, PS, PSR);
 }
 
 //------------------------------------------------------------------------------
