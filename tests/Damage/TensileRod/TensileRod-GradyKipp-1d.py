@@ -140,7 +140,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20120720.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20120913.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",

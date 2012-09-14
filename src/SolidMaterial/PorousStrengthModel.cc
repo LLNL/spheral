@@ -1,40 +1,30 @@
 //---------------------------------Spheral++----------------------------------//
 // PorousStrengthModel
-//
-// An implementation of strain-alpha porosity model described in
-// Wunnemann, Collins, & Melosh, Icarus, 180, 514-527 (2006)
-// "A strain-based porosity model for use in hydrocode simulations of impacts
-//  and implications for transient crater growth in porous targets"
-//
-// This model assumes you will provide a solid EOS which will be modified.
-// The underlying actualy solid EOS should provide the reference density, which
-// will be treated here as the compacted true solid reference density.
-//
-// Note this model introduces a new state variable, the distention (alpha), which
-// the pressure now depends on.  This implies our usual definition of P(rho, eps)
-// now becomes P(rho, eps, alpha).  Our EOS interface does not recognize this
-// this parameter, so we store alpha locally and only allow Field updates of the
-// pressure (forbidding the single value P lookup the EOS usually allows).
-//
-// Created by JMO, Thu Sep 13 15:50:28 PDT 2012
+// 
+// See header for references and such.
 //----------------------------------------------------------------------------//
+
 #include "PorousStrengthModel.hh"
+#include "Field/Field.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
 
 using namespace std;
-using std::abs;
 using std::min;
 using std::max;
+using std::abs;
+
+using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousStrengthModel<Dimension>::
-PorousStrengthModel(const StrengthModel& strengthModel):
-  mSolidStrength(strengthModel),
+PorousStrengthModel(const StrengthModel<Dimension>& solidStrength):
+  StrengthModel<Dimension>(),
+  mSolidStrength(solidStrength),
   mAlphaPtr(0) {
 }
 
@@ -47,44 +37,82 @@ PorousStrengthModel<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// Compute the shear modulus.
+// Set the shear modulus.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 PorousStrengthModel<Dimension>::
-shearModulus(const double density,
-             const double specificThermalEnergy,
-             const double pressure) const {
+shearModulus(Field<Dimension, Scalar>& shearModulus,
+             const Field<Dimension, Scalar>& density,
+             const Field<Dimension, Scalar>& specificThermalEnergy,
+             const Field<Dimension, Scalar>& pressure) const {
+  REQUIRE(density.nodeListPtr() == shearModulus.nodeListPtr());
+  REQUIRE(specificThermalEnergy.nodeListPtr() == shearModulus.nodeListPtr());
+  REQUIRE(pressure.nodeListPtr() == shearModulus.nodeListPtr());
+  REQUIRE(mAlphaPtr->nodeListPtr() == shearModulus.nodeListPtr());
 
-  // Find the solid shear modulus.
-  
+  // The base model sets the solid (compacted) value.
+  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*density;
+  mSolidStrength.shearModulus(shearModulus, rhoS, specificThermalEnergy, pressure);
 
+  // Now apply the porosity modifier.
+  shearModulus /= *mAlphaPtr;
 }
 
 //------------------------------------------------------------------------------
-// Compute the yield strength.
+// Set the yield strength.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 PorousStrengthModel<Dimension>::
-yieldStrength(const double density,
-              const double specificThermalEnergy,
-              const double pressure,
-              const double plasticStrain,
-              const double plasticStrainRate) const {
+yieldStrength(Field<Dimension, Scalar>& yieldStrength,
+              const Field<Dimension, Scalar>& density,
+              const Field<Dimension, Scalar>& specificThermalEnergy,
+              const Field<Dimension, Scalar>& pressure,
+              const Field<Dimension, Scalar>& plasticStrain,
+              const Field<Dimension, Scalar>& plasticStrainRate) const {
+  REQUIRE(density.nodeListPtr() == yieldStrength.nodeListPtr());
+  REQUIRE(specificThermalEnergy.nodeListPtr() == yieldStrength.nodeListPtr());
+  REQUIRE(pressure.nodeListPtr() == yieldStrength.nodeListPtr());
+  REQUIRE(plasticStrain.nodeListPtr() == yieldStrength.nodeListPtr());
+  REQUIRE(plasticStrainRate.nodeListPtr() == yieldStrength.nodeListPtr());
+  REQUIRE(mAlphaPtr->nodeListPtr() == yieldStrength.nodeListPtr());
+
+  // The base model sets the solid (compacted) value.
+  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*density;
+  mSolidStrength.yieldStrength(yieldStrength, rhoS, specificThermalEnergy, pressure, plasticStrain, plasticStrainRate);
+
+  // Now apply the porosity modifier.
+  yieldStrength /= *mAlphaPtr;
 }
 
 //------------------------------------------------------------------------------
-// Compute the full sound speed.
+// Access the underlying solid strength model.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+const StrengthModel<Dimension>&
 PorousStrengthModel<Dimension>::
-soundSpeed(const double density,
-           const double specificThermalEnergy,
-           const double pressure,
-           const double fluidSoundSpeed) const {
+solidStrength() const {
+  return mSolidStrength;
+}
+
+//------------------------------------------------------------------------------
+// Access the alpha field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
+PorousStrengthModel<Dimension>::
+alpha() const {
+  return *mAlphaPtr;
+}
+
+template<typename Dimension>
+void
+PorousStrengthModel<Dimension>::
+alpha(const FieldSpace::Field<Dimension, typename Dimension::Scalar>& x) {
+  mAlphaPtr = &x;
 }
 
 }
 }
+

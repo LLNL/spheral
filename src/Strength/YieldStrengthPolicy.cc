@@ -84,7 +84,7 @@ update(const KeyType& key,
   CHECK(nodeListPtr != 0);
 
   // Get the strength model.
-  const SolidMaterial::StrengthModel& strengthModel = nodeListPtr->strengthModel();
+  const SolidMaterial::StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
 
   // Now set the yield strength.
   for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {

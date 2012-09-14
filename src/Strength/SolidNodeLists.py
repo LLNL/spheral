@@ -6,7 +6,7 @@ from SolidSpheral import *
 SolidNodeListFactoryString = """
 def makeSolidNodeList%(dim)s(name,
                              eos,
-                             strength = NullStrength(),
+                             strength = NullStrength%(dim)s(),
                              numInternal = 0,
                              numGhost = 0,
                              hmin = 1.0e-20,

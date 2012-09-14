@@ -33,6 +33,7 @@ using FileIOSpace::FileIO;
 template<typename Dimension>
 StrainPorosity<Dimension>::
 StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
+               PorousStrengthModel<Dimension>& porousStrength,
                const NodeList<Dimension>& nodeList,
                const double phi0,
                const double epsE,
@@ -45,6 +46,7 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mKappa(kappa),
   mEpsC(0.0),
   mPorousEOS(porousEOS),
+  mPorousStrength(porousStrength),
   mNodeList(nodeList),
   mAlpha(SolidFieldNames::porosityAlpha, nodeList, 1.0/(1.0 - phi0)),
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
@@ -61,6 +63,7 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
   mEpsC = 2.0*(1.0 - mAlpha0*exp(mKappa*(mEpsX - mEpsE)))/(mKappa*mAlpha0*exp(mKappa*(mEpsX - mEpsE))) + mEpsX;
   mPorousEOS.alpha(mAlpha);
+  mPorousStrength.alpha(mAlpha);
   ENSURE(mPorousEOS.valid());
 }
 

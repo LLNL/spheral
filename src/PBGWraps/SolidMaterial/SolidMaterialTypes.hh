@@ -14,6 +14,7 @@
 #include "SolidMaterial/SteinbergGuinanStrength.hh"
 #include "SolidMaterial/SteinbergGuinanLundStrength.hh"
 #include "SolidMaterial/PorousEquationOfState.hh"
+#include "SolidMaterial/PorousStrengthModel.hh"
 #include "SolidMaterial/StrainPorosity.hh"
 
 using namespace Spheral::Material;
@@ -52,6 +53,18 @@ typedef MurnahanEquationOfState<Dim<1> > MurnahanEquationOfState1d;
 typedef MurnahanEquationOfState<Dim<2> > MurnahanEquationOfState2d;
 typedef MurnahanEquationOfState<Dim<3> > MurnahanEquationOfState3d;
 
+typedef StrengthModel<Dim<1> > StrengthModel1d;
+typedef StrengthModel<Dim<2> > StrengthModel2d;
+typedef StrengthModel<Dim<3> > StrengthModel3d;
+
+typedef NullStrength<Dim<1> > NullStrength1d;
+typedef NullStrength<Dim<2> > NullStrength2d;
+typedef NullStrength<Dim<3> > NullStrength3d;
+
+typedef ConstantStrength<Dim<1> > ConstantStrength1d;
+typedef ConstantStrength<Dim<2> > ConstantStrength2d;
+typedef ConstantStrength<Dim<3> > ConstantStrength3d;
+
 typedef SteinbergGuinanStrength<Dim<1> > SteinbergGuinanStrength1d;
 typedef SteinbergGuinanStrength<Dim<2> > SteinbergGuinanStrength2d;
 typedef SteinbergGuinanStrength<Dim<3> > SteinbergGuinanStrength3d;
@@ -59,6 +72,10 @@ typedef SteinbergGuinanStrength<Dim<3> > SteinbergGuinanStrength3d;
 typedef SteinbergGuinanLundStrength<Dim<1> > SteinbergGuinanLundStrength1d;
 typedef SteinbergGuinanLundStrength<Dim<2> > SteinbergGuinanLundStrength2d;
 typedef SteinbergGuinanLundStrength<Dim<3> > SteinbergGuinanLundStrength3d;
+
+typedef PorousStrengthModel<Dim<1> > PorousStrengthModel1d;
+typedef PorousStrengthModel<Dim<2> > PorousStrengthModel2d;
+typedef PorousStrengthModel<Dim<3> > PorousStrengthModel3d;
 
 }
 }

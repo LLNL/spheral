@@ -12,7 +12,8 @@
 namespace Spheral {
 namespace SolidMaterial {
 
-class NullStrength: public StrengthModel {
+template<typename Dimension>
+class NullStrength: public StrengthModel<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructor.
@@ -49,9 +50,10 @@ private:
 //------------------------------------------------------------------------------
 // Compute the shear modulus.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-NullStrength::
+NullStrength<Dimension>::
 shearModulus(const double density,
              const double specificThermalEnergy,
              const double pressure) const {
@@ -61,9 +63,10 @@ shearModulus(const double density,
 //------------------------------------------------------------------------------
 // Compute the yeild strength.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-NullStrength::
+NullStrength<Dimension>::
 yieldStrength(const double density,
               const double specificThermalEnergy,
               const double pressure,
@@ -75,9 +78,10 @@ yieldStrength(const double density,
 //------------------------------------------------------------------------------
 // Compute the full sound speed.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-NullStrength::
+NullStrength<Dimension>::
 soundSpeed(const double density,
            const double specificThermalEnergy,
            const double pressure,
@@ -95,7 +99,7 @@ soundSpeed(const double density,
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    class NullStrength;
+    template<typename Dimension> class NullStrength;
   }
 }
 

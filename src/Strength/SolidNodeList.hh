@@ -11,7 +11,7 @@
 
 namespace Spheral {
   namespace SolidMaterial {
-    class StrengthModel;
+    template<typename Dimension> class StrengthModel;
   }
 }
 
@@ -30,7 +30,7 @@ public:
   // Constructors.
   SolidNodeList(std::string name,
                 Material::EquationOfState<Dimension>& eos,
-                StrengthModel& strength,
+                StrengthModel<Dimension>& strength,
                 const int numInternal,
                 const int numGhost,
                 const Scalar hmin,
@@ -71,7 +71,7 @@ public:
   const FieldSpace::Field<Dimension, Vector>& damageGradient() const;
 
   // The strength model this solid is using.
-  const SolidMaterial::StrengthModel& strengthModel() const;
+  const SolidMaterial::StrengthModel<Dimension>& strengthModel() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -93,7 +93,7 @@ private:
 #endif
 
   // Pointer to the associated strength object.
-  StrengthModel& mStrength;
+  StrengthModel<Dimension>& mStrength;
 
   // No default constructor or copying.
   SolidNodeList();
