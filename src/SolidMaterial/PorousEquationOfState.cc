@@ -163,6 +163,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
   mSolidEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
+
+  // Now apply the porosity modifier.
+  bulkModulus /= *mAlphaPtr;
 }
 
 //------------------------------------------------------------------------------

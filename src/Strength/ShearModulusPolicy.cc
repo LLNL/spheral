@@ -79,9 +79,7 @@ update(const KeyType& key,
     const SolidMaterial::StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
 
     // Now set the shear modulus.
-    for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-      stateField(i) = strengthModel.shearModulus(massDensity(i), energy(i), P(i));
-    }
+    strengthModel.shearModulus(stateField, massDensity, energy, P);
 
 //     // Is there a scalar damage field for this NodeList?
 //     {

@@ -121,9 +121,7 @@ shearModulus(Field<Dimension, typename Dimension::Scalar>& field) const {
   const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  for (size_t i = 0; i != this->numInternalNodes(); ++i) {
-    field(i) = mStrength.shearModulus(rho(i), u(i), P(i));
-  }
+  mStrength.shearModulus(field, rho, u, P);
 }
 
 //------------------------------------------------------------------------------
@@ -138,11 +136,7 @@ yieldStrength(Field<Dimension, typename Dimension::Scalar>& field) const {
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
   const Field<Dimension, SymTensor>& D = this->effectiveDamage();
-  for (int i = 0; i != this->numInternalNodes(); ++i) {
-    field(i) = mStrength.yieldStrength(rho(i), u(i), P(i),
-                                       mPlasticStrain(i),
-                                       mPlasticStrainRate(i));
-  }
+  mStrength.yieldStrength(field, rho, u, P, mPlasticStrain, mPlasticStrainRate);
 }
 
 //------------------------------------------------------------------------------

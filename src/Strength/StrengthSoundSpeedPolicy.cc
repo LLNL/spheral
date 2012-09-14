@@ -79,11 +79,8 @@ update(const KeyType& key,
   // Have the base class set the initial sound speed.
   SoundSpeedPolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);
 
-  // Iterate over the nodes, and augment the sound speed by the value including
-  // strength.
-  for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-    soundSpeed(i) = strengthModel.soundSpeed(rho(i), eps(i), P(i), soundSpeed(i));
-  }
+  // Set the full sound speed.
+  strengthModel.soundSpeed(soundSpeed, rho, eps, P, soundSpeed);
 }
 
 //------------------------------------------------------------------------------
