@@ -176,7 +176,9 @@ computeTemperature(const double density, const double specificThermalEnergy) con
   CHECK(Cv > 0.0);
   CHECK(rho0 > 0.0);
   CHECK(mu >= -1.0);
-  return max(0.0, (max(0.0, specificThermalEnergy - mColdEnergyFit(mu))/rho0)/Cv);
+  const double emelt = mMeltEnergyFit(mu)/rho0;
+  const double eps = max(0.0, min(emelt, specificThermalEnergy));
+  return max(0.0, eps - mColdEnergyFit(mu))*rho0/Cv;
 }
 
 //------------------------------------------------------------------------------
