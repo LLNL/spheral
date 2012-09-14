@@ -9,9 +9,11 @@ SRCTARGETS = \
 	GruneisenEquationOfStateInst.cc \
 	MurnahanEquationOfStateInst.cc \
 	TillotsonEquationOfStateInst.cc \
+	StrengthModelInst.cc \
 	SteinbergGuinanStrengthInst.cc \
 	SteinbergGuinanLundStrengthInst.cc \
 	PorousEquationOfStateInst.cc \
+	PorousStrengthModelInst.cc \
 	StrainPorosityInst.cc
 
 PYTHONTARGETS = \

@@ -27,9 +27,6 @@ class SolidMaterial:
 
         self.dimSet = (1, 2, 3)
 
-        self.StrengthModel = addObject(space, "StrengthModel", allow_subclassing=True)
-        self.ConstantStrength = addObject(space, "ConstantStrength", parent=self.StrengthModel, allow_subclassing=True)
-        self.NullStrength = addObject(space, "NullStrength", parent=self.StrengthModel, allow_subclassing=True)
         self.NinthOrderPolynomialFit = addObject(space, "NinthOrderPolynomialFit")
 
         for dim in self.dimSet:
@@ -39,12 +36,18 @@ Physics%(dim)id = PhysicsSpace.wrapObjs["Physics%(dim)id"]
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 self.PorousEquationOfState%(dim)id = addObject(space, "PorousEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=[Physics%(dim)id], allow_subclassing=True)
+
 self.LinearPolynomialEquationOfState%(dim)id = addObject(space, "LinearPolynomialEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.GruneisenEquationOfState%(dim)id = addObject(space, "GruneisenEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.TillotsonEquationOfState%(dim)id = addObject(space, "TillotsonEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.MurnahanEquationOfState%(dim)id = addObject(space, "MurnahanEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength%(dim)id", parent=self.StrengthModel, allow_subclassing=True)
+
+self.StrengthModel%(dim)id = addObject(space, "StrengthModel%(dim)id", allow_subclassing=True)
+self.ConstantStrength%(dim)id = addObject(space, "ConstantStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
+self.NullStrength%(dim)id = addObject(space, "NullStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
+self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(dim)id", parent=self.SteinbergGuinanStrength%(dim)id, allow_subclassing=True)
+self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -54,9 +57,6 @@ self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLund
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        generateStrengthModelBindings(self.StrengthModel)
-        generateConstantStrengthBindings(self.ConstantStrength)
-        generateNullStrengthBindings(self.NullStrength)
         generateNinthOrderPolynomialFitBindings(self.NinthOrderPolynomialFit)
 
         for dim in self.dimSet:
@@ -64,13 +64,18 @@ self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLund
 generateSolidEquationOfStateBindings(self.SolidEquationOfState%(dim)id, %(dim)i)
 generatePorousEquationOfStateBindings(self.PorousEquationOfState%(dim)id, %(dim)i)
 generateStrainPorosityBindings(self.StrainPorosity%(dim)id, %(dim)i)
+
 generateLinearPolynomialEquationOfStateBindings(self.LinearPolynomialEquationOfState%(dim)id, %(dim)i)
 generateGruneisenEquationOfStateBindings(self.GruneisenEquationOfState%(dim)id, %(dim)i)
 generateTillotsonEquationOfStateBindings(self.TillotsonEquationOfState%(dim)id, %(dim)i)
 generateMurnahanEquationOfStateBindings(self.MurnahanEquationOfState%(dim)id, %(dim)i)
 
+generateStrengthModelBindings(self.StrengthModel%(dim)id, %(dim)i)
+generateConstantStrengthBindings(self.ConstantStrength%(dim)id, %(dim)i)
+generateNullStrengthBindings(self.NullStrength%(dim)id, %(dim)i)
 generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(dim)i)
 generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(dim)id, %(dim)i)
+generatePorousStrengthModelBindings(self.PorousStrengthModel%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         return
@@ -305,7 +310,9 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
 #---------------------------------------------------------------------------
 # StrengthModel (virtual interface)
 #---------------------------------------------------------------------------
-def generateStrengthModelVirtualBindings(x, pureVirtual):
+def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
+
+    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Methods.
     x.add_method("shearModulus", "double", [param("double", "density"),
@@ -323,46 +330,72 @@ def generateStrengthModelVirtualBindings(x, pureVirtual):
                                           param("double", "pressure"),
                                           param("double", "fluidSoundSpeed")],
                  is_const=True, is_virtual=True)
+    return
 
+
+def generateStrengthModelFieldVirtualBindings(x, ndim, pureVirtual):
+
+    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+
+    # Methods.
+    x.add_method("shearModulus", None, [refparam(scalarfield, "shearModulus"),
+                                        constrefparam(scalarfield, "density"),
+                                        constrefparam(scalarfield, "specificThermalEnergy"),
+                                        constrefparam(scalarfield, "pressure")],
+                 is_const=True, is_virtual=True)
+    x.add_method("yieldStrength", None, [refparam(scalarfield, "yieldStrength"),
+                                         constrefparam(scalarfield, "density"),
+                                         constrefparam(scalarfield, "specificThermalEnergy"),
+                                        constrefparam(scalarfield, "pressure"),
+                                        constrefparam(scalarfield, "plasticStrain"),
+                                        constrefparam(scalarfield, "plasticStrainRate")],
+                 is_const=True, is_virtual=True)
+    x.add_method("soundSpeed", None, [refparam(scalarfield, "soundSpeed"),
+                                      constrefparam(scalarfield, "density"),
+                                      constrefparam(scalarfield, "specificThermalEnergy"),
+                                      constrefparam(scalarfield, "pressure"),
+                                      constrefparam(scalarfield, "fluidSoundSpeed")],
+                 is_const=True, is_virtual=True)
     return
 
 #---------------------------------------------------------------------------
 # StrengthModel
 #---------------------------------------------------------------------------
-def generateStrengthModelBindings(x):
+def generateStrengthModelBindings(x, ndim):
 
     # Constructors.
     x.add_constructor([])
 
     # Add the abstract interface.
-    generateStrengthModelVirtualBindings(x, True)
+    generateStrengthModelVirtualBindings(x, ndim, True)
+    generateStrengthModelFieldVirtualBindings(x, ndim, True)
 
     return
 
 #---------------------------------------------------------------------------
 # ConstantStrength
 #---------------------------------------------------------------------------
-def generateConstantStrengthBindings(x):
+def generateConstantStrengthBindings(x, ndim):
 
     # Constructors.
     x.add_constructor([param("double", "mu0"),
                        param("double", "Y0")])
 
     # Add the abstract interface.
-    generateStrengthModelVirtualBindings(x, False)
+    generateStrengthModelVirtualBindings(x, ndim, False)
 
     return
 
 #---------------------------------------------------------------------------
 # NullStrength
 #---------------------------------------------------------------------------
-def generateNullStrengthBindings(x):
+def generateNullStrengthBindings(x, ndim):
 
     # Constructors.
     x.add_constructor([])
 
     # Add the abstract interface.
-    generateStrengthModelVirtualBindings(x, False)
+    generateStrengthModelVirtualBindings(x, ndim, False)
 
     return
 
@@ -412,7 +445,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
                        constrefparam(ninthorderpolynomial, "meltEnergyFit")])
 
     # Add the abstract interface.
-    generateStrengthModelVirtualBindings(x, False)
+    generateStrengthModelVirtualBindings(x, ndim, False)
 
     # Methods.
     x.add_method("meltAttenuation", "double", [param("double", "rho"), param("double", "eps")], is_const=True)
@@ -430,6 +463,28 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     x.add_instance_attribute("nhard", "double", getter="nhard", is_const=True)
     x.add_instance_attribute("coldEnergyFit", ninthorderpolynomial, getter="coldEnergyFit", is_const=True)
     x.add_instance_attribute("meltEnergyFit", ninthorderpolynomial, getter="meltEnergyFit", is_const=True)
+
+    return
+
+#---------------------------------------------------------------------------
+# PorousStrengthModel
+#---------------------------------------------------------------------------
+def generatePorousStrengthModelBindings(x, ndim):
+
+    me = "Spheral::SolidMaterial::PorousStrengthModel%id" % ndim
+    strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
+    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+
+    # Constructors.
+    x.add_constructor([constrefparam(strengthmodel, "solidStrength")])
+
+    # Add the abstract interface.
+    generateStrengthModelVirtualBindings(x, ndim, False)
+    generateStrengthModelFieldVirtualBindings(x, ndim, True)
+
+    # Methods.
+    const_ref_return_value(x, me, "%s::solidStrength" % me, strengthmodel, [], "solidStrength")
+    const_ref_return_value(x, me, "%s::alpha" % me, scalarfield, [], "alpha")
 
     return
 
@@ -483,6 +538,7 @@ def generateSteinbergGuinanLundStrengthBindings(x, ndim):
 def generateStrainPorosityBindings(x, ndim):
     me = "Spheral::SolidMaterial::StrainPorosity%id" % ndim
     porouseos = "Spheral::SolidMaterial::PorousEquationOfState%id" % ndim
+    porousstrength = "Spheral::SolidMaterial::PorousStrengthModel%id" % ndim
     nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
     vector_of_boundary = "vector_of_Boundary%id" % ndim
@@ -490,6 +546,7 @@ def generateStrainPorosityBindings(x, ndim):
 
     # Constructors.
     x.add_constructor([refparam(porouseos, "porousEOS"),
+                       refparam(porousstrength, "porousStrength"),
                        constrefparam(nodelist, "nodeList"),
                        param("double", "phi0"),
                        param("double", "epsE"),

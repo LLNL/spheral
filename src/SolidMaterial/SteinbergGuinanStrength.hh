@@ -23,7 +23,7 @@ namespace Spheral {
 namespace SolidMaterial {
 
 template<typename Dimension>
-class SteinbergGuinanStrength: public StrengthModel {
+class SteinbergGuinanStrength: public StrengthModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//

@@ -12,7 +12,8 @@
 namespace Spheral {
 namespace SolidMaterial {
 
-class ConstantStrength: public StrengthModel {
+template<typename Dimension>
+class ConstantStrength: public StrengthModel<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructor.
@@ -53,10 +54,12 @@ private:
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
-ConstantStrength::
+ConstantStrength<Dimension>::
 ConstantStrength(const double mu0,
                  const double Y0):
+  StrengthModel<Dimension>(),
   mShearModulus0(mu0),
   mYeildStrength0(Y0) {
 }
@@ -64,9 +67,10 @@ ConstantStrength(const double mu0,
 //------------------------------------------------------------------------------
 // Compute the shear modulus.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-ConstantStrength::
+ConstantStrength<Dimension>::
 shearModulus(const double density,
              const double specificThermalEnergy,
              const double pressure) const {
@@ -74,11 +78,12 @@ shearModulus(const double density,
 }
 
 //------------------------------------------------------------------------------
-// Compute the yeild strength.
+// Compute the yield strength.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-ConstantStrength::
+ConstantStrength<Dimension>::
 yieldStrength(const double density,
               const double specificThermalEnergy,
               const double pressure,
@@ -90,9 +95,10 @@ yieldStrength(const double density,
 //------------------------------------------------------------------------------
 // Compute the full sound speed.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 double
-ConstantStrength::
+ConstantStrength<Dimension>::
 soundSpeed(const double density,
            const double specificThermalEnergy,
            const double pressure,
@@ -110,7 +116,7 @@ soundSpeed(const double density,
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    class ConstantStrength;
+    template<typename Dimension> class ConstantStrength;
   }
 }
 

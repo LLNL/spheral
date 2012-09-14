@@ -120,7 +120,7 @@ damageGradient() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const SolidMaterial::StrengthModel&
+const SolidMaterial::StrengthModel<Dimension>&
 SolidNodeList<Dimension>::
 strengthModel() const {
   return mStrength;

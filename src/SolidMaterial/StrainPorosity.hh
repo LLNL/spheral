@@ -26,6 +26,7 @@
 
 #include <limits>
 #include "PorousEquationOfState.hh"
+#include "PorousStrengthModel.hh"
 #include "Physics/Physics.hh"
 #include "DataOutput/registerWithRestart.hh"
 
@@ -46,6 +47,7 @@ public:
 
   // Constructors, destructors.
   StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
+                 PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
                  const NodeSpace::NodeList<Dimension>& nodeList,  // The NodeList we're going apply to
                  const double phi0,                               // Initial porosity
                  const double epsE,                               // Elastic-plastic transition strain
@@ -96,6 +98,7 @@ public:
   double epsC() const;
   double kappa() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
+  const PorousStrengthModel<Dimension>& porousStrength() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
   const FieldSpace::Field<Dimension, Scalar>& alpha() const;
   const FieldSpace::Field<Dimension, Scalar>& DalphaDt() const;
@@ -106,6 +109,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mAlpha0, mEpsE, mEpsX, mKappa, mEpsC;
   PorousEquationOfState<Dimension>& mPorousEOS;
+  PorousStrengthModel<Dimension>& mPorousStrength;
   const NodeSpace::NodeList<Dimension>& mNodeList;
   FieldSpace::Field<Dimension, Scalar> mAlpha,  mDalphaDt, mStrain, mDstrainDt;
 

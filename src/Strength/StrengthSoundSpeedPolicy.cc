@@ -74,7 +74,7 @@ update(const KeyType& key,
   // Get the solid node list and strength model.
   const SolidNodeList<Dimension>* nodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(soundSpeed.nodeListPtr());
   REQUIRE(nodeListPtr != 0);
-  const StrengthModel& strengthModel = nodeListPtr->strengthModel();
+  const StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
 
   // Have the base class set the initial sound speed.
   SoundSpeedPolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);

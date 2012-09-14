@@ -34,7 +34,7 @@ SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
                         const double nhard,
                         const NinthOrderPolynomialFit& coldEnergyFit,
                         const NinthOrderPolynomialFit& meltEnergyFit):
-  StrengthModel(),
+  StrengthModel<Dimension>(),
   mEOSPtr(&eos),
   mG0(G0),
   mA(A),

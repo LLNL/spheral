@@ -38,7 +38,7 @@ template<typename Dimension>
 SolidNodeList<Dimension>::
 SolidNodeList(string name,
               EquationOfState<Dimension>& eos,
-              SolidMaterial::StrengthModel& strength,
+              SolidMaterial::StrengthModel<Dimension>& strength,
               const int numInternal,
               const int numGhost,
               const Scalar hmin,

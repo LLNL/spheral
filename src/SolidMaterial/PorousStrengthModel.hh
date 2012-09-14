@@ -29,34 +29,47 @@ namespace Spheral {
 namespace SolidMaterial {
 
 template<typename Dimension>
-class PorousStrengthModel {
+class PorousStrengthModel: public StrengthModel<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  // Constructors, destructor.
-  PorousStrengthModel(const StrengthModel& solidStrength);
-  virtual ~PorousStrengthModel() {};
+  typedef typename Dimension::Scalar Scalar;
 
-  // Shear Modulus
+  // Constructors, destructor.
+  PorousStrengthModel(const StrengthModel<Dimension>& solidStrength);
+  virtual ~PorousStrengthModel();
+
+  // We require the Field only interface!
+  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+                            const FieldSpace::Field<Dimension, Scalar>& density,
+                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+
+  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+                             const FieldSpace::Field<Dimension, Scalar>& density,
+                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                             const FieldSpace::Field<Dimension, Scalar>& pressure,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+
+  // Forbid the non-Field calls.
   virtual double shearModulus(const double density,
                               const double specificThermalEnergy,
-                              const double pressure) const;
+                              const double pressure) const { VERIFY2("PorousStrengthModel forbids non-Field shearModulus", false); }
 
-  // Yield strength.
   virtual double yieldStrength(const double density,
                                const double specificThermalEnergy,
                                const double pressure,
                                const double plasticStrain,
-                               const double plasticStrainRate) const;
+                               const double plasticStrainRate) const { VERIFY2("PorousStrengthModel forbids non-Field yieldStrength", false); }
 
-  // Sound speed.
-  virtual double soundSpeed(const double density,
-                            const double specificThermalEnergy,
-                            const double pressure,
-                            const double fluidSoundSpeed) const;
+  // Access the material parameters.
+  const StrengthModel<Dimension>& solidStrength() const;
+  const FieldSpace::Field<Dimension, Scalar>& alpha() const;
+  void alpha(const FieldSpace::Field<Dimension, Scalar>& x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const StrengthModel& mSolidStrength;
+  const StrengthModel<Dimension>& mSolidStrength;
   const FieldSpace::Field<Dimension, Scalar>* mAlphaPtr;
 
   // No copying or assignment.
