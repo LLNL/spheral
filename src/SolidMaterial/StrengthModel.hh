@@ -9,16 +9,27 @@
 #include "Infrastructure/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+// Forward declarations.
+namespace Spheral {
+  namespace FieldSpace {
+    template<typename Dimension, typename DataType> class Field;
+  }
+}
+
 namespace Spheral {
 namespace SolidMaterial {
 
+template<typename Dimension>
 class StrengthModel {
 public:
   //--------------------------- Public Interface ---------------------------//
+  typedef typename Dimension::Scalar Scalar;
+
   // Constructors, destructor.
   StrengthModel() {};
   virtual ~StrengthModel() {};
 
+  //............................................................................
   // The generic interface we require all strength models to provide.
   virtual double shearModulus(const double density,
                               const double specificThermalEnergy,
@@ -29,36 +40,39 @@ public:
                                const double pressure,
                                const double plasticStrain,
                                const double plasticStrainRate) const = 0;
+  //............................................................................
 
-  // An overridable method to compute the full sound speed.
+  // Optionally override the full sound speed calculation.
   virtual double soundSpeed(const double density,
                             const double specificThermalEnergy,
                             const double pressure,
                             const double fluidSoundSpeed) const;
 
+  // Overridable Field versions.
+  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+                            const FieldSpace::Field<Dimension, Scalar>& density,
+                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+
+  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+                             const FieldSpace::Field<Dimension, Scalar>& density,
+                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                             const FieldSpace::Field<Dimension, Scalar>& pressure,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+
+  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+                          const FieldSpace::Field<Dimension, Scalar>& density,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                          const FieldSpace::Field<Dimension, Scalar>& pressure,
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-
   // No copying or assignment.
   StrengthModel(const StrengthModel&);
   StrengthModel& operator=(const StrengthModel&);
 };
-
-//------------------------------------------------------------------------------
-// Compute the full sound speed.
-//------------------------------------------------------------------------------
-inline
-double
-StrengthModel::
-soundSpeed(const double density,
-           const double specificThermalEnergy,
-           const double pressure,
-           const double fluidSoundSpeed) const {
-  REQUIRE(distinctlyGreaterThan(density, 0.0));
-  const double cs2 = fluidSoundSpeed*fluidSoundSpeed + 4.0/3.0 * shearModulus(density, specificThermalEnergy, pressure) / density;
-  ENSURE(cs2 > 0.0);
-  return std::sqrt(cs2);
-}
 
 }
 }
@@ -68,7 +82,7 @@ soundSpeed(const double density,
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    class StrengthModel;
+    template<typename Dimension> class StrengthModel;
   }
 }
 
