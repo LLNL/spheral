@@ -157,6 +157,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   // Copy the parallel info.
   mNeighborDomains = tessellation.neighborDomains;
   mSharedNodes = tessellation.sharedNodes;
+  cerr << "Assigned neighbor domain info : " << mNeighborDomains.size() << " " << mSharedNodes.size() << endl;
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
