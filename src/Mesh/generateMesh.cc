@@ -83,7 +83,6 @@ generateMesh(const NodeListIterator nodeListBegin,
   computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                    boundaryBegin, boundaryEnd,
                                                                    xmin, xmax, generators, Hs, offsets);
-  MPI_Barrier(MPI_COMM_WORLD);
   if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct generators." << endl;

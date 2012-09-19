@@ -69,14 +69,14 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                       safeInv(box.z()));
 
   // Build the normalized generator positions.
-  vector<double> normGens;
-  normGens.reserve(3*generators.size());
+  vector<double> gens;
+  gens.reserve(3*generators.size());
   for (igen = 0; igen != numGens; ++igen) {
-    normGens.push_back((generators[igen].x() - xmin.x())*boxInv.x());
-    normGens.push_back((generators[igen].y() - xmin.y())*boxInv.y());
-    normGens.push_back((generators[igen].z() - xmin.z())*boxInv.z());
+    gens.push_back(generators[igen].x());
+    gens.push_back(generators[igen].y());
+    gens.push_back(generators[igen].z());
   }
-  CHECK(normGens.size() == 3*numGens);
+  CHECK(gens.size() == 3*numGens);
 
   // Do the polytope tessellation.  We use the TetGen based tessellator for now.
   Timing::Time t0 = Timing::currentTime();
@@ -86,10 +86,10 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
     polytope::DistributedTessellator<3, double> tessellator(new polytope::TetgenTessellator<double>(),
                                                             true,     // Manage memory for serial tessellator
                                                             true);    // Build parallel connectivity
-    tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+    tessellator.tessellate(gens, tessellation);
 #else
     polytope::TetgenTessellator<double> tessellator;
-    tessellator.tessellate(normGens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+    tessellator.tessellate(gens, tessellation);
 #endif
   }
   CHECK(tessellation.cells.size() == numGens);
@@ -102,9 +102,9 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   const unsigned numNodes = tessellation.nodes.size()/3;
   mNodePositions.reserve(numNodes);
   for (i = 0; i != numNodes; ++i) {
-    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), xmin.x() + tessellation.nodes[3*i]*box.x())),
-                                    max(xmin.y(), min(xmax.y(), xmin.y() + tessellation.nodes[3*i+1]*box.y())),
-                                    max(xmin.z(), min(xmax.z(), xmin.z() + tessellation.nodes[3*i+2]*box.z()))));
+    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), xmin.x() + tessellation.nodes[3*i]  )),
+                                    max(xmin.y(), min(xmax.y(), xmin.y() + tessellation.nodes[3*i+1])),
+                                    max(xmin.z(), min(xmax.z(), xmin.z() + tessellation.nodes[3*i+2]))));
   }
 
   // Build the edges and faces.
