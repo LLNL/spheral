@@ -461,6 +461,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     x.add_instance_attribute("beta", "double", getter="beta", is_const=True)
     x.add_instance_attribute("gamma0", "double", getter="gamma0", is_const=True)
     x.add_instance_attribute("nhard", "double", getter="nhard", is_const=True)
+    x.add_instance_attribute("refTempOffset", "double", getter="refTempOffset", is_const=True)
     x.add_instance_attribute("coldEnergyFit", ninthorderpolynomial, getter="coldEnergyFit", is_const=True)
     x.add_instance_attribute("meltEnergyFit", ninthorderpolynomial, getter="meltEnergyFit", is_const=True)
 

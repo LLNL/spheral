@@ -75,6 +75,7 @@ public:
   double beta() const;
   double gamma0() const;
   double nhard() const;
+  double refTempOffset() const;
   const NinthOrderPolynomialFit& coldEnergyFit() const;
   const NinthOrderPolynomialFit& meltEnergyFit() const;
 
@@ -91,6 +92,7 @@ private:
   double mbeta;
   double mgamma0;
   double mnhard;
+  double mRefTempOffset;
   NinthOrderPolynomialFit mColdEnergyFit;
   NinthOrderPolynomialFit mMeltEnergyFit;
 #endif
