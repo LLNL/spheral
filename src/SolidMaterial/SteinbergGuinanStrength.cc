@@ -45,8 +45,12 @@ SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
   mbeta(beta),
   mgamma0(gamma0),
   mnhard(nhard),
+  mRefTempOffset(0.0),
   mColdEnergyFit(coldEnergyFit),
   mMeltEnergyFit(meltEnergyFit) {
+  // Set the temperature offset so that computeTemperature returns 300 at reference
+  // values.
+  mRefTempOffset = 300.0 - this->computeTemperature(eos.referenceDensity(), 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +182,7 @@ computeTemperature(const double density, const double specificThermalEnergy) con
   CHECK(mu >= -1.0);
   const double emelt = mMeltEnergyFit(mu)/rho0;
   const double eps = max(0.0, min(emelt, specificThermalEnergy));
-  return max(0.0, eps - mColdEnergyFit(mu))*rho0/Cv;
+  return max(0.0, eps - mColdEnergyFit(mu))*rho0/Cv + mRefTempOffset;
 }
 
 //------------------------------------------------------------------------------
@@ -245,6 +249,13 @@ double
 SteinbergGuinanStrength<Dimension>::
 nhard() const {
   return mnhard;
+}
+
+template<typename Dimension>
+double
+SteinbergGuinanStrength<Dimension>::
+refTempOffset() const {
+  return mRefTempOffset;
 }
 
 template<typename Dimension>
