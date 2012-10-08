@@ -18,7 +18,7 @@ AC_SUBST(OPT)
 AC_SUBST(DISTRIBUTEDOPT)
 
 AC_DEFUN([SETUP_TAU],[
-TAUVERSION=2.21.3
+TAUVERSION=2.21.4
 AC_MSG_CHECKING(for --with-tau)
 AC_ARG_WITH(tau,
 [  --with-tau ............................... turn on Tau class profiling],
