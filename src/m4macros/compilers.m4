@@ -78,16 +78,6 @@ AC_MSG_RESULT($COMPILERS)
 
 OSNAME=`uname -s`
 AC_CHECK_PROG(GCCTEST, gcc, `which gcc`, nope)
-AC_CHECK_PROG(GCC321TEST, gcc-3.2.1, `which gcc-3.2.1`, nope)
-AC_CHECK_PROG(GCC323TEST, gcc-3.2.3, `which gcc-3.2.3`, nope)
-AC_CHECK_PROG(GCC333TEST, gcc-3.3.3, `which gcc-3.3.3`, nope)
-AC_CHECK_PROG(GCC341TEST, gcc-3.4.1, `which gcc-3.4.1`, nope)
-AC_CHECK_PROG(GCC343TEST, gcc-3.4.3, `which gcc-3.4.3`, nope)
-AC_CHECK_PROG(GCC343TEST, gcc-3.4.3, `which gcc-3.4.3`, nope)
-AC_CHECK_PROG(GCC410TEST, gcc-4.1.0, `which gcc-4.1.0`, nope)
-AC_CHECK_PROG(GCC411TEST, gcc-4.1.1, `which gcc-4.1.1`, nope)
-AC_CHECK_PROG(GCC411TEST, gcc-4.3.2, `which gcc-4.3.2`, nope)
-AC_CHECK_PROG(GCC441TEST, gcc-4.4.0, `which gcc-4.4.0`, nope)
 AC_CHECK_PROG(GCC446TEST, gcc-4.4.6, `which gcc-4.4.6`, nope)
 case $COMPILERS in
    gnu)
@@ -107,89 +97,6 @@ case $COMPILERS in
          PYTHONCXX=$CXX
          PARMETISCC=$MPICC
          JAMTOOLSETOPTS=" : 4.4 : gcc-4.4.6 "
-
-      elif test $OSNAME = "Linux" -a "$GCC440TEST" != "nope"; then
-         CC=gcc-4.4.0
-         CXX=g++-4.4.0
-         F77=g77
-         MPICC=mpicc
-         MPICXX=mpig++
-         MPICCFLAGS="-cc=$CC"
-         MPICXXFLAGS="-cc=$CXX"
-         CMAKECC=gcc-4.1.2
-         CMAKECXX=g++-4.1.2
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         JAMTOOLSETOPTS=" : 4.4 : gcc-4.4.0 "
-
-      elif test $OSNAME = "Linux" -a "$GCC432TEST" != "nope"; then
-         CC=gcc-4.3.2
-         CXX=g++-4.3.2
-         F77=g77
-         MPICC=mpicc
-         MPICXX=mpig++
-         MPICCFLAGS="-cc=$CC"
-         MPICXXFLAGS="-cc=$CXX"
-         CMAKECC=gcc-4.1.2
-         CMAKECXX=g++-4.1.2
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         JAMTOOLSETOPTS=" : 4.3 : gcc-4.3.2 "
-
-      elif test $OSNAME = "Linux" -a "$GCC411TEST" != "nope"; then
-         CC=gcc-4.1.1
-         CXX=g++-4.1.1
-         F77=g77
-         MPICC=$SRCDIR/helpers/mpicc
-         MPICXX="$SRCDIR/helpers/mpic++"
-         CMAKECC=$CC
-         CMAKECXX=$CXX
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         JAMTOOLSETOPTS=" : 4.1 : gcc-4.1.1 "
-
-      elif test $OSNAME = "Linux" -a "$GCC410TEST" != "nope"; then
-         CC=gcc-4.1.0
-         CXX=g++-4.1.0
-         F77=g77
-         MPICC=$SRCDIR/helpers/mpicc
-         MPICXX=$SRCDIR/helpers/mpic++
-         CMAKECC=$CC
-         CMAKECXX=$CXX
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         JAMTOOLSETOPTS=" : 4.1 : gcc-4.1.0 "
-
-      elif test $OSNAME = "Linux" -a "$GCC343TEST" != "nope"; then
-         CC=gcc-3.4.3
-         CXX=g++-3.4.3
-         F77=g77
-         MPICC=$SRCDIR/helpers/mpicc
-         MPICXX=$SRCDIR/helpers/mpic++
-         if test "$GCC333TEST" != "nope"; then
-            CMAKECC=gcc-3.3.3
-            CMAKECXX=g++-3.3.3
-         else
-            CMAKECC=$CC
-            CMAKECXX=$CXX
-         fi
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
 
       elif test $OSNAME = "Linux" -a "$GCCTEST" != "nope"; then
          CC=gcc

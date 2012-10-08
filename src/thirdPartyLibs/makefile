@@ -52,8 +52,8 @@ ELEMENTTREEDIR = $(ELEMENTTREEDIST:.zip=)
 ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_50_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.50.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_51_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.51.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -83,11 +83,12 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 #PARMETISMAKEFILE = Makefile.ParMETIS
 
 # Tau
-TAUDIST = tau-$(TAUVERSION).tar.gz
-TAUURL=http://www.cs.uoregon.edu/Research/tau/tau_releases/$(TAUDIST)
-TAUDIR = $(TAUDIST:.tar.gz=)
-TAUBUILDDATE = $(patsubst %.tar.gz, .%.date, $(TAUDIST))
-TAUDUMMYDATE = $(patsubst %.tar.gz, .%.dummydate, $(TAUDIST))
+TAUDIST = tau-$(TAUVERSION).tgz
+#TAUURL=http://www.cs.uoregon.edu/Research/tau/tau_releases/$(TAUDIST)
+TAUURL=http://tau.uoregon.edu/tau.tgz
+TAUDIR = $(TAUDIST:.tgz=)
+TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
+TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
 
 # Pygtk
 PYGTKDIST = pygtk-2.12.1.tar.gz
@@ -493,7 +494,7 @@ $(ELEMENTTREEBUILDDATE):	$(PYTHONBUILDDATE) $(ELEMENTTREEDIST)
 $(BOOSTDIST):
 	$(CURL) "$(BOOSTURL)" > $(BOOSTDIST)
 
-$(BOOSTDATE):	$(BOOSTDIST)
+$(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(BOOSTDIST)"
 	@echo "################################################################################"
@@ -502,8 +503,8 @@ $(BOOSTDATE):	$(BOOSTDIST)
 	$(BZIP2) -dc $(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(SPHERALDIR)/bin:$$PATH; export PATH; \
-	./bootstrap.sh --without-libraries=graph,graph_parallel,math,mpi,program_options,python,regex,serialization,signals,system,test,wave --prefix=$(SPHERALDIR); \
-	./bjam install;'
+	./bootstrap.sh --without-libraries=chrono,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave --prefix=$(SPHERALDIR); \
+	./b2'
 	@if test "$(BOOSTPYTHONTARGET)" = "python" -a ! -e $(SPHERALDIR)/lib/$(BOOSTPYTHONLIB0) ; then \
 	echo "ERROR building local boost distribution. (1, no $(BOOSTPYTHONLIB0))"; \
 	rm -f $(BOOSTDATE); \
@@ -773,7 +774,7 @@ $(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	rm -fr $(PYGSLDIR)
 	$(GZIP) -dc $(PYGSLDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(PYGSLDIR); $(PYTHONEXE) setup.py install;'
+	env PATH=$(SPHERALDIR)/bin:$$PATH $(SHELL) -ec 'cd $(PYGSLDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import pygsl'`"; then \
 	echo "ERROR building pygsl extension."; \
 	rm -f $(PYGSLBUILDDATE); \
@@ -855,7 +856,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 #-------------------------------------------------------------------------------
 # Hank's visit_writer 
 #-------------------------------------------------------------------------------
-$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(WILDMAGICBUILDDATE)
+$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(WILDMAGICBUILDDATE) $(POLYTOPEBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"
