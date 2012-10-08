@@ -28,8 +28,8 @@ PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
 PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.6.1.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.6.2.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.6.2/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -210,7 +210,7 @@ QHULLINCDIR = $(SPHERALDIR)/include/qhull
 QHULLDATE = $(patsubst %-src.tgz, .%.date, $(QHULLDIST))
 
 # mpi4py
-MPI4PYDIST = mpi4py-1.2.2.tar.gz
+MPI4PYDIST = mpi4py-1.3.tar.gz
 MPI4PYURL = http://mpi4py.googlecode.com/files/$(MPI4PYDIST)
 MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
@@ -504,9 +504,14 @@ $(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
 	PATH=$(SPHERALDIR)/bin:$$PATH; export PATH; \
 	./bootstrap.sh --without-libraries=chrono,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave --prefix=$(SPHERALDIR); \
-	./b2'
+	./b2 install'
+	@if ! test -e "$(SPHERALDIR)/include/boost" ; then \
+	echo "ERROR building local boost distribution. (0, no include dir)"; \
+	rm -f $(BOOSTDATE); \
+	exit 1; \
+	fi
 	@if test "$(BOOSTPYTHONTARGET)" = "python" -a ! -e $(SPHERALDIR)/lib/$(BOOSTPYTHONLIB0) ; then \
-	echo "ERROR building local boost distribution. (1, no $(BOOSTPYTHONLIB0))"; \
+	echo "ERROR building local boost distribution. (0, no $(BOOSTPYTHONLIB0))"; \
 	rm -f $(BOOSTDATE); \
 	exit 1; \
 	fi

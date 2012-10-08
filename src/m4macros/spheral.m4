@@ -125,7 +125,7 @@ if test "`uname -s`" = "AIX"; then
   NUMPYTHIRDPARTYTARGETS=
 else
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
-  NUMPYTHIRDPARTYTARGETS=".numpy-1.6.1.date .gnuplot-py-1.8.date"
+  NUMPYTHIRDPARTYTARGETS=".numpy-1.6.2.date .gnuplot-py-1.8.date"
 fi
 
 # -----------------------------------------------------------------
