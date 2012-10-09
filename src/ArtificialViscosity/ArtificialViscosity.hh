@@ -71,7 +71,7 @@ public:
                       const Scalar Cquadratic);
 
   // Destructor.
-  ~ArtificialViscosity();
+  virtual ~ArtificialViscosity();
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
