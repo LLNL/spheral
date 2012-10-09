@@ -67,7 +67,7 @@ public:
              const std::vector<PhysicsSpace::Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
-  ~Integrator();
+  virtual ~Integrator();
 
   // Assignment.
   Integrator& operator=(const Integrator& rhs);
