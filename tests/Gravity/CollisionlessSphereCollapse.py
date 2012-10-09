@@ -94,7 +94,9 @@ eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
-                          topGridCellSize = 100*r0)
+                          topGridCellSize = 100*r0,
+                          xmin = -100.0*r0 * Vector.one,
+                          xmax =  100.0*r0 * Vector.one)
 
 if restoreCycle is None:
     generator = GenerateNodeDistribution3d(2*nr, 2*nr, 2*nr, rho0,
