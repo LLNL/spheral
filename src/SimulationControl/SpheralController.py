@@ -65,7 +65,8 @@ class SpheralController(RestartableObject):
             if self.dim == "1d":
                 from Spheral1dVizDump import dumpPhysicsState
             else:
-                from SpheralVoronoiSiloDump import dumpPhysicsState
+                #from SpheralVoronoiSiloDump import dumpPhysicsState
+                from SpheralVisitDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
 
         # If this is a parallel run, automatically construct and insert
@@ -638,8 +639,8 @@ class SpheralController(RestartableObject):
         mpi.barrier()
         self.integrator.setGhostNodes()
         self.vizMethod(self.integrator,
-                       self.vizBaseName,
-                       self.vizDir,
+                       baseFileName = self.vizBaseName,
+                       baseDirectory = self.vizDir,
                        currentTime = self.time(),
                        currentCycle = self.totalSteps,
                        boundaries = self.integrator.uniqueBoundaryConditions())
