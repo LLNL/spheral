@@ -117,7 +117,7 @@ vizDir = os.path.join(dataDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
-    vizBaseName = "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta),
+    vizBaseName = "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
