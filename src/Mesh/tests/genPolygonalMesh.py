@@ -1,6 +1,7 @@
 from Spheral2d import *
 import mpi
 import random
+from generateMesh import *
 from siloMeshDump import *
 from math import *
 
@@ -52,3 +53,43 @@ mesh = PolygonalMesh(gens,
                      xmax = Vector(x1, y1))
 
 siloMeshDump("random_polygonal_mesh_%idomains" % mpi.procs, mesh)
+
+# Now do the same thing through our NodeList interface.
+eos = GammaLawGasMKS(5.0/3.0, 1.0)
+W = TableKernel(BSplineKernel(), 1000)
+
+def createNodes(gens, dx):
+    nodes = makeFluidNodeList("some_nodes", eos,
+                              numInternal = len(gens))
+    pos = nodes.positions()
+    H = nodes.Hfield()
+    mass = nodes.mass()
+    rho = nodes.massDensity()
+    vel = nodes.velocity()
+    H0 = 1.0/(dx*nodes.nodesPerSmoothingScale) * SymTensor.one
+    for i in xrange(len(gens)):
+        xi = gens[i]
+        pos[i] = xi
+        H[i] = H0
+        mass[i] = 1.0
+        rho[i] = 1.0 + xi.magnitude2()
+        vel[i] = xi
+
+    db = DataBase()
+    db.appendNodeList(nodes)
+    nodes._neighbor.updateNodes()
+    db.updateConnectivityMap()
+
+    iterateIdealH(db, vector_of_Boundary(), W, SPHSmoothingScale(),
+                  tolerance = 1.0e-4)
+    db.updateConnectivityMap()
+
+    return nodes, db
+
+dx = 1.0/nx
+nodes, db = createNodes(gens, dx)
+mesh, void = generatePolygonalMesh([nodes], [],
+                                   generateVoid = True,
+                                   removeBoundaryZones = False)
+siloMeshDump("random_polygonal_mesh_nodes_%idomains" % mpi.procs, mesh,
+             nodeLists = [nodes, void])
