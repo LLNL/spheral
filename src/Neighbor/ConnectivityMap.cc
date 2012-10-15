@@ -685,7 +685,8 @@ computeConnectivity() {
   // Make sure that all internal nodes have been completed.
   for (InternalNodeIterator<Dimension> nodeItr = dataBase.internalNodeBegin();
        nodeItr != dataBase.internalNodeEnd();
-       ++nodeItr) ENSURE(flagNodeDone(nodeItr) == 1);
+       ++nodeItr) ENSURE2(flagNodeDone(nodeItr) == 1,
+                          "Missed connnectivity for (" << nodeItr.fieldID() << " " << nodeItr.nodeID() << ")");
   // Make sure we're ready to be used.
   ENSURE(valid());
   END_CONTRACT_SCOPE;
