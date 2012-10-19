@@ -29,6 +29,9 @@ public:
   Vector position() const;
   double length() const;
 
+  // Test if this element is communicated.
+  int isCommunicated() const;
+
   //--------------------------- Private Interface ---------------------------//
 private:
   const Mesh<Dimension>* mMeshPtr;

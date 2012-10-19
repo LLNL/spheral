@@ -331,6 +331,39 @@ sharedNodes() const {
 }
 
 //------------------------------------------------------------------------------
+// Mesh::communicatedNodes
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<int>&
+Mesh<Dimension>::
+communicatedNodes() const {
+  return mCommunicatedNodes;
+}
+
+//------------------------------------------------------------------------------
+// Mesh::communicatedEdges
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<int>&
+Mesh<Dimension>::
+communicatedEdges() const {
+  return mCommunicatedEdges;
+}
+
+//------------------------------------------------------------------------------
+// Mesh::communicatedFaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<int>&
+Mesh<Dimension>::
+communicatedFaces() const {
+  return mCommunicatedFaces;
+}
+
+//------------------------------------------------------------------------------
 // Mesh::minimumScale
 //------------------------------------------------------------------------------
 template<typename Dimension>

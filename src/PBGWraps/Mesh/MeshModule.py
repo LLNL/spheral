@@ -141,6 +141,9 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_instance_attribute("minimumScale", "double", getter="minimumScale", is_const=True)
         x.add_instance_attribute("neighborDomains", "vector_of_unsigned", getter="neighborDomains", is_const=True)
         x.add_instance_attribute("sharedNodes", "vector_of_vector_of_unsigned", getter="sharedNodes", is_const=True)
+        x.add_instance_attribute("communicatedNodes", "vector_of_int", getter="communicatedNodes", is_const=True)
+        x.add_instance_attribute("communicatedEdges", "vector_of_int", getter="communicatedEdges", is_const=True)
+        x.add_instance_attribute("communicatedFaces", "vector_of_int", getter="communicatedFaces", is_const=True)
 
         x.add_static_attribute("UNSETID", "unsigned int",  is_const=True)
         x.add_static_attribute("minFacesPerZone", "unsigned int",  is_const=True)
@@ -172,6 +175,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Methods.
         x.add_method("position", vector, [], is_const=True)
+        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
@@ -202,6 +206,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         # Methods.
         x.add_method("position", vector, [], is_const=True)
         x.add_method("length", "double", [], is_const=True)
+        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
@@ -239,6 +244,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("unitNormal", vector, [], is_const=True)
         x.add_method("oppositeZoneID", "int", [param("int", "zoneID")], is_const=True)
         x.add_method("compare", "int", [constrefparam(vector, "point"), param("double", "tol", default_value="1.0e-8")], is_const=True)
+        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)

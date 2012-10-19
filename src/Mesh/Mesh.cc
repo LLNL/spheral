@@ -1183,6 +1183,49 @@ storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
 }
 
 //------------------------------------------------------------------------------
+// Internal method to fill in extra comm data based on the shared node info.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+buildAncillaryCommData() {
+
+  // Clear out old data.
+  mCommunicatedNodes = vector<int>(mNodes.size(), 0);
+  mCommunicatedEdges = vector<int>(mEdges.size(), 0);
+  mCommunicatedFaces = vector<int>(mFaces.size(), 0);
+
+  // Flag the shared nodes.
+  BOOST_FOREACH(const vector<unsigned>& nodes, mSharedNodes) {
+    BOOST_FOREACH(const unsigned i, nodes) {
+      mCommunicatedNodes[i] = 1;
+    }
+  }
+
+  // Flag the shared edges.
+  for (unsigned i = 0; i != mEdges.size(); ++i) {
+    if (mCommunicatedNodes[mEdges[i].node1ID()] == 1 and
+        mCommunicatedNodes[mEdges[i].node2ID()] == 1) mCommunicatedEdges[i] = 1;
+  }
+
+  // Flag the shared faces.
+  bool flag;
+  for (unsigned i = 0; i != mFaces.size(); ++i) {
+    flag = true;
+    const vector<unsigned>& edges = mFaces[i].edgeIDs();
+    BOOST_FOREACH(const unsigned iedge, edges) {
+      flag = (flag and (mCommunicatedEdges[iedge] == 1));
+    }
+    if (flag) mCommunicatedFaces[i] = 1;
+  }
+
+  // Post-conditions.
+  ENSURE(mCommunicatedNodes.size() == mNodes.size());
+  ENSURE(mCommunicatedEdges.size() == mEdges.size());
+  ENSURE(mCommunicatedFaces.size() == mFaces.size());
+}
+
+//------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
 template<typename Dimension>
