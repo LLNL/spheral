@@ -117,5 +117,17 @@ compare(const typename Dimension::Vector& point,
                                        -1);
 }
 
+//------------------------------------------------------------------------------
+// Mesh::Face::isCommunicated
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+Mesh<Dimension>::Face::
+isCommunicated() const {
+  REQUIRE(mID < mMeshPtr->mCommunicatedFaces.size());
+  return mMeshPtr->mCommunicatedFaces[mID];
+}
+
 }
 }

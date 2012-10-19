@@ -158,6 +158,9 @@ public:
   // Access to the parallel info.
   const std::vector<unsigned>& neighborDomains() const;
   const std::vector<std::vector<unsigned> >& sharedNodes() const;
+  const std::vector<int>& communicatedNodes() const;
+  const std::vector<int>& communicatedEdges() const;
+  const std::vector<int>& communicatedFaces() const;
 
   // Compute the minimum scale (distance between nodes).
   double minimumScale() const;
@@ -176,6 +179,11 @@ public:
   // Encapsulate the ones complement for signed (oriented) IDs.
   static int positiveID(const int id);
 
+  //--------------------------- Protected Interface ---------------------------//
+protected:
+  // Build the ancillary communication info.
+  void buildAncillaryCommData();
+
   //--------------------------- Private Interface ---------------------------//
 private:
   // The mesh data.
@@ -188,6 +196,7 @@ private:
   // The optional parallel info.
   std::vector<unsigned> mNeighborDomains;
   std::vector<std::vector<unsigned> > mSharedNodes;
+  std::vector<int> mCommunicatedNodes, mCommunicatedEdges, mCommunicatedFaces;
 
   // The offsets into the zones for each NodeList.
   std::map<std::string, unsigned> mNodeListNameOffsets;

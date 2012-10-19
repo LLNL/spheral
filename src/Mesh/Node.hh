@@ -26,6 +26,9 @@ public:
   // ID's of the zones that touch this node.
   const std::vector<unsigned>& zoneIDs() const;
 
+  // Test if this element is communicated.
+  int isCommunicated() const;
+
   //--------------------------- Private Interface ---------------------------//
 private:
   const Mesh<Dimension>* mMeshPtr;

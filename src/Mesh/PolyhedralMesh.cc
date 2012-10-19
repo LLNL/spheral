@@ -160,6 +160,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   // Copy the parallel info.
   mNeighborDomains = tessellation.neighborDomains;
   mSharedNodes = tessellation.sharedNodes;
+  this->buildAncillaryCommData();
 
   // Report our final timing and we're done.
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 

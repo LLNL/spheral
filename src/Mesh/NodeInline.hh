@@ -57,5 +57,17 @@ zoneIDs() const {
   return mZoneIDs;
 }
 
+//------------------------------------------------------------------------------
+// Mesh::Node::isCommunicated
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+Mesh<Dimension>::Node::
+isCommunicated() const {
+  REQUIRE(mID < mMeshPtr->mCommunicatedNodes.size());
+  return mMeshPtr->mCommunicatedNodes[mID];
+}
+
 }
 }
