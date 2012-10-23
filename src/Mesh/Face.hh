@@ -54,9 +54,6 @@ public:
   int compare(const Vector& point,
               const double tol = 1.0e-8) const;
 
-  // Test if this element is communicated.
-  int isCommunicated() const;
-
   //--------------------------- Private Interface ---------------------------//
 private:
   const Mesh<Dimension>* mMeshPtr;

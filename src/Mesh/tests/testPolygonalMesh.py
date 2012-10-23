@@ -182,10 +182,13 @@ class PolygonalMeshGenericTests:
 ##         p.replot(d)
 
         neighborDomains = [int(x) for x in mesh.neighborDomains]
-        sharedNodes = []
+        sharedNodes, sharedFaces = [], []
         for ll in mesh.sharedNodes:
             sharedNodes.append([int(x) for x in ll])
+        for ll in mesh.sharedFaces:
+            sharedFaces.append([int(x) for x in ll])
         assert len(neighborDomains) == len(mesh.sharedNodes)
+        assert len(neighborDomains) == len(mesh.sharedFaces)
 
 ##         # Check the correct domains are talking to each other.
 ##         nxproc = int(sqrt(numDomains))
@@ -226,6 +229,33 @@ class PolygonalMeshGenericTests:
                             str([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]]),
                             recvHashes,
                             [str(mesh.node(i).position()) for i in sharedNodes[kk]],
+                            recvPos))
+                self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
+
+        # Check that the communicated mesh faces are consistent.
+        for sendProc in xrange(numDomains):
+            numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
+            assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
+            for k in xrange(numChecks):
+                if rank == sendProc:
+                    ksafe = k
+                else:
+                    ksafe = 0
+                recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
+                recvHashes = mpi.bcast([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[ksafe]], root=sendProc)
+                recvPos = mpi.bcast([str(mesh.face(i).position()) for i in sharedFaces[ksafe]], root=sendProc)
+                ok = True
+                msg = ""
+                if rank == recvProc:
+                    assert sendProc in neighborDomains
+                    kk = neighborDomains.index(sendProc)
+                    assert kk < len(sharedFaces)
+                    ok = ([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[kk]] == recvHashes)
+                    msg = ("Shared face indicies don't match %i %i\n   %s != %s\n    %s\n    %s" %
+                           (rank, sendProc, 
+                            str([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[kk]]),
+                            recvHashes,
+                            [str(mesh.face(i).position()) for i in sharedFaces[kk]],
                             recvPos))
                 self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
