@@ -331,36 +331,14 @@ sharedNodes() const {
 }
 
 //------------------------------------------------------------------------------
-// Mesh::communicatedNodes
+// Mesh::sharedFaces
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<int>&
+const std::vector<std::vector<unsigned> >&
 Mesh<Dimension>::
-communicatedNodes() const {
-  return mCommunicatedNodes;
-}
-
-//------------------------------------------------------------------------------
-// Mesh::communicatedEdges
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<int>&
-Mesh<Dimension>::
-communicatedEdges() const {
-  return mCommunicatedEdges;
-}
-
-//------------------------------------------------------------------------------
-// Mesh::communicatedFaces
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<int>&
-Mesh<Dimension>::
-communicatedFaces() const {
-  return mCommunicatedFaces;
+sharedFaces() const {
+  return mSharedFaces;
 }
 
 //------------------------------------------------------------------------------

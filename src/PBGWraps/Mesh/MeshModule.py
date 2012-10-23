@@ -123,8 +123,8 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("zone", zone, [param("unsigned int", "nodeListi"), param("unsigned int", "i")], is_const=True)
         x.add_method("offset", "unsigned int", [constrefparam(nodelist, "nodeList")], is_const=True)
         x.add_method("offset", "unsigned int", [param("unsigned int", "nodeListi")], is_const=True)
-        x.add_method("generateDomainInfo", None, [])
         x.add_method("globalMeshNodeIDs", "vector_of_unsigned", [], is_const=True)
+        x.add_method("globalMeshFaceIDs", "vector_of_unsigned", [constrefparam("vector_of_unsigned", "globalNodeIDs")], is_const=True)
         x.add_method("validDomainInfo", "std::string",
                      [constrefparam(vector, "xmin"), constrefparam(vector, "xmax"), param("bool", "checkUniqueSendProc")], is_const=True)
         x.add_method("storeNodeListOffsets", None,
@@ -141,9 +141,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_instance_attribute("minimumScale", "double", getter="minimumScale", is_const=True)
         x.add_instance_attribute("neighborDomains", "vector_of_unsigned", getter="neighborDomains", is_const=True)
         x.add_instance_attribute("sharedNodes", "vector_of_vector_of_unsigned", getter="sharedNodes", is_const=True)
-        x.add_instance_attribute("communicatedNodes", "vector_of_int", getter="communicatedNodes", is_const=True)
-        x.add_instance_attribute("communicatedEdges", "vector_of_int", getter="communicatedEdges", is_const=True)
-        x.add_instance_attribute("communicatedFaces", "vector_of_int", getter="communicatedFaces", is_const=True)
+        x.add_instance_attribute("sharedFaces", "vector_of_vector_of_unsigned", getter="sharedFaces", is_const=True)
 
         x.add_static_attribute("UNSETID", "unsigned int",  is_const=True)
         x.add_static_attribute("minFacesPerZone", "unsigned int",  is_const=True)
@@ -175,7 +173,6 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
 
         # Methods.
         x.add_method("position", vector, [], is_const=True)
-        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
@@ -206,7 +203,6 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         # Methods.
         x.add_method("position", vector, [], is_const=True)
         x.add_method("length", "double", [], is_const=True)
-        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)
@@ -244,7 +240,6 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("unitNormal", vector, [], is_const=True)
         x.add_method("oppositeZoneID", "int", [param("int", "zoneID")], is_const=True)
         x.add_method("compare", "int", [constrefparam(vector, "point"), param("double", "tol", default_value="1.0e-8")], is_const=True)
-        x.add_method("isCommunicated", "int", [], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("ID", "unsigned int", getter="ID", is_const=True)

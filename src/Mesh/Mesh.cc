@@ -10,6 +10,7 @@
 #include "boost/unordered_map.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
 #include "boost/foreach.hpp"
+#include "boost/functional/hash.hpp"
 
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/removeElements.hh"
@@ -49,6 +50,7 @@ Mesh():
   mZones(),
   mNeighborDomains(),
   mSharedNodes(),
+  mSharedFaces(),
   mNodeListNameOffsets(),
   mNodeListIndexOffsets() {
 }
@@ -68,6 +70,7 @@ Mesh(const vector<typename Dimension::Vector>& generators,
   mZones(),
   mNeighborDomains(),
   mSharedNodes(),
+  mSharedFaces(),
   mNodeListNameOffsets(),
   mNodeListIndexOffsets() {
   this->reconstruct(generators, xmin, xmax);
@@ -87,6 +90,7 @@ Mesh(const vector<typename Dimension::Vector>& generators,
   mZones(),
   mNeighborDomains(),
   mSharedNodes(),
+  mSharedFaces(),
   mNodeListNameOffsets(),
   mNodeListIndexOffsets() {
   this->reconstruct(generators, boundary);
@@ -107,6 +111,9 @@ Mesh(const vector<Vector>& nodePositions,
   mEdges(),
   mFaces(),
   mZones(),
+  mNeighborDomains(),
+  mSharedNodes(),
+  mSharedFaces(),
   mNodeListNameOffsets(),
   mNodeListIndexOffsets() {
 
@@ -196,6 +203,7 @@ operator=(const Mesh<Dimension>& rhs) {
     mZones = rhs.mZones;
     mNeighborDomains = rhs.mNeighborDomains;
     mSharedNodes = rhs.mSharedNodes;
+    mSharedFaces = rhs.mSharedFaces;
     mNodeListNameOffsets = rhs.mNodeListNameOffsets;
     mNodeListIndexOffsets = rhs.mNodeListIndexOffsets;
 
@@ -230,6 +238,7 @@ clear() {
   mZones =                ZoneContainer();
   mNeighborDomains =      vector<unsigned>();
   mSharedNodes =          vector<vector<unsigned> >();
+  mSharedFaces =          vector<vector<unsigned> >();
   mNodeListNameOffsets =  map<string, unsigned>();
   mNodeListIndexOffsets = vector<unsigned>();
 }
@@ -393,6 +402,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   // data.
   mNeighborDomains = vector<unsigned>();
   mSharedNodes = vector<vector<unsigned> >();
+  mSharedFaces = vector<vector<unsigned> >();
 }
 
 //------------------------------------------------------------------------------
@@ -608,263 +618,7 @@ cleanEdges(const double edgeTol) {
   // data.
   mNeighborDomains = vector<unsigned>();
   mSharedNodes = vector<vector<unsigned> >();
-}
-
-//------------------------------------------------------------------------------
-// Mesh::generateDomainInfo
-// Create the parallel domain info: i.e., which nodes on each domain are linked.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-generateDomainInfo() {
-  REQUIRE(mNodePositions.size() == numNodes());
-
-  // This method is empty and a no-op unless we're building a parallel code!
-#ifdef USE_MPI
-
-  // Start out by determining the global extent of the mesh.
-  Vector xmin(numeric_limits<double>::max(),
-              numeric_limits<double>::max(),
-              numeric_limits<double>::max());
-  Vector xmax(-numeric_limits<double>::max(),
-              -numeric_limits<double>::max(),
-              -numeric_limits<double>::max());
-  for (unsigned i = 0; i != numNodes(); ++i) {
-    xmin = elementWiseMin(xmin, mNodePositions[i]);
-    xmax = elementWiseMax(xmax, mNodePositions[i]);
-  }
-  for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
-  }
-
-  // Define the hashing scale.
-  const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
-
-  // Puff out the bounds a bit.  We do the all reduce just to ensure
-  // bit perfect consistency across processors.
-  Vector boxInv;
-  for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, MPI_COMM_WORLD);
-    boxInv(i) = safeInv(xmax(i) - xmin(i));
-  }
-
-  // Hash the node positions.  We want these sorted by key as well
-  // to make testing if a key is present fast.
-  vector<Key> nodeHashes;
-  unordered_map<Key, unsigned> key2nodeID;
-  nodeHashes.reserve(numNodes());
-  for (unsigned i = 0; i != numNodes(); ++i) {
-    nodeHashes.push_back(hashPosition(mNodePositions[i], xmin, xmax, boxInv));
-    key2nodeID[nodeHashes.back()] = i;
-  }
-  sort(nodeHashes.begin(), nodeHashes.end());
-  CHECK2(nodeHashes.size() == numNodes(), "Bad sizes:  " << nodeHashes.size() << " " << numNodes());
-  CHECK2(key2nodeID.size() == numNodes(), "Bad sizes:  " << key2nodeID.size() << " " << numNodes());
-
-  // Puff out our domain positions a bit from their centroid to try and
-  // ensure our intersection tests don't miss something.
-  vector<Vector> hullPoints;
-  {
-    Vector centroid;
-    for (unsigned i = 0; i != mNodePositions.size(); ++i) centroid += mNodePositions[i];
-    CHECK(mNodePositions.size() > 0);
-    centroid /= mNodePositions.size();
-    hullPoints.reserve(mNodePositions.size());
-    for (unsigned i = 0; i != mNodePositions.size(); ++i) 
-      hullPoints.push_back(1.05*(mNodePositions[i] - centroid) + centroid);
-  }
-
-  // Generate convex hulls enclosing each domain.
-  const unsigned numDomains = Process::getTotalNumberOfProcesses();
-  const unsigned rank = Process::getRank();
-  CHECK(rank < numDomains);
-  vector<ConvexHull> domainHulls(numDomains);
-  domainHulls[rank] = ConvexHull(hullPoints);
-
-  // Globally exchange the convex hulls.  This might be a bottle neck!
-  {
-    vector<char> localBuffer;
-    packElement(domainHulls[rank], localBuffer);
-    for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
-      unsigned bufSize = localBuffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-      vector<char> buffer = localBuffer;
-      buffer.resize(bufSize);
-      MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
-      vector<char>::const_iterator itr = buffer.begin();
-      unpackElement(domainHulls[sendProc], itr, buffer.end());
-      CHECK(itr == buffer.end());
-    }
-  }
-
-  // Check which bounding volume hulls intersect our own.  This represents the
-  // set we'll potentially have to communicate with.
-  vector<unsigned> potentialNeighborDomains;
-  for (unsigned idomain = 0; idomain != numDomains; ++idomain) {
-    if (idomain != rank and domainHulls[idomain].intersect(domainHulls[rank])) potentialNeighborDomains.push_back(idomain);
-  }
-
-  // Ensure consistency in the potential exchange pattern!
-  BEGIN_CONTRACT_SCOPE;
-  {
-    for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
-      unsigned num = potentialNeighborDomains.size();
-      MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-      vector<unsigned> otherNeighbors = potentialNeighborDomains;
-      otherNeighbors.resize(num);
-      MPI_Bcast(&otherNeighbors.front(), num, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-      CHECK((binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == true and
-             binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == true) or
-            (binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == false and
-             binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == false));
-    }
-  }
-  END_CONTRACT_SCOPE;
-
-  // Exchange the keys.
-  vector<vector<Key> > neighborHashes;
-  exchangeTuples(nodeHashes, potentialNeighborDomains, neighborHashes);
-
-  // Determine which of our nodes are shared with each neighbor domain.
-  const unsigned numNeighborDomains = potentialNeighborDomains.size();
-  mNeighborDomains.reserve(numNeighborDomains);
-  mSharedNodes.reserve(numNeighborDomains);
-  for (unsigned k = 0; k != numNeighborDomains; ++k) {
-    const unsigned otherProc = potentialNeighborDomains[k];
-    const vector<Key>& otherHashes = neighborHashes[k];
-    vector<unsigned> sharedIDs;
-    sharedIDs.reserve(otherHashes.size());
-    for (vector<Key>::const_iterator keyItr = nodeHashes.begin();
-         keyItr != nodeHashes.end();
-         ++keyItr) {
-      if (binary_search(otherHashes.begin(), otherHashes.end(), *keyItr) == true)
-        sharedIDs.push_back(key2nodeID[*keyItr]);
-    }
-    if (sharedIDs.size() > 0) {
-      mNeighborDomains.push_back(otherProc);
-      mSharedNodes.push_back(sharedIDs);
-    }
-  }
-  CHECK(mNeighborDomains.size() == mSharedNodes.size());
-
-  // Check that the communicated info is consistent.
-  CHECK2(validDomainInfo(xmin, xmax, false) == "", validDomainInfo(xmin, xmax, false));
-        
-  // Determine which process owns each shared node.  We use the convention that the process
-  // with the lowest rank wins.
-  unordered_map<unsigned, unsigned> nodeOwner;
-  for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-    for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
-      CHECK(k < mSharedNodes.size() and j < mSharedNodes[k].size());
-      nodeOwner[mSharedNodes[k][j]] = numDomains;
-    }
-  }
-  for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-    const unsigned potentialOwner = min(rank, mNeighborDomains[k]);
-    for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
-      CHECK(k < mSharedNodes.size() and j < mSharedNodes[k].size());
-      const unsigned i = mSharedNodes[k][j];
-      CHECK(nodeOwner.find(i) != nodeOwner.end());
-      nodeOwner[i] = min(nodeOwner[i], potentialOwner);
-    }
-  }
-
-  // Turns out we actually want to keep the duplicates nodes!
-//   // Cull the lists of shared nodes so that we only talk with the owner about any individual
-//   // node.
-//   {
-//     vector<unsigned> procsToKill;
-//     for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-//       const unsigned otherProc = mNeighborDomains[k];
-//       vector<unsigned> nodesToKill;
-//       CHECK(k < mSharedNodes.size());
-//       for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
-//         CHECK(k < mSharedNodes.size() and j < mSharedNodes[k].size());
-//         const unsigned nodeID = mSharedNodes[k][j];
-//         CHECK(nodeOwner.find(nodeID) != nodeOwner.end());
-//         const unsigned owner = nodeOwner[nodeID];
-//         CHECK(owner < numDomains);
-//         if (owner != rank and owner != otherProc) nodesToKill.push_back(j);
-//       }
-//       if (nodesToKill.size() == mSharedNodes[k].size()) {
-//         procsToKill.push_back(k);
-//       } else {
-//         removeElements(mSharedNodes[k], nodesToKill);
-//       }
-//     }
-//     removeElements(mNeighborDomains, procsToKill);
-//     removeElements(mSharedNodes, procsToKill);
-//   }
-//   CHECK(mNeighborDomains.size() == mSharedNodes.size());
-
-//   // Check that the communicated info is consistent.
-//   CHECK2(validDomainInfo(xmin, xmax, true) == "", validDomainInfo(xmin, xmax, true));
-
-  // For the sake of bit-perfectness, exchange node positions such that every shared
-  // node has the position it takes on the owner domain.
-  {
-    // Start by sending our info for all nodes we own.
-    list<vector<char> > sendBuffers;
-    list<unsigned> sendBufferSizes;
-    vector<MPI_Request> sendRequests;
-    sendRequests.reserve(2*mNeighborDomains.size());
-    for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-      CHECK(k < mSharedNodes.size());
-      const unsigned otherProc = mNeighborDomains[k];
-      if (otherProc > rank) {
-        vector<char> buf;
-        for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
-          const unsigned i = mSharedNodes[k][j];
-          CHECK(i < mNodePositions.size());
-          CHECK(nodeOwner.find(i) != nodeOwner.end());
-          if (nodeOwner[i] == rank) packElement(mNodePositions[i], buf);
-        }
-        sendBufferSizes.push_back(buf.size());
-        sendBuffers.push_back(buf);
-        sendRequests.push_back(MPI_Request());
-        MPI_Isend(&sendBufferSizes.back(), 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests.back());
-        if (buf.size() > 0) {
-          sendRequests.push_back(MPI_Request());
-          MPI_Isend(&(sendBuffers.back().front()), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests.back());
-        }
-      }
-    }
-    CHECK(sendRequests.size() <= 2*mNeighborDomains.size());
-    CHECK(sendBufferSizes.size() == sendBuffers.size());
-
-    // Now get the postions from all domains sending to us.
-    for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-      const unsigned otherProc = mNeighborDomains[k];
-      if (otherProc < rank) {
-        unsigned bufSize;
-        MPI_Status stat1, stat2;
-        MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &stat1);
-        if (bufSize > 0) {
-          vector<char> buffer(bufSize);
-          MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &stat2);
-          vector<char>::const_iterator itr = buffer.begin();
-          for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
-            const unsigned i = mSharedNodes[k][j];
-            CHECK(i < mNodePositions.size());
-            CHECK(nodeOwner.find(i) != nodeOwner.end());
-            if (nodeOwner[i] == otherProc) unpackElement(mNodePositions[i], itr, buffer.end());
-          }
-          CHECK(itr == buffer.end());
-        }
-      }
-    }
-
-    // Wait for our sends to complete.
-    vector<MPI_Status> status(sendRequests.size());
-    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
-  }
-
-  // That's it.
-  ENSURE2(validDomainInfo(xmin, xmax, false) == "", validDomainInfo(xmin, xmax, false));
-#endif
+  mSharedFaces = vector<vector<unsigned> >();
 }
 
 //------------------------------------------------------------------------------
@@ -1061,6 +815,47 @@ globalMeshNodeIDs() const {
 }
 
 //------------------------------------------------------------------------------
+// Define unique global IDs for all mesh faces.
+// Note unlike the node IDs the result of this method is not numbered 
+// sequentially across domains.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<unsigned> 
+Mesh<Dimension>::
+globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
+  const unsigned rank = Process::getRank();
+
+  // Now hash the faceIDs based on the global nodes. 
+  vector<unsigned> result;
+  result.reserve(mFaces.size());
+  BOOST_FOREACH(const Face& face, mFaces) {
+    const vector<unsigned>& locals = face.nodeIDs();
+    vector<unsigned> globals;
+    globals.reserve(locals.size());
+    BOOST_FOREACH(unsigned i, locals) globals.push_back(globalNodeIDs[i]);
+    sort(globals.begin(), globals.end());
+    size_t seed;
+    BOOST_FOREACH(unsigned i, globals) boost::hash_combine(seed, i);
+    result.push_back(seed);
+  }
+
+  // Post-conditions.
+  BEGIN_CONTRACT_SCOPE;
+  {
+    ENSURE(result.size() == mFaces.size());
+
+    // Make sure the local results are unique.
+    for (int i = 0; i < result.size() - 1; ++i) {
+      ENSURE(find(result.begin() + i + 1, result.end(), result[i]) == result.end());
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Check that the communicated information is consistent.
 // Optionally we can also check that each send node is owned by only one 
 // process.
@@ -1182,48 +977,127 @@ storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
   this->storeNodeListOffsets(nodeListPtrs.begin(), nodeListPtrs.end(), offsets);
 }
 
-//------------------------------------------------------------------------------
-// Internal method to fill in extra comm data based on the shared node info.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-buildAncillaryCommData() {
+// //------------------------------------------------------------------------------
+// // Internal method to fill in extra comm data based on the shared node info.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// Mesh<Dimension>::
+// buildAncillaryCommData() {
 
-  // Clear out old data.
-  mCommunicatedNodes = vector<int>(mNodes.size(), 0);
-  mCommunicatedEdges = vector<int>(mEdges.size(), 0);
-  mCommunicatedFaces = vector<int>(mFaces.size(), 0);
+//   // Clear out old data.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 1" << endl;
+//   mSharedFaces = vector<vector<unsigned> >();
 
-  // Flag the shared nodes.
-  BOOST_FOREACH(const vector<unsigned>& nodes, mSharedNodes) {
-    BOOST_FOREACH(const unsigned i, nodes) {
-      mCommunicatedNodes[i] = 1;
-    }
-  }
+// #ifdef USE_MPI
+//   // Compute the shared faces.  First get the unique global face IDs.
+//   const vector<unsigned> globalNodeIDs = this->globalMeshNodeIDs();
+//   const vector<unsigned> globalFaceIDs = this->globalMeshFaceIDs(globalNodeIDs);
 
-  // Flag the shared edges.
-  for (unsigned i = 0; i != mEdges.size(); ++i) {
-    if (mCommunicatedNodes[mEdges[i].node1ID()] == 1 and
-        mCommunicatedNodes[mEdges[i].node2ID()] == 1) mCommunicatedEdges[i] = 1;
-  }
+//   // Compute the inverse face id mapping: global->local.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 2" << endl;
+//   map<unsigned, unsigned> global2local;
+//   for (unsigned i = 0; i != globalFaceIDs.size(); ++i) global2local[globalFaceIDs[i]] = i;
+//   CHECK(globalFaceIDs.size() == global2local.size());
 
-  // Flag the shared faces.
-  bool flag;
-  for (unsigned i = 0; i != mFaces.size(); ++i) {
-    flag = true;
-    const vector<unsigned>& edges = mFaces[i].edgeIDs();
-    BOOST_FOREACH(const unsigned iedge, edges) {
-      flag = (flag and (mCommunicatedEdges[iedge] == 1));
-    }
-    if (flag) mCommunicatedFaces[i] = 1;
-  }
+//   // Make a sorted version of the global face IDs.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 3" << endl;
+//   vector<unsigned> sortedGlobalIDs(globalFaceIDs);
+//   sort(sortedGlobalIDs.begin(), sortedGlobalIDs.end());
 
-  // Post-conditions.
-  ENSURE(mCommunicatedNodes.size() == mNodes.size());
-  ENSURE(mCommunicatedEdges.size() == mEdges.size());
-  ENSURE(mCommunicatedFaces.size() == mFaces.size());
-}
+//   // Send our global face IDs to each of our neighbors.
+//   unsigned numFaces = globalFaceIDs.size();
+//   vector<MPI_Request> requests;
+//   requests.reserve(2*mNeighborDomains.size());
+//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//     requests.push_back(MPI_Request());
+//     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &requests.back());
+//     if (numFaces > 0) {
+//       requests.push_back(MPI_Request());
+//       MPI_Isend(&sortedGlobalIDs.front(), numFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &requests.back());
+//     }
+//   }
+//   CHECK(requests.size() <= 2*mNeighborDomains.size());
+
+//   // Now go through each of our neighbors shared faces, and build the set we share with 
+//   // them.  We store the local face indices in the order of the sorted global face IDs,
+//   // which should ensure that both processors agree on the face order.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 4" << endl;
+//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//     unsigned numOtherFaces;
+//     MPI_Status recvStatus;
+//     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &recvStatus);
+//     mSharedFaces.push_back(vector<unsigned>());
+//     if (numOtherFaces > 0) {
+//       vector<unsigned> otherGlobalFaceIDs(numOtherFaces);
+//       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &recvStatus);
+//       vector<unsigned>::iterator lastItr = sortedGlobalIDs.begin(), itr;
+//       BOOST_FOREACH(unsigned iglobal, otherGlobalFaceIDs) {
+//         itr = lower_bound(lastItr, sortedGlobalIDs.end(), iglobal);
+//         if (itr != sortedGlobalIDs.end()) {
+//           mSharedFaces.back().push_back(global2local[iglobal]);
+//           lastItr = itr;
+//         }
+//       }
+//     }
+//   }
+//   CHECK(mSharedFaces.size() == mNeighborDomains.size());
+
+//   // Wait until all our sends are completed.
+//   vector<MPI_Status> recvStatus(requests.size());
+//   MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 5" << endl;
+// #endif
+
+//   // Post-conditions.
+//   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
+//   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
+// #ifdef USE_MPI
+//   BEGIN_CONTRACT_SCOPE;
+//   {
+//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 6" << endl;
+//     // Make sure each domain agrees about the shared faces.
+//     vector<MPI_Request> requests;
+//     requests.reserve(2*mNeighborDomains.size());
+//     vector<unsigned> numSharedFaces(mNeighborDomains.size());
+//     vector<vector<unsigned> > globalSharedFaces(mNeighborDomains.size());
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       BOOST_FOREACH(unsigned i, mSharedFaces[idomain]) globalSharedFaces[idomain].push_back(globalFaceIDs[i]);
+//     }
+
+//     cerr << Process::getRank() << "Mesh::buildAncillaryCommData 7" << endl;
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       requests.push_back(MPI_Request());
+//       numSharedFaces[idomain] = mSharedFaces[idomain].size();
+//       CHECK(globalSharedFaces[idomain].size() == numSharedFaces[idomain]);
+//       MPI_Isend(&numSharedFaces[idomain], 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &requests.back());
+//       if (numSharedFaces[idomain] > 0) {
+//         requests.push_back(MPI_Request());
+//         MPI_Isend(&globalSharedFaces[idomain].front(), numSharedFaces[idomain], MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &requests.back());
+//       }
+//     }
+//     CHECK(requests.size() <= 2*mNeighborDomains.size());
+
+//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 8" << endl;
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       unsigned numOtherFaces;
+//       MPI_Status recvStatus;
+//       MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &recvStatus);
+//       ENSURE(numOtherFaces == mSharedFaces[idomain].size());
+//       if (numOtherFaces > 0) {
+//         vector<unsigned> otherFaces(numOtherFaces);
+//         MPI_Recv(&otherFaces.front(), numOtherFaces, MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &recvStatus);
+//         ENSURE(otherFaces == globalSharedFaces[idomain]);
+//       }
+//     }
+
+//     vector<MPI_Status> recvStats(requests.size());
+//     MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
+//   }
+//   END_CONTRACT_SCOPE;
+// #endif
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 9" << endl;
+// }
 
 //------------------------------------------------------------------------------
 // Static initializations.

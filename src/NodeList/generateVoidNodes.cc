@@ -91,6 +91,8 @@ void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ConvexHull ConvexHull;
 
+  const double tiny = 1.0e-5;
+
   // Pre-conditions.
   VERIFY(generators.size() >= numInternal);
   VERIFY(generators.size() == Hs.size());
@@ -151,6 +153,10 @@ void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
           vpos[ivoid] = rj;
           vH[ivoid] = Hi;
           ++ivoid;
+          if (not (rj.x() < tiny or rj.x() > (1.0 - tiny) or
+                   rj.y() < tiny or rj.y() > (1.0 - tiny))) {
+            cerr << "---> " << ivoid << " " << rj << " " << j << " " << etai.magnitude() << " " << etaj.magnitude() << endl;
+          }
         }
       }
     }

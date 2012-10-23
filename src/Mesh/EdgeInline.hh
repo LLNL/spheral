@@ -91,17 +91,5 @@ length() const {
           mMeshPtr->mNodePositions[mNode1ID]).magnitude();
 }
 
-//------------------------------------------------------------------------------
-// Mesh::Edge::isCommunicated
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-Mesh<Dimension>::Edge::
-isCommunicated() const {
-  REQUIRE(mID < mMeshPtr->mCommunicatedEdges.size());
-  return mMeshPtr->mCommunicatedEdges[mID];
-}
-
 }
 }
