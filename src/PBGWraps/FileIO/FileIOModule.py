@@ -98,6 +98,7 @@ class FileIO:
         Spheral.add_function("vector2string", "std::string", [constrefparam("vector_of_ThirdRankTensor3d", "val"), param("int", "precision", default_value="30")])
 
         Spheral.add_function("string2vector", "vector_of_int", [param("std::string", "val")], template_parameters=["int"], custom_name="string2vector_of_int")
+        Spheral.add_function("string2vector", "vector_of_unsigned", [param("std::string", "val")], template_parameters=["unsigned"], custom_name="string2vector_of_unsigned")
         Spheral.add_function("string2vector", "vector_of_ULL", [param("std::string", "val")], template_parameters=["uint64_t"], custom_name="string2vector_of_ULL")
         Spheral.add_function("string2vector", "vector_of_double", [param("std::string", "val")], template_parameters=["double"], custom_name="string2vector_of_double")
         Spheral.add_function("string2vector", "vector_of_string", [param("std::string", "val")], template_parameters=["std::string"], custom_name="string2vector_of_string")
