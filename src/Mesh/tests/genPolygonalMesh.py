@@ -4,6 +4,7 @@ import random
 from generateMesh import *
 from siloMeshDump import *
 from math import *
+from testSharedElements import *
 
 rangen = random.Random()
 
@@ -54,6 +55,9 @@ mesh = PolygonalMesh(gens,
 
 siloMeshDump("random_polygonal_mesh_%idomains" % mpi.procs, mesh)
 
+# Test the mesh.
+testSharedNodes(mesh)
+
 # Now do the same thing through our NodeList interface.
 eos = GammaLawGasMKS(5.0/3.0, 1.0)
 W = TableKernel(BSplineKernel(), 1000)
@@ -86,10 +90,10 @@ def createNodes(gens, dx):
 
     return nodes, db
 
-dx = 1.0/nx
-nodes, db = createNodes(gens, dx)
-mesh, void = generatePolygonalMesh([nodes], [],
-                                   generateVoid = False, # True,
-                                   removeBoundaryZones = False)
-siloMeshDump("random_polygonal_mesh_nodes_%idomains" % mpi.procs, mesh,
-             nodeLists = [nodes, void])
+# dx = 1.0/nx
+# nodes, db = createNodes(gens, dx)
+# mesh, void = generatePolygonalMesh([nodes], [],
+#                                    generateVoid = False, # True,
+#                                    removeBoundaryZones = False)
+# siloMeshDump("random_polygonal_mesh_nodes_%idomains" % mpi.procs, mesh,
+#              nodeLists = [nodes, void])

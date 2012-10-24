@@ -222,195 +222,41 @@ copy_reg.pickle(type(Polyhedron()), reduce_Polyhedron, construct_Polyhedron)
 #------------------------------------------------------------------------------
 # std::vectors
 #------------------------------------------------------------------------------
-# Sadly this nifty bit of exec code doesn't seem to work, so we have to crunch
-# out the individual versions explicitly.
+vector_template = """
+def construct_vector_of_%(value_type)s(encoded_string):
+    return string2vector_of_%(value_type)s(encoded_string)
+def reduce_vector_of_%(value_type)s(obj):
+    return construct_vector_of_%(value_type)s, (vector2string(obj, 20),)
+copy_reg.constructor(construct_vector_of_%(value_type)s)
+copy_reg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
+"""
 
-## vector_template = """
-## def construct_vector_of_%(value_type)s(encoded_string):
-##     return string2vector_of_%(value_type)s(encoded_string)[0]
-## def reduce_vector_of_%(value_type)s(obj):
-##     return construct_vector_of_%(value_type)s, (vector2string(obj, 20),)
-## copy_reg.constructor(construct_vector_of_%(value_type)s)
-## copy_reg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
-## """
-
-## vector_value_types = ("int", "double", "string",
-##                       "Vector1d", "Tensor1d", "SymTensor1d", "ThirdRankTensor1d",
-##                       "Vector2d", "Tensor2d", "SymTensor2d", "ThirdRankTensor2d",
-##                       "Vector3d", "Tensor3d", "SymTensor3d", "ThirdRankTensor3d")
-
-def construct_vector_of_int(encoded_string):
-    return string2vector_of_int(encoded_string)
-def reduce_vector_of_int(obj):
-    return construct_vector_of_int, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_int)
-copy_reg.pickle(vector_of_int, reduce_vector_of_int, construct_vector_of_int)
-
-def construct_vector_of_ULL(encoded_string):
-    return string2vector_of_ULL(encoded_string)
-def reduce_vector_of_ULL(obj):
-    return construct_vector_of_ULL, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_ULL)
-copy_reg.pickle(vector_of_ULL, reduce_vector_of_ULL, construct_vector_of_ULL)
-
-def construct_vector_of_double(encoded_string):
-    return string2vector_of_double(encoded_string)
-def reduce_vector_of_double(obj):
-    return construct_vector_of_double, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_double)
-copy_reg.pickle(vector_of_double, reduce_vector_of_double, construct_vector_of_double)
-
-def construct_vector_of_string(encoded_string):
-    return string2vector_of_string(encoded_string)
-def reduce_vector_of_string(obj):
-    return construct_vector_of_string, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_string)
-copy_reg.pickle(vector_of_string, reduce_vector_of_string, construct_vector_of_string)
-
-def construct_vector_of_Vector1d(encoded_string):
-    return string2vector_of_Vector1d(encoded_string)
-def reduce_vector_of_Vector1d(obj):
-    return construct_vector_of_Vector1d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Vector1d)
-copy_reg.pickle(vector_of_Vector1d, reduce_vector_of_Vector1d, construct_vector_of_Vector1d)
-
-def construct_vector_of_Tensor1d(encoded_string):
-    return string2vector_of_Tensor1d(encoded_string)
-def reduce_vector_of_Tensor1d(obj):
-    return construct_vector_of_Tensor1d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Tensor1d)
-copy_reg.pickle(vector_of_Tensor1d, reduce_vector_of_Tensor1d, construct_vector_of_Tensor1d)
-
-def construct_vector_of_SymTensor1d(encoded_string):
-    return string2vector_of_SymTensor1d(encoded_string)
-def reduce_vector_of_SymTensor1d(obj):
-    return construct_vector_of_SymTensor1d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_SymTensor1d)
-copy_reg.pickle(vector_of_SymTensor1d, reduce_vector_of_SymTensor1d, construct_vector_of_SymTensor1d)
-
-def construct_vector_of_ThirdRankTensor1d(encoded_string):
-    return string2vector_of_ThirdRankTensor1d(encoded_string)
-def reduce_vector_of_ThirdRankTensor1d(obj):
-    return construct_vector_of_ThirdRankTensor1d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_ThirdRankTensor1d)
-copy_reg.pickle(vector_of_ThirdRankTensor1d, reduce_vector_of_ThirdRankTensor1d, construct_vector_of_ThirdRankTensor1d)
-
-def construct_vector_of_Vector2d(encoded_string):
-    return string2vector_of_Vector2d(encoded_string)
-def reduce_vector_of_Vector2d(obj):
-    return construct_vector_of_Vector2d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Vector2d)
-copy_reg.pickle(vector_of_Vector2d, reduce_vector_of_Vector2d, construct_vector_of_Vector2d)
-
-def construct_vector_of_Tensor2d(encoded_string):
-    return string2vector_of_Tensor2d(encoded_string)
-def reduce_vector_of_Tensor2d(obj):
-    return construct_vector_of_Tensor2d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Tensor2d)
-copy_reg.pickle(vector_of_Tensor2d, reduce_vector_of_Tensor2d, construct_vector_of_Tensor2d)
-
-def construct_vector_of_SymTensor2d(encoded_string):
-    return string2vector_of_SymTensor2d(encoded_string)
-def reduce_vector_of_SymTensor2d(obj):
-    return construct_vector_of_SymTensor2d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_SymTensor2d)
-copy_reg.pickle(vector_of_SymTensor2d, reduce_vector_of_SymTensor2d, construct_vector_of_SymTensor2d)
-
-def construct_vector_of_ThirdRankTensor2d(encoded_string):
-    return string2vector_of_ThirdRankTensor2d(encoded_string)
-def reduce_vector_of_ThirdRankTensor2d(obj):
-    return construct_vector_of_ThirdRankTensor2d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_ThirdRankTensor2d)
-copy_reg.pickle(vector_of_ThirdRankTensor2d, reduce_vector_of_ThirdRankTensor2d, construct_vector_of_ThirdRankTensor2d)
-
-def construct_vector_of_Vector3d(encoded_string):
-    return string2vector_of_Vector3d(encoded_string)
-def reduce_vector_of_Vector3d(obj):
-    return construct_vector_of_Vector3d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Vector3d)
-copy_reg.pickle(vector_of_Vector3d, reduce_vector_of_Vector3d, construct_vector_of_Vector3d)
-
-def construct_vector_of_Tensor3d(encoded_string):
-    return string2vector_of_Tensor3d(encoded_string)
-def reduce_vector_of_Tensor3d(obj):
-    return construct_vector_of_Tensor3d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_Tensor3d)
-copy_reg.pickle(vector_of_Tensor3d, reduce_vector_of_Tensor3d, construct_vector_of_Tensor3d)
-
-def construct_vector_of_SymTensor3d(encoded_string):
-    return string2vector_of_SymTensor3d(encoded_string)
-def reduce_vector_of_SymTensor3d(obj):
-    return construct_vector_of_SymTensor3d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_SymTensor3d)
-copy_reg.pickle(vector_of_SymTensor3d, reduce_vector_of_SymTensor3d, construct_vector_of_SymTensor3d)
-
-def construct_vector_of_ThirdRankTensor3d(encoded_string):
-    return string2vector_of_ThirdRankTensor3d(encoded_string)
-def reduce_vector_of_ThirdRankTensor3d(obj):
-    return construct_vector_of_ThirdRankTensor3d, (vector2string(obj, 20),)
-copy_reg.constructor(construct_vector_of_ThirdRankTensor3d)
-copy_reg.pickle(vector_of_ThirdRankTensor3d, reduce_vector_of_ThirdRankTensor3d, construct_vector_of_ThirdRankTensor3d)
+for t in ("int", "unsigned", "ULL", "double", "string", 
+          "Vector1d", "Vector2d", "Vector3d", 
+          "Tensor1d", "Tensor2d", "Tensor3d", 
+          "SymTensor1d", "SymTensor2d", "SymTensor3d", 
+          "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d"):
+    exec(vector_template % {"value_type" : t})
 
 #------------------------------------------------------------------------------
 # std::pairs
 #------------------------------------------------------------------------------
-# Same as above
-## pair_template = """
-## def construct_pair_%(value_type1)s_%(value_type2)s(encoded_string1,
-##                                                    encoded_string2):
-##     return pair_%(value_type1)s_%(value_type2)s(pickle.loads(encoded_string1),
-##                                                 pickle.loads(encoded_string2))
-## def reduce_pair_%(value_type1)s_%(value_type2)s(obj):
-##     return construct_pair_%(value_type1)s_%(value_type2)s, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-## copy_reg.pickle(pair_%(value_type1)s_%(value_type2)s, reduce_pair_%(value_type1)s_%(value_type2)s, construct_pair_%(value_type1)s_%(value_type2)s)
-## """
-
-## pair_value_types = [("double", "double"),
-##                     ("double", "string"),
-##                     ("Vector1d", "Vector1d"),
-##                     ("Vector2d", "Vector2d"),
-##                     ("Vector3d", "Vector3d")]
-
-## for value_type1, value_type2 in pair_value_types:
-##     exec(pair_template % {"value_type1": value_type1,
-##                           "value_type2": value_type2})
-
-def construct_pair_double_double(encoded_string1,
+pair_template = """
+def construct_pair_%(value_type1)s_%(value_type2)s(encoded_string1,
                                                    encoded_string2):
-    return pair_double_double(pickle.loads(encoded_string1),
+    return pair_%(value_type1)s_%(value_type2)s(pickle.loads(encoded_string1),
                                                 pickle.loads(encoded_string2))
-def reduce_pair_double_double(obj):
-    return construct_pair_double_double, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-copy_reg.pickle(pair_double_double, reduce_pair_double_double, construct_pair_double_double)
+def reduce_pair_%(value_type1)s_%(value_type2)s(obj):
+    return construct_pair_%(value_type1)s_%(value_type2)s, (pickle.dumps(obj.first), pickle.dumps(obj.second))
+copy_reg.pickle(pair_%(value_type1)s_%(value_type2)s, reduce_pair_%(value_type1)s_%(value_type2)s, construct_pair_%(value_type1)s_%(value_type2)s)
+"""
 
-def construct_pair_double_string(encoded_string1,
-                                                   encoded_string2):
-    return pair_double_string(pickle.loads(encoded_string1),
-                                                pickle.loads(encoded_string2))
-def reduce_pair_double_string(obj):
-    return construct_pair_double_string, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-copy_reg.pickle(pair_double_string, reduce_pair_double_string, construct_pair_double_string)
+pair_value_types = [("double", "double"),
+                    ("double", "string"),
+                    ("Vector1d", "Vector1d"),
+                    ("Vector2d", "Vector2d"),
+                    ("Vector3d", "Vector3d")]
 
-def construct_pair_Vector1d_Vector1d(encoded_string1,
-                                                   encoded_string2):
-    return pair_Vector1d_Vector1d(pickle.loads(encoded_string1),
-                                                pickle.loads(encoded_string2))
-def reduce_pair_Vector1d_Vector1d(obj):
-    return construct_pair_Vector1d_Vector1d, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-copy_reg.pickle(pair_Vector1d_Vector1d, reduce_pair_Vector1d_Vector1d, construct_pair_Vector1d_Vector1d)
-
-def construct_pair_Vector2d_Vector2d(encoded_string1,
-                                                   encoded_string2):
-    return pair_Vector2d_Vector2d(pickle.loads(encoded_string1),
-                                                pickle.loads(encoded_string2))
-def reduce_pair_Vector2d_Vector2d(obj):
-    return construct_pair_Vector2d_Vector2d, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-copy_reg.pickle(pair_Vector2d_Vector2d, reduce_pair_Vector2d_Vector2d, construct_pair_Vector2d_Vector2d)
-
-def construct_pair_Vector3d_Vector3d(encoded_string1,
-                                                   encoded_string2):
-    return pair_Vector3d_Vector3d(pickle.loads(encoded_string1),
-                                                pickle.loads(encoded_string2))
-def reduce_pair_Vector3d_Vector3d(obj):
-    return construct_pair_Vector3d_Vector3d, (pickle.dumps(obj.first), pickle.dumps(obj.second))
-copy_reg.pickle(pair_Vector3d_Vector3d, reduce_pair_Vector3d_Vector3d, construct_pair_Vector3d_Vector3d)
+for value_type1, value_type2 in pair_value_types:
+    exec(pair_template % {"value_type1": value_type1,
+                          "value_type2": value_type2})
