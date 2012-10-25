@@ -53,7 +53,7 @@ mesh = PolygonalMesh(gens,
                      xmin = Vector(x0, y0),
                      xmax = Vector(x1, y1))
 
-siloMeshDump("random_polygonal_mesh_%idomains" % mpi.procs, mesh)
+#siloMeshDump("random_polygonal_mesh_%idomains" % mpi.procs, mesh)
 
 # Test the mesh.
 testSharedNodes(mesh)
