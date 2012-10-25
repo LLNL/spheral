@@ -25,4 +25,16 @@ def testSharedNodes(mesh):
         otherIDs = mpi.recv(source=otherProc)[0]
         assert ids == otherIDs
 
-    return true
+    # Check that all shared nodes have been found.
+    positions = vector_of_Vector()
+    for i in xrange(mesh.numNodes):
+        positions.append(mesh.node(i).position)
+    xmin, xmax = Vector(), Vector()
+    boundingBox(positions, xmin, xmax)
+    boxInv = Vector(1.0/(xmax.x - xmin.x),
+                    1.0/(xmax.y - xmin.y))
+    nodeHashes = [hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    for sendProc in xrange(mpi.procs):
+        otherNodeHashes = mpi.bcast(nodeHashes, root=sendProc)
+
+    return True
