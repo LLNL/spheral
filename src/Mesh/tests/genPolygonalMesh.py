@@ -1,6 +1,6 @@
 from Spheral2d import *
 import mpi
-import random
+import os, random
 from generateMesh import *
 from siloMeshDump import *
 from math import *
@@ -22,27 +22,43 @@ iyproc = mpi.rank / nxproc
 xminproc = Vector(x0 + ixproc*dxproc, y0 + iyproc*dyproc)
 xmaxproc = Vector(x0 + (ixproc + 1)*dxproc, y0 + (iyproc + 1)*dyproc)
 
-# Randomly seed the generators.  We choose from random cells in order
-# to keep nodes from getting too close together.
-nxcell = KeyTraits.maxKey1d/4
-nycell = nxcell
-assert nx < nxcell
-ncell = nxcell*nycell
-dxcell = (x1 - x0)/nxcell
-dycell = (y1 - y0)/nycell
-xynodes_all = []
-occupiedCells = set()
-for k in xrange(nx*nx):
-    i = rangen.randint(0, ncell)
-    while i in occupiedCells:
+fname = "generators_domain_%i_of_%i.txt" % (mpi.rank, mpi.procs)
+if os.path.exists(fname):
+    f = open(fname, "r")
+    xynodes = []
+    for line in f:
+        stuff = line.split()
+        assert len(stuff) == 2
+        xynodes.append(Vector(float(stuff[0]), float(stuff[1])))
+
+else:
+    # Randomly seed the generators.  We choose from random cells in order
+    # to keep nodes from getting too close together.
+    nxcell = KeyTraits.maxKey1d/4
+    nycell = nxcell
+    assert nx < nxcell
+    ncell = nxcell*nycell
+    dxcell = (x1 - x0)/nxcell
+    dycell = (y1 - y0)/nycell
+    xynodes_all = []
+    occupiedCells = set()
+    for k in xrange(nx*nx):
         i = rangen.randint(0, ncell)
-    ix = i % nxcell
-    iy = i / nxcell
-    xynodes_all.append(Vector((ix + 0.5)*dxcell, (iy + 0.5)*dycell))
-    occupiedCells.add(i)
-assert len(occupiedCells) == nx*nx
-xynodes_all = mpi.bcast(xynodes_all)
-xynodes = [v for v in xynodes_all if testPointInBox(v, xminproc, xmaxproc)]
+        while i in occupiedCells:
+            i = rangen.randint(0, ncell)
+            ix = i % nxcell
+            iy = i / nxcell
+            xynodes_all.append(Vector((ix + 0.5)*dxcell, (iy + 0.5)*dycell))
+            occupiedCells.add(i)
+    assert len(occupiedCells) == nx*nx
+    xynodes_all = mpi.bcast(xynodes_all)
+    xynodes = [v for v in xynodes_all if testPointInBox(v, xminproc, xmaxproc)]
+
+    # Write out the generator positions.
+    f = open(fname, "w")
+    for x in xynodes:
+        f.write("%g %g\n" % (x.x, x.y))
+    f.close()
 
 # Build the set of generators.
 gens = vector_of_Vector()
