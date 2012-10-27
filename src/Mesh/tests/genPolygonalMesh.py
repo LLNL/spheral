@@ -24,6 +24,7 @@ xmaxproc = Vector(x0 + (ixproc + 1)*dxproc, y0 + (iyproc + 1)*dyproc)
 
 fname = "generators_domain_%i_of_%i.txt" % (mpi.rank, mpi.procs)
 if os.path.exists(fname):
+    print "Reading existing gens."
     f = open(fname, "r")
     xynodes = []
     for line in f:
@@ -72,7 +73,7 @@ mesh = PolygonalMesh(gens,
 #siloMeshDump("random_polygonal_mesh_%idomains" % mpi.procs, mesh)
 
 # Test the mesh.
-testSharedNodes(mesh)
+assert testSharedNodes(mesh)
 
 # Now do the same thing through our NodeList interface.
 eos = GammaLawGasMKS(5.0/3.0, 1.0)
