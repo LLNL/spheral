@@ -293,7 +293,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 549a6bea537c
+POLYTOPEVER = 64fe360dfcea
 POLYTOPEDIST = jjphatt-polytope-$(POLYTOPEVER).tar.bz2
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/get/$(POLYTOPEVER).tar.bz2
 POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
