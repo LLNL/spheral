@@ -21,7 +21,8 @@ SRCTARGETS = \
 	PolyhedralZone.cc \
 	computeGeneratorsInst.cc \
 	generateMeshInst.cc \
-	MeshPolicyInst.cc
+	MeshPolicyInst.cc \
+	computeElementOwner.cc
 
 PYTHONTARGETS = \
 	generateMesh.py \
