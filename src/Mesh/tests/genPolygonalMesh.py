@@ -107,10 +107,10 @@ def createNodes(gens, dx):
 
     return nodes, db
 
-# dx = 1.0/nx
-# nodes, db = createNodes(gens, dx)
-# mesh, void = generatePolygonalMesh([nodes], [],
-#                                    generateVoid = False, # True,
-#                                    removeBoundaryZones = False)
-# siloMeshDump("random_polygonal_mesh_nodes_%idomains" % mpi.procs, mesh,
-#              nodeLists = [nodes, void])
+dx = 1.0/nx
+nodes, db = createNodes(gens, dx)
+mesh, void = generatePolygonalMesh([nodes], [],
+                                   generateVoid = True,
+                                   removeBoundaryZones = False)
+siloMeshDump("random_polygonal_mesh_nodes_%idomains" % mpi.procs, mesh,
+             nodeLists = [nodes, void])
