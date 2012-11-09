@@ -504,9 +504,9 @@ fi
 
 # We have to make sure the LIBDIR directory exists, or the -rpath flag will cause the
 # compiler tests to fail.
-if test ! -e $LIBDIR; then
-  mkdir -p $LIBDIR
-fi
+# if test ! -e $LIBDIR; then
+#   mkdir -p $LIBDIR
+# fi
 
 # I'm not sure why we need this flag, but without this the boost::shared_ptr is 
 # hanging in a thread lock.
