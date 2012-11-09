@@ -47,10 +47,10 @@ else:
         i = rangen.randint(0, ncell)
         while i in occupiedCells:
             i = rangen.randint(0, ncell)
-            ix = i % nxcell
-            iy = i / nxcell
-            xynodes_all.append(Vector((ix + 0.5)*dxcell, (iy + 0.5)*dycell))
-            occupiedCells.add(i)
+        ix = i % nxcell
+        iy = i / nxcell
+        xynodes_all.append(Vector((ix + 0.5)*dxcell, (iy + 0.5)*dycell))
+        occupiedCells.add(i)
     assert len(occupiedCells) == nx*nx
     xynodes_all = mpi.bcast(xynodes_all)
     xynodes = [v for v in xynodes_all if testPointInBox(v, xminproc, xmaxproc)]

@@ -84,6 +84,11 @@ $(LIB):
 pycompileall:  force_build
 	$(PYTHONEXE) $(SPHERALDIR)/lib/python$(PYTHONVERSION)/compileall.py $(LIBDIR)
 
+cxxonly:
+	for pckg in $(CXXPKGS); do \
+	$(MAKE) -C $(SRCTOP)/$$pckg cxxonly; \
+	done
+
 cxxclean:
 	for pckg in $(CXXPKGS); do \
 	$(MAKE) -C $(SRCTOP)/$$pckg clean; \
