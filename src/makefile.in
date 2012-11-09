@@ -4,6 +4,9 @@
 PKGNAME = Spheral
 SPHERALTOP = .
 comma:= ,
+export EXTRAINCLUDES
+export EXTRALIBS
+export EXTRAFLAGS
 
 include helpers/makefile_master
 
@@ -86,7 +89,7 @@ pycompileall:  force_build
 
 cxxonly:
 	for pckg in $(CXXPKGS); do \
-	$(MAKE) -C $(SRCTOP)/$$pckg cxxonly; \
+	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(SRCTOP)/$$pckg cxxonly; \
 	done
 
 cxxclean:

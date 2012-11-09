@@ -18,7 +18,6 @@
 
 #include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
-#include "Python.h"
 
 namespace Spheral {
 namespace FileIOSpace {

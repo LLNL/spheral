@@ -14,7 +14,10 @@
 
 #include <string>
 #include <sstream>
+
+#ifndef CXXONLY
 #include "Python.h"
+#endif
 
 #include "Geometry/Dimension.hh"
 
@@ -239,9 +242,11 @@ public:
   AccessType access() const;
   bool fileOpen() const;
 
+#ifndef CXXONLY
   // These methods are particular to Python file objects.
   void writeObject(PyObject* thing, PyObject* path);
   PyObject* readObject(PyObject* path) const;
+#endif
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
@@ -250,9 +255,11 @@ protected:
   AccessType mAccess;
   bool mFileOpen;
 
+#ifndef CXXONLY
   PyObject* mPickleMod;
   PyObject* mPickleDumps;
   PyObject* mPickleLoads;
+#endif
 
 private:
   //--------------------------- Private Interface ---------------------------//
