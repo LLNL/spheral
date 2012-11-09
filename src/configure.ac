@@ -1,5 +1,5 @@
 # ===========================================================================
-# File:   configure.in
+# File:   configure.ac
 # Author: Martin Casado
 #
 # Copyright (C) 2000 University of California Regents               
@@ -125,15 +125,6 @@ SETUP_SCIPY
 # -----------------------------------------------
 AC_OUTPUT(helpers/makefile_master \
           helpers/makefile_taumaster \
-          helpers/mpicc \
-          helpers/mpic++ \
           makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py)
-
-# -----------------------------------------------
-# Set permissions on the locally generated MPI
-# frontends.
-# -----------------------------------------------
-chmod +x helpers/mpicc
-chmod +x helpers/mpic++
