@@ -7,6 +7,7 @@ comma:= ,
 export EXTRAINCLUDES
 export EXTRALIBS
 export EXTRAFLAGS
+export LIBDIR
 
 include helpers/makefile_master
 
