@@ -24,6 +24,7 @@ PYTHONTARGETS = \
 	GzipFileNodeGenerator.py \
 	CubicNodeGenerator.py \
 	GenerateSphericalShellSection.py \
+	AbaqusNodeGenerator.py \
 	CentroidalVoronoiRelaxation.py
 
 SPHERALTOP = ..
