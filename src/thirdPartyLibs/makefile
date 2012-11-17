@@ -293,11 +293,11 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 64fe360dfcea
-POLYTOPEDIST = jjphatt-polytope-$(POLYTOPEVER).tar.bz2
-POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/get/$(POLYTOPEVER).tar.bz2
-POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
-POLYTOPEBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(POLYTOPEDIST))
+POLYTOPEVER = 0.5.0
+POLYTOPEDIST = polytope_$(POLYTOPEVER).tbz
+POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
+POLYTOPEDIR = polytope
+POLYTOPEBUILDDATE = $(patsubst %.tbz, .%.date, $(POLYTOPEDIST))
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
