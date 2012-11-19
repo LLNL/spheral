@@ -144,6 +144,9 @@ public:
   unsigned offset(const NodeSpace::NodeList<Dimension>& nodeList) const;
   unsigned offset(const unsigned nodeListi) const;
 
+  // Compute the communicated mesh structures.
+  void generateDomainInfo();
+
   // Compute unique global IDs for each node.
   std::vector<unsigned> globalMeshNodeIDs() const;
 

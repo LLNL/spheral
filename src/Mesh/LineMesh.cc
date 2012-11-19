@@ -159,12 +159,32 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
     mZones.push_back(Zone(*this, igen, faceIDs));
   }
 
+  // Build the parallel info.
+  this->generateDomainInfo();
+  // MPI_Barrier(MPI_COMM_WORLD);
+  // for (unsigned irank = 0; irank != Process::getTotalNumberOfProcesses(); ++irank) {
+  //   if (Process::getRank() == irank) {
+  //     cerr << "LineMesh neighborDomains : " << mNeighborDomains.size() << " : ";
+  //     copy(mNeighborDomains.begin(), mNeighborDomains.end(), ostream_iterator<unsigned>(cerr, " "));
+  //     cerr << endl;
+  //   }
+  //   MPI_Barrier(MPI_COMM_WORLD);
+  // }
+
   // That's it.
   ENSURE(mNodePositions.size() == generators.size() + 1);
   ENSURE(mNodes.size() == generators.size() + 1);
   ENSURE(mEdges.size() == generators.size() + 1);
   ENSURE(mFaces.size() == generators.size() + 1);
   ENSURE(mZones.size() == generators.size());
+  ENSURE(mSharedNodes.size() == mNeighborDomains.size());
+  ENSURE(mSharedFaces.size() == mNeighborDomains.size());
+  BEGIN_CONTRACT_SCOPE;
+  {
+    // In 1D we know that every shared node should correspond to a shared face!
+    for (unsigned i = 0; i != mSharedNodes.size(); ++i) ENSURE(mSharedFaces[i].size() == mSharedNodes[i].size());
+  }
+  END_CONTRACT_SCOPE;
 }
 
 //------------------------------------------------------------------------------

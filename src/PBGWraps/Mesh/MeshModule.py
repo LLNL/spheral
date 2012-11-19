@@ -123,6 +123,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("zone", zone, [param("unsigned int", "nodeListi"), param("unsigned int", "i")], is_const=True)
         x.add_method("offset", "unsigned int", [constrefparam(nodelist, "nodeList")], is_const=True)
         x.add_method("offset", "unsigned int", [param("unsigned int", "nodeListi")], is_const=True)
+        x.add_method("generateDomainInfo", None, [])
         x.add_method("globalMeshNodeIDs", "vector_of_unsigned", [], is_const=True)
         x.add_method("globalMeshFaceIDs", "vector_of_unsigned", [constrefparam("vector_of_unsigned", "globalNodeIDs")], is_const=True)
         x.add_method("validDomainInfo", "std::string",
