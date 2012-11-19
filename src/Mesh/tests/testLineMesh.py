@@ -140,6 +140,7 @@ class LineMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax,
                                       generateParallelConnectivity = True)
+
         neighborDomains = [int(x) for x in mesh.neighborDomains]
         sharedNodes = []
         for ll in mesh.sharedNodes:
