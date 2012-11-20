@@ -111,6 +111,7 @@ computeGenerators(NodeListIterator nodeListBegin,
                   BoundaryIterator boundaryEnd,
                   const typename Dimension::Vector& xmin,
                   const typename Dimension::Vector& xmax,
+                  const bool generateParallelRind,
                   vector<typename Dimension::Vector>& positions,
                   vector<typename Dimension::SymTensor>& Hs,
                   vector<unsigned>& offsets) {
@@ -175,209 +176,72 @@ computeGenerators(NodeListIterator nodeListBegin,
   positions = localPositions;
   Hs = localHs;
 
-// #ifdef USE_MPI
-//   if (numDomains > 1) {
+#ifdef USE_MPI
+  // If requested we can generate the parallel rind of generators.
+  if (generateParallelRind and numDomains > 1) {
 
-//     // Compute the convex hull of each domain, and distribute them to everyone.
-//     if (Process::getRank() == 0) cerr << "Computing and broadcasting local hulls of domains." << endl;
-//     const ConvexHull localHull(localPositions);
-//     vector<ConvexHull> domainHulls(numDomains, localHull);
-//     vector<unsigned> domainZoneOffset(1, 0);
-//     {
-//       vector<char> localBuffer;
-//       packElement(localHull, localBuffer);
-//       for (unsigned sendProc = 0; sendProc != numDomains; ++sendProc) {
-//         vector<char> buffer = localBuffer;
-//         unsigned bufSize = localBuffer.size();
-//         MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-//         buffer.resize(bufSize);
-//         MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
-//         vector<char>::const_iterator itr = buffer.begin();
-//         unpackElement(domainHulls[sendProc], itr, buffer.end());
-//         CHECK(itr == buffer.end());
-//         domainZoneOffset.push_back(domainZoneOffset.back() + domainHulls[sendProc].vertices().size());
-//       }
-//     }
-//     CHECK(domainHulls.size() == numDomains);
-//     CHECK(domainZoneOffset.size() == numDomains + 1);
+    // Build up the mesh of our local generators.
+    Mesh<Dimension> localMesh(localPositions, xmin, xmax);
+    const vector<unsigned>& neighborDomains = localMesh.neighborDomains();
+    const vector<vector<unsigned> >& sharedNodes = localMesh.sharedNodes();
+    const unsigned numNeighborDomains = neighborDomains.size();
 
-//     // Create a mesh of the hull points for all domains.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Computing mesh of union of local hulls." << endl;
-//     vector<Vector> hullGenerators;
-//     for (unsigned k = 0; k != domainHulls.size(); ++k) {
-//       const vector<Vector>& hullVertices = domainHulls[k].vertices();
-//       copy(hullVertices.begin(), hullVertices.end(), back_inserter(hullGenerators));
-//     }
-//     Mesh<Dimension> hullMesh(hullGenerators, xmin, xmax);
+    // Tell every domain we share a node with about our cells that have that node.
+    list<vector<char> > sendBufs;
+    vector<unsigned> sendSizes(numNeighborDomains);
+    vector<MPI_Request> sendRequests(2*numNeighborDomains);
+    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+      const unsigned otherProc = neighborDomains[kdomain];
+      CHECK(sharedNodes[kdomain].size() > 0);
 
-//     // Build up the set of domains we need to communicate with according to two criteria:
-//     //  1.  Any domain hull that intersects our own.
-//     //  2.  Any domain hull that has elements adjacent to one of ours in the hullMesh.
-//     set<unsigned> neighborSet;
+      // Pack up our generators for the other domain.
+      sendBufs.push_back(vector<char>());
+      vector<char>& buf = sendBufs.back();
+      for (vector<unsigned>::const_iterator nodeItr = sharedNodes[kdomain].begin();
+           nodeItr != sharedNodes[kdomain].end();
+           ++nodeItr) {
+        const vector<unsigned>& cells = localMesh.node(*nodeItr).zoneIDs();
+        for (vector<unsigned>::const_iterator cellItr = cells.begin();
+             cellItr != cells.end();
+             ++cellItr) {
+          CHECK(*cellItr < localPositions.size());
+          packElement(localPositions[*cellItr], buf);
+          packElement(localHs[*cellItr], buf);
+        }
+      }
+      sendSizes[kdomain] = buf.size();
+      MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
+      MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
+    }
+    CHECK(sendBufs.size() == numNeighborDomains);
 
-//     // First any hulls that intersect ours.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Checking for hulls that intersect local." << endl;
-//     for (unsigned otherProc = 0; otherProc != numDomains; ++otherProc) {
-//       if (otherProc != rank and
-//           localHull.intersect(domainHulls[otherProc])) neighborSet.insert(otherProc);
-//     }
+    // Gather up the neighbor generators for each node we share with them.
+    // We rely upon the fact that these generators will be unique for this step!
+    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+      const unsigned otherProc = neighborDomains[kdomain];
+      CHECK(sharedNodes[kdomain].size() > 0);
+      MPI_Status status1, status2;
+      unsigned bufSize;
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
+      CHECK(bufSize > 0);
+      vector<char> buffer(bufSize);
+      MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
+      vector<char>::const_iterator bufItr = buffer.begin();
+      Vector xi;
+      SymTensor Hi;
+      while (bufItr != buffer.end()) {
+        unpackElement(xi, bufItr, buffer.end());
+        unpackElement(Hi, bufItr, buffer.end());
+        positions.push_back(xi);
+        Hs.push_back(Hi);
+      }
+    }
 
-//     // Now any hulls that have elements adjacent to ours in the hull mesh.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Checking for hulls adjacent in mesh." << endl;
-//     for (unsigned izone = domainZoneOffset[rank];
-//          izone != domainZoneOffset[rank + 1];
-//          ++izone) {
-//       const vector<unsigned>& nodeIDs = hullMesh.zone(izone).nodeIDs();
-//       for (typename vector<unsigned>::const_iterator nodeItr = nodeIDs.begin();
-//            nodeItr != nodeIDs.end();
-//            ++nodeItr) {
-//         const unsigned inode = *nodeItr;
-//         const vector<unsigned>& nodeZoneIDs = hullMesh.node(inode).zoneIDs();
-//         for (typename vector<unsigned>::const_iterator zoneItr = nodeZoneIDs.begin();
-//              zoneItr != nodeZoneIDs.end();
-//              ++zoneItr) {
-//           const unsigned izoneNeighbor = *zoneItr;
-//           if (izoneNeighbor != Mesh<Dimension>::UNSETID and
-//               (izoneNeighbor < domainZoneOffset[rank] or izoneNeighbor >= domainZoneOffset[rank + 1])) {
-//             const int otherProc = bisectSearch(domainZoneOffset, izoneNeighbor);
-//             CHECK(otherProc >= 0 and otherProc < domainZoneOffset.size() - 1);
-//             CHECK(izoneNeighbor >= domainZoneOffset[otherProc] and
-//                   izoneNeighbor <  domainZoneOffset[otherProc + 1]);
-//             neighborSet.insert(unsigned(otherProc));
-//           }
-//         }
-//       }
-//     }
-
-// //     // Blago!
-// //     for (unsigned otherProc = 0; otherProc != numDomains; ++otherProc) {
-// //       if (otherProc != rank) neighborSet.insert(otherProc);
-// //     }
-// //     // Blago!
-
-//     // Make sure everyone is consistent about who talks to whom.
-//     vector<unsigned> neighborDomains;
-//     copy(neighborSet.begin(), neighborSet.end(), back_inserter(neighborDomains));
-//     sort(neighborDomains.begin(), neighborDomains.end());
-//     BEGIN_CONTRACT_SCOPE;
-//     {
-//       for (unsigned sendProc = 0; sendProc != numDomains; ++sendProc) {
-//         unsigned numOthers = neighborDomains.size();
-//         vector<unsigned> otherNeighbors(neighborDomains);
-//         MPI_Bcast(&numOthers, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-//         if (numOthers > 0) {
-//           otherNeighbors.resize(numOthers);
-//           MPI_Bcast(&(otherNeighbors.front()), numOthers, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
-//           CHECK2(rank == sendProc or
-//                  count(neighborDomains.begin(), neighborDomains.end(), sendProc) == 
-//                  count(otherNeighbors.begin(), otherNeighbors.end(), rank),
-//                  "Bad neighbor connectivity:  "
-//                  << count(neighborDomains.begin(), neighborDomains.end(), sendProc) << " != "
-//                  << count(otherNeighbors.begin(), otherNeighbors.end(), rank));
-//         }
-//       }
-//     }
-//     END_CONTRACT_SCOPE;
-
-//     // Screw it -- pack up *all* the local generators for sending.
-//     vector<Vector> sendgens;
-//     vector<SymTensor> sendHs;
-//     for (unsigned i = 0; i != localPositions.size(); ++i) {
-//       sendgens.push_back(localPositions[i]);
-//       sendHs.push_back(localHs[i]);
-//     }
-//     vector<char> localBuffer;
-//     packElement(sendgens, localBuffer);
-//     packElement(sendHs, localBuffer);
-//     unsigned localBufSize = localBuffer.size();
-
-// //     // Build the mesh of the local generators, and extract the convex hulls of each zone.
-// //     const Mesh<Dimension> localMesh(localPositions, xmin, xmax);
-// //     CHECK(localMesh.numZones() == nlocal);
-// //     vector<ConvexHull> localZoneHulls;
-// //     for (unsigned i = 0; i != nlocal; ++i) localZoneHulls.push_back(localMesh.zone(i).convexHull());
-
-//     // Now we have to determine which of our generators go to each neighbor.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Sending local generators to neighbors." << endl;
-// //     list<vector<char> > localBuffers;
-// //     list<unsigned> localBufSizes;
-//     vector<MPI_Request> sendRequests(2*neighborDomains.size());
-//     for (unsigned k = 0; k != neighborDomains.size(); ++k) {
-//       const unsigned otherProc = neighborDomains[k];
-
-// //       // Look for any zones that intersect the other domain hull.  We'll send that generator
-// //       // along with its immediate neighbors.
-// //       set<unsigned> sendGenIDs;
-// //       unsigned j;
-// //       for (unsigned i = 0; i != nlocal; ++i) {
-// //         if (domainHulls[otherProc].convexIntersect(localZoneHulls[i])) sendGenIDs.insert(i);
-// //       }
-
-// //       // Go out a rind of two neighbors for each send zone, and send them too.
-// //       for (unsigned irind = 0; irind != 2; ++irind) {
-// //         set<unsigned> newSendGenIDs;
-// //         BOOST_FOREACH(unsigned i, sendGenIDs) {
-// //           const vector<unsigned>& faceIDs = localMesh.zone(i).faceIDs();
-// //           for (vector<unsigned>::const_iterator faceItr = faceIDs.begin();
-// //                faceItr != faceIDs.end();
-// //                ++faceItr) {
-// //             j = localMesh.face(*faceItr).oppositeZoneID(i);
-// //             if (j != Mesh<Dimension>::UNSETID) newSendGenIDs.insert(j);
-// //           }
-// //         }
-// //         std::copy(newSendGenIDs.begin(), newSendGenIDs.end(), std::inserter(sendGenIDs, sendGenIDs.end()));
-// //       }
-
-// //       if (Process::getRank() == 0) cerr << "    computeGenerators:  " << Process::getRank() << "->" << otherProc << " sending " << sendGenIDs.size() << " of " << localPositions.size() << endl;
-
-// //       // Pack up the local generators we're sending.
-// //       vector<Vector> sendgens;
-// //       vector<SymTensor> sendHs;
-// //       for (typename set<unsigned>::const_iterator itr = sendGenIDs.begin();
-// //            itr != sendGenIDs.end();
-// //            ++itr) {
-// //         sendgens.push_back(localPositions[*itr]);
-// //         sendHs.push_back(localHs[*itr]);
-// //       }
-// //       CHECK(sendgens.size() == sendGenIDs.size());
-// //       CHECK(sendHs.size() == sendGenIDs.size());
-
-// //       localBuffers.push_back(vector<char>());
-// //       packElement(sendgens, localBuffers.back());
-// //       packElement(sendHs, localBuffers.back());
-// //       localBufSizes.push_back(localBuffers.back().size());
-
-// //       // Send the generator info.
-// //       MPI_Isend(&localBufSizes.back(), 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &(sendRequests[2*k]));
-// //       MPI_Isend(&localBuffers.back().front(), localBufSizes.back(), MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &(sendRequests[2*k + 1]));
-
-//       // Send the generator info.
-//       MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &(sendRequests[2*k]));
-//       MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &(sendRequests[2*k + 1]));
-//     }
-
-//     // Get the info from each of our neighbors and append it to the result.
-// //     if (Process::getRank() == 0) cerr << "computeGenerators:  Receiving neighbor generators." << endl;
-//     for (unsigned k = 0; k != neighborDomains.size(); ++k) {
-//       const unsigned recvProc = neighborDomains[k];
-//       unsigned bufSize;
-//       MPI_Status recvStatus1, recvStatus2;
-//       MPI_Recv(&bufSize, 1, MPI_UNSIGNED, recvProc, 1, MPI_COMM_WORLD, &recvStatus1);
-//       CHECK(bufSize > 0);
-//       vector<char> buffer(bufSize, '\0');
-//       MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, recvProc, 2, MPI_COMM_WORLD, &recvStatus2);
-//       vector<char>::const_iterator itr = buffer.begin();
-//       unpackElement(positions, itr, buffer.end());
-//       unpackElement(Hs, itr, buffer.end());
-//       CHECK(itr == buffer.end());
-//     }
-
-//     // Make sure all our sends are completed.
-//     if (Process::getRank() == 0) cerr << "computeGenerators:  Done." << endl;
-//     vector<MPI_Status> sendStatus(sendRequests.size());
-//     MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
-//   }
-// #endif
+    // Wait until all our sends have been satisfied.
+    vector<MPI_Status> status(sendRequests.size());
+    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+  }
+#endif
 
   // That's it.
 }
