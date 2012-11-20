@@ -66,7 +66,8 @@ generateMesh(const NodeListIterator nodeListBegin,
     if (Process::getRank() == 0)  cerr << "Computing void nodes" << endl;
     computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                      boundaryBegin, boundaryEnd,
-                                                                     xmin, xmax, generators, Hs, offsets);
+                                                                     xmin, xmax, true,
+                                                                     generators, Hs, offsets);
     unsigned numInternal = 0;
     double nPerh;
     for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd - 1; ++itr) {
@@ -79,12 +80,13 @@ generateMesh(const NodeListIterator nodeListBegin,
     NodeSpace::generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
   }
 
-  // Extract the set of generators this domain needs (including any parallel neighbors).
+  // Extract the set of generators this domain needs.
   // This method gives us both the positions and Hs for the generators.
   if (Process::getRank() == 0) cerr << "Computing generators" << endl;
   computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                    boundaryBegin, boundaryEnd,
-                                                                   xmin, xmax, generators, Hs, offsets);
+                                                                   xmin, xmax, false,
+                                                                   generators, Hs, offsets);
   if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct generators." << endl;

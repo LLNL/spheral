@@ -419,6 +419,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
                                  refparam(vector_of_boundary, "boundaries"),
                                  constrefparam(vector, "xmin"),
                                  constrefparam(vector, "xmax"),
+                                 param("bool", "generateParallelRind"),
                                  refparam(vector_of_vector, "positions"),
                                  refparam(vector_of_symtensor, "Hs"),
                                  refparam("vector_of_unsigned", "offsets")],
