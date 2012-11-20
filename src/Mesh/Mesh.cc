@@ -803,10 +803,7 @@ generateDomainInfo() {
     for (vector<Key>::const_iterator keyItr = nodeHashes.begin();
          keyItr != nodeHashes.end();
          ++keyItr) {
-      if (binary_search(otherHashes.begin(), otherHashes.end(), *keyItr) == true) {
-        sharedIDs.push_back(key2nodeID[*keyItr]);
-        cerr << "  --> Found matching node : " << *keyItr << " " << key2nodeID[*keyItr] << " " << mNodePositions[key2nodeID[*keyItr]] << endl;
-      }
+      if (binary_search(otherHashes.begin(), otherHashes.end(), *keyItr) == true) sharedIDs.push_back(key2nodeID[*keyItr]);
     }
     if (sharedIDs.size() > 0) {
       mNeighborDomains.push_back(otherProc);
