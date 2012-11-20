@@ -74,9 +74,7 @@ generateMesh(const NodeListIterator nodeListBegin,
       numInternal += (**itr).numInternalNodes();
       nPerh = (**itr).nodesPerSmoothingScale();
     }
-    cerr << "Mesh::reconstruct." << endl;
     mesh.reconstruct(generators, xmin, xmax, boundaryBegin, boundaryEnd);
-    cerr << "generateVoidNodes." << endl;
     NodeSpace::generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
   }
 

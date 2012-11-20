@@ -50,6 +50,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   // Is there anything to do?
   if (allReduce(unsigned(localGenerators.size()), MPI_SUM, MPI_COMM_WORLD) == 0) return;
 
+  // Parallel info.
   const unsigned rank = Process::getRank();
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
 
@@ -70,7 +71,23 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
 #ifdef USE_MPI
   // We need the parallel sets of generators.
   {  
+    // Create the set of hashed local generators.
+    // const double degeneracy = 1.0e-8*max(1.0, xmax.x() - xmin.x());
+    // const double dxInv = 1.0/degeneracy;
+    // vector<KeyElement> localHashes;
+    // localHashes.reserve(localGenerators.size());
+    // for (unsigned i = 0; i != localGenerators.size(); ++i) 
+    //   localHashes.push_back(KeyElement(dxInv*(localGenerators[i].x() - xmin.x()) + 0.5));
+
+    const Vector boxInv(safeInv(xmax.x() - xmin.x()));
+    set<Key> occupiedHashes;
+    for (unsigned i = 0; i != localGenerators.size(); ++i) 
+      occupiedHashes.insert(hashPosition(localGenerators[i], xmin, xmax, boxInv));
+    CHECK(occupiedHashes.size() == localGenerators.size());
+
     vector<char> localBuffer;
+    Key hashi;
+    Vector xi;
     for (vector<Vector>::const_iterator itr = localGenerators.begin();
          itr != localGenerators.end();
          ++itr) packElement(*itr, localBuffer);
@@ -84,8 +101,12 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
         if (sendProc != rank) {
           vector<char>::const_iterator bufItr = buffer.begin();
           while (bufItr != buffer.end()) {
-            generators.push_back(Vector());
-            unpackElement(generators.back(), bufItr, buffer.end());
+            unpackElement(xi, bufItr, buffer.end());
+            hashi = hashPosition(xi, xmin, xmax, boxInv);
+            if (occupiedHashes.find(hashi) == occupiedHashes.end()) {
+              generators.push_back(xi);
+              occupiedHashes.insert(hashi);
+            }
           }
         }
       }
