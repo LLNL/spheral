@@ -12,6 +12,12 @@
 #include "Utilities/allReduce.hh"
 #include "Utilities/DBC.hh"
 
+#ifdef USE_MPI
+extern "C" {
+#include "mpi.h"
+}
+#endif
+
 namespace Spheral {
 namespace MeshSpace {
 
@@ -37,24 +43,55 @@ struct CompareIndicesByPositions {
 template<>
 void
 Mesh<Dim<1> >::
-reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
+reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
                     const Mesh<Dim<1> >::Vector& xmin,
                     const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
-  if (generators.size() == 0) return;
+  if (allReduce(unsigned(localGenerators.size()), MPI_SUM, MPI_COMM_WORLD) == 0) return;
+
+  const unsigned rank = Process::getRank();
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin < xmax);
-    for (vector<Vector>::const_iterator itr = generators.begin();
-         itr != generators.end();
+    for (vector<Vector>::const_iterator itr = localGenerators.begin();
+         itr != localGenerators.end();
          ++itr) {
       REQUIRE2(xmin <= *itr and *itr <= xmax, "Node out of bounds:  " << *itr << " not in [" << xmin << " " << xmax << "]");
     }
   }
   END_CONTRACT_SCOPE;
+
+  // Get the full set of generators we need.
+  vector<Vector> generators = localGenerators;
+#ifdef USE_MPI
+  // We need the parallel sets of generators.
+  {  
+    vector<char> localBuffer;
+    for (vector<Vector>::const_iterator itr = localGenerators.begin();
+         itr != localGenerators.end();
+         ++itr) packElement(*itr, localBuffer);
+    for (unsigned sendProc = 0; sendProc != numDomains; ++sendProc) {
+      vector<char> buffer = localBuffer;
+      unsigned bufSize = buffer.size();
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      if (bufSize > 0) {
+        buffer.resize(bufSize);
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+        if (sendProc != rank) {
+          vector<char>::const_iterator bufItr = buffer.begin();
+          while (bufItr != buffer.end()) {
+            generators.push_back(Vector());
+            unpackElement(generators.back(), bufItr, buffer.end());
+          }
+        }
+      }
+    }
+  }
+#endif
 
   // Find the sorted order for the zones by index.
   vector<unsigned> zoneOrder;
@@ -159,6 +196,11 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
     mZones.push_back(Zone(*this, igen, faceIDs));
   }
 
+  // Remove the zones for generators that are not local.
+  vector<unsigned> mask(generators.size(), 0);
+  fill(mask.begin(), mask.begin() + localGenerators.size(), 1);
+  this->removeZonesByMask(mask);
+
   // Build the parallel info.
   this->generateDomainInfo();
   // MPI_Barrier(MPI_COMM_WORLD);
@@ -172,11 +214,11 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& generators,
   // }
 
   // That's it.
-  ENSURE(mNodePositions.size() == generators.size() + 1);
-  ENSURE(mNodes.size() == generators.size() + 1);
-  ENSURE(mEdges.size() == generators.size() + 1);
-  ENSURE(mFaces.size() == generators.size() + 1);
-  ENSURE(mZones.size() == generators.size());
+  ENSURE(mNodePositions.size() == localGenerators.size() + 1);
+  ENSURE(mNodes.size() == localGenerators.size() + 1);
+  ENSURE(mEdges.size() == localGenerators.size() + 1);
+  ENSURE(mFaces.size() == localGenerators.size() + 1);
+  ENSURE(mZones.size() == localGenerators.size());
   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
   BEGIN_CONTRACT_SCOPE;
