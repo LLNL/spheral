@@ -204,9 +204,11 @@ computeGenerators(NodeListIterator nodeListBegin,
         for (vector<unsigned>::const_iterator cellItr = cells.begin();
              cellItr != cells.end();
              ++cellItr) {
-          CHECK(*cellItr < localPositions.size());
-          packElement(localPositions[*cellItr], buf);
-          packElement(localHs[*cellItr], buf);
+          if (Mesh<Dimension>::positiveID(*cellItr) != Mesh<Dimension>::UNSETID) {
+            CHECK2(*cellItr < localPositions.size(), *cellItr << " " << localPositions.size());
+            packElement(localPositions[*cellItr], buf);
+            packElement(localHs[*cellItr], buf);
+          }
         }
       }
       sendSizes[kdomain] = buf.size();
