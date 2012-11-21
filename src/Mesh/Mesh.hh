@@ -147,6 +147,13 @@ public:
   // Compute the communicated mesh structures.
   void generateDomainInfo();
 
+  // Generate a parallel rind of cells around each domain representing a one zone
+  // thick set of zones shared with the neighboring processors.
+  // Note we do not recompute the shared elements (nodes & faces) as part of this
+  // procedure, so following this operation those shared elements are no longer
+  // on the surface of the local mesh!
+  void generateParallelRind();
+
   // Compute unique global IDs for each node.
   std::vector<unsigned> globalMeshNodeIDs() const;
 
@@ -176,6 +183,7 @@ public:
 
   // Compute the bounding surface of the mesh.
   FacetedVolume boundingSurface() const;
+  void boundingBox(Vector& xmin, Vector& xmax) const;
 
   // Encapsulate the ones complement for signed (oriented) IDs.
   static int positiveID(const int id);
