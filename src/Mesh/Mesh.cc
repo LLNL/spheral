@@ -16,6 +16,7 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/boundingBox.hh"
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
@@ -687,20 +688,8 @@ generateDomainInfo() {
 #ifdef USE_MPI
 
   // Start out by determining the global extent of the mesh.
-  Vector xmin(numeric_limits<double>::max(),
-              numeric_limits<double>::max(),
-              numeric_limits<double>::max());
-  Vector xmax(-numeric_limits<double>::max(),
-              -numeric_limits<double>::max(),
-              -numeric_limits<double>::max());
-  for (unsigned i = 0; i != numNodes(); ++i) {
-    xmin = elementWiseMin(xmin, mNodePositions[i]);
-    xmax = elementWiseMax(xmax, mNodePositions[i]);
-  }
-  for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
-  }
+  Vector xmin, xmax;
+  this->boundingBox(xmin, xmax);
 
   // Define the hashing scale.
   const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
@@ -945,6 +934,103 @@ generateDomainInfo() {
 #endif
 }
  
+//------------------------------------------------------------------------------
+// Mesh::generateParallelRind
+// Generate a parallel rind of cells around each domain representing a one zone
+// thick set of zones shared with the neighboring processors.
+// Note we do not recompute the shared elements (nodes & faces) as part of this
+// procedure, so following this operation those shared elements are no longer
+// on the surface of the local mesh!
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+generateParallelRind() {
+#ifdef USE_MPI
+  // Parallel procs.
+  const unsigned numDomains = Process::getTotalNumberOfProcesses();
+  const unsigned rank = Process::getRank();
+
+  if (numDomains > 1) {
+    const unsigned numNeighborDomains = mNeighborDomains.size();
+
+    // Get the bounding coordinates in order to help hashing the coordinates.
+    Vector xmin, xmax;
+    this->boundingBox(xmin, xmax);
+
+    // Define the hashing scale.
+    const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
+
+    // Puff out the bounds a bit.  We do the all reduce just to ensure
+    // bit perfect consistency across processors.
+    Vector boxInv;
+    for (unsigned i = 0; i != Dimension::nDim; ++i) {
+      xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, MPI_COMM_WORLD);
+      xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, MPI_COMM_WORLD);
+      boxInv(i) = safeInv(xmax(i) - xmin(i));
+    }
+
+    // Tell every domain we share a node with about our cells that have that node.
+    list<vector<char> > sendBufs;
+    vector<unsigned> sendSizes(numNeighborDomains);
+    vector<MPI_Request> sendRequests(2*numNeighborDomains);
+    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+      const unsigned otherProc = mNeighborDomains[kdomain];
+      CHECK(mSharedNodes[kdomain].size() > 0);
+
+      // Pack up our cells for the other domain.
+      sendBufs.push_back(vector<char>());
+      vector<char>& buf = sendBufs.back();
+      for (vector<unsigned>::const_iterator nodeItr = mSharedNodes[kdomain].begin();
+           nodeItr != mSharedNodes[kdomain].end();
+           ++nodeItr) {
+        const vector<unsigned>& cells = this->node(*nodeItr).zoneIDs();
+        for (vector<unsigned>::const_iterator cellItr = cells.begin();
+             cellItr != cells.end();
+             ++cellItr) {
+          const unsigned cellID = positiveID(*cellItr);
+          if (cellID != Mesh<Dimension>::UNSETID) {
+            const vector<unsigned>& nodes = mZones[cellID].nodeIDs();
+            const vector<int>& faces = mZones[cellID].faceIDs();
+            packElement(nodes.size(), buf);
+            packElement(faces.size(), buf);
+            map<unsigned, unsigned> nodeMap;
+            for (unsigned inode = 0; inode != nodes.size(); ++inode) {
+              const Key nodeHash = hashPosition(mNodePositions[nodes[inode]], xmin, xmax, boxInv);
+              packElement(nodeHash, buf);
+              nodeMap[nodes[inode]] = inode;
+            }
+            CHECK(nodeMap.size() == nodes.size());
+            for (vector<int>::const_iterator faceItr = faces.begin();
+                 faceItr != faces.end();
+                 ++faceItr) {
+              const unsigned face = positiveID(*faceItr);
+              const vector<unsigned>& faceNodes = mFaces[face].nodeIDs();
+              packElement(faceNodes.size(), buf);
+              if (*faceItr < 0) {
+                for (vector<unsigned>::const_reverse_iterator itr = faceNodes.rbegin();
+                     itr != faceNodes.rend();
+                     ++itr) packElement(nodeMap[*itr], buf);
+              } else {
+                for (vector<unsigned>::const_iterator itr = faceNodes.begin();
+                     itr != faceNodes.end();
+                     ++itr) packElement(nodeMap[*itr], buf);
+              }
+            }
+          }
+        }
+      }
+      sendSizes[kdomain] = buf.size();
+      MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
+      MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
+    }
+    CHECK(sendBufs.size() == numNeighborDomains);
+
+
+  }
+#endif
+}
+
 //------------------------------------------------------------------------------
 // Find unique global IDs for all mesh nodes.  This requires that the 
 // Mesh::generateDomainInfo method already be called.
@@ -1347,6 +1433,21 @@ storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
                      const vector<unsigned>& offsets) {
   VERIFY(nodeListPtrs.size() == offsets.size());
   this->storeNodeListOffsets(nodeListPtrs.begin(), nodeListPtrs.end(), offsets);
+}
+
+//------------------------------------------------------------------------------
+// Find the minimum bounding box for the mesh.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+boundingBox(typename Dimension::Vector& xmin,
+            typename Dimension::Vector& xmax) const {
+  Spheral::boundingBox(mNodePositions, xmin, xmax);
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
+    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
+  }
 }
 
 // //------------------------------------------------------------------------------
