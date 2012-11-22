@@ -224,14 +224,15 @@ private:
   void reconstructInternal(const std::vector<Vector>& generators,
                            const Vector& xmin, 
                            const Vector& xmax);
+
+  // Internal method used to add on new mesh elements based on sets of 
+  // nodes arranged into Face arrays.
+  void createNewMeshElements(const std::vector<std::vector<std::vector<unsigned> > >& newCells);
 };
 
-// Mesh::cleanEdges does not make sense in 1D.
-template<>
-inline
-void
-Mesh<Dim<1> >::
-cleanEdges(const double edgeTol) {}
+// Declare 1D specializations.
+template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
+template<>        void Mesh<Dim<1> >::createNewMeshElements(const std::vector<std::vector<std::vector<unsigned> > >& newCells);
 
 }
 }

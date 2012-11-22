@@ -111,7 +111,6 @@ computeGenerators(NodeListIterator nodeListBegin,
                   BoundaryIterator boundaryEnd,
                   const typename Dimension::Vector& xmin,
                   const typename Dimension::Vector& xmax,
-                  const bool generateParallelRind,
                   vector<typename Dimension::Vector>& positions,
                   vector<typename Dimension::SymTensor>& Hs,
                   vector<unsigned>& offsets) {
@@ -176,74 +175,74 @@ computeGenerators(NodeListIterator nodeListBegin,
   positions = localPositions;
   Hs = localHs;
 
-#ifdef USE_MPI
-  // If requested we can generate the parallel rind of generators.
-  if (generateParallelRind and numDomains > 1) {
+// #ifdef USE_MPI
+//   // If requested we can generate the parallel rind of generators.
+//   if (generateParallelRind and numDomains > 1) {
 
-    // Build up the mesh of our local generators.
-    Mesh<Dimension> localMesh(localPositions, xmin, xmax);
-    const vector<unsigned>& neighborDomains = localMesh.neighborDomains();
-    const vector<vector<unsigned> >& sharedNodes = localMesh.sharedNodes();
-    const unsigned numNeighborDomains = neighborDomains.size();
+//     // Build up the mesh of our local generators.
+//     Mesh<Dimension> localMesh(localPositions, xmin, xmax);
+//     const vector<unsigned>& neighborDomains = localMesh.neighborDomains();
+//     const vector<vector<unsigned> >& sharedNodes = localMesh.sharedNodes();
+//     const unsigned numNeighborDomains = neighborDomains.size();
 
-    // Tell every domain we share a node with about our cells that have that node.
-    list<vector<char> > sendBufs;
-    vector<unsigned> sendSizes(numNeighborDomains);
-    vector<MPI_Request> sendRequests(2*numNeighborDomains);
-    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
-      const unsigned otherProc = neighborDomains[kdomain];
-      CHECK(sharedNodes[kdomain].size() > 0);
+//     // Tell every domain we share a node with about our cells that have that node.
+//     list<vector<char> > sendBufs;
+//     vector<unsigned> sendSizes(numNeighborDomains);
+//     vector<MPI_Request> sendRequests(2*numNeighborDomains);
+//     for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+//       const unsigned otherProc = neighborDomains[kdomain];
+//       CHECK(sharedNodes[kdomain].size() > 0);
 
-      // Pack up our generators for the other domain.
-      sendBufs.push_back(vector<char>());
-      vector<char>& buf = sendBufs.back();
-      for (vector<unsigned>::const_iterator nodeItr = sharedNodes[kdomain].begin();
-           nodeItr != sharedNodes[kdomain].end();
-           ++nodeItr) {
-        const vector<unsigned>& cells = localMesh.node(*nodeItr).zoneIDs();
-        for (vector<unsigned>::const_iterator cellItr = cells.begin();
-             cellItr != cells.end();
-             ++cellItr) {
-          if (Mesh<Dimension>::positiveID(*cellItr) != Mesh<Dimension>::UNSETID) {
-            CHECK2(*cellItr < localPositions.size(), *cellItr << " " << localPositions.size());
-            packElement(localPositions[*cellItr], buf);
-            packElement(localHs[*cellItr], buf);
-          }
-        }
-      }
-      sendSizes[kdomain] = buf.size();
-      MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
-      MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
-    }
-    CHECK(sendBufs.size() == numNeighborDomains);
+//       // Pack up our generators for the other domain.
+//       sendBufs.push_back(vector<char>());
+//       vector<char>& buf = sendBufs.back();
+//       for (vector<unsigned>::const_iterator nodeItr = sharedNodes[kdomain].begin();
+//            nodeItr != sharedNodes[kdomain].end();
+//            ++nodeItr) {
+//         const vector<unsigned>& cells = localMesh.node(*nodeItr).zoneIDs();
+//         for (vector<unsigned>::const_iterator cellItr = cells.begin();
+//              cellItr != cells.end();
+//              ++cellItr) {
+//           if (Mesh<Dimension>::positiveID(*cellItr) != Mesh<Dimension>::UNSETID) {
+//             CHECK2(*cellItr < localPositions.size(), *cellItr << " " << localPositions.size());
+//             packElement(localPositions[*cellItr], buf);
+//             packElement(localHs[*cellItr], buf);
+//           }
+//         }
+//       }
+//       sendSizes[kdomain] = buf.size();
+//       MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
+//       MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
+//     }
+//     CHECK(sendBufs.size() == numNeighborDomains);
 
-    // Gather up the neighbor generators for each node we share with them.
-    // We rely upon the fact that these generators will be unique for this step!
-    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
-      const unsigned otherProc = neighborDomains[kdomain];
-      CHECK(sharedNodes[kdomain].size() > 0);
-      MPI_Status status1, status2;
-      unsigned bufSize;
-      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
-      CHECK(bufSize > 0);
-      vector<char> buffer(bufSize);
-      MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
-      vector<char>::const_iterator bufItr = buffer.begin();
-      Vector xi;
-      SymTensor Hi;
-      while (bufItr != buffer.end()) {
-        unpackElement(xi, bufItr, buffer.end());
-        unpackElement(Hi, bufItr, buffer.end());
-        positions.push_back(xi);
-        Hs.push_back(Hi);
-      }
-    }
+//     // Gather up the neighbor generators for each node we share with them.
+//     // We rely upon the fact that these generators will be unique for this step!
+//     for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+//       const unsigned otherProc = neighborDomains[kdomain];
+//       CHECK(sharedNodes[kdomain].size() > 0);
+//       MPI_Status status1, status2;
+//       unsigned bufSize;
+//       MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
+//       CHECK(bufSize > 0);
+//       vector<char> buffer(bufSize);
+//       MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
+//       vector<char>::const_iterator bufItr = buffer.begin();
+//       Vector xi;
+//       SymTensor Hi;
+//       while (bufItr != buffer.end()) {
+//         unpackElement(xi, bufItr, buffer.end());
+//         unpackElement(Hi, bufItr, buffer.end());
+//         positions.push_back(xi);
+//         Hs.push_back(Hi);
+//       }
+//     }
 
-    // Wait until all our sends have been satisfied.
-    vector<MPI_Status> status(sendRequests.size());
-    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
-  }
-#endif
+//     // Wait until all our sends have been satisfied.
+//     vector<MPI_Status> status(sendRequests.size());
+//     MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
+//   }
+// #endif
 
   // That's it.
 }

@@ -57,33 +57,16 @@ generateMesh(const NodeListIterator nodeListBegin,
   VERIFY2(not (generateVoid and removeBoundaryZones),
           "You cannot simultaneously request generateVoid and removeBoundaryZones.");
 
-  // Are we generating void?
+  // Extract the set of generators this domain needs.
+  // This method gives us both the positions and Hs for the generators.
+  if (Process::getRank() == 0) cerr << "Computing generators" << endl;
   Timing::Time t0 = Timing::currentTime();
   vector<Vector> generators;
   vector<SymTensor> Hs;
   vector<unsigned> offsets;
-  if (generateVoid or removeBoundaryZones) {
-    if (Process::getRank() == 0)  cerr << "Computing void nodes" << endl;
-    computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
-                                                                     boundaryBegin, boundaryEnd,
-                                                                     xmin, xmax, true,
-                                                                     generators, Hs, offsets);
-    unsigned numInternal = 0;
-    double nPerh;
-    for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd - 1; ++itr) {
-      numInternal += (**itr).numInternalNodes();
-      nPerh = (**itr).nodesPerSmoothingScale();
-    }
-    mesh.reconstruct(generators, xmin, xmax, boundaryBegin, boundaryEnd);
-    NodeSpace::generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
-  }
-
-  // Extract the set of generators this domain needs.
-  // This method gives us both the positions and Hs for the generators.
-  if (Process::getRank() == 0) cerr << "Computing generators" << endl;
   computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                    boundaryBegin, boundaryEnd,
-                                                                   xmin, xmax, false,
+                                                                   xmin, xmax, 
                                                                    generators, Hs, offsets);
   if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
@@ -96,6 +79,38 @@ generateMesh(const NodeListIterator nodeListBegin,
   if (Process::getRank() == 0) cerr << "generateMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh." << endl;
+
+  // Are we generating void?
+  t0 = Timing::currentTime();
+  if (generateVoid or removeBoundaryZones) {
+    if (Process::getRank() == 0)  cerr << "Computing void nodes." << endl;
+    unsigned numInternal = 0;
+    double nPerh;
+    for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd - 1; ++itr) {
+      numInternal += (**itr).numInternalNodes();
+      nPerh = (**itr).nodesPerSmoothingScale();
+    }
+    mesh.generateParallelRind();
+    NodeSpace::generateVoidNodes(generators, Hs, mesh, xmin, xmax, numInternal, nPerh, voidThreshold, voidNodes);
+
+    if (Process::getRank() == 0) cerr << "Recomputing generators with void." << endl;
+    computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
+                                                                     boundaryBegin, boundaryEnd,
+                                                                     xmin, xmax, 
+                                                                     generators, Hs, offsets);
+    if (Process::getRank() == 0) cerr << "generateMesh:: required " 
+                                      << Timing::difference(t0, Timing::currentTime())
+                                      << " seconds to construct generators." << endl;
+
+    // Construct the mesh.
+    t0 = Timing::currentTime();
+    mesh.reconstruct(generators, xmin, xmax, boundaryBegin, boundaryEnd);
+    CHECK(mesh.numZones() == generators.size());
+    if (Process::getRank() == 0) cerr << "generateMesh:: required " 
+                                      << Timing::difference(t0, Timing::currentTime())
+                                      << " seconds to construct mesh." << endl;
+
+  }
 
   // Remove any zones for generators that are not local to this domain.
   // if (Process::getRank() == 0) cerr << "Removing zones" << endl;

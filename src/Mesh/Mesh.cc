@@ -11,6 +11,7 @@
 #include "boost/tuple/tuple_comparison.hpp"
 #include "boost/foreach.hpp"
 #include "boost/functional/hash.hpp"
+#include "boost/bimap.hpp"
 
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/removeElements.hh"
@@ -970,6 +971,13 @@ generateParallelRind() {
       boxInv(i) = safeInv(xmax(i) - xmin(i));
     }
 
+    // Create a lookup for node hashes to IDs.
+    typedef boost::bimap<Key, unsigned> Hash2IDType;
+    Hash2IDType nodeHash2ID;
+    for (unsigned i = 0; i != mNodePositions.size(); ++i) {
+      nodeHash2ID.insert(Hash2IDType::value_type(hashPosition(mNodePositions[i], xmin, xmax, boxInv), i));
+    }
+
     // Tell every domain we share a node with about our cells that have that node.
     list<vector<char> > sendBufs;
     vector<unsigned> sendSizes(numNeighborDomains);
@@ -988,16 +996,14 @@ generateParallelRind() {
         for (vector<unsigned>::const_iterator cellItr = cells.begin();
              cellItr != cells.end();
              ++cellItr) {
-          const unsigned cellID = positiveID(*cellItr);
-          if (cellID != Mesh<Dimension>::UNSETID) {
-            const vector<unsigned>& nodes = mZones[cellID].nodeIDs();
-            const vector<int>& faces = mZones[cellID].faceIDs();
-            packElement(nodes.size(), buf);
-            packElement(faces.size(), buf);
+          if (*cellItr != Mesh<Dimension>::UNSETID) {
+            const vector<unsigned>& nodes = mZones[*cellItr].nodeIDs();
+            const vector<int>& faces = mZones[*cellItr].faceIDs();
+            packElement(unsigned(nodes.size()), buf);
+            packElement(unsigned(faces.size()), buf);
             map<unsigned, unsigned> nodeMap;
             for (unsigned inode = 0; inode != nodes.size(); ++inode) {
-              const Key nodeHash = hashPosition(mNodePositions[nodes[inode]], xmin, xmax, boxInv);
-              packElement(nodeHash, buf);
+              packElement(nodeHash2ID.right.at(nodes[inode]), buf);
               nodeMap[nodes[inode]] = inode;
             }
             CHECK(nodeMap.size() == nodes.size());
@@ -1006,7 +1012,7 @@ generateParallelRind() {
                  ++faceItr) {
               const unsigned face = positiveID(*faceItr);
               const vector<unsigned>& faceNodes = mFaces[face].nodeIDs();
-              packElement(faceNodes.size(), buf);
+              packElement(unsigned(faceNodes.size()), buf);
               if (*faceItr < 0) {
                 for (vector<unsigned>::const_reverse_iterator itr = faceNodes.rbegin();
                      itr != faceNodes.rend();
@@ -1026,7 +1032,64 @@ generateParallelRind() {
     }
     CHECK(sendBufs.size() == numNeighborDomains);
 
+    // Gather up the cells from our neighboring processors and add them to the local
+    // Mesh.
+    vector<vector<vector<unsigned> > > newCells;
+    for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
+      const unsigned otherProc = mNeighborDomains[kdomain];
+      CHECK(mSharedNodes[kdomain].size() > 0);
+      MPI_Status status1, status2;
+      unsigned bufSize;
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
+      CHECK(bufSize > 0);
+      vector<char> buffer(bufSize);
+      MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
+      vector<char>::const_iterator bufItr = buffer.begin();
 
+      // Get the number of nodes and faces for this cell.
+      while (bufItr != buffer.end()) {
+        unsigned numCellNodes, numCellFaces;
+        unpackElement(numCellNodes, bufItr, buffer.end());
+        unpackElement(numCellFaces, bufItr, buffer.end());
+
+        // Unpack the encoded node positions.
+        vector<unsigned> cellNodes;
+        cellNodes.reserve(numCellNodes);
+        Key hashi;
+        for (unsigned i = 0; i != numCellNodes; ++i) {
+          unpackElement(hashi, bufItr, buffer.end());
+          if (nodeHash2ID.left.find(hashi) == nodeHash2ID.left.end()) {
+            nodeHash2ID.insert(Hash2IDType::value_type(hashi, mNodePositions.size()));
+            mNodePositions.push_back(quantizedPosition(hashi, xmin, xmax));
+          }
+          cellNodes.push_back(nodeHash2ID.left.at(hashi));
+        }
+        CHECK(cellNodes.size() == numCellNodes);
+
+        // Unpack the faces for this cell as collections of nodes.
+        unsigned nNodesInFace, inode;
+        newCells.push_back(vector<vector<unsigned> >());
+        for (unsigned k = 0; k != numCellFaces; ++k) {
+          newCells.back().push_back(vector<unsigned>());
+          unpackElement(nNodesInFace, bufItr, buffer.end());
+          for (unsigned j = 0; j != nNodesInFace; ++j) {
+            unpackElement(inode, bufItr, buffer.end());
+            newCells.back().back().push_back(inode);
+          }
+          CHECK(newCells.back().back().size() == nNodesInFace);
+        }
+        CHECK(newCells.back().size() == numCellFaces);
+      }
+    }
+
+    // At this point we have created any necessary new node positions,
+    // but have not created the new mesh elements yet.
+    // Delegate this stage to the Dimension specific implementations.
+    this->createNewMeshElements(newCells);
+
+    // Wait until all our sends have been satisfied.
+    vector<MPI_Status> status(sendRequests.size());
+    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
   }
 #endif
 }
@@ -1448,6 +1511,15 @@ boundingBox(typename Dimension::Vector& xmin,
     xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
     xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
   }
+}
+
+//------------------------------------------------------------------------------
+// Internal method add new mesh elements for existing node positions.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 }
 
 // //------------------------------------------------------------------------------
