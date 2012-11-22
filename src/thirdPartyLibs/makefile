@@ -83,12 +83,12 @@ PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
 #PARMETISMAKEFILE = Makefile.ParMETIS
 
 # Tau
-TAUDIST = tau-$(TAUVERSION).tgz
-#TAUURL=http://www.cs.uoregon.edu/Research/tau/tau_releases/$(TAUDIST)
-TAUURL=http://tau.uoregon.edu/tau.tgz
-TAUDIR = $(TAUDIST:.tgz=)
-TAUBUILDDATE = $(patsubst %.tgz, .%.date, $(TAUDIST))
-TAUDUMMYDATE = $(patsubst %.tgz, .%.dummydate, $(TAUDIST))
+TAUDIST = tau-$(TAUVERSION).tar.gz
+TAUURL=http://www.cs.uoregon.edu/Research/tau/tau_releases/$(TAUDIST)
+#TAUURL=http://tau.uoregon.edu/tau.tgz
+TAUDIR = $(TAUDIST:.tar.gz=)
+TAUBUILDDATE = $(patsubst %.tar.gz, .%.date, $(TAUDIST))
+TAUDUMMYDATE = $(patsubst %.tar.gz, .%.dummydate, $(TAUDIST))
 
 # Pygtk
 PYGTKDIST = pygtk-2.12.1.tar.gz
@@ -216,7 +216,7 @@ MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.9.tar.bz2
+HDF5DIST = hdf5-1.8.10.tar.bz2
 HDF5URL = http://www.hdfgroup.org/ftp/HDF5/current/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
