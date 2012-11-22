@@ -20,7 +20,6 @@ namespace Spheral {
                       BoundaryIterator boundaryEnd,
                       const typename Dimension::Vector& xmin,
                       const typename Dimension::Vector& xmax,
-                      const bool generateParallelRind,
                       std::vector<typename Dimension::Vector>& positions,
                       std::vector<typename Dimension::SymTensor>& Hs,
                       std::vector<unsigned>& offsets);

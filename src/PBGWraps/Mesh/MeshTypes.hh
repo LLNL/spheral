@@ -31,7 +31,6 @@ computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
                   std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                   const typename Dimension::Vector& xmin,
                   const typename Dimension::Vector& xmax,
-                  const bool generateParallelRind,
                   std::vector<typename Dimension::Vector>& positions,
                   std::vector<typename Dimension::SymTensor>& Hs,
                   std::vector<unsigned>& offsets) {
@@ -40,7 +39,7 @@ computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
                     typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator>
     (nodeLists.begin(), nodeLists.end(), 
      boundaries.begin(), boundaries.end(),
-     xmin, xmax, generateParallelRind,
+     xmin, xmax, 
      positions, Hs, offsets);
 }
 
