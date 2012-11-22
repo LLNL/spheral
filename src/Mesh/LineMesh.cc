@@ -290,9 +290,20 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Pre-conditions.
   REQUIRE(mNodes.size() <= mNodePositions.size());
+  BEGIN_CONTRACT_SCOPE;
+  {
+    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
+      REQUIRE(cellFaces.size() == 2);
+      REQUIRE(cellFaces[0].size() == 1 and cellFaces[0][0] < mNodePositions.size());
+      REQUIRE(cellFaces[1].size() == 1 and cellFaces[1][0] < mNodePositions.size());
+      cerr << Process::getRank() << " --> Adding cell : " << cellFaces[0][0] << " " << cellFaces[1][0] << endl;
+    }
+  }
+  END_CONTRACT_SCOPE;
 
-  // Recall the original sizes.
+  // Some useful sizes.
   const unsigned numOldNodes = mNodes.size();
+  const unsigned numNewNodes = mNodePositions.size();
   const unsigned numOldZones = mZones.size();
 
   // Copy the starting connectivity from nodes->zones.
@@ -304,7 +315,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Fill in the existing cell centroids.
   vector<double> cellX(numOldZones + newCells.size());
-  for (unsigned i = 0; i != mZones.size(); ++i) {
+  for (unsigned i = 0; i != numOldZones; ++i) {
     CHECK(mZones[i].mNodeIDs.size() == 2);
     cellX[i] = 0.5*(mNodePositions[mZones[i].mNodeIDs[0]].x() + mNodePositions[mZones[i].mNodeIDs[1]].x());
   }
@@ -312,20 +323,17 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
   // Update the map of nodes->zones elements with our new cells.
   // We also store the positions of the new cell centroids.
   for (unsigned k = 0; k != newCells.size(); ++k) {
-    CHECK(newCells[k].size() == 2 and
-          newCells[k][0].size() == 1 and
-          newCells[k][1].size() == 1);
     const unsigned inode1 = newCells[k][0][0];
     const unsigned inode2 = newCells[k][1][0];
-    CHECK(inode1 < mNodePositions.size() and
-          inode2 < mNodePositions.size());
+    CHECK(inode1 < numNewNodes and
+          inode2 < numNewNodes);
     nodeCells[inode1].insert(numOldZones + k);
     nodeCells[inode2].insert(numOldZones + k);
-    {
+    if (inode1 < numOldNodes) {
       set<unsigned>::iterator itr1 = nodeCells[inode1].find(UNSETID);
       if (itr1 != nodeCells[inode1].end()) nodeCells[inode1].erase(itr1);
     }
-    {
+    if (inode2 < numOldNodes) {
       set<unsigned>::iterator itr2 = nodeCells[inode2].find(UNSETID);
       if (itr2 != nodeCells[inode2].end()) nodeCells[inode2].erase(itr2);
     }
@@ -333,7 +341,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
   }
 
   // Create the new nodes, edges, and faces.
-  for (unsigned inode = mNodes.size(); inode != mNodePositions.size(); ++inode) {
+  for (unsigned inode = numOldNodes; inode != numNewNodes; ++inode) {
     CHECK2(nodeCells[inode].size() == 1 or nodeCells[inode].size() == 2, nodeCells[inode].size() << " : " << inode << " " << mNodes.size() << " " << mNodePositions.size());
     if (nodeCells[inode].size() == 1) nodeCells[inode].insert(UNSETID);
     mNodes.push_back(Node(*this, inode, vector<unsigned>(nodeCells[inode].begin(), nodeCells[inode].end())));
@@ -343,8 +351,8 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     int z1 = min(mNodes[inode].mZoneIDs[0], mNodes[inode].mZoneIDs[1]);
     int z2 = max(mNodes[inode].mZoneIDs[0], mNodes[inode].mZoneIDs[1]);
     CHECK(z1 < z2 and 
-          z1 < mZones.size() + newCells.size() and 
-          (z2 == UNSETID or z2 < mZones.size() + newCells.size()));
+          z1 < numOldZones + newCells.size() and 
+          (z2 == UNSETID or z2 < numOldZones + newCells.size()));
     if (cellX[z1] > mNodePositions[inode].x()) swap(z1, z2);
     mFaces.push_back(Face(*this, inode, z1, ~z2, vector<unsigned>(1, inode)));
   }
@@ -354,12 +362,12 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     vector<int> faces;
     const int iface1 = newCells[k][0][0];
     const int iface2 = newCells[k][1][0];
-    if (mNodePositions[iface1].x() < cellX[mZones.size() + k]) {
-      faces.push_back(~iface1);
-      faces.push_back(iface2);
-    } else {
-      faces.push_back(~iface2);
+    if (mNodePositions[iface1].x() < cellX[numOldZones + k]) {
       faces.push_back(iface1);
+      faces.push_back(~iface2);
+    } else {
+      faces.push_back(iface2);
+      faces.push_back(~iface1);
     }
     unsigned izone = mZones.size();
     mZones.push_back(Zone(*this, izone, faces));
