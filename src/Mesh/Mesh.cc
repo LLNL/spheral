@@ -958,6 +958,7 @@ generateParallelRind() {
     // Get the bounding coordinates in order to help hashing the coordinates.
     Vector xmin, xmax;
     this->boundingBox(xmin, xmax);
+    cerr << rank << " -- " << "Selected bounding box : " << xmin << " " << xmax << endl;
 
     // Define the hashing scale.
     const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
@@ -1035,6 +1036,8 @@ generateParallelRind() {
     // Gather up the cells from our neighboring processors and add them to the local
     // Mesh.
     vector<vector<vector<unsigned> > > newCells;
+    for (unsigned irank = 0; irank != numDomains; ++irank) {
+    if (rank == irank) {
     for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
       const unsigned otherProc = mNeighborDomains[kdomain];
       CHECK(mSharedNodes[kdomain].size() > 0);
@@ -1063,24 +1066,31 @@ generateParallelRind() {
             mNodePositions.push_back(quantizedPosition(hashi, xmin, xmax));
           }
           cellNodes.push_back(nodeHash2ID.left.at(hashi));
+          cerr << rank << " -- " << hashi << " " << nodeHash2ID.left.at(hashi) << endl;
         }
         CHECK(cellNodes.size() == numCellNodes);
-
+        
         // Unpack the faces for this cell as collections of nodes.
         unsigned nNodesInFace, inode;
         newCells.push_back(vector<vector<unsigned> >());
         for (unsigned k = 0; k != numCellFaces; ++k) {
-          newCells.back().push_back(vector<unsigned>());
           unpackElement(nNodesInFace, bufItr, buffer.end());
+          newCells.back().push_back(vector<unsigned>(nNodesInFace));
           for (unsigned j = 0; j != nNodesInFace; ++j) {
             unpackElement(inode, bufItr, buffer.end());
-            newCells.back().back().push_back(inode);
+            CHECK(inode < cellNodes.size());
+            newCells.back().back()[j] = cellNodes[inode];
           }
           CHECK(newCells.back().back().size() == nNodesInFace);
         }
         CHECK(newCells.back().size() == numCellFaces);
       }
     }
+
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    }
+
 
     // At this point we have created any necessary new node positions,
     // but have not created the new mesh elements yet.
