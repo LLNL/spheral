@@ -1,3 +1,14 @@
+Release notes for 2.0.3.
+
+This is a minor release, pretty much solely to update some of the third party
+libraries to currently available verions (hdf5 1.8.10 and TAU 2.21.4).
+
+Unfortunately this also brings along a very much undeveloped in progress version
+of the Meshing/Tessellation technology, which is currently totally broken.  To
+be fixed in a future release.
+
+================================================================================
+
 Release note for 2.0.2.
 
 This is a minor bugfix release of Spheral++.
