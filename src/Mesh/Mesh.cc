@@ -943,10 +943,26 @@ generateDomainInfo() {
 // procedure, so following this operation those shared elements are no longer
 // on the surface of the local mesh!
 //------------------------------------------------------------------------------
+// Version without generators.
 template<typename Dimension>
 void
 Mesh<Dimension>::
 generateParallelRind() {
+  vector<Vector> fakeGenerators(this->numZones());
+  vector<SymTensor> fakeHs(this->numZones());
+  this->generateParallelRind(fakeGenerators, fakeHs);
+}
+
+// Verstion with generators.
+template<typename Dimension>
+void
+Mesh<Dimension>::
+generateParallelRind(vector<typename Dimension::Vector>& generators,
+                     vector<typename Dimension::SymTensor>& Hs) {
+
+  REQUIRE(generators.size() == this->numZones());
+  REQUIRE(Hs.size() == this->numZones());
+
 #ifdef USE_MPI
   // Parallel procs.
   const unsigned numDomains = Process::getTotalNumberOfProcesses();
@@ -958,7 +974,6 @@ generateParallelRind() {
     // Get the bounding coordinates in order to help hashing the coordinates.
     Vector xmin, xmax;
     this->boundingBox(xmin, xmax);
-    cerr << rank << " -- " << "Selected bounding box : " << xmin << " " << xmax << endl;
 
     // Define the hashing scale.
     const double dxhash = (xmax - xmin).maxElement() / numeric_limits<KeyElement>::max();
@@ -998,6 +1013,8 @@ generateParallelRind() {
              cellItr != cells.end();
              ++cellItr) {
           if (*cellItr != Mesh<Dimension>::UNSETID) {
+            packElement(generators[*cellItr], buf);
+            packElement(Hs[*cellItr], buf);
             const vector<unsigned>& nodes = mZones[*cellItr].nodeIDs();
             const vector<int>& faces = mZones[*cellItr].faceIDs();
             packElement(unsigned(nodes.size()), buf);
@@ -1051,7 +1068,11 @@ generateParallelRind() {
 
       // Get the number of nodes and faces for this cell.
       while (bufItr != buffer.end()) {
+        generators.push_back(Vector());
+        Hs.push_back(SymTensor());
         unsigned numCellNodes, numCellFaces;
+        unpackElement(generators.back(), bufItr, buffer.end());
+        unpackElement(Hs.back(), bufItr, buffer.end());
         unpackElement(numCellNodes, bufItr, buffer.end());
         unpackElement(numCellFaces, bufItr, buffer.end());
 
@@ -1066,7 +1087,6 @@ generateParallelRind() {
             mNodePositions.push_back(quantizedPosition(hashi, xmin, xmax));
           }
           cellNodes.push_back(nodeHash2ID.left.at(hashi));
-          cerr << rank << " -- " << hashi << " " << nodeHash2ID.left.at(hashi) << endl;
         }
         CHECK(cellNodes.size() == numCellNodes);
         
@@ -1102,6 +1122,8 @@ generateParallelRind() {
     MPI_Waitall(sendRequests.size(), &sendRequests.front(), &status.front());
   }
 #endif
+  ENSURE(generators.size() == this->numZones());
+  ENSURE(Hs.size() == this->numZones());
 }
 
 //------------------------------------------------------------------------------

@@ -93,6 +93,7 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         zone = "Spheral::MeshSpace::%s::Zone" % name
         vector = "Spheral::Vector%id" % ndim
         vector_of_vector = "vector_of_Vector%id" % ndim
+        vector_of_symtensor = "vector_of_SymTensor%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         vector_of_nodelist = "vector_of_NodeList%id" % ndim
         facetedvolume = ("Box1d", "Polygon", "Polyhedron")[ndim - 1]
@@ -125,6 +126,8 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("offset", "unsigned int", [param("unsigned int", "nodeListi")], is_const=True)
         x.add_method("generateDomainInfo", None, [])
         x.add_method("generateParallelRind", None, [])
+        x.add_method("generateParallelRind", None, [refparam(vector_of_vector, "generators"),
+                                                    refparam(vector_of_symtensor, "Hs")])
         x.add_method("globalMeshNodeIDs", "vector_of_unsigned", [], is_const=True)
         x.add_method("globalMeshFaceIDs", "vector_of_unsigned", [constrefparam("vector_of_unsigned", "globalNodeIDs")], is_const=True)
         x.add_method("validDomainInfo", "std::string",

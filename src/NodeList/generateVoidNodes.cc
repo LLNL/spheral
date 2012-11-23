@@ -115,10 +115,12 @@ void generateVoidNodes(const vector<typename Dimension::Vector>& generators,
     for (k = 0; k != nodeIDs.size(); ++k) {
       const vector<unsigned>& zoneIDs = mesh.node(nodeIDs[k]).zoneIDs();
       for (j = 0; j != zoneIDs.size(); ++j) {
-        CHECK(zoneIDs[j] < mesh.numZones());
-        const vector<unsigned>& otherNodeIDs = mesh.zone(zoneIDs[j]).nodeIDs();
-        for (ii = 0; ii != otherNodeIDs.size(); ++ii) {
-          neighborNodes.push_back(mesh.node(otherNodeIDs[ii]).position());
+        if (zoneIDs[j] != Mesh<Dimension>::UNSETID) {
+          CHECK2(zoneIDs[j] < mesh.numZones(), zoneIDs[j] << " " << mesh.numZones());
+          const vector<unsigned>& otherNodeIDs = mesh.zone(zoneIDs[j]).nodeIDs();
+          for (ii = 0; ii != otherNodeIDs.size(); ++ii) {
+            neighborNodes.push_back(mesh.node(otherNodeIDs[ii]).position());
+          }
         }
       }
     }

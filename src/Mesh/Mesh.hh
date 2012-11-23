@@ -31,6 +31,7 @@ class Mesh {
   //--------------------------- Public Interface ---------------------------//
 public:
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ConvexHull ConvexHull;
   typedef typename Dimension::FacetedVolume FacetedVolume;
   typedef uint64_t KeyElement;
@@ -153,6 +154,10 @@ public:
   // procedure, so following this operation those shared elements are no longer
   // on the surface of the local mesh!
   void generateParallelRind();
+
+  // This version also exchanges the generators for the rind cells.
+  void generateParallelRind(std::vector<Vector>& generators,
+                            std::vector<SymTensor>& Hs);
 
   // Compute unique global IDs for each node.
   std::vector<unsigned> globalMeshNodeIDs() const;

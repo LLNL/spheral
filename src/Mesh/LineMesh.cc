@@ -296,7 +296,6 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
       REQUIRE(cellFaces.size() == 2);
       REQUIRE(cellFaces[0].size() == 1 and cellFaces[0][0] < mNodePositions.size());
       REQUIRE(cellFaces[1].size() == 1 and cellFaces[1][0] < mNodePositions.size());
-      cerr << Process::getRank() << " --> Adding cell : " << cellFaces[0][0] << " " << cellFaces[1][0] << endl;
     }
   }
   END_CONTRACT_SCOPE;
