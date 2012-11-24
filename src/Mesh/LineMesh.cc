@@ -234,7 +234,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   //   MPI_Barrier(MPI_COMM_WORLD);
   // }
 
-  // That's it.
+  // Post-conditions.
   ENSURE(mNodePositions.size() == localGenerators.size() + 1);
   ENSURE(mNodes.size() == localGenerators.size() + 1);
   ENSURE(mEdges.size() == localGenerators.size() + 1);
@@ -248,6 +248,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
     for (unsigned i = 0; i != mSharedNodes.size(); ++i) ENSURE(mSharedFaces[i].size() == mSharedNodes[i].size());
   }
   END_CONTRACT_SCOPE;
+  ENSURE2(this->valid() == "", this->valid());
 }
 
 //------------------------------------------------------------------------------
@@ -371,6 +372,9 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     unsigned izone = mZones.size();
     mZones.push_back(Zone(*this, izone, faces));
   }
+
+  // Post-conditions.
+  ENSURE2(this->valid() == "", this->valid());
 }
 
 //------------------------------------------------------------------------------

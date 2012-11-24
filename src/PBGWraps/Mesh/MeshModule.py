@@ -130,12 +130,13 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
                                                     refparam(vector_of_symtensor, "Hs")])
         x.add_method("globalMeshNodeIDs", "vector_of_unsigned", [], is_const=True)
         x.add_method("globalMeshFaceIDs", "vector_of_unsigned", [constrefparam("vector_of_unsigned", "globalNodeIDs")], is_const=True)
-        x.add_method("validDomainInfo", "std::string",
-                     [constrefparam(vector, "xmin"), constrefparam(vector, "xmax"), param("bool", "checkUniqueSendProc")], is_const=True)
         x.add_method("storeNodeListOffsets", None,
                      [constrefparam(vector_of_nodelist, "nodeLists"), constrefparam("vector_of_unsigned", "offsets")])
         x.add_method("boundingSurface", facetedvolume, [], is_const=True)
         x.add_method("positiveID", "int", [param("int", "id")], is_static=True)
+        x.add_method("valid", "std::string", [], is_const=True, is_virtual=True)
+        x.add_method("validDomainInfo", "std::string",
+                     [constrefparam(vector, "xmin"), constrefparam(vector, "xmax"), param("bool", "checkUniqueSendProc")], is_const=True, is_virtual=True)
 
         # Attributes.
         x.add_instance_attribute("nDim", "int", getter="nDim", is_const=True)

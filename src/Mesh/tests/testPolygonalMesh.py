@@ -366,7 +366,7 @@ class PolygonalMeshGenericTests:
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
             else:
-                assert face.oppositeZoneID(zoneIDs[0]) == PolygonalMesh.UNSETID
+                assert PolygonalMesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == PolygonalMesh.UNSETID
 
     #---------------------------------------------------------------------------
     # Test the global mesh node IDs.
