@@ -1053,8 +1053,6 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     // Gather up the cells from our neighboring processors and add them to the local
     // Mesh.
     vector<vector<vector<unsigned> > > newCells;
-    for (unsigned irank = 0; irank != numDomains; ++irank) {
-    if (rank == irank) {
     for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
       const unsigned otherProc = mNeighborDomains[kdomain];
       CHECK(mSharedNodes[kdomain].size() > 0);
@@ -1106,11 +1104,6 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
         CHECK(newCells.back().size() == numCellFaces);
       }
     }
-
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    }
-
 
     // At this point we have created any necessary new node positions,
     // but have not created the new mesh elements yet.
@@ -1361,6 +1354,335 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
 }
 
 //------------------------------------------------------------------------------
+// Fill in the NodeList offsets.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
+                     const vector<unsigned>& offsets) {
+  VERIFY(nodeListPtrs.size() == offsets.size());
+  this->storeNodeListOffsets(nodeListPtrs.begin(), nodeListPtrs.end(), offsets);
+}
+
+//------------------------------------------------------------------------------
+// Find the minimum bounding box for the mesh.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+boundingBox(typename Dimension::Vector& xmin,
+            typename Dimension::Vector& xmax) const {
+  Spheral::boundingBox(mNodePositions, xmin, xmax);
+  for (unsigned i = 0; i != Dimension::nDim; ++i) {
+    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
+    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Internal method add new mesh elements for existing node positions.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
+
+  typedef pair<unsigned, unsigned> EdgeHash;
+  typedef set<unsigned> FaceHash;
+  typedef pair<int, int> FaceZoneHash;
+
+  // Pre-conditions.
+  REQUIRE(mNodes.size() <= mNodePositions.size());
+  BEGIN_CONTRACT_SCOPE;
+  {
+    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
+      REQUIRE(cellFaces.size() >= minFacesPerZone);
+      BOOST_FOREACH(const vector<unsigned>& faceNodes, cellFaces) {
+        REQUIRE(faceNodes.size() >= minNodesPerFace);
+        BOOST_FOREACH(unsigned inode, faceNodes) {
+          REQUIRE(inode < mNodePositions.size());
+        }
+      }
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  // Some useful sizes.
+  const unsigned numOldNodes = mNodes.size();
+  const unsigned numNewNodes = mNodePositions.size();
+  const unsigned numOldEdges = mEdges.size();
+  const unsigned numOldFaces = mFaces.size();
+  const unsigned numOldZones = mZones.size();
+
+  // Copy the existing face->zone connectivity.
+  map<FaceHash, FaceZoneHash> faceZones;
+  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
+    faceZones[FaceHash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end())] = FaceZoneHash(mFaces[iface].mZone1ID, mFaces[iface].mZone2ID);
+  }
+
+  // Add any new face->zone elements.
+  for (unsigned i = 0; i != newCells.size(); ++i) {
+    const vector<vector<unsigned> >& zoneFaces = newCells[i];
+    const int newZoneID = numOldZones + i;
+    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
+      map<FaceHash, FaceZoneHash>::iterator faceItr = faceZones.find(fhash);
+      if (faceItr == faceZones.end()) {
+        // New face.
+        faceZones[fhash] = FaceZoneHash(numOldZones + i, ~UNSETID);
+      } else {
+        // Existing face, which means one of the cells for this face had better be UNSETID.
+        FaceZoneHash& zones = faceItr->second;
+        CHECK2(positiveID(zones.first) == UNSETID or positiveID(zones.second) == UNSETID,
+               zones.first << " " << zones.second << " : " << numOldZones << " " << newZoneID);
+        if (positiveID(zones.first) == UNSETID) {
+          zones.first = zones.first < 0 ? ~(numOldZones + i) : (numOldZones + i);
+        } else {
+          zones.second = zones.second < 0 ? ~(numOldZones + i) : (numOldZones + i);
+        }
+      }
+    }
+  }
+
+  // Based on the face->zone connectivity we reconstruct the node->zone connectivity.
+  map<unsigned, set<unsigned> > nodeZones;
+  for (typename map<FaceHash, FaceZoneHash>::const_iterator faceItr = faceZones.begin();
+       faceItr != faceZones.end();
+       ++faceItr) {
+    const FaceHash& nodes = faceItr->first;
+    const unsigned zone1 = positiveID(faceItr->second.first);
+    const unsigned zone2 = positiveID(faceItr->second.second);
+    BOOST_FOREACH(unsigned inode, nodes) {
+      nodeZones[inode].insert(zone1);
+      nodeZones[inode].insert(zone2);
+    }
+  }
+
+  // Update the node->zones for existing nodes.
+  for (unsigned inode = 0; inode != numOldNodes; ++inode) {
+    mNodes[inode].mZoneIDs = vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end());
+  }
+
+  // Create the new nodes.
+  mNodes.reserve(numNewNodes);
+  for (unsigned inode = numOldNodes; inode != numNewNodes; ++inode) {
+    mNodes.push_back(Node(*this, inode, vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end())));
+  }
+  CHECK(mNodes.size() == numNewNodes);
+
+  // Determine the existing edge hash->edgeID mapping.
+  map<EdgeHash, unsigned> edgeHash2ID;
+  for (unsigned iedge = 0; iedge != numOldEdges; ++iedge) {
+    edgeHash2ID[hashEdge(mEdges[iedge].mNode1ID, mEdges[iedge].mNode2ID)] = iedge;
+  }
+
+  // Similarly get the existing face hash->faceID mapping, hashing based on the face nodes.
+  // We simultaneously update the face->zone connectivity.
+  map<FaceHash, unsigned> faceHash2ID;
+  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
+    const FaceHash fhash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end());
+    const FaceZoneHash zones = faceZones[fhash];
+    faceHash2ID[fhash] = iface;
+    mFaces[iface].mZone1ID = zones.first;
+    mFaces[iface].mZone2ID = zones.second;
+  }
+
+  // Create any new edges, faces, and zones.
+  for (unsigned i = 0; i != newCells.size(); ++i) {
+    const int newZoneID = numOldZones + i;
+    const vector<vector<unsigned> >& zoneFaceNodes = newCells[i];
+    vector<int> zoneFaces;
+    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaceNodes) {
+      vector<unsigned> faceEdges;
+      const unsigned n = faceNodes.size();
+      for (unsigned k = 0; k != n; ++k) {
+        const unsigned inode1 = faceNodes[k];
+        const unsigned inode2 = faceNodes[(k + 1) % n];
+        const EdgeHash ehash = hashEdge(inode1, inode2);
+        unsigned iedge;
+        const map<EdgeHash, unsigned>::const_iterator itr = edgeHash2ID.find(ehash);
+        if (itr == edgeHash2ID.end()) {
+          iedge = edgeHash2ID.size();
+          edgeHash2ID[ehash] = iedge;
+          mEdges.push_back(Edge(*this, iedge, inode1, inode2));
+        } else {
+          iedge = itr->second;
+        }
+        faceEdges.push_back(iedge);
+      }
+      CHECK(faceEdges.size() == n);
+      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
+      int iface;
+      const map<FaceHash, unsigned>::const_iterator itr = faceHash2ID.find(fhash);
+      if (itr == faceHash2ID.end()) {
+        iface = faceHash2ID.size();
+        faceHash2ID[fhash] = iface;
+        const FaceZoneHash zones = faceZones[fhash];
+        CHECK(zones.first == newZoneID);
+        mFaces.push_back(Face(*this, iface, zones.first, zones.second, faceEdges));
+      } else {
+        iface = itr->second;
+        CHECK(positiveID(mFaces[iface].mZone1ID) == newZoneID or
+              positiveID(mFaces[iface].mZone2ID) == newZoneID);
+        if (mFaces[iface].mZone1ID == ~newZoneID or
+            mFaces[iface].mZone2ID == ~newZoneID) iface = ~iface;
+      }
+      zoneFaces.push_back(iface);
+    }
+    CHECK(zoneFaces.size() == zoneFaceNodes.size());
+    mZones.push_back(Zone(*this, newZoneID, zoneFaces));
+  }
+
+  // Post-conditions.
+  ENSURE(mNodes.size() == mNodePositions.size());
+  ENSURE(mZones.size() == numOldZones + newCells.size());
+}
+
+// //------------------------------------------------------------------------------
+// // Internal method to fill in extra comm data based on the shared node info.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// Mesh<Dimension>::
+// buildAncillaryCommData() {
+
+//   // Clear out old data.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 1" << endl;
+//   mSharedFaces = vector<vector<unsigned> >();
+
+// #ifdef USE_MPI
+//   // Compute the shared faces.  First get the unique global face IDs.
+//   const vector<unsigned> globalNodeIDs = this->globalMeshNodeIDs();
+//   const vector<unsigned> globalFaceIDs = this->globalMeshFaceIDs(globalNodeIDs);
+
+//   // Compute the inverse face id mapping: global->local.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 2" << endl;
+//   map<unsigned, unsigned> global2local;
+//   for (unsigned i = 0; i != globalFaceIDs.size(); ++i) global2local[globalFaceIDs[i]] = i;
+//   CHECK(globalFaceIDs.size() == global2local.size());
+
+//   // Make a sorted version of the global face IDs.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 3" << endl;
+//   vector<unsigned> sortedGlobalIDs(globalFaceIDs);
+//   sort(sortedGlobalIDs.begin(), sortedGlobalIDs.end());
+
+//   // Send our global face IDs to each of our neighbors.
+//   unsigned numFaces = globalFaceIDs.size();
+//   vector<MPI_Request> requests;
+//   requests.reserve(2*mNeighborDomains.size());
+//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//     requests.push_back(MPI_Request());
+//     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &requests.back());
+//     if (numFaces > 0) {
+//       requests.push_back(MPI_Request());
+//       MPI_Isend(&sortedGlobalIDs.front(), numFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &requests.back());
+//     }
+//   }
+//   CHECK(requests.size() <= 2*mNeighborDomains.size());
+
+//   // Now go through each of our neighbors shared faces, and build the set we share with 
+//   // them.  We store the local face indices in the order of the sorted global face IDs,
+//   // which should ensure that both processors agree on the face order.
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 4" << endl;
+//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
+//     unsigned numOtherFaces;
+//     MPI_Status recvStatus;
+//     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &recvStatus);
+//     mSharedFaces.push_back(vector<unsigned>());
+//     if (numOtherFaces > 0) {
+//       vector<unsigned> otherGlobalFaceIDs(numOtherFaces);
+//       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &recvStatus);
+//       vector<unsigned>::iterator lastItr = sortedGlobalIDs.begin(), itr;
+//       BOOST_FOREACH(unsigned iglobal, otherGlobalFaceIDs) {
+//         itr = lower_bound(lastItr, sortedGlobalIDs.end(), iglobal);
+//         if (itr != sortedGlobalIDs.end()) {
+//           mSharedFaces.back().push_back(global2local[iglobal]);
+//           lastItr = itr;
+//         }
+//       }
+//     }
+//   }
+//   CHECK(mSharedFaces.size() == mNeighborDomains.size());
+
+//   // Wait until all our sends are completed.
+//   vector<MPI_Status> recvStatus(requests.size());
+//   MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 5" << endl;
+// #endif
+
+//   // Post-conditions.
+//   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
+//   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
+// #ifdef USE_MPI
+//   BEGIN_CONTRACT_SCOPE;
+//   {
+//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 6" << endl;
+//     // Make sure each domain agrees about the shared faces.
+//     vector<MPI_Request> requests;
+//     requests.reserve(2*mNeighborDomains.size());
+//     vector<unsigned> numSharedFaces(mNeighborDomains.size());
+//     vector<vector<unsigned> > globalSharedFaces(mNeighborDomains.size());
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       BOOST_FOREACH(unsigned i, mSharedFaces[idomain]) globalSharedFaces[idomain].push_back(globalFaceIDs[i]);
+//     }
+
+//     cerr << Process::getRank() << "Mesh::buildAncillaryCommData 7" << endl;
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       requests.push_back(MPI_Request());
+//       numSharedFaces[idomain] = mSharedFaces[idomain].size();
+//       CHECK(globalSharedFaces[idomain].size() == numSharedFaces[idomain]);
+//       MPI_Isend(&numSharedFaces[idomain], 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &requests.back());
+//       if (numSharedFaces[idomain] > 0) {
+//         requests.push_back(MPI_Request());
+//         MPI_Isend(&globalSharedFaces[idomain].front(), numSharedFaces[idomain], MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &requests.back());
+//       }
+//     }
+//     CHECK(requests.size() <= 2*mNeighborDomains.size());
+
+//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 8" << endl;
+//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
+//       unsigned numOtherFaces;
+//       MPI_Status recvStatus;
+//       MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &recvStatus);
+//       ENSURE(numOtherFaces == mSharedFaces[idomain].size());
+//       if (numOtherFaces > 0) {
+//         vector<unsigned> otherFaces(numOtherFaces);
+//         MPI_Recv(&otherFaces.front(), numOtherFaces, MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &recvStatus);
+//         ENSURE(otherFaces == globalSharedFaces[idomain]);
+//       }
+//     }
+
+//     vector<MPI_Status> recvStats(requests.size());
+//     MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
+//   }
+//   END_CONTRACT_SCOPE;
+// #endif
+//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 9" << endl;
+// }
+
+//------------------------------------------------------------------------------
+// Basic mesh validity checks.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+string
+Mesh<Dimension>::
+valid() const {
+  std::stringstream result;
+
+  // Check that each face has two cells, and has orientation.
+  BOOST_FOREACH(const Face& face, mFaces) {
+    if (not ((face.zone1ID() <  0 and face.zone2ID() >= 0) or
+             (face.zone1ID() >= 0 and face.zone2ID() <  0))) {
+      result << "Expected one negative zone ID for face " 
+             << face.ID() << " : " << face.zone1ID() << " " << face.zone2ID();
+      return result.str();
+    }
+  }
+
+  return result.str();
+}
+//------------------------------------------------------------------------------
 // Check that the communicated information is consistent.
 // Optionally we can also check that each send node is owned by only one 
 // process.
@@ -1517,164 +1839,6 @@ validDomainInfo(const typename Dimension::Vector& xmin,
 
   return result;
 }
-
-//------------------------------------------------------------------------------
-// Fill in the NodeList offsets.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-storeNodeListOffsets(const vector<NodeList<Dimension>*>& nodeListPtrs,
-                     const vector<unsigned>& offsets) {
-  VERIFY(nodeListPtrs.size() == offsets.size());
-  this->storeNodeListOffsets(nodeListPtrs.begin(), nodeListPtrs.end(), offsets);
-}
-
-//------------------------------------------------------------------------------
-// Find the minimum bounding box for the mesh.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-boundingBox(typename Dimension::Vector& xmin,
-            typename Dimension::Vector& xmax) const {
-  Spheral::boundingBox(mNodePositions, xmin, xmax);
-  for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
-  }
-}
-
-//------------------------------------------------------------------------------
-// Internal method add new mesh elements for existing node positions.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
-}
-
-// //------------------------------------------------------------------------------
-// // Internal method to fill in extra comm data based on the shared node info.
-// //------------------------------------------------------------------------------
-// template<typename Dimension>
-// void
-// Mesh<Dimension>::
-// buildAncillaryCommData() {
-
-//   // Clear out old data.
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 1" << endl;
-//   mSharedFaces = vector<vector<unsigned> >();
-
-// #ifdef USE_MPI
-//   // Compute the shared faces.  First get the unique global face IDs.
-//   const vector<unsigned> globalNodeIDs = this->globalMeshNodeIDs();
-//   const vector<unsigned> globalFaceIDs = this->globalMeshFaceIDs(globalNodeIDs);
-
-//   // Compute the inverse face id mapping: global->local.
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 2" << endl;
-//   map<unsigned, unsigned> global2local;
-//   for (unsigned i = 0; i != globalFaceIDs.size(); ++i) global2local[globalFaceIDs[i]] = i;
-//   CHECK(globalFaceIDs.size() == global2local.size());
-
-//   // Make a sorted version of the global face IDs.
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 3" << endl;
-//   vector<unsigned> sortedGlobalIDs(globalFaceIDs);
-//   sort(sortedGlobalIDs.begin(), sortedGlobalIDs.end());
-
-//   // Send our global face IDs to each of our neighbors.
-//   unsigned numFaces = globalFaceIDs.size();
-//   vector<MPI_Request> requests;
-//   requests.reserve(2*mNeighborDomains.size());
-//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
-//     requests.push_back(MPI_Request());
-//     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &requests.back());
-//     if (numFaces > 0) {
-//       requests.push_back(MPI_Request());
-//       MPI_Isend(&sortedGlobalIDs.front(), numFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &requests.back());
-//     }
-//   }
-//   CHECK(requests.size() <= 2*mNeighborDomains.size());
-
-//   // Now go through each of our neighbors shared faces, and build the set we share with 
-//   // them.  We store the local face indices in the order of the sorted global face IDs,
-//   // which should ensure that both processors agree on the face order.
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 4" << endl;
-//   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
-//     unsigned numOtherFaces;
-//     MPI_Status recvStatus;
-//     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &recvStatus);
-//     mSharedFaces.push_back(vector<unsigned>());
-//     if (numOtherFaces > 0) {
-//       vector<unsigned> otherGlobalFaceIDs(numOtherFaces);
-//       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &recvStatus);
-//       vector<unsigned>::iterator lastItr = sortedGlobalIDs.begin(), itr;
-//       BOOST_FOREACH(unsigned iglobal, otherGlobalFaceIDs) {
-//         itr = lower_bound(lastItr, sortedGlobalIDs.end(), iglobal);
-//         if (itr != sortedGlobalIDs.end()) {
-//           mSharedFaces.back().push_back(global2local[iglobal]);
-//           lastItr = itr;
-//         }
-//       }
-//     }
-//   }
-//   CHECK(mSharedFaces.size() == mNeighborDomains.size());
-
-//   // Wait until all our sends are completed.
-//   vector<MPI_Status> recvStatus(requests.size());
-//   MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 5" << endl;
-// #endif
-
-//   // Post-conditions.
-//   ENSURE(mSharedNodes.size() == mNeighborDomains.size());
-//   ENSURE(mSharedFaces.size() == mNeighborDomains.size());
-// #ifdef USE_MPI
-//   BEGIN_CONTRACT_SCOPE;
-//   {
-//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 6" << endl;
-//     // Make sure each domain agrees about the shared faces.
-//     vector<MPI_Request> requests;
-//     requests.reserve(2*mNeighborDomains.size());
-//     vector<unsigned> numSharedFaces(mNeighborDomains.size());
-//     vector<vector<unsigned> > globalSharedFaces(mNeighborDomains.size());
-//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
-//       BOOST_FOREACH(unsigned i, mSharedFaces[idomain]) globalSharedFaces[idomain].push_back(globalFaceIDs[i]);
-//     }
-
-//     cerr << Process::getRank() << "Mesh::buildAncillaryCommData 7" << endl;
-//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
-//       requests.push_back(MPI_Request());
-//       numSharedFaces[idomain] = mSharedFaces[idomain].size();
-//       CHECK(globalSharedFaces[idomain].size() == numSharedFaces[idomain]);
-//       MPI_Isend(&numSharedFaces[idomain], 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &requests.back());
-//       if (numSharedFaces[idomain] > 0) {
-//         requests.push_back(MPI_Request());
-//         MPI_Isend(&globalSharedFaces[idomain].front(), numSharedFaces[idomain], MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &requests.back());
-//       }
-//     }
-//     CHECK(requests.size() <= 2*mNeighborDomains.size());
-
-//     cerr << Process::getRank() << " Mesh::buildAncillaryCommData 8" << endl;
-//     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
-//       unsigned numOtherFaces;
-//       MPI_Status recvStatus;
-//       MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &recvStatus);
-//       ENSURE(numOtherFaces == mSharedFaces[idomain].size());
-//       if (numOtherFaces > 0) {
-//         vector<unsigned> otherFaces(numOtherFaces);
-//         MPI_Recv(&otherFaces.front(), numOtherFaces, MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &recvStatus);
-//         ENSURE(otherFaces == globalSharedFaces[idomain]);
-//       }
-//     }
-
-//     vector<MPI_Status> recvStats(requests.size());
-//     MPI_Waitall(requests.size(), &requests.front(), &recvStatus.front());
-//   }
-//   END_CONTRACT_SCOPE;
-// #endif
-//   cerr << Process::getRank() << " Mesh::buildAncillaryCommData 9" << endl;
-// }
 
 //------------------------------------------------------------------------------
 // Static initializations.

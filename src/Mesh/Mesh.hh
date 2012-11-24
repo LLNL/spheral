@@ -165,11 +165,6 @@ public:
   // Compute unique global IDs for each face.
   std::vector<unsigned> globalMeshFaceIDs(const std::vector<unsigned>& globalNodeIDs) const;
 
-  // Check that the internal parallel info is consistent.
-  std::string validDomainInfo(const Vector& xmin,
-                              const Vector& xmax,
-                              const bool checkUniqueSendProc) const;
-
   // Access to the parallel info.
   const std::vector<unsigned>& neighborDomains() const;
   const std::vector<std::vector<unsigned> >& sharedNodes() const;
@@ -192,6 +187,14 @@ public:
 
   // Encapsulate the ones complement for signed (oriented) IDs.
   static int positiveID(const int id);
+
+  // Perform basic mesh validity checks.
+  virtual std::string valid() const;
+
+  // Check that the internal parallel info is consistent.
+  virtual std::string validDomainInfo(const Vector& xmin,
+                                      const Vector& xmax,
+                                      const bool checkUniqueSendProc) const;
 
   //--------------------------- Private Interface ---------------------------//
 private:

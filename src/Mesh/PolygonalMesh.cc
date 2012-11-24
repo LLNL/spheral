@@ -120,11 +120,14 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     igen = tessellation.faceCells[i][0];
     jgen = (tessellation.faceCells[i].size() == 2 ? 
             tessellation.faceCells[i][1] :
-            UNSETID);
+            igen < 0 ?
+            UNSETID:
+            ~UNSETID);
 
     // Do we need to flip this face?
     if (igen < 0 and jgen == UNSETID) {
       igen = ~igen;
+      jgen = ~jgen;
       swap(inode, jnode);
       vector<int>::iterator itr = find(tessellation.cells[igen].begin(), tessellation.cells[igen].end(), ~i);
       CHECK(itr != tessellation.cells[igen].end());
@@ -166,8 +169,9 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     // Make sure any faces on the surface are pointing out of the mesh.
     BOOST_FOREACH(const Face& face, mFaces) {
       ENSURE(face.zone1ID() != UNSETID);
-      ENSURE(not (face.zone1ID() < 0 and face.zone2ID() == UNSETID));
-      ENSURE2(face.zone2ID() != UNSETID or
+      ENSURE(face.zone2ID() != UNSETID);
+      ENSURE(positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
+      ENSURE2(positiveID(face.zone2ID()) != UNSETID or
               face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
               "Something amiss at the surface of the mesh : "
               << face.zone1ID() << " " << face.zone2ID() << " : " 
@@ -176,6 +180,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     }
   }
   END_CONTRACT_SCOPE
+  ENSURE2(this->valid() == "", this->valid());
 
   // Report our final timing and we're done.
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
@@ -214,7 +219,7 @@ boundingSurface() const {
     j = face.mNodeIDs[1];
     id1 = face.zone1ID();
     id2 = face.zone2ID();
-    if (id2 == UNSETID and
+    if (positiveID(id2) == UNSETID and
         (sharedNodes.find(i) == sharedNodes.end() or
          sharedNodes.find(j) == sharedNodes.end())) {
       iglobal = local2globalIDs[i];
