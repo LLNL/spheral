@@ -392,7 +392,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 
   // Based on the face->zone connectivity we reconstruct the node->zone connectivity.
   map<unsigned, set<unsigned> > nodeZones;
-  for (typename map<FaceHash, FaceZoneHash>::const_iterator faceItr = faceZones.begin();
+  for (map<FaceHash, FaceZoneHash>::const_iterator faceItr = faceZones.begin();
        faceItr != faceZones.end();
        ++faceItr) {
     const FaceHash& nodes = faceItr->first;
