@@ -1,3 +1,16 @@
+Release notes for 2.0.4.
+
+Another minor patch release, with two changes:
+
+1.  Updating how we're handling building rind cells for parallel Meshes.  The
+    LineMesh and PolygonalMesh are now passing all unit tests serial and
+    parallel.  PolyhedralMesh remains non-functional for now.
+
+2.  Removed some more third party libs from the default set:
+    - elementtree
+    - PIL
+
+================================================================================
 Release notes for 2.0.3.
 
 This is a minor release, pretty much solely to update some of the third party
