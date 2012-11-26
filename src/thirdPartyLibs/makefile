@@ -45,11 +45,11 @@ PSYCODIR = codespeak.net
 PSYCOBUILDDIR = $(PYSCODIR)/svn/psyco/dist
 PSYCOBUILDDATE = .psyco.date
 
-# Element tree
-ELEMENTTREEDIST = elementtree-1.2.7-20070827-preview.zip
-ELEMENTTREEURL = http://effbot.org/media/downloads/$(ELEMENTTREEDIST)
-ELEMENTTREEDIR = $(ELEMENTTREEDIST:.zip=)
-ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
+# # Element tree
+# ELEMENTTREEDIST = elementtree-1.2.7-20070827-preview.zip
+# ELEMENTTREEURL = http://effbot.org/media/downloads/$(ELEMENTTREEDIST)
+# ELEMENTTREEDIR = $(ELEMENTTREEDIST:.zip=)
+# ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
 BOOSTDIST = boost_1_51_0.tar.bz2
@@ -68,12 +68,6 @@ CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 # Gccxml
 GCCXMLDIR = $(GCCXMLDIST:.tar.bz2=)
 GCCXMLDATE = $(patsubst %.tar.bz2, .%.date, $(GCCXMLDIST))
-
-# Pympi
-PYMPIDIST = pyMPI-2.4b4.tar.bz2
-PYMPIURL = http://downloads.sourceforge.net/pympi/pyMPI-2.4b4.tar.gz?modtime=1138016139&big_mirror=0
-PYMPIDIR = $(patsubst %.tar.bz2, %, $(PYMPIDIST))
-PYMPIBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYMPIDIST))
 
 # Parmetis
 PARMETISDIST = parmetis-4.0.tar.gz
@@ -301,7 +295,6 @@ POLYTOPEBUILDDATE = $(patsubst %.tbz, .%.date, $(POLYTOPEDIST))
 
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
-	$(ELEMENTTREEBUILDDATE) \
 	$(BOOSTDATE) \
 	$(GCCXMLTARGETS) \
 	$(NUMPYTHIRDPARTYTARGETS) \
@@ -321,7 +314,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(ARRAYBUILDDATE) \
 	$(ZLIBBUILDDATE) \
 	$(JPEGBUILDDATE) \
-	$(PILBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
 	$(WILDMAGICBUILDDATE) \
 	$(QHULLDATE) \
@@ -338,14 +330,11 @@ clean:
 	rm -fr $(PYTHONDIR) $(PYTHONBUILDDATE) \
 	       $(NUMPYDIR) $(NUMPYBUILDDATE) \
 	       $(GNUPLOTDIR) $(GNUPLOTBUILDDATE) \
-	       $(ELEMENTTREEDIR) $(ELEMENTTREEBUILDDATE) \
 	       $(PSYCODIR) $(PSYCOBUILDDATE) \
-	       $(ELEMENTTREEDIR) $(ELEMENTTREEBUILDDATE) \
 	       $(BOOSTDIR) $(BOOSTDATE) \
                $(CMAKEDIR) \
                $(GCCXMLDIR) $(GCCXMLDATE) \
 	       $(PSYCODIR) $(PSYCOTHIRDPARTYTARGET) \
-               $(PYMPIDIR) $(PYMPIBUILDDATE) \
 	       $(MPI4PYDIR) $(MPI4PYBUILDDATE) \
                $(PARMETISDIR) $(PARMETISBUILDDATE) \
 	       $(SCIPYDIR) $(SCIPYBUILDDATE) \
@@ -361,7 +350,6 @@ clean:
 	       $(ARRAYDIR) $(ARRAYBUILDDATE) \
 	       $(ZLIBDIR) $(ZLIBBUILDDATE) \
 	       $(JPEGDIR) $(JPEGBUILDDATE) \
-	       $(PILDIR) $(PILBUILDDATE) \
 	       $(PYBINDGENDIR) $(PYBINDGENBUILDDATE) \
 	       $(WILDMAGICDIR) $(WILDMAGICBUILDDATE) \
 	       $(QHULLDIR) $(QHULLDATE) \
@@ -467,26 +455,26 @@ $(PSYCOBUILDDATE):	$(PYTHONBUILDDATE) $(PSYCODIST)
 	rm -fr $(PSYCODIR)
 	touch $(PSYCOBUILDDATE)
 
-#-------------------------------------------------------------------------------
-# Elementtree python extension
-#-------------------------------------------------------------------------------
-$(ELEMENTTREEDIST):
-	$(CURL) "$(ELEMENTTREEURL)" > $(ELEMENTTREEDIST)
+# #-------------------------------------------------------------------------------
+# # Elementtree python extension
+# #-------------------------------------------------------------------------------
+# $(ELEMENTTREEDIST):
+# 	$(CURL) "$(ELEMENTTREEURL)" > $(ELEMENTTREEDIST)
 
-$(ELEMENTTREEBUILDDATE):	$(PYTHONBUILDDATE) $(ELEMENTTREEDIST)
-	@echo "################################################################################"
-	@echo "# Building $(ELEMENTTREEDIST)"
-	@echo "################################################################################"
-	rm -fr $(ELEMENTTREEDIR)
-	$(UNZIP) $(ELEMENTTREEDIST)
-	$(SHELL) -ec 'cd $(ELEMENTTREEDIR); $(PYTHONEXE) setup.py install;'
-	@if test -n "`$(PYTHONEXE) -c 'import elementtree'`"; then \
-	echo "ERROR building elementtree python extension."; \
-	rm -f $(ELEMENTTREEBUILDDATE); \
-	exit 1; \
-	fi
-	rm -fr $(ELEMENTTREEDIR)
-	touch $(ELEMENTTREEBUILDDATE)
+# $(ELEMENTTREEBUILDDATE):	$(PYTHONBUILDDATE) $(ELEMENTTREEDIST)
+# 	@echo "################################################################################"
+# 	@echo "# Building $(ELEMENTTREEDIST)"
+# 	@echo "################################################################################"
+# 	rm -fr $(ELEMENTTREEDIR)
+# 	$(UNZIP) $(ELEMENTTREEDIST)
+# 	$(SHELL) -ec 'cd $(ELEMENTTREEDIR); $(PYTHONEXE) setup.py install;'
+# 	@if test -n "`$(PYTHONEXE) -c 'import elementtree'`"; then \
+# 	echo "ERROR building elementtree python extension."; \
+# 	rm -f $(ELEMENTTREEBUILDDATE); \
+# 	exit 1; \
+# 	fi
+# 	rm -fr $(ELEMENTTREEDIR)
+# 	touch $(ELEMENTTREEBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # Boost
@@ -569,32 +557,6 @@ $(CMAKEEXE):	$(CMAKEDIST)
 	exit 1; \
 	fi
 	rm -fr $(CMAKEDIR)
-
-#-------------------------------------------------------------------------------
-# pyMPI
-#-------------------------------------------------------------------------------
-#$(PYMPIDIST):
-#	$(CURL) "$(PYMPIURL)" > $(PYMPIDIST)
-
-$(PYMPIBUILDDATE):  $(PYTHONBUILDDATE) $(WILDMAGICBUILDDATE) $(PYMPIDIST)
-	@echo "################################################################################"
-	@echo "# Building $(PYMPIDIST)"
-	@echo "################################################################################"
-	rm -fr $(PYMPIDIR)
-	$(BZIP2) -dc $(PYMPIDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(PYMPIDIR); \
-	PATH=$(SPHERALDIR)/bin:$$PATH; export PATH; \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(MPICXX)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' LDFLAGS='$(LDFLAGS) $(LIBS) $(OPTFLAGS)' ./configure --prefix=$(SPHERALDIR); \
-	$(MAKE) MAKEFLAGS= ; \
-	$(MAKE) install"
-	@if ! test -e $(PYMPIEXE); then \
-	echo "ERROR building pyMPI distribution."; \
-	rm -f $(PYMPIBUILDDATE); \
-	exit 1; \
-	fi
-	$(SRCTOP)/helpers/runexecstack $(PYMPIEXE)
-	rm -fr $(PYMPIDIR)
-	touch $(PYMPIBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # ParMETIS
