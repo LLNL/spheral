@@ -1002,44 +1002,50 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
       const unsigned otherProc = mNeighborDomains[kdomain];
       CHECK(mSharedNodes[kdomain].size() > 0);
 
-      // Pack up our cells for the other domain.
-      sendBufs.push_back(vector<char>());
-      vector<char>& buf = sendBufs.back();
+      // Identify the unique set of cells we need to send.
+      vector<unsigned> sendCells;
       for (vector<unsigned>::const_iterator nodeItr = mSharedNodes[kdomain].begin();
            nodeItr != mSharedNodes[kdomain].end();
            ++nodeItr) {
         const vector<unsigned>& cells = this->node(*nodeItr).zoneIDs();
-        for (vector<unsigned>::const_iterator cellItr = cells.begin();
-             cellItr != cells.end();
-             ++cellItr) {
-          if (*cellItr != Mesh<Dimension>::UNSETID) {
-            packElement(generators[*cellItr], buf);
-            packElement(Hs[*cellItr], buf);
-            const vector<unsigned>& nodes = mZones[*cellItr].nodeIDs();
-            const vector<int>& faces = mZones[*cellItr].faceIDs();
-            packElement(unsigned(nodes.size()), buf);
-            packElement(unsigned(faces.size()), buf);
-            map<unsigned, unsigned> nodeMap;
-            for (unsigned inode = 0; inode != nodes.size(); ++inode) {
-              packElement(nodeHash2ID.right.at(nodes[inode]), buf);
-              nodeMap[nodes[inode]] = inode;
-            }
-            CHECK(nodeMap.size() == nodes.size());
-            for (vector<int>::const_iterator faceItr = faces.begin();
-                 faceItr != faces.end();
-                 ++faceItr) {
-              const unsigned face = positiveID(*faceItr);
-              const vector<unsigned>& faceNodes = mFaces[face].nodeIDs();
-              packElement(unsigned(faceNodes.size()), buf);
-              if (*faceItr < 0) {
-                for (vector<unsigned>::const_reverse_iterator itr = faceNodes.rbegin();
-                     itr != faceNodes.rend();
-                     ++itr) packElement(nodeMap[*itr], buf);
-              } else {
-                for (vector<unsigned>::const_iterator itr = faceNodes.begin();
-                     itr != faceNodes.end();
-                     ++itr) packElement(nodeMap[*itr], buf);
-              }
+        copy(cells.begin(), cells.end(), back_inserter(sendCells));
+      }
+      sort(sendCells.begin(), sendCells.end());
+      sendCells.erase(unique(sendCells.begin(), sendCells.end()), sendCells.end());
+
+      // Pack up our cells for the other domain.
+      sendBufs.push_back(vector<char>());
+      vector<char>& buf = sendBufs.back();
+      for (vector<unsigned>::const_iterator cellItr = sendCells.begin();
+           cellItr != sendCells.end();
+           ++cellItr) {
+        if (*cellItr != Mesh<Dimension>::UNSETID) {
+          packElement(generators[*cellItr], buf);
+          packElement(Hs[*cellItr], buf);
+          const vector<unsigned>& nodes = mZones[*cellItr].nodeIDs();
+          const vector<int>& faces = mZones[*cellItr].faceIDs();
+          packElement(unsigned(nodes.size()), buf);
+          packElement(unsigned(faces.size()), buf);
+          map<unsigned, unsigned> nodeMap;
+          for (unsigned inode = 0; inode != nodes.size(); ++inode) {
+            packElement(nodeHash2ID.right.at(nodes[inode]), buf);
+            nodeMap[nodes[inode]] = inode;
+          }
+          CHECK(nodeMap.size() == nodes.size());
+          for (vector<int>::const_iterator faceItr = faces.begin();
+               faceItr != faces.end();
+               ++faceItr) {
+            const unsigned face = positiveID(*faceItr);
+            const vector<unsigned>& faceNodes = mFaces[face].nodeIDs();
+            packElement(unsigned(faceNodes.size()), buf);
+            if (*faceItr < 0) {
+              for (vector<unsigned>::const_reverse_iterator itr = faceNodes.rbegin();
+                   itr != faceNodes.rend();
+                   ++itr) packElement(nodeMap[*itr], buf);
+            } else {
+              for (vector<unsigned>::const_iterator itr = faceNodes.begin();
+                   itr != faceNodes.end();
+                   ++itr) packElement(nodeMap[*itr], buf);
             }
           }
         }
@@ -1050,11 +1056,18 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     }
     CHECK(sendBufs.size() == numNeighborDomains);
 
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // for (unsigned irank = 0; irank != numDomains; ++irank) {
+    //   if (rank == irank) {
+    //     cerr << "================================================================================" << endl
+    //          << "Receiving for domain " << rank << endl;
+
     // Gather up the cells from our neighboring processors and add them to the local
     // Mesh.
     vector<vector<vector<unsigned> > > newCells;
     for (unsigned kdomain = 0; kdomain != numNeighborDomains; ++kdomain) {
       const unsigned otherProc = mNeighborDomains[kdomain];
+      // cerr << "  -----> from domain " << otherProc << endl;
       CHECK(mSharedNodes[kdomain].size() > 0);
       MPI_Status status1, status2;
       unsigned bufSize;
@@ -1085,6 +1098,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
             mNodePositions.push_back(quantizedPosition(hashi, xmin, xmax));
           }
           cellNodes.push_back(nodeHash2ID.left.at(hashi));
+          // cerr << "   Received node " << cellNodes.back() << " @ " << mNodePositions[cellNodes.back()] << endl;
         }
         CHECK(cellNodes.size() == numCellNodes);
         
@@ -1109,6 +1123,10 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     // but have not created the new mesh elements yet.
     // Delegate this stage to the Dimension specific implementations.
     this->createNewMeshElements(newCells);
+
+    //   }
+    //   MPI_Barrier(MPI_COMM_WORLD);
+    // }
 
     // Wait until all our sends have been satisfied.
     vector<MPI_Status> status(sendRequests.size());
@@ -1378,165 +1396,6 @@ boundingBox(typename Dimension::Vector& xmin,
     xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
     xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
   }
-}
-
-//------------------------------------------------------------------------------
-// Internal method add new mesh elements for existing node positions.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Mesh<Dimension>::
-createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
-
-  typedef pair<unsigned, unsigned> EdgeHash;
-  typedef set<unsigned> FaceHash;
-  typedef pair<int, int> FaceZoneHash;
-
-  // Pre-conditions.
-  REQUIRE(mNodes.size() <= mNodePositions.size());
-  BEGIN_CONTRACT_SCOPE;
-  {
-    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
-      REQUIRE(cellFaces.size() >= minFacesPerZone);
-      BOOST_FOREACH(const vector<unsigned>& faceNodes, cellFaces) {
-        REQUIRE(faceNodes.size() >= minNodesPerFace);
-        BOOST_FOREACH(unsigned inode, faceNodes) {
-          REQUIRE(inode < mNodePositions.size());
-        }
-      }
-    }
-  }
-  END_CONTRACT_SCOPE;
-
-  // Some useful sizes.
-  const unsigned numOldNodes = mNodes.size();
-  const unsigned numNewNodes = mNodePositions.size();
-  const unsigned numOldEdges = mEdges.size();
-  const unsigned numOldFaces = mFaces.size();
-  const unsigned numOldZones = mZones.size();
-
-  // Copy the existing face->zone connectivity.
-  map<FaceHash, FaceZoneHash> faceZones;
-  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
-    faceZones[FaceHash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end())] = FaceZoneHash(mFaces[iface].mZone1ID, mFaces[iface].mZone2ID);
-  }
-
-  // Add any new face->zone elements.
-  for (unsigned i = 0; i != newCells.size(); ++i) {
-    const vector<vector<unsigned> >& zoneFaces = newCells[i];
-    const int newZoneID = numOldZones + i;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
-      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
-      map<FaceHash, FaceZoneHash>::iterator faceItr = faceZones.find(fhash);
-      if (faceItr == faceZones.end()) {
-        // New face.
-        faceZones[fhash] = FaceZoneHash(numOldZones + i, ~UNSETID);
-      } else {
-        // Existing face, which means one of the cells for this face had better be UNSETID.
-        FaceZoneHash& zones = faceItr->second;
-        CHECK2(positiveID(zones.first) == UNSETID or positiveID(zones.second) == UNSETID,
-               zones.first << " " << zones.second << " : " << numOldZones << " " << newZoneID);
-        if (positiveID(zones.first) == UNSETID) {
-          zones.first = zones.first < 0 ? ~(numOldZones + i) : (numOldZones + i);
-        } else {
-          zones.second = zones.second < 0 ? ~(numOldZones + i) : (numOldZones + i);
-        }
-      }
-    }
-  }
-
-  // Based on the face->zone connectivity we reconstruct the node->zone connectivity.
-  map<unsigned, set<unsigned> > nodeZones;
-  for (typename map<FaceHash, FaceZoneHash>::const_iterator faceItr = faceZones.begin();
-       faceItr != faceZones.end();
-       ++faceItr) {
-    const FaceHash& nodes = faceItr->first;
-    const unsigned zone1 = positiveID(faceItr->second.first);
-    const unsigned zone2 = positiveID(faceItr->second.second);
-    BOOST_FOREACH(unsigned inode, nodes) {
-      nodeZones[inode].insert(zone1);
-      nodeZones[inode].insert(zone2);
-    }
-  }
-
-  // Update the node->zones for existing nodes.
-  for (unsigned inode = 0; inode != numOldNodes; ++inode) {
-    mNodes[inode].mZoneIDs = vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end());
-  }
-
-  // Create the new nodes.
-  mNodes.reserve(numNewNodes);
-  for (unsigned inode = numOldNodes; inode != numNewNodes; ++inode) {
-    mNodes.push_back(Node(*this, inode, vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end())));
-  }
-  CHECK(mNodes.size() == numNewNodes);
-
-  // Determine the existing edge hash->edgeID mapping.
-  map<EdgeHash, unsigned> edgeHash2ID;
-  for (unsigned iedge = 0; iedge != numOldEdges; ++iedge) {
-    edgeHash2ID[hashEdge(mEdges[iedge].mNode1ID, mEdges[iedge].mNode2ID)] = iedge;
-  }
-
-  // Similarly get the existing face hash->faceID mapping, hashing based on the face nodes.
-  // We simultaneously update the face->zone connectivity.
-  map<FaceHash, unsigned> faceHash2ID;
-  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
-    const FaceHash fhash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end());
-    const FaceZoneHash zones = faceZones[fhash];
-    faceHash2ID[fhash] = iface;
-    mFaces[iface].mZone1ID = zones.first;
-    mFaces[iface].mZone2ID = zones.second;
-  }
-
-  // Create any new edges, faces, and zones.
-  for (unsigned i = 0; i != newCells.size(); ++i) {
-    const int newZoneID = numOldZones + i;
-    const vector<vector<unsigned> >& zoneFaceNodes = newCells[i];
-    vector<int> zoneFaces;
-    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaceNodes) {
-      vector<unsigned> faceEdges;
-      const unsigned n = faceNodes.size();
-      for (unsigned k = 0; k != n; ++k) {
-        const unsigned inode1 = faceNodes[k];
-        const unsigned inode2 = faceNodes[(k + 1) % n];
-        const EdgeHash ehash = hashEdge(inode1, inode2);
-        unsigned iedge;
-        const map<EdgeHash, unsigned>::const_iterator itr = edgeHash2ID.find(ehash);
-        if (itr == edgeHash2ID.end()) {
-          iedge = edgeHash2ID.size();
-          edgeHash2ID[ehash] = iedge;
-          mEdges.push_back(Edge(*this, iedge, inode1, inode2));
-        } else {
-          iedge = itr->second;
-        }
-        faceEdges.push_back(iedge);
-      }
-      CHECK(faceEdges.size() == n);
-      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
-      int iface;
-      const map<FaceHash, unsigned>::const_iterator itr = faceHash2ID.find(fhash);
-      if (itr == faceHash2ID.end()) {
-        iface = faceHash2ID.size();
-        faceHash2ID[fhash] = iface;
-        const FaceZoneHash zones = faceZones[fhash];
-        CHECK(zones.first == newZoneID);
-        mFaces.push_back(Face(*this, iface, zones.first, zones.second, faceEdges));
-      } else {
-        iface = itr->second;
-        CHECK(positiveID(mFaces[iface].mZone1ID) == newZoneID or
-              positiveID(mFaces[iface].mZone2ID) == newZoneID);
-        if (mFaces[iface].mZone1ID == ~newZoneID or
-            mFaces[iface].mZone2ID == ~newZoneID) iface = ~iface;
-      }
-      zoneFaces.push_back(iface);
-    }
-    CHECK(zoneFaces.size() == zoneFaceNodes.size());
-    mZones.push_back(Zone(*this, newZoneID, zoneFaces));
-  }
-
-  // Post-conditions.
-  ENSURE(mNodes.size() == mNodePositions.size());
-  ENSURE(mZones.size() == numOldZones + newCells.size());
 }
 
 // //------------------------------------------------------------------------------

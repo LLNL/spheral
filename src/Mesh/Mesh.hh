@@ -240,7 +240,6 @@ private:
 
 // Declare 1D specializations.
 template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
-template<>        void Mesh<Dim<1> >::createNewMeshElements(const std::vector<std::vector<std::vector<unsigned> > >& newCells);
 
 }
 }
