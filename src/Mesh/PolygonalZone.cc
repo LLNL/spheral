@@ -87,19 +87,29 @@ Zone(const Mesh<Dim<2> >& mesh,
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
-    ENSURE(mNodeIDs.size() == mFaceIDs.size());
-    ENSURE(mEdgeIDs.size() == mFaceIDs.size());
-    ENSURE(mFaceIDs.size() > 2);
+    ENSURE2(mNodeIDs.size() == mFaceIDs.size(), mID << " " << mNodeIDs.size() << " " << mFaceIDs.size());
+    ENSURE2(mEdgeIDs.size() == mFaceIDs.size(), mID << " " << mEdgeIDs.size() << " " << mFaceIDs.size());
+    ENSURE2(mFaceIDs.size() > 2, mID << " " << mFaceIDs.size());
     for (i = 0; i != mFaceIDs.size(); ++i) {
-      ENSURE(mNodeIDs[i] < mMeshPtr->mNodes.size());
-      ENSURE(mEdgeIDs[i] < mMeshPtr->mEdges.size());
-      ENSURE((mFaceIDs[i] < 0 and ~mFaceIDs[i] < mMeshPtr->mFaces.size()) or
-             mFaceIDs[i] < mMeshPtr->mFaces.size());
+      ENSURE2(mNodeIDs[i] < mMeshPtr->mNodes.size(), mID << " " << mNodeIDs[i] << " " <<  mMeshPtr->mNodes.size());
+      ENSURE2(mEdgeIDs[i] < mMeshPtr->mEdges.size(), mID << " " << mEdgeIDs[i] << " " <<  mMeshPtr->mEdges.size());
+      ENSURE2(Mesh<Dim<2> >::positiveID(mFaceIDs[i]) < mMeshPtr->mFaces.size(),
+              mID << " " << mFaceIDs[i] << " " << mMeshPtr->mFaces.size());
     }
 
     // Make sure the elements are unique!
     vector<unsigned> nodeIDs(mNodeIDs);
     sort(nodeIDs.begin(), nodeIDs.end());
+    if (!(unique(nodeIDs.begin(), nodeIDs.end()) == nodeIDs.end())) {
+      cerr << "Blago!  : " << mID << " : Faces : ";
+      copy(mFaceIDs.begin(), mFaceIDs.end(), ostream_iterator<int>(cerr, " "));
+      cerr << endl << " Face nodes :";
+      for (vector<int>::const_iterator itr = mFaceIDs.begin(); itr != mFaceIDs.end(); ++itr) {
+        const unsigned i = Mesh<Dim<2> >::positiveID(*itr);
+        cerr << " (" << mMeshPtr->mFaces[i].mNodeIDs[0] << " " << mMeshPtr->mFaces[i].mNodeIDs[1] << ")";
+      }
+      cerr << endl;
+    }
     ENSURE(unique(nodeIDs.begin(), nodeIDs.end()) == nodeIDs.end());
     vector<unsigned> edgeIDs(mEdgeIDs);
     sort(edgeIDs.begin(), edgeIDs.end());

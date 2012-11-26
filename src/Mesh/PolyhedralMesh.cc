@@ -22,6 +22,15 @@ using namespace std;
 using namespace boost;
 
 //------------------------------------------------------------------------------
+// Static initializations.
+//------------------------------------------------------------------------------
+template<> const unsigned Mesh<Dim<3> >::minFacesPerZone = 4;
+template<> const unsigned Mesh<Dim<3> >::minEdgesPerZone = 6;
+template<> const unsigned Mesh<Dim<3> >::minNodesPerZone = 4;
+template<> const unsigned Mesh<Dim<3> >::minEdgesPerFace = 3;
+template<> const unsigned Mesh<Dim<3> >::minNodesPerFace = 3;
+
+//------------------------------------------------------------------------------
 // Mesh::reconstructInternal
 //------------------------------------------------------------------------------
 template<>
@@ -305,13 +314,176 @@ boundingSurface() const {
 }
 
 //------------------------------------------------------------------------------
-// Static initializations.
+// Internal method add new mesh elements for existing node positions.
 //------------------------------------------------------------------------------
-template<> const unsigned Mesh<Dim<3> >::minFacesPerZone = 4;
-template<> const unsigned Mesh<Dim<3> >::minEdgesPerZone = 6;
-template<> const unsigned Mesh<Dim<3> >::minNodesPerZone = 4;
-template<> const unsigned Mesh<Dim<3> >::minEdgesPerFace = 3;
-template<> const unsigned Mesh<Dim<3> >::minNodesPerFace = 3;
+template<>
+void
+Mesh<Dim<3> >::
+createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
+
+  typedef pair<unsigned, unsigned> EdgeHash;
+  typedef set<unsigned> FaceHash;
+  typedef pair<int, int> FaceZoneHash;
+
+  // Pre-conditions.
+  REQUIRE(mNodes.size() <= mNodePositions.size());
+  BEGIN_CONTRACT_SCOPE;
+  {
+    BOOST_FOREACH(const vector<vector<unsigned> >& cellFaces, newCells) {
+      REQUIRE(cellFaces.size() >= minFacesPerZone);
+      BOOST_FOREACH(const vector<unsigned>& faceNodes, cellFaces) {
+        REQUIRE(faceNodes.size() >= minNodesPerFace);
+        BOOST_FOREACH(unsigned inode, faceNodes) {
+          REQUIRE(inode < mNodePositions.size());
+        }
+      }
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  // Some useful sizes.
+  const unsigned numOldNodes = mNodes.size();
+  const unsigned numNewNodes = mNodePositions.size();
+  const unsigned numOldEdges = mEdges.size();
+  const unsigned numOldFaces = mFaces.size();
+  const unsigned numOldZones = mZones.size();
+
+  // Copy the existing face->zone connectivity.
+  map<FaceHash, FaceZoneHash> faceZones;
+  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
+    faceZones[FaceHash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end())] = FaceZoneHash(mFaces[iface].mZone1ID, mFaces[iface].mZone2ID);
+  }
+
+  // Add any new face->zone elements.
+  for (unsigned i = 0; i != newCells.size(); ++i) {
+    const vector<vector<unsigned> >& zoneFaces = newCells[i];
+    const int newZoneID = numOldZones + i;
+    // cerr << "New zone " << newZoneID << " with nodes : ";
+    // BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+    //   copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
+    //   cerr << " : ";
+    // }
+    // cerr << endl;
+    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaces) {
+      // cerr << "Adding face with nodes : ";
+      // copy(faceNodes.begin(), faceNodes.end(), ostream_iterator<unsigned>(cerr, " "));
+      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
+      map<FaceHash, FaceZoneHash>::iterator faceItr = faceZones.find(fhash);
+      if (faceItr == faceZones.end()) {
+        // New face.
+        faceZones[fhash] = FaceZoneHash(newZoneID, ~UNSETID);
+      } else {
+        // Existing face, which means one of the cells for this face had better be UNSETID.
+        FaceZoneHash& zones = faceItr->second;
+        // if (!(positiveID(zones.first) == UNSETID or positiveID(zones.second) == UNSETID)) {
+        //   cerr << positiveID(zones.first) << " : ";
+        //   copy(
+        CHECK2(positiveID(zones.first) == UNSETID or positiveID(zones.second) == UNSETID,
+               zones.first << " " << zones.second << " : " << numOldZones << " " << newZoneID);
+        if (positiveID(zones.first) == UNSETID) {
+          zones.first = zones.first < 0 ? ~newZoneID : newZoneID;
+        } else {
+          zones.second = zones.second < 0 ? ~newZoneID : newZoneID;
+        }
+      }
+      // cerr << "  :  " << faceZones[fhash].first << " " << faceZones[fhash].second << endl;
+    }
+  }
+
+  // Based on the face->zone connectivity we reconstruct the node->zone connectivity.
+  map<unsigned, set<unsigned> > nodeZones;
+  for (typename map<FaceHash, FaceZoneHash>::const_iterator faceItr = faceZones.begin();
+       faceItr != faceZones.end();
+       ++faceItr) {
+    const FaceHash& nodes = faceItr->first;
+    const unsigned zone1 = positiveID(faceItr->second.first);
+    const unsigned zone2 = positiveID(faceItr->second.second);
+    BOOST_FOREACH(unsigned inode, nodes) {
+      nodeZones[inode].insert(zone1);
+      nodeZones[inode].insert(zone2);
+    }
+  }
+
+  // Update the node->zones for existing nodes.
+  for (unsigned inode = 0; inode != numOldNodes; ++inode) {
+    mNodes[inode].mZoneIDs = vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end());
+  }
+
+  // Create the new nodes.
+  mNodes.reserve(numNewNodes);
+  for (unsigned inode = numOldNodes; inode != numNewNodes; ++inode) {
+    mNodes.push_back(Node(*this, inode, vector<unsigned>(nodeZones[inode].begin(), nodeZones[inode].end())));
+  }
+  CHECK(mNodes.size() == numNewNodes);
+
+  // Determine the existing edge hash->edgeID mapping.
+  map<EdgeHash, unsigned> edgeHash2ID;
+  for (unsigned iedge = 0; iedge != numOldEdges; ++iedge) {
+    edgeHash2ID[hashEdge(mEdges[iedge].mNode1ID, mEdges[iedge].mNode2ID)] = iedge;
+  }
+
+  // Similarly get the existing face hash->faceID mapping, hashing based on the face nodes.
+  // We simultaneously update the face->zone connectivity.
+  map<FaceHash, unsigned> faceHash2ID;
+  for (unsigned iface = 0; iface != numOldFaces; ++iface) {
+    const FaceHash fhash(mFaces[iface].mNodeIDs.begin(), mFaces[iface].mNodeIDs.end());
+    const FaceZoneHash& zones = faceZones[fhash];
+    faceHash2ID[fhash] = iface;
+    mFaces[iface].mZone1ID = zones.first;
+    mFaces[iface].mZone2ID = zones.second;
+  }
+
+  // Create any new edges, faces, and zones.
+  for (unsigned i = 0; i != newCells.size(); ++i) {
+    const int newZoneID = numOldZones + i;
+    const vector<vector<unsigned> >& zoneFaceNodes = newCells[i];
+    vector<int> zoneFaces;
+    BOOST_FOREACH(const vector<unsigned>& faceNodes, zoneFaceNodes) {
+      vector<unsigned> faceEdges;
+      const unsigned n = faceNodes.size();
+      for (unsigned k = 0; k != n; ++k) {
+        const unsigned inode1 = faceNodes[k];
+        const unsigned inode2 = faceNodes[(k + 1) % n];
+        const EdgeHash ehash = hashEdge(inode1, inode2);
+        int iedge;
+        const map<EdgeHash, unsigned>::const_iterator itr = edgeHash2ID.find(ehash);
+        if (itr == edgeHash2ID.end()) {
+          iedge = edgeHash2ID.size();
+          edgeHash2ID[ehash] = iedge;
+          mEdges.push_back(Edge(*this, iedge, inode1, inode2));
+        } else {
+          iedge = ~(itr->second);
+        }
+        CHECK((iedge >= 0 and mEdges[iedge].mNode1ID == inode1) or (mEdges[~iedge].mNode2ID == inode1));
+        faceEdges.push_back(iedge);
+      }
+      CHECK(faceEdges.size() == n);
+      const FaceHash fhash(faceNodes.begin(), faceNodes.end());
+      int iface;
+      const map<FaceHash, unsigned>::const_iterator itr = faceHash2ID.find(fhash);
+      if (itr == faceHash2ID.end()) {
+        iface = faceHash2ID.size();
+        faceHash2ID[fhash] = iface;
+        const FaceZoneHash& zones = faceZones[fhash];
+        CHECK(zones.first == newZoneID);
+        mFaces.push_back(Face(*this, iface, zones.first, zones.second, faceEdges));
+      } else {
+        iface = itr->second;
+        CHECK(positiveID(mFaces[iface].mZone1ID) == newZoneID or
+              positiveID(mFaces[iface].mZone2ID) == newZoneID);
+        if (mFaces[iface].mZone1ID == ~newZoneID or
+            mFaces[iface].mZone2ID == ~newZoneID) iface = ~iface;
+      }
+      zoneFaces.push_back(iface);
+    }
+    CHECK(zoneFaces.size() == zoneFaceNodes.size());
+    mZones.push_back(Zone(*this, newZoneID, zoneFaces));
+  }
+
+  // Post-conditions.
+  ENSURE(mNodes.size() == mNodePositions.size());
+  ENSURE(mZones.size() == numOldZones + newCells.size());
+}
 
 }
 }
