@@ -8,7 +8,7 @@ import unittest
 
 from Spheral1d import *
 from generateMesh import *
-from SpheralTestUtilities import fuzzyEqual
+from SpheralTestUtilities import fuzzyEqual, testParallelConsistency
 
 #===============================================================================
 # Load mpi, and figure out how may domains to set up, and which domain we are.
@@ -143,57 +143,60 @@ class LineMeshGenericTests:
                                       generateVoid = False,
                                       removeBoundaryZones = False)
 
-        neighborDomains = [int(x) for x in mesh.neighborDomains]
-        sharedNodes = []
-        sharedFaces = []
-        for ll in mesh.sharedNodes:
-            sharedNodes.append([int(x) for x in ll])
-        for ll in mesh.sharedFaces:
-            sharedFaces.append([int(x) for x in ll])
-        assert len(neighborDomains) == len(sharedNodes)
-        assert len(neighborDomains) == len(sharedFaces)
+        msg = testParallelConsistency(mesh, xmin, xmax)
+        self.failUnless(msg == "ok", msg)
 
-        # for irank in xrange(numDomains):
-        #     if rank == irank:
-        #         sys.stderr.write("node positions : %s\n" % [mesh.node(i).position().x for i in xrange(mesh.numNodes)])
-        #         sys.stderr.write("zone volumes   : %s\n" % [mesh.zone(i).volume() for i in xrange(mesh.numZones)])
-        #         sys.stderr.write("mesh.neighborDomains : %s\n" % neighborDomains)
-        #         for i in xrange(len(neighborDomains)):
-        #             sys.stderr.write("    mesh.sharedNodes[%i] : %s\n" % (neighborDomains[i], sharedNodes[i]))
-        #         for i in xrange(len(neighborDomains)):
-        #             sys.stderr.write("    mesh.sharedFaces[%i] : %s\n" % (neighborDomains[i], sharedFaces[i]))
-        #     mpi.barrier()
+        # neighborDomains = [int(x) for x in mesh.neighborDomains]
+        # sharedNodes = []
+        # sharedFaces = []
+        # for ll in mesh.sharedNodes:
+        #     sharedNodes.append([int(x) for x in ll])
+        # for ll in mesh.sharedFaces:
+        #     sharedFaces.append([int(x) for x in ll])
+        # assert len(neighborDomains) == len(sharedNodes)
+        # assert len(neighborDomains) == len(sharedFaces)
 
-        # Check the correct domains are talking to each other.
-        neighborDomainsAnswer = [i for i in xrange(max(0, rank - 1), min(numDomains, rank + 2)) if i != rank]
-        ok = mpi.allreduce((neighborDomains == neighborDomainsAnswer), mpi.MIN)
-        self.failUnless(ok, "Strange neighbor domains for %i : %s ?= %s" % (rank, str(neighborDomains), str(neighborDomainsAnswer)))
+        # # for irank in xrange(numDomains):
+        # #     if rank == irank:
+        # #         sys.stderr.write("node positions : %s\n" % [mesh.node(i).position().x for i in xrange(mesh.numNodes)])
+        # #         sys.stderr.write("zone volumes   : %s\n" % [mesh.zone(i).volume() for i in xrange(mesh.numZones)])
+        # #         sys.stderr.write("mesh.neighborDomains : %s\n" % neighborDomains)
+        # #         for i in xrange(len(neighborDomains)):
+        # #             sys.stderr.write("    mesh.sharedNodes[%i] : %s\n" % (neighborDomains[i], sharedNodes[i]))
+        # #         for i in xrange(len(neighborDomains)):
+        # #             sys.stderr.write("    mesh.sharedFaces[%i] : %s\n" % (neighborDomains[i], sharedFaces[i]))
+        # #     mpi.barrier()
+
+        # # Check the correct domains are talking to each other.
+        # neighborDomainsAnswer = [i for i in xrange(max(0, rank - 1), min(numDomains, rank + 2)) if i != rank]
+        # ok = mpi.allreduce((neighborDomains == neighborDomainsAnswer), mpi.MIN)
+        # self.failUnless(ok, "Strange neighbor domains for %i : %s ?= %s" % (rank, str(neighborDomains), str(neighborDomainsAnswer)))
       
-        # Check that the communicated mesh nodes are consistent.
-        boxInv = Vector(1.0/(xmax.x - xmin.x))
-        for sendProc in xrange(numDomains):
-            numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
-            assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
-            for k in xrange(numChecks):
-                if rank == sendProc:
-                    ksafe = k
-                else:
-                    ksafe = 0
-                recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
-                recvHashes = mpi.bcast([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[ksafe]], root=sendProc)
-                ok = True
-                msg = ""
-                if rank == recvProc:
-                    assert sendProc in neighborDomains
-                    kk = neighborDomains.index(sendProc)
-                    assert kk < len(sharedNodes)
-                    ok = ([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]] == recvHashes)
-                    msg = "Shared node indicies don't match %i %i : %s != %s" % (rank, sendProc, 
-                                                                                 str([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]]),
-                                                                                 recvHashes)
-                self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
+        # # Check that the communicated mesh nodes are consistent.
+        # boxInv = Vector(1.0/(xmax.x - xmin.x))
+        # for sendProc in xrange(numDomains):
+        #     numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
+        #     assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
+        #     for k in xrange(numChecks):
+        #         if rank == sendProc:
+        #             ksafe = k
+        #         else:
+        #             ksafe = 0
+        #         recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
+        #         recvHashes = mpi.bcast([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[ksafe]], root=sendProc)
+        #         ok = True
+        #         msg = ""
+        #         if rank == recvProc:
+        #             assert sendProc in neighborDomains
+        #             kk = neighborDomains.index(sendProc)
+        #             assert kk < len(sharedNodes)
+        #             ok = ([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]] == recvHashes)
+        #             msg = "Shared node indicies don't match %i %i : %s != %s" % (rank, sendProc, 
+        #                                                                          str([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]]),
+        #                                                                          recvHashes)
+        #         self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
-        return
+        # return
 
     #---------------------------------------------------------------------------
     # Test each mesh point hashes uniquely.

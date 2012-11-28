@@ -207,7 +207,7 @@ def uniqueSequence(seq, idfun=None):
 # Test the communicated info for consistency between domains in parallel.
 #-------------------------------------------------------------------------------
 def testParallelConsistency(mesh, xmin, xmax):
-    from Spheral import hashPosition
+    from Spheral import hashPosition, quantizedPosition
     import mpi
     rank = mpi.rank
     numDomains = mpi.procs
@@ -222,104 +222,101 @@ def testParallelConsistency(mesh, xmin, xmax):
     assert len(neighborDomains) == len(mesh.sharedNodes)
     assert len(neighborDomains) == len(mesh.sharedFaces)
 
-    # Check that the communicated mesh nodes are consistent.
+    # Bounding box scale for hashing positions.
     boxInv = xmax - xmin
     for i in xrange(len(boxInv)):
         boxInv[i] = 1.0/boxInv[i]
 
-    msg = ""
-    for sendProc in xrange(numDomains):
-        numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
-        assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
-        for k in xrange(numChecks):
-            if rank == sendProc:
-                ksafe = k
-            else:
-                ksafe = 0
-            recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
-            recvHashes = mpi.bcast([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[ksafe]], root=sendProc)
-            recvPos = mpi.bcast([str(mesh.node(i).position()) for i in sharedNodes[ksafe]], root=sendProc)
-            ok = True
-            if rank == recvProc:
-                assert sendProc in neighborDomains
-                kk = neighborDomains.index(sendProc)
-                assert kk < len(sharedNodes)
-                ok = ([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]] == recvHashes)
-                if not ok:
-                    msg = ("Shared node indicies don't match %i %i\n   %s != %s\n    %s\n    %s" %
-                           (rank, sendProc, 
-                            str([hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in sharedNodes[kk]]),
-                            recvHashes,
-                            [str(mesh.node(i).position()) for i in sharedNodes[kk]],
-                            recvPos))
-            ok = mpi.allreduce(ok, mpi.MIN)
-            if not ok:
-                return msg
+    # Local method to help accumulating the error messages in parallel.
+    def allReduceMsg(msg):
+        if msg == "ok":
+            badProc = numDomains
+        else:
+            badProc = rank
+        badProc = mpi.allreduce(badProc, mpi.MIN)
+        if badProc != numDomains:
+            msg = mpi.bcast(msg, root=badProc)
+        return msg
 
-    # Check that the communicated mesh faces are consistent.
-    for sendProc in xrange(numDomains):
-        numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
-        assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
-        for k in xrange(numChecks):
-            if rank == sendProc:
-                ksafe = k
-            else:
-                ksafe = 0
-            recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
-            recvHashes = mpi.bcast([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[ksafe]], root=sendProc)
-            recvPos = mpi.bcast([str(mesh.face(i).position()) for i in sharedFaces[ksafe]], root=sendProc)
-            ok = True
-            if rank == recvProc:
-                assert sendProc in neighborDomains
-                kk = neighborDomains.index(sendProc)
-                assert kk < len(sharedFaces)
-                ok = ([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[kk]] == recvHashes)
-                if not ok:
-                    msg = ("Shared face indicies don't match %i %i\n   %s != %s\n    %s\n    %s" %
-                           (rank, sendProc, 
-                            str([hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in sharedFaces[kk]]),
-                            recvHashes,
-                            [str(mesh.face(i).position()) for i in sharedFaces[kk]],
-                            recvPos))
-            ok = mpi.allreduce(ok, mpi.MIN)
-            if not ok:
-                return msg
+    # Generic method to check communicated indices between domains.
+    def checkConsistentCommInfo(myHashes, sharedIDs):
+        msg = "ok"
+        positions = [quantizedPosition(hashi, xmin, xmax) for hashi in myHashes]
+        for sendProc in xrange(numDomains):
+            numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
+            assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
+            for k in xrange(numChecks):
+                if rank == sendProc:
+                    ksafe = k
+                else:
+                    ksafe = 0
+                recvProc = mpi.bcast(neighborDomains[ksafe], root=sendProc)
+                recvHashes = mpi.bcast([myHashes[i] for i in sharedIDs[ksafe]], root=sendProc)
+                recvPos = mpi.bcast([positions[i] for i in sharedIDs[ksafe]], root=sendProc)
+                if rank == recvProc:
+                    assert sendProc in neighborDomains
+                    kk = neighborDomains.index(sendProc)
+                    assert kk < len(sharedIDs)
+                    if not ([myHashes[i] for i in sharedIDs[kk]] == recvHashes):
+                        msg = ("Shared indicies don't match %i %i\n   %s != %s\n    %s\n    %s" %
+                               (rank, sendProc, 
+                                str([myHashes[i] for i in sharedIDs[kk]]),
+                                recvHashes,
+                                [str(positions[i]) for i in sharedIDs[kk]],
+                                recvPos))
+                msg = allReduceMsg(msg)
+                if msg != "ok":
+                    return msg
+        return msg
 
-    # Check that all shared nodes have been found.
-    myHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
-    myHashSet = set(myHashes)
-    for sendProc in xrange(numDomains):
-        theirHashSet = mpi.bcast(myHashSet, root=sendProc)
-        ok = True
-        if sendProc != mpi.rank:
-            commonHashes = myHashSet.intersection(theirHashSet)
-            ok = not (len(commonHashes) > 0 and (not sendProc in neighborDomains))
-            if not ok:
-                msg = "Missed a neighbor domain : %i %i : %i" % (mpi.rank, sendProc, len(commonHashes))
-
-            if ok:
-                ok = not (len(commonHashes) == 0 and (sendProc in neighborDomains))
-                if not ok:
+    # Common code for checking hashed positions so we can do both nodes and faces.
+    def checkHashConsistency(myHashes, sharedIDs, allowEmptyComm):
+        msg = "ok"
+        myHashSet = set(myHashes)
+        for sendProc in xrange(numDomains):
+            theirHashSet = mpi.bcast(myHashSet, root=sendProc)
+            if sendProc != mpi.rank:
+                commonHashes = myHashSet.intersection(theirHashSet)
+                if len(commonHashes) > 0 and (not sendProc in neighborDomains):
+                    msg = "Missed a neighbor domain : %i %i : %i" % (mpi.rank, sendProc, len(commonHashes))
+    
+                elif len(commonHashes) == 0 and (sendProc in neighborDomains) and not allowEmptyComm:
                     msg = "Erroneously communicating between domains : %i %i" % (mpi.rank, sendProc)
-            
-            if ok and len(commonHashes) > 0:
-                k = neighborDomains.index(sendProc)
-                ok = (len(commonHashes) == len(sharedNodes[k]))
-                if not ok:
-                    msg = "Size of shared nodes does not match: %i %i : %i %i" % (mpi.rank, sendProc,
-                                                                                  len(commonHashes),
-                                                                                  len(sharedNodes[k]))
+                
+                elif len(commonHashes) > 0:
+                    k = neighborDomains.index(sendProc)
+                    if len(commonHashes) != len(sharedIDs[k]):
+                        msg = "Size of shared elements does not match: %i %i : %i %i" % (mpi.rank, sendProc,
+                                                                                         len(commonHashes),
+                                                                                         len(sharedIDs[k]))
+                    else:
+                        sharedHashes = set([myHashes[i] for i in sharedIDs[k]])
+                        if sharedHashes != commonHashes:
+                            msg = ("Set of common hashes does not match: " + 
+                                   str(sharedHashes) + " != " +
+                                   str(commonHashes))
+            msg = allReduceMsg(msg)
+            if msg != "ok":
+                return msg
+        return msg
 
-                if ok:
-                    sharedHashes = set([myHashes[i] for i in sharedNodes[k]])
-                    ok = (sharedHashes == commonHashes)
-                    if not ok:
-                        msg = ("Set of common hashes does not match: " + 
-                               str(sharedHashes) + " != " +
-                               str(commonHashes))
-        ok = mpi.allreduce(ok, mpi.MIN)
-        if not ok:
-            return msg
+    # Check that the communicated mesh nodes.
+    nodeHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    msg = checkConsistentCommInfo(nodeHashes, sharedNodes)
+    if msg != "ok":
+        return "Node failure : " + msg
+    msg = checkHashConsistency(nodeHashes, sharedNodes, False)
+    if msg != "ok":
+        return "Node failure : " + msg
+
+    # Check that the communicated mesh faces.
+    faceHashes = [hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
+    msg = checkConsistentCommInfo(faceHashes, sharedFaces)
+    if msg != "ok":
+        return "Face failure : " + msg
+    msg = checkHashConsistency(faceHashes, sharedFaces, True)
+    if msg != "ok":
+        return "Face failure : " + msg
 
     return msg
 

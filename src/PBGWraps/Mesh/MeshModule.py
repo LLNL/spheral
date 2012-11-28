@@ -454,6 +454,16 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
                                  constrefparam(vector, "xmax"),
                                  constrefparam(vector, "boxInv")],
                                 template_parameters = [dim],
-                                custom_name = "hashPosition")
+                                custom_name = "hashPosition",
+                                docstring = "Hash the given position into an integer 3 tuple.")
+
+        self.space.add_function("quantizedPositionWrapper",
+                                vector,
+                                [param(ptr("PyObject"), "hash", transfer_ownership=False),
+                                 constrefparam(vector, "xmin"),
+                                 constrefparam(vector, "xmax")],
+                                template_parameters = [dim],
+                                custom_name = "quantizedPosition",
+                                docstring = "Reverse hashPosition for a quantized position.")
 
         return
