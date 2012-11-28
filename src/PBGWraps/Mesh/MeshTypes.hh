@@ -84,6 +84,25 @@ hashPositionWrapper(const typename Dimension::Vector& position,
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Similarly wrap the inverse operation, quantizedPosition.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Vector
+quantizedPositionWrapper(PyObject* hashTup,
+                         const typename Dimension::Vector& xmin,
+                         const typename Dimension::Vector& xmax) {
+  VERIFY2(PyTuple_Check(hashTup) == true,
+          "quantizedPosition ERROR: first argument must a tuple.");
+  VERIFY2(PyTuple_Size(hashTup) == 3,
+          "quantizedPosition ERROR: tuple must of length 3.");
+  unsigned long long ix, iy, iz;
+  VERIFY2(PyArg_ParseTuple(hashTup, (char*)"KKK", &ix, &iy, &iz),
+          "quantizedPosition ERROR: unable to parse input tuple.");
+  return quantizedPosition(boost::tuple<uint64_t, uint64_t, uint64_t>(ix, iy, iz), xmin, xmax);
+}
+
 }
 }
 

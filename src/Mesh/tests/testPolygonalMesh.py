@@ -146,7 +146,7 @@ class PolygonalMeshGenericTests:
         assert mesh.numZones >= self.nodes.numInternalNodes
         for i in xrange(self.nodes.numInternalNodes):
             zonehull = mesh.zone(i).convexHull()
-            assert zonehull.contains(self.pos[i])
+            self.failUnless(zonehull.contains(self.pos[i]), "Failing generator containment: %i %s" % (i, self.pos[i]))
         return
 
     #---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ class PolygonalMeshGenericTests:
 ##         p.replot(d)
 
         msg = testParallelConsistency(mesh, xmin, xmax)
-        self.failUnless(mpi.allreduce(len(msg), mpi.MAX) == 0, msg)
+        self.failUnless(msg == "ok", msg)
 
     #---------------------------------------------------------------------------
     # Test the mesh coordinates hash uniquely.
