@@ -258,12 +258,12 @@ def testParallelConsistency(mesh, xmin, xmax):
                     kk = neighborDomains.index(sendProc)
                     assert kk < len(sharedIDs)
                     if not ([myHashes[i] for i in sharedIDs[kk]] == recvHashes):
-                        msg = ("Shared indicies don't match %i %i\n   %s != %s\n    %s\n    %s" %
+                        msg = ("Shared indices don't match %i %i\n   %s != %s\n    %s\n    %s" %
                                (rank, sendProc, 
                                 str([myHashes[i] for i in sharedIDs[kk]]),
                                 recvHashes,
                                 [str(positions[i]) for i in sharedIDs[kk]],
-                                recvPos))
+                                [str(xi) for xi in recvPos]))
                 msg = allReduceMsg(msg)
                 if msg != "ok":
                     return msg
