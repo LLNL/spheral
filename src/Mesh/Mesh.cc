@@ -56,7 +56,8 @@ reduceToMaxString(const string& x,
   } else {
     unsigned size = x.size();
     MPI_Bcast(&size, 1, MPI_UNSIGNED, badRank, MPI_COMM_WORLD);
-    vector<char> result(size);
+    vector<char> result(x.begin(), x.end());
+    result.resize(size);
     MPI_Bcast(&result.front(), size, MPI_CHAR, badRank, MPI_COMM_WORLD);
     return string(result.begin(), result.end());
   }
@@ -332,8 +333,8 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
       for (vector<int>::const_iterator itr = faceIDs.begin();
            itr != faceIDs.end();
            ++itr) {
-        int fid = positiveID(*itr);
-        CHECK(fid < mFaces.size());
+        const int fid = positiveID(*itr);
+        CHECK(fid >= 0 and fid < mFaces.size());
         faceMask[fid] = 1;
       }
     }
@@ -456,6 +457,15 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   removeElements(mNeighborDomains, killDomains);
   removeElements(mSharedNodes, killDomains);
   removeElements(mSharedFaces, killDomains);
+
+  // That's it.
+  BEGIN_CONTRACT_SCOPE;
+  {
+    Vector xmin, xmax;
+    this->boundingBox(xmin, xmax);
+    ENSURE2(this->validDomainInfo(xmin, xmax, false) == "", this->validDomainInfo(xmin, xmax, false));
+  }
+  END_CONTRACT_SCOPE;
 }
 
 //------------------------------------------------------------------------------
@@ -1577,8 +1587,8 @@ validDomainInfo(const typename Dimension::Vector& xmin,
         }
       }
     }
+    result = reduceToMaxString(result, rank, numDomains);
   }
-  result = reduceToMaxString(result, rank, numDomains);
 
   // Check that the processors that are talking to agree about the number of shared nodes.
   if (result == "") {
@@ -1600,8 +1610,8 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     if (not (numLocalSharedNodes == numOtherSharedNodes)) {
       result = "Processors don't agree about number of shared nodes.";
     }
+    result = reduceToMaxString(result, rank, numDomains);
   }
-  result = reduceToMaxString(result, rank, numDomains);
       
   // Similary check the number of shared faces.
   if (result == "") {
@@ -1623,13 +1633,11 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     if (not (numLocalSharedFaces == numOtherSharedFaces)) {
       result = "Processors don't agree about number of shared faces.";
     }
+    result = reduceToMaxString(result, rank, numDomains);
   }
-  result = reduceToMaxString(result, rank, numDomains);
-  return result;
       
   // Check that we agree with all our neighbors about which nodes we share.
   if (result == "") {
-
     vector<Key> allLocalHashes;
     vector<vector<Key> > otherHashes;
     for (unsigned i = 0; i != mNodePositions.size(); ++i) 
@@ -1640,30 +1648,29 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
       for (unsigned i = 0; i != mSharedNodes[k].size(); ++i) {
         if (not (allLocalHashes[mSharedNodes[k][i]] == otherHashes[k][i]))
-          result = "Hash neighbor comparisons fail!";
+          result = "Node hash neighbor comparisons fail!";
       }
     }
+    result = reduceToMaxString(result, rank, numDomains);
   }
-  result = reduceToMaxString(result, rank, numDomains);
 
-  // // Ditto for shared faces.
-  // if (result == "") {
+  // Ditto for shared faces.
+  if (result == "") {
+    vector<Key> allLocalHashes;
+    vector<vector<Key> > otherHashes;
+    for (unsigned i = 0; i != mFaces.size(); ++i) 
+      allLocalHashes.push_back(hashPosition(mFaces[i].position(), xmin, xmax, boxInv));
+    CHECK(allLocalHashes.size() == mFaces.size());
+    exchangeTuples(allLocalHashes, mNeighborDomains, mSharedFaces, otherHashes);
 
-  //   vector<Key> allLocalHashes;
-  //   vector<vector<Key> > otherHashes;
-  //   for (unsigned i = 0; i != mNodePositions.size(); ++i) 
-  //     allLocalHashes.push_back(hashPosition(mFaces[i].position(), xmin, xmax, boxInv));
-  //   CHECK(allLocalHashes.size() == mFaces.size());
-  //   exchangeTuples(allLocalHashes, mNeighborDomains, mSharedFaces, otherHashes);
-
-  //   for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
-  //     for (unsigned i = 0; i != mSharedFaces[k].size(); ++i) {
-  //       if (not (allLocalHashes[mSharedFaces[k][i]] == otherHashes[k][i]))
-  //         result = "Hash neighbor comparisons fail!";
-  //     }
-  //   }
-  // }
-  // result = reduceToMaxString(result, rank, numDomains);
+    for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
+      for (unsigned i = 0; i != mSharedFaces[k].size(); ++i) {
+        if (not (allLocalHashes[mSharedFaces[k][i]] == otherHashes[k][i]))
+          result = "Face hash neighbor comparisons fail!";
+      }
+    }
+    result = reduceToMaxString(result, rank, numDomains);
+  }
 
   // Check the uniqueness of shared nodes (only shared with one other domain unless owned).
   if (result == "" and checkUniqueSendProc) {
@@ -1692,8 +1699,8 @@ validDomainInfo(const typename Dimension::Vector& xmin,
         result += thpt.str();
       }
     }
+    result = reduceToMaxString(result, rank, numDomains);
   }
-  result = reduceToMaxString(result, rank, numDomains);
 #endif
 
   return result;
