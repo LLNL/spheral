@@ -180,16 +180,17 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       ENSURE(face.zone1ID() != UNSETID);
       ENSURE(face.zone2ID() != UNSETID);
       ENSURE(positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
-      ENSURE2(positiveID(face.zone2ID()) != UNSETID or
-              face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
-              "Something amiss at the surface of the mesh : "
-              << face.zone1ID() << " " << face.zone2ID() << " : " 
-              << face.unitNormal() << " dot (" << mZones[face.zone1ID()].position() << " - " << face.position() << ") = "
-              << face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()));
+      // ENSURE2(positiveID(face.zone2ID()) != UNSETID or
+      //         face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
+      //         "Something amiss at the surface of the mesh : "
+      //         << face.zone1ID() << " " << face.zone2ID() << " : " 
+      //         << face.unitNormal() << " dot (" << mZones[face.zone1ID()].position() << " - " << face.position() << ") = "
+      //         << face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()));
     }
+    ENSURE2(this->valid() == "", this->valid());
+    ENSURE2(this->validDomainInfo(xmin, xmax, false) == "", this->validDomainInfo(xmin, xmax, false));
   }
   END_CONTRACT_SCOPE
-  ENSURE2(this->valid() == "", this->valid());
 
   // Report our final timing and we're done.
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
