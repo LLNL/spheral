@@ -173,9 +173,9 @@ ZLIBDIR = $(ZLIBDIST:.tar.bz2=)
 ZLIBBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(ZLIBDIST))
 
 # JPEG
-JPEGDIST = jpegsrc.v7.tar.gz
+JPEGDIST = jpegsrc.v8d.tar.gz
 JPEGURL = http://www.ijg.org/files/$(JPEGDIST)
-JPEGDIR = jpeg-7
+JPEGDIR = jpeg-8d
 JPEGBUILDDATE = $(patsubst %.tar.gz, .%.date, $(JPEGDIST))
 
 # PIL

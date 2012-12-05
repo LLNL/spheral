@@ -495,7 +495,9 @@ elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
   # variable.
   LDFLAGS="$LDFLAGS ${LDPASSTHROUGH}-rpath=$TOPLIBDIR ${LDPASSTHROUGH}-rpath=$LIBDIR"
 
-# elif test "$OSNAME" = "Darwin"; then
+elif test "$OSNAME" = "Darwin"; then
+  LDFLAGS="$LDFLAGS ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
+
 #   # On Mac OS X Darwin, you install libraries with an "dylib_install_name" flag to avoid
 #   # using rpath or DYLD_LIBRARY_PATH nonsense when linking to these libraries.
 #    LIBTARGETFLAGS="$LIBTARGETFLAGS ${LDPASSTHROUGH} -dylib_install_name \$(LIBDIR)/\$(LIBTARGET)"
