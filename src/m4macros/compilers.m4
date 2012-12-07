@@ -225,6 +225,8 @@ esac
 if test $MPIENABLED = "no"; then
   MPICC=$CC
   MPICXX=$CXX
+  MPICCFLAGS=
+  MPICXXFLAGS=
 fi
 
 # =======================================================================
