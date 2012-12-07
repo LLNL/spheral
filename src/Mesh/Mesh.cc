@@ -41,6 +41,7 @@ using NodeSpace::NodeList;
 
 namespace { // anonymous
 
+#ifdef USE_MPI
 //------------------------------------------------------------------------------
 // Look for anyone who has a non-empty string.
 //------------------------------------------------------------------------------
@@ -62,6 +63,7 @@ reduceToMaxString(const string& x,
     return string(result.begin(), result.end());
   }
 }
+#endif
 
 }           // anonymous
 
@@ -1402,10 +1404,12 @@ Mesh<Dimension>::
 boundingBox(typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax) const {
   Spheral::boundingBox(mNodePositions, xmin, xmax);
+#ifdef USE_MPI
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
     xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
   }
+#endif
 }
 
 // //------------------------------------------------------------------------------
