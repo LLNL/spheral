@@ -40,6 +40,7 @@ AC_SUBST(BOOSTEXT)
 
 AC_SUBST(LD)
 AC_SUBST(LDFLAGS)
+AC_SUBST(LDINSTALLNAME)
 AC_SUBST(LIBTARGETFLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(DEPENDRULES)
@@ -60,6 +61,7 @@ AC_SUBST(PYTHONCONFFLAGS)
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
 JAMTOOLSETOPTS=
+LDINSTALLNAME=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -495,8 +497,9 @@ elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
   # variable.
   LDFLAGS="$LDFLAGS ${LDPASSTHROUGH}-rpath=$TOPLIBDIR ${LDPASSTHROUGH}-rpath=$LIBDIR"
 
-#elif test "$OSNAME" = "Darwin"; then
-#  LDFLAGS="$LDFLAGS ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
+elif test "$OSNAME" = "Darwin"; then
+  LDFLAGS="$LDFLAGS ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
+  LDINSTALLNAME="$LDINSTALLNAME -install_name @rpath/\${@}"
 
 #   # On Mac OS X Darwin, you install libraries with an "dylib_install_name" flag to avoid
 #   # using rpath or DYLD_LIBRARY_PATH nonsense when linking to these libraries.
