@@ -30,7 +30,6 @@ mod = Module("SpheralModules")
 mod.add_include('"referenceAsPointer.hh"')
 
 # Go through each package and add its stuff to the module.
-#mod_namespaces = []
 for p in pkgs:
     print "Generating types for %s" % p
     modname = "%sModule" % p
@@ -39,7 +38,6 @@ for p in pkgs:
     mod.begin_section("SpheralModules_%s" % p)
     exec("%s = %s.%s(mod)" % (p, modname, p))
     mod.end_section("SpheralModules_%s" % p)
-    #mod_namespaces.extend(eval("%s.newSubModules()" % p))
 
 # Now bind methods to the objects.
 for p in pkgs:

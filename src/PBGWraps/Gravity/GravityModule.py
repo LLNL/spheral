@@ -25,9 +25,9 @@ class Gravity:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         space = Spheral.add_cpp_namespace("GravitySpace")
-        genericbodyforce1d = PhysicsSpace.wrapObjs["GenericBodyForce1d"]
-        genericbodyforce2d = PhysicsSpace.wrapObjs["GenericBodyForce2d"]
-        genericbodyforce3d = PhysicsSpace.wrapObjs["GenericBodyForce3d"]
+        genericbodyforce1d = findObject(PhysicsSpace, "GenericBodyForce1d")
+        genericbodyforce2d = findObject(PhysicsSpace, "GenericBodyForce2d")
+        genericbodyforce3d = findObject(PhysicsSpace, "GenericBodyForce3d")
 
         # Expose types.
         self.NBodyGravity1d = addObject(space, "NBodyGravity1d", allow_subclassing=True, parent=genericbodyforce1d)

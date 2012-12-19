@@ -24,13 +24,13 @@ class Strength:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         NodeSpace = Spheral.add_cpp_namespace("NodeSpace")
 
-        Physics1d = PhysicsSpace.wrapObjs["Physics1d"]
-        Physics2d = PhysicsSpace.wrapObjs["Physics2d"]
-        Physics3d = PhysicsSpace.wrapObjs["Physics3d"]
+        Physics1d = findObject(PhysicsSpace, "Physics1d")
+        Physics2d = findObject(PhysicsSpace, "Physics2d")
+        Physics3d = findObject(PhysicsSpace, "Physics3d")
 
-        FluidNodeList1d = NodeSpace.wrapObjs["FluidNodeList1d"]
-        FluidNodeList2d = NodeSpace.wrapObjs["FluidNodeList2d"]
-        FluidNodeList3d = NodeSpace.wrapObjs["FluidNodeList3d"]
+        FluidNodeList1d = findObject(NodeSpace, "FluidNodeList1d")
+        FluidNodeList2d = findObject(NodeSpace, "FluidNodeList2d")
+        FluidNodeList3d = findObject(NodeSpace, "FluidNodeList3d")
 
         self.SolidFieldNames = addObject(SolidSpheral, "SolidFieldNames")
 

@@ -23,9 +23,9 @@ class Damage:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        Physics1d = PhysicsSpace.wrapObjs["Physics1d"]
-        Physics2d = PhysicsSpace.wrapObjs["Physics2d"]
-        Physics3d = PhysicsSpace.wrapObjs["Physics3d"]
+        Physics1d = findObject(PhysicsSpace, "Physics1d")
+        Physics2d = findObject(PhysicsSpace, "Physics2d")
+        Physics3d = findObject(PhysicsSpace, "Physics3d")
 
         self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", ["BenzAsphaug",
                                                                               "StrainHistory",

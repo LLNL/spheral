@@ -24,9 +24,9 @@ class Hydro:
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PhysicsSpace")
-        physics1d = space.wrapObjs["Physics1d"]
-        physics2d = space.wrapObjs["Physics2d"]
-        physics3d = space.wrapObjs["Physics3d"]
+        physics1d = findObject(space, "Physics1d")
+        physics2d = findObject(space, "Physics2d")
+        physics3d = findObject(space, "Physics3d")
 
         # Expose types.
         self.HydroFieldNames = addObject(Spheral, "HydroFieldNames")

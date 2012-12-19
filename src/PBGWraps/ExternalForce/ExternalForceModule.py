@@ -25,9 +25,9 @@ class ExternalForce:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        genericbodyforce1d = space.wrapObjs["GenericBodyForce1d"]
-        genericbodyforce2d = space.wrapObjs["GenericBodyForce2d"]
-        genericbodyforce3d = space.wrapObjs["GenericBodyForce3d"]
+        genericbodyforce1d = findObject(space, "GenericBodyForce1d")
+        genericbodyforce2d = findObject(space, "GenericBodyForce2d")
+        genericbodyforce3d = findObject(space, "GenericBodyForce3d")
 
         # Expose types.
         self.PointPotential1d = addObject(space, "PointPotential1d", allow_subclassing=True, parent=genericbodyforce1d)

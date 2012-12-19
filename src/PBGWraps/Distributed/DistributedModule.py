@@ -22,9 +22,9 @@ class Distributed:
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")
         bound = Spheral.add_cpp_namespace("BoundarySpace")
-        Boundary1d = bound.wrapObjs["Boundary1d"]
-        Boundary2d = bound.wrapObjs["Boundary2d"]
-        Boundary3d = bound.wrapObjs["Boundary3d"]
+        Boundary1d = findObject(bound, "Boundary1d")
+        Boundary2d = findObject(bound, "Boundary2d")
+        Boundary3d = findObject(bound, "Boundary3d")
         self.space = Spheral.add_cpp_namespace("PartitionSpace")
 
         # Expose types.

@@ -20,8 +20,8 @@ class Parmetis:
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PartitionSpace")
-        RedistributeNodes2d = space.wrapObjs["RedistributeNodes2d"]
-        RedistributeNodes3d = space.wrapObjs["RedistributeNodes3d"]
+        RedistributeNodes2d = findObject(space, "RedistributeNodes2d")
+        RedistributeNodes3d = findObject(space, "RedistributeNodes3d")
 
         # Expose types.
         self.ParmetisRedistributeNodes2d = addObject(space, "ParmetisRedistributeNodes2d", parent=RedistributeNodes2d, allow_subclassing=True)

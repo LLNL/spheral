@@ -26,9 +26,9 @@ class SPH:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         self.space = Spheral.add_cpp_namespace("SPHSpace")
         
-        generichydro1d = PhysicsSpace.wrapObjs["GenericHydro1d"]
-        generichydro2d = PhysicsSpace.wrapObjs["GenericHydro2d"]
-        generichydro3d = PhysicsSpace.wrapObjs["GenericHydro3d"]
+        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
+        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
+        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
 
         # Expose types.
         self.SPHHydroBase1d = addObject(self.space, "SPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)

@@ -185,7 +185,7 @@ PILDIR = $(PILDIST:.tar.gz=)
 PILBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PILDIST))
 
 # pybindgen
-PYBINDGENDIST = pybindgen-0.15.1.zip
+PYBINDGENDIST = pybindgen-0.15.9.zip
 PYBINDGENURL = http://pybindgen.googlecode.com/files/$(PYBINDGENDIST)
 PYBINDGENDIR = $(PYBINDGENDIST:.zip=)
 PYBINDGENBUILDDATE = $(patsubst %.zip, .%.date, $(PYBINDGENDIST))

@@ -24,9 +24,9 @@ class CSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         self.space = Spheral.add_cpp_namespace("CSPHSpace")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-        generichydro1d = PhysicsSpace.wrapObjs["GenericHydro1d"]
-        generichydro2d = PhysicsSpace.wrapObjs["GenericHydro2d"]
-        generichydro3d = PhysicsSpace.wrapObjs["GenericHydro3d"]
+        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
+        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
+        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
 
         # Expose types.
         self.CSPHHydroBase1d = addObject(self.space, "CSPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)

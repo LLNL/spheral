@@ -23,9 +23,9 @@ class SolidSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         SPHSpace = Spheral.add_cpp_namespace("SPHSpace")
 
-        sphhydrobase1d = SPHSpace.wrapObjs["SPHHydroBase1d"]
-        sphhydrobase2d = SPHSpace.wrapObjs["SPHHydroBase2d"]
-        sphhydrobase3d = SPHSpace.wrapObjs["SPHHydroBase3d"]
+        sphhydrobase1d = findObject(SPHSpace, "SPHHydroBase1d")
+        sphhydrobase2d = findObject(SPHSpace, "SPHHydroBase2d")
+        sphhydrobase3d = findObject(SPHSpace, "SPHHydroBase3d")
 
         # Expose types.
         self.SolidSPHHydroBase1d = addObject(space, "SolidSPHHydroBase1d", allow_subclassing=True, parent=sphhydrobase1d)
