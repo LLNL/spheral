@@ -1,61 +1,22 @@
 import sys
 from pybindgen import *
 
-## #-------------------------------------------------------------------------------
-## # Find the object associated with the given name.
-## #-------------------------------------------------------------------------------
-## def findObject(name):
-##     for mod in sys.modules.values():
-##         try:
-##             for xname, val in mod.__dict__.items():
-##                 if xname == name:
-##                     return val
-##         except:
-##             pass
-##     raise ValueError, "Could not find %s" % name
-
-## #-------------------------------------------------------------------------------
-## # Find a set of objects.
-## #-------------------------------------------------------------------------------
-## def findObjects(*args):
-##     return [findObject(name) for name in args]
-
-## #-------------------------------------------------------------------------------
-## # Publish an object to the world.
-## #-------------------------------------------------------------------------------
-## def publish(thing, name):
-##     globals()[name] = thing
-##     if not publishedRegistry in globals():
-##         globals()[publishedRegistry] = []
-##     globals()[publishedRegistry].append(name)
-
-## def publishObjects(stuff):
-##     for thing, name in stuff:
-##         publish(thing, name)
-
-## #-------------------------------------------------------------------------------
-## # Load all the currently published types from Spheral.
-## #-------------------------------------------------------------------------------
-## def findAllPublishedObjects():
-##     names = globals()[publishedRegistry]
-##     result = [findObject(name) for name in names]
-##     return result
-
 #-------------------------------------------------------------------------------
 # Add an object by name to a module/namespace, and publish it to the world.
 #-------------------------------------------------------------------------------
 def addObject(mod, name, *args, **kwargs):
     x = mod.add_class(name, *args, **kwargs)
-    if not 'wrapObjs' in mod.__dict__:
-        mod.wrapObjs = {}
-    if "custom_template_class_name" in kwargs:
-        pubname = kwargs["custom_template_class_name"]
-    elif "python_name" in kwargs:
-        pubname = kwargs["python_name"]
-    else:
-        pubname = name
-    mod.wrapObjs[pubname] = x
     return x
+
+#-------------------------------------------------------------------------------
+# Find the wrapped object in a module.
+#-------------------------------------------------------------------------------
+def findObject(scope, name):
+    for stuff in scope.items():
+        assert len(stuff) == 2
+        if stuff[0] == name:
+            return stuff[1]
+    raise RuntimeError, "Unable to find %s in the specified scope." % name
 
 #-------------------------------------------------------------------------------
 # Add a reference symbol to a type.

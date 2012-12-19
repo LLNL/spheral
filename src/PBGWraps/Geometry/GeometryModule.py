@@ -163,7 +163,7 @@ class Geometry:
         vec3Name = "Vector3d"
         tenName = "Tensor%id" % ndim
         symTenName= "SymTensor%id" % ndim
-        tensor_class = self.space.wrapObjs[tenName]
+        tensor_class = findObject(self.space, tenName)
     
         me = vecName
 
@@ -274,9 +274,9 @@ class Geometry:
         ten = "Tensor%id" % ndim
         symten = "SymTensor%id" % ndim
 
-        vecType = self.space.wrapObjs[vec]
-        tenType = self.space.wrapObjs[ten]
-        symtenType = self.space.wrapObjs[symten]
+        vecType = findObject(self.space, vec)
+        tenType = findObject(self.space, ten)
+        symtenType = findObject(self.space, symten)
     
         # Instance attributes.
         x.add_static_attribute("nDimensions", "int", True)
@@ -403,9 +403,9 @@ class Geometry:
         symten = "SymTensor%id" % ndim
         eigenstruct = "EigenStruct%id" % ndim
 
-        vecType = self.space.wrapObjs[vec]
-        tenType = self.space.wrapObjs[ten]
-        symtenType = self.space.wrapObjs[symten]
+        vecType = findObject(self.space, vec)
+        tenType = findObject(self.space, ten)
+        symtenType = findObject(self.space, symten)
     
         # First add the generic Tensor methods.
         self.addTensorMethods(x, me, ndim)

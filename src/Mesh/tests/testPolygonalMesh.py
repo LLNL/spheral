@@ -1,7 +1,7 @@
 #ATS:test(SELF,        label="PolygonalMesh serial unit tests")
-#ATS:test(SELF, np=4,  label="PolygonalMesh serial (4 proc) tests")
-#ATS:test(SELF, np=9,  label="PolygonalMesh serial (9 proc) tests")
-#ATS:test(SELF, np=16, label="PolygonalMesh serial (16 proc) tests")
+#ATS:test(SELF, np=4,  label="PolygonalMesh parallel (4 proc) tests")
+#ATS:test(SELF, np=9,  label="PolygonalMesh parallel (9 proc) tests")
+#ATS:test(SELF, np=16, label="PolygonalMesh parallel (16 proc) tests")
 
 from math import *
 import unittest

@@ -22,7 +22,7 @@ class FractalGravity:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         space = Spheral.add_cpp_namespace("GravitySpace")
-        genericbodyforce3d = PhysicsSpace.wrapObjs["GenericBodyForce3d"]
+        genericbodyforce3d = findObject(PhysicsSpace, "GenericBodyForce3d")
 
         # Expose types.
         self.FractalGravity = addObject(space, "FractalGravity", allow_subclassing=True, parent=genericbodyforce3d)

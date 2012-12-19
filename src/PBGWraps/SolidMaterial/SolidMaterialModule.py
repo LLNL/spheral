@@ -31,8 +31,8 @@ class SolidMaterial:
 
         for dim in self.dimSet:
             exec('''
-EquationOfState%(dim)id = Material.wrapObjs["EquationOfState%(dim)id"]
-Physics%(dim)id = PhysicsSpace.wrapObjs["Physics%(dim)id"]
+EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
+Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
 self.SolidEquationOfState%(dim)id = addObject(space, "SolidEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 self.PorousEquationOfState%(dim)id = addObject(space, "PorousEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=[Physics%(dim)id], allow_subclassing=True)
