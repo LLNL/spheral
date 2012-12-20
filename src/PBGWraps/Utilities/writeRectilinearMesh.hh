@@ -1,3 +1,6 @@
+#ifndef __PBGWRAPS_WRITERECTILINEARMESH__
+#define __PBGWRAPS_WRITERECTILINEARMESH__
+
 //---------------------------------Spheral++----------------------------------//
 // writeRectilinearMesh
 //
@@ -238,3 +241,5 @@ writeRectilinearMesh(const std::string& fileName,
 }
 
 }
+
+#endif
