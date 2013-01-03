@@ -19,6 +19,18 @@ def findObject(scope, name):
     raise RuntimeError, "Unable to find %s in the specified scope." % name
 
 #-------------------------------------------------------------------------------
+# For the given pybindgen module, return the (headers, spaces, cppclass')
+#-------------------------------------------------------------------------------
+def extractPybindgenObjs(mod):
+    includes, spaces, objs = [], [], {}
+    
+    def extractSubmoduleStuff(submod):
+        includes += submod.includes
+        if space.cpp_namespace:
+            spaces.append(cpp_namespaces)
+    
+
+#-------------------------------------------------------------------------------
 # Add a reference symbol to a type.
 #-------------------------------------------------------------------------------
 def ref(name):
