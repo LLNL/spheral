@@ -376,7 +376,7 @@ AC_ARG_WITH(cmake-CXX,
 # =======================================================================
 AC_MSG_CHECKING(for parmetis-CC)
 AC_ARG_WITH(parmetis-CC,
-[  --with-parmetis-CC=ARG .................... manually set the CC compiler for ParMETIS],
+[  --with-parmetis-CC=ARG ................... manually set the CC compiler for ParMETIS],
 [
    PARMETISCC=$withval
    AC_MSG_RESULT(PARMETISCC)

@@ -31,6 +31,10 @@ AC_SUBST(LDFLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(GEOMETRY_ONLY)
 
+# Prepare for user selected third party targets.
+AC_SUBST(EXTRATHIRDPARTYTARGETS)
+EXTRATHIRDPARTYTARGETS=""
+
 AC_MSG_CHECKING(for spheral directory)
 SRCDIR=`echo $PWD`
 SPHERALDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
@@ -107,25 +111,21 @@ echo "SHAREDFLAG is $SHAREDFLAG"
 # We must be on a 32 bit intel processor in order to use the psyco 
 # python accelerator.
 # -----------------------------------------------------------------
-AC_SUBST(PSYCOTHIRDPARTYTARGET)
-PSYCOTHIRDPARTYTARGET=""
 # if (test -n "`uname -a | grep i386`" -o -n "`uname -a | grep i486`" \
 #       -o -n "`uname -a | grep i586`" -o -n "`uname -a | grep i686`"); then
-#   PSYCOTHIRDPARTYTARGET=".psyco-1.3-src.date"
+#   EXTRATHIRDPARTYTARGETS+=" .psyco-1.3-src.date"
 # fi
 
 # -----------------------------------------------------------------
 # If we're on AIX, set a few special third party lib options.
 # -----------------------------------------------------------------
 AC_SUBST(GCCXMLDIST)
-AC_SUBST(NUMPYTHIRDPARTYTARGETS)
 if test "`uname -s`" = "AIX"; then
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
   #GCCXMLDIST="gccxml-0.6.0.tar.bz2"
-  NUMPYTHIRDPARTYTARGETS=
 else
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
-  NUMPYTHIRDPARTYTARGETS=".numpy-1.6.2.date .gnuplot-py-1.8.date"
+  EXTRATHIRDPARTYTARGETS+=" .numpy-1.6.2.date .gnuplot-py-1.8.date"
 fi
 
 # -----------------------------------------------------------------
@@ -168,6 +168,21 @@ AC_ARG_WITH(cxxtests,
    CXXPKGS="$CXXPKGS CXXTests"
    CXXPKGLIBS="$CXXPKGLIBS CXXTests"
    PYTHONPKGS="$PYTHONPKGS CXXTests"
+],
+[
+   AC_MSG_RESULT(no)
+]
+)
+
+# -----------------------------------------------------------------
+# Optionally build install the GSL (Gnu Scientific Library) 
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-gsl)
+AC_ARG_WITH(gsl,
+[  --with-gsl ............................... optionally install the Gnu Scientific Library extensions],
+[
+   AC_MSG_RESULT(yes)
+   EXTRATHIRDPARTYTARGETS+=" .gsl-1.14.date .pygsl-0.9.5.date"
 ],
 [
    AC_MSG_RESULT(no)

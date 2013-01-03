@@ -43,18 +43,6 @@ AC_ARG_WITH(python,[  --with-python=python1.6a2 ................ use non-standar
 #   fi
 ])
 
-# AC_SUBST(PYMPI)
-
-# AC_MSG_CHECKING(for --with-pyMPI)
-# AC_ARG_WITH(pyMPI,[  --with-pyMPI=pyMPI-2.2 ................... use non-standard pyMPI],[
-#   AC_MSG_RESULT($withval)
-#   PYMPI=$withval
-# ],[
-#   AC_MSG_RESULT(no)
-#   SPHERALDIR=`echo $PWD | sed -e "s/src\/src$//g;"`
-#   PYMPI=$SPHERALDIR/bin/pyMPI
-# ])
-
 #AC_MSG_CHECKING(for execute access)
 #if test ! -x "$PYTHON"; then
 #  AC_MSG_RESULT(no)
