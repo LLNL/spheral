@@ -117,6 +117,7 @@ PARMETISLIBS = @PARMETISLIBS@
 PYOPT = @PYOPT@
 
 LDFLAGS = @LDFLAGS@
+LDRPATH = @LDRPATH@
 LDINSTALLNAME = @LDINSTALLNAME@
 MODULELINK = @MODULELINK@
 LIBTARGETFLAGS = @LIBTARGETFLAGS@
@@ -284,7 +285,7 @@ $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -293,7 +294,7 @@ $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(THIRDPARTYLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(THIRDPARTYLIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(THIRDPARTYLIBTARGET) $(THIRDPARTYLIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -320,7 +321,7 @@ $(MODTARGET): $(BPLOBJS) $(OBJS) $(PYSTEDATE)
 	@echo "# Building module $(MODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(MODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -329,7 +330,7 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	@echo "# Building module $(BPLMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(BPLMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
@@ -351,7 +352,7 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
