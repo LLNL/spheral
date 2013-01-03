@@ -5,7 +5,6 @@ AC_DEFUN([SETUP_DISTRIBUTEDMAKE], [
 
 AC_SUBST(SUBMITDISTRIBUTEDMAKE)
 AC_SUBST(DISTRIBUTEDMAKEOPTS)
-AC_SUBST(PYMPI)
 
 # ------------------------------------------------------------------------------
 # Set up defaults for various systems I know about.
@@ -48,19 +47,5 @@ AC_ARG_WITH(distributedMakeOpts,
 )
 AC_MSG_RESULT($DISTRIBUTEDMAKEOPTS)
 
-# ------------------------------------------------------------------------------
-# Optionally specify a path where a friendly pyMPI can be found.
-# ------------------------------------------------------------------------------
-AC_MSG_CHECKING(for pyMPI)
-AC_ARG_WITH(pyMPI,
-  [  --with-pyMPI=ARG ........................ set the pyMPI executable],
-  [
-    PYMPI=$withval
-  ],
-  [
-    PYMPI="$SPHERALDIR/bin/pyMPI"
-  ]
-)
-AC_MSG_RESULT($PYMPI)
 
 ])

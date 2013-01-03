@@ -10,7 +10,7 @@ AC_SUBST(USEPETSC)
 
 AC_MSG_CHECKING(for MHD)
 AC_ARG_WITH(MHD,
-[  --with-MHD ............................. optionally build the MHD physics package],
+[  --with-MHD ................................ optionally build the MHD physics package],
 [
    AC_MSG_RESULT(yes)
    CXXPKGS="$CXXPKGS MHD"
