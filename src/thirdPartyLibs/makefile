@@ -197,7 +197,7 @@ WILDMAGICDIR = GeometricTools
 WILDMAGICBUILDDATE = $(patsubst %.zip, .%.date, $(WILDMAGICDIST))
 
 # Qhull
-QHULLDIST = qhull-2011.2-src.tgz
+QHULLDIST = qhull-2012.1-src.tgz
 QHULLURL = http://www.qhull.org/download/$(QHULLDIST)
 QHULLDIR = $(QHULLDIST:-src.tgz=)
 QHULLINCDIR = $(SPHERALDIR)/include/qhull
@@ -287,7 +287,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.3
+POLYTOPEVER = 0.5.4
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
@@ -1085,9 +1085,10 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
+	$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(QHULLDIR)-qhull_a.h-patch
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
 	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
-	$(MAKE) ; \
+	$(MAKE); \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
 	echo "ERROR building Qhull."; \

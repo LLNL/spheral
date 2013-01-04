@@ -53,7 +53,7 @@ public:
   StateDerivatives& operator=(const StateDerivatives& rhs);
 
   // Test if two StateDerivatives have equivalent fields.
-  virtual bool operator==(const StateDerivatives& rhs) const;
+  virtual bool operator==(const StateBase<Dimension>& rhs) const;
 
   // Methods for setting/interrogating if a given pair of nodes has been 
   // calculated.
