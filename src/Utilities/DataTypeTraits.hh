@@ -27,7 +27,7 @@ template<typename DataType> struct DataTypeTraits;
 template<>
 struct DataTypeTraits<char> {
   typedef char ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static int zero() { return '\0'; }
 #ifdef USE_MPI
@@ -39,7 +39,7 @@ struct DataTypeTraits<char> {
 template<>
 struct DataTypeTraits<int> {
   typedef int ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static int zero() { return 0; }
 #ifdef USE_MPI
@@ -51,7 +51,7 @@ struct DataTypeTraits<int> {
 // template<>
 // struct DataTypeTraits<size_t> {
 //   typedef size_t ElementType;
-//   static const bool fixedSize() { return true; }
+//   static bool fixedSize() { return true; }
 //   static size_t numElements(const ElementType& x) { return 1; }
 //   static size_t zero() { return 0U; }
 // #ifdef USE_MPI
@@ -63,7 +63,7 @@ struct DataTypeTraits<int> {
 template<>
 struct DataTypeTraits<uint32_t> {
   typedef uint32_t ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static uint32_t zero() { return 0UL; }
 #ifdef USE_MPI
@@ -79,7 +79,7 @@ struct DataTypeTraits<uint32_t> {
 template<>
 struct DataTypeTraits<uint64_t> {
   typedef uint64_t ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static uint64_t zero() { return 0ULL; }
 #ifdef USE_MPI
@@ -95,7 +95,7 @@ struct DataTypeTraits<uint64_t> {
 template<>
 struct DataTypeTraits<float> {
   typedef float ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static float zero() { return 0.0; }
 #ifdef USE_MPI
@@ -107,7 +107,7 @@ struct DataTypeTraits<float> {
 template<>
 struct DataTypeTraits<double> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const ElementType& x) { return 1; }
   static double zero() { return 0.0; }
 #ifdef USE_MPI
@@ -119,7 +119,7 @@ struct DataTypeTraits<double> {
 template<typename Value>
 struct DataTypeTraits<std::vector<Value> > {
   typedef std::vector<Value> ElementType;
-  static const bool fixedSize() { return false; }
+  static bool fixedSize() { return false; }
   static int numElements(const std::vector<Value>& x) { return x.size(); }
   static std::vector<Value> zero() { return std::vector<Value>(); }
 };
@@ -128,7 +128,7 @@ struct DataTypeTraits<std::vector<Value> > {
 template<typename Value>
 struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
   typedef Value ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const boost::tuple<Value, Value, Value>& x) { return 3; }
   static boost::tuple<Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value()); }
 #ifdef USE_MPI
@@ -140,7 +140,7 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value> > {
 template<typename Value>
 struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
   typedef boost::tuple<Value, Value, Value, Value> ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const boost::tuple<Value, Value, Value, Value>& x) { return 4; }
   static boost::tuple<Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
@@ -152,7 +152,7 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value, Value> > {
 template<typename Value>
 struct DataTypeTraits<boost::tuple<Value, Value, Value, Value, Value> > {
   typedef boost::tuple<Value, Value, Value, Value, Value> ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const boost::tuple<Value, Value, Value, Value, Value>& x) { return 5; }
   static boost::tuple<Value, Value, Value, Value, Value> zero() { return boost::make_tuple(Value(), Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
@@ -164,7 +164,7 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value, Value, Value> > {
 template<>
 struct DataTypeTraits<Dim<1>::Vector> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<1>::Vector& x) { return 1; }
   static Dim<1>::Vector zero() { return Dim<1>::Vector::zero; }
 #ifdef USE_MPI
@@ -175,7 +175,7 @@ struct DataTypeTraits<Dim<1>::Vector> {
 template<>
 struct DataTypeTraits<Dim<1>::Vector3d> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<1>::Vector3d& x) { return 3; }
   static Dim<1>::Vector3d zero() { return Dim<1>::Vector3d::zero; }
 #ifdef USE_MPI
@@ -186,7 +186,7 @@ struct DataTypeTraits<Dim<1>::Vector3d> {
 template<>
 struct DataTypeTraits<Dim<1>::Tensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<1>::Tensor& x) { return 1; }
   static Dim<1>::Tensor zero() { return Dim<1>::Tensor::zero; }
 #ifdef USE_MPI
@@ -197,7 +197,7 @@ struct DataTypeTraits<Dim<1>::Tensor> {
 template<>
 struct DataTypeTraits<Dim<1>::SymTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<1>::SymTensor& x) { return 1; }
   static Dim<1>::SymTensor zero() { return Dim<1>::SymTensor::zero; }
 #ifdef USE_MPI
@@ -208,7 +208,7 @@ struct DataTypeTraits<Dim<1>::SymTensor> {
 template<>
 struct DataTypeTraits<Dim<1>::ThirdRankTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<1>::ThirdRankTensor& x) { return Dim<1>::ThirdRankTensor::numElements; }
   static Dim<1>::ThirdRankTensor zero() { return Dim<1>::ThirdRankTensor::zero; }
 #ifdef USE_MPI
@@ -220,7 +220,7 @@ struct DataTypeTraits<Dim<1>::ThirdRankTensor> {
 template<>
 struct DataTypeTraits<Dim<2>::Vector> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<2>::Vector& x) { return 2; }
   static Dim<2>::Vector zero() { return Dim<2>::Vector::zero; }
 #ifdef USE_MPI
@@ -231,7 +231,7 @@ struct DataTypeTraits<Dim<2>::Vector> {
 template<>
 struct DataTypeTraits<Dim<2>::Tensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<2>::Tensor& x) { return 4; }
   static Dim<2>::Tensor zero() { return Dim<2>::Tensor::zero; }
 #ifdef USE_MPI
@@ -242,7 +242,7 @@ struct DataTypeTraits<Dim<2>::Tensor> {
 template<>
 struct DataTypeTraits<Dim<2>::SymTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<2>::SymTensor& x) { return 3; }
   static Dim<2>::SymTensor zero() { return Dim<2>::SymTensor::zero; }
 #ifdef USE_MPI
@@ -253,7 +253,7 @@ struct DataTypeTraits<Dim<2>::SymTensor> {
 template<>
 struct DataTypeTraits<Dim<2>::ThirdRankTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<2>::ThirdRankTensor& x) { return Dim<2>::ThirdRankTensor::numElements; }
   static Dim<2>::ThirdRankTensor zero() { return Dim<2>::ThirdRankTensor::zero; }
 #ifdef USE_MPI
@@ -265,7 +265,7 @@ struct DataTypeTraits<Dim<2>::ThirdRankTensor> {
 template<>
 struct DataTypeTraits<Dim<3>::Vector> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<3>::Vector& x) { return 3; }
   static Dim<3>::Vector zero() { return Dim<3>::Vector::zero; }
 #ifdef USE_MPI
@@ -276,7 +276,7 @@ struct DataTypeTraits<Dim<3>::Vector> {
 template<>
 struct DataTypeTraits<Dim<3>::Tensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<3>::Tensor& x) { return 9; }
   static Dim<3>::Tensor zero() { return Dim<3>::Tensor::zero; }
 #ifdef USE_MPI
@@ -287,7 +287,7 @@ struct DataTypeTraits<Dim<3>::Tensor> {
 template<>
 struct DataTypeTraits<Dim<3>::SymTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<3>::SymTensor& x) { return 6; }
   static Dim<3>::SymTensor zero() { return Dim<3>::SymTensor::zero; }
 #ifdef USE_MPI
@@ -298,7 +298,7 @@ struct DataTypeTraits<Dim<3>::SymTensor> {
 template<>
 struct DataTypeTraits<Dim<3>::ThirdRankTensor> {
   typedef double ElementType;
-  static const bool fixedSize() { return true; }
+  static bool fixedSize() { return true; }
   static int numElements(const Dim<3>::ThirdRankTensor& x) { return Dim<3>::ThirdRankTensor::numElements; }
   static Dim<3>::ThirdRankTensor zero() { return Dim<3>::ThirdRankTensor::zero; }
 #ifdef USE_MPI

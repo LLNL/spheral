@@ -64,7 +64,7 @@ public:
   //---------------------------------------------------------------------------
   // Static methods.
   //---------------------------------------------------------------------------
-  static const int nDim() { return Dimension::nDim; }
+  static int nDim() { return Dimension::nDim; }
   
   //---------------------------------------------------------------------------
   // Constructors, assignment, destructor.

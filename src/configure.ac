@@ -22,7 +22,6 @@ INSTALL=`pwd`/m4macros/install-sh
 # macro definitions are in m4macros/python.m4
 # -------------------------------------------------
 AC_PROG_PYTHON
-SETUP_PYTHON_ENV
 
 # -------------------------------------------------
 # Setup the Spheral Environment 

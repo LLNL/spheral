@@ -141,7 +141,7 @@ operator=(const State<Dimension>& rhs) {
 template<typename Dimension>
 bool
 State<Dimension>::
-operator==(const State<Dimension>& rhs) const {
+operator==(const StateBase<Dimension>& rhs) const {
   return StateBase<Dimension>::operator==(rhs);
 }
 

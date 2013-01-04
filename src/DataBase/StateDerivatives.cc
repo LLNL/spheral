@@ -98,7 +98,7 @@ operator=(const StateDerivatives<Dimension>& rhs) {
 template<typename Dimension>
 bool
 StateDerivatives<Dimension>::
-operator==(const StateDerivatives<Dimension>& rhs) const {
+operator==(const StateBase<Dimension>& rhs) const {
   return StateBase<Dimension>::operator==(rhs);
 }
 

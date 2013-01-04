@@ -61,7 +61,7 @@ public:
   State& operator=(const State& rhs);
 
   // Override the base method.
-  virtual bool operator==(const State& rhs) const;
+  virtual bool operator==(const StateBase<Dimension>& rhs) const;
 
   // Update the registered state according to the policies.
   void update(StateDerivatives<Dimension>& derivs,
