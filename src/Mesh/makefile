@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Mesh
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	MeshConstructionUtilities.cc \
 	findMatchingVertexInst.cc \

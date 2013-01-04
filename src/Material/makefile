@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Material
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	PhysicalConstants.cc \
 	EquationOfStateInst.cc \

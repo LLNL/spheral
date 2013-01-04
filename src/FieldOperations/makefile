@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = FieldOperations
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	smoothFieldsInst.cc \
 	gradientInst.cc \

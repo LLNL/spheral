@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Utilities
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	DBC.cc \
 	Process.cc \
