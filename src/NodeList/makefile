@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = NodeList
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	NodeListRegistrarInst.cc \
 	NodeListInst.cc \

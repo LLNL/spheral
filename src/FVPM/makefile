@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = FVPM
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	TestFunction.cc \
 	QuadRule.cc \

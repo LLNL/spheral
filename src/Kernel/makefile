@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Kernel
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	BSplineKernel.cc \
 	W4SplineKernel.cc \

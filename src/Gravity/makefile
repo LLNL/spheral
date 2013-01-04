@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Gravity
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	NBodyGravityInst.cc \
 	OctTreeGravity.cc

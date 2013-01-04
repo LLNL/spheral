@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	ArtificialViscosityInst.cc \
 	MonaghanGingoldViscosityInst.cc \

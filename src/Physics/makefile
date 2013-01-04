@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Physics
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	PhysicsInst.cc \
 	GenericHydroInst.cc \

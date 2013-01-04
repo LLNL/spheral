@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Hydro
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	HydroFieldNames.cc \
 	PressurePolicyInst.cc \

@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	FileIO.cc \
 	FlatFileIO.cc \

@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = Infrastructure
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	SpheralError.cc
 # PYFFLETARGETS =

@@ -76,11 +76,6 @@ SETUP_PARMETIS
 SETUP_POSTGRES
 
 # -------------------------------------------------
-# setup gadget support (m4macros/gadget.m4)
-# -------------------------------------------------
-SETUP_GADGET
-
-# -------------------------------------------------
 # setup SPH Gravity stuff (m4macros/SPHGravity.m4)
 # -------------------------------------------------
 SETUP_SPHGRAVITY

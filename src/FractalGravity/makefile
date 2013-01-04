@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = FractalGravity
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	FractalGravity.cc \
 	adj_nina.cc \

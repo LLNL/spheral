@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 PKGNAME = SPH
 PKGDIR = $(PKGNAME)/
-LIBTARGET = lib$(PKGNAME).$(DYLIBEXT)
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	computeSPHSumMassDensityInst.cc \
 	computeSPHOmegaGradhCorrectionInst.cc \

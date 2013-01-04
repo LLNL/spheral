@@ -125,8 +125,7 @@ SHLIBEXT = @SHLIBEXT@
 
 #-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
-CXXPKGLIBS = @CXXPKGLIBS@ 
-# CXXPKGLIBS = $(filter-out SimulationControl, $(CXXPKGS))
+CXXPKGLIBS = $(patsubst %, Spheral_%, @CXXPKGLIBS@)
 PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 
 #-------------------------------------------------------------------------------
