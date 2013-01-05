@@ -2,13 +2,18 @@
 # Spheral++ main makefile
 
 #-------------------------------------------------------------------------------
+# These are the automatically generated Gnu install stuff.  Override with --prefix
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+includedir =   @includedir@
+libdir = @libdir@
+
+INSTALL = @INSTALL@
 SPHERALDIR = @SPHERALDIR@
 SRCTOP = @SRCDIR@
 TOPLIBDIR =  @TOPLIBDIR@
 LIBDIR =     @LIBDIR@
-PYTHONDIR  = @PYINCLUDEDIR@
 PYTHONLIBDIR   = @PYLIBDIR@
-#PYTHONLIBS = @PYLIBS@
 THIRDPARTYLIBDIR = $(SPHERALDIR)/lib
 THIRDPARTYINCDIR = $(SPHERALDIR)/include
 BUILDWILDMAGIC = @BUILDWILDMAGIC@
@@ -66,8 +71,6 @@ OBJS = $(SRCTARGETS:.cc=.o) $(F77TARGETS:.f=.o)
 
 TAULIBS = @TAULIBS@
 LIBS =  -lpolytope -L$(WILDMAGICLIBDIR) $(WILDMAGICLIBS) -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(TAULIBS)
-PAPILIBS = @PAPILIBS@
-GADGET_PATH = @GADGET_PATH@
 
 DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
@@ -124,6 +127,10 @@ LIBTARGETFLAGS = @LIBTARGETFLAGS@
 SHLIBEXT = @SHLIBEXT@
 
 #-------------------------------------------------------------------------------
+# Find all the header files in the current directory.
+HEADERS = $(wildcard *.hh)
+
+#-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
 CXXPKGLIBS = $(patsubst %, Spheral_%, @CXXPKGLIBS@)
 PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
@@ -177,9 +184,15 @@ CONFIG_SHELL=@CONFIG_SHELL@
 
 .PHONY: all install force_build $(PYTHONDATEFILE)
 
-all:	$(PYTHONTARGETS) $(LIBTARGET) $(MODTARGET) $(BPLMODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(THIRDPARTYLIBTARGET) $(INCTARGETS) $(INSTALLTARGETS)
+all:	@ALL@
 
 cxxonly:	$(LIBTARGET)
+
+install-headers:
+ifneq ($(HEADERS),)
+	@mkdir -p $(includedir)/spheral/$(PKGNAME)
+	cp -f $(HEADERS) $(includedir)/spheral/$(PKGNAME)
+endif
 
 force_build:
 
