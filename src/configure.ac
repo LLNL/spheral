@@ -90,7 +90,7 @@ SETUP_MHD
 SETUP_FRACTALGRAVITY
 
 # -------------------------------------------------
-# setup timers (m4macros/timers.m4
+# setup tau (m4macros/tau.m4
 # -------------------------------------------------
 SETUP_TAU
 

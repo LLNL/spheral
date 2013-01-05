@@ -23,6 +23,7 @@ AC_SUBST(SPHERALDIR)
 AC_SUBST(SRCDIR)
 AC_SUBST(TOPLIBDIR)
 AC_SUBST(LIBDIR)
+AC_SUBST(HEADERDIR)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CXXPKGS)
 AC_SUBST(CXXPKGLIBS)
@@ -31,8 +32,10 @@ AC_SUBST(LDFLAGS)
 AC_SUBST(LDRPATH)
 AC_SUBST(LIBS)
 AC_SUBST(GEOMETRY_ONLY)
+AC_SUBST(ALL)
 
 LDRPATH=
+HEADERDIR=
 
 # Prepare for user selected third party targets.
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
@@ -189,6 +192,23 @@ AC_ARG_WITH(gsl,
 ],
 [
    AC_MSG_RESULT(no)
+]
+)
+
+# -----------------------------------------------------------------
+# Optionally do a cxxonly build.
+# -----------------------------------------------------------------
+AC_MSG_CHECKING(for --with-cxxonly)
+AC_ARG_WITH(cxxonly,
+[  --with-cxxonly ........................... optionally do a cxxonly build (no third party, no python extensions)],
+[
+   AC_MSG_RESULT(yes)
+   ALL="cxxonly install-headers"
+   LIBDIR="$libdir"
+],
+[
+   AC_MSG_RESULT(no)
+   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
 ]
 )
 
