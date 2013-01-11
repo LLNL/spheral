@@ -8,7 +8,7 @@
 #include <sstream>
 #include "boost/foreach.hpp"
 
-#include "polytope.hh"
+#include "polytope/polytope.hh"
 
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
