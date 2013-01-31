@@ -96,12 +96,6 @@ public:
   double Hextent() const;
   void Hextent(const double val);
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 private:
   //--------------------------- Private Interface ---------------------------//
   // The cutoff radius in normalized space for nodes to interact.

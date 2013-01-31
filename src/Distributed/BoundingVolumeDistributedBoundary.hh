@@ -72,11 +72,6 @@ private:
                            std::vector<int>& numNodesPerNodes,
                            std::vector<std::string>& positionBuffers,
                            std::vector<std::string>& Hbuffers) const;
-
-#ifdef USE_MPI
-  using DistributedBoundary<Dimension>::mCommunicator;
-#endif
-
 };
 
 }

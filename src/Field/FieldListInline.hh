@@ -18,6 +18,7 @@ extern "C" {
 }
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {
@@ -634,8 +635,8 @@ operator()(const typename Dimension::Vector& position,
   // In parallel, we need to sum up the result across all processors.
   {
     int procID, numProcs;
-    MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    MPI_Comm_rank(Communicator::communicator(), &procID);
+    MPI_Comm_size(Communicator::communicator(), &numProcs);
     VERIFY(DataTypeTraits<DataType>::fixedSize());
     const size_t sizeOfElement = DataTypeTraits<DataType>::numElements()*sizeof(typename DataTypeTraits<DataType>::ElementType);
     std::vector<char> sendBuffer;
@@ -644,7 +645,7 @@ operator()(const typename Dimension::Vector& position,
     CHECK(sendBuffer.size() == sizeOfElement);
     for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
       recvBuffer = sendBuffer;
-      MPI_Bcast(&(*recvBuffer.begin()), sizeOfElement, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&(*recvBuffer.begin()), sizeOfElement, MPI_CHAR, sendProc, Communicator::communicator());
       if (procID != sendProc) {
         DataType otherValue;
         std::vector<char>::const_iterator itr = recvBuffer.begin();

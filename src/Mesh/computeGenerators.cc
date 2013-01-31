@@ -24,6 +24,7 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/removeElements.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -211,8 +212,8 @@ computeGenerators(NodeListIterator nodeListBegin,
 //         }
 //       }
 //       sendSizes[kdomain] = buf.size();
-//       MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
-//       MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
+//       MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &sendRequests[2*kdomain]);
+//       MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, Communicator::communicator(), &sendRequests[2*kdomain+1]);
 //     }
 //     CHECK(sendBufs.size() == numNeighborDomains);
 
@@ -223,10 +224,10 @@ computeGenerators(NodeListIterator nodeListBegin,
 //       CHECK(sharedNodes[kdomain].size() > 0);
 //       MPI_Status status1, status2;
 //       unsigned bufSize;
-//       MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
+//       MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &status1);
 //       CHECK(bufSize > 0);
 //       vector<char> buffer(bufSize);
-//       MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
+//       MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, Communicator::communicator(), &status2);
 //       vector<char>::const_iterator bufItr = buffer.begin();
 //       Vector xi;
 //       SymTensor Hi;

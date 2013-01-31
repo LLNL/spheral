@@ -12,6 +12,7 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -722,7 +723,7 @@ sumElements() const {
     // In parallel, do the reduction.
     // Note this will fail to compile for types that do not have corresponding MPI type!
     DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_SUM, Communicator::communicator());
   }
 #endif
   return result;
@@ -742,7 +743,7 @@ min() const {
     // In parallel, do the reduction.
     // Note this will fail to compile for types that do not have corresponding MPI type!
     DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MIN, Communicator::communicator());
   }
 #endif
   return result;
@@ -762,7 +763,7 @@ max() const {
     // In parallel, do the reduction.
     // Note this will fail to compile for types that do not have corresponding MPI type!
     DataType tmp = result;
-    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<DataType>::MpiDataType(), MPI_MAX, Communicator::communicator());
   }
 #endif
   return result;

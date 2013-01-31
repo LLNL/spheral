@@ -1,6 +1,6 @@
 #include "DomainNode.hh"
+#include "Communicator.hh"
 #include "DBC.hh"
-#include "cdebug.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -13,9 +13,8 @@ template<typename Dimension>
 inline
 int
 RedistributeNodes<Dimension>::domainID() const {
-//   cdebug << "RedistributeNodes::domainID()" << endl;
   int domainID;
-  MPI_Comm_rank(mCommunicator, &domainID);
+  MPI_Comm_rank(Communicator::communicator(), &domainID);
   ENSURE(domainID >= 0 && domainID < numDomains());
   return domainID;
 }
@@ -27,9 +26,8 @@ template<typename Dimension>
 inline
 int
 RedistributeNodes<Dimension>::numDomains() const {
-//   cdebug << "RedistributeNodes::numDomains()" << endl;
   int nProcs;
-  MPI_Comm_size(mCommunicator, &nProcs);
+  MPI_Comm_size(Communicator::communicator(), &nProcs);
   return nProcs;
 }
 #endif // USE_MPI

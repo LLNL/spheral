@@ -44,10 +44,6 @@ private:
   DistributeByXPosition(const DistributeByXPosition& nodes);
   DistributeByXPosition& operator=(const DistributeByXPosition& rhs);
 
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 };
 
 }

@@ -14,6 +14,7 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/packElement.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -346,8 +347,8 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
     std::vector<MPI_Request> requests(2*numNeighborDomains);
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
       const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localBufferSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &requests[k]);
-      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &requests[numNeighborDomains + k]);
+      MPI_Isend(&localBufferSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
+      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
     }
     std::vector<MPI_Status> status(requests.size());
     MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
@@ -360,9 +361,9 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
     std::vector<MPI_Request> requests(2*numNeighborDomains);
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
       const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localPacked.front(), localBufferSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &requests[k]);
+      MPI_Isend(&localPacked.front(), localBufferSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
       CHECK(buffers[k].size() == neighborBufferSizes[k]);
-      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &requests[numNeighborDomains + k]);
+      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
     }
     std::vector<MPI_Status> status(requests.size());
     MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
@@ -416,8 +417,8 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
     std::vector<MPI_Request> requests(2*numNeighborDomains);
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
       const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &requests[k]);
-      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &requests[numNeighborDomains + k]);
+      MPI_Isend(&localBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[k]);
+      MPI_Irecv(&neighborBufferSizes[k], 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &requests[numNeighborDomains + k]);
     }
     std::vector<MPI_Status> status(requests.size());
     MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());
@@ -430,9 +431,9 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
     std::vector<MPI_Request> requests(2*numNeighborDomains);
     for (unsigned k = 0; k != numNeighborDomains; ++k) {
       const unsigned otherProc = neighborDomains[k];
-      MPI_Isend(&localPacked[k].front(), localBufferSizes[k], MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &requests[k]);
+      MPI_Isend(&localPacked[k].front(), localBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[k]);
       CHECK(buffers[k].size() == neighborBufferSizes[k]);
-      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &requests[numNeighborDomains + k]);
+      MPI_Irecv(&buffers[k].front(), neighborBufferSizes[k], MPI_CHAR, otherProc, 2, Communicator::communicator(), &requests[numNeighborDomains + k]);
     }
     std::vector<MPI_Status> status(requests.size());
     MPI_Waitall(2*numNeighborDomains, &requests.front(), &status.front());

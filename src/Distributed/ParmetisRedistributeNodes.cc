@@ -22,6 +22,7 @@
 #include "Field/NodeIterators.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/globalNodeIDs.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -194,7 +195,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   int options[3] = {0, 0, 0};  // optional parameters that can be passed
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
   vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
   cdebug << "Calling ParMETIS" << endl;
   ParMETIS_V3_PartGeomKway(&(*vtxdist.begin()), 
                            &(*xadj.begin()), 
@@ -212,8 +213,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                            options,
                            &edgecut,
                            &(*part.begin()),
-                           &mCommunicator);
-  MPI_Barrier(mCommunicator);
+                           &Communicator::communicator());
+  MPI_Barrier(Communicator::communicator());
   cdebug << "Done." << endl;
 
   // Loop over the domain decomposition, and fill in the new domain assignments.
@@ -346,7 +347,7 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   int options[3] = {0, 0, 0};  // optional parameters that can be passed
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
   vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
   cdebug << "Calling ParMETIS" << endl;
   ParMETIS_V3_RefineKway(&(*vtxdist.begin()), 
                          &(*xadj.begin()), 
@@ -362,8 +363,8 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
                          options,
                          &edgecut,
                          &(*part.begin()),
-                         &mCommunicator);
-  MPI_Barrier(mCommunicator);
+                         &Communicator::communicator());
+  MPI_Barrier(Communicator::communicator());
   cdebug << "Done." << endl;
 
   // Loop over the domain decomposition, and fill in the new domain assignments.
@@ -602,11 +603,11 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
 
   // Build the vtxdist array, which is just the info about the range of global
   // node IDs on each processor.
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
   vtxdist.push_back(0);
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
     int endNodeID = nodeDistribution.back().globalNodeID + 1;
-    MPI_Bcast(&endNodeID, 1, MPI_INT, sendProc, mCommunicator);
+    MPI_Bcast(&endNodeID, 1, MPI_INT, sendProc, Communicator::communicator());
     vtxdist.push_back(endNodeID);
   }
   CHECK(vtxdist.size() == numProcs + 1);
@@ -683,10 +684,10 @@ printConnectivityStatistics(const map<int, vector<pair<int, double> > >& neighbo
       int minRecv, maxRecv, navgRecv;
       double avgRecv;
       MPI_Status status1, status2, status3, status4;
-      MPI_Recv(&minRecv, 1, MPI_INT, recvProc, 10, mCommunicator, &status1);
-      MPI_Recv(&maxRecv, 1, MPI_INT, recvProc, 11, mCommunicator, &status2);
-      MPI_Recv(&avgRecv, 1, MPI_DOUBLE, recvProc, 12, mCommunicator, &status3);
-      MPI_Recv(&navgRecv, 1, MPI_INT, recvProc, 13, mCommunicator, &status4);
+      MPI_Recv(&minRecv, 1, MPI_INT, recvProc, 10, Communicator::communicator(), &status1);
+      MPI_Recv(&maxRecv, 1, MPI_INT, recvProc, 11, Communicator::communicator(), &status2);
+      MPI_Recv(&avgRecv, 1, MPI_DOUBLE, recvProc, 12, Communicator::communicator(), &status3);
+      MPI_Recv(&navgRecv, 1, MPI_INT, recvProc, 13, Communicator::communicator(), &status4);
       minNeighbor = std::min(minNeighbor, minRecv);
       maxNeighbor = std::max(maxNeighbor, maxRecv);
       avgNeighbor += avgRecv;
@@ -703,10 +704,10 @@ printConnectivityStatistics(const map<int, vector<pair<int, double> > >& neighbo
          << avgNeighbor << endl;
    
   } else {
-    MPI_Send(&minNeighbor, 1, MPI_INT, 0, 10, mCommunicator);
-    MPI_Send(&maxNeighbor, 1, MPI_INT, 0, 11, mCommunicator);
-    MPI_Send(&avgNeighbor, 1, MPI_DOUBLE, 0, 12, mCommunicator);
-    MPI_Send(&navgNeighbor, 1, MPI_INT, 0, 13, mCommunicator);
+    MPI_Send(&minNeighbor, 1, MPI_INT, 0, 10, Communicator::communicator());
+    MPI_Send(&maxNeighbor, 1, MPI_INT, 0, 11, Communicator::communicator());
+    MPI_Send(&avgNeighbor, 1, MPI_DOUBLE, 0, 12, Communicator::communicator());
+    MPI_Send(&navgNeighbor, 1, MPI_INT, 0, 13, Communicator::communicator());
   }
 
 }
@@ -972,7 +973,7 @@ inverseConnectivity(const map<int, vector<pair<int, double> > >& neighbors) cons
       }
     }
     int numSend = sendIDs.size();
-    MPI_Bcast(&numSend, 1, MPI_INT, sendProc, mCommunicator);
+    MPI_Bcast(&numSend, 1, MPI_INT, sendProc, Communicator::communicator());
     for (int k = 0; k != numSend; ++k) {
       int globalID = -1;
       int numNeighbors = -1;
@@ -995,13 +996,13 @@ inverseConnectivity(const map<int, vector<pair<int, double> > >& neighbors) cons
         CHECK(distances.size() == numNeighbors);
         result.erase(itr);
       }
-      MPI_Bcast(&globalID, 1, MPI_INT, sendProc, mCommunicator);
-      MPI_Bcast(&numNeighbors, 1, MPI_INT, sendProc, mCommunicator);
+      MPI_Bcast(&globalID, 1, MPI_INT, sendProc, Communicator::communicator());
+      MPI_Bcast(&numNeighbors, 1, MPI_INT, sendProc, Communicator::communicator());
       CHECK(numNeighbors > 0);
       neighborIDs.resize(numNeighbors);
       distances.resize(numNeighbors);
-      MPI_Bcast(&(*neighborIDs.begin()), numNeighbors, MPI_INT, sendProc, mCommunicator);
-      MPI_Bcast(&(*distances.begin()), numNeighbors, MPI_DOUBLE, sendProc, mCommunicator);
+      MPI_Bcast(&(*neighborIDs.begin()), numNeighbors, MPI_INT, sendProc, Communicator::communicator());
+      MPI_Bcast(&(*distances.begin()), numNeighbors, MPI_DOUBLE, sendProc, Communicator::communicator());
       if (globalID >= minGlobalID && globalID <= maxGlobalID) {
         if (result.find(globalID) == result.end()) result[globalID] = vector<pair<int, double> >();
         vector<pair<int, double> >& currentNeighbors = result[globalID];

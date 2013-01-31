@@ -50,12 +50,6 @@ public:
   FieldSpace::FieldList<Dimension, Key> 
   computeHashedIndicies(const DataBaseSpace::DataBase<Dimension>& dataBase) const;
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 private:
   //--------------------------- Private Interface ---------------------------//
   // No copy or assignment operations.

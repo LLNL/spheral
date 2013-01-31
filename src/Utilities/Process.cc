@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Process.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -30,7 +31,7 @@ getRank()
       MPI_Initialized(&isInitialized);
       if (isInitialized)
       {
-         MPI_Comm_rank(MPI_COMM_WORLD, &sRank);
+         MPI_Comm_rank(Communicator::communicator(), &sRank);
       } // end if
       else
       {
@@ -57,7 +58,7 @@ getTotalNumberOfProcesses()
       MPI_Initialized(&isInitialized);
       if (isInitialized)
       {
-         MPI_Comm_size(MPI_COMM_WORLD, &sTotalProcs);
+         MPI_Comm_size(Communicator::communicator(), &sTotalProcs);
       } // end if
       else
       {
@@ -79,7 +80,7 @@ void Process::haltAll(const char* msg) {
    MPI_Initialized(&isInitialized);
    if (isInitialized)
    {
-      MPI_Abort(MPI_COMM_WORLD, 1);
+      MPI_Abort(Communicator::communicator(), 1);
    } 
 #endif
    abort();

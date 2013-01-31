@@ -134,11 +134,6 @@ private:
   // No copy or assignment operations.
   ParmetisRedistributeNodes(const ParmetisRedistributeNodes& nodes);
   ParmetisRedistributeNodes& operator=(const ParmetisRedistributeNodes& rhs);
-
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 };
 
 }

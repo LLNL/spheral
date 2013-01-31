@@ -24,6 +24,7 @@
 #include "Neighbor/NestedGridNeighbor.hh"
 #include "Neighbor/GridCellIndex.hh"
 #include "Utilities/globalNodeIDs.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -137,7 +138,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   }
   CHECK(numProcs > 0);
   double globalWork;
-  MPI_Allreduce(&localWork, &globalWork, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&localWork, &globalWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
   const double targetWorkPerDomain = globalWork / numProcs;
   CHECK(distinctlyGreaterThan(targetWorkPerDomain, 0.0));
 
@@ -258,7 +259,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const string finalLoadStats = this->gatherDomainDistributionStatistics(work);
   if (procID == 0) cerr << "NestedGridRedistributeNodes::redistributeNodes final load balancing:" << endl
                         << finalLoadStats << endl << endl;
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
 
 }
 
@@ -274,7 +275,7 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
                            vector<int>& gridLevelPopulations) const {
 
   // Make sure the return variables are sized properly and zeroed.
-  const size_t numOccupiedGridLevels = maxNumGridLevels(dataBase, mCommunicator);
+  const size_t numOccupiedGridLevels = maxNumGridLevels(dataBase, Communicator::communicator());
   gridCellPopulations = GridCellPopulationType(numOccupiedGridLevels);
   gridLevelPopulations = vector<int>(numOccupiedGridLevels, 0);
 
@@ -322,14 +323,14 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
 
   // Every domain has individually counted up the number of nodes, so sum the
   // counts over all processes to get the global counts.
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
   const int numProcs = this->numDomains();
   const int procID = this->domainID();
   for (int gridLevel = 0; gridLevel != numOccupiedGridLevels; ++gridLevel) {
 
     // Reduce the total numbers of nodes on the grid levels.
     int globalNumNodes;
-    MPI_Allreduce(&(gridLevelPopulations[gridLevel]), &globalNumNodes, 1, MPI_INT, MPI_SUM, mCommunicator);
+    MPI_Allreduce(&(gridLevelPopulations[gridLevel]), &globalNumNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     gridLevelPopulations[gridLevel] = globalNumNodes;
 
     // The complication with grid cells is that each domain may have different
@@ -357,8 +358,8 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
         // Send to all other processors.
         for (int proc = 0; proc != numProcs; ++proc) {
           if (proc != procID) {
-            MPI_Send(&bufferSize, 1, MPI_INT, proc, 110, mCommunicator);
-            MPI_Send(&(*buffer.begin()), bufferSize, MPI_INT, proc, 111, mCommunicator);
+            MPI_Send(&bufferSize, 1, MPI_INT, proc, 110, Communicator::communicator());
+            MPI_Send(&(*buffer.begin()), bufferSize, MPI_INT, proc, 111, Communicator::communicator());
           }
         }
 
@@ -367,9 +368,9 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
         // Get the current send procs encoded info.
         int bufferSize;
         MPI_Status status1, status2;
-        MPI_Recv(&bufferSize, 1, MPI_INT, sendProc, 110, mCommunicator, &status1);
+        MPI_Recv(&bufferSize, 1, MPI_INT, sendProc, 110, Communicator::communicator(), &status1);
         vector<int> buffer(bufferSize);
-        MPI_Recv(&(*buffer.begin()), bufferSize, MPI_INT, sendProc, 111, mCommunicator, &status2);
+        MPI_Recv(&(*buffer.begin()), bufferSize, MPI_INT, sendProc, 111, Communicator::communicator(), &status2);
 
         // Unpack the grid cell info and add it to our current set.
         typename vector<int>::const_iterator bufferItr = buffer.begin();
@@ -718,11 +719,11 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
     for (int sendProc = 1; sendProc != numProcs; ++sendProc) {
       MPI_Status status1, status2, status3;
       int numRecvNodes;
-      MPI_Recv(&numRecvNodes, 1, MPI_INT, sendProc, 120, mCommunicator, &status1);
+      MPI_Recv(&numRecvNodes, 1, MPI_INT, sendProc, 120, Communicator::communicator(), &status1);
       vector<int> recvNodeIDs(numRecvNodes);
-      MPI_Recv(&(*recvNodeIDs.begin()), numRecvNodes, MPI_INT, sendProc, 121, mCommunicator, &status2);
+      MPI_Recv(&(*recvNodeIDs.begin()), numRecvNodes, MPI_INT, sendProc, 121, Communicator::communicator(), &status2);
       vector<double> recvNodeWork(numRecvNodes);
-      MPI_Recv(&(*recvNodeWork.begin()), numRecvNodes, MPI_DOUBLE, sendProc, 122, mCommunicator, &status3);
+      MPI_Recv(&(*recvNodeWork.begin()), numRecvNodes, MPI_DOUBLE, sendProc, 122, Communicator::communicator(), &status3);
 
       // Add the other processors nodes to our list.
       globalNodeIndicies.reserve(globalNodeIndicies.size() + numRecvNodes);
@@ -739,12 +740,12 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
     // Send our info to the root process.
     CHECK(globalNodeIndicies.size() == globalNodeWork.size());
     int numSendNodes = globalNodeIndicies.size();
-    MPI_Send(&numSendNodes, 1, MPI_INT, 0, 120, mCommunicator);
-    MPI_Send(&(*globalNodeIndicies.begin()), numSendNodes, MPI_INT, 0, 121, mCommunicator);
-    MPI_Send(&(*globalNodeWork.begin()), numSendNodes, MPI_DOUBLE, 0, 122, mCommunicator);
+    MPI_Send(&numSendNodes, 1, MPI_INT, 0, 120, Communicator::communicator());
+    MPI_Send(&(*globalNodeIndicies.begin()), numSendNodes, MPI_INT, 0, 121, Communicator::communicator());
+    MPI_Send(&(*globalNodeWork.begin()), numSendNodes, MPI_DOUBLE, 0, 122, Communicator::communicator());
 
   }
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
 
   // OK, now the root process has all info, while all other processes have their own
   // local set of coarse nodes only.
@@ -789,7 +790,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
   // or fill the domains work quota.
   const int numGridLevels = gridLevelPopulations.size();
   int numCoarseNodes = globalNodeIndicies.size();
-  MPI_Bcast(&numCoarseNodes, 1, MPI_INT, 0, mCommunicator);
+  MPI_Bcast(&numCoarseNodes, 1, MPI_INT, 0, Communicator::communicator());
   int i = 0;
   bool domainFull = false;
   while (i < numCoarseNodes && !domainFull) {
@@ -803,8 +804,8 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
       globalWork = globalNodeWork[i];
 //       cerr << "    -> Assigning node " << globalNodeID << " to domain " << currentDomainID << endl;
     }
-    MPI_Bcast(&globalNodeID, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&globalWork, 1, MPI_DOUBLE, 0, mCommunicator);
+    MPI_Bcast(&globalNodeID, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&globalWork, 1, MPI_DOUBLE, 0, Communicator::communicator());
 
     // Are we the process that has this node?
     GridCellIndex<Dimension> gc;
@@ -831,11 +832,11 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
 
     // Broadcast the node's grid cell/grid level info to everyone.
     int globalOwnerProc = -1;
-    MPI_Allreduce(&ownerProc, &globalOwnerProc, 1, MPI_INT, MPI_MAX, mCommunicator);
+    MPI_Allreduce(&ownerProc, &globalOwnerProc, 1, MPI_INT, MPI_MAX, Communicator::communicator());
     CHECK(globalOwnerProc >= 0 && globalOwnerProc < numProcs);
-    MPI_Bcast(&gridLevel, 1, MPI_INT, globalOwnerProc, mCommunicator);
+    MPI_Bcast(&gridLevel, 1, MPI_INT, globalOwnerProc, Communicator::communicator());
     CHECK(gridLevel >= 0 && gridLevel < numGridLevels);
-    MPI_Bcast(&(gc(0)), Dimension::nDim, MPI_INT, globalOwnerProc, mCommunicator);
+    MPI_Bcast(&(gc(0)), Dimension::nDim, MPI_INT, globalOwnerProc, Communicator::communicator());
 
     // Remove this node from the grid cell/grid level pools of available nodes.
     CHECK(gridLevel < gridCellPopulations.size());
@@ -855,7 +856,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
   // Check that everyone agrees if the domain is full or not.
   int fullFlag = domainFull ? 1 : 0;
   int fullFlagSum;
-  MPI_Allreduce(&fullFlag, &fullFlagSum, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&fullFlag, &fullFlagSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   ENSURE(fullFlagSum == numProcs * fullFlag);
 
   // Check that we're all consistent about the grid level & grid cell populations.
@@ -867,8 +868,8 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
          ++itr) gcPop += itr->second;
     CHECK(glPop == gcPop);
     int glPopSum, gcPopSum;
-    MPI_Allreduce(&glPop, &glPopSum, 1, MPI_INT, MPI_SUM, mCommunicator);
-    MPI_Allreduce(&gcPop, &gcPopSum, 1, MPI_INT, MPI_SUM, mCommunicator);
+    MPI_Allreduce(&glPop, &glPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+    MPI_Allreduce(&gcPop, &gcPopSum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     CHECK(glPopSum == numProcs * glPop);
     CHECK(gcPopSum == numProcs * gcPop);
   }

@@ -15,6 +15,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/globalNodeIDs.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -105,7 +106,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       {
         MPI_Status status;
         MPI_Recv(&sizeOfBuffer, 1, MPI_INT, recvProc, 11,
-                 mCommunicator, &status);
+                 Communicator::communicator(), &status);
       }
 
       // Now get the encoded distribution from recvProc.
@@ -114,7 +115,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       {
         MPI_Status status;
         MPI_Recv(&(*recvBuffer.begin()), sizeOfBuffer, MPI_CHAR, recvProc,
-                 12, mCommunicator, &status);
+                 12, Communicator::communicator(), &status);
       }
 
       // Decode this message back into a set of DomainNode.
@@ -135,8 +136,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // All other processes just send their info to process 0.
     vector<char> encodedDistribution = this->packDomainNodes(localDistribution);
     int size = encodedDistribution.size();
-    MPI_Send(&size, 1, MPI_INT, 0, 11, mCommunicator);
-    MPI_Send(&(*encodedDistribution.begin()), size, MPI_CHAR, 0, 12, mCommunicator);
+    MPI_Send(&size, 1, MPI_INT, 0, 11, Communicator::communicator());
+    MPI_Send(&(*encodedDistribution.begin()), size, MPI_CHAR, 0, 12, Communicator::communicator());
   }
 
   // OK, now process 0 has the complete set of sorted positions.  It will
@@ -174,10 +175,10 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // Have process 0 broadcast the results to everyone.
   vector<char> encodedDistribution = this->packDomainNodes(globalDistribution);
   int size = encodedDistribution.size();
-  MPI_Bcast(&size, 1, MPI_INT, 0, mCommunicator);
+  MPI_Bcast(&size, 1, MPI_INT, 0, Communicator::communicator());
   if (procID > 0) encodedDistribution.resize(size);
   CHECK(encodedDistribution.size() == size);
-  MPI_Bcast(&(*encodedDistribution.begin()), size, MPI_CHAR, 0, mCommunicator);
+  MPI_Bcast(&(*encodedDistribution.begin()), size, MPI_CHAR, 0, Communicator::communicator());
   if (procID > 0) globalDistribution = this->unpackDomainNodes(encodedDistribution);
   CHECK(globalDistribution.size() == totalNumNodes);
 

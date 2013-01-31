@@ -22,6 +22,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
+#include "Distributed/Communicator.hh"
 #include "DBC.hh"
 
 namespace Spheral {
@@ -125,10 +126,10 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
     if (otherProc != rank) {
       sendRequests.push_back(MPI_Request());
-      MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &sendRequests.back());
+      MPI_Isend(&localBufSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &sendRequests.back());
       if (localBufSize > 0) {
         sendRequests.push_back(MPI_Request());
-        MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &sendRequests.back());
+        MPI_Isend(&localBuffer.front(), localBufSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &sendRequests.back());
       }
     }
   }
@@ -141,10 +142,10 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   Tree tree;
   for (unsigned otherProc = 0; otherProc != numProcs; ++otherProc) {
     if (otherProc != rank) {
-      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 1, MPI_COMM_WORLD, &recvStatus);
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 1, Communicator::communicator(), &recvStatus);
       if (bufSize > 0) {
         buffer = vector<char>(bufSize);
-        MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 2, MPI_COMM_WORLD, &recvStatus);
+        MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 2, Communicator::communicator(), &recvStatus);
         tree = Tree();
         bufItr = buffer.begin();
         this->deserialize(tree, bufItr, buffer.end());
@@ -243,9 +244,9 @@ initialize(const Scalar time,
     // Broadcast the send processor's tree.
     buffer = localBuffer;
     bufSize = buffer.size();
-    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
     buffer.resize(bufSize);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     tree = Tree();
     bufItr = buffer.begin();
     this->deserialize(tree, bufItr, buffer.end());
@@ -306,7 +307,7 @@ initialize(const Scalar time,
   }
 
   // Get the global max cell density.
-  mMaxCellDensity = allReduce(mMaxCellDensity, MPI_MAX, MPI_COMM_WORLD);
+  mMaxCellDensity = allReduce(mMaxCellDensity, MPI_MAX, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -369,7 +370,7 @@ dumpTree(const bool globalTree) const {
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -390,10 +391,10 @@ dumpTree(const bool globalTree) const {
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
-        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
         if (bufSize > 0) {
           vector<char> buffer = localBuffer;
-          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
           if (rank != sendProc) {
             vector<char>::const_iterator itr = buffer.begin();
             while (itr < buffer.end()) {
@@ -443,7 +444,7 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -464,10 +465,10 @@ dumpTreeStatistics(const bool globalTree) const {
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
-        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
         if (bufSize > 0) {
           vector<char> buffer = localBuffer;
-          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
           if (rank != sendProc) {
             vector<char>::const_iterator itr = buffer.begin();
             while (itr < buffer.end()) {

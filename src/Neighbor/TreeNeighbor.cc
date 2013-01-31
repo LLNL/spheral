@@ -25,6 +25,7 @@
 #include "Boundary/mapPositionThroughPlanes.hh"
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
+#include "Distributed/Communicator.hh"
 #include "DBC.hh"
 
 namespace Spheral {
@@ -419,7 +420,7 @@ dumpTree(const bool globalTree) const {
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -440,10 +441,10 @@ dumpTree(const bool globalTree) const {
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
-        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
         if (bufSize > 0) {
           vector<char> buffer = localBuffer;
-          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
           if (rank != sendProc) {
             vector<char>::const_iterator itr = buffer.begin();
             while (itr < buffer.end()) {
@@ -491,7 +492,7 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
   const unsigned rank = Process::getRank();
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, MPI_COMM_WORLD);
+  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -512,10 +513,10 @@ dumpTreeStatistics(const bool globalTree) const {
     if (globalTree) {
       for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
         unsigned bufSize = localBuffer.size();
-        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
         if (bufSize > 0) {
           vector<char> buffer = localBuffer;
-          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+          MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
           if (rank != sendProc) {
             vector<char>::const_iterator itr = buffer.begin();
             while (itr < buffer.end()) {

@@ -128,11 +128,6 @@ private:
   // No copy or assignment operations.
   VoronoiRedistributeNodes(const VoronoiRedistributeNodes& nodes);
   VoronoiRedistributeNodes& operator=(const VoronoiRedistributeNodes& rhs);
-
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 };
 
 }

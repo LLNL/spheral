@@ -150,12 +150,6 @@ public:
   bool localReorderOnly() const;
   void localReorderOnly(const bool val);
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
 private:
   //--------------------------- Private Interface ---------------------------//
   double mMinNodesPerDomainFraction, mMaxNodesPerDomainFraction;

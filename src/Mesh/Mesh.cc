@@ -18,6 +18,7 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/boundingBox.hh"
+#include "Distributed/Communicator.hh"
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
@@ -51,15 +52,15 @@ reduceToMaxString(const string& x,
                   const unsigned numDomains) {
   unsigned badRank = allReduce((x.size() == 0 ? numDomains : rank),
                                MPI_MIN,
-                               MPI_COMM_WORLD);
+                               Communicator::communicator());
   if (badRank == numDomains) {
     return "";
   } else {
     unsigned size = x.size();
-    MPI_Bcast(&size, 1, MPI_UNSIGNED, badRank, MPI_COMM_WORLD);
+    MPI_Bcast(&size, 1, MPI_UNSIGNED, badRank, Communicator::communicator());
     vector<char> result(x.begin(), x.end());
     result.resize(size);
-    MPI_Bcast(&result.front(), size, MPI_CHAR, badRank, MPI_COMM_WORLD);
+    MPI_Bcast(&result.front(), size, MPI_CHAR, badRank, Communicator::communicator());
     return string(result.begin(), result.end());
   }
 }
@@ -711,8 +712,8 @@ generateDomainInfo() {
   // bit perfect consistency across processors.
   Vector boxInv;
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, MPI_COMM_WORLD);
+    xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, Communicator::communicator());
+    xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, Communicator::communicator());
     boxInv(i) = safeInv(xmax(i) - xmin(i));
   }
 
@@ -755,10 +756,10 @@ generateDomainInfo() {
     packElement(domainHulls[rank], localBuffer);
     for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
       unsigned bufSize = localBuffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       vector<char> buffer = localBuffer;
       buffer.resize(bufSize);
-      MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
       vector<char>::const_iterator itr = buffer.begin();
       unpackElement(domainHulls[sendProc], itr, buffer.end());
       CHECK(itr == buffer.end());
@@ -777,10 +778,10 @@ generateDomainInfo() {
   {
     for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
       unsigned num = potentialNeighborDomains.size();
-      MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       vector<unsigned> otherNeighbors = potentialNeighborDomains;
       otherNeighbors.resize(num);
-      MPI_Bcast(&otherNeighbors.front(), num, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&otherNeighbors.front(), num, MPI_UNSIGNED, sendProc, Communicator::communicator());
       CHECK((binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == true and
              binary_search(otherNeighbors.begin(), otherNeighbors.end(), rank) == true) or
             (binary_search(potentialNeighborDomains.begin(), potentialNeighborDomains.end(), sendProc) == false and
@@ -905,10 +906,10 @@ generateDomainInfo() {
         sendBufferSizes.push_back(buf.size());
         sendBuffers.push_back(buf);
         sendRequests.push_back(MPI_Request());
-        MPI_Isend(&sendBufferSizes.back(), 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests.back());
+        MPI_Isend(&sendBufferSizes.back(), 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &sendRequests.back());
         if (buf.size() > 0) {
           sendRequests.push_back(MPI_Request());
-          MPI_Isend(&(sendBuffers.back().front()), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests.back());
+          MPI_Isend(&(sendBuffers.back().front()), buf.size(), MPI_CHAR, otherProc, 11, Communicator::communicator(), &sendRequests.back());
         }
       }
     }
@@ -921,10 +922,10 @@ generateDomainInfo() {
       if (otherProc < rank) {
         unsigned bufSize;
         MPI_Status stat1, stat2;
-        MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &stat1);
+        MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &stat1);
         if (bufSize > 0) {
           vector<char> buffer(bufSize);
-          MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &stat2);
+          MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, Communicator::communicator(), &stat2);
           vector<char>::const_iterator itr = buffer.begin();
           for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
             const unsigned i = mSharedNodes[k][j];
@@ -994,8 +995,8 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     // bit perfect consistency across processors.
     Vector boxInv;
     for (unsigned i = 0; i != Dimension::nDim; ++i) {
-      xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, MPI_COMM_WORLD);
-      xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, MPI_COMM_WORLD);
+      xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, Communicator::communicator());
+      xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, Communicator::communicator());
       boxInv(i) = safeInv(xmax(i) - xmin(i));
     }
 
@@ -1063,12 +1064,12 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
         }
       }
       sendSizes[kdomain] = buf.size();
-      MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &sendRequests[2*kdomain]);
-      MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &sendRequests[2*kdomain+1]);
+      MPI_Isend(&sendSizes[kdomain], 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &sendRequests[2*kdomain]);
+      MPI_Isend(&buf.front(), buf.size(), MPI_CHAR, otherProc, 11, Communicator::communicator(), &sendRequests[2*kdomain+1]);
     }
     CHECK(sendBufs.size() == numNeighborDomains);
 
-    // MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(Communicator::communicator());
     // for (unsigned irank = 0; irank != numDomains; ++irank) {
     //   if (rank == irank) {
     //     cerr << "================================================================================" << endl
@@ -1083,10 +1084,10 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
       CHECK(mSharedNodes[kdomain].size() > 0);
       MPI_Status status1, status2;
       unsigned bufSize;
-      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, MPI_COMM_WORLD, &status1);
+      MPI_Recv(&bufSize, 1, MPI_UNSIGNED, otherProc, 10, Communicator::communicator(), &status1);
       CHECK(bufSize > 0);
       vector<char> buffer(bufSize);
-      MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, MPI_COMM_WORLD, &status2);
+      MPI_Recv(&buffer.front(), bufSize, MPI_CHAR, otherProc, 11, Communicator::communicator(), &status2);
       vector<char>::const_iterator bufItr = buffer.begin();
 
       // Get the number of nodes and faces for this cell.
@@ -1137,7 +1138,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     this->createNewMeshElements(newCells);
 
     //   }
-    //   MPI_Barrier(MPI_COMM_WORLD);
+    //   MPI_Barrier(Communicator::communicator());
     // }
 
     // Wait until all our sends have been satisfied.
@@ -1198,11 +1199,11 @@ globalMeshNodeIDs() const {
     {
       if (rank > 0) {
         MPI_Status recvStatus;
-        MPI_Recv(&minID, 1, MPI_UNSIGNED, rank - 1, 10, MPI_COMM_WORLD, &recvStatus);
+        MPI_Recv(&minID, 1, MPI_UNSIGNED, rank - 1, 10, Communicator::communicator(), &recvStatus);
       }
       if (rank < numDomains - 1) {
         unsigned maxID = minID + nown;
-        MPI_Send(&maxID, 1, MPI_UNSIGNED, rank + 1, 10, MPI_COMM_WORLD);
+        MPI_Send(&maxID, 1, MPI_UNSIGNED, rank + 1, 10, Communicator::communicator());
       }
     }
 
@@ -1225,13 +1226,13 @@ globalMeshNodeIDs() const {
       if (mNeighborDomains[k] < rank) {
         recvBuffers.push_back(vector<unsigned>(n, UNSETID));
         recvRequests.push_back(MPI_Request());
-        MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
+        MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, Communicator::communicator(), &recvRequests.back());
       } else {
         sendBuffers.push_back(vector<unsigned>(n, UNSETID));
         sendRequests.push_back(MPI_Request());
         vector<unsigned>& buf = sendBuffers.back();
         for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
-        MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
+        MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, Communicator::communicator(), &sendRequests.back());
       }
     }
     CHECK(sendBuffers.size() == sendRequests.size());
@@ -1291,13 +1292,13 @@ globalMeshNodeIDs() const {
 
 //         recvBuffers.push_back(vector<unsigned>(n, UNSETID));
 //         recvRequests.push_back(MPI_Request());
-//         MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &recvRequests.back());
+//         MPI_Irecv(&(recvBuffers.back().front()), n, MPI_UNSIGNED, otherProc, 20, Communicator::communicator(), &recvRequests.back());
 
 //         sendBuffers.push_back(vector<unsigned>(n, UNSETID));
 //         sendRequests.push_back(MPI_Request());
 //         vector<unsigned>& buf = sendBuffers.back();
 //         for (unsigned i = 0; i != n; ++i) buf[i] = result[mSharedNodes[k][i]];
-//         MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, MPI_COMM_WORLD, &sendRequests.back());
+//         MPI_Isend(&buf.front(), n, MPI_UNSIGNED, otherProc, 20, Communicator::communicator(), &sendRequests.back());
 //       }
 //       CHECK(sendBuffers.size() == numNeighborDomains);
 //       CHECK(sendRequests.size() == numNeighborDomains);
@@ -1406,8 +1407,8 @@ boundingBox(typename Dimension::Vector& xmin,
   Spheral::boundingBox(mNodePositions, xmin, xmax);
 #ifdef USE_MPI
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
+    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
+    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
   }
 #endif
 }
@@ -1446,10 +1447,10 @@ boundingBox(typename Dimension::Vector& xmin,
 //   requests.reserve(2*mNeighborDomains.size());
 //   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
 //     requests.push_back(MPI_Request());
-//     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &requests.back());
+//     MPI_Isend(&numFaces, 1, MPI_UNSIGNED, neighborProc, 1, Communicator::communicator(), &requests.back());
 //     if (numFaces > 0) {
 //       requests.push_back(MPI_Request());
-//       MPI_Isend(&sortedGlobalIDs.front(), numFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &requests.back());
+//       MPI_Isend(&sortedGlobalIDs.front(), numFaces, MPI_UNSIGNED, neighborProc, 2, Communicator::communicator(), &requests.back());
 //     }
 //   }
 //   CHECK(requests.size() <= 2*mNeighborDomains.size());
@@ -1461,11 +1462,11 @@ boundingBox(typename Dimension::Vector& xmin,
 //   BOOST_FOREACH(unsigned neighborProc, mNeighborDomains) {
 //     unsigned numOtherFaces;
 //     MPI_Status recvStatus;
-//     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, MPI_COMM_WORLD, &recvStatus);
+//     MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, neighborProc, 1, Communicator::communicator(), &recvStatus);
 //     mSharedFaces.push_back(vector<unsigned>());
 //     if (numOtherFaces > 0) {
 //       vector<unsigned> otherGlobalFaceIDs(numOtherFaces);
-//       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, MPI_COMM_WORLD, &recvStatus);
+//       MPI_Recv(&otherGlobalFaceIDs.front(), numOtherFaces, MPI_UNSIGNED, neighborProc, 2, Communicator::communicator(), &recvStatus);
 //       vector<unsigned>::iterator lastItr = sortedGlobalIDs.begin(), itr;
 //       BOOST_FOREACH(unsigned iglobal, otherGlobalFaceIDs) {
 //         itr = lower_bound(lastItr, sortedGlobalIDs.end(), iglobal);
@@ -1505,10 +1506,10 @@ boundingBox(typename Dimension::Vector& xmin,
 //       requests.push_back(MPI_Request());
 //       numSharedFaces[idomain] = mSharedFaces[idomain].size();
 //       CHECK(globalSharedFaces[idomain].size() == numSharedFaces[idomain]);
-//       MPI_Isend(&numSharedFaces[idomain], 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &requests.back());
+//       MPI_Isend(&numSharedFaces[idomain], 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, Communicator::communicator(), &requests.back());
 //       if (numSharedFaces[idomain] > 0) {
 //         requests.push_back(MPI_Request());
-//         MPI_Isend(&globalSharedFaces[idomain].front(), numSharedFaces[idomain], MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &requests.back());
+//         MPI_Isend(&globalSharedFaces[idomain].front(), numSharedFaces[idomain], MPI_UNSIGNED, mNeighborDomains[idomain], 2, Communicator::communicator(), &requests.back());
 //       }
 //     }
 //     CHECK(requests.size() <= 2*mNeighborDomains.size());
@@ -1517,11 +1518,11 @@ boundingBox(typename Dimension::Vector& xmin,
 //     for (unsigned idomain = 0; idomain != mNeighborDomains.size(); ++idomain) {
 //       unsigned numOtherFaces;
 //       MPI_Status recvStatus;
-//       MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, MPI_COMM_WORLD, &recvStatus);
+//       MPI_Recv(&numOtherFaces, 1, MPI_UNSIGNED, mNeighborDomains[idomain], 1, Communicator::communicator(), &recvStatus);
 //       ENSURE(numOtherFaces == mSharedFaces[idomain].size());
 //       if (numOtherFaces > 0) {
 //         vector<unsigned> otherFaces(numOtherFaces);
-//         MPI_Recv(&otherFaces.front(), numOtherFaces, MPI_UNSIGNED, mNeighborDomains[idomain], 2, MPI_COMM_WORLD, &recvStatus);
+//         MPI_Recv(&otherFaces.front(), numOtherFaces, MPI_UNSIGNED, mNeighborDomains[idomain], 2, Communicator::communicator(), &recvStatus);
 //         ENSURE(otherFaces == globalSharedFaces[idomain]);
 //       }
 //     }
@@ -1581,10 +1582,10 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     for (unsigned sendProc = 0; sendProc != numDomains; ++sendProc) {
       unsigned numNeighbors = mNeighborDomains.size();
       vector<unsigned> checkNeighbors = mNeighborDomains;
-      MPI_Bcast(&numNeighbors, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&numNeighbors, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       if (numNeighbors > 0) {
         checkNeighbors.resize(numNeighbors);
-        MPI_Bcast(&checkNeighbors.front(), numNeighbors, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&checkNeighbors.front(), numNeighbors, MPI_UNSIGNED, sendProc, Communicator::communicator());
         if (not (binary_search(checkNeighbors.begin(), checkNeighbors.end(), rank) == 
                  binary_search(mNeighborDomains.begin(), mNeighborDomains.end(), sendProc))) {
           result = "Processors don't agree about who is talking to whom!";
@@ -1605,9 +1606,9 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
       const unsigned otherProc = mNeighborDomains[k];
       MPI_Isend(&numLocalSharedNodes[k], 1, MPI_UNSIGNED, otherProc,
-                (rank + 1)*numDomains + otherProc, MPI_COMM_WORLD, &requests[k]);
+                (rank + 1)*numDomains + otherProc, Communicator::communicator(), &requests[k]);
       MPI_Irecv(&numOtherSharedNodes[k], 1, MPI_UNSIGNED, otherProc,
-                (otherProc + 1)*numDomains + rank, MPI_COMM_WORLD, &requests[mNeighborDomains.size() + k]);
+                (otherProc + 1)*numDomains + rank, Communicator::communicator(), &requests[mNeighborDomains.size() + k]);
     }
     vector<MPI_Status> status(requests.size());
     MPI_Waitall(requests.size(), &requests.front(), &status.front());
@@ -1628,9 +1629,9 @@ validDomainInfo(const typename Dimension::Vector& xmin,
     for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
       const unsigned otherProc = mNeighborDomains[k];
       MPI_Isend(&numLocalSharedFaces[k], 1, MPI_UNSIGNED, otherProc,
-                (rank + 1)*numDomains + otherProc, MPI_COMM_WORLD, &requests[k]);
+                (rank + 1)*numDomains + otherProc, Communicator::communicator(), &requests[k]);
       MPI_Irecv(&numOtherSharedFaces[k], 1, MPI_UNSIGNED, otherProc,
-                (otherProc + 1)*numDomains + rank, MPI_COMM_WORLD, &requests[mNeighborDomains.size() + k]);
+                (otherProc + 1)*numDomains + rank, Communicator::communicator(), &requests[mNeighborDomains.size() + k]);
     }
     vector<MPI_Status> status(requests.size());
     MPI_Waitall(requests.size(), &requests.front(), &status.front());

@@ -17,6 +17,7 @@
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "NodeList/NodeList.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -74,7 +75,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
 #ifdef USE_MPI
   {
     int tmp = numGlobalNodes;
-    MPI_Allreduce(&tmp, &numGlobalNodes, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &numGlobalNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   }
 #endif
 
@@ -90,7 +91,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
 #ifdef USE_MPI
     {
       Key tmp = localKey;
-      MPI_Allreduce(&tmp, &globalKey, 1, DataTypeTraits<Key>::MpiDataType(), MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &globalKey, 1, DataTypeTraits<Key>::MpiDataType(), MPI_MIN, Communicator::communicator());
     }
 #endif
 
@@ -100,7 +101,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
 #ifdef USE_MPI
     {
       int tmp = minProcID;
-      MPI_Allreduce(&tmp, &minProcID, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &minProcID, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     }
 #endif
 
@@ -135,7 +136,7 @@ nodeOrdering(const FieldSpace::FieldList<Dimension, DataType>& criteria) {
 #ifdef USE_MPI
       {
         int tmp = countGlobal;
-        MPI_Allreduce(&tmp, &countGlobal, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&tmp, &countGlobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       }
 #endif
       ENSURE(countGlobal == 1);

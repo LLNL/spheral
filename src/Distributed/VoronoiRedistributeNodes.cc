@@ -35,6 +35,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/allReduce.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -399,7 +400,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   TAU_PROFILE_START(TimeVcomputeInitialDist);
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, workField);
   const size_t numNodes = nodeDistribution.size();
-  const size_t numNodesGlobal = allReduce((uint64_t) numNodes, MPI_SUM, mCommunicator);
+  const size_t numNodesGlobal = allReduce((uint64_t) numNodes, MPI_SUM, Communicator::communicator());
   const size_t avgNumNodes = numNodesGlobal/numProcs;
   CHECK(numNodes > 0);
   TAU_PROFILE_STOP(TimeVcomputeInitialDist);
@@ -524,7 +525,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
           const Vector xmaxDaughter = daughterPositions[kdaughter] + dcell;
           if (numGensForDaughter[kdaughter] == 1) {
             generators[*genItr] = computeClosestNodePosition<Dimension>(0.5*(xminDaughter + xmaxDaughter),
-                                                                        nodeDistribution, numProcs, mCommunicator);
+                                                                        nodeDistribution, numProcs, Communicator::communicator());
             generatorBounds[*genItr] = make_pair(xminDaughter, xmaxDaughter);
             CHECK(testPointInBox(generators[*genItr], xminDaughter, xmaxDaughter));
           } else if (numGensForDaughter[kdaughter] > 1) {
@@ -567,7 +568,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //           if (procID == igen) generators[igen] = nodeDistribution[numNodes/2].position;
 //           vector<char> buffer;
 //           packElement(generators[igen], buffer);
-//           MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, igen, mCommunicator);
+//           MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, igen, Communicator::communicator());
 //           vector<char>::const_iterator itr = buffer.begin();
 //           unpackElement(generators[igen], itr, buffer.end());
 //           CHECK(itr == buffer.end());
@@ -588,7 +589,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //     if (procID == igen) generators[igen] = nodeDistribution[numNodes/2].position;
 //     vector<char> buffer;
 //     packElement(generators[igen], buffer);
-//     MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, igen, mCommunicator);
+//     MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, igen, Communicator::communicator());
 //     Vector xgen;
 //     vector<char>::const_iterator itr = buffer.begin();
 //     unpackElement(xgen, itr, buffer.end());
@@ -757,7 +758,7 @@ computeCentroids(const vector<DomainNode<Dimension> >& nodes,
   }
   for (size_t sendProc = 0; sendProc != numProcs; ++sendProc) {
     vector<char> buffer = localBuffer;
-    MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, mCommunicator);
+    MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, Communicator::communicator());
     vector<char>::const_iterator itr = buffer.begin();
     for (size_t igen = 0; igen != numGenerators; ++igen) {
       Vector ri;
@@ -776,7 +777,7 @@ computeCentroids(const vector<DomainNode<Dimension> >& nodes,
   // at least some work.
   for (size_t igen = 0; igen != numGenerators; ++igen) {
     generators[igen] = 0.25*generators[igen]*safeInv(normalization[igen]) + 0.75*generators0[igen];
-    generators[igen] = computeClosestNodePosition<Dimension>(generators[igen], nodes, numProcs, mCommunicator);
+    generators[igen] = computeClosestNodePosition<Dimension>(generators[igen], nodes, numProcs, Communicator::communicator());
   }
 }
 
@@ -834,7 +835,7 @@ assignNodesToGenerators(const vector<typename Dimension::Vector>& generators,
   }
   for (size_t sendProc = 0; sendProc != numProcs; ++sendProc) {
     vector<char> buffer = localBuffer;
-    MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, mCommunicator);
+    MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, Communicator::communicator());
     vector<char>::const_iterator itr = buffer.begin();
     for (size_t igen = 0; igen != numGenerators; ++igen) {
       double worki;
@@ -898,8 +899,8 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
       sort(distances.begin(), distances.end(), ComparePairsBySecondElement<PairType>());
 
       // Find the global range of distances from the generator.
-      double rmin = allReduce((distances.size() > 0 ? distances.front().second : DBL_MAX), MPI_MIN, mCommunicator);
-      double rmax = allReduce((distances.size() > 0 ? distances.back().second  : 0.0),     MPI_MAX, mCommunicator);
+      double rmin = allReduce((distances.size() > 0 ? distances.front().second : DBL_MAX), MPI_MIN, Communicator::communicator());
+      double rmax = allReduce((distances.size() > 0 ? distances.back().second  : 0.0),     MPI_MAX, Communicator::communicator());
 
       // Bisect for the appropriate radius to reject nodes.
       const double worktol = max(1.0e-10, 0.01*targetWork);
@@ -914,7 +915,7 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
           localWork += nodes[itr->first].work;
           ++itr;
         }
-        currentWork = allReduce(localWork, MPI_SUM, mCommunicator);
+        currentWork = allReduce(localWork, MPI_SUM, Communicator::communicator());
         if (currentWork < targetWork) {
           rmin = rreject;
         } else {

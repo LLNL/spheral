@@ -237,20 +237,10 @@ private:
   std::vector<PhysicsSpace::Physics<Dimension>*> mPhysicsPackages;
   bool mRigorousBoundaries, mCullGhostNodes;
 
-#ifdef USE_MPI
-  // In the parallel case, build a private communicator.
-  MPI_Comm mCommunicator;
-#else
-  int mCommunicator;
-#endif
-
 #ifndef __GCCXML__
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
 #endif
-
-  // Private method to initialize the internal MPI communicator.
-  void initializeCommunicator();
 };
 
 }

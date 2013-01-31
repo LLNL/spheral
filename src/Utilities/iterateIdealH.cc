@@ -9,6 +9,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include "Distributed/Communicator.hh"
 #endif
 
 #include "TAU.h"
@@ -262,7 +263,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     {
       // Globally reduce the max H change.
       double tmp = maxDeltaH;
-      MPI_Allreduce(&tmp, &maxDeltaH, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &maxDeltaH, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
     }
 #endif
 

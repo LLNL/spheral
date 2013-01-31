@@ -41,6 +41,7 @@
 #include "Spasmos/Config.h"
 #include "Spasmos/PyPetsc.h"
 #include "Spasmos/MatFactory.h"
+#include "Distributed/Communicator.hh"
 
 #include "TAU.h"
 
@@ -1480,17 +1481,17 @@ MHD::mComputeDivB(const DataBase<Dim<3> >& dataBase,
 
    // Now share the diagnostics across all processors.
    double globalVal, localVals[2], globalVals[2];
-   MPI_Allreduce(&mMaxDivB, &globalVal, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   MPI_Allreduce(&mMaxDivB, &globalVal, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
    mMaxDivB = globalVal;
-   MPI_Allreduce(&mMinDivB, &globalVal, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+   MPI_Allreduce(&mMinDivB, &globalVal, 1, MPI_DOUBLE, MPI_MIN, Communicator::communicator());
    mMinDivB = globalVal;
    localVals[0] = mAvgDivB, localVals[1] = 1.0 * N;
-   MPI_Allreduce(localVals, globalVals, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+   MPI_Allreduce(localVals, globalVals, 2, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
    mAvgDivB = globalVals[0]/globalVals[1];
 
 #if 0
 int rank;
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_rank(Communicator::communicator(), &rank);
 if (rank == 0)
 {
    printf("Max div B = %g, min div B = %g, avg div B = %g\n", mMaxDivB, mMinDivB, mAvgDivB);

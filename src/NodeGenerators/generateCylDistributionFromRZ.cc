@@ -12,6 +12,7 @@
 #include "Boundary/CylindricalBoundary.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
+#include "Distributed/Communicator.hh"
 
 using namespace std;
 using namespace Spheral::BoundarySpace;
@@ -137,7 +138,7 @@ generateCylDistributionFromRZ(vector<double>& x,
   {
     int nlocal = x.size();
     int nglobal;
-    MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     VERIFY(nglobal == ntot);
   }
 #endif

@@ -12,6 +12,7 @@
 
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
+#include "Distributed/Communicator.hh"
 
 #include "Utilities/timingUtilities.hh"
 
@@ -267,10 +268,10 @@ boundingSurface() const {
     for (domainID = 0; domainID != numDomains; ++domainID) {
       buffer = localBuffer;
       bufSize = localBuffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, domainID, MPI_COMM_WORLD);
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, domainID, Communicator::communicator());
       if (bufSize > 0) {
         buffer.resize(bufSize);
-        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID, MPI_COMM_WORLD);
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID, Communicator::communicator());
         bufItr = buffer.begin();
         unpackElement(globalVertexPositions, bufItr, buffer.end());
         unpackElement(nfacets, bufItr, buffer.end());
