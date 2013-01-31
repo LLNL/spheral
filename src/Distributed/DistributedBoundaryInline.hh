@@ -2,6 +2,7 @@
 #include "Field/Field.hh"
 #include "DataBase/DataBase.hh"
 #include "Neighbor/NestedGridNeighbor.hh"
+#include "Communicator.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -25,7 +26,7 @@ inline
 int
 DistributedBoundary<Dimension>::numDomains() const {
   int nProcs;
-  MPI_Comm_size(mCommunicator, &nProcs);
+  MPI_Comm_size(Communicator::communicator(), &nProcs);
   return nProcs;
 }
 

@@ -16,6 +16,7 @@
 #include "CSPH/CSPHUtilities.hh"
 #include "CSPH/computeCSPHCorrections.hh"
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/allReduce.hh"
 
 #include "Geometry/Dimension.hh"
@@ -258,8 +259,8 @@ finalize(const typename Dimension::Scalar time,
     }
   }
   CHECK(rhoZones.size() == mesh.numZones());
-  rhoMin = allReduce(rhoMin, MPI_MIN, MPI_COMM_WORLD);
-  rhoMax = allReduce(rhoMax, MPI_MAX, MPI_COMM_WORLD);
+  rhoMin = allReduce(rhoMin, MPI_MIN, Communicator::communicator());
+  rhoMax = allReduce(rhoMax, MPI_MAX, Communicator::communicator());
 
   // Compute the CSPH limited gradient of the density if we're doing first order.
   if (mOrder > 0) {

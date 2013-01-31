@@ -21,6 +21,7 @@
 #include "Utilities/removeElements.hh"
 #include "DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
+#include "Communicator.hh"
 
 using namespace std;
 
@@ -112,7 +113,7 @@ maxNumGridLevels(const DataBase<Dimension>& dataBase) const {
 
 //   // Find the global maximum of the number of grid levels.
 //   int globalNumGridLevels;
-//   MPI_Allreduce(&numGridLevels, &globalNumGridLevels, 1, MPI_INT, MPI_MAX, mCommunicator);
+//   MPI_Allreduce(&numGridLevels, &globalNumGridLevels, 1, MPI_INT, MPI_MAX, Communicator::communicator());
 
 //   CHECK(globalNumGridLevels > 0);
 //   return globalNumGridLevels;
@@ -330,7 +331,7 @@ distributeOccupiedGridCells() {
   // Broadcast the dimensions to everyone.
   TAU_PROFILE_START(TimeNDBcastSizes);
   for (int sendDomain = 0; sendDomain != numProcs; ++sendDomain) {
-    MPI_Bcast(&occupiedGridCellDimensions[sendDomain].front(), numGridLevels, MPI_INT, sendDomain, mCommunicator);
+    MPI_Bcast(&occupiedGridCellDimensions[sendDomain].front(), numGridLevels, MPI_INT, sendDomain, Communicator::communicator());
   }
   TAU_PROFILE_STOP(TimeNDBcastSizes);
 
@@ -349,7 +350,7 @@ distributeOccupiedGridCells() {
     if (procID == sendDomain) packGridCellIndicies(mOccupiedGridCells[sendDomain], packedGridCellIndicies);
 
     // Broadcast the sucker and unpack the data.
-    MPI_Bcast(&packedGridCellIndicies.front(), totalNumGridCells*Dimension::nDim, MPI_INT, sendDomain, mCommunicator);
+    MPI_Bcast(&packedGridCellIndicies.front(), totalNumGridCells*Dimension::nDim, MPI_INT, sendDomain, Communicator::communicator());
     if (procID != sendDomain) unpackGridCellIndicies(packedGridCellIndicies, occupiedGridCellDimensions[sendDomain], mOccupiedGridCells[sendDomain]);
   }
   TAU_PROFILE_STOP(TimeNDBcastCells);
@@ -537,14 +538,14 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
     {
       int tmp = localBuffer.size();
       int globalMinSize;
-      MPI_Allreduce(&tmp, &globalMinSize, 1, MPI_INT, MPI_MIN, mCommunicator);
+      MPI_Allreduce(&tmp, &globalMinSize, 1, MPI_INT, MPI_MIN, Communicator::communicator());
       CHECK(globalMinSize == localBuffer.size());
     }
     END_CONTRACT_SCOPE;
     if (localBuffer.size() > 0) {
       for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
 	vector<char> buffer = localBuffer;
-	MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, mCommunicator);
+	MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, Communicator::communicator());
 	vector<char>::const_iterator itr = buffer.begin();
 	unpackElement(centroidDomain[sendProc], itr, buffer.end());
 	unpackElement(radiusNodesDomain[sendProc], itr, buffer.end());

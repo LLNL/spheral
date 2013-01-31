@@ -119,11 +119,6 @@ private:
   // Private methods.
   void distributeOccupiedGridCells();
   void buildSendNodes(const DataBaseSpace::DataBase<Dimension>& dataBase);
-
-#ifdef USE_MPI
-  using DistributedBoundary<Dimension>::mCommunicator;
-#endif
-
 };
 
 }

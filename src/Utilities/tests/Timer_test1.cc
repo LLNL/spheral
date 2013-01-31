@@ -9,6 +9,7 @@
 using namespace std;
 
 #include "../Timer.hh"
+#include "Distributed/Communicator.hh"
 
 #define N0 10
 #define N1 90
@@ -51,8 +52,8 @@ int main(int argc, char **argv)  {
   int rank, number_procs;
 #ifdef MPI
   MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &number_procs);
+  MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);
+  MPI_Comm_size(Spheral::Communicator::communicator(), &number_procs);
 #else
   rank=0;
   number_procs=1;
@@ -127,7 +128,7 @@ int main(int argc, char **argv)  {
 
     Barrier.start();
 #ifdef MPI
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(Spheral::Communicator::communicator());
 #endif
     Barrier.stop();
 

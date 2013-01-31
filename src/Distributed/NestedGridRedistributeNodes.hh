@@ -124,10 +124,6 @@ private:
   // The cutoff radius in normalized space for nodes to interact.
   double mHextent;
 
-#ifdef USE_MPI
-  using RedistributeNodes<Dimension>::mCommunicator;
-#endif
-
   // No default constructor, copy, or assignment operations.
   NestedGridRedistributeNodes();
   NestedGridRedistributeNodes(const NestedGridRedistributeNodes&);

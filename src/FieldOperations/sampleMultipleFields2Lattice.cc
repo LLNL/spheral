@@ -27,6 +27,7 @@
 #ifdef USE_MPI
 #include "mpi.h"
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {
@@ -351,8 +352,8 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
   int procID = 0;
   int numProcs = 1;
 #ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  MPI_Comm_rank(Communicator::communicator(), &procID);
+  MPI_Comm_size(Communicator::communicator(), &numProcs);
 #endif
   CHECK(numProcs > 0);
 
@@ -617,9 +618,9 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
       const int bufIndex = sendProc > procID ? sendProc - 1 : sendProc;
       numSends[sendProc] = sendIndiciesBuffers[sendProc].size();
       CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
-      MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, MPI_COMM_WORLD, &sendRequests[bufIndex]);
-      MPI_Isend(&(*sendIndiciesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, MPI_COMM_WORLD, &sendRequests[(numProcs - 1) + bufIndex]);
-      MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, MPI_COMM_WORLD, &sendRequests[2*(numProcs - 1) + bufIndex]);
+      MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests[bufIndex]);
+      MPI_Isend(&(*sendIndiciesBuffers[sendProc].begin()), numSends[sendProc], MPI_INT, sendProc, 2, Communicator::communicator(), &sendRequests[(numProcs - 1) + bufIndex]);
+      MPI_Isend(&(*sendValuesBuffers[sendProc].begin()), numSends[sendProc]*sizeOfElement, MPI_CHAR, sendProc, 3, Communicator::communicator(), &sendRequests[2*(numProcs - 1) + bufIndex]);
     }
   }
 
@@ -629,7 +630,7 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
     if (recvProc != procID) {
       const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
-      MPI_Irecv(&numReceiveNodes[recvProc], 1, MPI_INT, recvProc, 1, MPI_COMM_WORLD, &recvRequests0[bufIndex]);
+      MPI_Irecv(&numReceiveNodes[recvProc], 1, MPI_INT, recvProc, 1, Communicator::communicator(), &recvRequests0[bufIndex]);
     }
   }
 
@@ -652,8 +653,8 @@ sampleMultipleFields2Lattice(const FieldListSet<Dimension>& fieldListSet,
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
     if (recvProc != procID) {
       const int bufIndex = recvProc > procID ? recvProc - 1 : recvProc;
-      MPI_Irecv(&(*recvIndiciesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, MPI_COMM_WORLD, &recvRequests1[bufIndex]);
-      MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, MPI_COMM_WORLD, &recvRequests1[numProcs - 1 + bufIndex]);
+      MPI_Irecv(&(*recvIndiciesBuffers[recvProc].begin()), numReceiveNodes[recvProc], MPI_INT, recvProc, 2, Communicator::communicator(), &recvRequests1[bufIndex]);
+      MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1[numProcs - 1 + bufIndex]);
     }
   }
 

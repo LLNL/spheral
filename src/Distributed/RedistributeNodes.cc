@@ -24,6 +24,7 @@ extern "C" {
 #include "Utilities/packElement.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/RedistributionRegistrar.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 
@@ -49,9 +50,6 @@ RedistributeNodes():
 
   // TAU timers.
   TAU_PROFILE("RedistributeNodes", "::RedistributeNodes()", TAU_USER);
-
-  // Create the new communicator for use in this redistribution object.
-  MPI_Comm_dup(MPI_COMM_WORLD, &mCommunicator);
 }
 
 //------------------------------------------------------------------------------
@@ -201,7 +199,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     CHECK(recvProc < numRecvNodes.size());
     if (recvProc != proc) {
       numRecvNodeRequests.push_back(MPI_Request());
-      MPI_Irecv(&(*numRecvNodes[recvProc].begin()), numNodeLists, MPI_INT, recvProc, 0, mCommunicator, &(numRecvNodeRequests.back()));
+      MPI_Irecv(&(*numRecvNodes[recvProc].begin()), numNodeLists, MPI_INT, recvProc, 0, Communicator::communicator(), &(numRecvNodeRequests.back()));
     }
   }
   CHECK(numRecvNodeRequests.size() == numProcs - 1);
@@ -238,7 +236,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
       }
       CHECK(x.size() == numNodeLists);
       numSendNodeRequests.push_back(MPI_Request());
-      MPI_Isend(&(*x.begin()), numNodeLists, MPI_INT, sendProc, 0, mCommunicator, &(numSendNodeRequests.back()));
+      MPI_Isend(&(*x.begin()), numNodeLists, MPI_INT, sendProc, 0, Communicator::communicator(), &(numSendNodeRequests.back()));
       if (totalNumSendNodes[sendProc] > 0) ++numSendDomains;
     }
   }
@@ -313,7 +311,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
           const int numFields = (*itr)->numFields();
           x.push_back(vector<int>(numFields));
           recvBufSizeRequests.push_back(MPI_Request());
-          MPI_Irecv(&(*x.back().begin()), numFields, MPI_INT, recvProc, 1 + nodeListID, mCommunicator, &(recvBufSizeRequests.back()));
+          MPI_Irecv(&(*x.back().begin()), numFields, MPI_INT, recvProc, 1 + nodeListID, Communicator::communicator(), &(recvBufSizeRequests.back()));
           numRecvBuffers += numFields;
         }
       }
@@ -346,7 +344,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
           numSendBuffers += sendBufs.size();
           CHECK(x.back().size() == sendBufs.size());
           sendBufSizeRequests.push_back(MPI_Request());
-          MPI_Isend(&(*x.back().begin()), x.back().size(), MPI_INT, sendProc, 1 + nodeListID, mCommunicator, &(sendBufSizeRequests.back()));
+          MPI_Isend(&(*x.back().begin()), x.back().size(), MPI_INT, sendProc, 1 + nodeListID, Communicator::communicator(), &(sendBufSizeRequests.back()));
         }
       }
       CHECK(x.size() <= numNodeLists);
@@ -371,7 +369,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     {
       int localNumFields = (**nodeListItr).numFields();
       int globalNumFields;
-      MPI_Allreduce(&localNumFields, &globalNumFields, 1, MPI_INT, MPI_MAX, mCommunicator);
+      MPI_Allreduce(&localNumFields, &globalNumFields, 1, MPI_INT, MPI_MAX, Communicator::communicator());
       CHECK(localNumFields == globalNumFields);
     }
     END_CONTRACT_SCOPE;
@@ -410,7 +408,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
                ++itr, ++i) {
             bufs.push_back(vector<char>(*itr));
             recvBufferRequests.push_back(MPI_Request());
-            MPI_Irecv(&(*bufs.back().begin()), *itr, MPI_CHAR, recvProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, mCommunicator, &(recvBufferRequests.back()));
+            MPI_Irecv(&(*bufs.back().begin()), *itr, MPI_CHAR, recvProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, Communicator::communicator(), &(recvBufferRequests.back()));
           }
           ++bufSizeItr;
           CHECK(i <= maxNumFields);
@@ -440,7 +438,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
                ++itr, ++i) {
             vector<char>& buf = *itr;
             sendBufferRequests.push_back(MPI_Request());
-            MPI_Isend(&(*buf.begin()), buf.size(), MPI_CHAR, sendProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, mCommunicator, &(sendBufferRequests.back()));
+            MPI_Isend(&(*buf.begin()), buf.size(), MPI_CHAR, sendProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, Communicator::communicator(), &(sendBufferRequests.back()));
           }
           CHECK(i <= maxNumFields);
         }
@@ -636,7 +634,7 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
   int iValid = 0;
   if (valid) iValid = 1;
   int globalValid;
-  MPI_Allreduce(&iValid, &globalValid, 1, MPI_INT, MPI_MIN, mCommunicator);
+  MPI_Allreduce(&iValid, &globalValid, 1, MPI_INT, MPI_MIN, Communicator::communicator());
   if (globalValid == 0) {
     return false;
   }
@@ -650,16 +648,16 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
       // Ids to each of the higher processors.
       int numNodes = globalNodeIDs.size();
       for (int sendProc = checkProc + 1; sendProc < numProcs; ++sendProc) {
-        MPI_Send(&numNodes, 1, MPI_INT, sendProc, 5, mCommunicator);
+        MPI_Send(&numNodes, 1, MPI_INT, sendProc, 5, Communicator::communicator());
         MPI_Send(&(*globalNodeIDs.begin()), numNodes, MPI_INT, sendProc,
-                 6, mCommunicator);
+                 6, Communicator::communicator());
       }
 
       // Now wait for the responses from each higher processor.
       for (int recvProc = checkProc + 1; recvProc < numProcs; ++recvProc) {
         MPI_Status status;
         int iValid;
-        MPI_Recv(&iValid, 1, MPI_INT, recvProc, 7, mCommunicator,
+        MPI_Recv(&iValid, 1, MPI_INT, recvProc, 7, Communicator::communicator(),
                  &status);
         valid = valid && iValid == 1;
       }
@@ -672,11 +670,11 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
       MPI_Status status;
       int numCheckNodes;
       MPI_Recv(&numCheckNodes, 1, MPI_INT, checkProc, 5,
-               mCommunicator, &status);
+               Communicator::communicator(), &status);
       CHECK(numCheckNodes >= 0);
       vector<int> checkGlobalNodeIDs(numCheckNodes);
       MPI_Recv(&(*checkGlobalNodeIDs.begin()), numCheckNodes, MPI_INT,
-               checkProc, 6, mCommunicator, &status);
+               checkProc, 6, Communicator::communicator(), &status);
 
       // Check to see if any of the global IDs assigned to the processor
       // we're checking is also assigned to this one.
@@ -691,7 +689,7 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
       // Send the verdict back to the check processor.
       int iValid = 0;
       if (valid) iValid = 1;
-      MPI_Send(&iValid, 1, MPI_INT, checkProc, 7, mCommunicator);
+      MPI_Send(&iValid, 1, MPI_INT, checkProc, 7, Communicator::communicator());
       CHECK(valid);
     }
 
@@ -699,7 +697,7 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
     // to everyone.
     int iValid = 0;
     if (valid) iValid = 1;
-    MPI_Bcast(&iValid, 1, MPI_INT, checkProc, mCommunicator);
+    MPI_Bcast(&iValid, 1, MPI_INT, checkProc, Communicator::communicator());
     if (iValid == 1) {
       valid = true;
     } else {
@@ -776,7 +774,7 @@ workPerNode(const DataBase<Dimension>& dataBase,
             if (worki(i) > 0.0) localMin = std::min(localMin, worki(i));
           }
           double globalMin;
-          MPI_Allreduce(&localMin, &globalMin, 1, MPI_DOUBLE, MPI_MIN, mCommunicator);
+          MPI_Allreduce(&localMin, &globalMin, 1, MPI_DOUBLE, MPI_MIN, Communicator::communicator());
           worki.applyMin(globalMin);
         }
       }
@@ -872,15 +870,15 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
   const int numProcs = this->numDomains();
   CHECK(numProcs > 0);
   int globalMinNodes, globalMaxNodes, globalAvgNodes;
-  MPI_Allreduce(&localNumNodes, &globalMinNodes, 1, MPI_INT, MPI_MIN, mCommunicator);
-  MPI_Allreduce(&localNumNodes, &globalMaxNodes, 1, MPI_INT, MPI_MAX, mCommunicator);
-  MPI_Allreduce(&localNumNodes, &globalAvgNodes, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&localNumNodes, &globalMinNodes, 1, MPI_INT, MPI_MIN, Communicator::communicator());
+  MPI_Allreduce(&localNumNodes, &globalMaxNodes, 1, MPI_INT, MPI_MAX, Communicator::communicator());
+  MPI_Allreduce(&localNumNodes, &globalAvgNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   globalAvgNodes /= numProcs;
 
   Scalar globalMinWork, globalMaxWork, globalAvgWork;
-  MPI_Allreduce(&localWork, &globalMinWork, 1, MPI_DOUBLE, MPI_MIN, mCommunicator);
-  MPI_Allreduce(&localWork, &globalMaxWork, 1, MPI_DOUBLE, MPI_MAX, mCommunicator);
-  MPI_Allreduce(&localWork, &globalAvgWork, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&localWork, &globalMinWork, 1, MPI_DOUBLE, MPI_MIN, Communicator::communicator());
+  MPI_Allreduce(&localWork, &globalMaxWork, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
+  MPI_Allreduce(&localWork, &globalAvgWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
   globalAvgWork /= numProcs;
 
   // Build a string with the result.

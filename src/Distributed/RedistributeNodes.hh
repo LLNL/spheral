@@ -105,10 +105,6 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  // Descendent classes can also use the communicator.
-#ifdef USE_MPI
-  mutable MPI_Comm mCommunicator;
-#endif
   bool mComputeWork;
 
   // Pack/unpack a vector<DomainNode> as a vector<double>, for use with MPI.

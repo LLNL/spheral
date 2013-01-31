@@ -9,6 +9,7 @@
 #ifdef MPI
 extern "C" {
 #include "mpi.h"
+#include "Distributed/Communicator.hh"
 }
 #endif
 
@@ -151,7 +152,7 @@ public:
   static void TimerSummary(void) {
     int rank;
 #ifdef MPI
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(Communicator::communicator(), &rank);
 #else
     rank=0;
 #endif

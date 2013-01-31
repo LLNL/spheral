@@ -5,6 +5,7 @@ PKGNAME = Distributed
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	Communicator.cc \
 	DistributedBoundaryInst.cc \
 	NestedGridDistributedBoundaryInst.cc \
 	BoundingVolumeDistributedBoundaryInst.cc \

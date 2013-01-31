@@ -16,6 +16,7 @@
 extern "C" {
 #include "mpi.h"
 }
+#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 
@@ -23,7 +24,7 @@ inline
 double
 safeAllReduceMax(double val) {
   double result;
-  MPI_Allreduce(&val, &result, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  MPI_Allreduce(&val, &result, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
   return result;
 }
 

@@ -178,11 +178,6 @@ protected:
   void removeDomainBoundaryNodes(NodeSpace::NodeList<Dimension>* nodeListPtr,
                                  const int domainID);
 
-#ifdef USE_MPI
-  // Descendent classes can also use the communicator.
-  MPI_Comm mCommunicator;
-#endif
-
   // Override the Boundary method for clearing the maps.
   virtual void reset(const DataBaseSpace::DataBase<Dimension>& dataBase);
 

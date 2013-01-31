@@ -22,6 +22,7 @@
 // #include "Utilities/timingUtilities.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
 
 #include "DBC.hh"
 
@@ -61,7 +62,6 @@ Integrator<Dimension>::Integrator():
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  initializeCommunicator();
 }
 
 //------------------------------------------------------------------------------
@@ -85,7 +85,6 @@ Integrator(DataBase<Dimension>& dataBase):
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  initializeCommunicator();
 }
 
 //------------------------------------------------------------------------------
@@ -110,7 +109,6 @@ Integrator(DataBase<Dimension>& dataBase,
   mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  initializeCommunicator();
 }
 
 //------------------------------------------------------------------------------
@@ -180,7 +178,7 @@ selectDt(const typename Dimension::Scalar dtMin,
 
   // In the parallel case we need to find the minimum timestep across all
   // processors.
-  const Scalar globalDt = allReduce(dt.first, MPI_MIN, mCommunicator);
+  const Scalar globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
   if (dt.first == globalDt and 
       (verbose() or globalDt < mDtThreshold)) {
     cout << "Selected timestep of "
@@ -834,21 +832,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mLastDt, pathName + "/lastDt");
   file.read(mCurrentTime, pathName + "/currentTime");
   file.read(mCurrentCycle, pathName + "/currentCycle");
-}
-
-//------------------------------------------------------------------------------
-// Initialize the internal MPI communicator.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Integrator<Dimension>::
-initializeCommunicator() {
-#ifdef USE_MPI
-  // Create our private communicator.
-  MPI_Comm_dup(MPI_COMM_WORLD, &mCommunicator);
-#else
-  mCommunicator = 1;
-#endif
 }
 
 }

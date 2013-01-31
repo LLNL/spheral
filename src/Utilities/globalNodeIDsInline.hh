@@ -17,6 +17,7 @@
 #include "boost/tuple/tuple_comparison.hpp"
 #ifdef USE_MPI
 #include "mpi.h"
+#include "Distributed/Communicator.hh"
 #endif
 
 #include "NodeList/NodeList.hh"
@@ -38,7 +39,7 @@ numGlobalNodes(const NodeList<Dimension>& nodeList) {
   int localResult = nodeList.numInternalNodes();
 #ifdef USE_MPI
   int result;
-  MPI_Allreduce(&localResult, &result, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&localResult, &result, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   CHECK(result >= localResult);
 #else
   const int result = localResult;
@@ -88,8 +89,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   int procID = 0;
   int numProcs = 1;
 #ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  MPI_Comm_rank(Communicator::communicator(), &procID);
+  MPI_Comm_size(Communicator::communicator(), &numProcs);
 #endif
 
   // Get the position field for this NodeList.
@@ -112,15 +113,15 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     for (int recvDomain = 1; recvDomain != numProcs; ++recvDomain) {
       MPI_Status status;
       int numRecvNodes;
-      MPI_Recv(&numRecvNodes, 1, MPI_INT, recvDomain, 10, MPI_COMM_WORLD, &status);
+      MPI_Recv(&numRecvNodes, 1, MPI_INT, recvDomain, 10, Communicator::communicator(), &status);
       CHECK(numRecvNodes >= 0);
       numGlobalNodes += numRecvNodes;
       std::vector<double> packedPositions(numRecvNodes*Dimension::nDim);
       std::vector<int> packedLocalIDs(numRecvNodes);
       MPI_Recv(&(*packedPositions.begin()), numRecvNodes*Dimension::nDim, MPI_DOUBLE,
-               recvDomain, 11, MPI_COMM_WORLD, &status);
+               recvDomain, 11, Communicator::communicator(), &status);
       MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, MPI_INT,
-               recvDomain, 12, MPI_COMM_WORLD, &status);
+               recvDomain, 12, Communicator::communicator(), &status);
       int offset = 0;
       for (int i = 0; i != numRecvNodes; ++i) {
         Vector ri;
@@ -151,11 +152,11 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     CHECK(packedPositions.size() == nodeInfo.size() * Dimension::nDim);
     CHECK(packedLocalIDs.size() == nodeInfo.size());
 
-    MPI_Send(&numLocalNodes, 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+    MPI_Send(&numLocalNodes, 1, MPI_INT, 0, 10, Communicator::communicator());
     MPI_Send(&(*packedPositions.begin()), numLocalNodes*Dimension::nDim,
-             MPI_DOUBLE, 0, 11, MPI_COMM_WORLD);
+             MPI_DOUBLE, 0, 11, Communicator::communicator());
     MPI_Send(&(*packedLocalIDs.begin()), numLocalNodes,
-             MPI_INT, 0, 12, MPI_COMM_WORLD);
+             MPI_INT, 0, 12, Communicator::communicator());
 
   }
 #endif
@@ -194,9 +195,9 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     // Process 0 sends the info.
     for (int recvProc = 1; recvProc != numProcs; ++recvProc) {
       int numRecvNodes = globalIDs[recvProc].size();
-      MPI_Send(&numRecvNodes, 1, MPI_INT, recvProc, 20, MPI_COMM_WORLD);
+      MPI_Send(&numRecvNodes, 1, MPI_INT, recvProc, 20, Communicator::communicator());
       MPI_Send(&(*globalIDs[recvProc].begin()), numRecvNodes, MPI_INT,
-               recvProc, 21, MPI_COMM_WORLD);
+               recvProc, 21, Communicator::communicator());
     }
 
   } else {
@@ -204,9 +205,9 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     // Get our ids from process 0.
     MPI_Status status;
     int numRecvNodes;
-    MPI_Recv(&numRecvNodes, 1, MPI_INT, 0, 20, MPI_COMM_WORLD, &status);
+    MPI_Recv(&numRecvNodes, 1, MPI_INT, 0, 20, Communicator::communicator(), &status);
     CHECK(numRecvNodes == numLocalNodes);
-    MPI_Recv(&(*result.begin()), numRecvNodes, MPI_INT, 0, 21, MPI_COMM_WORLD,
+    MPI_Recv(&(*result.begin()), numRecvNodes, MPI_INT, 0, 21, Communicator::communicator(),
              &status);
 
   }
@@ -248,8 +249,8 @@ globalNodeIDs(const NodeListIterator& begin,
 #ifdef USE_MPI
   // This processors domain id.
   int procID, numProcs;
-  MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  MPI_Comm_rank(Communicator::communicator(), &procID);
+  MPI_Comm_size(Communicator::communicator(), &numProcs);
 
   // Count up how many nodes are on this domain.
   int numDomainNodes = 0;
@@ -261,7 +262,7 @@ globalNodeIDs(const NodeListIterator& begin,
   int beginID = 0;
   for (int sendProc = 0; sendProc < numProcs - 1; ++sendProc) {
     int sendProcDomainNodes = numDomainNodes;
-    MPI_Bcast(&sendProcDomainNodes, 1, MPI_INT, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&sendProcDomainNodes, 1, MPI_INT, sendProc, Communicator::communicator());
     if (procID > sendProc) beginID += sendProcDomainNodes;
   }
   const int endID = beginID + numDomainNodes;
@@ -294,11 +295,11 @@ globalNodeIDs(const NodeListIterator& begin,
         int n = (*fieldItr)->nodeListPtr()->numInternalNodes();
         typename FieldSpace::Field<Dimension, int>::const_iterator fieldBegin = (*fieldItr)->begin();
         typename FieldSpace::Field<Dimension, int>::const_iterator fieldEnd = fieldBegin + n;
-        MPI_Bcast(&n, 1, MPI_INT, checkProc, MPI_COMM_WORLD);
+        MPI_Bcast(&n, 1, MPI_INT, checkProc, Communicator::communicator());
         for (int i = 0; i != n; ++i) {
           int id;
           if (procID == checkProc) id = (**fieldItr)(i);
-          MPI_Bcast(&id, 1, MPI_INT, checkProc, MPI_COMM_WORLD);
+          MPI_Bcast(&id, 1, MPI_INT, checkProc, Communicator::communicator());
           ENSURE(i >= 0 && i < nGlobal);
           if (procID != checkProc)
             ENSURE(find(fieldBegin, fieldEnd, id) == fieldEnd);

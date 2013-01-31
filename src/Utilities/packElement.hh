@@ -18,6 +18,7 @@
 extern "C" {
 #include "mpi.h"
 }
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {
@@ -444,7 +445,7 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
   // Find the rank of this processor.
   int rank = 0;
 #ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(Communicator::communicator(), &rank);
 #endif
   REQUIRE(rank == sendProc || rank == recvProc);
 
@@ -463,9 +464,9 @@ computeBufferSize(const FieldSpace::Field<Dimension, std::vector<DataType> >& fi
 #ifdef USE_MPI
   if (rank == recvProc) {
     MPI_Status status;
-    MPI_Recv(&bufSize, 1, MPI_INT, sendProc, 103, MPI_COMM_WORLD, &status);
+    MPI_Recv(&bufSize, 1, MPI_INT, sendProc, 103, Communicator::communicator(), &status);
   } else if (rank == sendProc) {
-    MPI_Send(&bufSize, 1, MPI_INT, recvProc, 103, MPI_COMM_WORLD);
+    MPI_Send(&bufSize, 1, MPI_INT, recvProc, 103, Communicator::communicator());
   }
 #endif
   return bufSize;

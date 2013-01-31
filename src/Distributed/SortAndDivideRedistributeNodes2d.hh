@@ -54,11 +54,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-
-#ifdef USE_MPI
-  using RedistributeNodes<Dim<2> >::mCommunicator;
-#endif
-
   // No default constructor, copy, or assignment operations.
   SortAndDivideRedistributeNodes2d();
   SortAndDivideRedistributeNodes2d(const SortAndDivideRedistributeNodes2d&);

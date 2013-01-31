@@ -223,8 +223,8 @@ void Timer::TimerSummary(void) {
 
   int rank, number_procs;
 #ifdef MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &number_procs);
+  MPI_Comm_rank(Communicator::communicator(), &rank);
+  MPI_Comm_size(Communicator::communicator(), &number_procs);
 #else
   rank=0;
   number_procs=1;
@@ -254,13 +254,13 @@ void Timer::TimerSummary(void) {
 #ifdef MPI
          
       MPI_Reduce(&wc, &(*tli)->minWC, 1, MPI_DOUBLE, 
-		 MPI_MIN, 0, MPI_COMM_WORLD);
+		 MPI_MIN, 0, Communicator::communicator());
       MPI_Reduce(&wc, &(*tli)->maxWC, 1, MPI_DOUBLE, 
-		 MPI_MAX, 0, MPI_COMM_WORLD);
+		 MPI_MAX, 0, Communicator::communicator());
 
       double temp;
       MPI_Reduce(&wc, &temp, 1, MPI_DOUBLE, 
-		 MPI_SUM, 0, MPI_COMM_WORLD);
+		 MPI_SUM, 0, Communicator::communicator());
 
       if(rank==0) (*tli)->avgWC = temp/number_procs;
 

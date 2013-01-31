@@ -26,6 +26,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/RedistributionRegistrar.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -202,7 +203,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   CHECK(work.size() == uniqueIndicies.size());
   {
     int tmp = maxCount;
-    MPI_Allreduce(&tmp, &maxCount, 1, MPI_INT, MPI_MAX, mCommunicator);
+    MPI_Allreduce(&tmp, &maxCount, 1, MPI_INT, MPI_MAX, Communicator::communicator());
     if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
   }
 
@@ -214,7 +215,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //           cerr << uniqueIndicies[i] << endl;
 //         }
 //       }
-//       MPI_Barrier(MPI_COMM_WORLD);
+//       MPI_Barrier(Communicator::communicator());
 //     }
 //   }
 //   // DEBUG
@@ -461,7 +462,7 @@ numIndiciesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dime
 
   // Globally reduce that sucker.
   int tmp = result;
-  MPI_Allreduce(&tmp, &result, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&tmp, &result, 1, MPI_INT, MPI_SUM, Communicator::communicator());
 
   return result;
 }
@@ -491,7 +492,7 @@ workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>:
 
   // Globally reduce that sucker.
   Scalar tmp = result;
-  MPI_Allreduce(&tmp, &result, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&tmp, &result, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
 
   return result;
 }
@@ -529,8 +530,8 @@ workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dim
   }
 
   // Globally reduce that sucker.
-  MPI_Allreduce(&localWork, &workInRange, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
-  MPI_Allreduce(&localCount, &countInRange, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&localWork, &workInRange, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
+  MPI_Allreduce(&localCount, &countInRange, 1, MPI_INT, MPI_SUM, Communicator::communicator());
 }
 
 //------------------------------------------------------------------------------
@@ -568,11 +569,11 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
   Key result = maxIndex;
   if (inext < indicies.size() and indicies[inext] > index) result = indicies[inext];
 //   cerr << "  Local result: " << result << endl;
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
 
   // Get the global answer.
   Key tmp = result;
-  MPI_Allreduce(&tmp, &result, 1, MPI_UNSIGNED_LONG_LONG, MPI_MIN, mCommunicator);
+  MPI_Allreduce(&tmp, &result, 1, MPI_UNSIGNED_LONG_LONG, MPI_MIN, Communicator::communicator());
 //   cerr << "Global result: " << result << endl;
 
   // That's it.

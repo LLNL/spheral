@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "DistributedBoundary.hh"
+#include "Communicator.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/Field.hh"
@@ -63,12 +64,8 @@ DistributedBoundary<Dimension>::DistributedBoundary():
   mSendBuffers(),
   mRecvBuffers() {
   
-  // Create the new communicator for use with parallel distributed boundary
-  // conditions.
-  MPI_Comm_dup(MPI_COMM_WORLD, &mCommunicator);
-
   // Get the number of processor and this one's rank.
-  MPI_Comm_rank(mCommunicator, &mDomainID);
+  MPI_Comm_rank(Communicator::communicator(), &mDomainID);
   CHECK(mDomainID >= 0 && mDomainID < numDomains());
 
   // Reserve space in the request buffers.
@@ -208,12 +205,12 @@ communicatedProcs(vector<int>& sendProcs,
 //       // First check that everyone agrees about the Field we're working on.
 //       string name = field.name();
 //       int nameSize = name.size();
-//       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, mCommunicator);
+//       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, Communicator::communicator());
 //       REQUIRE(nameSize == name.size());
-//       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, mCommunicator);
+//       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, Communicator::communicator());
 //       REQUIRE(name == field.name());
 //       int elementSize = numElementsInType;
-//       MPI_Bcast(&elementSize, 1, MPI_INT, checkProc, mCommunicator);
+//       MPI_Bcast(&elementSize, 1, MPI_INT, checkProc, Communicator::communicator());
 //       REQUIRE(elementSize == numElementsInType);
 
 //       // Determine how many send & receive targets this checkProc thinks it has.
@@ -225,7 +222,7 @@ communicatedProcs(vector<int>& sendProcs,
 //              domainItr != domNodeMapPtr->end();
 //              ++domainItr) ++numTargetProcs;
 //       }
-//       MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, mCommunicator);
+//       MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, Communicator::communicator());
    
 //       // Now check that everyone checkProc is communicating with agrees.
 //       if (numTargetProcs > 0) {
@@ -243,9 +240,9 @@ communicatedProcs(vector<int>& sendProcs,
 //             numRecvNodes = boundNodes.receiveNodes.size();
 //             ++domainItr;
 //           }
-//           MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, mCommunicator);
-//           MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, mCommunicator);
-//           MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, mCommunicator);
+//           MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, Communicator::communicator());
+//           MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, Communicator::communicator());
+//           MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, Communicator::communicator());
 //           REQUIRE(targetProc >= -1 && targetProc < nProcs);
 //           REQUIRE(numSendNodes >= 0);
 //           REQUIRE(numRecvNodes >= 0);
@@ -294,7 +291,7 @@ communicatedProcs(vector<int>& sendProcs,
 //         recvRequests.push_back(MPI_Request());
 //         vector<ElementType>& recvValues = packedRecvValues.back();
 //         MPI_Irecv(&(*recvValues.begin()), numValues, MPI_TYPE,
-//                   neighborDomainID, 1, mCommunicator, &(recvRequests.back()));
+//                   neighborDomainID, 1, Communicator::communicator(), &(recvRequests.back()));
 //       }
 //     }
 //     CHECK(packedRecvValues.size() == recvRequests.size());
@@ -320,7 +317,7 @@ communicatedProcs(vector<int>& sendProcs,
 // 	vector<ElementType>& sendValues = packedSendValues.back();
 //         packFieldValues(field, boundNodes.sendNodes, sendValues);
 //         MPI_Isend(&(*sendValues.begin()), numValues, MPI_TYPE,
-//                   neighborDomainID, 1, mCommunicator, &(sendRequests.back()));
+//                   neighborDomainID, 1, Communicator::communicator(), &(sendRequests.back()));
 //       }
 //     }
 //     CHECK(packedSendValues.size() == sendRequests.size());
@@ -403,9 +400,9 @@ communicatedProcs(vector<int>& sendProcs,
 //       // First check that everyone agrees about the Field we're working on.
 //       string name = field.name();
 //       int nameSize = name.size();
-//       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, mCommunicator);
+//       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, Communicator::communicator());
 //       REQUIRE(nameSize == name.size());
-//       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, mCommunicator);
+//       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, Communicator::communicator());
 //       REQUIRE(name == field.name());
 
 //       // Determine how many send & receive targets this checkProc thinks it has.
@@ -417,7 +414,7 @@ communicatedProcs(vector<int>& sendProcs,
 //              domainItr != domNodeMapPtr->end();
 //              ++domainItr) ++numTargetProcs;
 //       }
-//       MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, mCommunicator);
+//       MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, Communicator::communicator());
    
 //       // Now check that everyone checkProc is communicating with agrees.
 //       if (numTargetProcs > 0) {
@@ -435,9 +432,9 @@ communicatedProcs(vector<int>& sendProcs,
 //             numRecvNodes = boundNodes.receiveNodes.size();
 //             ++domainItr;
 //           }
-//           MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, mCommunicator);
-//           MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, mCommunicator);
-//           MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, mCommunicator);
+//           MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, Communicator::communicator());
+//           MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, Communicator::communicator());
+//           MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, Communicator::communicator());
 //           REQUIRE(targetProc >= -1 && targetProc < nProcs);
 //           REQUIRE(numSendNodes >= 0);
 //           REQUIRE(numRecvNodes >= 0);
@@ -502,12 +499,12 @@ communicatedProcs(vector<int>& sendProcs,
 //         // Post a non-blocking send of the number of value per node we're sending.
 //         sendRequests.push_back(MPI_Request());
 //         MPI_Isend(&(*numSendValues.begin()), numSendNodes, MPI_INT,
-//                   neighborDomainID, 1, mCommunicator, &(sendRequests.back()));
+//                   neighborDomainID, 1, Communicator::communicator(), &(sendRequests.back()));
 
 //         // Post a non-blocking send of the data.
 //         sendRequests.push_back(MPI_Request());
 //         MPI_Isend(&(*sendValues.begin()), totalNumSendValues, MPI_DOUBLE, 
-//                   neighborDomainID, 2, mCommunicator, &(sendRequests.back()));
+//                   neighborDomainID, 2, Communicator::communicator(), &(sendRequests.back()));
 //       }
 //     }
 //     CHECK(packedSendValues.size() == sendRequests.size()/2);
@@ -534,7 +531,7 @@ communicatedProcs(vector<int>& sendProcs,
 //         packedNumRecvValues.push_back(vector<int>(numRecvNodes));
 //         vector<int>& numRecvValues = packedNumRecvValues.back();
 //         MPI_Recv(&(*numRecvValues.begin()), numRecvNodes, MPI_INT,
-//                   neighborDomainID, 1, mCommunicator, &recvStatus);
+//                   neighborDomainID, 1, Communicator::communicator(), &recvStatus);
 
 //         // Prepare the buffer for the receive values.
 //         int totalNumRecvValues = 0;
@@ -548,7 +545,7 @@ communicatedProcs(vector<int>& sendProcs,
 //         // Post a non-blocking receive for the packed values.
 //         recvRequests.push_back(MPI_Request());
 //         MPI_Irecv(&(*recvValues.begin()), totalNumRecvValues, MPI_DOUBLE,
-//                   neighborDomainID, 2, mCommunicator, &(recvRequests.back()));
+//                   neighborDomainID, 2, Communicator::communicator(), &(recvRequests.back()));
 //       }
 //     }
 //     CHECK(packedNumRecvValues.size() == packedRecvValues.size());
@@ -654,12 +651,12 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
       // First check that everyone agrees about the Field we're working on.
       string name = field.name();
       int nameSize = name.size();
-      MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, mCommunicator);
+      MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, Communicator::communicator());
       REQUIRE(nameSize == name.size());
-      MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, mCommunicator);
+      MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, Communicator::communicator());
       REQUIRE(name == field.name());
       int elementSize = numElementsInType;
-      MPI_Bcast(&elementSize, 1, MPI_INT, checkProc, mCommunicator);
+      MPI_Bcast(&elementSize, 1, MPI_INT, checkProc, Communicator::communicator());
       REQUIRE(elementSize == numElementsInType);
 
       // Determine how many send & receive targets this checkProc thinks it has.
@@ -671,7 +668,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
              domainItr != domNodeMapPtr->end();
              ++domainItr) ++numTargetProcs;
       }
-      MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, mCommunicator);
+      MPI_Bcast(&numTargetProcs, 1, MPI_INT, checkProc, Communicator::communicator());
    
       // Now check that everyone checkProc is communicating with agrees.
       if (numTargetProcs > 0) {
@@ -689,9 +686,9 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
             numRecvNodes = boundNodes.receiveNodes.size();
             ++domainItr;
           }
-          MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, mCommunicator);
-          MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, mCommunicator);
-          MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, mCommunicator);
+          MPI_Bcast(&targetProc, 1, MPI_INT, checkProc, Communicator::communicator());
+          MPI_Bcast(&numSendNodes, 1, MPI_INT, checkProc, Communicator::communicator());
+          MPI_Bcast(&numRecvNodes, 1, MPI_INT, checkProc, Communicator::communicator());
           REQUIRE(targetProc >= -1 && targetProc < nProcs);
           REQUIRE(numSendNodes >= 0);
           REQUIRE(numRecvNodes >= 0);
@@ -753,7 +750,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
         mRecvRequests.push_back(MPI_Request());
         vector<char>& recvValues = packedRecvValues.back();
         MPI_Irecv(&(*recvValues.begin()), bufSize, MPI_CHAR,
-                  neighborDomainID, mMPIFieldTag, mCommunicator, &(mRecvRequests.back()));
+                  neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mRecvRequests.back()));
 
 #ifdef USE_MPI_DEADLOCK_DETECTION
         mRecvProcIDs.push_back(neighborDomainID);
@@ -792,7 +789,7 @@ beginExchangeField(Field<Dimension, DataType>& field) const {
         packedSendValues.push_back(packFieldValues(field, boundNodes.sendNodes));
 	vector<char>& sendValues = packedSendValues.back();
         MPI_Isend(&(*sendValues.begin()), sendValues.size(), MPI_CHAR,
-                  neighborDomainID, mMPIFieldTag, mCommunicator, &(mSendRequests.back()));
+                  neighborDomainID, mMPIFieldTag, Communicator::communicator(), &(mSendRequests.back()));
 
 #ifdef USE_MPI_DEADLOCK_DETECTION
         mSendProcIDs.push_back(neighborDomainID);
@@ -888,7 +885,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
           vector<int>& buf = recvBuffers.back();
           const int tag = 1000*neighborDomain + nodeListOff;  // This should be safe so long as we don't have more than 1000 NodeLists.
           MPI_Irecv(&(*buf.begin()), domainNodes.sendNodes.size(), MPI_INT, neighborDomain,
-                    tag, mCommunicator, &(recvRequests.back()));
+                    tag, Communicator::communicator(), &(recvRequests.back()));
         }
       }
     }
@@ -937,7 +934,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
           CHECK(buf.size() == domainNodes.receiveNodes.size());
           const int tag = 1000*procID + nodeListOff;  // This should be safe so long as we don't have more than 1000 NodeLists.
           sendRequests.push_back(MPI_Request());
-          MPI_Isend(&(*buf.begin()), buf.size(), MPI_INT, neighborDomain, tag, mCommunicator, &(sendRequests.back()));
+          MPI_Isend(&(*buf.begin()), buf.size(), MPI_INT, neighborDomain, tag, Communicator::communicator(), &(sendRequests.back()));
 
           // Cull the receive nodes.
           {
@@ -1363,14 +1360,14 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     int nThirdRankTensor = mThirdRankTensorExchangeFields.size();
     int nVectorScalar = mVectorScalarExchangeFields.size();
     const int nFields = nInt + nScalar + nVector + nVector3d + nTensor + nSymTensor + nThirdRankTensor + nVectorScalar;
-    MPI_Bcast(&nInt, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nScalar, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nVector, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nVector3d, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nTensor, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, mCommunicator);
-    MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, mCommunicator);
+    MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nVector3d, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, Communicator::communicator());
+    MPI_Bcast(&nVectorScalar, 1, MPI_INT, 0, Communicator::communicator());
     REQUIRE(nInt == mIntExchangeFields.size());
     REQUIRE(nScalar == mScalarExchangeFields.size());
     REQUIRE(nVector == mVectorExchangeFields.size());
@@ -1412,7 +1409,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     vector<MPI_Status> recvStatus(mRecvRequests.size());
 #ifdef USE_MPI_DEADLOCK_DETECTION
     waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
-                                 dummyInts, mRecvProcIDs, dummyRequests, mRecvRequests, dummyStatus, recvStatus, mCommunicator);
+                                 dummyInts, mRecvProcIDs, dummyRequests, mRecvRequests, dummyStatus, recvStatus, Communicator::communicator());
 #else
     MPI_Waitall(mRecvRequests.size(), &(*mRecvRequests.begin()), &(*recvStatus.begin()));
 #endif
@@ -1484,7 +1481,7 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     vector<MPI_Status> sendStatus(mSendRequests.size());
 #ifdef USE_MPI_DEADLOCK_DETECTION
     waitallWithDeadlockDetection("DistributedBoundary::finalizeExchanges -- RECEIVE waitall",
-                                 mSendProcIDs, dummyInts, mSendRequests, dummyRequests, sendStatus, dummyStatus, mCommunicator);
+                                 mSendProcIDs, dummyInts, mSendRequests, dummyRequests, sendStatus, dummyStatus, Communicator::communicator());
 #else
     MPI_Waitall(mSendRequests.size(), &(*mSendRequests.begin()), &(*sendStatus.begin()));
 #endif
@@ -1628,7 +1625,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
     if (neighborProc != procID) {
       recvRequests.push_back(MPI_Request());
-      MPI_Irecv(&numRecvNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, mCommunicator, &(recvRequests.back()));
+      MPI_Irecv(&numRecvNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator(), &(recvRequests.back()));
     }
   }
   CHECK(recvRequests.size() == numProcs - 1);
@@ -1652,7 +1649,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
   // Send everyone the sizes.
   for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
     if (neighborProc != procID) {
-      MPI_Send(&numSendNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, mCommunicator);
+      MPI_Send(&numSendNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator());
     }
   }
 

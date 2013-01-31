@@ -7,6 +7,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
+#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 
@@ -42,13 +43,13 @@ globalReduceToUniqueElements(vector<int>& x) {
   // If we're parallel, collect the unique set across all processors.
   int procID;
   int numProcs;
-  MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  MPI_Comm_rank(Communicator::communicator(), &procID);
+  MPI_Comm_size(Communicator::communicator(), &numProcs);
   const vector<int> localX(x);
   x = vector<int>();
   for (int sendID = 0; sendID != numProcs; ++sendID) {
     int n = localX.size();
-    MPI_Bcast(&n, 1, MPI_INT, sendID, MPI_COMM_WORLD);
+    MPI_Bcast(&n, 1, MPI_INT, sendID, Communicator::communicator());
     vector<int> otherX;
     if (procID == sendID) {
       otherX = localX;
@@ -56,7 +57,7 @@ globalReduceToUniqueElements(vector<int>& x) {
       otherX.resize(n);
     }
     CHECK(otherX.size() == n);
-    MPI_Bcast(&(*otherX.begin()), n, MPI_INT, sendID, MPI_COMM_WORLD);
+    MPI_Bcast(&(*otherX.begin()), n, MPI_INT, sendID, Communicator::communicator());
     x.reserve(x.size() + n);
     copy(otherX.begin(), otherX.end(), back_inserter(x));
   }
@@ -65,7 +66,7 @@ globalReduceToUniqueElements(vector<int>& x) {
   {
     int tmp = x.size();
     int sum;
-    MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     ENSURE(sum == x.size()*numProcs);
   }
   END_CONTRACT_SCOPE;
@@ -95,8 +96,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   int procID = 0;
   int numProcs = 1;
 #ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD, &procID);
-  MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+  MPI_Comm_rank(Communicator::communicator(), &procID);
+  MPI_Comm_size(Communicator::communicator(), &numProcs);
 #endif
 
   // Figure out how many elements are in a symmetric tensor.
@@ -126,7 +127,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 #ifdef USE_MPI
   {
     int tmp = maxGlobalID;
-    MPI_Allreduce(&tmp, &maxGlobalID, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &maxGlobalID, 1, MPI_INT, MPI_MAX, Communicator::communicator());
   }
 #endif
   maxGlobalID += 1;
@@ -155,7 +156,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 #ifdef USER_MPI
   {
     int tmp = numDustNodes;
-    MPI_Allreduce(&tmp, &numDustNodes, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &numDustNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   }
 #endif
   CHECK(numDustNodes >= 0 && numDustNodes <= numGlobalNodesRemaining);
@@ -178,7 +179,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 #ifdef USE_MPI
     {
       int tmp = globalMinID;
-      MPI_Allreduce(&tmp, &globalMinID, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &globalMinID, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     }
 #endif
     CHECK(globalMinID < maxGlobalID);
@@ -196,7 +197,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     {
       int tmp = localNode ? 1 : 0;
       int sum;
-      MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(sum == 1);
     }
     END_CONTRACT_SCOPE;
@@ -207,12 +208,12 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       tmp = procID;
       CHECK(result(ilocal) == maxGlobalID);
     }
-    MPI_Allreduce(&tmp, &nodeDomain, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&tmp, &nodeDomain, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     CHECK(nodeDomain >= 0 && nodeDomain < numProcs);
     BEGIN_CONTRACT_SCOPE;
     {
       int tmp;
-      MPI_Allreduce(&nodeDomain, &tmp, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&nodeDomain, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(tmp == numProcs*nodeDomain);
     }
     END_CONTRACT_SCOPE;
@@ -226,8 +227,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       Hi = H(ilocal);
     }
 #ifdef USE_MPI
-    MPI_Bcast(&(*ri.begin()), Dimension::nDim, MPI_DOUBLE, nodeDomain, MPI_COMM_WORLD);
-    MPI_Bcast(&(*Hi.begin()), Hsize, MPI_DOUBLE, nodeDomain, MPI_COMM_WORLD);
+    MPI_Bcast(&(*ri.begin()), Dimension::nDim, MPI_DOUBLE, nodeDomain, Communicator::communicator());
+    MPI_Bcast(&(*Hi.begin()), Hsize, MPI_DOUBLE, nodeDomain, Communicator::communicator());
 #endif
 
     // Find the neighbors for this node within the desired radius.
@@ -268,9 +269,9 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     BEGIN_CONTRACT_SCOPE;
     {
       int tmp;
-      MPI_Allreduce(&fragID, &tmp, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&fragID, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(tmp == numProcs*fragID);
-      MPI_Allreduce(&numFragments, &tmp, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&numFragments, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       CHECK(tmp == numProcs*numFragments);
     }
     END_CONTRACT_SCOPE;
@@ -314,7 +315,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 #ifdef USE_MPI
     {
       int tmp = numGlobalNodesRemaining;
-      MPI_Allreduce(&tmp, &numGlobalNodesRemaining, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&tmp, &numGlobalNodesRemaining, 1, MPI_INT, MPI_SUM, Communicator::communicator());
     }
 #endif
 
@@ -371,8 +372,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     for (int i = 0; i != numFragments - 1; ++i) {
       double mtmp = mfrag[i];
       Vector rtmp = rfrag[i];
-      MPI_Allreduce(&mtmp, &(mfrag[i]), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-      MPI_Allreduce(&(*rtmp.begin()), &(*rfrag[i].begin()), Dimension::nDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&mtmp, &(mfrag[i]), 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
+      MPI_Allreduce(&(*rtmp.begin()), &(*rfrag[i].begin()), Dimension::nDim, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
     }
 #endif
     for (int i = 0; i != numFragments - 1; ++i) {

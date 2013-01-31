@@ -20,6 +20,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#include "Distributed/Communicator.hh"
 
 #include "DBC.hh"
 
@@ -221,13 +222,13 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   result = vector<Value>(ntotal, DataTypeTraits<Value>::zero());
 
   // Check that everyone agrees about the size.
-  CHECK(bufSize == allReduce(bufSize, MPI_MIN, MPI_COMM_WORLD));
-  CHECK(bufSize == allReduce(bufSize, MPI_MAX, MPI_COMM_WORLD));
+  CHECK(bufSize == allReduce(bufSize, MPI_MIN, Communicator::communicator()));
+  CHECK(bufSize == allReduce(bufSize, MPI_MAX, Communicator::communicator()));
 
   // Sum up everyone's contribution.
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
     vector<char> buffer(localBuffer);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     vector<Value> localResult;
     vector<char>::const_iterator itr = buffer.begin();
     unpackElement(localResult, itr, buffer.end());
@@ -312,7 +313,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   // Check that everyone agrees about the size.
   {
     int bufSizeMin;
-    MPI_Allreduce(&bufSize, &bufSizeMin, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&bufSize, &bufSizeMin, 1, MPI_INT, MPI_MIN, Communicator::communicator());
     CHECK(bufSizeMin == bufSize);
   }
   END_CONTRACT_SCOPE;
@@ -320,7 +321,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   // Sum up everyone's contribution.
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
     vector<char> buffer(localBuffer);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     vector<Value> localResult;
     vector<char>::const_iterator itr = buffer.begin();
     unpackElement(localResult, itr, buffer.end());

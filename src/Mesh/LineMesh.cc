@@ -10,6 +10,7 @@
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
@@ -48,7 +49,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
                     const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
-  if (allReduce(unsigned(localGenerators.size()), MPI_SUM, MPI_COMM_WORLD) == 0) return;
+  if (allReduce(unsigned(localGenerators.size()), MPI_SUM, Communicator::communicator()) == 0) return;
 
   // Parallel info.
   const unsigned rank = Process::getRank();
@@ -94,10 +95,10 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
     for (unsigned sendProc = 0; sendProc != numDomains; ++sendProc) {
       vector<char> buffer = localBuffer;
       unsigned bufSize = buffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, MPI_COMM_WORLD);
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       if (bufSize > 0) {
         buffer.resize(bufSize);
-        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
         if (sendProc != rank) {
           vector<char>::const_iterator bufItr = buffer.begin();
           while (bufItr != buffer.end()) {
@@ -224,14 +225,14 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
 
   // Build the parallel info.
   this->generateDomainInfo();
-  // MPI_Barrier(MPI_COMM_WORLD);
+  // MPI_Barrier(Communicator::communicator());
   // for (unsigned irank = 0; irank != Process::getTotalNumberOfProcesses(); ++irank) {
   //   if (Process::getRank() == irank) {
   //     cerr << "LineMesh neighborDomains : " << mNeighborDomains.size() << " : ";
   //     copy(mNeighborDomains.begin(), mNeighborDomains.end(), ostream_iterator<unsigned>(cerr, " "));
   //     cerr << endl;
   //   }
-  //   MPI_Barrier(MPI_COMM_WORLD);
+  //   MPI_Barrier(Communicator::communicator());
   // }
 
   // Post-conditions.
@@ -276,8 +277,8 @@ boundingSurface() const {
     xmin = std::min(xmin, mNodePositions[i].x());
     xmax = std::max(xmax, mNodePositions[i].x());
   }
-  xmin = allReduce(xmin, MPI_MIN, MPI_COMM_WORLD);
-  xmax = allReduce(xmax, MPI_MAX, MPI_COMM_WORLD);
+  xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
+  xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
   return FacetedVolume(Vector(0.5*(xmin + xmax)), 0.5*(xmax - xmin));
 }
 

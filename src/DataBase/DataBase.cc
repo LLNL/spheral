@@ -19,6 +19,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
 
 #include "DBC.hh"
 
@@ -86,7 +87,7 @@ int
 DataBase<Dimension>::globalNumInternalNodes() const {
   int localResult = numInternalNodes();
   int result = localResult;
-  result = allReduce(result, MPI_SUM, MPI_COMM_WORLD);
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
   return result;
 }
 
@@ -95,7 +96,7 @@ int
 DataBase<Dimension>::globalNumGhostNodes() const {
   int localResult = numGhostNodes();
   int result = localResult;
-  result = allReduce(result, MPI_SUM, MPI_COMM_WORLD);
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
   return result;
 }
 
@@ -104,7 +105,7 @@ int
 DataBase<Dimension>::globalNumNodes() const {
   int localResult = numNodes();
   int result = localResult;
-  result = allReduce(result, MPI_SUM, MPI_COMM_WORLD);
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
   return result;
 }
 
@@ -1068,8 +1069,8 @@ boundingBox(typename Dimension::Vector& xmin,
 
   // Now find the global bounds across all processors.
   for (int i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, MPI_COMM_WORLD);
-    xmax(i) = allReduce(xmax(i), MPI_MAX, MPI_COMM_WORLD);
+    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
+    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
   }
 }
 
@@ -1167,15 +1168,15 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
     size_t nlocal = this->numInternalNodes();
     centroid *= nlocal;
     for (int i = 0; i != Dimension::nDim; ++i) {
-      xminNodes(i) = allReduce(xminNodes(i), MPI_MIN, MPI_COMM_WORLD);
-      xmaxNodes(i) = allReduce(xmaxNodes(i), MPI_MAX, MPI_COMM_WORLD);
-      xminSample(i) = allReduce(xminSample(i), MPI_MIN, MPI_COMM_WORLD);
-      xmaxSample(i) = allReduce(xmaxSample(i), MPI_MAX, MPI_COMM_WORLD);
-      centroid(i) = allReduce(centroid(i), MPI_SUM, MPI_COMM_WORLD);
+      xminNodes(i) = allReduce(xminNodes(i), MPI_MIN, Communicator::communicator());
+      xmaxNodes(i) = allReduce(xmaxNodes(i), MPI_MAX, Communicator::communicator());
+      xminSample(i) = allReduce(xminSample(i), MPI_MIN, Communicator::communicator());
+      xmaxSample(i) = allReduce(xmaxSample(i), MPI_MAX, Communicator::communicator());
+      centroid(i) = allReduce(centroid(i), MPI_SUM, Communicator::communicator());
     }
 
     // Fix up the centroid and radii.
-    size_t nglobal = allReduce((uint64_t) nlocal, MPI_SUM, MPI_COMM_WORLD);
+    size_t nglobal = allReduce((uint64_t) nlocal, MPI_SUM, Communicator::communicator());
     if (nglobal > 0) {
       centroid /= nglobal;
       radiusNodes = 0.0;
@@ -1195,8 +1196,8 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
 	  radiusSample = max(radiusSample, drMag + 2.0*hi);
 	}
       }
-      radiusNodes = allReduce(radiusNodes, MPI_MAX, MPI_COMM_WORLD);
-      radiusSample = allReduce(radiusSample, MPI_MAX, MPI_COMM_WORLD);
+      radiusNodes = allReduce(radiusNodes, MPI_MAX, Communicator::communicator());
+      radiusSample = allReduce(radiusSample, MPI_MAX, Communicator::communicator());
       const Vector delta = 0.001*(xmaxSample - xminSample);
       radiusNodes *= 1.001;
       radiusSample *= 1.001;
@@ -1324,9 +1325,9 @@ globalSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
     vector<char> buffer = localBuffer;
     int bufSize = localBuffer.size();
-    MPI_Bcast(&bufSize, 1, MPI_INT, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&bufSize, 1, MPI_INT, sendProc, Communicator::communicator());
     if (procID != sendProc) buffer.resize(bufSize);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, MPI_COMM_WORLD);
+    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
     vector<Vector> xminimaDomain, xmaximaDomain;
     vector<char>::const_iterator bufItr = buffer.begin();
     unpackElement(xminimaDomain, bufItr, buffer.end());

@@ -26,6 +26,7 @@
 #include "Utilities/packWMElement.hh"
 #include "DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
+#include "Communicator.hh"
 
 using namespace std;
 
@@ -156,11 +157,11 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
     packElement(domainSampleBoundingVolume[procID], localBuffer);
     for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
       unsigned bufSize = localBuffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, mCommunicator);
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
       if (bufSize > 0) {
         vector<char> buffer = localBuffer;
         buffer.resize(bufSize);
-        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, mCommunicator);
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
         vector<char>::const_iterator itr = buffer.begin();
         unpackElement(domainNodeBoundingVolume[sendProc], itr, buffer.end());
         unpackElement(domainSampleBoundingVolume[sendProc], itr, buffer.end());

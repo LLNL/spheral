@@ -3,6 +3,7 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {
@@ -13,7 +14,7 @@ initializeTau() {
   TAU_PROFILE("initializeTau", "", TAU_USER);
   int myid = 0;
 #ifdef USE_MPI
-  MPI_Comm_rank(MPI_COMM_WORLD,&myid);  
+  MPI_Comm_rank(Communicator::communicator(),&myid);  
 #endif
   TAU_PROFILE_SET_NODE(myid);
 #endif

@@ -21,6 +21,7 @@
 #include "NodeList/NodeList.hh"
 #include "Geometry/EigenStruct.hh"
 #include "Utilities/globalNodeIDs.hh"
+#include "Communicator.hh"
 
 #include "DBC.hh"
 #include "cdebug.hh"
@@ -170,7 +171,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
        ++itr) localWork += itr->work;
   CHECK(numProcs > 0);
   double globalWork;
-  MPI_Allreduce(&localWork, &globalWork, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&localWork, &globalWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
   const double targetWorkPerDomain = globalWork / numProcs;
   CHECK(distinctlyGreaterThan(targetWorkPerDomain, 0.0));
   TAU_PROFILE_STOP(TimeSDR3GlobalWork);
@@ -319,7 +320,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   const string finalLoadStats = this->gatherDomainDistributionStatistics(work);
   if (procID == 0) cerr << "SortAndDivideRedistributeNodes::redistributeNodes final load balancing:" << endl
                         << finalLoadStats << endl << endl;
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
 
 }
 

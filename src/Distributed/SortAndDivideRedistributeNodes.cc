@@ -16,6 +16,7 @@
 #include "CompareDomainNodesByPosition.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/EigenStruct.hh"
+#include "Communicator.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -134,7 +135,7 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
   bool domainFinished = false;
   int numAvailableNodes = sortedCandidateNodes.size();
   int globalNumAvailableNodes;
-  MPI_Allreduce(&numAvailableNodes, &globalNumAvailableNodes, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&numAvailableNodes, &globalNumAvailableNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   while (!domainFinished && (globalNumAvailableNodes > 0)) {
 
     // Have each processor select its available candidate nodes up to the chunk work size.
@@ -154,7 +155,7 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
     // communicate the result back to everyone.
     currentCandidates = reduceDomainNodes(currentCandidates, 0);
     if (procID == 0) sort(currentCandidates.begin(), currentCandidates.end(), cmp);
-    MPI_Barrier(mCommunicator);
+    MPI_Barrier(Communicator::communicator());
     currentCandidates = broadcastDomainNodes(currentCandidates, 0);
 
     // Step through the candidate nodes, assigning them and incrementing the 
@@ -183,8 +184,8 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
     {
       double sumTotalWork;
       int sumNumAvailableNodes;
-      MPI_Allreduce(&totalWork, &sumTotalWork, 1, MPI_DOUBLE, MPI_SUM, mCommunicator);
-      MPI_Allreduce(&globalNumAvailableNodes, &sumNumAvailableNodes, 1, MPI_INT, MPI_SUM, mCommunicator);
+      MPI_Allreduce(&totalWork, &sumTotalWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
+      MPI_Allreduce(&globalNumAvailableNodes, &sumNumAvailableNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
       ENSURE(fuzzyEqual(sumTotalWork, numProcs * totalWork, 1.0e-12));
       ENSURE(sumNumAvailableNodes == numProcs * globalNumAvailableNodes);
     }
@@ -214,8 +215,8 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
   Vector globalCOM;
   int localNumNodes = domainNodes.size();
   int globalNumNodes;
-  MPI_Allreduce(&(*com.begin()), &(*globalCOM.begin()), Dimension::nDim, MPI_DOUBLE, MPI_SUM, mCommunicator);
-  MPI_Allreduce(&localNumNodes, &globalNumNodes, 1, MPI_INT, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&(*com.begin()), &(*globalCOM.begin()), Dimension::nDim, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
+  MPI_Allreduce(&localNumNodes, &globalNumNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   CHECK(globalNumNodes > 0);
   globalCOM /= globalNumNodes;
 
@@ -229,7 +230,7 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
   }
   SymTensor globalJ;
   const int numTensorElements = distance(J.begin(), J.end());
-  MPI_Allreduce(&(*J.begin()), &(*globalJ.begin()), numTensorElements, MPI_DOUBLE, MPI_SUM, mCommunicator);
+  MPI_Allreduce(&(*J.begin()), &(*globalJ.begin()), numTensorElements, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
 
   // The shape tensor we want is the square root of the second moment.  We also
   // normalize the eigenvalues for a unit volume.
@@ -313,11 +314,11 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
         // Get the packed data.
         MPI_Status status1, status2;
         int bufferSize;
-        MPI_Recv(&bufferSize, 1, MPI_INT, sendProc, 200, mCommunicator, &status1);
+        MPI_Recv(&bufferSize, 1, MPI_INT, sendProc, 200, Communicator::communicator(), &status1);
         CHECK(bufferSize % DomainNode<Dimension>::packSize() == 0);
         if (bufferSize > 0) {
           vector<double> buffer(bufferSize);
-          MPI_Recv(&(*buffer.begin()), bufferSize, MPI_DOUBLE, sendProc, 201, mCommunicator, &status2);
+          MPI_Recv(&(*buffer.begin()), bufferSize, MPI_DOUBLE, sendProc, 201, Communicator::communicator(), &status2);
 
           // Unpack the data and append it to the result.
           const int oldNumNodes = result.size();
@@ -356,13 +357,13 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
     // Now send that sucker.
     int bufferSize = buffer.size();
     CHECK(bufferSize == nodes.size() * DomainNode<Dimension>::packSize());
-    MPI_Send(&bufferSize, 1, MPI_INT, targetProc, 200, mCommunicator);
-    if (bufferSize > 0) MPI_Send(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, 201, mCommunicator);
+    MPI_Send(&bufferSize, 1, MPI_INT, targetProc, 200, Communicator::communicator());
+    if (bufferSize > 0) MPI_Send(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, 201, Communicator::communicator());
 
   }
 
   // That's it.
-  MPI_Barrier(mCommunicator);
+  MPI_Barrier(Communicator::communicator());
   return result;
 }
 
@@ -399,11 +400,11 @@ broadcastDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
 
   // Now broadcast the packed info.
   int bufferSize = buffer.size();
-  MPI_Bcast(&bufferSize, 1, MPI_INT, targetProc, mCommunicator);
+  MPI_Bcast(&bufferSize, 1, MPI_INT, targetProc, Communicator::communicator());
   CHECK(bufferSize >= 0);
   CHECK(bufferSize % DomainNode<Dimension>::packSize() == 0);
   buffer.resize(bufferSize);
-  MPI_Bcast(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, mCommunicator);
+  MPI_Bcast(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, Communicator::communicator());
 
   // Unpack the buffer.
   const int numNodes = bufferSize / DomainNode<Dimension>::packSize();

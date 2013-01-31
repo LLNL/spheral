@@ -14,6 +14,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
+#include "Distributed/Communicator.hh"
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -91,7 +92,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
 #ifdef USE_MPI
       {
         double tmp = volume;
-        MPI_Allreduce(&tmp, &volume, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&tmp, &volume, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
       }
 #endif      
     }
@@ -167,11 +168,11 @@ weibullFlawDistributionBenzAsphaug(double volume,
         size_t totalNumFlaws0 = totalNumFlaws;
         double epsMax0 = epsMax;
         double sumFlaws0 = sumFlaws;
-        MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, MPI_COMM_WORLD);
-        MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
-        MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, Communicator::communicator());
+        MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, Communicator::communicator());
+        MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, Communicator::communicator());
+        MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
+        MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
       }
 #endif
       if (procID == 0) {
@@ -318,12 +319,12 @@ weibullFlawDistributionOwen(const unsigned seed,
       double epsMin0 = epsMin;
       double epsMax0 = epsMax;
       double sumFlaws0 = sumFlaws;
-      MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, MPI_COMM_WORLD);
-      MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
-      MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-      MPI_Allreduce(&epsMin0, &epsMin, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-      MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-      MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, Communicator::communicator());
+      MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, Communicator::communicator());
+      MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, Communicator::communicator());
+      MPI_Allreduce(&epsMin0, &epsMin, 1, MPI_DOUBLE, MPI_MIN, Communicator::communicator());
+      MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
+      MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
     }
 #endif
     if (procID == 0) {
