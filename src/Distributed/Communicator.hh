@@ -21,10 +21,13 @@ public:
   static Communicator& instance();
   static Communicator* instancePtr();
 
-#ifdef USE_MPI
   // Access the communicator.
+#ifdef USE_MPI
   static MPI_Comm& communicator() { return instancePtr()->mCommunicator; }
   static void communicator(MPI_Comm& comm) { MPI_Comm_dup(comm, &(instancePtr()->mCommunicator)); }
+#else
+  static int communicator() { return 0; }
+  static void communicator(int& comm) {}
 #endif
 
 private:
