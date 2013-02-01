@@ -8,14 +8,16 @@ namespace FractalSpace
   template <class M> void step_simple(M& mem, Fractal& fractal)
   {
     fractal.timing(-2,0);
-    fractal.timing(-1,29);
+    fractal.timing(-1,49);
     fractal_force(fractal,mem);
-    fractal.timing(1,29);
+    fractal.timing(1,49);
     fractal.timing(0,0);
     //
     for(int n=0;n < fractal.get_number_particles();++n)
       {
 	Particle* p=fractal.particle_list[n];
+	if(!p->get_real_particle())
+	  continue;
 	p->remember_pos_force();
       }
     vector <double> pos(3);
@@ -34,6 +36,8 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_field(pos,vel,force);
 	    vel[0]=vel[0]*v_const+force[0]*f_const;
 	    vel[1]=vel[1]*v_const+force[1]*f_const;
@@ -55,6 +59,8 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_field(pos,vel,force);
 	    vel[0]+=force[0]*dt;
 	    vel[1]+=force[1]*dt;
@@ -69,5 +75,5 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-template void step_simple(Fractal_Memory& mem, Fractal& fractal);
+  template void step_simple(Fractal_Memory& mem, Fractal& fractal);
 }

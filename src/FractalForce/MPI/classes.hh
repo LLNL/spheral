@@ -7,7 +7,9 @@ namespace FractalSpace
   class Misc;
   class Particle;
   class Mess;
+  class File;
 }
+#include "file_class.hh"
 #include "misc_class.hh"
 #include "mess.hh"
 #include "fractal_memory.hh"

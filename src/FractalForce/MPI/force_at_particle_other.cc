@@ -6,6 +6,7 @@ namespace FractalSpace
   void force_at_particle(vector <vector <Group*> >& all_groups, Fractal& fractal)
   { 
     //
+    ofstream& FileFractal=fractal.p_file->FileFractal;
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> pott(8);
@@ -33,6 +34,8 @@ namespace FractalSpace
 		for(vector<Particle*>::const_iterator particle_itr=point.list_other_particles.begin();particle_itr !=point.list_other_particles.end();++particle_itr)
 		  {
 		    Particle& particle=**particle_itr;
+		    if(!particle.get_real_particle())
+		      continue;
 		      if(particle.get_p_highest_level_group() != 0)
 		      {
 			if(p_group == particle.get_p_highest_level_group())
@@ -49,12 +52,12 @@ namespace FractalSpace
 			    Misc::sum_prod<double>(0,7,1,sum_pf,weights,pott,f_x,f_y,f_z);
 			    particle.set_field_pf(sum_pf);
 			    if(sum_pf[0]*sum_pf[1]*sum_pf[2]*sum_pf[3] ==0.0)
-			      particle.dump(pott,f_x,f_y,f_z);
+			      particle.dump(FileFractal,pott,f_x,f_y,f_z);
 			  }
 		      }
 		    else
 		      {
-			particle.dump();
+			particle.dump(FileFractal);
 			particle.set_field_pf(0.0);
 		      }
 		  }

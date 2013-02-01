@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void periodic_solver(Group& group, Fractal_Memory& mem,Fractal& frac)
   {
-    cout << "entering periodic " << endl;
+    ofstream& FileFractal=frac.p_file->FileFractal;
+    FileFractal << "entering periodic " << endl;
     const int length_1=frac.get_grid_length();  
     const int length_c=(length_1+2)/2;
     const int length_2=length_1*length_1;
@@ -44,25 +45,25 @@ namespace FractalSpace
 		summ1+=potR[mem.fftw_where(i,j,k,length_1,length_1)];
 		summ2+=pow(potR[mem.fftw_where(i,j,k,length_1,length_1)],2);
 		/*
-		cout << "dens " ;
-		cout << i << " " ;
-		cout << j << " " ;
-		cout << k << " " ;
-		cout << mem.fftw_where(i,j,k,length_1,length_1) << " " ;
-		cout << potR[mem.fftw_where(i,j,k,length_1,length_1)] << endl;
+		FileFractal << "dens " ;
+		FileFractal << i << " " ;
+		FileFractal << j << " " ;
+		FileFractal << k << " " ;
+		FileFractal << mem.fftw_where(i,j,k,length_1,length_1) << " " ;
+		FileFractal << potR[mem.fftw_where(i,j,k,length_1,length_1)] << endl;
 		*/
 	      }
 	  }
       }
-    cout << "going to four_2 a " << endl;
+    FileFractal << "going to four_2 a " << endl;
     //    assert(0);
     summ1/=summ0;
     summ2/=summ0;
     summ2=sqrt(summ2);
-    cout << "summ " << summ0 << " " << summ1 << " " << summ2 << endl;
+    FileFractal << "summ " << summ0 << " " << summ1 << " " << summ2 << endl;
     fftw_execute(plan_rc);
     double g_c=group.get_force_const()/length_3;
-    cout << "going to power spectrum from periodic " << length_1 << endl;
+    FileFractal << "going to power spectrum from periodic " << length_1 << endl;
     vector <double> variance_rho(length_1,0.0);
     vector <double> variance_pot(length_1,0.0);
     vector <double> variance_force(length_1,0.0);
@@ -71,7 +72,7 @@ namespace FractalSpace
     frac.timing(-1,6);
     power_spectrum(potC,length_1,variance_rho,variance_pot,variance_force,variance_force_s,0,frac.get_density_0(),mem.do_var,mem);
     frac.timing(1,6);
-    cout << "going to four_2 b " << endl;
+    FileFractal << "going to four_2 b " << endl;
     for(int nx=0;nx < length_1;++nx)
       {
 	for(int ny=0;ny < length_1;++ny)
@@ -85,9 +86,9 @@ namespace FractalSpace
 	      }
 	  }
       }
-    cout << "going to four_2 c " << endl;
+    FileFractal << "going to four_2 c " << endl;
     fftw_execute(plan_cr);
-    cout << "level zero potential a " << endl;
+    FileFractal << "level zero potential a " << endl;
     for(int nx=0;nx < length_1;++nx)
       {
 	for(int ny=0;ny < length_1;++ny)
@@ -100,7 +101,7 @@ namespace FractalSpace
 	      }
 	  }
       }
-    cout << "level zero potential b " << endl;
+    FileFractal << "level zero potential b " << endl;
     fftw_free(potR);
     fftw_free(potC);
     potR=0;
@@ -108,6 +109,6 @@ namespace FractalSpace
     fftw_destroy_plan(plan_rc);
     fftw_destroy_plan(plan_cr);
     Fractal::first_time_solver=false;
-    cout << "exiting periodic " << endl;
+    FileFractal << "exiting periodic " << endl;
   }
 }

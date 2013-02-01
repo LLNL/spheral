@@ -7,9 +7,7 @@ namespace FractalSpace
   //
   void sor(Group& group, Fractal& fractal,vector <Point*>& list_edge,const int& dir)
   {
-    static ofstream FileSor;
-    if(!FileSor.is_open())
-      FileSor.open("sor.d");
+    ofstream& FileSor=fractal.p_file->FileSor;
     double rj=group.get_rjac();
     double g_c=group.get_force_const();
     //
@@ -43,7 +41,7 @@ namespace FractalSpace
 	    for (vector<Point*>::const_iterator  point_itr=list_edge.begin();point_itr !=list_edge.end();++point_itr)
 	      {
 		Point* p_point=*point_itr;
-		if(ipass1)p_point=p_point->get_point_ud_0(dir);
+		if(ipass1)p_point=p_point->get_point_ud_0(dir,2);
 		bool go_on=it_is_inside(p_point); 
 		while(go_on)
 		  {
@@ -51,7 +49,7 @@ namespace FractalSpace
 		    anorm+=abs(resid);
 		    anorm2=max(anorm2,abs(resid));
 		    p_point->add_potential_point(omega_6*resid);
-		    p_point=p_point->get_point_ud_0(dir);
+		    p_point=p_point->get_point_ud_0(dir,3);
 		    p_point=p_point->get_point_ud(dir);
 		    go_on=it_is_inside(p_point);
 		  }
@@ -63,7 +61,6 @@ namespace FractalSpace
 	  }
 	if(anorm < fractal.get_epsilon_sor()*anormf && anorm2 < fractal.get_epsilon_sor()*anorm2f) 
 	  {
-	    FileSor.precision(4);
 	    FileSor << n << "\t " 
 		    << n_points << "\t " 
 		    << scientific
@@ -80,12 +77,13 @@ namespace FractalSpace
       }
     if(maxits_real ==1) return;
     FileSor << " not converged " << endl;
+    /*
     for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
       {
 	Point& point=**point_itr;
 	point.dumpp();
       }
-    FileSor.precision(4);
+    */
     FileSor << n << "\t " 
 	    << n_points << "\t " 
 	    << scientific
@@ -97,23 +95,9 @@ namespace FractalSpace
 	    << fractal.get_epsilon_sor() << "\t"
 	    << group.get_level() 
 	    << endl;
-    FileSor.close();
-    cout << " not converged " << endl;
-    cout.precision(4);
-    cout << n << "\t " 
-	    << n_points << "\t " 
-	    << scientific
-	    << anorm << "\t " 
-	    << anormf << "  " 
-	    << anorm2 << "\t " 
-	    << anorm2f  << "\t " 
-	    << rj << "\t " 
-	    << fractal.get_epsilon_sor() << "\t"
-	    << group.get_level() 
-	    << endl;
-    assert(n < maxits_real);
+    FileSor << " not converged " << endl;
   }
-  inline bool it_is_inside(Point* p_point)
+  bool it_is_inside(Point* p_point)
   {
     return p_point != 0 && p_point->get_inside();
   }

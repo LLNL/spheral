@@ -13,10 +13,15 @@ namespace FractalSpace
     bool inside;
     bool it_is_high;
     //
+    bool really_passive;
     bool passive_point;
     bool buffer_point;
     bool edge_point;
+    int number_in_list;
+    int which_Slice;
     //
+    int ij_number;
+    vector <int>ij_ud;
     vector <bool> eureka_adj;
     vector <bool> eureka_dau;
     double potential_point;
@@ -26,6 +31,7 @@ namespace FractalSpace
     vector <double>force_point;
     vector <double>force_shear_point;
   public:
+    ofstream* p_FILE;
     vector <Particle*> list_particles;
     vector <Particle*> list_other_particles;
     static Point* nothing;
@@ -55,9 +61,12 @@ namespace FractalSpace
       p_in_high_group(0),
       inside(false),
       it_is_high(false),
+      really_passive(false),
       passive_point(false),
       buffer_point(false),
       edge_point(false),
+      number_in_list(-1),
+      which_Slice(-1),
       potential_point(0.0),
       density_point(0.0),
       pos_point(3,-1),
@@ -70,11 +79,33 @@ namespace FractalSpace
     {    
       number_points--;
     };
+    bool to_receive()
+    {
+      return passive_point && !really_passive;
+    }
+    bool to_be_sent()
+    {
+      if(passive_point || buffer_point || edge_point)
+	return false;
+      for(int ni=0;ni<6;ni++)
+	{
+	  if(point_ud[ni] !=0 && point_ud[ni]->edge_point)
+	    return true;
+	}
+      return false;
+    }
     void set_edge_buffer_passive_point(const bool& e,const bool& b,const bool& p)
     {
       edge_point=e;
-      buffer_point=e;
-      passive_point=e;
+      buffer_point=b;
+      passive_point=p;
+    }
+    void set_edge_buffer_passive_really_point(const bool& e,const bool& b,const bool& p,const bool& r)
+    {
+      edge_point=e;
+      buffer_point=b;
+      passive_point=p;
+      really_passive=r;
     }
     bool get_buffer_point()
     {
@@ -91,6 +122,22 @@ namespace FractalSpace
     void set_edge_point(bool& e_p)
     {
       edge_point=e_p;
+    }
+    int get_number_in_list()
+    {
+      return number_in_list;
+    }
+    void set_number_in_list(const int& n)
+    {
+      number_in_list=n;
+    }
+    int get_which_Slice()
+    {
+      return which_Slice;
+    }
+    void set_which_Slice(const int& wS)
+    {
+      which_Slice=wS;
     }
     void set_eureka_adj(const vector <bool>& eu)
     {
@@ -141,7 +188,6 @@ namespace FractalSpace
       pos_point[0]=x;
       pos_point[1]=y;
       pos_point[2]=z;
-      //      cout << "point " << this << " " << x << " "  << y << " "  << z << endl;
     }
     void get_pos_point(int& x,int& y,int& z)
     {
@@ -216,6 +262,56 @@ namespace FractalSpace
     void set_passive_point(const bool& value)
     {
       passive_point=value;
+    }
+    bool get_really_passive()
+    {
+      return really_passive;
+    }
+    void set_really_passive(const bool& value)
+    {
+      really_passive=value;
+    }
+    void set_ij_number(const int& count)
+    {
+      ij_number=count;
+    }
+    int get_ij_number()
+    {
+      return ij_number;
+    }
+    void set_ij_neighbors()
+    {
+      if(!inside)
+	{
+	  ij_ud.clear();
+	  return;
+	}
+      ij_ud.resize(6);
+      for(int ni=0;ni<6;ni++)
+	{
+	  //	  assert(!point_ud[ni]->really_passive);
+	  ij_ud[ni]=point_ud[ni]->ij_number;
+	}
+    }
+    void get_ij_neighbors(vector <int>& ijud)
+    {
+      ijud=ij_ud;
+    }
+    int get_ij_neighbors_size()
+    {
+      return ij_ud.size();
+    }
+    void copy_ij_index(const int& ijc)
+    {
+      ij_ud.resize(1);
+      ij_ud[0]=ijc;
+    }
+    void get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot)
+    {
+      ij_index=ij_number;
+      ijud=ij_ud;
+      rho=density_point;
+      pot=potential_point;
     }
     bool get_it_is_high()
     {
@@ -294,6 +390,14 @@ namespace FractalSpace
     void set_force_point_z(const double& f)
     {
       force_point[2]=f;
+    }
+    void set_FILE(ofstream* p_filE)
+    {
+      p_FILE=p_filE;
+    }
+    ofstream* get_FILE()
+    {
+      return p_FILE;
     }
     void all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me)
     {
@@ -400,7 +504,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[1]))
 	return point_ud[1];
-      cout << " up x error " << endl;
+      *p_FILE << " up x error " << endl;
       dump();
       assert(0);
       return 0;
@@ -417,7 +521,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[3]))
 	return point_ud[3];
-      cout << " up y error " << endl;
+      *p_FILE << " up y error " << endl;
       dump();
       assert(0);
       return 0;
@@ -434,7 +538,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[5]))
 	return point_ud[5];
-      cout << " up z error " << endl;
+      *p_FILE << " up z error " << endl;
       dump();
       assert(0);
       return 0;
@@ -451,7 +555,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[0]))
 	return point_ud[0];
-      cout << " down x error " << endl;
+      *p_FILE << " down x error " << endl;
       dump();
       assert(0);
       return 0;
@@ -486,7 +590,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[2]))
 	return point_ud[2];
-      cout << " down y error " << endl;
+      *p_FILE << " down y error " << endl;
       dump();
       assert(0);
       return 0;
@@ -503,7 +607,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_ud[4]))
 	return point_ud[4];
-      cout << " down z error " << endl;
+      *p_FILE << " down z error " << endl;
       dump();
       assert(0);
       return 0;
@@ -516,11 +620,20 @@ namespace FractalSpace
     {
       return point_ud[i];
     }
+    Point* get_point_ud_0(const int& i,const int& tag)
+    {
+      if(Point::pointer_test(point_ud[i]))
+	return point_ud[i];
+      *p_FILE << " ud error " << i << " " << tag << endl;
+      dump();
+      assert(0);
+      return 0;
+    }
     Point* get_point_ud_0(const int& i)
     {
       if(Point::pointer_test(point_ud[i]))
 	return point_ud[i];
-      cout << " ud error " << i << endl;
+      *p_FILE << " ud error " << i << endl;
       dump();
       assert(0);
       return 0;
@@ -533,7 +646,7 @@ namespace FractalSpace
     {
       if(Point::pointer_test(point_pointer))
 	return point_pointer;
-      cout << " point pointer error " << endl;
+      *p_FILE << " point pointer error " << endl;
       dump();
       assert(point_pointer);
       return 0;
@@ -551,7 +664,7 @@ namespace FractalSpace
       bool spam=Point::pointer_test(p_daughter_point);
       if(!spam) 
 	{
-	  cout << " daughter error " << endl;
+	  *p_FILE << " daughter error " << endl;
 	  dump();
 	  assert(0);
 	}
@@ -629,14 +742,14 @@ namespace FractalSpace
       force_shear_point.resize(6);
       for(unsigned int ni=0;ni<force_shear_point.size();ni++)
 	force_shear_point[ni]=(point_ud[0]->force_shear_point[ni]+point_ud[1]->force_shear_point[ni]+point_ud[2]->force_shear_point[ni]+
-		       point_ud[3]->force_shear_point[ni]+point_ud[4]->force_shear_point[ni]+point_ud[5]->force_shear_point[ni])/6.0;
+			       point_ud[3]->force_shear_point[ni]+point_ud[4]->force_shear_point[ni]+point_ud[5]->force_shear_point[ni])/6.0;
     }
     void copy_force_shear_point_4(vector <int>& witch)
     {
       force_shear_point.resize(6);
       for(unsigned int ni=0;ni<force_shear_point.size();ni++)
 	force_shear_point[ni]=(point_ud[witch[0]]->force_shear_point[ni]+point_ud[witch[1]]->force_shear_point[ni]+
-		       point_ud[witch[2]]->force_shear_point[ni]+point_ud[witch[3]]->force_shear_point[ni])*0.25;
+			       point_ud[witch[2]]->force_shear_point[ni]+point_ud[witch[3]]->force_shear_point[ni])*0.25;
     }
     void copy_force_shear_point_2(vector <int>& witch)
     {
@@ -649,8 +762,7 @@ namespace FractalSpace
       force_shear_point.resize(6);
       if(point_pointer != 0)
 	{
-	  for(unsigned int ni=0;ni<force_shear_point.size();ni++)
-	    force_shear_point[ni]=point_pointer->force_shear_point[ni];
+	  force_shear_point=point_pointer->force_shear_point;
 	  return;
 	}
       dump();
@@ -714,6 +826,11 @@ namespace FractalSpace
       force_point[1]=(get_point_ud_0(2)->potential_point-get_point_ud_0(3)->potential_point)*conv;
       force_point[2]=(get_point_ud_0(4)->potential_point-get_point_ud_0(5)->potential_point)*conv;
     }
+    void diff_pot_careful(const double& conv)
+    {
+      if(point_ud[0] != 0 && point_ud[1] != 0 && point_ud[2] != 0 && point_ud[3] != 0 && point_ud[4] != 0 && point_ud[5] != 0)
+	diff_pot(conv);
+    }
     void diff_force(const double& conv)
     {
       // (fx,x)(fx,y)(fx,z)(fy,y)(fy,z)(fz,z)
@@ -748,21 +865,21 @@ namespace FractalSpace
     }
     template <class T> void add_density_at_points(vector <T>& d)
     {
-      if(inside) density_point+=d[0];
+      density_point+=d[0];
       Point* p=get_point_ud_0(1);
-      if(p->inside) p->density_point+=d[1];
+      p->density_point+=d[1];
       p=p->get_point_ud_0(3);
-      if(p->inside) p->density_point+=d[3];
+      p->density_point+=d[3];
       p=p->get_point_ud_0(0);
-      if(p->inside) p->density_point+=d[2];
+      p->density_point+=d[2];
       p=p->get_point_ud_0(5);
-      if(p->inside) p->density_point+=d[6];
+      p->density_point+=d[6];
       p=p->get_point_ud_0(1);
-      if(p->inside) p->density_point+=d[7];
+      p->density_point+=d[7];
       p=p->get_point_ud_0(2);
-      if(p->inside) p->density_point+=d[5];
+      p->density_point+=d[5];
       p=p->get_point_ud_0(0);
-      if(p->inside) p->density_point+=d[4];
+      p->density_point+=d[4];
     }
     void subtract_dens_at_point(const double& d)
     {
@@ -825,7 +942,6 @@ namespace FractalSpace
     void get_field_shear_values(vector <double>& fxx,vector <double>& fxy,vector <double>& fxz,
 				vector <double>& fyy,vector <double>& fyz,vector <double>& fzz)
     {
-      //      cout << "valuesa " << force_shear_point.size() << endl;
       fxx[0]=force_shear_point[0];
       fxy[0]=force_shear_point[1];
       fxz[0]=force_shear_point[2];
@@ -833,7 +949,6 @@ namespace FractalSpace
       fyz[0]=force_shear_point[4];
       fzz[0]=force_shear_point[5];
       Point* p=get_point_ud_0(1);
-      //      cout << "valuesb " << p->force_shear_point.size() << endl;
       fxx[1]=p->force_shear_point[0];
       fxy[1]=p->force_shear_point[1];
       fxz[1]=p->force_shear_point[2];
@@ -841,7 +956,6 @@ namespace FractalSpace
       fyz[1]=p->force_shear_point[4];
       fzz[1]=p->force_shear_point[5];
       p=p->get_point_ud_0(3);
-      //      cout << "valuesc " << p->force_shear_point.size() << endl;
       fxx[3]=p->force_shear_point[0];
       fxy[3]=p->force_shear_point[1];
       fxz[3]=p->force_shear_point[2];
@@ -849,7 +963,6 @@ namespace FractalSpace
       fyz[3]=p->force_shear_point[4];
       fzz[3]=p->force_shear_point[5];
       p=p->get_point_ud_0(0);
-      //      cout << "valuesd " << p->force_shear_point.size() << endl;
       fxx[2]=p->force_shear_point[0];
       fxy[2]=p->force_shear_point[1];
       fxz[2]=p->force_shear_point[2];
@@ -857,7 +970,6 @@ namespace FractalSpace
       fyz[2]=p->force_shear_point[4];
       fzz[2]=p->force_shear_point[5];
       p=p->get_point_ud_0(5);
-      //      cout << "valuese " << p->force_shear_point.size() << endl;
       fxx[6]=p->force_shear_point[0];
       fxy[6]=p->force_shear_point[1];
       fxz[6]=p->force_shear_point[2];
@@ -865,7 +977,6 @@ namespace FractalSpace
       fyz[6]=p->force_shear_point[4];
       fzz[6]=p->force_shear_point[5];
       p=p->get_point_ud_0(1);
-      //      cout << "valuesf " << p->force_shear_point.size() << endl;
       fxx[7]=p->force_shear_point[0];
       fxy[7]=p->force_shear_point[1];
       fxz[7]=p->force_shear_point[2];
@@ -873,7 +984,6 @@ namespace FractalSpace
       fyz[7]=p->force_shear_point[4];
       fzz[7]=p->force_shear_point[5];
       p=p->get_point_ud_0(2);
-      //      cout << "valuesg " << p->force_shear_point.size() << endl;
       fxx[5]=p->force_shear_point[0];
       fxy[5]=p->force_shear_point[1];
       fxz[5]=p->force_shear_point[2];
@@ -881,7 +991,6 @@ namespace FractalSpace
       fyz[5]=p->force_shear_point[4];
       fzz[5]=p->force_shear_point[5];
       p=p->get_point_ud_0(0);
-      //      cout << "valuesh " << p->force_shear_point.size() << endl;
       fxx[4]=p->force_shear_point[0];
       fxy[4]=p->force_shear_point[1];
       fxz[4]=p->force_shear_point[2];
@@ -927,55 +1036,76 @@ namespace FractalSpace
     }
     void dumpy()
     {
-      cout << "dumpy " << this << " ";
-      cout << real_pointer << " ";
-      cout << pos_point[0] << " ";
-      cout << pos_point[1] << " ";
-      cout << pos_point[2] << endl;
+      *p_FILE << "dumpy " << this << " ";
+      *p_FILE << real_pointer << " ";
+      *p_FILE << pos_point[0] << " ";
+      *p_FILE << pos_point[1] << " ";
+      *p_FILE << pos_point[2] << endl;
+    }
+    void dumpd()
+    {
+      *p_FILE << "dumpd " << this << " ";
+      *p_FILE << real_pointer << " ";
+      *p_FILE << pos_point[0] << " ";
+      *p_FILE << pos_point[1] << " ";
+      *p_FILE << pos_point[2] << " ";
+      *p_FILE << inside << " ";
+      *p_FILE << edge_point << " ";
+      *p_FILE << buffer_point << " ";
+      *p_FILE << passive_point << " ";
+      *p_FILE << density_point << endl;
     }
     void dumpp()
     {
-      cout << "dumpp " << this << " ";
-      cout << real_pointer << " " << endl;
-      cout << pos_point[0] << " ";
-      cout << pos_point[1] << " ";
-      cout << pos_point[2] << " ";
-      cout << potential_point << endl;
+      *p_FILE << "dumpp " << this << " ";
+      *p_FILE << real_pointer << " ";
+      *p_FILE << inside << " ";
+      *p_FILE << edge_point << " ";
+      *p_FILE << buffer_point << " ";
+      *p_FILE << passive_point << " ";
+      *p_FILE << pos_point[0] << " ";
+      *p_FILE << pos_point[1] << " ";
+      *p_FILE << pos_point[2] << " ";
+      *p_FILE << density_point << " ";
+      *p_FILE << potential_point << endl;
+    }
+    void dumppf()
+    {
+      *p_FILE << "dumppf " << this << " ";
+      *p_FILE << inside << " ";
+      *p_FILE << edge_point << " ";
+      *p_FILE << buffer_point << " ";
+      *p_FILE << passive_point << " ";
+      *p_FILE << real_pointer << " ";
+      *p_FILE << pos_point[0] << " ";
+      *p_FILE << pos_point[1] << " ";
+      *p_FILE << pos_point[2] << " ";
+      *p_FILE << density_point << " ";
+      *p_FILE << potential_point << " ";
+      *p_FILE << force_point[0] << " ";
+      *p_FILE << force_point[1] << " ";
+      *p_FILE << force_point[2] << endl;
     }
     void dump()
     {
-      cout << this << "\t";
-      cout << pos_point[0] << "\t";
-      cout << pos_point[1] << "\t";
-      cout << pos_point[2] << "\t";
-      cout << "dump point " << " ";
-      cout << inside << " ";
-      cout << real_pointer << endl;
+      *p_FILE << "\t" << this << "\t";
+      *p_FILE << pos_point[0] << "\t";
+      *p_FILE << pos_point[1] << "\t";
+      *p_FILE << pos_point[2] << "\t";
+      *p_FILE << "dump point " << " ";
+      *p_FILE << inside << " ";
+      *p_FILE << edge_point << " ";
+      *p_FILE << buffer_point << " ";
+      *p_FILE << passive_point << " ";
+      *p_FILE << real_pointer << endl;
       //
-      cout << point_ud[0] << "\t";
-      if(point_ud[0] != 0) 
-	cout << point_ud[0]->pos_point[0] << "\t" << point_ud[0]->pos_point[1] << "\t" << point_ud[0]->pos_point[2];
-      cout << endl;
-      cout << point_ud[1] << "\t";
-      if(point_ud[1] != 0) 
-	cout << point_ud[1]->pos_point[0] << "\t" << point_ud[1]->pos_point[1] << "\t" << point_ud[1]->pos_point[2];
-      cout << endl;
-      cout << point_ud[2] << "\t";
-      if(point_ud[2] != 0) 
-	cout << point_ud[2]->pos_point[0] << "\t" << point_ud[2]->pos_point[1] << "\t" << point_ud[2]->pos_point[2];
-      cout << endl;
-      cout << point_ud[3] << "\t";
-      if(point_ud[3] != 0) 
-	cout << point_ud[3]->pos_point[0] << "\t" << point_ud[3]->pos_point[1] << "\t" << point_ud[3]->pos_point[2];
-      cout << endl;
-      cout << point_ud[4] << "\t";
-      if(point_ud[4] != 0) 
-	cout << point_ud[4]->pos_point[0] << "\t" << point_ud[4]->pos_point[1] << "\t" << point_ud[4]->pos_point[2];
-      cout << endl;
-      cout << point_ud[5] << "\t";
-      if(point_ud[5] != 0) 
-	cout << point_ud[5]->pos_point[0] << "\t" << point_ud[5]->pos_point[1] << "\t" << point_ud[5]->pos_point[2];
-      cout << endl;
+      for(int ni=0;ni<6;ni++)
+	{
+	  *p_FILE << ni << "\t" << point_ud[ni] << "\t";
+	  if(point_ud[ni] != 0) 
+	    *p_FILE << point_ud[ni]->pos_point[0] << "\t" << point_ud[ni]->pos_point[1] << "\t" << point_ud[ni]->pos_point[2];
+	  *p_FILE << endl;
+	}
     } 
     void get_field_values(double& pot,double& fx,double& fy,double& fz)
     {
@@ -998,35 +1128,35 @@ namespace FractalSpace
       d_z=(pos[2]*scale-pos_point[2])*d_inv;
       if(abs(d_x-0.5) > 0.5 || abs(d_y-0.5) > 0.5 || abs(d_z-0.5) > 0.5)
       	{
-	  cout << " this " << this << endl;
-      	  cout << "deltax " << pos[0] << " " << pos_point[0] << " " << scale << " " << d_inv << endl;
-      	  cout << "deltay " << pos[1] << " " << pos_point[1] << " " << scale << " " << d_inv << endl;
-      	  cout << "deltaz " << pos[2] << " " << pos_point[2] << " " << scale << " " << d_inv << endl;
-      	  cout << "dxyz " << d_x << " " << d_y << " " << d_z <<endl;
+	  *p_FILE << " this " << this << endl;
+      	  *p_FILE << "deltax " << pos[0] << " " << pos_point[0] << " " << scale << " " << d_inv << endl;
+      	  *p_FILE << "deltay " << pos[1] << " " << pos_point[1] << " " << scale << " " << d_inv << endl;
+      	  *p_FILE << "deltaz " << pos[2] << " " << pos_point[2] << " " << scale << " " << d_inv << endl;
+      	  *p_FILE << "dxyz " << d_x << " " << d_y << " " << d_z <<endl;
 	}
       assert(abs(d_x-0.5) <= 0.5);
       assert(abs(d_y-0.5) <= 0.5);
       assert(abs(d_z-0.5) <= 0.5);
     }
-    bool get_bcs(vector < vector <bool> >& bcs,vector <int>& dprl)
+    bool get_bcs(vector < vector <bool> >& bcs,int* dprl)
     {
       vector <Point*> ud(6);
       int n=0;
       bool anybcs=false;
       Point* p_point_z=this;
-      for(int nz=0;nz<dprl[2];++nz)
+      for(int nz=1;nz <= dprl[2];++nz)
 	{
 	  Point* p_point_y=p_point_z;
-	  for(int ny=0;ny<dprl[1];++ny)
+	  for(int ny=1;ny <= dprl[1];++ny)
 	    {
 	      Point* p_point_x=p_point_y; 
-	      for(int nx=0;nx<dprl[0];++nx)
+	      for(int nx=1;nx <= dprl[0];++nx)
 		{
-		  bcs[n].resize(7);
-		  bcs[n][0]=!p_point_x->get_inside();
-		  if(bcs[n][0])
+		  if(!p_point_x->get_inside())
 		    {
+		      bcs[n][0]=true;
 		      anybcs=true;
+		      bcs[n].resize(7);
 		      p_point_x->get_point_ud(ud);
 		      for(int ni=0;ni<6;ni++)
 			bcs[n][ni+1]=!(ud[ni] != 0 && ud[ni]->get_inside());
@@ -1043,17 +1173,17 @@ namespace FractalSpace
 	}
       return anybcs;
     }
-    void get_potss_denss(vector <int>& dprl,const double& g_c,vector <double>& potss,vector <double>& denss)
+    void get_potss_denss(const int* dprl,const double& g_c,double* potss,double* denss)
     {
       int n=0;
       Point* p_point_z=this;
-      for(int nz=0;nz<dprl[2];++nz)
+      for(int nz=1;nz <= dprl[2];++nz)
 	{
 	  Point* p_point_y=p_point_z;
-	  for(int ny=0;ny<dprl[1];++ny)
+	  for(int ny=1;ny <= dprl[1];++ny)
 	    {
 	      Point* p_point_x=p_point_y; 
-	      for(int nx=0;nx<dprl[0];++nx)
+	      for(int nx=1;nx <= dprl[0];++nx)
 		{
 		  potss[n]=p_point_x->get_potential_point();
 		  denss[n]=g_c*p_point_x->get_density_point();
@@ -1068,17 +1198,17 @@ namespace FractalSpace
 	    p_point_z=p_point_z->get_point_up_z_0();
 	}
     }
-    void set_potss(vector <int>& dprl,vector <double>& potss)
+    void set_potss(const int* dprl,const double* potss)
     {
       int n=0;
       Point* p_point_z=this;
-      for(int nz=0;nz<dprl[2];++nz)
+      for(int nz=1;nz <= dprl[2];++nz)
 	{
 	  Point* p_point_y=p_point_z;
-	  for(int ny=0;ny<dprl[1];++ny)
+	  for(int ny=1;ny <= dprl[1];++ny)
 	    {
 	      Point* p_point_x=p_point_y; 
-	      for(int nx=0;nx<dprl[0];++nx)
+	      for(int nx=1;nx <= dprl[0];++nx)
 		{
 		  p_point_x->set_potential_point(potss[n]);
 		  if(nx < dprl[0])

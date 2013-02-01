@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void high_pairs(Group& group, Misc& misc)
+  void high_pairs(Group& group)
   {
     //  cout << " entering high pairs " << endl;
     int num_high_points=group.get_number_high_points();

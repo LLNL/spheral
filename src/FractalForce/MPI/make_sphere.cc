@@ -41,6 +41,6 @@ namespace FractalSpace
     //   fractal.set_pos_y(n,y_off);
     //   fractal.set_pos_z(n,z_off); 
     //   fractal.set_particle_mass(n,mtot);
-    cout << "m= " << m << endl;
+    //    cout << "m= " << m << endl;
   }
 }

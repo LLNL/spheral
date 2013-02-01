@@ -3,8 +3,9 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void heavies(Fractal& fractal,Fractal& fractal_ghost,Misc& misc)
+  void heavies(Fractal& fractal,Fractal& fractal_ghost)
   {
+    ofstream& FileFractal=fractal.p_file->FileFractal;
     int n_ghost=0;
     fractal_ghost.set_number_particles(n_ghost);
     if(fractal.get_force_max() <= 0.0) return;
@@ -30,7 +31,7 @@ namespace FractalSpace
 	if(h_p < lev)
 	  {
 	    n_ghost+=Misc::pow(8,lev-h_p)+1;
-	    cout << "n_ghost " << n_ghost << " " << p << endl;
+	    FileFractal << "n_ghost " << n_ghost << " " << p << endl;
 	  }
       }
     //    assert(n_ghost < fractal.get_number_particles());
@@ -54,7 +55,6 @@ namespace FractalSpace
 	    const double delta=spacing[h_p]/(double)n_p;
 	    const double off=-delta*0.5*(double)(n_p-1);
 	    const double small=smaller[lev-h_p];
-	    //	      cout << "making heavies " << p << " " << lev << " " <<  h_p  << " " << n_p << endl;
 	    vector <double> pos(3);
 	    particle.get_pos(pos);
 	    double mm=particle.get_mass()*small;
@@ -64,8 +64,6 @@ namespace FractalSpace
 		  {
 		    for(int p_x=0;p_x < n_p;++p_x)
 		      {
-			//			Particle* ph=new (nothrow) Particle(3,0);
-			//			assert(ph);
 			fractal_ghost.particle_list[n_h]=&ph[n_h];
 			Particle& p_ghost=ph[n_h];
 			p_ghost.set_pos(pos[0]+(double)p_x*delta+off,pos[1]+(double)p_y*delta+off,pos[2]+(double)p_z*delta+off);
@@ -74,8 +72,6 @@ namespace FractalSpace
 		      }
 		  }
 	      }
-	    //	    Particle* ph=new (nothrow) Particle(3,0);
-	    //	    assert(ph);
 	    fractal_ghost.particle_list[n_h]=&ph[n_h];
 	    Particle& p_ghost=ph[n_h];
 	    p_ghost.set_pos(pos);

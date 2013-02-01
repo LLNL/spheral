@@ -3,15 +3,17 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void go_ahead_points(Fractal& fractal,vector <Point*>& adj,vector<bool>& ins,vector<bool>& go_ahead)
+  void go_ahead_points(vector <Point*>& adj,vector<bool>& ins,vector<bool>& go_ahead)
   {
     //--------------------------------------------------------------------------------------------------------------------------------
     // Given the above information and the provisional list of high_point neighbors, decide which points to generate
     //--------------------------------------------------------------------------------------------------------------------------------
+    ins.assign(27,false);
+    go_ahead.assign(27,true);
     for(int p_l=0;p_l < 27;++p_l)
       {
-	ins[p_l]=false;
-	go_ahead[p_l]=true;
+	//	ins[p_l]=false;
+	//	go_ahead[p_l]=true;
 	for(vector <int>::const_iterator ni=Point::nextt[p_l].begin();ni != Point::nextt[p_l].end();ni++)
 	  {
 	    go_ahead[p_l]= adj[*ni] == 0;

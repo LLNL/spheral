@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void dump_tree(Fractal_Memory& fractal_memory,Fractal& fractal)
   {
-    cout << "enter dump_tree " << endl;
+    ofstream& FileFractal=fractal.p_file->FileFractal;
+    FileFractal << "enter dump_tree " << endl;
     vector <int>Box(6);
     fractal.getBox(Box);
     int zoom=Misc::pow(2,fractal.get_level_max());
@@ -13,12 +14,12 @@ namespace FractalSpace
       Box[i]=Box[i]*zoom;
     for(int lev=0;lev <= fractal.get_level_max();lev++)
       {
-	cout << "dump level " << lev << endl;
+	FileFractal << "dump level " << lev << endl;
 	for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[lev].begin();
 	    group_itr!=fractal_memory.all_groups[lev].end();group_itr++)
 	  {
 	    Group& group=**group_itr;
-	    cout << "dump group " << &group << endl;
+	    FileFractal << "dump group " << &group << endl;
 	    for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
 	      {
 		Point& point=**point_itr;
@@ -34,7 +35,7 @@ namespace FractalSpace
 		for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 		  {
 		    Particle& particle=**particle_itr;
-		    particle.dump();
+		    particle.dump(FileFractal);
 		  }
 	      }
 	  }

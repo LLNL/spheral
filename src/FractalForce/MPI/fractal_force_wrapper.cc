@@ -5,57 +5,27 @@ namespace FractalSpace
 {
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal)
   {
-    cout << "starting out " << endl;
-    bool generate_fractal_memory=p_fractal_memory == 0;
-    bool generate_fractal=p_fractal == 0;
-    if(generate_fractal_memory && !generate_fractal)
-      return -1;
-    if(generate_fractal_memory)
-      {
-	p_fractal_memory= new Fractal_Memory;
-	assert(p_fractal_memory);
-      }
+    cout << "starting wrapper " << endl;
+    //    fractal_force_init(p_fractal_memory,p_fractal);
+    p_fractal_memory->p_fractal=p_fractal;
+    ofstream& FileFractal=p_fractal_memory->p_file->FileFractal;
+    FileFractal << " hahaa " << p_fractal_memory << " " << p_fractal << endl;
     Fractal_Memory& fractal_memory=*p_fractal_memory;
-    cout << "fractal_memory created " << p_fractal_memory << endl;
-    if(generate_fractal_memory) 
-      {
-	cout << "getting to parameters a " << p_fractal_memory << endl;
-	fractal_memory_parameters(fractal_memory);  
-	cout << "getting to parameters b " << p_fractal_memory << endl;
-	Mess* p_mess=0;
-	if(p_fractal_memory->MPIrun)
-	  {
-	    p_mess=new Mess();
-	    p_fractal_memory->p_mess=p_mess;
-	    p_fractal_memory->calc_Boxes_vs_Slices();
-	    fractal_memory.p_mess->FFTWStartup(fractal_memory.grid_length,fractal_memory.periodic);
-	    fractal_memory.p_mess->calc_fftw_Slices();
-	  }
-      }
-    //
-    if(generate_fractal)
-      {
-	p_fractal=new Fractal(fractal_memory);
-	assert(p_fractal);
-      }
+    FileFractal << " hahab " << p_fractal_memory<< endl;
     Fractal& fractal=*p_fractal;
-    fractal_memory.p_fractal=p_fractal;
+    FileFractal << " hahac " << p_fractal << " " << p_fractal->p_file << endl;
+    FileFractal << fractal_memory.p_mess->FractalRank << " starting out " << endl;
     vector <int> Box(6);
     fractal.getBox(Box);
-    cout << " Box wrapper ";
-    cout << Box[0] << " ";
-    cout << Box[1] << " ";
-    cout << Box[2] << " ";
-    cout << Box[3] << " ";
-    cout << Box[4] << " ";
-    cout << Box[5] << endl;
+    FileFractal << " Box wrapper ";
+    Misc::vector_print(Box,FileFractal);
     //
-    srand(fractal_memory.random_gen);
+    srand(fractal_memory.random_gen+fractal_memory.p_mess->FractalRank);
     double pi=atan(1.0)*4.0;
     if(fractal_memory.periodic)
       {
-	double m=0.375*fractal_memory.omega_start/pi/(double)fractal_memory.number_particles;
-	cout << "m= " << m << endl;
+	double m=0.375*fractal_memory.omega_start/pi/(double)fractal_memory.p_mess->number_particles_total;
+	FileFractal << "m= " << m << endl;
 	bool zel_predict=fractal_memory.crash_levels > 0 && fractal_memory.max_particles > fractal_memory.number_particles; 
 	int splits_tmp=0;
 	double cut_off_tmp=0.0;
@@ -70,53 +40,52 @@ namespace FractalSpace
 	      {
 		fractal.rad[i]=i*drad+1.0;
 		fractal.grow[i]=Growth(fractal_memory.omega_start,fractal_memory.lambda_start,1.0/fractal.rad[i]-1.0);
-		cout << i << " " << fractal.rad[i] << " " << fractal.grow[i] << endl;
+		FileFractal << i << " " << fractal.rad[i] << " " << fractal.grow[i] << endl;
 	      }
 	  }
 	int count=0;
 	make_particles(fractal_memory,fractal,count,m,false);
-	cout << "size " << count << endl;
+	FileFractal << "size " << count << endl;
 	fractal_memory.number_particles=count;
 	fractal.set_number_particles(count);
 	update_rv(fractal,0,0.0,0.0);
-	cout << "make parts " << count << endl;
+	FileFractal << "make parts " << count << endl;
 	double delta_z=Growth(fractal_memory.omega_0,fractal_memory.omega_lambda,fractal_memory.redshift_start);
 	double vfratio=1.0/(1.5*fractal_memory.omega_start)*dGrowthdT(fractal_memory.omega_start,fractal_memory.lambda_start,0.0);
 	double omega_fraction=1.0/(1.5*fractal_memory.omega_start);
 	fractal.omega_fraction=omega_fraction;
 	fractal_memory.make_scaling();
 	fractal.timing(-2,0);
-	fractal.timing(-1,29);
+	fractal.timing(-1,49);
 	fractal_force(fractal,fractal_memory);
-	fractal.timing(1,29);
+	fractal.timing(1,49);
 	fractal.timing(0,0);
 	fractal.timing_lev(0,0);
-	cout << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
+	FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
 
 	if(zel_predict)
 	  {
 	    fractal_memory.splits=splits_tmp;
 	    fractal_memory.cut_off=cut_off_tmp;
-	    srand(fractal_memory.random_gen);
 	    int count=0;
 	    make_particles(fractal_memory,fractal,count,m,true);
-	    cout << "size " << count << endl;
+	    FileFractal << "size " << count << endl;
 	    fractal_memory.number_particles=count;
 	    fractal.set_number_particles(count);
 	    update_rv(fractal,0,0.0,0.0);
-	    cout << "make parts " << count << endl;
+	    FileFractal << "make parts " << count << endl;
 	    double delta_z=Growth(fractal_memory.omega_0,fractal_memory.omega_lambda,fractal_memory.redshift_start);
 	    double vfratio=1.0/(1.5*fractal_memory.omega_start)*dGrowthdT(fractal_memory.omega_start,fractal_memory.lambda_start,0.0);
 	    double omega_fraction=1.0/(1.5*fractal_memory.omega_start);
 	    fractal.omega_fraction=omega_fraction;
 	    fractal_memory.make_scaling();
 	    fractal.timing(-2,0);
-	    fractal.timing(-1,29);
+	    fractal.timing(-1,49);
 	    fractal_force(fractal,fractal_memory);
-	    fractal.timing(1,29);
+	    fractal.timing(1,49);
 	    fractal.timing(0,0);
 	    fractal.timing_lev(0,0);
-	    cout << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
+	    FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
 	  }
 	if(fractal_memory.norm_what == 1)omega_fraction/=vfratio;
 	update_rv(fractal,1,omega_fraction,0.0);
@@ -124,9 +93,9 @@ namespace FractalSpace
 	fractal_memory.calc_density_particle=false;
 	fractal_memory.calc_shear=false;
 	fractal.timing(-2,0);
-	fractal.timing(-1,29);
+	fractal.timing(-1,49);
 	fractal_force(fractal,fractal_memory);
-	fractal.timing(1,29);
+	fractal.timing(1,49);
 	fractal.timing(0,0);
 	fractal.timing_lev(0,0);
 	double lambda=Lambda(fractal_memory.omega_0,fractal_memory.omega_lambda,fractal_memory.redshift_start);
@@ -140,19 +109,21 @@ namespace FractalSpace
     else
       {
 	int count=0;
-	double m=fractal_memory.total_mass/fractal_memory.number_particles;      
+	FileFractal << " making particles a " << endl;
+	double m=fractal_memory.total_mass/fractal_memory.p_mess->number_particles_total;      
+	FileFractal << " making particles b " << m << endl;
 	make_particles(fractal_memory,fractal,count,m,false);
-	cout << "size " << count << endl;
+	FileFractal << "size " << count << endl;
 	fractal_memory.number_particles=count;
 	fractal.set_number_particles(count);
-	cout << "make parts " << count << endl;
+	FileFractal << "make parts " << count << endl;
 	fractal_memory.start_up=false;
-	fractal_memory.calc_density_particle=true;
+	fractal_memory.calc_density_particle=false;
 	fractal_memory.calc_shear=false;
 	fractal.timing(-2,0);
-	fractal.timing(-1,29);
+	fractal.timing(-1,49);
 	fractal_force(fractal,fractal_memory);
-	fractal.timing(1,29);
+	fractal.timing(1,49);
 	fractal.timing(0,0);
 	fractal.timing_lev(0,0);
 	velocities(fractal_memory,fractal);
@@ -166,9 +137,9 @@ namespace FractalSpace
 	//	if(fractal_memory.calc_shear) jfield=12;
 	fix_memory(fractal,iphase,jfield);
 	fractal.timing(-2,0);
-	fractal.timing(-1,29);
+	fractal.timing(-1,49);
 	fractal_force(fractal,fractal_memory);
-	fractal.timing(1,29);
+	fractal.timing(1,49);
 	fractal.timing(0,0);
 	fractal.timing_lev(0,0);
 	return 1;
@@ -177,8 +148,8 @@ namespace FractalSpace
       {
 	if(fractal_memory.steps == -1) energy_simple(fractal_memory,fractal);
 	fractal_memory.steps=step;
-	cout << "step = " << step << " " << fractal_memory.arad << endl;
-	if(step % fractal_memory.number_steps_out == 0)
+	FileFractal << "step = " << step << " " << fractal_memory.arad << endl;
+	if(fractal_memory.periodic && step % fractal_memory.number_steps_out == 0)
 	  {
 	    fractal_memory.calc_density_particle=true;
 	    fractal_memory.do_var=true;

@@ -5,91 +5,60 @@ namespace FractalSpace
 {
   void hypre_solver(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
-    vector <Point*> p_points_left;
-    vector <Point*> p_points_right;
-    vector <int> real_left(7);
-    vector <int> real_right(7);
-    vector <bool> belongs_to_me(27);
-    vector <Point*> pointers(27);
+    ofstream& FH=mem.p_file->FileHypre;
+    bool do_sor=mem.min_hypre_group_size <= 0;
+    FH << "hypre solver a " << level << " " << do_sor << " " << mem.min_hypre_group_size << endl;
+    vector <bool>done_group;
+    int count_sor=0;
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
       {
 	Group& group=**group_itr;
-	for(vector <Point*>::iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+	FH << "sor 0 " << &group << " " << group.list_points.size() << " " << group.get_buffer_group() << endl;
+	if(do_sor || (group.list_points.size() <= mem.min_hypre_group_size && !group.get_buffer_group()))
 	  {
-	    Point* p_point=*point_itr;
-	    if(p_point->get_real_pointer() != 0)
-	      continue;
-	    bool xwall=false;
-	    bool ywall=false;
-	    p_point->all_mine(pointers,belongs_to_me);
-	    int boxes=0;
-	    real_left[boxes]=0;
-	    real_right[boxes]=13;
-	    boxes++;
-	    if(belongs_to_me[2])
-	      {
-		real_left[boxes]=2;
-		real_right[boxes]=14;
-		xwall=true;
-		if(belongs_to_me[8])
-		  real_right[boxes]=17;
-		boxes++;
-	      }
-	    if(belongs_to_me[6])
-	      {
-		real_left[boxes]=6;
-		real_right[boxes]=16;
-		ywall=true;
-		if(!xwall && belongs_to_me[8])
-		  real_right[boxes]=17;
-		boxes++;
-	      }
-	    if(!xwall && !ywall && belongs_to_me[8])
-	      {
-		real_left[boxes]=8;
-		real_right[boxes]=17;
-		boxes++;
-	      }
-	    xwall=false;
-	    ywall=false;
-	    if(belongs_to_me[18])
-	      {
-		real_left[boxes]=18;
-		real_right[boxes]=22;
-		boxes++;
-	      }
-	    if(belongs_to_me[20])
-	      {
-		real_left[boxes]=20;
-		real_right[boxes]=23;
-		xwall=true;
-		if(belongs_to_me[26])
-		  real_right[boxes]=26;
-		boxes++;
-	      }
-	    if(belongs_to_me[24])
-	      {
-		real_left[boxes]=24;
-		real_right[boxes]=25;
-		ywall=true;
-		if(!xwall && belongs_to_me[26])
-		  real_right[boxes]=26;
-		boxes++;
-	      }
-	    if(!xwall && !ywall && belongs_to_me[26])
-	      {
-		cout << "this cannot be right" << endl;
-		assert(0);
-	      }
-	    for(int ni=0;ni<boxes;ni++)
-	      {
-		p_points_left.push_back(pointers[real_left[ni]]);
-		p_points_right.push_back(pointers[real_right[ni]]);
-	      }
+	    FH << "sor a " << &group << " " << group.list_points.size() << endl;
+	    sor_solver(group,fractal);
+	    done_group.push_back(true);
+	    FH << "sor b " << &group << " " << group.list_points.size() << " " << count_sor << endl;
 	  }
+	else
+	  done_group.push_back(false);
+	count_sor++;
       }
-    //    hypre_struct_compact_boxes(p_points_left,p_points_right,fractal,mem,level);
-    hypre_struct_solver(p_points_left,p_points_right,fractal,mem,level);
+    vector <Point*> p_points_left;
+    vector <Point*> p_points_right;
+    int counter=0;
+    for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
+	group_itr!=mem.all_groups[level].end();group_itr++)
+      {
+	Group& group=**group_itr;
+	FH << "hyp boxes 0 " << &group << " " << group.list_points.size() << " " << counter << " " << done_group[counter] << endl;
+	if(!done_group[counter] && !group.get_buffer_group())
+	  {
+	    FH << "hyp boxes a " << &group << " " << group.list_points.size() << " " << counter << endl;
+	    done_group[counter]=true;
+	    hypre_little_boxes(group,p_points_left,p_points_right);
+	    FH << "hyp boxes b " << &group << " " << group.list_points.size() << " " << counter << endl;
+	  }
+	counter++;
+      }
+    FH << " hypre solver self a " << endl;
+    if(p_points_left.size() > 0)
+      hypre_struct_solver(p_points_left,p_points_right,fractal,mem,level,false);
+    FH << " hypre solver self b " << endl;
+    p_points_left.clear();
+    p_points_right.clear();
+    counter=0;
+    for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
+	group_itr!=mem.all_groups[level].end();group_itr++)
+      {
+	Group& group=**group_itr;
+	if(!done_group[counter])
+	  hypre_little_boxes(group,p_points_left,p_points_right);
+	counter++;
+      }
+    if(p_points_left.size() > 0)
+      hypre_struct_solver(p_points_left,p_points_right,fractal,mem,level,true);
   }
 }

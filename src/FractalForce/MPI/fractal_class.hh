@@ -8,14 +8,12 @@ namespace FractalSpace
     int number_particles_world;
     int grid_length;
     bool periodic;
-    vector <bool>Periods;
     bool halo_fixed;
     unsigned int minimum_number;
     int level_max;
     int padding;
     //
     bool MPIrun;
-    int TotalNodes;
     int FractalNodes;
     int FractalNodes0;
     int FractalNodes1;
@@ -28,12 +26,9 @@ namespace FractalSpace
     vector <int> PBoxLength; 
     vector < vector <int> >BoxLev;
     vector < vector <int> >BBoxLev;
+    vector < vector <int> >PBoxLev;
     vector <int> Buffer;
-    vector <int> Slice;
-    vector <int> Box_to_Slices;
-    vector <int> Box_from_Slices;
-    vector <int> Slice_from_Boxes;
-    vector <int> Slice_to_Boxes;
+    double clocks_per_sec;
     //
     int masks;
     vector <double> masks_center_x;
@@ -49,19 +44,18 @@ namespace FractalSpace
     double halo_scale;
     double halo_density0;
     double density_0;
-    int moat_0;
     int random_offset;
     int maxits;
-    vector <clock_t> time_1;
-    vector <clock_t> time_2;
-    vector <clock_t> delta_time;
-    vector <clock_t> total_time;
-    vector <clock_t> time_g;
-    vector <clock_t> delta_g;
-    vector <clock_t> total_g;
-    vector <clock_t> time_p;
-    vector <clock_t> delta_p;
-    vector <clock_t> total_p;
+    vector <double> time_1;
+    vector <double> time_2;
+    vector <double> delta_time;
+    vector <double> total_time;
+    vector <double> time_g;
+    vector <double> delta_g;
+    vector <double> total_g;
+    vector <double> time_p;
+    vector <double> delta_p;
+    vector <double> total_p;
     bool debug;
     int highest_level_used;
     Fractal_Memory* p_generated_from;
@@ -70,6 +64,7 @@ namespace FractalSpace
     double omega_start;
   public:
     Mess* p_mess;
+    File* p_file;
     vector <Particle*> particle_list;
     vector <Particle*> particle_list_world;
     Particle* part_list_tmp;
@@ -85,92 +80,9 @@ namespace FractalSpace
     static string particles;
     static string pot_solver;
     static string vel;
-    Fractal():
-      number_particles(262144),
-      number_particles_world(262144),
-      grid_length(64),
-      periodic(true),
-      halo_fixed(false),
-      minimum_number(8),
-      level_max(8),
-      padding(0),
-      MPIrun(false),
-      masks(0),
-      epsilon_sor(6.0e-5),
-      force_max(-1.0),
-      halo_scale(1.0),
-      halo_density0(1.0),
-      density_0(0.0),
-      moat_0(1),
-      random_offset(0),
-      maxits(250),
-      debug(false),
-      highest_level_used(0),
-      omega_fraction(2.0/3.0)
+    Fractal()
     {
-      p_mess=0;
-      FractalNodes=get_FractalNodes();
-      FractalRank=get_FractalRank();
-      Box.assign(6,grid_length-1);
-      Box[0]=0;
-      Box[2]=0;
-      Box[4]=0;
-      //
-      Periods.resize(3);
-      Periods[0]=periodic && Box[0] == 0 && Box[1] == grid_length-1;
-      Periods[1]=periodic && Box[2] == 0 && Box[3] == grid_length-1;
-      Periods[2]=periodic && Box[4] == 0 && Box[5] == grid_length-1;
-      Buffer.assign(6,0);
-      BBox.assign(6,0);
-      //      calc_Buffer();
-      //      calc_BufferLev();
-      //
-      steps=0;
-      omega_start=1.0;
-      p_generated_from=0;
-      time_1.assign(30,0);
-      time_2.assign(30,0);
-      delta_time.assign(30,0);
-      total_time.assign(30,0);
-      delta_g.assign(21,0);
-      delta_p.assign(21,0);
-      total_g.assign(21,0);
-      total_p.assign(21,0);
-      time_g.assign(21,0);
-      time_p.assign(21,0);
-      time_string.resize(30);
-      time_string[0]="Initial isolated solver\t";
-      time_string[1]="tree start\t";
-      time_string[2]="edge trouble\t";
-      time_string[3]="assign density 0 ";
-      time_string[4]="periodic solver\t";
-      time_string[5]="isolated solver\t";
-      time_string[6]="Power Spectrum\t";
-      time_string[7]="Force at Point 0";
-      time_string[8]="Force at Particle 0";
-      time_string[9]="high points\t";
-      time_string[10]="buffer points\t";
-      time_string[11]="high pairs\t";
-      time_string[12]="equivalence class\t";
-      time_string[13]="high groups\t";
-      time_string[14]="daughter group\t";
-      time_string[15]="Connect Points\t";
-      time_string[16]="Test Tree\t";
-      time_string[17]="heavies\t";
-      time_string[18]="particle lists\t";
-      time_string[19]="assign density\t";
-      time_string[20]="potential start\t";
-      time_string[21]="poisson solver\t";
-      time_string[22]="force at point\t";
-      time_string[23]="force at particle\t";
-      time_string[24]=" ";
-      time_string[25]="Halo Force Fixed";
-      time_string[26]="clean up\t";
-      time_string[27]="";
-      time_string[28]="";
-      time_string[29]="Everything\t";
-      rad.assign(101,0.0);
-      grow.assign(101,0.0);
+      cout << " made ghost fractal" << endl;
     }
     template <class M> Fractal(M& mem):
       density_0(0.0),
@@ -178,6 +90,8 @@ namespace FractalSpace
       highest_level_used(0),
       omega_fraction(2.0/3.0)
     {
+      cout << " starting fractal " << endl;
+      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
       steps=0;
       omega_start=mem.omega_start;
       p_generated_from=&mem;
@@ -193,20 +107,23 @@ namespace FractalSpace
       force_max=mem.force_max;
       halo_scale=mem.halo_scale;
       halo_density0=mem.halo_density0;
-      moat_0=mem.moat_0;
       random_offset=mem.random_offset;
       maxits=mem.maxits;
       debug=mem.debug;
       //
+      cout << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << endl;
       p_mess=mem.p_mess;
+      p_file=mem.p_file;
       MPIrun=mem.MPIrun;
-      TotalNodes=get_TotalNodes();
       FractalNodes=mem.FractalNodes;
       FractalNodes0=mem.FractalNodes0;
       FractalNodes1=mem.FractalNodes1;
       FractalNodes2=mem.FractalNodes2;
+      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << endl;
+      cout << " fractal start c " << p_mess << " " << p_file << endl;
       FractalRank=get_FractalRank();
-      assert(FractalRank<TotalNodes);
+      cout << FractalRank << endl;
+      assert(FractalRank<FractalNodes);
       Box=mem.Boxes[FractalRank];
       BBox=mem.BBoxes[FractalRank];
       PBox=mem.PBoxes[FractalRank];
@@ -214,24 +131,23 @@ namespace FractalSpace
       Buffer=mem.Buffers[FractalRank];
       BoxLev=mem.BoxesLev[FractalRank];
       BBoxLev=mem.BBoxesLev[FractalRank];
-      Periods=mem.Periods[FractalRank];
-      Slice=mem.p_mess->Slices[FractalRank];
+      PBoxLev=mem.PBoxesLev[FractalRank];
       RealBox=mem.RealBoxes[FractalRank];
       //
-      time_1.assign(30,0);
-      time_2.assign(30,0);
-      delta_time.assign(30,0);
-      total_time.assign(30,0);
+      time_1.assign(50,0);
+      time_2.assign(50,0);
+      delta_time.assign(50,0);
+      total_time.assign(50,0);
       delta_g.assign(21,0);
       delta_p.assign(21,0);
       total_g.assign(21,0);
       total_p.assign(21,0);
       time_g.assign(21,0);
       time_p.assign(21,0);
-      time_string.resize(30);
+      time_string.resize(50);
       time_string[0]="Initial isolated solver\t";
       time_string[1]="tree start\t";
-      time_string[2]="edge trouble\t";
+      time_string[2]="Edge Trouble\t";
       time_string[3]="assign density 0 ";
       time_string[4]="periodic solver\t";
       time_string[5]="isolated solver\t";
@@ -250,15 +166,35 @@ namespace FractalSpace
       time_string[18]="particle lists\t";
       time_string[19]="assign density\t";
       time_string[20]="potential start\t";
-      time_string[21]="poisson solver\t";
+      time_string[21]="\t";
       time_string[22]="force at point\t";
       time_string[23]="force at particle\t";
-      time_string[24]=" ";
+      time_string[24]="rho slice pot\t";
       time_string[25]="Halo Force Fixed";
       time_string[26]="clean up\t";
-      time_string[27]="";
-      time_string[28]="";
-      time_string[29]="Everything\t";
+      time_string[27]="scatter particles\t";
+      time_string[28]="gather particles\t";
+      time_string[29]="\t";
+      time_string[30]="\t";
+      time_string[31]="Poisson Solver\t";
+      time_string[32]="Hypre Search\t";
+      time_string[33]="Wait Scatter\t";
+      time_string[34]="Wait Dens-Slices\t";
+      time_string[35]="Wait Slices-Pot\t";
+      time_string[36]="Wait Hypre a\t";
+      time_string[37]="Wait Hypre b\t";
+      time_string[38]="Wait Gather\t";
+      time_string[39]="Wait Info-Slices\t";
+      time_string[40]="Wait Slices-PotIn\t";
+      time_string[41]="Wait Global Level\t";
+      time_string[42]="\t";
+      time_string[43]="\t";
+      time_string[44]="\t";
+      time_string[45]="\t";
+      time_string[46]="\t";
+      time_string[47]="\t";
+      time_string[48]="\t";
+      time_string[49]="Everything\t";
       masks=mem.masks;
       masks_level=mem.masks_level;
       masks_center_x=mem.masks_center_x;
@@ -268,16 +204,26 @@ namespace FractalSpace
       masks_rad_y=mem.masks_rad_y;
       masks_rad_z=mem.masks_rad_z;
       masks_square=mem.masks_square;
-      number_particles=mem.max_particles;;
       rad.assign(101,0.0);
       grow.assign(101,0.0);
       cout << "Making Fractal " << this << endl;
     }
-
     ~Fractal()
     {    
       cout << "Ending Fractal " << this << endl;
     };
+    void redo(Fractal_Memory& mem)
+    {
+      Box=mem.Boxes[FractalRank];
+      BBox=mem.BBoxes[FractalRank];
+      PBox=mem.PBoxes[FractalRank];
+      PBoxLength=mem.PBoxesLength[FractalRank];
+      Buffer=mem.Buffers[FractalRank];
+      BoxLev=mem.BoxesLev[FractalRank];
+      BBoxLev=mem.BBoxesLev[FractalRank];
+      PBoxLev=mem.PBoxesLev[FractalRank];
+      RealBox=mem.RealBoxes[FractalRank];
+    }
     int get_FractalRank()
     {
       return p_mess->FractalRank;
@@ -293,10 +239,6 @@ namespace FractalSpace
     double get_omega_start()
     {
       return omega_start;
-    }
-    int get_TotalNodes()
-    {
-      return 1;
     }
     void setBox(vector <int>& B)
     {
@@ -333,6 +275,10 @@ namespace FractalSpace
     {
       BB=BBoxLev[level];
     }
+    void getPBoxLev(vector <int>& PB,const int& level)
+    {
+      PB=PBoxLev[level];
+    }
     void getPBoxLength(vector <int>& PBL)
     {
       PBL=PBoxLength;
@@ -341,7 +287,11 @@ namespace FractalSpace
     {
       Bu=Buffer;
     }
-    void assign_buffer_edge_passive(Point& point,const int& level,bool& buff,bool& edge,bool& pass)
+    void getRealBox(vector <double>& RB)
+    {
+      RB=RealBox;
+    }
+    void assign_edge_buffer_passive(Point& point,const int& level,bool& edge,bool& buff,bool& pass,bool& really)
     {
       vector <int> pos(3);
       point.get_pos_point(pos);
@@ -355,14 +305,23 @@ namespace FractalSpace
 	pos[2]< BBoxLev[level][4] ||
 	pos[2]> BBoxLev[level][5];
       if(pass)
-	return;
+	{
+	  really=
+	    pos[0]< PBoxLev[level][0] ||
+	    pos[0]> PBoxLev[level][1] ||
+	    pos[1]< PBoxLev[level][2] ||
+	    pos[1]> PBoxLev[level][3] ||
+	    pos[2]< PBoxLev[level][4] ||
+	    pos[2]> PBoxLev[level][5];
+	  return;
+	}
       buff=
-	pos[0]== BBoxLev[level][0] ||
-	pos[0]== BBoxLev[level][1] ||
-	pos[1]== BBoxLev[level][2] ||
-	pos[1]== BBoxLev[level][3] ||
-	pos[2]== BBoxLev[level][4] ||
-	pos[2]== BBoxLev[level][5];
+	pos[0] < BoxLev[level][0] ||
+	pos[0] > BoxLev[level][1] ||
+	pos[1] < BoxLev[level][2] ||
+	pos[1] > BoxLev[level][3] ||
+	pos[2] < BoxLev[level][4] ||
+	pos[2] > BoxLev[level][5];
       if(buff)
 	return;
       edge=
@@ -386,18 +345,16 @@ namespace FractalSpace
       inside=false;
       edge=false;
       buff=false;
-      pass=false;
-
       pass=
-	n[0]==PBox[0] || n[0] == PBox[1] ||
-	n[1]==PBox[2] || n[1] == PBox[3] ||
-	n[2]==PBox[4] || n[2] == PBox[5];
+	n[0] < BBox[0] || n[0] > BBox[1] ||
+	n[1] < BBox[2] || n[1] > BBox[3] ||
+	n[2] < BBox[4] || n[2] > BBox[5];
       if(pass)
 	return;
       buff=
-	n[0]==BBox[0] || n[0] == BBox[1] ||
-	n[1]==BBox[2] || n[1] == BBox[3] ||
-	n[2]==BBox[4] || n[2] == BBox[5];
+	n[0] < Box[0] || n[0] > Box[1] ||
+	n[1] < Box[2] || n[1] > Box[3] ||
+	n[2] < Box[4] || n[2] > Box[5];
       if(buff)
 	return;
       edge=
@@ -405,9 +362,9 @@ namespace FractalSpace
 	n[1]==Box[2] || n[1] == Box[3] ||
 	n[2]==Box[4] || n[2] == Box[5];
       inside=
-	(Periods[0] || (n[0] > BBox[0] && n[0] < BBox[1]))&&
-	(Periods[1] || (n[1] > BBox[2] && n[1] < BBox[3]))&&
-	(Periods[2] || (n[2] > BBox[4] && n[2] < BBox[5]));
+	n[0] > BBox[0] && n[0] < BBox[1] &&
+	n[1] > BBox[2] && n[1] < BBox[3] &&
+	n[2] > BBox[4] && n[2] < BBox[5];
     }
     Fractal_Memory* get_p_generated_from()
     {
@@ -448,7 +405,7 @@ namespace FractalSpace
     void set_density_0(const double& d)
     {
       density_0=d;
-      cout << "density_0 " << density_0 << endl;
+      p_file->FileFractal << "density_0 " << density_0 << endl;
     }
     int get_number_particles()
     {
@@ -497,14 +454,6 @@ namespace FractalSpace
     double get_epsilon_sor()
     {
       return epsilon_sor;
-    }
-    int get_moat_0()
-    {
-      return moat_0;
-    }
-    void set_moat_0(const int& m)
-    {
-      moat_0=m;
     }
     int get_random_offset()
     {
@@ -585,14 +534,6 @@ namespace FractalSpace
     {
       return periodic;
     }
-    void set_Periods(vector <bool>& Per)
-    {   
-      Periods=Per;
-    }
-    void get_Periods(vector <bool>& Per)
-    {   
-      Per=Periods;
-    }
     bool get_halo_fixed()
     {
       return halo_fixed;
@@ -611,86 +552,61 @@ namespace FractalSpace
     }
     void timing_lev(const int& what,const int& level)
     {
-      //      cout << "timing lev " << what << " " << level << endl;
-      static ofstream FileTimeLev;
-      if(!FileTimeLev.is_open())
-	FileTimeLev.open("timing_lev.d");
-      FileTimeLev.precision(2);
       if(what == -2)
-	time_g[level]=clock();
+	time_g[level]=p_mess->Clock();
       else if(what == -1)
-	time_p[level]=clock();
+	time_p[level]=p_mess->Clock();
       else if(what == 2)
-	delta_g[level]=clock()-time_g[level];
+	delta_g[level]=p_mess->Clock()-time_g[level];
       else if(what == 1)
-	delta_p[level]=clock()-time_p[level];
+	delta_p[level]=p_mess->Clock()-time_p[level];
       else if(what ==0)
 	{
-	  FileTimeLev.precision(2);
-	  FileTimeLev << " " << endl;
-	  FileTimeLev << " steps " << steps << endl;
+	  p_file->FileTimeLev.precision(2);
+	  p_file->FileTimeLev << " " << endl;
+	  p_file->FileTimeLev << " steps " << steps << endl;
 	  for(int ni=0;ni<=level_max;ni++)
 	    {
 	      total_g[ni]+=delta_g[ni];
 	      total_p[ni]+=delta_p[ni];
-	      double dtg=delta_g[ni]/(double)CLOCKS_PER_SEC;
-	      double dtp=delta_p[ni]/(double)CLOCKS_PER_SEC;
-	      double totalg=total_g[ni]/(double)CLOCKS_PER_SEC;
-	      double totalp=total_p[ni]/(double)CLOCKS_PER_SEC;
-	      FileTimeLev << steps <<"\t" << ni << scientific << "\t" << dtg << "\t" << totalg << "\t" << dtp << "\t" << totalp << endl;
+	      double dtg=delta_g[ni]/clocks_per_sec;
+	      double dtp=delta_p[ni]/clocks_per_sec;
+	      double totalg=total_g[ni]/clocks_per_sec;
+	      double totalp=total_p[ni]/clocks_per_sec;
+	      p_file->FileTimeLev << steps <<"\t" << ni << scientific << "\t" << dtg << "\t" << totalg << "\t" << dtp << "\t" << totalp << endl;
 	    }
 	}
       else
 	assert(0);
     }
-    void timing_copy()
-    {
-
-    }
     void timing(const int& what, const int& which)
     {
-      //      cout << "timing " << what << " " << which << endl;
-      static ofstream FileTime;
-      if(!FileTime.is_open())
-	FileTime.open("timing.d");
-      FileTime.precision(2);
       if(what == -1)
-	time_1[which]=clock();
+	time_1[which]=p_mess->Clock();
       else if(what == 1)
 	{
-	  time_2[which]=clock();
+	  time_2[which]=p_mess->Clock();
 	  delta_time[which]+=time_2[which]-time_1[which];
-	  if(which == 4)
-	    delta_time[4]-=time_2[6]-time_1[6];
-	  if(which == 1)
-	    delta_time[1]-=time_2[2]-time_1[2];
 	}
       else if(what == 0)
 	{
 	  steps++;
-	  FileTime << " " << endl;
-	  FileTime << " steps " << steps << endl;
-	  for(int i=0; i < 30; i++)
+	  p_file->FileTime << " " << endl;
+	  p_file->FileTime << " steps " << steps << endl;
+	  for(int i=0; i < 50; i++)
 	    total_time[i]+=delta_time[i];
-	  double dt29=(delta_time[29]/(double)CLOCKS_PER_SEC)+1.0e-6;
-	  double dtt29=(total_time[29]/(double)CLOCKS_PER_SEC)+1.0e-6;
-	  for(int i=0; i < 30; i++)
+	  double dt49=(delta_time[49]/clocks_per_sec)+1.0e-6;
+	  double dtt49=(total_time[49]/clocks_per_sec)+1.0e-6;
+	  for(int i=0; i < 50; i++)
 	    {
-	      double dt=delta_time[i]/(double)CLOCKS_PER_SEC;
-	      double dtt=total_time[i]/(double)CLOCKS_PER_SEC;
-	      FileTime << "timing " << steps << "\t" << i << " \t" << scientific << dt << "\t"  << dtt << "\t" ;
-	      FileTime << fixed << 100.0*dt/dt29 << "\t" << 100.0*dtt/dtt29 << "\t" << time_string[i] << endl;
+	      double dt=delta_time[i]/clocks_per_sec;
+	      double dtt=total_time[i]/clocks_per_sec;
+	      p_file->FileTime << "timing " << steps << "\t" << i << " \t" << scientific << dt << "\t"  << dtt << "\t" ;
+	      p_file->FileTime << fixed << 100.0*dt/dt49 << "\t" << 100.0*dtt/dtt49 << "\t" << time_string[i] << endl;
 	    }
 	}
       else if(what== -2)
-	delta_time.assign(30,0);
-    }
-    void numbers3(Point* p_point,vector <int>& numbers)
-    {
-      int number=p_point->get_point_to_number();
-      numbers[2]=number % PBoxLength[2];
-      numbers[1]=(number/PBoxLength[2]) % PBoxLength[1];
-      numbers[0]=number/(PBoxLength[1]*PBoxLength[2]);
+	delta_time.assign(50,0);
     }
     void where_6(const int& i,const int& j,const int& k,vector <int>& Boxu)
     {
@@ -704,41 +620,14 @@ namespace FractalSpace
     }
     int where_1(const int& i,const int& j,const int& k)
     {
-      int kk=k;
-      if(Periods[2])
-	{
-	  if(kk < PBox[4])
-	    kk+=grid_length;
-	  if(kk > PBox[5])
-	    kk-=grid_length;
-	}
-      else
-	if(kk < PBox[4] || kk > PBox[5]) return -1;
-      int jj=j;
-      if(Periods[1])
-	{
-	  if(jj < PBox[2])
-	    jj+=grid_length;
-	  if(jj > PBox[3])
-	    jj-=grid_length;
-	}
-      else
-	if(jj < PBox[2] || jj > PBox[3]) return -1;
-      int ii=i;
-      if(Periods[0])
-	{
-	  if(ii < PBox[0])
-	    ii+=grid_length;
-	  if(ii > PBox[1])
-	    ii-=grid_length;
-	}
-      else
-	if(ii < PBox[0] || ii > PBox[1]) return -1;
-      return (kk-PBox[4])+((jj-PBox[2])+(ii-PBox[0])*PBoxLength[1])*PBoxLength[2];
+      if(k < PBox[4] || k > PBox[5]) return -1;
+      if(j < PBox[2] || j > PBox[3]) return -1;
+      if(i < PBox[0] || i > PBox[1]) return -1;
+      return (i-PBox[0])+((j-PBox[2])+(k-PBox[4])*PBoxLength[1])*PBoxLength[0];
     }
     int where(const int& nx,const int& ny,const int& nz,vector <int>& boX,vector <int>& boXL)
     {
-      return (nz-boX[4])+((ny-boX[2])+(nx-boX[0])*boXL[1])*boXL[2];
+      return (nz-boX[4])+((ny-boX[2])+(nx-boX[0])*boXL[1])*(boXL[2]+2);
     }
     void wrap(const int& p)
     {

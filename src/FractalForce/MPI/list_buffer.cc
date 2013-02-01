@@ -10,7 +10,7 @@ namespace FractalSpace
     Point* black_knight=&point;
     for(int ni=0;ni < 7;++ni)
       {
-	black_knight=black_knight->get_point_ud_0(Point::order[corner][ni]);
+	black_knight=black_knight->get_point_ud_0(Point::order[corner][ni],1);
 	black_knight->set_it_is_high(true);
       }
   }

@@ -33,7 +33,7 @@ namespace FractalSpace
 	    else
 	      {
 		if(p1 == p2) return true;
-		cout << " baad dupe " << endl;;
+		//		cerr << " baad dupe " << endl;;
 		p1->dump();
 		p2->dump();
 		assert(dx);

@@ -7,15 +7,19 @@ namespace FractalSpace
   {
     //    cout << "inside high_points " << " " << group.list_points.size() << endl;
     group.p_list_really_high.clear();
+    fractal.p_file->FilePoint << " highs level " << group.get_level() << endl;
     int ni=0;
     for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
       {
 	Point* p_point=*point_itr;
 	Point& point=*p_point;
+	//	if(check_high(point,fractal))
+	//	  point.dumpd();
 	if(!point.get_passive_point() && check_high(point,fractal) && high_enough_level(point,group,fractal,misc))
 	  {
 	    point.set_it_is_high(true);
 	    group.p_list_really_high.push_back(p_point);
+	    //	    point.dumpd();
 	    ni++;
 	  }
       }
@@ -30,10 +34,10 @@ namespace FractalSpace
     if(fractal.get_number_masks() < 1) return true;
     const int lev=group.get_level();
     double move;
-    if(fractal.get_padding() > 0 || misc.get_buffer_it())
-      move=(1.0-pow(2.0,-lev))*misc.zoom;
-    else
-      move=0.0;
+    //    if(fractal.get_padding() > 0 || misc.get_buffer_it())
+    move=(1.0-pow(2.0,-lev))*misc.zoom;
+    //    else
+    //      move=0.0;
     if(move < 0.0) return 0;
     double scaling=(double)misc.grid_multiply;
     for(int m=0;m< fractal.get_number_masks();++m)

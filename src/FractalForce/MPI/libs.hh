@@ -11,7 +11,8 @@
 #include <complex>
 #include <ctime>
 #include <climits>
-#include <mpi.h>
+#include <cerrno>
+#include <sys/stat.h>
 #include "fftw3-mpi.h"
 using namespace std;
 
