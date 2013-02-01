@@ -8,11 +8,14 @@ namespace FractalSpace
   template <class M> void step_simple(M& mem, Fractal& fractal)
   {
     fractal.timing(-2,0);
-    fractal.timing(-1,29);
+    fractal.timing(-1,49);
+    mem.p_file->FileFractal << " Made It step a " << endl;
     fractal_force(fractal,mem);
-    fractal.timing(1,29);
+    mem.p_file->FileFractal << " Made It step b " << endl;
+    fractal.timing(1,49);
     fractal.timing(0,0);
     fractal.timing_lev(0,0);
+    ofstream& FP=mem.p_file->FileParticle;
     vector <double> pos(3);
     vector <double> vel(3);
     vector <double> force(3);
@@ -29,6 +32,8 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_field(pos,vel,force);
 	    vel[0]=vel[0]*v_const+force[0]*f_const;
 	    vel[1]=vel[1]*v_const+force[1]*f_const;
@@ -50,7 +55,10 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_field(pos,vel,force);
+	    //	    p->dump(FP);
 	    vel[0]+=force[0]*dt;
 	    vel[1]+=force[1]*dt;
 	    vel[2]+=force[2]*dt;
@@ -58,6 +66,7 @@ namespace FractalSpace
 	    pos[1]+=vel[1]*dt;
 	    pos[2]+=vel[2]*dt;
 	    p->set_phase(pos,vel);
+	    //	    p->dump(FP);
 	  }
       }
   }

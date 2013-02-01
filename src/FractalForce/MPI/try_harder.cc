@@ -24,20 +24,19 @@ namespace FractalSpace
       {
 	int witch=Point::phl[spam8+t];
 	int rh=witch/27;
-	if(eureka_h[rh])
-	  {
-	    ph=ph0->move_adj(0,Point::corner_a[rh]);
-	    ph=ph->move_adj(Point::corner_b[rh],0);
-	    Point* pl=ph->get_p_daughter_point();
-	    if(pl->get_real_pointer() != 0) continue;
-	    int rl=witch % 27;
-	    if(!ph->get_eureka_dau(rl)) continue;
-	    adj1=pl;
-	    if(!easy && !Point::left[rl])
-	      adj1=adj1->move_rp(13);
-	    adj1=adj1->move_rp(rl);
-	    return adj1;
-	  }
+	if(!eureka_h[rh])
+	  continue;
+	ph=ph0->move_adj(0,Point::corner_a[rh]);
+	ph=ph->move_adj(Point::corner_b[rh],0);
+	Point* pl=ph->get_p_daughter_point();
+	if(pl->get_real_pointer() != 0) continue;
+	int rl=witch % 27;
+	if(!ph->get_eureka_dau(rl)) continue;
+	adj1=pl;
+	if(!easy && !Point::left[rl])
+	  adj1=adj1->move_rp(13);
+	adj1=adj1->move_rp(rl);
+	return adj1;
       }
     return 0;
   }

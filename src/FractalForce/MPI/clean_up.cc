@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void clean_up(Fractal_Memory& mem,Misc& misc,Fractal& fractal_ghost)
   {
+    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     //--------------------------------------------------------------------------------------------------------------------------------
     // Delete all points, groups, chains and misc.
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -19,7 +20,7 @@ namespace FractalSpace
     if(!mem.amnesia)
       return;
     //
-    cout << "number of everything entering clean_up "  << " " << Group::number_groups << " " << Point::number_points << endl;
+    FileFractal << "number of everything entering clean_up "  << " " << Group::number_groups << " " << Point::number_points << endl;
     int level_start=0;
     for(int level=level_start;level <= mem.level_max;level++)
       {
@@ -44,22 +45,22 @@ namespace FractalSpace
     counting++;
     mem.all_groups.clear();
     //
-    cout << "I have deleted this much " << counting << endl;
-    cout << sizeof(int) << " int ";
-    cout << INT_MAX << " largest int ";
-    cout << sizeof(float) << " float ";
-    cout << FLT_MAX << " largest float " ;
-    cout << sizeof(double) << " double ";
-    cout << DBL_MAX << " largest double " << endl;
-    cout << RAND_MAX << " rand_max " << endl;
-    cout << sizeof(bool) << " bool ";
-    cout << sizeof(Group) << " group ";
-    cout << sizeof(Point) << " point ";
-    cout << sizeof(Fractal) << " fractal ";
-    cout << sizeof(Fractal_Memory) << " fractal memory ";
-    cout << sizeof(Misc) << " misc ";
-    cout << sizeof(Particle) << " Particle ";
-    cout << endl;
-    cout << "number of everything exiting clean_up "  << " " << Group::number_groups << " " << Point::number_points << endl;
+    FileFractal << "I have deleted this much " << counting << endl;
+    FileFractal << sizeof(int) << " int ";
+    FileFractal << INT_MAX << " largest int ";
+    FileFractal << sizeof(float) << " float ";
+    FileFractal << FLT_MAX << " largest float " ;
+    FileFractal << sizeof(double) << " double ";
+    FileFractal << DBL_MAX << " largest double " << endl;
+    FileFractal << RAND_MAX << " rand_max " << endl;
+    FileFractal << sizeof(bool) << " bool ";
+    FileFractal << sizeof(Group) << " group ";
+    FileFractal << sizeof(Point) << " point ";
+    FileFractal << sizeof(Fractal) << " fractal ";
+    FileFractal << sizeof(Fractal_Memory) << " fractal memory ";
+    FileFractal << sizeof(Misc) << " misc ";
+    FileFractal << sizeof(Particle) << " Particle ";
+    FileFractal << endl;
+    FileFractal << "number of everything exiting clean_up "  << " " << Group::number_groups << " " << Point::number_points << endl;
   }
 }

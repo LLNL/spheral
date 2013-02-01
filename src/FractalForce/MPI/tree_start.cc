@@ -6,99 +6,62 @@ namespace FractalSpace
 {
   void tree_start(Group& group, Fractal& fractal,Fractal_Memory& mem,Misc& misc)
   {
+    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream* p_FilePoint=&fractal.p_file->FilePoint;
     double a_grid_length=(double)fractal.get_grid_length();
-    int lengthm1=fractal.get_grid_length()-1;
     vector <int>Boxu(6);
     vector <Point*>ud(6);
     double t0,t1,t2,t3;
-    t0=clock();
-    cout << "enter treestart" << endl;
-    bool period=fractal.get_periodic();
-    vector <bool> Periods(3);
-    fractal.get_Periods(Periods);
+    t0=fractal.p_mess->Clock();
+    FileFractal << "enter treestart" << endl;
+    //    bool period=fractal.get_periodic();
     int point_counter=0;
     mem.total_points_generated=0;
     mem.total_points_used=0;
     Point* p_point=0;
     Point* new_points=0;
-    cout << " generating points in treestart" << endl;
+    FileFractal << " generating points in treestart" << endl;
+    FileFractal << " Boxes in node " << endl;
+    vector <double> RealBox;
+    fractal.getRealBox(RealBox);
+    Misc::vector_print(RealBox,FileFractal);
     vector <int> Box;
     fractal.getBox(Box);
-    cout << "Box ";
-    cout << Box[0] << " ";
-    cout << Box[1] << " ";
-    cout << Box[2] << " ";
-    cout << Box[3] << " ";
-    cout << Box[4] << " ";
-    cout << Box[5] << " ";
-    cout << Periods[0] << Periods[1] << Periods[2];
-    cout << endl;
+    Misc::vector_print(Box,FileFractal);
     bool MPIrun=mem.MPIrun;
     group.set_buffer_group(MPIrun);
-    if(!MPIrun)
-      {
-	assert(Box[0] == 0);
-	assert(Box[2] == 0);
-	assert(Box[4] == 0);
-	assert(Box[1] == lengthm1);
-	assert(Box[3] == lengthm1);
-	assert(Box[5] == lengthm1);
-      }
-    else
-      {
-	assert(Box[0] >= 0);
-	assert(Box[2] >= 0);
-	assert(Box[4] >= 0);
-	assert(Box[1] <= lengthm1);
-	assert(Box[3] <= lengthm1);
-	assert(Box[5] <= lengthm1);
-      }
     vector <int> Buffer(6);
     fractal.getBuffer(Buffer);
+    Misc::vector_print(Buffer,FileFractal);
     vector <int> BBox(6);
     fractal.getBBox(BBox);
+    Misc::vector_print(BBox,FileFractal);
     vector <int> PBox(6);
     fractal.getPBox(PBox);
+    Misc::vector_print(PBox,FileFractal);
     vector <int> PBoxLength(3);
     fractal.getPBoxLength(PBoxLength);
+    Misc::vector_print(PBoxLength,FileFractal);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
     new_points=new (nothrow) Point[volume];
     assert(new_points);
     mem.total_points_generated=volume;
     group.set_group_number(0);
     group.list_new_points.push_back(new_points);
-    group.list_points.reserve(volume);
-    cout << " generated points in treestart" << endl;
-    cout << " Box ";
-    cout << Box[0] << " ";
-    cout << Box[1] << " ";
-    cout << Box[2] << " ";
-    cout << Box[3] << " ";
-    cout << Box[4] << " ";
-    cout << Box[5] << endl;
-    cout << " Buffer ";
-    cout << Buffer[0] << " ";
-    cout << Buffer[1] << " ";
-    cout << Buffer[2] << " ";
-    cout << Buffer[3] << " ";
-    cout << Buffer[4] << " ";
-    cout << Buffer[5] << endl;
+    FileFractal << " generated points in treestart" << endl;
     //
     vector <int>grid(3);
-    bool inside;
-    bool edge;
-    bool buff;
-    bool pass;
+    bool inside,edge,buff,pass;
     int new_counter=0;
-    for(int gridx=PBox[0];gridx <= PBox[1];gridx++)
+    for(int gridz=PBox[4];gridz <= PBox[5];gridz++)
       {
-	grid[0]=gridx;
+	grid[2]=gridz;
 	for(int gridy=PBox[2];gridy <= PBox[3];gridy++)
 	  {
 	    grid[1]=gridy;
-	    for(int gridz=PBox[4];gridz <= PBox[5];gridz++)
+	    for(int gridx=PBox[0];gridx <= PBox[1];gridx++)
 	      {
-		grid[2]=gridz;
+		grid[0]=gridx;
 		p_point=&new_points[new_counter];
 		new_counter++;
 		mem.total_points_used++;
@@ -112,22 +75,22 @@ namespace FractalSpace
 		point.set_p_in_high_group(0);
 		fractal.inside_edge_buffer_pass(grid,inside,edge,buff,pass);
 		point.set_inside(inside);
-		point.set_edge_point(edge);
-		point.set_buffer_point(buff);
-		point.set_buffer_point(pass);
+		point.set_edge_buffer_passive_point(edge,buff,pass);
+		point.set_number_in_list(point_counter);
+		point.set_FILE(p_FilePoint);
 		point_counter++;
 	      }
 	  }
       }
-    cout << "aa " << point_counter << endl;
-    t1=clock();
-    cout << "treestart enter second part" << endl;
+    FileFractal << "aa " << point_counter << endl;
+    t1=fractal.p_mess->Clock();
+    FileFractal << "treestart enter second part" << endl;
     int gridxyz=0;
-    for(int grid_x=PBox[0];grid_x <= PBox[1];grid_x++)
+    for(int grid_z=PBox[4];grid_z <= PBox[5];grid_z++)
       {
 	for(int grid_y=PBox[2];grid_y <= PBox[3];grid_y++)
 	  {
-	    for(int grid_z=PBox[4];grid_z <= PBox[5];grid_z++)
+	    for(int grid_x=PBox[0];grid_x <= PBox[1];grid_x++)
 	      {
 		ud.assign(6,Point::nothing);
 		fractal.where_6(grid_x,grid_y,grid_z,Boxu);
@@ -144,17 +107,17 @@ namespace FractalSpace
 	      }
 	  }
       }
-    cout << "bb " << gridxyz << endl;
+    FileFractal << "bb " << gridxyz << endl;
     if(misc.get_debug())
       {
 	check_for_edge_trouble(fractal);
-	cout << "checked for edge" << endl;
+	FileFractal << "checked for edge" << endl;
       }
-    t2=clock();
-    //
-    int moat=max(max(1,fractal.get_moat_0()),fractal.get_padding());
-    int glm=fractal.get_grid_length()-moat;
+    t2=fractal.p_mess->Clock();
     vector <double> pos(3);
+    FileFractal << "total number of particles " << fractal.get_number_particles() << endl;
+    int partsin=0;
+    int partsout=0;
     for(int particle=0; particle < fractal.get_number_particles(); ++particle)
       {
 	Particle* p=fractal.particle_list[particle];
@@ -168,35 +131,40 @@ namespace FractalSpace
 	  grid_x >= PBox[0] && grid_x < PBox[1] &&
 	  grid_y >= PBox[2] && grid_y < PBox[3] &&
 	  grid_z >= PBox[4] && grid_z < PBox[5];
-	if(do_it && !period)
-	  {
-	    do_it=
-	  grid_x >= moat && grid_x < glm &&
-	  grid_y >= moat && grid_y < glm &&
-	  grid_z >= moat && grid_z < glm;
-
-	  }
+	bool real_particle=do_it;
+	if(do_it)
+	  real_particle=
+	    pos[0] >= RealBox[0] && pos[0] < RealBox[1] &&
+	    pos[1] >= RealBox[2] && pos[1] < RealBox[3] &&
+	    pos[2] >= RealBox[4] && pos[2] < RealBox[5];
+	p->set_real_particle(real_particle);
 	if(do_it)
 	  {
 	    int grid=fractal.where_1(grid_x,grid_y,grid_z);
 	    assert(grid >= 0);
 	    Point* p_point=group.list_points[grid];
 	    p_point->list_particles.push_back(p);
+	    partsin++;
+	    //	    FileFractal << " doit " << particle << " " << p << " " << p_point << " " << grid << " " << grid_x << " " << grid_y << " " << grid_z << endl;
 	  }
 	else
 	  {
 	    p->set_p_highest_level_group(0);
-	    cout << " bad ins " << particle << endl;
+	    partsout++;
+	    FileFractal << " bad ins " << particle << "\t";
+	    FileFractal << grid_x << "\t" << grid_y << "\t" << grid_z << "\t";
+	    FileFractal << pos[0] << "\t" << pos[1] << "\t" << pos[2] << "\t"  << endl;
 	  }
       }
-    cout << "end tree " << " " << group.list_points.size() << endl;
+    FileFractal << "total number of particles in and out " << partsin << "\t" << partsout << endl;
+    FileFractal << "end tree " << "\t" << group.list_points.size() << endl;
     if(fractal.get_level_max() > 0)
       group.set_number_high_groups(-1);
     else
       group.set_number_high_groups(0);
-    cout << "exit treestart" << endl;
-    t3=clock();
-    cout << "tree time " << t1-t0 << " " << t2-t1 << " " << t3-t2 << endl;
+    FileFractal << "exit treestart" << endl;
+    t3=fractal.p_mess->Clock();
+    FileFractal << "tree time " << t1-t0 << "\t" << t2-t1 << "\t" << t3-t2 << endl;
   }
   //
 }

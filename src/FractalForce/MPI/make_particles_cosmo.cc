@@ -7,6 +7,7 @@ namespace FractalSpace
   //
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash)
   {
+    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     double rand_max=RAND_MAX;
     int length=mem.grid_length;
     int length_2=length*length;
@@ -68,7 +69,7 @@ namespace FractalSpace
 		assert(many > 0);
 		if(count > mem.max_particles) break;
 	      }
-	    cout << "iimax " << ii << " " << crash_0 << " " << count << endl;
+	    FileFractal << "iimax " << ii << " " << crash_0 << " " << count << endl;
 	    if(count <= mem.max_particles) break;
 	    crash_0/=scale_crash;
 	  }
@@ -110,7 +111,7 @@ namespace FractalSpace
 	    assert(count < mem.max_particles);
 	  }
 	crash.clear();
-	cout << "startit " << count << " " << crash_0 << " " << mem.crash_levels << endl;
+	FileFractal << "startit " << count << " " << crash_0 << " " << mem.crash_levels << endl;
 	mem.number_particles=count;
       }
   }

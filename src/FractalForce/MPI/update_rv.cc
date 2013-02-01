@@ -5,15 +5,18 @@ namespace FractalSpace
 {
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2)
   {
+    ofstream& FileFractal=fractal.p_file->FileFractal;
     vector <double> pos(3);
     vector <double> vel(3);
     vector <double> force(3);
-    cout << "update " << param << " " << const1 << " " << const2 << endl;
+    FileFractal << "update " << param << " " << const1 << " " << const2 << endl;
     if(param == 0)
       {
 	for(int n=0;n<fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_pos(pos);
 	    p->set_vel(pos);
 	  }
@@ -23,6 +26,8 @@ namespace FractalSpace
 	for(int n=0;n<fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_pos(pos);
 	    p->get_force(force);
 	    pos[0]+=force[0]*const1;
@@ -36,6 +41,8 @@ namespace FractalSpace
 	for(int n=0;n<fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
+	    if(!p->get_real_particle())
+	       continue;
 	    p->get_vel(vel);
 	    p->get_force(force);
 	    pos[0]=vel[0]+force[0]*const1;

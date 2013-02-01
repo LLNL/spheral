@@ -5,12 +5,13 @@ namespace FractalSpace
 {
   void buffer_points(Group& group, Fractal& fractal,Misc& misc)
   {
+    ofstream& FileFractal=fractal.p_file->FileFractal;
     int padd=fractal.get_padding();
     double scale=static_cast<double>(fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max()));
     int width=Misc::pow(2,fractal.get_level_max()-group.get_level()-1);
     //
     if(misc.get_debug())
-      cout << " here in buffer a " << &group << " " << group.get_level() << endl;
+      FileFractal << " here in buffer a " << &group << " " << group.get_level() << endl;
     //--------------------------------------------------------------------------------------------------------------------------------
     // padding has priority, make the 26 neighbors into high points, if not already
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -23,7 +24,7 @@ namespace FractalSpace
 	      {
 		for(int ni=0;ni<3;ni++)
 		  {
-		    p_point=p_point->get_point_ud_0(ni*2);
+		    p_point=p_point->get_point_ud_0(ni*2,0);
 		  }
 	      }
 	    Point* p_point_z=p_point;
@@ -36,15 +37,18 @@ namespace FractalSpace
 		    for(int pad_x=-padd;pad_x <= padd;++pad_x)
 		      {
 			p_point_x->set_it_is_high(true);
-			p_point_x=p_point_x->get_point_up_x_0(); 
+			if(pad_x < padd)
+			  p_point_x=p_point_x->get_point_up_x_0(); 
 		      }
-		    p_point_y=p_point_y->get_point_up_y_0();
+		    if(pad_y < padd)
+		      p_point_y=p_point_y->get_point_up_y_0();
 		  }
-		p_point_z=p_point_z->get_point_up_z_0();
+		if(pad_z < padd)
+		  p_point_z=p_point_z->get_point_up_z_0();
 	      }
 	  }
       }
-    else
+    else if( padd==-1)
       {
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// find out if any of the octants has at least minimum_number particles, if it does pad that corner
@@ -82,16 +86,26 @@ namespace FractalSpace
 	      }
 	  }
       }
-    if(group.get_level()==0 && !fractal.get_periodic())
+    if(!fractal.get_periodic())
       {
+	int zoom=fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max());
+	vector <int>pose(3);
 	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
 	  {
-	    //--------------------------------------------------------------------------------------------------------------------------------
-	    // for top group, make sure edge has no high points for isolated BC
-	    //--------------------------------------------------------------------------------------------------------------------------------
-	    (*point_itr)->set_inside_high();
+	    Point* p=*point_itr;
+	    if(!p->get_it_is_high())
+	      continue;
+	    p->get_pos_point(pose);
+	    if(
+	       pose[0] == 0 || pose[1] == 0 || pose[2] == 0 ||
+	       pose[0] == zoom || pose[1] == zoom || pose[2] == zoom
+	       )
+	      p->set_it_is_high(false);
 	  }
       }
+    //--------------------------------------------------------------------------------------------------------------------------------
+    // make sure edge has no high points for isolated BC
+    //--------------------------------------------------------------------------------------------------------------------------------
     int n_h=0;
     for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
       {
@@ -106,6 +120,6 @@ namespace FractalSpace
     group.set_number_high_points(n_h);
     group.p_list_really_high.clear();
     if(misc.get_debug())
-      cout << " here in buffer b " << &group << " " << group.get_level() << endl;
+      FileFractal << " here in buffer b " << &group << " " << group.get_level() << endl;
   }
 }

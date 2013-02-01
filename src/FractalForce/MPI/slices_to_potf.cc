@@ -3,51 +3,68 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void slices_to_potf(Fractal_Memory& mem,Fractal& frac,const int& length)
+  void slices_to_potf(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
-    int Slice=mem.p_mess->FractalRank;
-    vector <int>BBox(6);
-    vector <int> BoxS(6);
-    BoxS[0]=mem.p_mess->Slices[Slice][0];
-    BoxS[1]=mem.p_mess->Slices[Slice][1];
-    BoxS[2]=0;
-    BoxS[3]=length-1;
-    BoxS[4]=0;
-    BoxS[5]=length-1;
-    vector <int> BoxSL(3);
-    BoxSL[0]=BoxS[1]-BoxS[0]+1;
-    BoxSL[1]=length;
-    BoxSL[2]=length;
-    int BNodes=mem.Slice_to_Boxes[Slice].size();
-    vector < vector <double> >pot;
-    pot.resize(BNodes);
-    for(int B=0;B<BNodes;B++)
+    int FractalNodes=mem.p_mess->FractalNodes;
+    int length_1=frac.get_grid_length();
+    int length_S=length_1;
+    bool period=frac.get_periodic();
+    if(!period)
       {
-	int FR=mem.Slice_to_Boxes[Slice][B];
-	BBox=mem.BBoxes[FR];
-	int buffsize=(BBox[5]-BBox[4]+1)*(BBox[3]-BBox[2]+1);
-	int nx0=mem.Slice_to_Boxes_Boxes[Slice][FR][0];
-	int nx1=mem.Slice_to_Boxes_Boxes[Slice][FR][1];
-	buffsize*=nx1-nx0+1;
-	pot[B].resize(buffsize);
-	int total=0;
-	int number=-1;
-	for(int nx=nx0;nx<=nx1;nx++)
+	length_1++;
+	length_S*=2;
+      }
+    vector <int>counts_out(FractalNodes);
+    counts_out.assign(FractalNodes,0);
+    int number=-1;
+    double potential=-1.0;
+    vector < vector <int> > dataI_out(FractalNodes);
+    vector < vector <double> > dataR_out(FractalNodes);
+    int number_points=mem.p_mess->return_point.size();
+    for(int number=0;number<number_points;number++)
+      {
+	int numberS=mem.p_mess->what_Slice_point[number];
+	int number_list=mem.p_mess->return_point[number];
+	int FR=mem.p_mess->return_node[number];
+	dataR_out[FR].push_back(mem.p_mess->potR[numberS]);
+	dataI_out[FR].push_back(number_list);
+	counts_out[FR]++;
+      }
+    mem.p_mess->return_Slice_pos.clear();
+    mem.p_mess->return_group.clear();
+    mem.p_mess->return_point.clear();
+    mem.p_mess->return_node.clear();
+    vector <int>counts_in(FractalNodes);
+    vector <int> dataI_in;
+    vector <double> dataR_in;
+    int how_manyI=-1;
+    int how_manyR=-1;
+    int integers=1;
+    int doubles=1;
+    frac.timing(-1,35);
+    mem.p_mess->Full_Stop();
+    frac.timing(1,35);
+    mem.p_file->note(true," slices to potf a ");
+    mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
+    mem.p_file->note(true," slices to potf b ");
+    mem.p_mess->Send_Data_Somewhere(counts_out,counts_in,integers,doubles,
+				    dataI_out,dataI_in,how_manyI,
+				    dataR_out,dataR_in,how_manyR);
+    mem.p_file->note(true," slices to potf c ");
+    dataI_out.clear();
+    dataR_out.clear();      
+    number=-1;
+    int counter=0;
+    potential=-1.0;
+    for(int FR=0;FR<FractalNodes;FR++)
+      {
+	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    for(int ny=BBox[2];ny<=BBox[3];ny++)
-	      {
-		for(int nz=BBox[4];nz<=BBox[5];nz++)
-		  {
-
-		    number=frac.where(nx,ny,nz,BoxS,BoxSL);
-		    pot[B].push_back(mem.p_mess->potR[number]);
-		    total++;
-		  }
-	      }
+	    number=dataI_in[counter];
+	    potential=dataR_in[counter];
+	    group.list_points[number]->set_potential_point(potential);
+	    counter++;
 	  }
-	bool first=B==0;
-	bool last=B==BNodes-1;
-	mem.p_mess->send_data(pot[B],FR,total,first,last);
       }
   }
 }

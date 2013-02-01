@@ -5,15 +5,6 @@ namespace FractalSpace
   class Misc
   {
     bool debug;
-    bool shrink_mask;
-    bool buffer_it;
-    bool dump_everything;
-    bool delta_version;
-    bool start_up;
-    bool power_gen;
-    bool double_solver;
-    bool force_smooth;
-    bool pad_smooth;
   public:
     Group* p_group_0;
     int zoom;
@@ -24,23 +15,11 @@ namespace FractalSpace
     Misc()
     {
       assert(this);
-      int tw=2;
       debug=false;
-      shrink_mask=tw % 2 == 1;
-      buffer_it= tw/2 % 2 ==1;
-      dump_everything= tw/4 % 2 ==1;
-      delta_version= tw/8 % 2 ==1;
-      start_up= tw/16 % 2 ==1;
-      power_gen= tw/32 % 2 ==1;
-      double_solver=tw/128 % 2 ==1;
-      force_smooth=tw/256 % 2 ==1;
-      pad_smooth=tw/512 % 2 ==1;
       cout << "Making Misc " << this << endl;
     }
-    ~Misc(){cout << "Ending Misc " << this << endl;}
-    bool get_buffer_it()
-    {
-      return buffer_it;
+    ~Misc(){
+      cout << "Ending Misc " << this << endl;
     }
     bool get_debug()
     {
@@ -62,11 +41,11 @@ namespace FractalSpace
 	i*=x;
       return i;
     }
-    template <class T>  static T pow2(const T&x)
+    template <class T>  static T pow2(const T& x)
     {
       return x*x;
     }
-    template <class T>  static T pow3(const T&x)
+    template <class T>  static T pow3(const T& x)
     {
       return x*x*x;
     }
@@ -237,6 +216,39 @@ namespace FractalSpace
 	  vector1[itr1]=value;
 	}
     }
+    template <class T> void per_box(vector <T>& box,const T& length)
+    {
+      unsigned int bs=box.size();
+      if(bs == 6)
+	{
+	  for(int ni2=0;ni2<6;ni2+=2)
+	    {
+	      db=box[ni2+1]-box[ni2];
+	      box[ni2]=(box[ni2]+length) % length;
+	      box[ni2+1]=box[ni2]+db;
+	    }
+	}
+      else if(bs == 3)
+	{
+	  box[0]=(box[0]+length) % length;
+	  box[1]=(box[1]+length) % length;
+	  box[2]=(box[2]+length) % length;
+	}
+      else
+	assert(0);
+    }
+    template <class T> void per_box(vector <T>& posa,vector <T>& posb,const T& length)
+    {
+      unsigned int ps=posa.size();
+      assert(ps == posb.size());
+      T dp;
+      for(unsigned int ni=0;ni<ps;ni++)
+	{
+	  dp=posb[ni]-posa[ni];
+	  posa[ni]=(posa[ni]+length) % length;
+	  posb[ni]=posa[ni]+dp;
+	}
+    }
     template <class T> static void copy_vector(int& itr1,vector <T>& vector1,const vector <T>& vector2,const int& itr2_begin ,const int& itr2_d)
     {
       for(int i=itr2_begin;i<itr2_begin+itr2_d;i++)
@@ -256,14 +268,35 @@ namespace FractalSpace
 	    }
 	}
     }
-    template <class T> static void vector_print(const vector <T>& vec)
+    template <class T> static void vector_print(const vector <T>& vec,ofstream& FILE)
     {
       int j=vec.size();
       for(int i=0;i<j;i++)
-	{
-	  cout << vec[i] << " " ;
-	}
-      cout << endl;
+	FILE << vec[i] << " " ;
+      FILE << endl;
+    }
+    template <class T> static void vector_print(const vector <T>& veca,const vector <T>& vecb,ofstream& FILE)
+    {
+      int j=veca.size();
+      for(int i=0;i<j;i++)
+	FILE << veca[i] << " " ;
+      int j=vecb.size();
+      for(int i=0;i<j;i++)
+	FILE << vecb[i] << " " ;
+      FILE << endl;
+    }
+    template <class T> static void vector_print(const vector <T>& veca,const vector <T>& vecb,const vector <T>& vecc,ofstream& FILE)
+    {
+      int j=veca.size();
+      for(int i=0;i<j;i++)
+	FILE << veca[i] << " " ;
+      int j=vecb.size();
+      for(int i=0;i<j;i++)
+	FILE << vecb[i] << " " ;
+      int j=vecc.size();
+      for(int i=0;i<j;i++)
+	FILE << vecc[i] << " " ;
+      FILE << endl;
     }
   };
 }

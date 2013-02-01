@@ -6,31 +6,30 @@ namespace FractalSpace
   {
   public:
     //
+    string BaseDirectory;
+    string RUN;
     bool MPIrun;
     int FractalNodes;
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    int number_split;
+    int min_hypre_group_size;
     vector < vector <int> > Boxes;
     vector < vector <int> > BBoxes;
     vector < vector <int> > PBoxes;
     vector < vector <int> > Buffers;
-    vector < vector <int> > Box_to_Slices;
-    vector < vector <int> > Box_from_Slices;
-    vector < vector <int> > Slice_to_Boxes;
-    vector < vector <int> > Slice_from_Boxes;
-    vector < vector < vector <int> > > Box_to_Slices_Boxes;
-    vector < vector < vector <int> > > Slice_to_Boxes_Boxes;
     vector < vector < vector <int> > > BoxesLev;
     vector < vector < vector <int> > > BBoxesLev;
     vector < vector < vector <int> > > PBoxesLev;
     vector < vector <int> > PBoxesLength;
-    vector < vector <bool> > Periods;
     vector < vector <double> > RealBoxes;
     vector < vector <double> > RealPBoxes;
-    Mess* p_mess;
+    vector <int>ij_offsets;
+    vector <int>ij_counts;
     string hypre_solver;
     string hypre_precond;
+    int global_level_max;
     //
     bool amnesia;
     bool mind_wipe;
@@ -53,7 +52,7 @@ namespace FractalSpace
     int highest_level_init;
     int norm_what;
     int spectrum_number;
-    long number_particles;
+    int number_particles;
     int grid_length;
     int moat_0;
     unsigned int minimum_number;
@@ -133,26 +132,32 @@ namespace FractalSpace
     vector < vector<Group*> > all_groups;
     Misc* p_misc; 
     Fractal* p_fractal;
+    Mess* p_mess;
+    File* p_file;
     //
     Fractal_Memory():
       //
       // default values
       // replace with your own values
       //
+      BaseDirectory("/p/lscratchd/jensv/"),
+      RUN("abc"),
       MPIrun(false),
       FractalNodes(1),
       FractalNodes0(1),
       FractalNodes1(1),
       FractalNodes2(1),
+      number_split(10000),
+      min_hypre_group_size(-81),
       amnesia(true),
       mind_wipe(false),
       fixed_potential(false),
       calc_shear(false),
-      start_up(true),
-      calc_density_particle(true),
+      start_up(false),
+      calc_density_particle(false),
       do_vel(false),
-      do_var(true), 
-      periodic(true),
+      do_var(false), 
+      periodic(false),
       random_initial(false),
       debug(false),
       halo_fixed(false),
@@ -166,16 +171,16 @@ namespace FractalSpace
       norm_what(0),
       spectrum_number(0),
       number_particles(262144),
-      grid_length(64),
+      grid_length(128),
       moat_0(1),
       minimum_number(8),
-      padding(0),
+      padding(-1),
       level_max(8),
       number_steps_total(503),
       number_steps_out(100),
       random_offset(0),
-      maxits(250),
-      epsilon_sor(6.0e-5),
+      maxits(20),
+      epsilon_sor(1.0e-7),
       force_max(-1.0),
       halo_scale(1.0),
       halo_density0(1.0),
@@ -219,59 +224,42 @@ namespace FractalSpace
     {
       p_misc=0;
       p_fractal=0;
-      hypre_solver="PCG";
-      hypre_precond="SMG";
+      p_file=0;
+      hypre_solver="AMG";
+      hypre_precond="AMG";
+      global_level_max=level_max;
+      padding=min(padding,1);
       //
-      calc_FractalNodes();
-      calc_Buffers_and_more();
-      calc_RealBoxes();
-      if(MPIrun)
-	highest_level_init=0;     
     }
     ~Fractal_Memory()
     {
       cout << "Ending Fractal_Memory " << this << endl;
-    }
-    void calc_RealBoxes()
-    {
-      RealBoxes.resize(FractalNodes);
-      RealPBoxes.resize(FractalNodes);
-      double glinv=1.0/static_cast<double>(grid_length);
-      for(int b=0;b<FractalNodes;b++)
-	{
-	  RealBoxes[b].resize(6);
-	  RealPBoxes[b].resize(6);
-	  for(int ni=0;ni<6;ni+=2)
-	    {
-	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
-	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
-	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
-	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
-	    }
-	}
     }
     void calc_FractalNodes()
     {
       FractalNodes=FractalNodes0*FractalNodes1*FractalNodes2;
       MPIrun=FractalNodes > 1;
       Boxes.resize(FractalNodes);
+      int length=grid_length;
+      if(!periodic)
+	length++;
       int count=0;
-      int j0b=-1;
-      for(int m0=0;m0<FractalNodes0;m0++)
+      int j2b=-1;
+      for(int m2=0;m2<FractalNodes2;m2++)
 	{
-	  int j0a=j0b+1;
-	  j0b=((m0+1)*grid_length)/FractalNodes0-1;
+	  int j2a=j2b+1;
+	  j2b=((m2+1)*length)/FractalNodes2-1;
 	  int j1b=-1;
 	  for(int m1=0;m1<FractalNodes1;m1++)
 	    {
 	      int j1a=j1b+1;
-	      j1b=((m1+1)*grid_length)/FractalNodes1-1;
-	      int j2b=-1;
-	      for(int m2=0;m2<FractalNodes2;m2++)
+	      j1b=((m1+1)*length)/FractalNodes1-1;
+	      int j0b=-1;
+	      for(int m0=0;m0<FractalNodes0;m0++)
 		{
 		  Boxes[count].resize(6);
-		  int j2a=j2b+1;
-		  j2b=((m2+1)*grid_length)/FractalNodes2-1;
+		  int j0a=j0b+1;
+		  j0b=((m0+1)*length)/FractalNodes0-1;
 		  Boxes[count][0]=j0a;
 		  Boxes[count][1]=j0b;
 		  Boxes[count][2]=j1a;
@@ -286,7 +274,6 @@ namespace FractalSpace
     }
     void calc_Buffers_and_more()
     {
-      Periods.resize(FractalNodes);
       Buffers.resize(FractalNodes);
       BBoxes.resize(FractalNodes);
       PBoxes.resize(FractalNodes);
@@ -297,22 +284,17 @@ namespace FractalSpace
 
       for(int count=0;count<FractalNodes;count++)
 	{
-	  Periods[count].resize(3);
 	  Buffers[count].resize(6);
 	  BBoxes[count].resize(6);
 	  PBoxes[count].resize(6);
 	  PBoxesLength[count].resize(3);
-
-	  Periods[count][0]=periodic && Boxes[count][0] == 0 && Boxes[count][1] == grid_length-1;
-	  Periods[count][1]=periodic && Boxes[count][2] == 0 && Boxes[count][3] == grid_length-1;
-	  Periods[count][2]=periodic && Boxes[count][4] == 0 && Boxes[count][5] == grid_length-1;
 	  for(int n=0;n<3;n++)
 	    {
-	      if(Periods[count][n] || (Boxes[count][2*n] == 0 && !periodic))
+	      if(Boxes[count][2*n] == 0 && !periodic)
 		Buffers[count][2*n]=0;
 	      else
 		Buffers[count][2*n]=1;
-	      if(Periods[count][n] || (Boxes[count][2*n+1] == grid_length-1 && !periodic))
+	      if(Boxes[count][2*n+1] == grid_length && !periodic)
 		Buffers[count][2*n+1]=0;
 	      else
 		Buffers[count][2*n+1]=1;
@@ -355,56 +337,36 @@ namespace FractalSpace
 	    }
 	}
     }
-    void calc_Boxes_vs_Slices()
+    void calc_RealBoxes()
     {
-      Box_to_Slices.resize(FractalNodes);
-      Box_from_Slices.resize(FractalNodes);
-      Slice_to_Boxes.resize(FractalNodes);
-      Slice_from_Boxes.resize(FractalNodes);
+      cout << "real " << FractalNodes << " " << grid_length << endl;
+      RealBoxes.resize(FractalNodes);
+      RealPBoxes.resize(FractalNodes);
+      double glinv=1.0/static_cast<double>(grid_length);
       for(int b=0;b<FractalNodes;b++)
 	{
-	  for(int s=0;s<FractalNodes;s++)
+	  RealBoxes[b].resize(6);
+	  RealPBoxes[b].resize(6);
+	  for(int ni=0;ni<6;ni+=2)
 	    {
-	      if(p_mess->Slices[s][0] <= Boxes[b][1] && p_mess->Slices[s][1] >= Boxes[b][0])
-		{
-		  Box_to_Slices[b].push_back(s);
-		  Slice_from_Boxes[s].push_back(b);
-		}
-	      if(p_mess->Slices[s][0] <= BBoxes[b][1] && p_mess->Slices[s][1] >= BBoxes[b][0])
-		{
-		  Slice_to_Boxes[s].push_back(b);
-		  Box_from_Slices[b].push_back(s);
-		}
+	      cout << " b ni " << b << " " << ni << endl;
+	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
+	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
+	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
+	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
+	      if(periodic)
+		continue;
+	      RealBoxes[b][ni]=max(RealBoxes[b][ni],glinv);
+	      RealBoxes[b][ni+1]=min(RealBoxes[b][ni+1],1.0-glinv);
+	      RealPBoxes[b][ni]=max(RealPBoxes[b][ni],glinv);
+	      RealPBoxes[b][ni+1]=min(RealPBoxes[b][ni+1],1.0-glinv);
 	    }
 	}
-      Box_to_Slices_Boxes.resize(FractalNodes);
-      Slice_to_Boxes_Boxes.resize(FractalNodes);
-      for(int b=0;b<FractalNodes;b++)
-	{
-	  Box_to_Slices_Boxes[b].resize(FractalNodes);
-	  int bs_size=Box_to_Slices[b].size();
-	  for(int s=0;s<bs_size;s++)
-	    {
-	      int sl=Box_to_Slices[b][s];
-	      Box_to_Slices_Boxes[b][sl].push_back(max(p_mess->Slices[sl][0],Boxes[b][0]));
-	      Box_to_Slices_Boxes[b][sl].push_back(min(p_mess->Slices[sl][1],Boxes[b][1]));
-	    }
-	}
-      for(int s=0;s<FractalNodes;s++)
-	{
-	  Slice_to_Boxes_Boxes[s].resize(FractalNodes);
-	  int sb_size=Slice_to_Boxes[s].size();
-	  for(int b=0;b<sb_size;b++)
-	    {
-	      int bs=Slice_to_Boxes[s][b];
-	      Slice_to_Boxes_Boxes[s][bs].push_back(max(p_mess->Slices[s][0],BBoxes[bs][0]));
-	      Slice_to_Boxes_Boxes[s][bs].push_back(min(p_mess->Slices[s][1],BBoxes[bs][1]));
-	    }
-	}
+    cout << " real b " << endl;
     }
-    int fftw_where(const int& i,const int& j,const int& k,const int& la,const int& lb)
+    int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc)
     {
-      return k+(j+i*la)*lb;
+      return k+(j+(i-p_mess->start_x)*lb)*lc;
     }
     void make_scaling()
     {

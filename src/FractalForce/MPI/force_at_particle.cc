@@ -5,8 +5,10 @@ namespace FractalSpace
 {
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve)
   { 
+    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileForce=fractal.p_file->FileForce;
     //
-    if(fractal.get_debug()) cout << " enter force at particle " << &group << " " << group.get_level() << endl;
+    if(fractal.get_debug()) FileFractal << " enter force at particle " << &group << " " << group.get_level() << endl;
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> pott(8);
@@ -29,6 +31,8 @@ namespace FractalSpace
 	for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 	  {
 	    Particle& particle=**particle_itr;
+	    if(!particle.get_real_particle())
+	      continue;
 	    if(particle.get_p_highest_level_group() != 0)
 	      {
 		if(conserve || p_group == particle.get_p_highest_level_group())
@@ -45,16 +49,17 @@ namespace FractalSpace
 		    Misc::sum_prod<double>(0,7,1,sum_pf,weights,pott,f_x,f_y,f_z);
 		    particle.set_field_pf(sum_pf);
 		    if(sum_pf[0]*sum_pf[1]*sum_pf[2]*sum_pf[3] ==0.0)
-		      particle.dump(pott,f_x,f_y,f_z);
+		      particle.dump(FileFractal,pott,f_x,f_y,f_z);
+		    //		    particle.dump(FileForce)
 		  }
 	      }
 	    else
 	      {
-		particle.dump();
+		particle.dump(FileFractal);
 		particle.set_field_pf(0.0);
 	      }
 	  }
       }
-    if(fractal.get_debug()) cout << " exit force at particle " << &group << " " << group.get_level() << endl;
+    if(fractal.get_debug()) FileFractal << " exit force at particle " << &group << " " << group.get_level() << endl;
   }
 }

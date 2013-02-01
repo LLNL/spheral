@@ -21,6 +21,7 @@ namespace FractalSpace
     vector <double> force_sum;
     double mass_sum;
   public:
+    File* p_file;
     vector <Point*> p_list_really_high;
     vector <Point*>list_points;
     vector <Point*>list_high_points;
@@ -35,6 +36,7 @@ namespace FractalSpace
       assert(this);
       done_group=false;
       buffer_group=true;
+      p_file=0;
       level=0;
       group_number=-1;
       number_high_groups=-1;
@@ -52,6 +54,7 @@ namespace FractalSpace
     Group(Group& mother_group){
       assert(this);
       done_group=false;
+      p_file=mother_group.p_file;
       buffer_group=mother_group.buffer_group;
       group_number=-1;
       level=mother_group.level+1;
@@ -206,15 +209,13 @@ namespace FractalSpace
     void subtract_density(const double& d)
     {
       for(vector <Point*>:: const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
-	if((*point_itr)->get_inside()) (*point_itr)->subtract_dens_at_point(d);
+	if((*point_itr)->get_inside()) 
+	  (*point_itr)->subtract_dens_at_point(d);
     }
     void scale_pot_forces(const double& scaling)
     {
       for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
-	{
-	  Point* p_point=*point_itr;
-	  p_point->scale_pot_forces(scaling);
-	}
+	(*point_itr)->scale_pot_forces(scaling);
     }
     void get_force_variance(double& varx,double& vary,double& varz)
     {
@@ -228,9 +229,8 @@ namespace FractalSpace
       vector <double> f(3);
       for(vector <Point*>::const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
 	{
-	  Point* p_point=*point_itr;
 	  sum0+=1.0;
-	  p_point->get_force_point(f);
+	  (*point_itr)->get_force_point(f);
 	  sumx+=f[0];
 	  varx+=f[0]*f[0];
 	  sumy+=f[1];

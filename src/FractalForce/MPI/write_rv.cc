@@ -5,20 +5,30 @@ namespace FractalSpace
 {
   void write_rv(const int& step,Fractal& fractal)
   {
-    static ofstream FilePos;
-    if(!FilePos.is_open())
-      FilePos.open("pos.d");
-    //      FilePos.open("/p/lscratcha/jensv/pos.d");
-    FilePos.precision(7);
-    for(int n=0;n<fractal.get_number_particles();++n)
+    ofstream& FilePos=fractal.p_file->FilePos;
+    int nphase=-1;
+    int nfield=-1;
+    int nparts=fractal.get_number_particles();
+    for(int n=0;n<nparts;++n)
       {
 	Particle& particle=*fractal.particle_list[n];
+	particle.get_phase_field_sizes(nphase,nfield);
 	vector <double> pos(3);
 	vector <double> vel(3);
-	particle.get_phase(pos,vel);
+	vector <double> pf(4);
+	particle.get_pos(pos);
 	FilePos << "stepout " << step << "\t" << n << "\t" << fixed << pos[0] << "\t" <<pos[1] << "\t" << pos[2];
-	FilePos << scientific << "\t" << vel[0] << "\t" << vel[1] << "\t" << vel[2] << "\t" << particle.get_mass() ;
-	FilePos << "\t" << particle.get_density();
+	if(nphase >= 6)
+	  particle.get_vel(vel);
+	else
+	  vel.assign(3,-1234.5);
+	FilePos << scientific << "\t" << vel[0] << "\t" << vel[1] << "\t" << vel[2];
+	FilePos << "\t" << particle.get_mass() ;
+	if(nfield >= 4)
+	  particle.get_field_pf(pf);
+	else
+	  pf.assign(4,-1234.5);
+	FilePos << scientific << "\t" << pf[0] << "\t" << pf[1] << "\t" << pf[2] << "\t" << pf[3] ;
 	FilePos  << endl;
       }
   }

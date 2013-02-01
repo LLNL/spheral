@@ -3,13 +3,14 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void isolated_solver(Group& group,Fractal_Memory& mem,Fractal& frac,Misc& misc)
+  void isolated_solver(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
+    ofstream& FileFractal=frac.p_file->FileFractal;
     const int length_1=frac.get_grid_length();
     const int length_11=length_1+1;
     const int length_2=2*length_1;
     const double g_c=pow((double)length_1,-5)/8.0;
-      //    const double g_c=1.0/(double)Misc::pow(length_1,2);
+    //    const double g_c=1.0/(double)Misc::pow(length_1,2);
     size_t sizeR=sizeof(double);
     size_t sizeC=sizeof(fftw_complex);
     static vector <double> green(length_11*length_11*length_11);
@@ -19,7 +20,7 @@ namespace FractalSpace
 	fftw_complex* greenC;
 	greenR=(double*) fftw_malloc(sizeR*2*length_11*length_2*length_2);
 	greenC=(fftw_complex*) fftw_malloc(sizeC*length_11*length_2*length_2);
-	fftw_plan plan_green_rc=fftw_plan_dft_r2c_3d(length_2,length_2,length_11,greenR,greenC,FFTW_ESTIMATE);
+	fftw_plan plan_green_rc=fftw_plan_dft_r2c_3d(length_2,length_2,length_2,greenR,greenC,FFTW_ESTIMATE);
 	for(int n_x=0;n_x < length_11;++n_x)
 	  {
 	    int n_x_inv=n_x;
@@ -65,12 +66,12 @@ namespace FractalSpace
 	greenR=0;
 	greenC=0;
 	fftw_destroy_plan(plan_green_rc);
-	cout << "isolated what " << endl;
+	FileFractal << "isolated what " << endl;
 	Fractal::first_time_solver=false;
 	return;
       }
     //
-    cout << "isol 0 " << endl;
+    FileFractal << "isol 0 " << endl;
     double* potR;
     fftw_complex* potC;
     potR=(double*) fftw_malloc(sizeR*2*length_11*length_2*length_2);
@@ -94,12 +95,13 @@ namespace FractalSpace
 	  {
 	    for( int p_z=0;p_z<length_11;++p_z)
 	      {
-		int p_0=mem.fftw_where(p_x,p_y,p_z,length_11,length_11);
+		//		int p_0=mem.fftw_where(p_x,p_y,p_z,length_11,length_11);
+		int p_0=frac.where_1(p_x,p_y,p_z);
 		potR[mem.fftw_where(p_x,p_y,p_z,length_2,length_2)]=group.list_points[p_0]->get_density_point();
 	      }
 	  }
       }
-    cout << "isol a " << endl;
+    FileFractal << "isol a " << endl;
     fftw_execute(plan_rc);
     //
     for(int n_x=0;n_x < length_2;++n_x)
@@ -118,16 +120,17 @@ namespace FractalSpace
 	      }
 	  }
       }
-    cout << "isol b " << endl;
+    FileFractal << "isol b " << endl;
     fftw_execute(plan_cr);
-    cout << "isol c " << endl;
+    FileFractal << "isol c " << endl;
     for (int n_x=0;n_x < length_11;++n_x)
       {
 	for (int n_y=0;n_y < length_11;++n_y)
 	  {
 	    for (int n_z=0;n_z < length_11;++n_z)
 	      {
-		int n_p=mem.fftw_where(n_x,n_y,n_z,length_11,length_11);
+		//		int n_p=mem.fftw_where(n_x,n_y,n_z,length_11,length_11);
+		int n_p=frac.where_1(n_x,n_y,n_z);
 		group.list_points[n_p]->set_potential_point(potR[mem.fftw_where(n_x,n_y,n_z,length_2,length_2)]);
 	      }
 	  }

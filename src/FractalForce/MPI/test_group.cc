@@ -40,7 +40,7 @@ namespace FractalSpace
 	badd=badd1 || badd2 || badd3 || badd4 || badd5 || badd6;
 	if(badd)
 	  {
-	    cout << "badd " << badd1 << badd2 << badd3 << badd4 << badd5 << badd6 << endl;
+	    //	    cout << "badd " << badd1 << badd2 << badd3 << badd4 << badd5 << badd6 << endl;
 	    point.dump();
 	    assert(!badd);
 	  }

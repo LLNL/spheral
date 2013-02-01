@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void force_sum_particle(Group& group,Fractal& fractal,const bool& doit)
+  void force_sum_particle(Group& group,const bool& doit)
   { 
     //
     vector <double> pf(4);
