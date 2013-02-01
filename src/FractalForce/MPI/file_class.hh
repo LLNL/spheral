@@ -30,6 +30,7 @@ namespace FractalSpace
     }
     File(const string& basedirectory,const int& Rank,const string& Run)
     {
+      string extras("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
       RUN=Run;
       BaseDirectory=basedirectory;
       cout << BaseDirectory << endl;
@@ -37,16 +38,20 @@ namespace FractalSpace
       streamRank << Rank;
       string sRank=streamRank.str();
       cout << sRank << endl;
-      Directory=BaseDirectory+RUN+"_"+sRank+"/";
-      cout << Directory << endl;
-      char cDirectory[200];
-      size_t dir_length=Directory.copy(cDirectory,1000,0);
-      cDirectory[dir_length]='\0';
-      cout << cDirectory << endl;
-      int testit=mkdir(cDirectory,S_IRWXU|S_IWGRP|S_IXGRP);
-      cout << "test " << testit << " " << errno << endl;
-      assert(testit == 0);
-      //
+      for(int ni=0;ni<26;ni++)
+	{
+	  Directory=BaseDirectory+RUN+extras[ni]+"_"+sRank+"/";
+	  cout << Directory << endl;
+	  char cDirectory[200];
+	  size_t dir_length=Directory.copy(cDirectory,1000,0);
+	  cDirectory[dir_length]='\0';
+	  cout << cDirectory << endl;
+	  int testit=mkdir(cDirectory,S_IRWXU|S_IWGRP|S_IXGRP);
+	  cout << "test " << testit << " " << errno << endl;
+	  if(testit == 0)
+	    break;
+	  assert(ni < 25);
+	}
       generate_file(FileHypre,Directory+"hypre.d");
       generate_file(FileMisc,Directory+"misc.d");
       generate_file(FileFractalMemory,Directory+"fractal_memory.d");

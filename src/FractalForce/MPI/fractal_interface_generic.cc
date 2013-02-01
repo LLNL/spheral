@@ -2,11 +2,77 @@
 #include "classes.hh"
 #include "headers.hh"
 #include "interface_headers.hh"
-/*
 
-
-
-*/
+//! Generic interface to FractalForce, used to be FractalGravity, Poisson solver.
+//! The periodic version is not yet working. Patience.
+//! 
+//! The Fractal_Memory object contains all the necessary information.
+//! It should be constructed before the first call to fractal_force and only deleted after last use.
+//! The object is constructed with "fractal_interface_setup".
+//! User must supply the 13 parameters needed.
+//! 
+//! The Fractal object is constructed with "fractal_create".
+//! No user input needed.
+//! 
+//! It must be filled with Particles with "fractal_populate".
+//! The user must supply the code to transfer positions and velocities to fractal.
+//! 
+//! Now you can run "fractal_force".
+//! 
+//! Then you call "fractal_depopulate" to transfer potential and forces back to your data structures.
+//! The user must supply the code to transfer potential and forces to your data structures.
+//! 
+//! Then delete the Fractal object with "fractal_delete".
+//! Do not delete the Fractal_Memory object.
+//! 
+//! For each step you do
+//! 
+//! fractal_create
+//! fractal_populate
+//! fractal_force
+//! fractal_depopulate
+//! fractal_delete
+//! 
+//! When you are finished call
+//! fractal_memory_content_delete
+//! 
+//! End with 
+//! delete Fractal_Memory object.
+//! 
+//! Parameters for fractal_interface_setup
+//! periodic        ( true if periodic BC, false if isolate BC)
+//! grid_length     ( length of fundamental grid, must be even, maximum 1024)
+//! level_max       ( number of levels of refinement)
+//! minimum_number  ( minimum number of particles belonging to a high point)
+//! padding         (-1) => resolution jumps by factors of 2 (cheap)
+//!                 (1)  => each high point fully padded (expensive)
+//!                 (0)  => no padding (not recommended)
+//! 
+//! tolHypre        ( accuracy of hypre solver (1.0e-7 recommended))
+//! maxitsHypre     ( max number of iterations in Hypre (20 recommended))
+//! fractalDebug    ( debug run (true) extra IO)
+//! FractalNodes0   ( Number of processors in x-direction)
+//! FractalNodes1   ( Number of processors in y-direction)
+//! FractalNodes2   ( Number of processors in z-direction)
+//! BaseDirectory   ( (string) Base directory for Fractal output, absolute path)
+//! RunIdentifier   ( (string) Unique Identifier, no spaces)
+//! 
+//! During simulation the following parameters can be changed, BEFORE fractal_create.
+//! level_max, minimum_number, padding, tolHypre, maxitsHypre, fractalDebug
+//! They are all public members of FractalMemory object.
+//! For example, PFM->tolHypre=????;
+//! When the fractal object is constructed, all parameters are transferred to the Fractal object
+//! 
+//! The call to fractal_force is padded with timing calls.
+//! 
+//!     PF->timing(-2,0);
+//!     PF->timing(-1,49);
+//!     fractal_force(*PF,*PFM);
+//!     PF->timing(1,49);
+//!     PF->timing(0,0);
+//!     PF->timing_lev(0,0);
+//! 
+//! 
 namespace FractalSpace
 {
   Fractal_Memory* fractal_interface_setup(bool periodic,
@@ -53,7 +119,6 @@ namespace FractalSpace
 
       // Construct a File object. 
       // All output is done in File member functions. 
-      // Keeps all Box information
       // This will be used throughout the simulation.
       File* p_file=new File(PFM->BaseDirectory,p_mess->FractalRank,PFM->RUN);
       PFM->p_file=p_file;
@@ -62,10 +127,6 @@ namespace FractalSpace
       // Includes Boxes, FFTW startup etc.
       // This will be used throughout the simulation.
       fractal_force_init(PFM);
-
-      // Construct a Fractal object.
-      // The Fractal object gets all its simulation information from PFM
-      fractal_create(PFM);
 
       // Return to sender
       return PFM;
@@ -102,11 +163,11 @@ namespace FractalSpace
 	//base directory
 	mem.RUN=RunIdentifier;
 	//directory name desriptor
-	mem.FractalNodes0=3;
+	mem.FractalNodes0=FractalNodes0;
 	//number of nodes in x-direction
-	mem.FractalNodes1=4;
+	mem.FractalNodes1=FractalNodes1;
 	//number of nodes in y-direction
-	mem.FractalNodes2=2;
+	mem.FractalNodes2=FractalNodes2;
 	//number of nodes in z-direction
 	mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
 	//total number of nodes
@@ -136,7 +197,7 @@ namespace FractalSpace
 	// maximum number of iterations in Poisson Solver
 	mem.epsilon_sor = tolHypre ;
 	//convergence criterion in Poisson Solver
-	mem.debug=true;
+	mem.debug=FractalDebug;
 	// Does extra testing and prints out a bunch of diagnostics
 	//
 	/***********************/
