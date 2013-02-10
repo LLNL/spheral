@@ -44,7 +44,7 @@ namespace FractalSpace
       FractalNodes(1),
       number_particles_total(-1),
       start_x(0),
-      length_x(-1),
+      length_x(GR),
       total_memory(-1)
     {
       int grid_length=GR;

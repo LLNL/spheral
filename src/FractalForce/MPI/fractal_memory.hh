@@ -140,7 +140,7 @@ namespace FractalSpace
       // default values
       // replace with your own values
       //
-      BaseDirectory("/p/lscratchd/jensv/"),
+      BaseDirectory("FFRRAACCTTAALL/"),
       RUN("abc"),
       MPIrun(false),
       FractalNodes(1),
@@ -148,7 +148,7 @@ namespace FractalSpace
       FractalNodes1(1),
       FractalNodes2(1),
       number_split(10000),
-      min_hypre_group_size(-81),
+      min_hypre_group_size(1),
       amnesia(true),
       mind_wipe(false),
       fixed_potential(false),
@@ -380,6 +380,29 @@ namespace FractalSpace
 	  cout << "scaling " << a1 << " " << a2 << " " << alpha << " " << " " << box_length << " " << h << " " << scaling << endl;
 	}
     }
+    // public interface functions
+    void fractal_memory_setup();
+    void addParticles(int first,int total,
+		      vector <double>& xmin,vector <double>& xmax,
+		      vector <double>& xpos,vector <double>& ypos,
+		      vector <double>& zpos,vector <double>& masses);
+    void getField(int first,int last,double G,
+		  vector <double>& xmin,vector <double>& xmax,
+		  vector <double>& pot,vector <double>& fx,
+		  vector <double>& fy,vector <double>& fz);
+    void setNumberParticles(int NP);
+    void setFractalNodes(int FR0,int FR1,int FR2);
+    void setPeriodic(bool per);
+    void setDebug(bool Db);
+    void setGridLength(int GL);
+    void setPadding(int PA);
+    void setLevelMax(int LM);
+    void setMinimumNumber(int MN);
+    void setHypreIterations(int MHI);
+    void setHypreTolerance(double HT);
+    void setBaseDirectory(string BD);
+    void setRunIdentifier(string RI);
+    // static functions
     static double hubble(const double& arad,const double& omega_0,const double& omega_lambda)
     {
       return sqrt(omega_0/pow(arad,3)+(1.0-omega_0-omega_lambda)/pow(arad,2)+omega_lambda);
