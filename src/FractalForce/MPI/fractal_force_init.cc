@@ -14,6 +14,7 @@ namespace FractalSpace
     p_file->note(true," c fractal_memory ");
     fractal_memory.calc_RealBoxes();
     p_file->note(true," d fractal_memory ");
+    /*
     if(p_fractal_memory->MPIrun)
       {
 	p_file->note(true," e fractal_memory ");
@@ -28,6 +29,7 @@ namespace FractalSpace
 	fractal_memory.p_mess->start_x=0;
 	fractal_memory.p_mess->length_x=fractal_memory.grid_length;
       }
+    */
   }
 }
  

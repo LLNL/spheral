@@ -17,9 +17,9 @@ namespace FractalSpace
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
-    mem.FractalNodes0=3;
+    mem.FractalNodes0=4;
     //number of nodes in x-direction
-    mem.FractalNodes1=4;
+    mem.FractalNodes1=3;
     //number of nodes in y-direction
     mem.FractalNodes2=2;
     //number of nodes in z-direction
@@ -48,9 +48,10 @@ namespace FractalSpace
     // mean interparticle spacing
     mem.padding = -1 ;
     mem.padding=min(mem.padding,1);
-    // if (0) high cells are selectively padded so that resolution never jumps more than factor of 2.
+    // if (0) no padding
+    // if (-1) high cells are selectively padded so that resolution never jumps more than factor of 2.
     // if (padding > 0) each high cell is padded by (2*padding+1)**3 cells.
-    // padding has to be (0) or(1)in an MPI version
+    // padding has to be (-1,0 or 1)in an MPI version
     mem.min_hypre_group_size=5000;
     //    mem.min_hypre_group_size=-1;
     // minum group size to use hypre
