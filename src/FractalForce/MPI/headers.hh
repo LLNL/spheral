@@ -72,6 +72,9 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
+  void MakeMeaGalaxy(int numbers,
+		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
+		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
@@ -105,6 +108,9 @@ namespace FractalSpace
 						  int& count,const double& m,const int& split_to,const bool& gen_part);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
   void sum_pot_forces(Fractal& fractal);
+  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,
+	    vector <double>& posx,vector <double>& posy,vector <double>& posz,
+		     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void test_gal(Fractal_Memory& mem,Fractal& fractal);
   bool test_group(Group& group);
   bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal);

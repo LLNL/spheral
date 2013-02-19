@@ -37,10 +37,12 @@
 ***  On my honeymoon our delicious meal was interrupted by a shooting in the restaurant.
 ***   The owner limped over to our table and explained that he had been shot by the cook.
 ***   He apologized for the incident, said he was going to the hospital, but asked us to please enjoy our meal.
+***  I need to find out where I can get a Pan Galactic Gargle Blaster.
 ***  TC Villumsen at 13 y.o.:
 ***   Mom, Dad does not do any work, all he does is read magazines, play on the computer and talk with his friends.
 
 ***  Mike Owen:
+***  Our simulations are better than reality.
 ***  As soon as you get a program to work 
 ***   you should rewrite it from scratch.
 
