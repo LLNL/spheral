@@ -3,7 +3,7 @@ namespace FractalSpace
   void add_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void adj_nina(Point& point,vector <Point*>& adj);
   double Age_of_the_universe (const double& omega_0, const double& omega_lambda, const double& redshift);
-  void AmIConservativeEnough(Fractal_Memory* PFM,vector <double>& masses,double G,
+  void AmIConservativeEnoughIsol(Fractal_Memory* PFM,vector <double>& masses,double G,
 			     vector <double>& xmin,vector <double>& xmax,double correction,
 			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
