@@ -3,6 +3,10 @@ namespace FractalSpace
   void add_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void adj_nina(Point& point,vector <Point*>& adj);
   double Age_of_the_universe (const double& omega_0, const double& omega_lambda, const double& redshift);
+  void AmIConservativeEnough(Fractal_Memory* PFM,vector <double>& masses,double G,
+			     vector <double>& xmin,vector <double>& xmax,double correction,
+			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
@@ -72,7 +76,7 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
-  void MakeMeaGalaxy(int numbers,
+void MakeMeaGalaxy(int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
 		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
@@ -108,8 +112,8 @@ namespace FractalSpace
 						  int& count,const double& m,const int& split_to,const bool& gen_part);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
   void sum_pot_forces(Fractal& fractal);
-  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,
-	    vector <double>& posx,vector <double>& posy,vector <double>& posz,
+  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,double G,
+		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void test_gal(Fractal_Memory& mem,Fractal& fractal);
   bool test_group(Group& group);
