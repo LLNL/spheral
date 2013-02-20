@@ -19,7 +19,7 @@ int main()
   int LevelMax=8;
   int MinimumNumber=8;
   int MaxHypreIterations=20;
-  double HypreIterations=1.0e-7;
+  double HypreTolerance=1.0e-7;
   string BaseDirectory="/p/lscratchc/jensv/";
   string RunIdentifier="KongenErEnFinke";
 
@@ -32,7 +32,7 @@ int main()
   PFM->setLevelMax(LevelMax);
   PFM->setMinimumNumber(MinimumNumber);
   PFM->setHypreIterations(MaxHypreIterations);
-  PFM->setHypreTolerance(HypreIterations);
+  PFM->setHypreTolerance(HypreTolerance);
   PFM->setBaseDirectory(BaseDirectory);
   PFM->setRunIdentifier(RunIdentifier);
 
@@ -40,12 +40,11 @@ int main()
 
   int FractalNodes=PFM->p_mess->FractalNodes;
   int FractalRank=PFM->p_mess->FractalRank;
-  int RandomNumber=9973+256*FractalRank;
-  std::srand(RandomNumber);
+  std::srand(9973+256*FractalRank);
   vector <double> xmin(3,-50.0);
   vector <double> xmax(3,50.0);
   double total_mass=1.0e7;
-
+  double G=2.718281828;
   double m=total_mass/static_cast<double>(NumberParticles*FractalNodes);
   vector <double> posx(NumberParticles,0.0);
   vector <double> posy(NumberParticles,0.0);
@@ -53,16 +52,17 @@ int main()
   vector <double> velx(NumberParticles,0.0);
   vector <double> vely(NumberParticles,0.0);
   vector <double> velz(NumberParticles,0.0);
+  vector <double> masses(NumberParticles,m);
 
-  MakeMeaGalaxy(NumberParticles,posx,posy,posy,velx,vely,velz);
+  MakeMeaGalaxy(NumberParticles,total_mass,masses,G,posx,posy,posy,velx,vely,velz);
 
-  vector <double>masses(NumberParticles,m);
   for(int step=0;step<PFM->number_steps_total;step++)
     {
       fractal_create(PFM);
-      addParticles(PFM,0,NumberParticles,xmin,xmax,posx,posy,posy,masses);
+      addParticles(PFM,0,NumberParticles,xmin,xmax,posx,posy,posz,masses);
       doFractalForce(PFM);
-      takeALeapIsol(PFM,masses,posx,posy,posz,velx,vely,velz);
+      takeALeapIsol(PFM,masses,G,posx,posy,posz,velx,vely,velz);
+      AmIConservativeEnough(PFM,masses,G,xmin,xmax,-0.5,posx,posy,posz,velx,vely,velz);
       fractal_delete(PFM);
     }
   fractal_memory_content_delete(PFM);
@@ -73,7 +73,54 @@ int main()
 #include "headers.hh"
 namespace FractalSpace
 {
-  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,
+  void AmIConservativeEnough(Fractal_Memory* PFM,vector <double>& masses,double G,
+			     vector <double>& xmin,vector <double>& xmax,double correction,
+			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			     vector <double>& velx,vector <double>& vely,vector <double>& velz)
+  {
+    int stride=100;
+    int NP=PFM->number_particles;
+    int dt5=correction*PFM->step_length;
+    vector <double>pot(stride);
+    vector <double>fx(stride);
+    vector <double>fy(stride);
+    vector <double>fz(stride);
+    double vx,vy,vz;
+    double pe=0.0;
+    double ke=0.0;
+    double p0=0.0;
+    double p1=0.0;
+    double p2=0.0;
+    double m0=0.0;
+    double m1=0.0;
+    double m2=0.0;
+    for(int ni=0;ni<NP;ni+=stride)
+      {
+	int many=min(ni+stride,NP)-ni;
+	getField(PFM,ni,many,G,xmin,xmax,pot,fx,fy,fz);
+	for(int p=0;p<many;p++)
+	  {
+	    int nip=ni+p;
+	    vx=velx[nip]+fx[p]*dt5;
+	    vy=vely[nip]+fy[p]*dt5;
+	    vz=velz[nip]+fz[p]*dt5;
+	    pe+=masses[nip]*pot[p];
+	    ke+=masses[nip]*(vx*vx+vy*vy+vz*vz);
+	    p0+=masses[nip]*vx;
+	    p1+=masses[nip]*vy;
+	    p2+=masses[nip]*vz;
+	    m0+=masses[nip]*(posy[nip]*vz-posz[nip]*vy);
+	    m1+=masses[nip]*(posz[nip]*vx-posx[nip]*vz);
+	    m2+=masses[nip]*(posx[nip]*vy-posy[nip]*vx);
+	  }
+      }
+    pe*=0.5;
+    ke*=0.5;
+  }
+}
+namespace FractalSpace
+{
+  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,double G,
 		     vector <double>& xmin,vector <double>& xmax,
 		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
@@ -85,15 +132,10 @@ namespace FractalSpace
     vector <double>fx(stride);
     vector <double>fy(stride);
     vector <double>fz(stride);
-    double pe=0.0;
-    double ke=0.0;
-    double px=0.0;
-    double py=0.0;
-    double pz=0.0;
     for(int ni=0;ni<NP;ni+=stride)
       {
 	int many=min(ni+stride,NP)-ni;
-	getField(PFM,ni,ni+many,1.0,xmin,xmax,pot,fx,fy,fz);
+	getField(PFM,ni,ni+many,G,xmin,xmax,pot,fx,fy,fz);
 	for(int p=0;p<many;p++)
 	  {
 	    int nip=ni+p;
@@ -103,11 +145,6 @@ namespace FractalSpace
 	    posx[nip]+=velx[nip]*dt;
 	    posy[nip]+=vely[nip]*dt;
 	    posz[nip]+=velz[nip]*dt;
-	    pe+=masses[nip]*pot[p];
-	    ke+=masses[nip]*(velx[nip]*velx[nip]+vely[nip]*vely[nip]+velz[nip]*velz[nip]);
-	    px+=masses[nip]*velx[nip];
-	    py+=masses[nip]*vely[nip];
-	    pz+=masses[nip]*velz[nip];
 	  }
       }
   }
@@ -117,7 +154,7 @@ namespace FractalSpace
 #include "headers.hh"
 namespace FractalSpace
 {
-  void MakeMeaGalaxy(int numbers,
+  void MakeMeaGalaxy(int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
@@ -127,8 +164,8 @@ namespace FractalSpace
     double y_off=-13.0;
     double z_off=11.0;
     double slope=-0.5;
-    double total_mass=1.0e7;
     double velratio=0.5;
+    velratio*=sqrt(G);
     double slope3=slope+3.0;
     double expo=1.0/(3.0+slope);
     double twopi=8.0*atan(1.0);

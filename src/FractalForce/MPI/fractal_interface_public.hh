@@ -29,7 +29,7 @@ namespace FractalSpace
 		    vector <double>& posx,vector <double>& posy,
 		    vector <double>& posz,vector <double>& masses);
   //! Add positions and masses to the Fractal object. This can be done in multiple steps.
-  //! xmin,xmax are the positions of the lower left and upper right corner
+  //! xmin,xmax are the positions of the lower left and upper right corners
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
 
@@ -38,6 +38,11 @@ namespace FractalSpace
 		vector <double>& pot,vector <double>& fx,
 		vector <double>& fy,vector <double>& fz);
 //! Receive potential and forces from Fractal object. G is the User's gravitational constant
+
+  void getPotential(Fractal_Memory* PFM,int first,int total,double G,
+		    vector <double>& xmin,vector <double>& xmax,
+		    vector <double>& pot);
+
 //!
 //! Headers for Fractal_Memory class function calls.
 //! void Fractal_Memory::setNumberParticles(int number_particles)
@@ -60,7 +65,7 @@ namespace FractalSpace
 //! minimum_number  ( minimum number of particles belonging to a high point (usually 8))
 //! padding         (-1) => resolution jumps by factors of 2 (cheap)
 //!                 (1)  => each high point fully padded (expensive)
-//!                 (0)  => no padding (not recommended)
+//!                 (0)  => no padding (fast, but not recommended)
 //! 
 //! tolHypre        ( accuracy of hypre solver (1.0e-7 recommended))
 //! maxitsHypre     ( max number of iterations in Hypre (20 recommended))

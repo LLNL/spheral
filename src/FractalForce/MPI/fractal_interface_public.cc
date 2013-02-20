@@ -147,9 +147,7 @@ namespace FractalSpace
 	pos[0]=(posx[ni]-xmin[0])*dinv;
 	pos[1]=(posy[ni]-xmin[1])*dinv;
 	pos[2]=(posz[ni]-xmin[2])*dinv;
-	Particle* P=PFM->p_fractal->particle_list[ni+first];
-	P->set_pos(pos);
-	P->set_mass(masses[ni]);
+	PFM->p_fractal->particle_list[ni+first]->set_posm(pos,masses[ni]);
       }
   }
   void getPotential(Fractal_Memory* PFM,int first,int total,double G,
