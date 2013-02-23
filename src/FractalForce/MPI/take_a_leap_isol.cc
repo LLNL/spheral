@@ -4,10 +4,10 @@
 #include "fractal_interface_public.hh"
 namespace FractalSpace
 {
-  void takeALeapIsol(Fractal_Memory* PFM,vector <double>& masses,double G,
-		     vector <double>& xmin,vector <double>& xmax,
-		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
-		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
+  void take_a_leap_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
+			vector <double>& xmin,vector <double>& xmax,
+			vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     int stride=100;
     int NP=PFM->number_particles;
@@ -19,10 +19,12 @@ namespace FractalSpace
     for(int ni=0;ni<NP;ni+=stride)
       {
 	int many=min(ni+stride,NP)-ni;
-	getField(PFM,ni,ni+many,G,xmin,xmax,pot,fx,fy,fz);
+	get_field(PFM,ni,many,G,xmin,xmax,pot,fx,fy,fz);
 	for(int p=0;p<many;p++)
 	  {
 	    int nip=ni+p;
+	    if(!I_am_a_real_particle(PFM,nip))
+	       continue;
 	    velx[nip]+=fx[p]*dt;
 	    vely[nip]+=fy[p]*dt;
 	    velz[nip]+=fz[p]*dt;
