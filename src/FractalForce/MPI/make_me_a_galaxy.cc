@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void MakeMeaGalaxy(int numbers,double total_mass,vector <double>& masses,double G,
+  void make_me_a_galaxy(int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {

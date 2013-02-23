@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void scatter_particles(Fractal_Memory& mem,Fractal& frac)
   {
-    assert(fractal_memory.FractalNodes==fractal_memory.p_mess->FractalNodes);
+    assert(mem.FractalNodes==mem.p_mess->FractalNodes);
     ofstream& FF=frac.p_file->FileFractal;
     frac.p_file->FileFractal << " entered scatter particles " << endl;
     if(frac.get_periodic())

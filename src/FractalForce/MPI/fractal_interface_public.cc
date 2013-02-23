@@ -40,7 +40,7 @@ namespace FractalSpace
 
 
 
-  void doFractalForce(Fractal_Memory* PFM)
+  void do_fractal_force(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
     PF->set_steps(PFM->steps);
@@ -134,10 +134,14 @@ namespace FractalSpace
     for(int ni=0;ni<NP;ni++)
       PF->particle_list[ni]=&PL[ni];
   }
-  void addParticles(Fractal_Memory* PFM,int first,int total,
-		    vector <double>& xmin,vector <double>& xmax,
-		    vector <double>& posx,vector <double>& posy,
-		    vector <double>& posz,vector <double>& masses)
+  bool I_am_a_real_particle(Fractal_Memory* PFM,int ni)
+  {
+    return PFM->p_fractal->particle_list[ni]->get_p_highest_level_group() != 0;
+  }
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double>& xmin,vector <double>& xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses)
   {
     total=min(first+total,PFM->number_particles)-first;
     vector <double> pos(3);
@@ -150,21 +154,24 @@ namespace FractalSpace
 	PFM->p_fractal->particle_list[ni+first]->set_posm(pos,masses[ni]);
       }
   }
-  void getPotential(Fractal_Memory* PFM,int first,int total,double G,
-		    vector <double>& xmin,vector <double>& xmax,vector <double>& pot)
+  void get_potential(Fractal_Memory* PFM,int first,int total,double G,
+		     vector <double>& xmin,vector <double>& xmax,vector <double>& pot)
   {
     total=min(first+total,PFM->number_particles)-first;
     double convpot=G/(xmax[0]-xmin[0]);
     for(int ni=0;ni<total;ni++)
       pot[ni]=PFM->p_fractal->particle_list[ni+first]->get_potential()*convpot;
   }
-  void getField(Fractal_Memory* PFM,int first,int total,double G,
+  void get_field(Fractal_Memory* PFM,int first,int total,double G,
 		vector <double>& xmin,vector <double>& xmax,
 		vector <double>& pot,vector <double>& fx,
 		vector <double>& fy,vector <double>& fz)
   {
-    
     total=min(first+total,PFM->number_particles)-first;
+    assert(total <= pot.size());
+    assert(total <= fx.size());
+    assert(total <= fy.size());
+    assert(total <= fz.size());
     vector <double> potforce(4);
     double dinv=1.0/(xmax[0]-xmin[0]);
     double convpot=G*dinv;
@@ -195,7 +202,7 @@ namespace FractalSpace
   {
     FractalNodes0=FR0;
     FractalNodes1=FR1;
-    FractalNodes1=FR2;
+    FractalNodes2=FR2;
     FractalNodes=FR0*FR1*FR2;
     MPIrun=FractalNodes > 1;
   }

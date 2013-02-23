@@ -3,7 +3,8 @@
 namespace FractalSpace
 {
 //! Headers for regular function calls
-  void doFractalForce(Fractal_Memory* PFM);
+
+  void do_fractal_force(Fractal_Memory* PFM);
   //! Wrapper for actually running the Poisson Solver
 
   Fractal_Memory* fractal_memory_create();
@@ -24,7 +25,7 @@ namespace FractalSpace
   void fractal_delete(Fractal_Memory* PFM);
   //! Delete a Fractal object
 
-  void addParticles(Fractal_Memory* PFM,int first,int total,
+  void add_particles(Fractal_Memory* PFM,int first,int total,
 		    vector <double>& xmin,vector <double>& xmax,
 		    vector <double>& posx,vector <double>& posy,
 		    vector <double>& posz,vector <double>& masses);
@@ -33,15 +34,16 @@ namespace FractalSpace
   //! of the User's computational cube. Really BAAAAD things can happen if not all particles
   //! are addded.
 
-  void getField(Fractal_Memory* PFM,int first,int total,double G,
+  void get_field(Fractal_Memory* PFM,int first,int total,double G,
 		vector <double>& xmin,vector <double>& xmax,
 		vector <double>& pot,vector <double>& fx,
 		vector <double>& fy,vector <double>& fz);
 //! Receive potential and forces from Fractal object. G is the User's gravitational constant
 
-  void getPotential(Fractal_Memory* PFM,int first,int total,double G,
+  void get_potential(Fractal_Memory* PFM,int first,int total,double G,
 		    vector <double>& xmin,vector <double>& xmax,
 		    vector <double>& pot);
+  bool I_am_a_real_particle(Fractal_Memory*PFM,int ni);
 
 //!
 //! Headers for Fractal_Memory class function calls.
