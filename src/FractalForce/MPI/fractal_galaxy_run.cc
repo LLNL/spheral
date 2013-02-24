@@ -8,7 +8,7 @@ int main()
   cout << "starting out " << endl;
   Fractal_Memory* PFM=fractal_memory_create();
 
-  int NumberParticles=1000;
+  int NumberParticles=100000;
   int FractalNodes0=2;
   int FractalNodes1=3;
   int FractalNodes2=4;
@@ -53,8 +53,11 @@ int main()
   vector <double> vely(NumberParticles,0.0);
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
-
-  make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posy,velx,vely,velz);
+  PFM->number_steps_total=503;
+  PFM->number_steps_out=50;
+  PFM->step_length=1.0e-4;
+  PFM->time=0.0;
+  make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
 
   for(int step=0;step<PFM->number_steps_total;step++)
     {
@@ -64,7 +67,7 @@ int main()
       take_a_leap_isol(PFM,masses,G,xmin,xmax,posx,posy,posz,velx,vely,velz);
       am_I_conservative_enough_isol(PFM,masses,G,xmin,xmax,-0.5,posx,posy,posz,velx,vely,velz);
       if(step % PFM->number_steps_out == 0)
-	start_writing(PFM,NumberParticles,posx,posy,posz,velx,vely,velz,masses);
+	start_writing(PFM,NumberParticles,G,xmin,xmax,posx,posy,posz,velx,vely,velz,masses);
       fractal_delete(PFM);
     }
   fractal_memory_content_delete(PFM);

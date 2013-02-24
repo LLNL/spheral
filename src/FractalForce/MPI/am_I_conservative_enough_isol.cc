@@ -14,7 +14,7 @@ namespace FractalSpace
     ofstream& FileP=PFM->p_file->FileParticle;
     int stride=100;
     int NP=PFM->number_particles;
-    int dt5=correction*PFM->step_length;
+    double dt5=correction*PFM->step_length;
     vector <double>pot(stride);
     vector <double>fx(stride);
     vector <double>fy(stride);
