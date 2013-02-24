@@ -11,7 +11,8 @@ namespace FractalSpace
   {
     int stride=100;
     int NP=PFM->number_particles;
-    int dt=PFM->step_length;
+    double dt=PFM->step_length;
+    PFM->time+=dt;
     vector <double>pot(stride);
     vector <double>fx(stride);
     vector <double>fy(stride);
@@ -24,7 +25,7 @@ namespace FractalSpace
 	  {
 	    int nip=ni+p;
 	    if(!I_am_a_real_particle(PFM,nip))
-	       continue;
+	      continue;
 	    velx[nip]+=fx[p]*dt;
 	    vely[nip]+=fy[p]*dt;
 	    velz[nip]+=fz[p]*dt;

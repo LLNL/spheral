@@ -109,8 +109,8 @@ namespace FractalSpace
   void sort3_list(Group& group,const int& what);
   void sort_3(Fractal& fractal,Group& group);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
-						  int& count,const double& m,const int& split_to,const bool& gen_part);
-  void start_writing(Fractal_Memory* PFM,int Numberparticles,
+						 int& count,const double& m,const int& split_to,const bool& gen_part);
+  void start_writing(Fractal_Memory* PFM,int Numberparticles,double G,vector <double>& xmin,vector <double>& xmax,
 		     vector<double>& posx,vector<double>& posy,vector<double>& posz,
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
