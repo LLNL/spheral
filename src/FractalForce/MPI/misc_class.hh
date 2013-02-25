@@ -223,7 +223,7 @@ namespace FractalSpace
 	{
 	  for(int ni2=0;ni2<6;ni2+=2)
 	    {
-	      db=box[ni2+1]-box[ni2];
+	      int db=box[ni2+1]-box[ni2];
 	      box[ni2]=(box[ni2]+length) % length;
 	      box[ni2+1]=box[ni2]+db;
 	    }
@@ -280,7 +280,7 @@ namespace FractalSpace
       int j=veca.size();
       for(int i=0;i<j;i++)
 	FILE << veca[i] << " " ;
-      int j=vecb.size();
+      j=vecb.size();
       for(int i=0;i<j;i++)
 	FILE << vecb[i] << " " ;
       FILE << endl;
@@ -290,13 +290,25 @@ namespace FractalSpace
       int j=veca.size();
       for(int i=0;i<j;i++)
 	FILE << veca[i] << " " ;
-      int j=vecb.size();
+      j=vecb.size();
       for(int i=0;i<j;i++)
 	FILE << vecb[i] << " " ;
-      int j=vecc.size();
+      j=vecc.size();
       for(int i=0;i<j;i++)
 	FILE << vecc[i] << " " ;
       FILE << endl;
+    }
+    template <class T> static void sum_up(T& sum,vector <T>& values,int first,int last,const int stride)
+    {
+      sum=0;
+      if((last-first)*stride <= 0)
+	return;
+      while(first < last)
+	{
+	  sum+=values[first];
+	  first+=stride;
+	}
+      return;
     }
   };
 }

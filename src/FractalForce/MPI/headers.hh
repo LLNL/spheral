@@ -8,6 +8,7 @@ namespace FractalSpace
 			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
+  void balance_by_particles(Fractal_Memory*PFM);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
