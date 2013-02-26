@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void balance_by_particles(Fractal_Memory*PFM)
+  void balance_by_particles(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
     ofstream& FFM=PFM->p_file->FileFractalMemory;
@@ -155,9 +155,9 @@ namespace FractalSpace
 	      }
 	  }
       }
-    PFM->p_mess->Full_Stop();
-    assert(0);
-    /*
+    //    PFM->p_mess->Full_Stop();
+    //    assert(0);
+    
     int FR=0;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -191,15 +191,18 @@ namespace FractalSpace
 		PFM->Boxes[FR][5]=real_length-1;
 		if(FRZ < FractalNodes2-1)
 		  PFM->Boxes[FR][5]=PFM->Boxes[FR+FractalNodes0*FractalNodes1][4]-1;
+		FFM << " BOXES " << FR << " " << PFM->Boxes[FR][0] << " " << PFM->Boxes[FR][1] << " " << PFM->Boxes[FR][2];
+		FFM << " " << PFM->Boxes[FR][3] << " " << PFM->Boxes[FR][4] << " " << PFM->Boxes[FR][5] << endl;
 		FR++;
 	      }
 	  }
       }
-    p_file->note(true," made new Boxes with equal particles ");
+    PFM->p_file->note(true," made new Boxes with equal particles ");
     PFM->calc_Buffers_and_more();
-    p_file->note(true," made new Buffers with equal particles ");
+    PFM->p_file->note(true," made new Buffers with equal particles ");
     PFM->calc_RealBoxes();
-    p_file->note(true," made new RealBoxes with equal particles ");
-    */
+    PFM->p_file->note(true," made new RealBoxes with equal particles ");
+    PF->redo(PFM);
+    PFM->p_file->note(true," redo fractal ");
   }
 }

@@ -9,6 +9,7 @@ namespace FractalSpace
   //! Setup
   //! Fractal_Memory* PFM=fractal_memory_create();
   //!
+  //! PFM->setBalance;
   //! PFM->setNumberParticles;
   //! PFM->setFractalNodes;
   //! PFM->setPeriodic;
@@ -193,6 +194,10 @@ namespace FractalSpace
     P=0;
     delete PF;
     PF=0;
+  }
+  void Fractal_Memory::setBalance(int B)
+  {
+    balance=B;
   }
   void Fractal_Memory::setNumberParticles(int NP)
   {

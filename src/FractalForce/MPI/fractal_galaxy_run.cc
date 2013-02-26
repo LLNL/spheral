@@ -8,7 +8,8 @@ int main()
   cout << "starting out " << endl;
   Fractal_Memory* PFM=fractal_memory_create();
 
-  int NumberParticles=100000;
+  int balance=1;
+  int NumberParticles=200000;
   int FractalNodes0=2;
   int FractalNodes1=3;
   int FractalNodes2=4;
@@ -23,6 +24,7 @@ int main()
   string BaseDirectory="/p/lscratchc/jensv/";
   string RunIdentifier="KongenErEnFinke";
 
+  PFM->setBalance(balance);
   PFM->setNumberParticles(NumberParticles);
   PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
   PFM->setPeriodic(Periodic);
@@ -53,8 +55,8 @@ int main()
   vector <double> vely(NumberParticles,0.0);
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
-  PFM->number_steps_total=503;
-  PFM->number_steps_out=50;
+  PFM->number_steps_total=2003;
+  PFM->number_steps_out=100;
   PFM->step_length=1.0e-4;
   PFM->time=0.0;
   make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
@@ -63,6 +65,8 @@ int main()
     {
       fractal_create(PFM);
       add_particles(PFM,0,NumberParticles,xmin,xmax,posx,posy,posz,masses);
+      if(PFM->balance == 1)
+	balance_by_particles(PFM);
       do_fractal_force(PFM);
       take_a_leap_isol(PFM,masses,G,xmin,xmax,posx,posy,posz,velx,vely,velz);
       am_I_conservative_enough_isol(PFM,masses,G,xmin,xmax,-0.5,posx,posy,posz,velx,vely,velz);
