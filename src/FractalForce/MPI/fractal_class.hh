@@ -212,17 +212,17 @@ namespace FractalSpace
     {    
       cout << "Ending Fractal " << this << endl;
     };
-    void redo(Fractal_Memory& mem)
+    void redo(Fractal_Memory* PFM)
     {
-      Box=mem.Boxes[FractalRank];
-      BBox=mem.BBoxes[FractalRank];
-      PBox=mem.PBoxes[FractalRank];
-      PBoxLength=mem.PBoxesLength[FractalRank];
-      Buffer=mem.Buffers[FractalRank];
-      BoxLev=mem.BoxesLev[FractalRank];
-      BBoxLev=mem.BBoxesLev[FractalRank];
-      PBoxLev=mem.PBoxesLev[FractalRank];
-      RealBox=mem.RealBoxes[FractalRank];
+      Box=PFM->Boxes[FractalRank];
+      BBox=PFM->BBoxes[FractalRank];
+      PBox=PFM->PBoxes[FractalRank];
+      PBoxLength=PFM->PBoxesLength[FractalRank];
+      Buffer=PFM->Buffers[FractalRank];
+      BoxLev=PFM->BoxesLev[FractalRank];
+      BBoxLev=PFM->BBoxesLev[FractalRank];
+      PBoxLev=PFM->PBoxesLev[FractalRank];
+      RealBox=PFM->RealBoxes[FractalRank];
     }
     int get_FractalRank()
     {

@@ -9,6 +9,7 @@ namespace FractalSpace
     string BaseDirectory;
     string RUN;
     bool MPIrun;
+    bool balance;
     int FractalNodes;
     int FractalNodes0;
     int FractalNodes1;
@@ -143,6 +144,7 @@ namespace FractalSpace
       BaseDirectory("FFRRAACCTTAALL/"),
       RUN("abc"),
       MPIrun(false),
+      balance(0),
       FractalNodes(1),
       FractalNodes0(1),
       FractalNodes1(1),
@@ -176,8 +178,8 @@ namespace FractalSpace
       minimum_number(8),
       padding(-1),
       level_max(8),
-      number_steps_total(503),
-      number_steps_out(100),
+      number_steps_total(113),
+      number_steps_out(20),
       random_offset(0),
       maxits(20),
       epsilon_sor(1.0e-7),
@@ -382,6 +384,7 @@ namespace FractalSpace
     }
     // public interface functions
     void fractal_memory_setup();
+    void setBalance(int B);
     void addParticles(int first,int total,
 		      vector <double>& xmin,vector <double>& xmax,
 		      vector <double>& xpos,vector <double>& ypos,
