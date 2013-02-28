@@ -3,7 +3,12 @@ namespace FractalSpace
   void add_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void adj_nina(Point& point,vector <Point*>& adj);
   double Age_of_the_universe (const double& omega_0, const double& omega_lambda, const double& redshift);
+  void am_I_conservative_enough_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
+			     vector <double>& xmin,vector <double>& xmax,double correction,
+			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
+  void balance_by_particles(Fractal_Memory*PFM);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
@@ -72,6 +77,9 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
+  void make_me_a_galaxy(int numbers,double total_mass,vector <double>& masses,double G,
+		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
+		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
@@ -102,9 +110,16 @@ namespace FractalSpace
   void sort3_list(Group& group,const int& what);
   void sort_3(Fractal& fractal,Group& group);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
-						  int& count,const double& m,const int& split_to,const bool& gen_part);
+						 int& count,const double& m,const int& split_to,const bool& gen_part);
+  void start_writing(Fractal_Memory* PFM,int Numberparticles,double G,vector <double>& xmin,vector <double>& xmax,
+		     vector<double>& posx,vector<double>& posy,vector<double>& posz,
+		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses);
   template <class M>  void step_simple(M& mem,Fractal& fractal);
   void sum_pot_forces(Fractal& fractal);
+  void take_a_leap_isol(Fractal_Memory* PFM,vector <double>& masses,double G,
+			vector <double>& xmin,vector <double>& xmax,
+			vector <double>& posx,vector <double>& posy,vector <double>& posz,
+			vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void test_gal(Fractal_Memory& mem,Fractal& fractal);
   bool test_group(Group& group);
   bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal);

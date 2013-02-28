@@ -73,5 +73,5 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-template void step_simple(Fractal_Memory& mem, Fractal& fractal);
+  template void step_simple(Fractal_Memory& mem, Fractal& fractal);
 }
