@@ -4,7 +4,44 @@
 #include "fractal_interface_public.hh"
 namespace FractalSpace
 {
-  void doFractalForce(Fractal_Memory* PFM)
+  //! sequence of calls
+
+  //! Setup
+  //! Fractal_Memory* PFM=fractal_memory_create();
+  //!
+  //! PFM->setBalance;
+  //! PFM->setNumberParticles;
+  //! PFM->setFractalNodes;
+  //! PFM->setPeriodic;
+  //! PFM->setDebug;
+  //! PFM->setGridLength;
+  //! PFM->setPadding;
+  //! PFM->setLevelMax;
+  //! PFM->setMinimumNumber;
+  //! PFM->setHypreIterations;
+  //! PFM->setHypreTolerance;
+  //! PFM->setBaseDirectory;
+  //! PFM->setRunIdentifier;
+  //!
+  //! PFM->fractal_memory_setup();
+  //!
+  //! for(int ni=0;ni<steps;ni++)
+  //! {
+  //! Do Your own stuff;
+  //! fractal_create;
+  //! addParticles;
+  //! doFractalForce;
+  //! getField;
+  //! fractal_delete;
+  //! Do Your own stuff;
+  //! }
+  //! Finish up.
+  //! fractal_memory_content_delete;
+  //! fractal_memory_delete;
+
+
+
+  void do_fractal_force(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
     PF->set_steps(PFM->steps);
@@ -24,47 +61,58 @@ namespace FractalSpace
   void fractal_memory_delete(Fractal_Memory* PFM)
   {
     delete PFM;
-    PFM=0;
   }
-  void Fractal_Memory::fractal_memory_setup()
+  void fractal_memory_setup(Fractal_Memory* PFM)
   {
-    MPIrun=FractalNodes > 1;
-    global_level_max=level_max;
+    PFM->MPIrun=PFM->FractalNodes > 1;
+    PFM->global_level_max=PFM->level_max;
     /***********************/
     //Leave these parameters alone
-    min_hypre_group_size=1;
-    //    min_hypre_group_size=-1;
-    // minum group size to use hypre
-    new_points_gen=9;
-    //Generate this many Points in each go
-    steps=0;
-    momentum_conserve=false;
-    amnesia=true; // (true) forget everything after you are done. (false) remember everything.
-    mind_wipe=false; // (true) delete everything and then come back without calculating anything.
-    fixed_potential=false; // (true) use the fixed potential.
-    calc_shear=false;// (true) if we calculate shear of force field
-    calc_density_particle=false;
-    do_vel=false;
-    start_up=false;
-    halo_fixed=false;
+    PFM->min_hypre_group_size=1;
+    PFM->new_points_gen=9;
+    PFM->steps=0;
+    PFM->momentum_conserve=false;
+    PFM->amnesia=true; // (true) forget everything after you are done. (false) remember everything.
+    PFM->mind_wipe=false; // (true) delete everything and then come back without calculating anything.
+    PFM->fixed_potential=false; // (true) use the fixed potential.
+    PFM->calc_shear=false;// (true) if we calculate shear of force field
+    PFM->calc_density_particle=false;
+    PFM->do_vel=false;
+    PFM->start_up=false;
+    PFM->halo_fixed=false;
     //
-    splits=0;
-    masks=0;
+    PFM->splits=0;
+    PFM->masks=0;
     //
-    masks_init=0;
+    PFM->masks_init=0;
     //
-    p_file->note(true," a fractal_memory ");
-    calc_FractalNodes();
-    p_file->note(true," b fractal_memory ");
-    calc_Buffers_and_more();
-    p_file->note(true," c fractal_memory ");
-    calc_RealBoxes();
-    p_file->note(true," d fractal_memory ");
+    // Construct a Mess object. 
+    // All MPI and FFTW stuff is done in Mess member functions. 
+    // This will be used throughout the simulation.
+    Mess* p_mess=new Mess(PFM->MPIrun,PFM->grid_length,PFM->periodic,PFM->number_particles);
+    PFM->p_mess=p_mess;
+    
+    // Construct a File object. 
+    // All output is done in File member functions. 
+    // This will be used throughout the simulation.
+    File* p_file=new File(PFM->BaseDirectory,p_mess->FractalRank,PFM->RUN);
+    PFM->p_file=p_file;
+    
+    // Calculate all simulation information needed. 
+    // Includes Boxes, FFTW startup etc.
+    // This will be used throughout the simulation.
+    PFM->p_file->note(true," a fractal_memory ");
+    PFM->calc_FractalNodes();
+    PFM->p_file->note(true," b fractal_memory ");
+    PFM->calc_Buffers_and_more();
+    PFM->p_file->note(true," c fractal_memory ");
+    PFM->calc_RealBoxes();
+    PFM->p_file->note(true," d fractal_memory ");
   }
   void fractal_memory_content_delete(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
-    Particle* P=PFM->p_mess->parts_interface;
+    Particle* P=PFM->p_mess->Parts_in;
     delete [] P;
     P=0;
     delete PF;
@@ -78,35 +126,53 @@ namespace FractalSpace
   }
   void fractal_create(Fractal_Memory* PFM)
   {
+    int NP=PFM->number_particles;
     Fractal* PF=new Fractal(*PFM);
     PFM->p_fractal=PF;
-    Particle* Parts_in=new Particle[PFM->number_particles];
-    PFM->p_mess->parts_interface=Parts_in;
+    Particle* PL=new Particle[NP];
+    PFM->p_mess->Parts_in=PL;
+    PF->particle_list.resize(NP);
+    for(int ni=0;ni<NP;ni++)
+      PF->particle_list[ni]=&PL[ni];
   }
-  void addParticles(Fractal_Memory* PFM,int first,int total,
-		    vector <double>& xmin,vector <double>& xmax,
-		    vector <double>& xpos,vector <double>& ypos,
-		    vector <double>& zpos,vector <double>& masses)
+  bool I_am_a_real_particle(Fractal_Memory* PFM,int ni)
   {
+    return PFM->p_fractal->particle_list[ni]->get_p_highest_level_group() != 0;
+  }
+  void add_particles(Fractal_Memory* PFM,int first,int total,
+		     vector <double>& xmin,vector <double>& xmax,
+		     vector <double>& posx,vector <double>& posy,
+		     vector <double>& posz,vector <double>& masses)
+  {
+    total=min(first+total,PFM->number_particles)-first;
     vector <double> pos(3);
     double dinv=1.0/(xmax[0]-xmin[0]);
     for(int ni=0;ni<total;ni++)
       {
-	pos[0]=(xpos[ni]-xmin[0])*dinv;
-	pos[1]=(ypos[ni]-xmin[1])*dinv;
-	pos[2]=(zpos[ni]-xmin[2])*dinv;
-	Particle* P=&PFM->p_mess->parts_interface[ni+first];
-	PFM->p_fractal->particle_list.push_back(P);
-	P->set_pos(pos);
-	P->set_mass(masses[ni]);
+	pos[0]=(posx[ni]-xmin[0])*dinv;
+	pos[1]=(posy[ni]-xmin[1])*dinv;
+	pos[2]=(posz[ni]-xmin[2])*dinv;
+	PFM->p_fractal->particle_list[ni+first]->set_posm(pos,masses[ni]);
       }
   }
-  void getField(Fractal_Memory* PFM,int first,int total,double G,
+  void get_potential(Fractal_Memory* PFM,int first,int total,double G,
+		     vector <double>& xmin,vector <double>& xmax,vector <double>& pot)
+  {
+    total=min(first+total,PFM->number_particles)-first;
+    double convpot=G/(xmax[0]-xmin[0]);
+    for(int ni=0;ni<total;ni++)
+      pot[ni]=PFM->p_fractal->particle_list[ni+first]->get_potential()*convpot;
+  }
+  void get_field(Fractal_Memory* PFM,int first,int total,double G,
 		vector <double>& xmin,vector <double>& xmax,
 		vector <double>& pot,vector <double>& fx,
 		vector <double>& fy,vector <double>& fz)
   {
-    
+    total=min(first+total,PFM->number_particles)-first;
+    assert(total <= pot.size());
+    assert(total <= fx.size());
+    assert(total <= fy.size());
+    assert(total <= fz.size());
     vector <double> potforce(4);
     double dinv=1.0/(xmax[0]-xmin[0]);
     double convpot=G*dinv;
@@ -123,11 +189,15 @@ namespace FractalSpace
   void fractal_delete(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
-    Particle* P=PFM->p_mess->parts_interface;
+    Particle* P=PFM->p_mess->Parts_in;
     delete [] P;
     P=0;
     delete PF;
     PF=0;
+  }
+  void Fractal_Memory::setBalance(int B)
+  {
+    balance=B;
   }
   void Fractal_Memory::setNumberParticles(int NP)
   {
@@ -137,7 +207,7 @@ namespace FractalSpace
   {
     FractalNodes0=FR0;
     FractalNodes1=FR1;
-    FractalNodes1=FR2;
+    FractalNodes2=FR2;
     FractalNodes=FR0*FR1*FR2;
     MPIrun=FractalNodes > 1;
   }

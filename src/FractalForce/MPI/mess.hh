@@ -8,7 +8,7 @@ namespace FractalSpace
     int FractalNodes;
     int number_particles_total;
     Particle* parts_tmp;
-    Particle* parts_interface;
+    Particle* Parts_in;
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
@@ -422,17 +422,17 @@ namespace FractalSpace
       delete [] doublesa;
       delete [] doublesb;
     }
-    void Find_Sum_INT_to_Root(int* numbers,const int& how_long,const int& Root)
+    void Find_Sum_INT_to_ROOT(int* numbers,const int& how_long,const int& ROOT)
     {
       int* sumup=new int[how_long];
-      MPI_Reduce(numbers,sumup,how_long,MPI_INT,MPI_SUM,Root,FractalWorld);
+      MPI_Reduce(numbers,sumup,how_long,MPI_INT,MPI_SUM,ROOT,FractalWorld);
       for(int ni=0;ni<how_long;ni++)
 	numbers[ni]=sumup[ni];
       delete [] sumup;
     }
-    void Send_INT_from_Root(int* numbers,const int& how_long,const int& Root)
+    void Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT)
     {
-      MPI_Bcast(numbers,how_long,MPI_INT,Root,FractalWorld);
+      MPI_Bcast(numbers,how_long,MPI_INT,ROOT,FractalWorld);
     }
     void Full_Stop()
     {
