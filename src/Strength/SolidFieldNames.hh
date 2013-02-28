@@ -1,0 +1,43 @@
+//---------------------------------Spheral++----------------------------------//
+// SolidFieldNames -- A collection of standard Field names for solid materials.
+//
+// Created by JMO, Wed Sep 8 11:05:49 2004
+//----------------------------------------------------------------------------//
+#ifndef _Spheral_SolidFieldNames_
+#define _Spheral_SolidFieldNames_
+
+#include <string>
+
+namespace Spheral {
+
+struct SolidFieldNames {
+  static const std::string deviatoricStress;
+  static const std::string plasticStrain;
+  static const std::string plasticStrainRate;
+  static const std::string scalarDamage;
+  static const std::string tensorDamage;
+  static const std::string effectiveTensorDamage;
+  static const std::string damageGradient;
+  static const std::string damageHat;
+  static const std::string strain;
+  static const std::string strainTensor;
+  static const std::string effectiveStrainTensor;
+  static const std::string bulkModulus;
+  static const std::string shearModulus;
+  static const std::string YoungsModulus;
+  static const std::string longitudinalSoundSpeed;
+  static const std::string yieldStrength;
+  static const std::string effectiveFlaws;
+  static const std::string porosityAlpha;
+  static const std::string porosityStrain;
+};
+
+}
+
+#else
+
+namespace Spheral {
+  struct SolidFieldNames;
+}
+
+#endif
