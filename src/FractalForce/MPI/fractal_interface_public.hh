@@ -47,6 +47,7 @@ namespace FractalSpace
 
 //!
 //! Headers for Fractal_Memory class function calls.
+//! void Fractal_Memory::setBalance(int Balance)
 //! void Fractal_Memory::setNumberParticles(int number_particles)
 //! void Fractal_Memory::setFractalNodes(int FractalNodes0,int FractalNodes1,int FractalNodes2)
 //! void Fractal_Memory::setPeriodic(bool periodic)
@@ -61,8 +62,13 @@ namespace FractalSpace
 //! void Fractal_Memory::setRunIdentifier(string RunIdentifier)
 //!
 //! Parameters for fractal_interface_setup, MUST BE SET.
+//! balance         (0) => equal volume domains (easy but slow)
+//!                 (1) => equal # particles + level 0 points for each domain (significant speedup)
 //! periodic        ( true if periodic BC, false if isolated BC)
-//! grid_length     ( length of fundamental grid, must be even, maximum 1024)
+//! grid_length     ( length of fundamental grid) 
+//!                 ( must be even, maximum for periodic simulation)
+//!                 ( max 255 for isolated BC, max 510 for periodic BC)
+//!                 ( If user exceeds this, FFTW will crash)
 //! level_max       ( number of levels of refinement (usually 8))
 //! minimum_number  ( minimum number of particles belonging to a high point (usually 8))
 //! padding         (-1) => resolution jumps by factors of 2 (cheap)

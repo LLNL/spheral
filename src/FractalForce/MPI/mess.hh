@@ -2,6 +2,7 @@
 #define _Mess_Defined_
 namespace FractalSpace
 {
+  typedef ptrdiff_t pint;
   class Mess{
   public:
     int FractalRank;
@@ -104,63 +105,73 @@ namespace FractalSpace
     }
     void FFTWStartup(const int& length_1,const bool& periodic)
     {
+      const pint Length_1=length_1;
       cout << " FFTWStartup a " << FractalRank << endl;
+      Full_Stop();
       fftw_mpi_init();
+      Full_Stop();
       cout << " FFTWStartup b " << FractalRank << endl;
-      bool wisdom_exists=fftw_import_wisdom_from_filename("wise/FractalWisdom.txt");
       if(periodic)
 	{
-	  const int length_c=(length_1+2)/2;
-	  total_memory=fftw_mpi_local_size_3d(length_1,length_1,length_c,FractalWorld,&length_x,&start_x);
+	  const pint Length_c=(Length_1+2)/2;
+	  total_memory=fftw_mpi_local_size_3d(Length_1,Length_1,Length_c,FractalWorld,&length_x,&start_x);
 	  create_potRC();
-	  plan_rc=fftw_mpi_plan_dft_r2c_3d(length_1,length_1,length_1,potR,potC,FractalWorld,FFTW_MEASURE);
-	  plan_cr=fftw_mpi_plan_dft_c2r_3d(length_1,length_1,length_1,potC,potR,FractalWorld,FFTW_MEASURE);
+	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_1,Length_1,Length_1,potR,potC,FractalWorld,FFTW_MEASURE);
+	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_1,Length_1,Length_1,potC,potR,FractalWorld,FFTW_MEASURE);
 	}
       else
 	{
-	  const int length_11=length_1+1;
-	  const int length_2=2*length_1;
-	  const double g_c=pow(static_cast<double>(length_1),-5)/8.0;
+	  const pint Length_11=Length_1+1;
+	  const pint Length_2=2*Length_1;
+	  const double g_c=pow(static_cast<double>(Length_1),-5)/8.0;
 	  cout << " g_c= " << g_c << " " << FractalRank << endl;
-	  total_memory=fftw_mpi_local_size_3d(length_2,length_2,length_11,FractalWorld,&length_x,&start_x);
+	  Full_Stop();
+	  total_memory=fftw_mpi_local_size_3d(Length_2,Length_2,Length_11,FractalWorld,&length_x,&start_x);
+	  Full_Stop();
 	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << endl;
-	  green.resize(length_x*length_11*length_11);
+	  Full_Stop();
+	  cout << "mess haha " << FractalRank << " " << green.max_size();
+	  green.resize(length_x*Length_11*Length_11);
+	  Full_Stop();
+	  cout << " mess a " << FractalRank;
 	  create_potRC();
-	  plan_rc=fftw_mpi_plan_dft_r2c_3d(length_2,length_2,length_2,potR,potC,FractalWorld,FFTW_MEASURE);
-	  plan_cr=fftw_mpi_plan_dft_c2r_3d(length_2,length_2,length_2,potC,potR,FractalWorld,FFTW_MEASURE);
+	  Full_Stop();
+	  cout << " mess b " << FractalRank;
+	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FractalWorld,FFTW_MEASURE);
+	  Full_Stop();
+	  cout << " mess c " << FractalRank;
+	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_2,Length_2,Length_2,potC,potR,FractalWorld,FFTW_MEASURE);
+	  Full_Stop();
+	  cout << " mess d " << FractalRank;
 	  zeroR();
-	  int length_22=length_2+2;
-	  for(int nx=start_x;nx < start_x+length_x;++nx)
+	  Full_Stop();
+	  cout << " mess e " << FractalRank;
+	  pint Length_22=Length_2+2;
+	  for(pint nx=start_x;nx < start_x+length_x;++nx)
 	    {
-	      int nxa=min(nx,length_2-nx);
+	      pint nxa=min(nx,Length_2-nx);
 	      double x2=static_cast<double>(nxa*nxa)+0.25;
-	      for(int ny=0;ny < length_2;++ny)
+	      for(pint ny=0;ny < Length_2;++ny)
 		{
-		  int nya=min(ny,length_2-ny);
+		  pint nya=min(ny,Length_2-ny);
 		  double y2=static_cast<double>(nya*nya);
-		  for(int nz=0;nz<length_2;++nz)
+		  for(pint nz=0;nz<Length_2;++nz)
 		    {
-		      int nza=min(nz,length_2-nz);
+		      pint nza=min(nz,Length_2-nz);
 		      double z2=static_cast<double>(nza*nza);
 		      double r2=z2+y2+x2;
-		      potR[fftw_where(nx,ny,nz,length_2,length_22)]=-g_c/sqrt(r2);
-		      //		      potR[fftw_where(nx,ny,nz,length_2,length_22)]=1.0;
-		      //		      cout << " gra " << FractalRank << " " << nx <<  " " << ny <<  " " << nz << " " << g_c/sqrt(r2) << endl;
+		      potR[fftw_where(nx,ny,nz,Length_2,Length_22)]=-g_c/sqrt(r2);
 		    }	      
 		}
 	    }
-	  //	  fftw_mpi_execute_dft_r2c(plan_rc,potR,potC);
 	  fftw_execute(plan_rc);
-	  for(int px=start_x;px<start_x+length_x;++px)
+	  for(pint px=start_x;px<start_x+length_x;++px)
 	    {
-	      for(int py=0;py<length_11;++py)
+	      for(pint py=0;py<Length_11;++py)
 		{
-		  for(int pz=0;pz<length_11;++pz)
+		  for(pint pz=0;pz<Length_11;++pz)
 		    {
-		      green[fftw_where(px,py,pz,length_11,length_11)]=potC[fftw_where(px,py,pz,length_2,length_11)][0];
-		      //		      cout << " grb " << FractalRank << " " << px <<  " " << py <<  " " << pz << " ";
-		      //		      cout << -green[fftw_where(px,py,pz,length_11,length_11)] << " ";
-		      //		      cout << -potC[fftw_where(px,py,pz,length_2,length_11)][0] << " " << -potC[fftw_where(px,py,pz,length_2,length_11)][1] << endl;		    
+		      green[fftw_where(px,py,pz,Length_11,Length_11)]=potC[fftw_where(px,py,pz,Length_2,Length_11)][0];
 		    }
 		}
 	    }
@@ -177,14 +188,15 @@ namespace FractalSpace
     }
     void dumpR(ofstream& FILE,const int& length,const bool& test)
     {
-      int nx,ny,nz;
+      pint nx,ny,nz;
+      pint Length=length;
       for(nx=start_x;nx<start_x+length_x;nx++)
 	{
-	  for(ny=0;ny<length;ny++)
+	  for(ny=0;ny<Length;ny++)
 	    {
-	      for(nz=0;nz<length;nz++)
+	      for(nz=0;nz<Length;nz++)
 		{
-		  int n=fftw_where(nx,ny,nz,length,length+2);
+		  pint n=fftw_where(nx,ny,nz,length,length+2);
 		  if(!test || potR[n] != 0.0)
 		    FILE << " dumpR " << nx << " " << ny << " " << nz << " " << n << " " << potR[n] << endl;
 		}

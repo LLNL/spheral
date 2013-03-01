@@ -190,10 +190,10 @@ namespace FractalSpace
       time_string[42]="\t";
       time_string[43]="\t";
       time_string[44]="\t";
-      time_string[45]="\t";
-      time_string[46]="\t";
-      time_string[47]="\t";
-      time_string[48]="\t";
+      time_string[45]="Cosmo Startup\t";
+      time_string[46]="Tree Total\t";
+      time_string[47]="Poisson Total\t";
+      time_string[48]="Wait Time\t";
       time_string[49]="Everything\t";
       masks=mem.masks;
       masks_level=mem.masks_level;
@@ -550,6 +550,10 @@ namespace FractalSpace
     {
       return steps;
     }
+    void get_total_times(vector <double>& TT)
+    {
+      TT=total_time;
+    }
     void timing_lev(const int& what,const int& level)
     {
       if(what == -2)
@@ -597,6 +601,11 @@ namespace FractalSpace
 	    total_time[i]+=delta_time[i];
 	  double dt49=(delta_time[49]/clocks_per_sec)+1.0e-6;
 	  double dtt49=(total_time[49]/clocks_per_sec)+1.0e-6;
+	  for(int ni=33;ni<=41;ni++)
+	    {
+	      delta_time[48]+=delta_time[ni];
+	      total_time[48]+=total_time[ni];
+	    }
 	  for(int i=0; i < 50; i++)
 	    {
 	      double dt=delta_time[i]/clocks_per_sec;
