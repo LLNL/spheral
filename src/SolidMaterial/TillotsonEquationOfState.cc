@@ -183,7 +183,7 @@ pressure(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
-  const double eps = max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
 
   // Define three fundamental pressures:
   //   P1 - solid, compression.
@@ -240,7 +240,7 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  const double eps = max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
   return mCv*eps + 300;
 }
 
@@ -318,7 +318,7 @@ computeDPDrho(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
-  const double eps = max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
   const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
 
   // There are four regimes:

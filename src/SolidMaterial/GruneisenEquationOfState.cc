@@ -183,11 +183,12 @@ pressure(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;
+  const double eps = std::max(0.0, specificThermalEnergy);
 
-  if (mu <= 0.0) {
+  if (mu <= 0.0 or specificThermalEnergy < 0.0) {
     return max(this->minimumPressure(), 
                min(this->maximumPressure(),
-                   K0*mu + mgamma0*rho0*specificThermalEnergy - mExternalPressure));
+                   K0*mu + mgamma0*rho0*eps - mExternalPressure));
 
   } else {
     const double mu1 = mu + 1.0;
@@ -200,7 +201,7 @@ pressure(const Scalar massDensity,
     return max(this->minimumPressure(),
                min(this->maximumPressure(),
                    (K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu)*Dinv*Dinv + 
-                    (mgamma0 + mb*mu)*specificThermalEnergy*rho0) - mExternalPressure));
+                    (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure));
   }
 
 }
