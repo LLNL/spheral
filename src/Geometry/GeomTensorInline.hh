@@ -4,8 +4,7 @@
 
 #include "GeomVector.hh"
 #include "GeomSymmetricTensor.hh"
-#include "Infrastructure/SpheralError.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/FastMath.hh"
 #include "DBC.hh"
 
@@ -74,7 +73,7 @@ GeomTensor<nDim>::
 GeomTensor(const double a11, const double a12,
            const double a21, const double a22):
   GeomTensorBase<nDim>(0.0) {
-  throw SpheralError("GeomTensor(a11, a12, a21, a22): wrong number of dimensions.");
+  VERIFY2(false, "GeomTensor(a11, a12, a21, a22): wrong number of dimensions.");
 }
 
 template<int nDim>
@@ -84,7 +83,7 @@ GeomTensor(const double a11, const double a12, const double a13,
            const double a21, const double a22, const double a23,
            const double a31, const double a32, const double a33):
   GeomTensorBase<nDim>(0.0) {
-  throw SpheralError("GeomTensor(a11, a12, a13, a21, a22, a23, a31, a32, a33): wrong number of dimensions.");
+  VERIFY2(false, "GeomTensor(a11, a12, a13, a21, a22, a23, a31, a32, a33): wrong number of dimensions.");
 }
 
 //------------------------------------------------------------------------------

@@ -10,7 +10,6 @@
 
 #include "PeriodicBoundary.hh"
 #include "Geometry/GeomPlane.hh"
-#include "Infrastructure/SpheralFunctions.hh"
 #include "Field/Field.hh"
 
 #include "DBC.hh"

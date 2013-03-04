@@ -25,7 +25,7 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/safeInv.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
 

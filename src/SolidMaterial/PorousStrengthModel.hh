@@ -22,7 +22,7 @@
 #define __Spheral_PorousStrengthModel_hh__
 
 #include "StrengthModel.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {

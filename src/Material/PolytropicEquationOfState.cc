@@ -7,7 +7,7 @@
 #include "PolytropicEquationOfState.hh"
 #include "PhysicalConstants.hh"
 #include "Field/Field.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "DBC.hh"
 
 namespace Spheral {

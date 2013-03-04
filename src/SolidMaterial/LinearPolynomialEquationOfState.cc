@@ -12,7 +12,7 @@ using namespace std;
 
 #include "LinearPolynomialEquationOfState.hh"
 #include "Field/Field.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "DBC.hh"
 
 namespace Spheral {

@@ -11,7 +11,6 @@ using namespace std;
 #include "DataBase/DataBase.hh"
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"
-#include "Infrastructure/SpheralError.hh"
 #include "Utilities/removeElements.hh"
 
 #include "DBC.hh"

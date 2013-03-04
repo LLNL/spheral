@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "Mesh.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/DBC.hh"
 

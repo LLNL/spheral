@@ -7,9 +7,8 @@
 
 #include "GeomTensor.hh"
 #include "findEigenValues3.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/rotationMatrix.hh"
-#include "Infrastructure/SpheralError.hh"
 
 using namespace std;
 

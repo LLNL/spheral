@@ -9,7 +9,6 @@
 #include "SteinbergGuinanLundStrength.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/DBC.hh"
-#include "Infrastructure/SpheralError.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -145,8 +144,9 @@ yieldStrength(const double density,
     x1 = max(minx, 0.1*x1);
     x2 *= 10.0;
   }
-  if (func(x1).first * func(x2).first > 0.0) {
-    cerr << density << " "
+  CHECK2(func(x1).first * func(x2).first > 0.0,
+         "SteinbergGuinanLundStrength::yieldStrength: unable to find range for yield lookup : \n"
+         << density << " "
          << specificThermalEnergy << " "
          << T << " "
          << pressure << " "
@@ -156,9 +156,7 @@ yieldStrength(const double density,
          << x1 << " "
          << x2 << " "
          << func(x1).first << " "
-         << func(x2).first << endl;
-    throw SpheralError("SteinbergGuinanLundStrength::yieldStrength: unable to find range for yield lookup.");
-  }
+         << func(x2).first)
 
   // Look up the thermal yield.
   const double YT = newtonRaphson(func, x1, x2);

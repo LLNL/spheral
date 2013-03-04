@@ -13,7 +13,7 @@ using namespace std;
 #include "TillotsonEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/safeInv.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "DBC.hh"
 
 namespace Spheral {

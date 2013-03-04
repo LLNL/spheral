@@ -5,7 +5,7 @@
 // Created by JMO, Fri Dec  6 13:48:48 PST 2002
 //----------------------------------------------------------------------------//
 #include "Geometry/GeomPlane.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "DBC.hh"
 
 namespace Spheral {

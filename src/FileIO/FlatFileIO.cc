@@ -6,7 +6,6 @@
 
 #include "FlatFileIO.hh"
 #include "Field/Field.hh"
-#include "Infrastructure/SpheralError.hh"
 #include "Utilities/cdebug.hh"
 
 namespace Spheral {
@@ -376,17 +375,11 @@ FlatFileIO::read(string& value, const string pathName) const {
   beginningOfFile();
 
   // Find the requested path, and read the value.
-  try {
-    findPathName(pathName);
-    getline(*mFilePtr, value);
+  findPathName(pathName);
+  getline(*mFilePtr, value);
 
-    // We pick up the leading space in the string, so get rid of that.
-    if (value.size() > 0) value.erase(0,1);
-  }
-
-  catch(SpheralError& error) {
-    error.printError();
-  }
+  // We pick up the leading space in the string, so get rid of that.
+  if (value.size() > 0) value.erase(0,1);
 }
 
 //------------------------------------------------------------------------------
@@ -1018,13 +1011,8 @@ readGenericType(DataType& value,
   beginningOfFile();
 
   // Find the requested path, and read the value.
-  try {
-    findPathName(pathName);
-    *mFilePtr >> value;
-  }
-  catch(SpheralError errorCondition) {
-    errorCondition.printError();
-  }
+  findPathName(pathName);
+  *mFilePtr >> value;
 
 }
 
@@ -1064,22 +1052,17 @@ readGenericVector(vector<DataType>& value,
   beginningOfFile();
 
   // Find the requested path, and read the value.
-  try {
-    findPathName(pathName);
+  findPathName(pathName);
 
-    // Read the size of the stored vector data.
-    int size;
-    *mFilePtr >> size;
-    value.resize(size);
+  // Read the size of the stored vector data.
+  int size;
+  *mFilePtr >> size;
+  value.resize(size);
 
-    // Now read in the vector values.
-    for (typename vector<DataType>::iterator itr = value.begin();
-         itr < value.end();
-         ++itr) *mFilePtr >> *itr;
-  }
-  catch(SpheralError errorCondition) {
-    errorCondition.printError();
-  }
+  // Now read in the vector values.
+  for (typename vector<DataType>::iterator itr = value.begin();
+       itr < value.end();
+       ++itr) *mFilePtr >> *itr;
 
 }
 
@@ -1134,10 +1117,8 @@ FlatFileIO::findPathName(const string pathName) const {
     }
   }
 
-  if (currentPath != pathName) {
-    throw SpheralError(string("FlatFileIO::findPathName ERROR: couldn't find path ") +
-                       pathName);
-  }
+  VERIFY2(currentPath == pathName,
+          "FlatFileIO::findPathName ERROR: couldn't find path " << pathName);
 }
 
 //------------------------------------------------------------------------------

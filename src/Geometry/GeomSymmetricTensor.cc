@@ -11,8 +11,7 @@ using namespace std;
 #include "EigenStruct.hh"
 #include "buildEigenVector.hh"
 #include "findEigenValues3.hh"
-#include "Infrastructure/SpheralFunctions.hh"
-#include "Infrastructure/SpheralError.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/rotationMatrix.hh"
 
 #include "Jacobi2.hh"

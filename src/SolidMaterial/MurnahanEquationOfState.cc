@@ -8,8 +8,7 @@
 //----------------------------------------------------------------------------//
 #include "MurnahanEquationOfState.hh"
 #include "Field/Field.hh"
-#include "Infrastructure/SpheralFunctions.hh"
-#include "Infrastructure/SpheralError.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -144,7 +143,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  throw SpheralError("MurnahanEquationOfState::gamma UNIMPLEMENTED.");
+  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
 }
 
 //------------------------------------------------------------------------------
@@ -238,7 +237,7 @@ typename Dimension::Scalar
 MurnahanEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  throw SpheralError("MurnahanEquationOfState::gamma UNIMPLEMENTED.");
+  VERIFY2(false, "MurnahanEquationOfState::gamma UNIMPLEMENTED.");
   return 0.0;
 }
 

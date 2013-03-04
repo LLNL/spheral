@@ -11,7 +11,7 @@
 
 #include <map>
 #include "Utilities/DBC.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
 

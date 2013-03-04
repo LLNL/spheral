@@ -6,7 +6,7 @@
 
 #include "GeomPlane.hh"
 #include "DBC.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Dimension.hh"
 
 namespace Spheral {

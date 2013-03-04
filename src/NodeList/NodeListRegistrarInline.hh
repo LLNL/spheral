@@ -3,7 +3,6 @@
 
 #include "NodeList/NodeList.hh"
 #include "Field/FieldBase.hh"
-#include "Infrastructure/SpheralError.hh"
 
 namespace Spheral {
 

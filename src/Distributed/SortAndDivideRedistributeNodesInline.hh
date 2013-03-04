@@ -1,5 +1,4 @@
 #include "DBC.hh"
-#include "Infrastructure/SpheralFunctions.hh"
 
 namespace Spheral {
 namespace PartitionSpace {

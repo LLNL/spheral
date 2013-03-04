@@ -6,7 +6,7 @@
 #ifndef __Spheral_StrengthModel_hh__
 #define __Spheral_StrengthModel_hh__
 
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
 // Forward declarations.

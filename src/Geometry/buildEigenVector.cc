@@ -1,7 +1,7 @@
 // Helper method to compute the eigen vector corresponding to a given 
 // eigen value for a 3x3 symmetric matrix.
 #include "buildEigenVector.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {

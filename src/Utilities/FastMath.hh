@@ -10,7 +10,7 @@
 #ifndef __Spheral_FastMath__
 #define __Spheral_FastMath__
 
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
 namespace FastMath {

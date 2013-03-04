@@ -1,7 +1,7 @@
 #ifndef Spheral_findEigenValues3_hh
 #define Spheral_findEigenValues3_hh
 
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/FastMath.hh"
 
 namespace Spheral {

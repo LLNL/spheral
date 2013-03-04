@@ -10,7 +10,7 @@
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Utilities/rotationMatrix.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 #include "Geometry/Dimension.hh"
 

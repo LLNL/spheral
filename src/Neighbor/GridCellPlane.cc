@@ -6,7 +6,7 @@
 #include "GridCellPlane.hh"
 #include "GridCellIndex.hh"
 #include "DBC.hh"
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 
 namespace Spheral {
 namespace NeighborSpace {

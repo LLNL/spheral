@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------//
 #include "TableKernel.hh"
 
-#include "Infrastructure/SpheralFunctions.hh"
+#include "Utilities/SpheralFunctions.hh"
 #include "Utilities/bisectSearch.hh"
 
 #include "BSplineKernel.hh"
