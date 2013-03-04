@@ -214,6 +214,7 @@ namespace FractalSpace
     // If isolated BC ignore particles outside unit cube.
     // Generate the points in the head group and assign particles to points.
     //--------------------------------------------------------------------------
+    fractal.timing(-1,46);
     fractal.timing_lev(-2,0);
     fractal.timing(-1,1);
     tree_start(group,fractal,fractal_memory,misc);   
@@ -367,9 +368,11 @@ namespace FractalSpace
     particle_lists(fractal_memory.all_groups,fractal,fractal_ghost,misc);
     FileFractal << " not baddd " << badd << endl;
     fractal.timing(1,18);
+    fractal.timing(1,46);
     FileFractal << "start up " << fractal_memory.start_up << endl;
     if(!fractal_memory.start_up)
       {
+	fractal.timing(-1,47);
 	// solve level zero by first assigning density the use either periodic or isolated FFTW
 	// to find potential at the points. Find forces at points and then at particles.
 	fractal.timing_lev(-1,0);
@@ -403,6 +406,7 @@ namespace FractalSpace
 	    isolated_solver(group,fractal_memory,fractal); 
 	    fractal.timing(1,5);
 	  }
+	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
 	//--------------------------------------------------------------------------
 	// For inside points diff potential to get forces at points. For all other points
 	// use values from mother group
@@ -420,7 +424,6 @@ namespace FractalSpace
 	fractal.timing(1,8);
 	fractal.timing_lev(1,0);
 	// loop over all levels > 0 
-	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
 	    fractal.timing_lev(-1,level);
@@ -479,6 +482,7 @@ namespace FractalSpace
 	      }
 	    fractal.timing_lev(1,level);
 	  }
+	fractal.timing(1,47);
       }
     if(fractal_memory.momentum_conserve)
       {
@@ -488,8 +492,10 @@ namespace FractalSpace
       }
     if(fractal_memory.start_up)
       {
+	fractal.timing(-1,45);
 	FileFractal << " going to particle_initial " << endl;
 	initial_forces_sharp(fractal_memory,fractal);
+	fractal.timing(1,45);
       }
     if(fractal_memory.calc_shear || fractal_memory.calc_density_particle)
       {
