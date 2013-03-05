@@ -34,8 +34,6 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -99,9 +97,6 @@ evaluateDerivatives(const Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
-  // TAU timers.
-  TAU_PROFILE("TensorDamageModel", "::evaluateDerivatives", TAU_USER);
 
   const double tiny = 1.0e-15;
 
@@ -292,9 +287,6 @@ TensorDamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  // TAU timers.
-  TAU_PROFILE("TensorDamageModel", "::registerState", TAU_USER);
-
   typedef typename State<Dimension>::KeyType Key;
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -354,10 +346,6 @@ void
 TensorDamageModel<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("TensorDamageModel", "::registerDerivatives", TAU_USER);
-
   derivs.enroll(mDdamageDt);
   derivs.enroll(mNewEffectiveDamage);
   derivs.enroll(mNewDamageGradient);
@@ -371,9 +359,6 @@ void
 TensorDamageModel<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("TensorDamageModel", "::applyGhostBoundaries", TAU_USER);
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
@@ -406,9 +391,6 @@ void
 TensorDamageModel<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("TensorDamageModel", "::enforceBoundaries", TAU_USER);
 
   // Grab this models damage field from the state.
   typedef typename State<Dimension>::KeyType Key;
@@ -445,9 +427,6 @@ enforceBoundaries(State<Dimension>& state,
 //            const DataBase<Dimension>& dataBase,
 //            State<Dimension>& state,
 //            StateDerivatives<Dimension>& derivs) {
-
-//   // TAU timers.
-//   TAU_PROFILE("TensorDamageModel", "::initialize", TAU_USER);
 
 //   // We need to fill in the effective damage and perhaps the damage gradient.
 //   // First, grab the pertinent state.

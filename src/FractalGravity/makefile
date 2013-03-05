@@ -71,5 +71,4 @@ EXTRAINCLUDES =
 EXTRALIBS = -lfftw3 -lfftw++
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master

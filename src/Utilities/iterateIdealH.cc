@@ -12,8 +12,6 @@
 #include "Distributed/Communicator.hh"
 #endif
 
-#include "TAU.h"
-
 namespace Spheral {
 
 using namespace std;
@@ -43,16 +41,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-  // TAU timers.
-  TAU_PROFILE("iterateIdealH", "total", TAU_USER);
-  TAU_PROFILE_TIMER(TimeIterateHState, "iterateIdealH", " 1 get state", TAU_USER);
-  TAU_PROFILE_TIMER(TimeIterateHResetBound, "iterateIdealH", " 2 reset boundaries", TAU_USER);
-
   // Get the local rank.
   const unsigned rank = Process::getRank();
 
   // Start the timing.
-  TAU_PROFILE_START(TimeIterateHState);
   const clock_t t0 = clock();
 
   // Extract the state we care about.
@@ -102,7 +94,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       H(itr) = Hi;
     }
   }
-  TAU_PROFILE_STOP(TimeIterateHState);
 
   // Keep track of the step-wise changes in the H.
   FieldList<Dimension, double> deltaH = dataBase.newFluidFieldList(double());
@@ -117,7 +108,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     maxDeltaH = 0.0;
 
     // Remove any old ghost node information from the NodeLists.
-    TAU_PROFILE_START(TimeIterateHResetBound);
     for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
          nodeListItr != dataBase.fluidNodeListEnd(); 
          ++nodeListItr) {
@@ -152,7 +142,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // Prepare a FieldList to hold the new H.
     FieldList<Dimension, SymTensor> H1(H);
     H1.copyFields();
-    TAU_PROFILE_STOP(TimeIterateHResetBound);
 
     // Get the new connectivity.
     dataBase.updateConnectivityMap();

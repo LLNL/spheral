@@ -41,9 +41,6 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        FieldList<Dimension, typename Dimension::Vector>& gradA,
                        FieldList<Dimension, typename Dimension::Tensor>& gradB) {
 
-  // TAU timers.
-  TAU_PROFILE("computeCSPHCorrections", "", TAU_USER);
-
   // Pre-conditions.
   const size_t numNodeLists = A.size();
   REQUIRE(weight.size() == numNodeLists);

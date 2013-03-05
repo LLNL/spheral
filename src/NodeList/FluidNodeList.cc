@@ -20,8 +20,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
 
-#include "TAU.h"
-
 using namespace std;
 
 using Spheral::FieldSpace::Field;

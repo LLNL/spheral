@@ -27,5 +27,4 @@ ARCH = $(SPHERALARCH)
 EXTRAFLAGS =
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master

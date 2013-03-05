@@ -28,8 +28,6 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -91,9 +89,6 @@ computeScalarDDDt(const DataBase<Dimension>& dataBase,
                   const Scalar dt,
                   Field<Dimension, Scalar>& DDDt) const {
 
-  // TAU timers.
-  TAU_PROFILE("DamageModel", "::compuateScalarDDDt", TAU_USER);
-
   // Pre-conditions.
   REQUIRE(DDDt.nodeListPtr() == &mNodeList);
   REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
@@ -142,9 +137,6 @@ DamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  // TAU timers.
-  TAU_PROFILE("DamageModel", "::registerState", TAU_USER);
-
   // Register Youngs modulus, the longitudinal sound speed, and the effective flaw strains.
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   PolicyPointer EPolicy(new YoungsModulusPolicy<Dimension>());
@@ -172,9 +164,6 @@ initialize(const Scalar time,
            const DataBase<Dimension>& dataBase, 
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("DamageModel", "::initialize", TAU_USER);
 
   // If we're just using the "FullSpectrum" of flaws, we don't reduce the 
   // flaws for each node to a single value at all.  In that case there's no

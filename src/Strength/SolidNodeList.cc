@@ -17,8 +17,6 @@
 
 #include "DBC.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace SolidMaterial {
 

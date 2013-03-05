@@ -25,8 +25,6 @@
 #include "DBC.hh"
 #include "cdebug.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace FVPMSpace {
 
@@ -144,19 +142,12 @@ calculateDerivatives(const typename Dimension::Scalar time,
   REQUIRE(nPerh > 0.0);
   REQUIRE(epsTensile >= 0.0);
 
-  // TAU timers.
-  TAU_PROFILE("FVPMFluidDerivatives", "::calculateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeFVPMGetFieldLists, "FVPMFluidDerivatives", "::calculateDerivatives : get FieldLists", TAU_USER);
-  TAU_PROFILE_TIMER(TimeFVPMNodeIState, "FVPMFluidDerivatives", "::calculateDerivatives : node i state", TAU_USER);
-
   typedef typename Timing::Time Time;
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   const int numNodeLists = nodeLists.size();
   double kernelExtent = W.kernelExtent();
 
   // Get the state and derivative FieldLists.
-  TAU_PROFILE_START(TimeFVPMGetFieldLists);
-
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.scalarFields(HydroFieldNames::mass);
   const FieldList<Dimension, Vector> position = state.vectorFields(HydroFieldNames::position);
@@ -209,7 +200,6 @@ calculateDerivatives(const typename Dimension::Scalar time,
 
   // Get the work field for this NodeList.
   Field<Dimension, Scalar>& workFieldi = nodeLists[nodeListi]->work();
-  TAU_PROFILE_STOP(TimeSphGetFieldLists);
 
   // Iterate over the internal nodes in this NodeList.
   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -218,7 +208,6 @@ calculateDerivatives(const typename Dimension::Scalar time,
   {
     const int i = *iItr;
 
-    TAU_PROFILE_START(TimeFVPMNodeIState);
     // Prepare to accumulate the time.
     const Time start = Timing::currentTime();
     size_t ncalc = 0;
@@ -250,7 +239,6 @@ calculateDerivatives(const typename Dimension::Scalar time,
 
     // Get the connectivity info for this node.
     const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-    TAU_PROFILE_STOP(TimeFVPMNodeIState);
 
     // Assemble the positions {xk} and effective radii {rk} of all nodes 
     // within the support domain of i (including i itself).

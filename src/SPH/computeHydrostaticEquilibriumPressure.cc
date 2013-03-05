@@ -40,9 +40,6 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
                                          const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& acceleration,
                                          FieldList<Dim<3>, Dim<3>::Scalar>& pressure) {
 
-  // TAU timers.
-  TAU_PROFILE("computeHydrostaticEquilibriumPressure", "", TAU_USER);
-
   // Pre-conditions.
   const unsigned numNodeLists = db.numFluidNodeLists();
   REQUIRE(acceleration.size() == numNodeLists);

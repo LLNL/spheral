@@ -25,8 +25,6 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace NodeSpace {
 
@@ -452,9 +450,6 @@ void
 NodeList<Dimension>::
 deleteNodes(const vector<int>& nodeIDs) {
 
-  // TAU timers.
-  TAU_PROFILE("NodeList::", "deleteNodes(IDs)", TAU_USER);
-
   // First sort and make sure all node IDs are valid.
   vector<int> uniqueIDs(nodeIDs);
   sort(uniqueIDs.begin(), uniqueIDs.end());
@@ -502,9 +497,6 @@ list< vector<char> >
 NodeList<Dimension>::
 packNodeFieldValues(const vector<int>& nodeIDs) const {
 
-  // TAU timers.
-  TAU_PROFILE("NodeList::", "packNodeFieldValues(IDs)", TAU_USER);
-
   // Prepare the result.
   list< vector<char> > result;
 
@@ -538,9 +530,6 @@ void
 NodeList<Dimension>::
 appendInternalNodes(const int numNewNodes,
                     const list< vector<char> >& packedFieldValues) {
-
-  // TAU timers.
-  TAU_PROFILE("NodeList::", "appendInternalValues(n, bufs)", TAU_USER);
 
   REQUIRE(packedFieldValues.size() == mFieldBaseList.size());
 
@@ -576,9 +565,6 @@ template<typename Dimension>
 void
 NodeList<Dimension>::
 reorderNodes(const vector<int>& newOrdering) {
-
-  // TAU timers.
-  TAU_PROFILE("NodeList::", "reorderNodes(order)", TAU_USER);
 
   // The number of internal nodes.
   const int n = this->numInternalNodes();

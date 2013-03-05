@@ -34,8 +34,6 @@
 #include "Utilities/iterateIdealH.hh"
 #include "FileIO/FileIO.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -105,9 +103,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   REQUIRE(this->valid());
 
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::evaluateDerivatives", TAU_USER);
-
   // Iterate over the FluidNodeLists.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -115,13 +110,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
        ++itr) {
 
     // Have the FluidNodeList set it's own derivatives.
-    TAU_PROFILE_START(TimeHydroCalcDerivs);
     (*itr)->calculateDerivatives(time, 
                                  dt,
                                  connectivityMap,
                                  state,
                                  derivatives);
-    TAU_PROFILE_STOP(TimeHydroCalcDerivs);
 
   }
 }
@@ -134,9 +127,6 @@ void
 TotalHydro<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::registerState", TAU_USER);
 
   typedef typename State<Dimension>::IntPolicyPointerType IntPolicyPointer;
   typedef typename State<Dimension>::ScalarPolicyPointerType ScalarPolicyPointer;
@@ -256,9 +246,6 @@ TotalHydro<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::registerDerivatives", TAU_USER);
-
   // Create the scratch fields.
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum);
@@ -295,9 +282,6 @@ TotalHydro<Dimension>::
 postStateUpdate(const DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
                 const StateDerivatives<Dimension>& derivs) const {
-
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::postStateUpdate", TAU_USER);
 
   // Walk the FluidNodeLists.
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -337,9 +321,6 @@ TotalHydro<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::applyGhostBoundaries", TAU_USER);
-
   REQUIRE(this->valid());
 
   // Apply boundary conditions to the basic fluid state Fields.
@@ -372,9 +353,6 @@ void
 TotalHydro<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("TotalHydro", "::enforceBoundaries", TAU_USER);
 
   REQUIRE(this->valid());
 

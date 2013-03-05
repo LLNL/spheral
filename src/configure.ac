@@ -90,11 +90,6 @@ SETUP_MHD
 SETUP_FRACTALGRAVITY
 
 # -------------------------------------------------
-# setup tau (m4macros/tau.m4
-# -------------------------------------------------
-SETUP_TAU
-
-# -------------------------------------------------
 # setup PETSc (m4macros/petsc.m4)
 # -------------------------------------------------
 SETUP_PETSC
@@ -118,7 +113,6 @@ SETUP_SCIPY
 # Output the makefile
 # -----------------------------------------------
 AC_OUTPUT(helpers/makefile_master \
-          helpers/makefile_taumaster \
           makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py)

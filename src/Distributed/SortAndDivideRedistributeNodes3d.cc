@@ -9,8 +9,6 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "TAU.h"
-
 #include "SortAndDivideRedistributeNodes3d.hh"
 #include "DomainNode.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
@@ -63,21 +61,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
                   vector<Boundary<Dim<3> >*> boundaries) {
   cdebug << "SortAndDivideRedistributeNodes3d::redistributeNodes" << endl;
 
-  // TAU timers.
-  TAU_PROFILE("SortAndDivideRedistributeNodes3d", "::redistributeNodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3GlobalIDs, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : build global node IDs", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3CurrentDomain, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : build current domain decomposition", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3GhostNodes, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : build ghost nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3LocalWork, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : measure local work", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3Shape, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : measure shape tensor", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3GlobalWork, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : measure global work", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3XSort, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Sort all nodes by x", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3YSort, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Sort slab nodes by y", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3ZSort, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Sort column nodes by z", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3XPop, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Pop x nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3YPop, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Pop y nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSDR3ZPop, "SortAndDivideRedistributeNodes3d", "::redistributeNodes : Pop z nodes", TAU_USER);
-
   // Number of processors.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
@@ -95,7 +78,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   // boundary for local use.
   // Note that if boundary conditions were passed in, we assume that the Distributed
   // boundary is already in there.
-  TAU_PROFILE_START(TimeSDR3GhostNodes);
   cdebug << "Building SortAndDivideDistributedBoundary" << endl;
   BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
@@ -111,12 +93,9 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
          nodeListItr != dataBase.nodeListEnd();
          ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
   }
-  TAU_PROFILE_STOP(TimeSDR3GhostNodes);
 
   // Get the work per node.
-  TAU_PROFILE_START(TimeSDR3LocalWork);
   const FieldList<Dimension, Scalar> work = this->workPerNode(dataBase, Hextent());
-  TAU_PROFILE_STOP(TimeSDR3LocalWork);
 
   // Once again clear out any ghost nodes.
   for (DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
@@ -127,14 +106,10 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   }
 
   // Build the set of global node IDs.
-  TAU_PROFILE_START(TimeSDR3GlobalIDs);
   const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
-  TAU_PROFILE_STOP(TimeSDR3GlobalIDs);
 
   // Get the local description of the domain distribution.
-  TAU_PROFILE_START(TimeSDR3CurrentDomain);
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, work);
-  TAU_PROFILE_STOP(TimeSDR3CurrentDomain);
 
   // Clear the domain assignments of all nodes.
   for (vector<DomainNode<Dimension> >::iterator itr = nodeDistribution.begin();
@@ -142,9 +117,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
        ++itr) itr->domainID = -1;
 
   // Compute the shape tensor describing the total node distribution in space.
-  TAU_PROFILE_START(TimeSDR3Shape);
   const EigenStruct<3> shapeTensor = this->shapeTensor(nodeDistribution);
-  TAU_PROFILE_STOP(TimeSDR3Shape);
 
   // Rotate the nodes into this frame.
   this->rotateIntoShapeTensorFrame(shapeTensor, nodeDistribution);
@@ -164,7 +137,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   }
     
   // Compute the total work, and the target work per processor.
-  TAU_PROFILE_START(TimeSDR3GlobalWork);
   double localWork = 0.0;
   for (vector<DomainNode<Dimension> >::const_iterator itr = nodeDistribution.begin();
        itr != nodeDistribution.end();
@@ -174,7 +146,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   MPI_Allreduce(&localWork, &globalWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
   const double targetWorkPerDomain = globalWork / numProcs;
   CHECK(distinctlyGreaterThan(targetWorkPerDomain, 0.0));
-  TAU_PROFILE_STOP(TimeSDR3GlobalWork);
 
   // Copy the domain nodes to a list.
   list<DomainNode<Dimension> > sortedNodeDistribution;
@@ -183,9 +154,7 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
        ++itr) sortedNodeDistribution.push_back(*itr);
 
   // Sort the nodes by x position.
-  TAU_PROFILE_START(TimeSDR3XSort);
   this->sortByPositions(sortedNodeDistribution, 0);
-  TAU_PROFILE_STOP(TimeSDR3XSort);
 
   // The new node distribution we're going to build.
   vector<DomainNode<Dimension> > newNodeDistribution;
@@ -196,7 +165,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   for (int ix = 0; ix != domainsPerStep.size(); ++ix) {
 
     // Pop off the set of nodes for the y-z slab in this step.
-    TAU_PROFILE_START(TimeSDR3XPop);
     const vector<int>& numYZChunks = domainsPerStep[ix];
     CHECK(numYZChunks.size() > 0);
     int numYZDomains = 0;
@@ -213,18 +181,14 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
                                          targetYZChunkWork,
                                          0);
     }
-    TAU_PROFILE_STOP(TimeSDR3XPop);
 
     // Re-sort this set of nodes by their y positions.
-    TAU_PROFILE_START(TimeSDR3YSort);
     this->sortByPositions(yzchunkNodes, 1);
-    TAU_PROFILE_STOP(TimeSDR3YSort);
 
     // Iterate over the number of y domains we're assigning for this slab of work.
     for (int iy = 0; iy != numYZChunks.size(); ++iy) {
 
       // Pop off a chunk of nodes we'll divvy up in the z direction.
-      TAU_PROFILE_START(TimeSDR3YPop);
       const int numZChunks = numYZChunks[iy];
       CHECK(numZChunks > 0);
       const double targetZChunkWork = numZChunks*targetWorkPerDomain;
@@ -239,12 +203,9 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
                                          targetZChunkWork,
                                          1);
       }
-      TAU_PROFILE_STOP(TimeSDR3YPop);
 
       // Re-sort this set of nodes by their z positions.
-      TAU_PROFILE_START(TimeSDR3ZSort);
       this->sortByPositions(chunkNodes, 2);
-      TAU_PROFILE_STOP(TimeSDR3ZSort);
 
       // Iterator over the number of z domains we'll be assigning.
       for (int iz = 0; iz != numZChunks; ++iz) {
@@ -255,7 +216,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
         // Peel off nodes from the front of the unassigned nodes, until the desired work
         // load for this domain is reached.  Note that in this step we use the z index as
         // the primary sorting comparison.
-        TAU_PROFILE_START(TimeSDR3ZPop);
         list<DomainNode<Dimension> > thisDomainNodes;
         if (iz == numZChunks - 1) {
           thisDomainNodes = chunkNodes;
@@ -264,7 +224,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
                                                 targetWorkPerDomain,
                                                 2);
         }
-        TAU_PROFILE_STOP(TimeSDR3ZPop);
 
         // Assign the nodes to their new domain.
         CHECK(assignDomainID >= 0 && assignDomainID < numProcs);

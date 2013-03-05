@@ -31,7 +31,6 @@ EXTRAINCLUDES = -I$(PYTHONROOT)/include/python$(PYTHONVERSION)
 #EXTRALIBS = -L${HDFLIBDIR} -lhdf5_cpp -lhdf5
 #EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master
 
 # For some reason, optimizing FlatFileIO on AIX with g++ 3.2.1 causes a segv 

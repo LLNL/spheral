@@ -100,11 +100,6 @@ from SpheralTimer import *
 from SpheralController import *
 
 # ------------------------------------------------------------------------------
-# Initialize the Tau timer package.
-# ------------------------------------------------------------------------------
-initializeTau()
-
-# ------------------------------------------------------------------------------
 # Import the command line interpreter.
 # ------------------------------------------------------------------------------
 from SpheralOptionParser import commandLine

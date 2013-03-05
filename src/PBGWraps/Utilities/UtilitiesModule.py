@@ -42,7 +42,6 @@ class Utilities:
                                                           is_const=True,
                                                           is_pure_virtual=True)
 
-        Spheral.add_function("initializeTau", None, [], docstring="Initialize the TAU timing package when we're profiling with TAU.")
         Spheral.add_function("erff", "double", [param("double", "x")], docstring="You know, the error function.")
         Spheral.add_function("newtonRaphsonFindRoot", "double", [constrefparam("NewtonRaphsonFunction", "function"),
                                                                  param("float", "x1"),

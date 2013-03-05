@@ -15,8 +15,6 @@
 #include "Wm5ContBox2.h"
 #include "Wm5ContBox3.h"
 
-#include "TAU.h"
-
 namespace Spheral {
 
 using namespace std;
@@ -32,7 +30,6 @@ void
 orientedBoundingBox(const DataBase<Dimension>& dataBase,
                     typename Dimension::Box& nodeBox,
                     typename Dimension::Box& sampleBox) {
-  TAU_PROFILE("orientedBoundingBox", "(dataBase, nodeBox, sampleBox)", TAU_USER);
   typedef typename Dimension::WMVector WMVector;
   const vector<WMVector> points = wildMagicPositions(dataBase);
   const vector<WMVector> samplePoints = wildMagicSamplingPositions(dataBase);
@@ -45,7 +42,6 @@ orientedBoundingBox(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 Dim<1>::Box
 orientedBoundingBox(const vector<Dim<1>::WMVector>& points) {
-  TAU_PROFILE("orientedBoundingBox1d", "(points)", TAU_USER);
   typedef Dim<1>::Vector Vector;
 
   if (points.size() > 0) {
@@ -67,7 +63,6 @@ orientedBoundingBox(const vector<Dim<1>::WMVector>& points) {
 //------------------------------------------------------------------------------
 Dim<2>::Box
 orientedBoundingBox(const vector<Dim<2>::WMVector>& points) {
-  TAU_PROFILE("orientedBoundingBox2d", "(points)", TAU_USER);
   typedef Dim<2> Dimension;
   typedef Dimension::WMVector WMVector;
 
@@ -84,7 +79,6 @@ orientedBoundingBox(const vector<Dim<2>::WMVector>& points) {
 //------------------------------------------------------------------------------
 Dim<3>::Box
 orientedBoundingBox(const vector<Dim<3>::WMVector>& points) {
-  TAU_PROFILE("orientedBoundingBox3d", "(points)", TAU_USER);
   typedef Dim<3> Dimension;
   typedef Dimension::Vector Vector;
 

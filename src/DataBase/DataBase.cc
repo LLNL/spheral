@@ -23,8 +23,6 @@
 
 #include "DBC.hh"
 
-#include "TAU.h"
-
 #ifdef USE_MPI
 extern "C" {
 #include "mpi.h"

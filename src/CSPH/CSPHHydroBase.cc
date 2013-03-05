@@ -37,8 +37,6 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace CSPHSpace {
 
@@ -116,9 +114,6 @@ void
 CSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::registerState", TAU_USER);
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -226,9 +221,6 @@ CSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::registerDerivatives", TAU_USER);
-
   typedef typename StateDerivatives<Dimension>::KeyType Key;
   const string DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
   const string DvDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity;
@@ -292,9 +284,6 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::initialize", TAU_USER);
-
   // Compute the kernel correction fields.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -345,12 +334,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::evaluateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCSPHHydroBaseCalcDerivs, "CSPHHydroBase", "::evaluateDerivatives : calc derivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCSPHHydroBaseGetFieldLists, "CSPHNode", "::evaluateDerivatives : get FieldLists", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCSPHHydroBaseNodeIState, "CSPHNode", "::evaluateDerivatives : node i state", TAU_USER);
-
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -366,7 +349,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const size_t numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists.
-  TAU_PROFILE_START(TimeCSPHHydroBaseGetFieldLists);
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -426,7 +408,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  TAU_PROFILE_STOP(TimeCSPHHydroBaseGetFieldLists);
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) {
@@ -441,7 +422,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Start our big loop over all FluidNodeLists.
-  TAU_PROFILE_START(TimeCSPHHydroBaseCalcDerivs);
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -463,7 +443,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          ++iItr) {
       const int i = *iItr;
 
-      TAU_PROFILE_START(TimeCSPHHydroBaseNodeIState);
       // Prepare to accumulate the time.
       const Time start = Timing::currentTime();
       size_t ncalc = 0;
@@ -506,7 +485,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-      TAU_PROFILE_STOP(TimeCSPHHydroBaseNodeIState);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -726,7 +704,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
-  TAU_PROFILE_STOP(TimeCSPHHydroBaseCalcDerivs);
 }
 
 //------------------------------------------------------------------------------
@@ -741,8 +718,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::finalizeDerivatives", TAU_USER);
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -768,9 +743,6 @@ finalize(const typename Dimension::Scalar time,
          DataBase<Dimension>& dataBase,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::finalize", TAU_USER);
 
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
@@ -801,9 +773,6 @@ void
 CSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::applyGhostBoundaries", TAU_USER);
 
   // Apply boundary conditions to the basic fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -850,9 +819,6 @@ void
 CSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("CSPHHydroBase", "::enforceBoundaries", TAU_USER);
 
   // Enforce boundary conditions on the fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);

@@ -342,16 +342,6 @@ VoronoiRedistributeNodes<Dimension>::
 redistributeNodes(DataBase<Dimension>& dataBase,
                   vector<Boundary<Dimension>*> boundaries) {
 
-  // TAU Timers.
-  TAU_PROFILE("VoronoiRedistributeNodes::", "redistributeNodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVcomputeWork,           "VoronoiRedistributeNodes::", "redistributeNodes : 1 compute work", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVcomputeInitialDist,    "VoronoiRedistributeNodes::", "redistributeNodes : 2 compute initial node dist", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVinitialSeeds,          "VoronoiRedistributeNodes::", "redistributeNodes : 3 compute initial seeds", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVLloyds,                "VoronoiRedistributeNodes::", "redistributeNodes : 4 Lloyds iterations", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVenforce,               "VoronoiRedistributeNodes::", "redistributeNodes : 5 enforce new distribution", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVupdateNeighbors,       "VoronoiRedistributeNodes::", "redistributeNodes : 6 update neighbors", TAU_USER);
-  TAU_PROFILE_TIMER(TimeVnotify,                "VoronoiRedistributeNodes::", "redistributeNodes : 7 post notifications", TAU_USER);
-
   // The usual parallel info.
   const int numProcs = this->numDomains();
   const int procID = this->domainID();
@@ -361,7 +351,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const size_t numNodeLists = dataBase.numNodeLists();
 
   // Compute the work and number density per node.
-  TAU_PROFILE_START(TimeVcomputeWork);
   const TableKernel<Dimension> W(BSplineKernel<Dimension>(), 100);
   FieldList<Dimension, Scalar> workField = dataBase.newGlobalFieldList(1.0, "work");
   if (this->workBalance()) { // or mBalanceGenerators) {
@@ -389,7 +378,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // Get the local description of the domain distribution, with the work per node filled in.
     if (this->workBalance()) workField = this->workPerNode(dataBase, 1.0);
   }
-  TAU_PROFILE_STOP(TimeVcomputeWork);
 
   // Print the beginning statistics.
   std::string stats0 = this->gatherDomainDistributionStatistics(workField);
@@ -397,13 +385,11 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                         << stats0 << endl;
 
   // Now we can get the node distribution description.
-  TAU_PROFILE_START(TimeVcomputeInitialDist);
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, workField);
   const size_t numNodes = nodeDistribution.size();
   const size_t numNodesGlobal = allReduce((uint64_t) numNodes, MPI_SUM, Communicator::communicator());
   const size_t avgNumNodes = numNodesGlobal/numProcs;
   CHECK(numNodes > 0);
-  TAU_PROFILE_STOP(TimeVcomputeInitialDist);
 
   // Clear out any ghost nodes.
   // We won't bother to update the neighbor info at this point -- we don't need 
@@ -427,7 +413,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   
   // Try and distribute the seeds according to where the work is by an AMR like zooming
   // in of the work distribution in bins.
-  TAU_PROFILE_START(TimeVinitialSeeds);
   vector<Vector> generators(numProcs, 0.5*(xmin + xmax));
   vector<pair<Vector, Vector> > generatorBounds(numProcs, make_pair(xmin, xmax));
   const size_t numDaughters = (1U << Dimension::nDim);
@@ -580,7 +565,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // Copy the initial generator distribution.
   const vector<Vector> startingGenerators(generators);
-  TAU_PROFILE_STOP(TimeVinitialSeeds);
 
 //   // Stage 1:  Lloyds algorithm iteration of the generator positions.
 //   // Choose the initial positions of the generators randomly, one per domain.
@@ -616,7 +600,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                           
 
   // Now iterate the generators until we either converge or hit the max iterations.
-  TAU_PROFILE_START(TimeVLloyds);
   size_t iteration = 0;
   double maxDeltaGenerator = 10.0*tol;
   double oldWorkRatio = maxWork*safeInv(minWork);
@@ -684,27 +667,20 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     //VERIFY(minWork > 0);
     ++iteration;
   }
-  TAU_PROFILE_STOP(TimeVLloyds);
 
   // Redistribute nodes between domains.
-  TAU_PROFILE_START(TimeVenforce);
   CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
   this->enforceDomainDecomposition(nodeDistribution, dataBase);
-  TAU_PROFILE_STOP(TimeVenforce);
 
   // Reinitialize neighbor info.
-  TAU_PROFILE_START(TimeVupdateNeighbors);
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->neighbor().updateNodes();
   }
-  TAU_PROFILE_STOP(TimeVupdateNeighbors);
 
   // Notify everyone that the nodes have just been shuffled around.
-  TAU_PROFILE_START(TimeVnotify);
   RedistributionRegistrar::instance().broadcastRedistributionNotifications();
-  TAU_PROFILE_STOP(TimeVnotify);
 
   // Print the final statistics.
   std::string stats1 = this->gatherDomainDistributionStatistics(workField);
@@ -722,9 +698,6 @@ void
 VoronoiRedistributeNodes<Dimension>::
 computeCentroids(const vector<DomainNode<Dimension> >& nodes,
                  vector<typename Dimension::Vector>& generators) const {
-
-  // TAU Timers.
-  TAU_PROFILE("VoronoiRedistributeNodes::", "computeCentroids", TAU_USER);
 
   const int numProcs = this->numDomains();
   const int procID = this->domainID();

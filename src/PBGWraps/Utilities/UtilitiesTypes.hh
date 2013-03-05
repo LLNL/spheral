@@ -2,7 +2,6 @@
 #define __PBGWRAP_UTILITIESTYPES__
 
 #include "boost/math/special_functions/legendre.hpp"
-#include "Utilities/initializeTau.hh"
 #include "Utilities/erff.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/simpsonsIntegration.hh"

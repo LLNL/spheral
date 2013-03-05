@@ -43,8 +43,6 @@
 #include "Spasmos/MatFactory.h"
 #include "Distributed/Communicator.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace MHDSpace {
 
@@ -744,26 +742,15 @@ mAddDiffusionDerivatives(const DataBase<Dim<3> >& dataBase,
   REQUIRE(mDiffMatrix != 0);
   cdebug << "Adding magnetic diffusion effects\n";
 
-  // Start timers!
-  TAU_PROFILE_TIMER(TimeMHDDiffEffects, "MHD", "::evaluateDerivatives : compute magnetic diffusion effects", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDCurlCurlMatrix, "MHD", "::evaluateDerivatives : compute curl-curl matrix", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDDiffMatrix, "MHD", "::evaluateDerivatives : compute diffusion matrix", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDDiffSolve, "MHD", "::evaluateDerivatives : solve linear system", TAU_USER);
-  TAU_PROFILE_START(TimeMHDDiffEffects);
-
   // First we compute the curl-curl matrix representing the magnetic diffusion 
   // term in the induction evolution equation.
-  TAU_PROFILE_START(TimeMHDDiffMatrix);
-  TAU_PROFILE_START(TimeMHDCurlCurlMatrix);
   Mat D = mCurlCurlMatrix(dataBase, state);
-  TAU_PROFILE_STOP(TimeMHDCurlCurlMatrix);
 
   // Now form the left-hand side of the linear system (which we call the diffusion
   // matrix): LHS = 1 + alpha*dt*D.
   MatCopy(D, PyPetsc_MAT(mDiffMatrix), SAME_NONZERO_PATTERN);
   MatScale(PyPetsc_MAT(mDiffMatrix), mImplicitness*dt);
   MatShift(PyPetsc_MAT(mDiffMatrix), 1.0);
-  TAU_PROFILE_STOP(TimeMHDDiffMatrix);
 
   // Create a vector representing B at time tn.
   Py_ssize_t n = static_cast<Py_ssize_t>(mNodeIndices.numInternalNodes());
@@ -802,12 +789,10 @@ mAddDiffusionDerivatives(const DataBase<Dim<3> >& dataBase,
   mApplyDiffusionBCs(dataBase, state, mDiffMatrix, mDiffRHS);
 
   // Now set up the linear system and solve it.
-  TAU_PROFILE_START(TimeMHDDiffSolve);
   PyObject* Bn1 = VecFactory_Vector(mVecFactory, 3*n);
   KSPSetOperators(mDiffSolver, PyPetsc_MAT(mDiffMatrix), 
                   PyPetsc_MAT(mDiffMatrix), SAME_PRECONDITIONER);
   KSPSolve(mDiffSolver, PyPetsc_VEC(mDiffRHS), PyPetsc_VEC(Bn1));
-  TAU_PROFILE_STOP(TimeMHDDiffSolve);
 
   // Get data about the linear solution.
   KSPGetResidualNorm(mDiffSolver, &mDiffResNorm);
@@ -868,7 +853,6 @@ mAddDiffusionDerivatives(const DataBase<Dim<3> >& dataBase,
   Py_DECREF(Bn1);
 
   // And in fact we're done, period.
-  TAU_PROFILE_STOP(TimeMHDDiffEffects);
 }
 //------------------------------------------------------------------------------
 
@@ -931,10 +915,6 @@ evaluateDerivatives(const Dim<3>::Scalar time,
 {
   using namespace NodeSpace;
 
-  // Timers.
-  TAU_PROFILE("MHD", "::evaluateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDComputeIdealMHD, "MHD", "::evaluateDerivatives : compute ideal MHD effects", TAU_USER);
-
   // Access to pertinent fields in the database.
   const FieldList<Dim<3>, Scalar> m = state.scalarFields(HydroFieldNames::mass);
   const FieldList<Dim<3>, Scalar> rho = state.scalarFields(HydroFieldNames::massDensity);
@@ -956,7 +936,6 @@ evaluateDerivatives(const Dim<3>::Scalar time,
   FieldList<Dim<3>, vector<Vector> > pairAccelerations = derivs.vectorVectorFields(HydroFieldNames::pairAccelerations);
 
   // Should we use resistive MHD?
-  TAU_PROFILE_START(TimeMHDComputeIdealMHD);
   bool isResistive = hasResistivity(dataBase, state);
 
   // Now compute the time derivatives of v, B, and possibly e.
@@ -1113,7 +1092,6 @@ if (aij.magnitude() > maxAcc)
       }
     } 
   } // end for
-  TAU_PROFILE_STOP(TimeMHDComputeIdealMHD);
 //cout << "max acceleration: " << maxAcc << endl;
 
   // Now add resistive effects.
@@ -1288,8 +1266,6 @@ initialize(const Scalar& time,
            State<Dim<3> >& state,
            StateDerivatives<Dim<3> >& derivs)
 {
-  TAU_PROFILE_TIMER(TimeMHDInitialize, "MHD", "::initialize", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDMatrixStructure, "MHD", "::initialize : compute matrix structure", TAU_USER);
 
   // If we are taking our first step, we need to compute the current density 
   // and the magnetic divergence, and apply our divergence cleaning algorithm
@@ -1395,9 +1371,7 @@ initialize(const Scalar& time,
   // our fluids are perfect conductors.
   if (hasResistivity(db, state))
   {
-     TAU_PROFILE_START(TimeMHDMatrixStructure);
      mComputeMatrixStructure(db, state);
-     TAU_PROFILE_STOP(TimeMHDMatrixStructure);
   }
 }
 //------------------------------------------------------------------------------
@@ -1598,17 +1572,12 @@ MHD::postStateUpdate(const DataBase<Dim<3> >& dataBase,
                      State<Dim<3> >& state,
                      const StateDerivatives<Dim<3> >& derivatives) const
 {
-   TAU_PROFILE_TIMER(TimeMHDpostStateUpdate, "MHD", "::postStateUpdate", TAU_USER);
-   TAU_PROFILE_START(TimeMHDpostStateUpdate);
-
    // Compute the divergence of B. 
    mComputeDivB(dataBase, state);
 
    // Clean the divergence and recompute it.
    mCleanDivB(dataBase, state);
    mComputeDivB(dataBase, state);
-
-   TAU_PROFILE_STOP(TimeMHDpostStateUpdate);
 }
 //------------------------------------------------------------------------------
 

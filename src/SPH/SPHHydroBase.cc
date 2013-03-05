@@ -44,8 +44,6 @@
 #include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace SPHSpace {
 
@@ -137,9 +135,6 @@ void
 SPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::initializeProblemStartup", TAU_USER);
-
   // Create storage for the pressure and sound speed.
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
@@ -190,9 +185,6 @@ void
 SPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::registerState", TAU_USER);
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -301,9 +293,6 @@ SPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::registerDerivatives", TAU_USER);
-
   typedef typename StateDerivatives<Dimension>::KeyType Key;
   const string DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
   const string DvDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity;
@@ -369,9 +358,6 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::initialize", TAU_USER);
-
   // Initialize the grad h corrrections if needed.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WPi = this->PiKernel();
@@ -412,12 +398,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::evaluateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHHydroBaseCalcDerivs, "SPHHydroBase", "::evaluateDerivatives : calc derivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHHydroBaseGetFieldLists, "SPHNode", "::evaluateDerivatives : get FieldLists", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHHydroBaseNodeIState, "SPHNode", "::evaluateDerivatives : node i state", TAU_USER);
-
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -435,7 +415,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const size_t numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists.
-  TAU_PROFILE_START(TimeSPHHydroBaseGetFieldLists);
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -487,7 +466,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  TAU_PROFILE_STOP(TimeSPHHydroBaseGetFieldLists);
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) {
@@ -502,7 +480,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Start our big loop over all FluidNodeLists.
-  TAU_PROFILE_START(TimeSPHHydroBaseCalcDerivs);
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -527,7 +504,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          ++iItr) {
       const int i = *iItr;
 
-      TAU_PROFILE_START(TimeSPHHydroBaseNodeIState);
       // Prepare to accumulate the time.
       const Time start = Timing::currentTime();
       size_t ncalc = 0;
@@ -568,7 +544,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-      TAU_PROFILE_STOP(TimeSPHHydroBaseNodeIState);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -816,7 +791,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
-  TAU_PROFILE_STOP(TimeSPHHydroBaseCalcDerivs);
 }
 
 //------------------------------------------------------------------------------
@@ -830,9 +804,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::finalizeDerivatives", TAU_USER);
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -858,9 +829,6 @@ finalize(const typename Dimension::Scalar time,
          DataBase<Dimension>& dataBase,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::finalize", TAU_USER);
 
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
@@ -905,9 +873,6 @@ void
 SPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::applyGhostBoundaries", TAU_USER);
 
   // Apply boundary conditions to the basic fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -956,9 +921,6 @@ SPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::enforceBoundaries", TAU_USER);
-
   // Enforce boundary conditions on the fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -1002,9 +964,6 @@ void
 SPHHydroBase<Dimension>::
 updateVolume(State<Dimension>& state,
              const bool boundaries) const {
-
-  // TAU timers.
-  TAU_PROFILE("SPHHydroBase", "::updateVolume", TAU_USER);
 
   // Pre-conditions.
   REQUIRE(state.fieldNameRegistered(HydroFieldNames::volume));

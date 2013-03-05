@@ -16,7 +16,6 @@ PBGPKGS = @PYTHONPKGS@
 SPHERALMODULES = SpheralModules
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master
 
 #-------------------------------------------------------------------------------

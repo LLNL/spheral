@@ -18,8 +18,6 @@ using std::vector;
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace FieldSpace {
 
@@ -44,19 +42,6 @@ gradDivVectorFieldListGolden
  const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
  const TableKernel<Dimension>& kernel) {
 
-  // TAU timers.
-  TAU_PROFILE("gradDivVectorFieldListGolden", "", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondReserve, "gradDivVectorFieldListGolden", "Reserve return Fields", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondMaster, "gradDivVectorFieldListGolden", "Select master nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondRefine, "gradDivVectorFieldListGolden", "Select refine nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondNodeI, "gradDivVectorFieldListGolden", "State for node I", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondNodeJ, "gradDivVectorFieldListGolden", "State for node J", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondRefineLoop, "gradDivVectorFieldListGolden", "Main loop over refine neighobors", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondW, "gradDivVectorFieldListGolden", "Calculate W, gradW, grad2W", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondAccumulate, "gradDivVectorFieldListGolden", "Accumulate components", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondFinalize, "gradDivVectorFieldListGolden", "Determine final answer", TAU_USER);
-  TAU_PROFILE_TIMER(TimeGoldenSecondCheck, "gradDivVectorFieldListGolden", "Completeness check", TAU_USER);
-
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -64,7 +49,6 @@ gradDivVectorFieldListGolden
   typedef typename Dimension::SymTensor SymTensor;
 
   // Return FieldList.
-  TAU_PROFILE_START(TimeGoldenSecondReserve);
   FieldList<Dimension, Vector> result;
   vector< vector<bool> > flagNodeDone(fieldList.numFields());
   result.copyFields();
@@ -74,7 +58,6 @@ gradDivVectorFieldListGolden
     result.appendField(Field<Dimension, Vector>("grad div " + (*fieldItr)->name(), (*fieldItr)->nodeList()));
     flagNodeDone[fieldItr - fieldList.begin()].resize((*fieldItr)->nodeListPtr()->numInternalNodes(), false);
   }
-  TAU_PROFILE_STOP(TimeGoldenSecondReserve);
 
   // Remember the square of the kernel extent.
   const Scalar cutoff2 = kernel.kernelExtent()*kernel.kernelExtent();
@@ -89,9 +72,7 @@ gradDivVectorFieldListGolden
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      TAU_PROFILE_START(TimeGoldenSecondMaster);
       fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
-      TAU_PROFILE_STOP(TimeGoldenSecondMaster);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
@@ -100,12 +81,9 @@ gradDivVectorFieldListGolden
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        TAU_PROFILE_START(TimeGoldenSecondRefine);
         fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
-        TAU_PROFILE_STOP(TimeGoldenSecondRefine);
 
         // State for this node.
-        TAU_PROFILE_START(TimeGoldenSecondNodeI);
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
         const Scalar& mi = mass(masterItr);
@@ -115,7 +93,6 @@ gradDivVectorFieldListGolden
         CHECK(Hi.Determinant() > 0.0);
         CHECK(mi > 0.0);
         CHECK(rhoi > 0.0);
-        TAU_PROFILE_STOP(TimeGoldenSecondNodeI);
 
         // Temp variables to accumulate the grad field and grad rho for this
         // node.
@@ -128,10 +105,8 @@ gradDivVectorFieldListGolden
         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
              neighborItr < fieldList.refineNodeEnd();
              ++neighborItr) {
-          TAU_PROFILE_START(TimeGoldenSecondRefineLoop);
           if (neighborItr != masterItr) {
 
-//             TAU_PROFILE_START((TimeGoldenSecondNodeJ);
             const Vector& rj = position(neighborItr);
             const SymTensor& Hj = Hfield(neighborItr);
             const Scalar& mj = mass(neighborItr);
@@ -145,11 +120,9 @@ gradDivVectorFieldListGolden
             const Vector rij = ri - rj;
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
-//             TAU_PROFILE_STOP(TimeGoldenSecondNodeJ);
 
             if (etai.magnitude2() < cutoff2 ||
                 etaj.magnitude2() < cutoff2) {
-//               TAU_PROFILE_START(TimeGoldenSecondW);
               const Vector etaiNorm = etai.unitVector();
               const Vector etajNorm = etaj.unitVector();
               const Vector Hetai = Hi*etaiNorm;
@@ -196,10 +169,8 @@ gradDivVectorFieldListGolden
               default:
                 VERIFY2(false, "Unhandled neighbor search type.");
               }
-//               TAU_PROFILE_STOP(TimeGoldenSecondW);
 
               // Sum the contributions.
-//               TAU_PROFILE_START(TimeGoldenSecondAccumulate);
 
 //               const Scalar weightij = 0.5*(weighti + weightj);
 //               const Vector fji = weightij*(fieldj - fieldi);
@@ -223,14 +194,11 @@ gradDivVectorFieldListGolden
                 }
                 gradRho(gamma) -= mj*(rhoi - rhoj)*gWij(gamma);
               }
-//               TAU_PROFILE_STOP(TimeGoldenSecondAccumulate);
             }
           }
-          TAU_PROFILE_STOP(TimeGoldenSecondRefineLoop);
         }
 
         // Put together the complete derivative.
-        TAU_PROFILE_START(TimeGoldenSecondFinalize);
         CHECK(rhoi > 0.0);
         gradRho /= rhoi;
         gradF /= rhoi;
@@ -242,7 +210,6 @@ gradDivVectorFieldListGolden
           }
         }
         result(masterItr) /= rhoi;
-        TAU_PROFILE_STOP(TimeGoldenSecondFinalize);
 
         // This master node is finished.
         flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = true;
@@ -251,7 +218,6 @@ gradDivVectorFieldListGolden
   }
 
   // After we're done, all nodes in all NodeLists should be flagged as done.
-  TAU_PROFILE_START(TimeGoldenSecondCheck);
   for (typename vector< vector<bool> >::const_iterator flagNodeItr = flagNodeDone.begin();
        flagNodeItr < flagNodeDone.end();
        ++flagNodeItr) {
@@ -262,7 +228,6 @@ gradDivVectorFieldListGolden
     }
     CHECK(checkcount == 0);
   }
-  TAU_PROFILE_STOP(TimeGoldenSecondCheck);
 
   return result;
 }

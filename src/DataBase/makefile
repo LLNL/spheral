@@ -24,5 +24,4 @@ ARCH = $(SPHERALARCH)
 ##EXTRALIBS = -L$(SRCTOP)/lib -lField -lNodeList -lGeometry -lField -lNodeList -lGeometry
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master

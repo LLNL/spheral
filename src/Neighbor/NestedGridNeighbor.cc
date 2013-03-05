@@ -24,8 +24,6 @@
 #include "Utilities/intpow2.hh"
 #include "DBC.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace NeighborSpace {
 
@@ -215,9 +213,6 @@ setNestedMasterList(const GridCellIndex<Dimension>& gridCell,
 
   REQUIRE(valid());
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor", "::setNestedMasterList(gridCell, gridLevel)", TAU_USER);
-
   // Set the gridlevel and gridcell.
   mMasterGridCellIndex = gridCell;
   mMasterGridLevel = gridLevel;
@@ -245,9 +240,6 @@ void
 NestedGridNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
               const GeomPlane<Dimension>& exitPlane) {
-
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor", "::setMasterList(Plane)", TAU_USER);
 
   REQUIRE(valid());
   REQUIRE(enterPlane.parallel(exitPlane));
@@ -446,9 +438,6 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 // findNestedNeighbors(const GridCellIndex<Dimension>& gridCell, 
 // 		    const int gridLevel) const {
 
-//   // TAU timers.
-//   TAU_PROFILE("NestedGridNeighbor::", "findNestedNeighbors", TAU_USER);
-
 //   // Prepare our result.
 //   vector<int> result;
 
@@ -608,9 +597,6 @@ NestedGridNeighbor<Dimension>::topGridSize(const double topGridSize) {
 //                          const GridCellIndex<Dimension>& maxGridCell,
 //                          const int gridLevel) const {
 
-//   // TAU timers.
-//   TAU_PROFILE("NestedGridNeighbor::", "occupiedGridCellsInRange", TAU_USER);
-
 //   REQUIRE(minGridCell <= maxGridCell);
 //   REQUIRE(gridLevel >= 0 and gridLevel < mMaxGridLevels);
 
@@ -660,11 +646,6 @@ occupiedGridCellsInRange(vector< GridCellIndex<Dimension> >& gridCells,
                          const GridCellIndex<Dimension>& maxGridCell,
                          const int gridLevelID) const {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor::", "occupiedGridCellsInRange", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNGNOCIRBranch1, "NestedGridNeighbor::", "occupiedGridCellsInRange -- branch 1", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNGNOCIRBranch2, "NestedGridNeighbor::", "occupiedGridCellsInRange -- branch 2", TAU_USER);
-
   REQUIRE(minGridCell <= maxGridCell);
 
   // Count how many grid cells are in the given range.
@@ -675,7 +656,6 @@ occupiedGridCellsInRange(vector< GridCellIndex<Dimension> >& gridCells,
   if (occupiedGridCells(gridLevelID).size() < numCellsInRange) {
 
     // Loop over the occupied grid cells on the given grid level.
-    TAU_PROFILE_START(TimeNGNOCIRBranch1);
     typename vector<GC>::const_iterator begin = occupiedGridCells(gridLevelID).begin();
     typename vector<GC>::const_iterator end = occupiedGridCells(gridLevelID).end();
     gridCells.reserve(occupiedGridCells(gridLevelID).size());
@@ -684,18 +664,15 @@ occupiedGridCellsInRange(vector< GridCellIndex<Dimension> >& gridCells,
       // If this grid cell is in the required range, add it to the list.
       if ((*gridCellItr).inRange(minGridCell, maxGridCell)) gridCells.push_back(*gridCellItr);
     }
-    TAU_PROFILE_STOP(TimeNGNOCIRBranch1);
 
   } else {
 
     // Scan all the grid cells in the given range.
-    TAU_PROFILE_START(TimeNGNOCIRBranch2);
     gridCells.reserve(numCellsInRange);
     for (GC gridCell = minGridCell; gridCell <= maxGridCell; incrementGridCell(gridCell, minGridCell, maxGridCell)) {
       const int nodeID = headOfGridCell(gridCell, gridLevelID);
       if (nodeID != mEndOfLinkList) gridCells.push_back(gridCell);
     }
-    TAU_PROFILE_STOP(TimeNGNOCIRBranch2);
   }
 }
 
@@ -930,18 +907,7 @@ void
 NestedGridNeighbor<Dimension>::updateNodes() {
   REQUIRE(readyToAssignNodes());
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor", "::updateNodes()", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeResize, "NestedGridNeighbor", "::updateNodes() : resize", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeAssignGrid, "NestedGridNeighbor", "::updateNodes() : assign grid cells/levels", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeRebuildOccupied, "NestedGridNeighbor", "::updateNodes() : rebuild occupied grid cells", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeSetExtent, "NestedGridNeighbor", "::updateNodes() : set node extents", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeSetGL, "NestedGridNeighbor", "::updateNodes() : set grid level", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeSetGC, "NestedGridNeighbor", "::updateNodes() : set grid cell", TAU_USER);
-//   TAU_PROFILE_TIMER(TimeLinkNode, "NestedGridNeighbor", "::updateNodes() : link node in link list", TAU_USER);
-
   // Resize things to the correct sizes.
-//   TAU_PROFILE_START(TimeResize);
   const int numNodes = this->nodeList().numNodes();
   for (int gridLevelID = 0; gridLevelID < numGridLevels(); ++gridLevelID) {
     CHECK(gridLevelID < mGridLevelOccupied.size());
@@ -1040,9 +1006,6 @@ updateNodes(const vector<int>& nodeIDs) {
 
   REQUIRE(readyToAssignNodes());
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor", "::updateNodes(const vector<int>& nodeIDs)", TAU_USER);
-
   // Make sure the internal data structures are sized correctly.
   int numNodes = this->nodeList().numNodes();
   for (int gridLevelID = 0; gridLevelID < numGridLevels(); ++gridLevelID) {
@@ -1114,9 +1077,6 @@ void
 NestedGridNeighbor<Dimension>::
 rebuildOccupiedGridCells() {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor::", "rebuildOccupiedGridCells", TAU_USER);
-
   REQUIRE(readyToAssignNodes());
   REQUIRE(mGridCellHead.size() == numGridLevels());
   REQUIRE(mOccupiedGridCells.size() == numGridLevels());
@@ -1150,9 +1110,6 @@ rebuildOccupiedGridCells() {
 // void
 // NestedGridNeighbor<Dimension>::
 // rebuildOctTree() {
-
-//   // TAU timers.
-//   TAU_PROFILE("NestedGridNeighbor::", "rebuilOctTre", TAU_USER);
 
 //   // Clear any pre-exising info.
 //   mDaughterCells = vector<OctTree>(mMaxGridLevels);

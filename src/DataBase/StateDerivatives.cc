@@ -10,8 +10,6 @@
 #include "Physics/Physics.hh"
 #include "Field/Field.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 
 using namespace std;
@@ -29,7 +27,6 @@ StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-  TAU_PROFILE("StateDerivatives", "::StateDerivatives(db, packages)", TAU_USER);
 
   // Iterate over the physics packages, and have them register their derivatives.
   for (PackageIterator itr = physicsPackages.begin();
@@ -48,7 +45,6 @@ StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-  TAU_PROFILE("StateDerivatives", "::StateDerivatives(db, packageBegin, packageEnd)", TAU_USER);
 
   // Iterate over the physics packages, and have them register their derivatives.
   for (PackageIterator itr = physicsPackageBegin;
@@ -65,7 +61,6 @@ StateDerivatives(const StateDerivatives<Dimension>& rhs):
   StateBase<Dimension>(rhs),
   mCalculatedNodePairs(rhs.mCalculatedNodePairs),
   mNumSignificantNeighbors(rhs.mNumSignificantNeighbors) {
-  TAU_PROFILE("StateDerivatives", "::StateDerivatives(StateDerivatives&)", TAU_USER);
 }
 
 //------------------------------------------------------------------------------
@@ -83,7 +78,6 @@ template<typename Dimension>
 StateDerivatives<Dimension>&
 StateDerivatives<Dimension>::
 operator=(const StateDerivatives<Dimension>& rhs) {
-  TAU_PROFILE("StateDerivatives", "::operator=(StateDerivatives&)", TAU_USER);
   if (this != &rhs) {
     StateBase<Dimension>::operator=(rhs);
     mCalculatedNodePairs = rhs.mCalculatedNodePairs;
@@ -110,8 +104,6 @@ template<typename Dimension>
 void
 StateDerivatives<Dimension>::
 initializeNodePairInformation() {
-  TAU_PROFILE("StateDerivatives", "::initializeNodePairInformation()", TAU_USER);
-
   // Clear out any existing info.
   mCalculatedNodePairs = CalculatedPairType();
   mNumSignificantNeighbors = SignificantNeighborMapType();
@@ -125,7 +117,6 @@ template<typename Dimension>
 bool
 StateDerivatives<Dimension>::
 calculatedNodePairsSymmetric() const {
-  TAU_PROFILE("StateDerivatives", "::calculatedNodePairsSymmetric()", TAU_USER);
   bool result = true;
   typename CalculatedPairType::const_iterator itr = mCalculatedNodePairs.begin();
   while (result && itr != mCalculatedNodePairs.end()) {

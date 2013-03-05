@@ -37,8 +37,6 @@
 #include "Spasmos/PyPetsc.h"
 #include "Spasmos/MatFactory.h"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace GravitySpace {
 
@@ -597,12 +595,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 {
   using namespace NodeSpace;
 
-  // Timers.
-  TAU_PROFILE("SPHGravity", "::evaluateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHGravityUpdateMatrix, "SPHGravity", "::evaluateDerivatives : update matrix", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHGravityComputePotential, "SPHGravity", "::evaluateDerivatives : compute gravitational potential", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHGravityComputeAccel, "SPHGravity", "::evaluateDerivatives : compute accelerations", TAU_USER);
-
   // Access to pertinent fields in the database.
   const FieldList<Dimension, Scalar> m = state.scalarFields(HydroFieldNames::mass);
   const FieldList<Dimension, Scalar> rho = state.scalarFields(HydroFieldNames::massDensity);
@@ -617,14 +609,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mExtraEnergy = 0.0;
 
   // Update the Laplacian matrix.
-  TAU_PROFILE_START(TimeSPHGravityUpdateMatrix);
   mUpdateLaplacianMatrix(dataBase, state);
-  TAU_PROFILE_STOP(TimeSPHGravityUpdateMatrix);
 
   // Compute the gravitational potential.
-  TAU_PROFILE_START(TimeSPHGravityComputePotential);
   mComputeGravitationalPotential(dataBase, state);
-  TAU_PROFILE_STOP(TimeSPHGravityComputePotential);
 
   // Make sure that the potential is correct at the boundaries.
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -642,7 +630,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Now compute the gravitational acceleration, which is the negative gradient of the 
   // potential, and add it to the nodal accelerations.
-  TAU_PROFILE_START(TimeSPHGravityComputeAccel);
   mMinViOverAi = DBL_MAX;
   mMinDynTimeScale = DBL_MAX;
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -719,7 +706,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     } 
   } // end for
-  TAU_PROFILE_STOP(TimeSPHGravityComputeAccel);
 
   // That's it.
 }
@@ -851,12 +837,7 @@ initialize(const Scalar& time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs)
 {
-  // Compute the non-zero structure for the matrix.
-  TAU_PROFILE_TIMER(TimeSPHGravityInitialize, "SPHGravity", "::initialize", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSPHGravityMatrixStructure, "SPHGravity", "::evaluateDerivatives : compute matrix structure", TAU_USER);
-  TAU_PROFILE_START(TimeSPHGravityMatrixStructure);
   mComputeMatrixStructure(db, state);
-  TAU_PROFILE_STOP(TimeSPHGravityMatrixStructure);
 }
 //------------------------------------------------------------------------------
 

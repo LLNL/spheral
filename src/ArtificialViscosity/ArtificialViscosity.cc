@@ -17,8 +17,6 @@
 #include "Utilities/GeometricUtilities.hh"
 #include "FileIO/FileIO.hh"
 
-#include "TAU.h"
-
 using namespace std;
 
 namespace Spheral {
@@ -100,9 +98,6 @@ initialize(const DataBase<Dimension>& dataBase,
 	   const typename Dimension::Scalar time,
 	   const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-
-  // TAU timers.
-  TAU_PROFILE("ArtificialVicsocity", "::initialize", TAU_USER);
 
   // If needed, calculate grad v and grad div v.
   if (calculateSigma() or limiter()) calculateSigmaAndGradDivV(dataBase,
@@ -265,27 +260,15 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
 
-  // TAU timers.
-  TAU_PROFILE("ArtificialVicsocity", "::calculateSigmaAndGradDivV", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGResize, "ArtificialViscosity", "::calculateSigmaAndGradDivV - resize fields", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGGetState, "ArtificialViscosity", "::calculateSigmaAndGradDivV - get state", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGNewFields, "ArtificialViscosity", "::calculateSigmaAndGradDivV - create new fields", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGCon, "ArtificialViscosity", "::calculateSigmaAndGradDivV - get connectivity", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGLoop, "ArtificialViscosity", "::calculateSigmaAndGradDivV - big ass loop", TAU_USER);
-  TAU_PROFILE_TIMER(TimeQCSGBound, "ArtificialViscosity", "::calculateSigmaAndGradDivV - apply boundarys", TAU_USER);
-
   cdebug << "ArtificialViscosity::calculateSigmaAndGradDivV" << endl;
   const double tiny = 1.0e-10;
 
   // Verify that the internal FieldLists mSigma and mGradDivVelocity are properly
   // sized.
-  TAU_PROFILE_START(TimeQCSGResize);
   dataBase.resizeFluidFieldList(mSigma, Tensor::zero, "sigmaQ");
   dataBase.resizeFluidFieldList(mGradDivVelocity, Vector::zero, "gradDivVelocity");
-  TAU_PROFILE_STOP(TimeQCSGResize);
 
   // Zero out the gradient and grad div v FieldLists.
-  TAU_PROFILE_START(TimeQCSGGetState);
   mSigma.Zero();
   mGradDivVelocity.Zero();
 
@@ -295,24 +278,18 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, SymTensor> Hfield = state.fields(HydroFieldNames::H, SymTensor::zero);
-  TAU_PROFILE_STOP(TimeQCSGGetState);
 
   // Prepare FieldLists to accumulate the normalizations in.
-  TAU_PROFILE_START(TimeQCSGNewFields);
   FieldList<Dimension, Tensor> sigNormalization = dataBase.newFluidFieldList(Tensor::zero, "sigma normalization");
   FieldList<Dimension, Scalar> gdvNormalization = dataBase.newFluidFieldList(0.0, "grad div v normalization");
-  TAU_PROFILE_STOP(TimeQCSGNewFields);
 
   // Grab the connectivity map from the DataBase.
-  TAU_PROFILE_START(TimeQCSGCon);
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   const int numNodeLists = dataBase.numFluidNodeLists();
   CHECK(nodeLists.size() == numNodeLists);
-  TAU_PROFILE_STOP(TimeQCSGCon);
 
   // Iterate over the NodeLists.
-  TAU_PROFILE_START(TimeQCSGLoop);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -459,10 +436,8 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
     }
   }
-  TAU_PROFILE_STOP(TimeQCSGLoop);
 
   // Apply boundary conditions
-  TAU_PROFILE_START(TimeQCSGBound);
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) {
@@ -474,7 +449,6 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   //      ++boundItr) {
   //   (*boundItr)->finalizeGhostBoundary();
   // }
-  TAU_PROFILE_STOP(TimeQCSGBound);
 
 }
 

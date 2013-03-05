@@ -38,8 +38,6 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace SolidSPHSpace {
 
@@ -172,9 +170,6 @@ void
 SolidSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::initializeProblemStartup", TAU_USER);
-
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
@@ -205,9 +200,6 @@ void
 SolidSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::registerState", TAU_USER);
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -271,9 +263,6 @@ SolidSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::registerDerivatives", TAU_USER);
-
   // Call the ancestor method.
   SPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
 
@@ -307,12 +296,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::evaluateDerivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSolidSPHHydroBaseCalcDerivs, "SolidSPHHydroBase", "::evaluateDerivatives : calc derivatives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSolidSPHHydroBaseGetFieldLists, "SPHNode", "::evaluateDerivatives : get FieldLists", TAU_USER);
-  TAU_PROFILE_TIMER(TimeSolidSPHHydroBaseNodeIState, "SPHNode", "::evaluateDerivatives : node i state", TAU_USER);
-
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -334,7 +317,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const size_t numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists.
-  TAU_PROFILE_START(TimeSolidSPHHydroBaseGetFieldLists);
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -396,7 +378,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-  TAU_PROFILE_STOP(TimeSolidSPHHydroBaseGetFieldLists);
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) {
@@ -411,7 +392,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Start our big loop over all FluidNodeLists.
-  TAU_PROFILE_START(TimeSolidSPHHydroBaseCalcDerivs);
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -436,7 +416,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          ++iItr) {
       const int i = *iItr;
 
-      TAU_PROFILE_START(TimeSolidSPHHydroBaseNodeIState);
       // Prepare to accumulate the time.
       const Time start = Timing::currentTime();
       size_t ncalc = 0;
@@ -482,7 +461,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-      TAU_PROFILE_STOP(TimeSolidSPHHydroBaseNodeIState);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -756,7 +734,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
-  TAU_PROFILE_STOP(TimeSolidSPHHydroBaseCalcDerivs);
 }
 
 //------------------------------------------------------------------------------
@@ -767,9 +744,6 @@ void
 SolidSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::applyGhostBoundaries", TAU_USER);
 
   // Ancestor method.
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
@@ -798,9 +772,6 @@ void
 SolidSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("SolidSPHHydroBase", "::enforceBoundaries", TAU_USER);
 
   // Ancestor method.
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);

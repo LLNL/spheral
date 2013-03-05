@@ -26,9 +26,6 @@
 
 #include "DBC.hh"
 
-#include "TAU.h"
-
-
 namespace Spheral {
 namespace IntegratorSpace {
 
@@ -155,9 +152,6 @@ selectDt(const typename Dimension::Scalar dtMin,
          const State<Dimension>& state,
          const StateDerivatives<Dimension>& derivs) const {
 
-  TAU_PROFILE("Integrator", "::selectDt", TAU_USER);
-
-
   REQUIRE(dtMin >= 0 and dtMax > 0);
   REQUIRE(dtMin <= dtMax);
 
@@ -209,8 +203,6 @@ void
 Integrator<Dimension>::initialize(State<Dimension>& state,
                                   StateDerivatives<Dimension>& derivs) {
 
-  TAU_PROFILE("Integrator", "::initialize(state, derivs)", TAU_USER);
-
   // Check if we need to construct connectivity.
   mRequireConnectivity = false;
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
@@ -244,8 +236,6 @@ Integrator<Dimension>::preStepInitialize(const double t,
                                          State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) {
 
-  TAU_PROFILE("Integrator", "::preStepInitialize", TAU_USER)
-
   // Loop over the NodeLists in the DataBase and initialize them.  Also make sure
   // they know about the smoothing scale constraints.
   DataBase<Dimension>& db = accessDataBase();
@@ -277,8 +267,6 @@ Integrator<Dimension>::finalize(const double t,
                                 State<Dimension>& state,
                                 StateDerivatives<Dimension>& derivs) {
 
-  TAU_PROFILE("Integrator", "::finalize", TAU_USER)
-
   // Loop over the physics packages and perform any necessary finalizations.
   DataBase<Dimension>& db = accessDataBase();
 //   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
@@ -304,8 +292,6 @@ Integrator<Dimension>::evaluateDerivatives(const Scalar t,
                                            const State<Dimension>& state,
                                            StateDerivatives<Dimension>& derivs) const {
 
-  TAU_PROFILE("Integrator", "::evaluateDerivatives", TAU_USER)
-
   // Loop over the physics packages and have them evaluate their derivatives.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
@@ -325,8 +311,6 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
                                            const State<Dimension>& state,
                                            StateDerivatives<Dimension>& derivs) const {
 
-  TAU_PROFILE("Integrator", "::finalizeDerivatives", TAU_USER)
-
   // Loop over the physics packages and have them finalize their derivatives.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
@@ -344,8 +328,6 @@ void
 Integrator<Dimension>::postStateUpdate(const DataBase<Dimension>& dataBase, 
                                        State<Dimension>& state,
                                        const StateDerivatives<Dimension>& derivs) const {
-
-  TAU_PROFILE("Integrator", "::postStateUpdate", TAU_USER)
 
   // Loop over the physics packages.
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
@@ -436,8 +418,6 @@ uniqueBoundaryConditions() const {
 template<typename Dimension>
 void
 Integrator<Dimension>::setGhostNodes() {
-
-  TAU_PROFILE("Integrator", "::setGhostNodes", TAU_USER);
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
@@ -586,11 +566,6 @@ void
 Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
                                             StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("Integrator", "::applyGhostBoundaries", TAU_USER);
-  TAU_PROFILE_TIMER(TimeIntegratorGB1, "Integrator", "::applyGhostBoundaries : update ghost nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeIntegratorGB2, "Integrator", "::applyGhostBoundaries : apply boundaries", TAU_USER);
-
 //   // Start our work timer.
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
@@ -601,7 +576,6 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
     DataBase<Dimension>& db = accessDataBase();
 
     // If we're being rigorous about boundaries, we have to reset the ghost nodes.
-    TAU_PROFILE_START(TimeIntegratorGB1);
     const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
     if (mRigorousBoundaries) {
       setGhostNodes();
@@ -626,11 +600,9 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
         (*nodeListItr)->neighbor().updateNodes();
       }
     }
-    TAU_PROFILE_STOP(TimeIntegratorGB1);
 
     // Iterate over the physics packages, and have them apply ghost boundaries
     // for their state.
-    TAU_PROFILE_START(TimeIntegratorGB2);
     for (ConstPackageIterator physicsItr = physicsPackagesBegin();
          physicsItr != physicsPackagesEnd();
          ++physicsItr) {
@@ -650,8 +622,6 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
     // Finalize the boundaries.
     this->finalizeGhostBoundaries();
   }
-
-  TAU_PROFILE_STOP(TimeIntegratorGB2);
 }
 
 //------------------------------------------------------------------------------
@@ -660,9 +630,6 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 Integrator<Dimension>::finalizeGhostBoundaries() {
-
-  // TAU timers.
-  TAU_PROFILE("Integrator", "::finalizeGhostBoundaries", TAU_USER);
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
@@ -700,8 +667,6 @@ template<typename Dimension>
 void
 Integrator<Dimension>::setViolationNodes() {
 
-  TAU_PROFILE("Integrator", "::setViolationNodes", TAU_USER);
-
   if (mRequireConnectivity) {
 
     // Get that DataBase.
@@ -733,8 +698,6 @@ template<typename Dimension>
 void
 Integrator<Dimension>::enforceBoundaries(State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) {
-
-  TAU_PROFILE("Integrator", "::enforceBoundaries", TAU_USER);
 
   if (mRequireConnectivity) {
 

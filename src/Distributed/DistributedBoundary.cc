@@ -19,8 +19,6 @@
 #include "DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace BoundarySpace {
 
@@ -180,9 +178,6 @@ communicatedProcs(vector<int>& sendProcs,
 // void
 // DistributedBoundary<Dimension>::
 // exchangeField(Field<Dimension, DataType>& field) const {
-
-//   // TAU timers.
-//   TAU_PROFILE("DistributedBoundary", "::exchangeField", TAU_USER);
 
 //   cdebug << domainID() << " "
 //          << "DistributedBoundary::exchangeField(field)" << endl
@@ -379,9 +374,6 @@ communicatedProcs(vector<int>& sendProcs,
 // void
 // DistributedBoundary<Dimension>::
 // exchangeField(Field<Dimension, vector<double> >& field) const {
-
-//   // TAU timers.
-//   TAU_PROFILE("DistributedBoundary", "::exchangeField(vector<double>)", TAU_USER);
 
 //   cdebug << domainID() << " "
 //          << "DistributedBoundary::exchangeField<vector<double> >(field)" << endl
@@ -629,9 +621,6 @@ void
 DistributedBoundary<Dimension>::
 beginExchangeField(Field<Dimension, DataType>& field) const {
 
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary", "::beginExchangeField", TAU_USER);
-
   // We use a handy trait class to tell us how many elements there are in the
   // type we're exchanging.
   typedef typename DataTypeTraits<DataType>::ElementType ElementType;
@@ -825,9 +814,6 @@ DistributedBoundary<Dimension>::
 cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                FieldList<Dimension, int>& old2newIndexMap,
                vector<int>& numNodesRemoved) {
-
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary", "::cullGhostNodes", TAU_USER);
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
   const int procID = domainID();
@@ -1034,9 +1020,6 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
-
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary", "::updateGhostNodes(nodeList)", TAU_USER);
 
   // Exchange the positions and H fields for this NodeList.
   Field<Dimension, Vector>& positions = nodeList.positions();
@@ -1340,12 +1323,6 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::finalizeExchanges() {
 
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary", "::finalizeExchanges()", TAU_USER);
-  TAU_PROFILE_TIMER(TimeDBFERecv, "DistributedBoundary", "::finalizeExchanges() : receives", TAU_USER);
-  TAU_PROFILE_TIMER(TimeDBFESend, "DistributedBoundary", "::finalizeExchanges() : sends", TAU_USER);
-  TAU_PROFILE_TIMER(TimeDBFEClear, "DistributedBoundary", "::finalizeExchanges() : clear buffers", TAU_USER);
-
   BEGIN_CONTRACT_SCOPE;
   {
     // Make sure everyone has the same number of exchange fields.
@@ -1402,7 +1379,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
 #endif
 
   // Do we have any data we're waiting to receive?
-  TAU_PROFILE_START(TimeDBFERecv);
   if (mRecvRequests.size() > 0) {
 
     // Wait until all of our receives have been satisfied.
@@ -1471,10 +1447,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     }
 
   }
-  TAU_PROFILE_STOP(TimeDBFERecv);
 
   // Do we have any data we're waiting to send?
-  TAU_PROFILE_START(TimeDBFESend);
   if (mSendRequests.size() > 0) {
 
     // Wait until all of our sends have been satisfied.
@@ -1487,10 +1461,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
 #endif
 
   }
-  TAU_PROFILE_STOP(TimeDBFESend);
 
   // Clear out the pending exchange fields.
-  TAU_PROFILE_START(TimeDBFEClear);
   mIntExchangeFields = vector<Field<Dimension, int>*>();
   mScalarExchangeFields = vector<Field<Dimension, Scalar>*>();
   mVectorExchangeFields = vector<Field<Dimension, Vector>*>();
@@ -1533,7 +1505,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   ENSURE(mRecvBuffers.size() == 0);
   ENSURE(mField2SendBuffer.size() == 0);
   ENSURE(mField2RecvBuffer.size() == 0);
-  TAU_PROFILE_STOP(TimeDBFEClear);
 }
 
 //------------------------------------------------------------------------------
@@ -1543,9 +1514,6 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 setControlAndGhostNodes() {
-
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary", "::setControlAndGhostNodes()", TAU_USER);
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
   typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap DomainBoundaryNodeMap;
@@ -1601,9 +1569,6 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
-
-  // TAU timers.
-  TAU_PROFILE("DistributedBoundary::", "buildReceiveAndGhostNodes", TAU_USER);
 
   // This processor's ID.
   int procID = this->domainID();
