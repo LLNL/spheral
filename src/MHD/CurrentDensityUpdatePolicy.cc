@@ -10,8 +10,6 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
-#include "TAU.h"
-
 
 namespace Spheral {
 
@@ -66,10 +64,6 @@ update(const KeyType& key,
   typedef Dim<3>::Vector Vector;
   typedef Dim<3>::SymTensor SymTensor;
 
-  // Timers.
-  TAU_PROFILE("MHD", "::updateCurrentDensity", TAU_USER);
-  TAU_PROFILE_TIMER(TimeMHDUpdateJ, "MHD", "::updateCurrentDensity", TAU_USER);
-
   // Get access to data.
   const FieldList<Dim<3>, Dim<3>::Scalar>& m = state.scalarFields(HydroFieldNames::mass);
   const FieldList<Dim<3>, Dim<3>::Scalar>& rho = state.scalarFields(HydroFieldNames::massDensity);
@@ -82,7 +76,6 @@ update(const KeyType& key,
   // Compute the curl of the magnetic induction to obtain the current density.
   // Now compute the gravitational acceleration, which is the negative gradient of the 
   // potential, and add it to the nodal accelerations.
-  TAU_PROFILE_START(TimeMHDUpdateJ);
   const ConnectivityMap<Dim<3> >& connectivityMap = mDataBase.connectivityMap();
   int numNodeLists = J.numFields();
   for (int iNodeList = 0; iNodeList < numNodeLists; ++iNodeList) {
@@ -141,7 +134,6 @@ update(const KeyType& key,
       (*J[iNodeList])[iNode] = Ji;
     } 
   } // end for
-  TAU_PROFILE_STOP(TimeMHDUpdateJ);
 }
 //------------------------------------------------------------------------------
 

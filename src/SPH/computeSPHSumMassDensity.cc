@@ -31,9 +31,6 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
-  // TAU timers.
-  TAU_PROFILE("computeSPHSumMassDensity", "", TAU_USER);
-
   // Pre-conditions.
   const size_t numNodeLists = massDensity.size();
   REQUIRE(position.size() == numNodeLists);

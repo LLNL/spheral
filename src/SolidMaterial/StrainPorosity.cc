@@ -88,9 +88,6 @@ evaluateDerivatives(const Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
-  // TAU timers.
-  TAU_PROFILE("StrainPorosity", "::evaluateDerivatives", TAU_USER);
-
   // Get the state fields.
   typedef typename State<Dimension>::KeyType Key;
   const Key gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, mNodeList.name());
@@ -145,10 +142,6 @@ void
 StrainPorosity<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("StrainPorosity", "::registerState", TAU_USER);
-
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   PolicyPointer strainPolicy(new IncrementState<Dimension, Scalar>());
   PolicyPointer alphaPolicy(new IncrementBoundedState<Dimension, Scalar, Scalar>(1.0));
@@ -164,10 +157,6 @@ void
 StrainPorosity<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("StrainPorosity", "::registerDerivatives", TAU_USER);
-
   derivs.enroll(mDstrainDt);
   derivs.enroll(mDalphaDt);
 }

@@ -22,5 +22,4 @@ SOLIDTOP = ..
 ARCH = $(SPHERALARCH)
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SOLIDTOP)/helpers/makefile_master

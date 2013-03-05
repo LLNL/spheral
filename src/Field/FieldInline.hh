@@ -4,8 +4,6 @@
 #include <sstream>
 #include <limits>
 
-#include "TAU.h"
-
 #include "Field/FieldBase.hh"
 #include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
@@ -1239,10 +1237,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
-
-  // TAU timers.
-  TAU_PROFILE("Field::", "deleteElements(IDs)", TAU_USER);
-
   // The standalone method does the actual work.
   removeElements(mDataArray, nodeIDs);
 }

@@ -236,9 +236,6 @@ TreeNeighbor<Dimension>::
 setMasterList(const GeomPlane<Dimension>& enterPlane,
               const GeomPlane<Dimension>& exitPlane) {
 
-  // TAU timers.
-  TAU_PROFILE("TreeNeighbor", "::setMasterList(Plane, Plane)", TAU_USER);
-
   // Get the master and coarse lists.
   vector<int>& masterList = this->accessMasterList();
   vector<int>& coarseList = this->accessCoarseNeighborList();
@@ -800,9 +797,6 @@ TreeNeighbor<Dimension>::
 setTreeMasterList(const typename Dimension::Vector& position,
                   const double& h) {
 
-  // TAU timers.
-  TAU_PROFILE("TreeNeighbor", "::setTreeMasterList", TAU_USER);
-
   // Set the working master grid level and cell.
   CellKey masterKey, ix_master, iy_master, iz_master;
   const LevelKey masterLevel = this->gridLevel(h);
@@ -845,9 +839,6 @@ TreeNeighbor<Dimension>::
 setTreeRefineNeighborList(const typename Dimension::Vector& position,
                           const typename Dimension::SymTensor& H) {
 
-  // TAU timers.
-  TAU_PROFILE("TreeNeighbor", "::setTreeRefineNeighborList", TAU_USER);
-
   // // Determine the maximum extent of this H tensor in each dimension.
   // const Vector extent = this->HExtent(H, this->kernelExtent());
   // const Vector minExtent = position - extent;
@@ -870,9 +861,6 @@ findTreeNeighbors(const LevelKey& masterLevel,
                   const typename TreeNeighbor<Dimension>::CellKey& ix_master,
                   const typename TreeNeighbor<Dimension>::CellKey& iy_master,
                   const typename TreeNeighbor<Dimension>::CellKey& iz_master) const {
-
-  // TAU timers.
-  TAU_PROFILE("TreeNeighbor", "::findTreeNeighbors", TAU_USER);
 
   // Declare variables.
   LevelKey ilevel = 0;

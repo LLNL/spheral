@@ -21,4 +21,3 @@ ARCH = $(SPHERALARCH)
 ##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master
-include $(SPHERALTOP)/helpers/makefile_taumaster

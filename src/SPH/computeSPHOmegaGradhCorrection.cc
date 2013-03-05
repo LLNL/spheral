@@ -31,9 +31,6 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
                                const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                FieldList<Dimension, typename Dimension::Scalar>& omegaGradh) {
 
-  // TAU timers.
-  TAU_PROFILE("computeSPHOmegaGradhCorrection", "", TAU_USER);
-
   // Pre-conditions.
   const size_t numNodeLists = omegaGradh.size();
   REQUIRE(position.size() == numNodeLists);

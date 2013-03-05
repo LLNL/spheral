@@ -28,8 +28,6 @@ extern "C" {
 
 #include "DBC.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace PartitionSpace {
 
@@ -47,9 +45,6 @@ template<typename Dimension>
 RedistributeNodes<Dimension>::
 RedistributeNodes():
   mComputeWork(false) {
-
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::RedistributeNodes()", TAU_USER);
 }
 
 //------------------------------------------------------------------------------
@@ -67,9 +62,6 @@ template<typename Dimension>
 int
 RedistributeNodes<Dimension>::
 numGlobalNodes(const DataBase<Dimension>& dataBase) const {
-
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::numGlobalNodes(dataBase)", TAU_USER);
 
   typedef typename DataBase<Dimension>::ConstNodeListIterator ItrType;
   int result = 0;
@@ -90,9 +82,6 @@ vector<DomainNode<Dimension> >
 RedistributeNodes<Dimension>::
 currentDomainDecomposition(const DataBase<Dimension>& dataBase,
                            const FieldList<Dimension, int>& globalNodeIDs) const {
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::currentDomainDecomposition(dataBase, IDs)", TAU_USER);
-
   FieldList<Dimension, Scalar> dummyWork = dataBase.newGlobalFieldList(Scalar());
   return currentDomainDecomposition(dataBase, globalNodeIDs, dummyWork);
 }
@@ -107,9 +96,6 @@ RedistributeNodes<Dimension>::
 currentDomainDecomposition(const DataBase<Dimension>& dataBase,
                            const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
                            const FieldList<Dimension, Scalar>& workPerNode) const {
-
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::currentDomainDecomposition(dataBase, IDs, work)", TAU_USER);
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE;
@@ -168,22 +154,9 @@ RedistributeNodes<Dimension>::
 enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
                            DataBase<Dimension>& dataBase) const {
 
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes::", "enforceDmoainDecomposition(nodeDistribution, dataBase)", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDD1, "RedistributeNodes::", "::enforceDmoainDecomposition - Stage 1", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDDWait1, "RedistributeNodes::", "::enforceDmoainDecomposition - Wait 1", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDD2, "RedistributeNodes::", "::enforceDmoainDecomposition - Stage 2", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDDWait2, "RedistributeNodes::", "::enforceDmoainDecomposition - Wait 2", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDD3, "RedistributeNodes::", "::enforceDmoainDecomposition - Stage 3", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDDWait3, "RedistributeNodes::", "::enforceDmoainDecomposition - Wait 3", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDD4, "RedistributeNodes::", "::enforceDmoainDecomposition - Stage 4", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDDWait4, "RedistributeNodes::", "::enforceDmoainDecomposition - Wait 4", TAU_USER);
-  TAU_PROFILE_TIMER(TimeRNEDD5, "RedistributeNodes::", "::enforceDmoainDecomposition - Stage 5", TAU_USER);
-
   REQUIRE(validDomainDecomposition(nodeDistribution, dataBase));
   typedef typename DataBase<Dimension>::ConstNodeListIterator NodeListIterator;
 
-  TAU_PROFILE_START(TimeRNEDD1);
   const int numNodeLists = dataBase.numNodeLists();
   const int proc = domainID();
   const int numProcs = numDomains();
@@ -266,18 +239,14 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     }
     CHECK(nodeListID == numNodeLists);
   }
-  TAU_PROFILE_STOP(TimeRNEDD1);
 
   // Wait until we know who is sending us nodes.
-  TAU_PROFILE_START(TimeRNEDDWait1);
   {
     vector<MPI_Status> recvStatus(numRecvNodeRequests.size());
     MPI_Waitall(numRecvNodeRequests.size(), &(*numRecvNodeRequests.begin()), &(*recvStatus.begin()));
   }
-  TAU_PROFILE_STOP(TimeRNEDDWait1);
 
   // Sum the total nodes we're receiving from each domain.
-  TAU_PROFILE_START(TimeRNEDD2);
   int numRecvDomains = 0;
   vector<int> totalNumRecvNodes(numProcs, 0);
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
@@ -353,7 +322,6 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   CHECK(sendBufferSizes.size() == numSendDomains);
   CHECK(sendBufSizeRequests.size() <= numSendDomains*numNodeLists);
   CHECK(numSendBuffers >= numSendDomains);
-  TAU_PROFILE_STOP(TimeRNEDD2);
       
   // Determine the maximum number of fields defined on a NodeList.
   int maxNumFields = 0;
@@ -376,15 +344,12 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   }
 
   // Wait until we know the sizes of the encoded field buffers we're receiving.
-  TAU_PROFILE_START(TimeRNEDDWait2);
   {
     vector<MPI_Status> recvStatus(recvBufSizeRequests.size());
     MPI_Waitall(recvBufSizeRequests.size(), &(*recvBufSizeRequests.begin()), &(*recvStatus.begin()));
   }
-  TAU_PROFILE_STOP(TimeRNEDDWait2);
 
   // Prepare to receive the encoded field buffers.
-  TAU_PROFILE_START(TimeRNEDD3);
   list< list< list< vector<char> > > > fieldBuffers;
   list< list< vector<int> > >::const_iterator outerBufSizeItr = recvBufferSizes.begin();
   vector<MPI_Request> recvBufferRequests;
@@ -446,20 +411,16 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     }
   }
   CHECK(sendBufferRequests.size() == numSendBuffers);
-  TAU_PROFILE_STOP(TimeRNEDD3);
 
   // Wait until we've received the packed field buffers.
-  TAU_PROFILE_START(TimeRNEDDWait3);
   {
     vector<MPI_Status> recvStatus(recvBufferRequests.size());
     MPI_Waitall(recvBufferRequests.size(), &(*recvBufferRequests.begin()), &(*recvStatus.begin()));
   }
-  TAU_PROFILE_STOP(TimeRNEDDWait3);
 
   // OK, now we're done with the communication part of this scheme.  Next we need to 
   // delete the nodes (and their associated Field elements) that we've transferred
   // to other domains.
-  TAU_PROFILE_START(TimeRNEDD4);
   {
     int nodeListID = 0;
     for (NodeListIterator nodeListItr = dataBase.nodeListBegin();
@@ -512,10 +473,8 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     }
   }
   CHECK(procBufItr == fieldBuffers.end());
-  TAU_PROFILE_STOP(TimeRNEDD4);
 
   // Wait until all our sends are completed.
-  TAU_PROFILE_START(TimeRNEDDWait4);
   {
     vector<MPI_Status> sendStatus(numSendNodeRequests.size());
     MPI_Waitall(numSendNodeRequests.size(), &(*numSendNodeRequests.begin()), &(*sendStatus.begin()));
@@ -528,13 +487,9 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     vector<MPI_Status> sendStatus(sendBufferRequests.size());
     MPI_Waitall(sendBufferRequests.size(), &(*sendBufferRequests.begin()), &(*sendStatus.begin()));
   }
-  TAU_PROFILE_STOP(TimeRNEDDWait4);
 
   // Notify everyone that the nodes have just been shuffled around.
-  TAU_PROFILE_START(TimeRNEDD5);
   RedistributionRegistrar::instance().broadcastRedistributionNotifications();
-  TAU_PROFILE_STOP(TimeRNEDD5);
-
 }
 
 //------------------------------------------------------------------------------
@@ -546,9 +501,6 @@ bool
 RedistributeNodes<Dimension>::
 validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
                          const DataBase<Dimension>& dataBase) const {
-
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::validDomainDecomposition(nodeDistribution, dataBase)", TAU_USER);
 
   // Parallel domain info.
   const int proc = domainID();
@@ -729,9 +681,6 @@ RedistributeNodes<Dimension>::
 workPerNode(const DataBase<Dimension>& dataBase,
             const double Hextent) const {
 
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::workPerNode(dataBase, Hextent)", TAU_USER);
-
   // Prepare the result.
   FieldList<Dimension, Scalar> result = dataBase.newGlobalFieldList(Scalar(), "work per node");
 
@@ -852,9 +801,6 @@ template<typename Dimension>
 string
 RedistributeNodes<Dimension>::
 gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension::Scalar>& work) const {
-
-  // TAU timers.
-  TAU_PROFILE("RedistributeNodes", "::gatherDomainDistributionStatistics(work)", TAU_USER);
 
   // Each domain computes it's total work and number of nodes.
   int localNumNodes = 0;

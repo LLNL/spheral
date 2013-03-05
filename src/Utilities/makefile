@@ -45,5 +45,4 @@ ARCH = $(SPHERALARCH)
 #EXTRALIBS = -lgsl -lgslcblas
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master

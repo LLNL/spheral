@@ -20,7 +20,6 @@ ARCH = $(SPHERALARCH)
 EXTRALIBS =
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master
 
 #TestSod:

@@ -30,6 +30,5 @@ PYTHONTARGETS = \
 SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_taumaster
 include $(SPHERALTOP)/helpers/makefile_master
 

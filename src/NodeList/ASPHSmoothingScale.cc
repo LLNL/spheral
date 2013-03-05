@@ -11,8 +11,6 @@
 #include "Kernel/TableKernel.hh"
 #include "Utilities/GeometricUtilities.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace NodeSpace {
 
@@ -280,8 +278,6 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar nPerh,
                     const int maxNumNeighbors) const {
 
-  TAU_PROFILE("ASPHSmoothingScale", "::idealSmoothingScale", TAU_USER);
-
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
@@ -383,8 +379,6 @@ newSmoothingScale(const SymTensor& H,
                   const Scalar hminratio,
                   const Scalar nPerh,
                   const int maxNumNeighbors) const {
-
-  TAU_PROFILE("ASPHSmoothingScale", "::newSmoothingScale", TAU_USER);
 
   const double tiny = 1.0e-50;
   const double tolerance = 1.0e-5;

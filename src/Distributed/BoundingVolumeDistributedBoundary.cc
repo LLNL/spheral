@@ -9,7 +9,6 @@
 #include <algorithm>
 
 #include "mpi.h"
-#include "TAU.h"
 
 #include "DistributedBoundary.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
@@ -91,9 +90,6 @@ void
 BoundingVolumeDistributedBoundary<Dimension>::
 setAllGhostNodes(DataBase<Dimension>& dataBase) {
 
-  // TAU timers.
-  TAU_PROFILE("BoundingVolumeDistributedBoundary", "::setAllGhostNodes", TAU_USER);
-
   // Clear out the existing communication map for the given database.
   this->reset(dataBase);
 
@@ -126,14 +122,6 @@ void
 BoundingVolumeDistributedBoundary<Dimension>::
 buildSendNodes(const DataBase<Dimension>& dataBase) {
 
-  // TAU timers.
-  TAU_PROFILE("BoundingVolumeDistributedBoundary::", "buildSendNodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeBVcomputeBV,        "BoundingVolumeDistributedBoundary::", "buildSendNodes : 1  compute domain bounding volumes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeBVall2all,          "BoundingVolumeDistributedBoundary::", "buildSendNodes : 2  broadcast bounding polyhedra", TAU_USER);
-  TAU_PROFILE_TIMER(TimeBVcomputeNodeBV,    "BoundingVolumeDistributedBoundary::", "buildSendNodes : 3  compute node bounding volumes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeBVIntersectDomains, "BoundingVolumeDistributedBoundary::", "buildSendNodes : 4  intersect domains", TAU_USER);
-  TAU_PROFILE_TIMER(TimeBVunique,           "BoundingVolumeDistributedBoundary::", "buildSendNodes : 5  remove duplicate sends", TAU_USER);
-
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
@@ -143,14 +131,11 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   const double kernelExtent = dataBase.maxKernelExtent();
 
   // Compute the local bounding volumes.
-  TAU_PROFILE_START(TimeBVcomputeBV);
   typedef typename Dimension::ConvexHull ConvexHull;
   vector<ConvexHull> domainNodeBoundingVolume(numProcs), domainSampleBoundingVolume(numProcs);
   globalBoundingVolumes(dataBase, domainNodeBoundingVolume[procID], domainSampleBoundingVolume[procID]);
-  TAU_PROFILE_STOP(TimeBVcomputeBV);
 
   // Globally exchange the bounding polyhedra.
-  TAU_PROFILE_START(TimeBVall2all);
   {
     vector<char> localBuffer;
     packElement(domainNodeBoundingVolume[procID], localBuffer);
@@ -169,17 +154,13 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
       }
     }
   }
-  TAU_PROFILE_STOP(TimeBVall2all);
 
   // Compute our node bounding boxes.
-  TAU_PROFILE_START(TimeBVcomputeNodeBV);
   typedef typename Dimension::Box Box;
   const FieldList<Dimension, Box> nodeSampleBoxes = nodeBoundingBoxes(dataBase);
-  TAU_PROFILE_STOP(TimeBVcomputeNodeBV);
 
   // Iterate over all the other domains and check who has bounding volumes that
   // intersect with our own.
-  TAU_PROFILE_START(TimeBVIntersectDomains);
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
   for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
     if (neighborProc != procID) {
@@ -208,10 +189,8 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
       }
     }
   }
-  TAU_PROFILE_STOP(TimeBVIntersectDomains);
 
   // Remove the duplicates in our send node lists.
-  TAU_PROFILE_START(TimeBVunique);
   typedef typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap DomainBoundaryNodeMap;
   typedef typename DistributedBoundary<Dimension>::NodeListDomainBoundaryNodeMap NodeListDomainBoundaryNodeMap;
   NodeListDomainBoundaryNodeMap& nodeListDomainBoundaryNodeMap = this->accessNodeListDomainBoundaryNodeMap();
@@ -227,7 +206,6 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
       sendNodes.erase(unique(sendNodes.begin(), sendNodes.end()), sendNodes.end());
     }
   }
-  TAU_PROFILE_STOP(TimeBVunique);
 
 }
 
@@ -241,9 +219,6 @@ packNodeListBuffers(const DataBase<Dimension>& dataBase,
                     vector<int>& numNodesPerNodeList,
                     vector<string>& positionBuffers,
                     vector<string>& Hbuffers) const {
-
-  // TAU timers.
-  TAU_PROFILE("BoundingVolumeDistributedBoundary::", "packNodeListBuffers", TAU_USER);
 
   for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();

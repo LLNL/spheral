@@ -15,8 +15,6 @@ using namespace std;
 
 #include "DBC.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace BoundarySpace {
 
@@ -184,8 +182,6 @@ void
 Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                                     FieldList<Dimension, int>& old2newIndexMap,
                                     vector<int>& numNodesRemoved) {
-  // TAU timers.
-  TAU_PROFILE("Boundary", "::cullGhostNodes", TAU_USER);
 
   typedef NodeListRegistrar<Dimension> Registrar;
   Registrar& registrar = Registrar::instance();

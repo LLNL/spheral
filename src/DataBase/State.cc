@@ -16,8 +16,6 @@
 #include "Field/FieldList.hh"
 #include "Geometry/Dimension.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 
 using namespace std;
@@ -64,7 +62,6 @@ State():
   StateBase<Dimension>(),
   mPolicyMap(),
   mTimeAdvanceOnly(false) {
-  TAU_PROFILE("State", "::State()", TAU_USER);
 }
 
 //------------------------------------------------------------------------------
@@ -77,7 +74,6 @@ State(DataBaseSpace::DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mPolicyMap(),
   mTimeAdvanceOnly(false) {
-  TAU_PROFILE("State", "::State(db, packages)", TAU_USER);
   // Iterate over the physics packages, and have them register their state.
   for (PackageIterator itr = physicsPackages.begin();
        itr != physicsPackages.end();
@@ -156,9 +152,6 @@ update(StateDerivatives<Dimension>& derivs,
        const double multiplier,
        const double t,
        const double dt) {
-
-  // TAU timers.
-  TAU_PROFILE("State", "::update", TAU_USER);
 
   // Prepare lists of the keys to be completed, and the keys which have been
   // completed.

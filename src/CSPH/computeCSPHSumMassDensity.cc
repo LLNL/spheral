@@ -32,9 +32,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
-  // TAU timers.
-  TAU_PROFILE("computeCSPHSumMassDensity", "", TAU_USER);
-
   // Pre-conditions.
   const size_t numNodeLists = massDensity.size();
   REQUIRE(position.size() == numNodeLists);

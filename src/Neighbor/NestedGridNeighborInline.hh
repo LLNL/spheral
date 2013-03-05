@@ -4,7 +4,6 @@
 #include "Geometry/GeomPlane.hh"
 #include "Utilities/intpow2.hh"
 #include "GridCellPlane.hh"
-#include "TAU.h"
 
 namespace Spheral {
 namespace NeighborSpace {
@@ -554,10 +553,6 @@ NestedGridNeighbor<Dimension>::
 setNestedRefineNeighborList(const typename Dimension::Vector& position,
                             const OtherHType& H) {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridNeighbor", "::setRefineNeighborList", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNestedPrecull, "NestedGridNeighbor", "::setRefineNeighborList : Precull nodes", TAU_USER);
-
   // Bizarrely on realistic test problems we seem to do best by not 
   // culling, but rather simply using the coarse set.
   // Since we have changed the refine neighbor list to just be a pointer at 
@@ -578,11 +573,9 @@ setNestedRefineNeighborList(const typename Dimension::Vector& position,
   const Vector maxExtent = position + extent;
 
   // Use precull to set the refined neighbor list.
-  TAU_PROFILE_START(TimeNestedPrecull);
   const std::vector<int>& coarseList = this->coarseNeighborList();
   std::vector<int>& refineList = this->accessRefineNeighborList();
   refineList = this->precullList(position, position, minExtent, maxExtent, coarseList);
-  TAU_PROFILE_STOP(TimeNestedPrecull);
 
 //   // Set the per field refine data caches for this NodeList.
 //   this->nodeList().notifyFieldsCacheRefineValues();

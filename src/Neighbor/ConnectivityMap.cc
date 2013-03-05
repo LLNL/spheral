@@ -18,8 +18,6 @@
 #include "Utilities/mortonOrderIndicies.hh"
 #include "Utilities/PairComparisons.hh"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace NeighborSpace {
 
@@ -48,9 +46,6 @@ void
 ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
-
-  // TAU timers.
-  TAU_PROFILE("ConnectivityMap::", "patchConnectivity", TAU_USER);
 
   // We have to recompute the keys to sort nodes by excluding the 
   // nodes that are being removed.
@@ -224,9 +219,6 @@ template<typename Dimension>
 bool
 ConnectivityMap<Dimension>::
 valid() const {
-
-  // TAU timers.
-  TAU_PROFILE("ConnectivityMap", "::valid", TAU_USER);
 
   // Are the number of NodeLists consistent?
   const int numNodeLists = mNodeLists.size();
@@ -422,14 +414,6 @@ void
 ConnectivityMap<Dimension>::
 computeConnectivity() {
 
-  // TAU timers.
-  TAU_PROFILE("ConnectivityMap::", "computeConnectivity", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCMBuildDB, "ConnectivityMap::", "computeConnectivity - build DataBase", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCMFillOrder, "ConnectivityMap::", "computeConnectivity - fill ordering", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCMAllocate, "ConnectivityMap::", "computeConnectivity - allocate memory", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCMMain, "ConnectivityMap::", "computeConnectivity - main loop", TAU_USER);
-  TAU_PROFILE_TIMER(TimeCMGhost, "ConnectivityMap::", "computeConnectivity - ghost neighbors", TAU_USER);
-
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -448,7 +432,6 @@ computeConnectivity() {
   END_CONTRACT_SCOPE;
 
   // Erase any prior information.
-  TAU_PROFILE_START(TimeCMBuildDB);
   mConnectivity = ConnectivityStorageType();
   mNodeTraversalIndicies = vector< vector<int> >();
 
@@ -463,12 +446,10 @@ computeConnectivity() {
     kernelExtent = max(kernelExtent, (**itr).neighbor().kernelExtent());
   }
   const double kernelExtent2 = kernelExtent*kernelExtent;
-  TAU_PROFILE_STOP(TimeCMBuildDB);
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
   // hash fills the bill.
-  TAU_PROFILE_START(TimeCMFillOrder);
   typedef typename KeyTraits::Key Key;
   const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
   if (mDomainDecompIndependent) mKeys = mortonOrderIndicies(dataBase);
@@ -496,10 +477,8 @@ computeConnectivity() {
     }
   }
   CHECK(mNodeTraversalIndicies.size() == numNodeLists);
-  TAU_PROFILE_STOP(TimeCMFillOrder);
 
   // Allocate the memory for storing the connectivity.
-  TAU_PROFILE_START(TimeCMAllocate);
   mConnectivity.reserve(numNodeLists);
   for (typename DataBase<Dimension>::NodeListIterator itr = dataBase.nodeListBegin();
        itr != dataBase.nodeListEnd();
@@ -523,7 +502,6 @@ computeConnectivity() {
   // Get the position and H fields.
   const FieldList<Dimension, Vector> position = dataBase.globalPosition();
   const FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
-  TAU_PROFILE_STOP(TimeCMAllocate);
 
   // Predeclare stuff we're going to use in the loop.
   unsigned iiNodeList, ii, iNodeList, jNodeList, firstGhostNode;
@@ -536,7 +514,6 @@ computeConnectivity() {
   Scalar eta2i, eta2j;
 
   // Iterate over the NodeLists.
-  TAU_PROFILE_START(TimeCMMain);
   CHECK(mConnectivity.size() == numNodeLists);
   for (iiNodeList = 0; iiNodeList != numNodeLists; ++iiNodeList) {
 
@@ -652,11 +629,9 @@ computeConnectivity() {
       }
     }
   }
-  TAU_PROFILE_STOP(TimeCMMain);
 
   // In the domain decompostion independent case, we need to sort the neighbors for ghost
   // nodes as well.
-  TAU_PROFILE_START(TimeCMGhost);
   if (mDomainDecompIndependent) {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       const NodeList<Dimension>* nodeListPtr = mNodeLists[iNodeList];
@@ -678,7 +653,6 @@ computeConnectivity() {
       }
     }
   }
-  TAU_PROFILE_STOP(TimeCMGhost);
 
   // Post conditions.
   BEGIN_CONTRACT_SCOPE;

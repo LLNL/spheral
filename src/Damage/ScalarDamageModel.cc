@@ -22,8 +22,6 @@
 
 #include "boost/shared_ptr.hpp"
 
-#include "TAU.h"
-
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -90,9 +88,6 @@ evaluateDerivatives(const Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  // TAU timers.
-  TAU_PROFILE("ScalarDamageModel", "::evaluateDerivatives", TAU_USER);
-
   // Fields we're going to set.
   typedef typename State<Dimension>::FieldKeyType KeyType;
   const KeyType DdamageDtKey(&(this->nodeList()),
@@ -137,9 +132,6 @@ void
 ScalarDamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-
-  // TAU timers.
-  TAU_PROFILE("ScalarDamageModel", "::registerState", TAU_USER);
 
   typedef typename State<Dimension>::FieldKeyType KeyType;
   typedef typename State<Dimension>::ScalarPolicyPointerType ScalarPolicyPointer;
@@ -194,9 +186,6 @@ ScalarDamageModel<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  // TAU timers.
-  TAU_PROFILE("ScalarDamageModel", "::registerDerivates", TAU_USER);
-
   // Register the damage time derivative.
   derivs.registerField(mDdamageDt);
 }
@@ -214,9 +203,6 @@ finalize(const typename Dimension::Scalar time,
          DataBase<Dimension>& db, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
-
-  // TAU timers.
-  TAU_PROFILE("ScalarDamageModel", "::finalize", TAU_USER);
 
   const double tiny = 1.0e-20;
 

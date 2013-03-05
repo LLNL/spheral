@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #include "mpi.h"
-#include "TAU.h"
 
 #include "DistributedBoundary.hh"
 #include "NestedGridDistributedBoundary.hh"
@@ -129,9 +128,6 @@ NestedGridDistributedBoundary<Dimension>::
 setGridCellInfluenceRadius(DataBase<Dimension>& dataBase,
                            const int newGridCellInfluenceRadius) const {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary::", "setGridCellInflueceRadius", TAU_USER);
-
   int result = 0;
 
   // Loop over the NodeLists in the DataBase.
@@ -163,9 +159,6 @@ void
 NestedGridDistributedBoundary<Dimension>::
 flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
 			 vector< vector< GridCellIndex<Dimension> > >& gridCells) const {
-
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary", "::flattenOccupiedGridCells", TAU_USER);
 
   // Erase any prior information in list of occupied grid cells.
   const int numGridLevels = maxNumGridLevels(dataBase);
@@ -229,9 +222,6 @@ NestedGridDistributedBoundary<Dimension>::
 packGridCellIndicies(const vector< vector< GridCellIndex<Dimension> > >& gridCellSet,
 		     vector<int>& packedGridCellIndicies) const {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary::", "packGridCellIndicies", TAU_USER);
-
   int packedIndex = 0;
   for (int gridLevel = 0; gridLevel != gridCellSet.size(); ++gridLevel) {
     for (typename vector< GridCellIndex<Dimension> >::const_iterator gridCellItr = gridCellSet[gridLevel].begin();
@@ -256,9 +246,6 @@ NestedGridDistributedBoundary<Dimension>::
 unpackGridCellIndicies(const vector<int>& packedGridCellIndicies,
 		       const vector<int>& gridCellDimension,
 		       vector< vector< GridCellIndex<Dimension> > >& gridCellSet) const {
-
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary::", "unpackGridCellIndicies", TAU_USER);
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE;
@@ -309,9 +296,6 @@ template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
 distributeOccupiedGridCells() {
-  TAU_PROFILE("NestedGridDistributedBoundary", "::distributeOccupiedGridCells", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDBcastSizes, "NestedGridDistributedBoundary", "::distributeOccupiedGridCells : broadcast sizes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDBcastCells, "NestedGridDistributedBoundary", "::distributeOccupiedGridCells : broadcast cells", TAU_USER);
 
   // This processor's ID.
   int procID = this->domainID();
@@ -329,16 +313,13 @@ distributeOccupiedGridCells() {
   }
 
   // Broadcast the dimensions to everyone.
-  TAU_PROFILE_START(TimeNDBcastSizes);
   for (int sendDomain = 0; sendDomain != numProcs; ++sendDomain) {
     MPI_Bcast(&occupiedGridCellDimensions[sendDomain].front(), numGridLevels, MPI_INT, sendDomain, Communicator::communicator());
   }
-  TAU_PROFILE_STOP(TimeNDBcastSizes);
 
   // OK, now everyone knows the dimensions of the occupied grid cell information
   // they will be getting from all other processes, so go ahead and distribute the
   // occupied grid cell information.
-  TAU_PROFILE_START(TimeNDBcastCells);
   for (int sendDomain = 0; sendDomain != numProcs; ++sendDomain) {
 
     // Determine the size of message for this send domain, and allocate space for 
@@ -353,8 +334,6 @@ distributeOccupiedGridCells() {
     MPI_Bcast(&packedGridCellIndicies.front(), totalNumGridCells*Dimension::nDim, MPI_INT, sendDomain, Communicator::communicator());
     if (procID != sendDomain) unpackGridCellIndicies(packedGridCellIndicies, occupiedGridCellDimensions[sendDomain], mOccupiedGridCells[sendDomain]);
   }
-  TAU_PROFILE_STOP(TimeNDBcastCells);
-
 }
 
 //------------------------------------------------------------------------------
@@ -399,27 +378,15 @@ void
 NestedGridDistributedBoundary<Dimension>::
 setAllGhostNodes(DataBase<Dimension>& dataBase) {
 
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary", "::setAllGhostNodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDSetGhost, "NestedGridDistributedBoundary", "::setAllGhostNodes : Set ghost nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDReset, "NestedGridDistributedBoundary", "::setAllGhostNodes : Clear existing info", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDFlatten, "NestedGridDistributedBoundary", "::setAllGhostNodes : Flatten occupied gridcells", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDDistributeGridCells, "NestedGridDistributedBoundary", "::setAllGhostNodes : Distribute occupied gridcells ", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDBuildSend, "NestedGridDistributedBoundary", "::setAllGhostNodes : Build send nodes ", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDBuildRecv, "NestedGridDistributedBoundary", "::setAllGhostNodes : Build recv & ghost nodes", TAU_USER);
-  TAU_PROFILE_TIMER(TimeNDExchangeMinimal, "NestedGridDistributedBoundary", "::setAllGhostNodes : Exchange r, H", TAU_USER);
-
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
   CHECK(procID < numProcs);
 
   // Clear out the existing communication map for the given database.
-  TAU_PROFILE_START(TimeNDReset);
 //   const int oldGridCellRadius = setGridCellInfluenceRadius(dataBase,
 //                                                            mGridCellInfluenceRadius);
   reset(dataBase);
-  TAU_PROFILE_STOP(TimeNDReset);
 
   // JMO 2002-10-28 - If we have periodic boundaries present, we have to allow those
   // boundaries to be set first, and then communicate the resulting ghost nodes
@@ -433,29 +400,20 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   // Begin by creating the flattened list of occupied grid cells for this process.
   // The flattening here is across NodeLists, so we are making an amalgamated list
   // of grid cells occupied by nodes from any NodeList on this domain.
-  TAU_PROFILE_START(TimeNDFlatten);
   CHECK(mOccupiedGridCells.size() == numProcs);
   flattenOccupiedGridCells(dataBase, mOccupiedGridCells[procID]);
-  TAU_PROFILE_STOP(TimeNDFlatten);
 
   // Distribute the complete set of occupied grid cells for all domains to all processes.
-  TAU_PROFILE_START(TimeNDDistributeGridCells);
   distributeOccupiedGridCells();
-  TAU_PROFILE_STOP(TimeNDDistributeGridCells);
 
   // Each processor now knows the occupied grid cells for all other processors.
   // Figure out which of our nodes need to be sent to each processor.
-  TAU_PROFILE_START(TimeNDBuildSend);
   buildSendNodes(dataBase);
-  TAU_PROFILE_STOP(TimeNDBuildSend);
 
   // Tell everyone else the send nodes we have for them.
-  TAU_PROFILE_START(TimeNDBuildRecv);
   this->buildReceiveAndGhostNodes(dataBase);
-  TAU_PROFILE_STOP(TimeNDBuildRecv);
 
   // Exchange the minimal info we expect for the NodeLists: mass, position, H
-  TAU_PROFILE_START(TimeNDExchangeMinimal);
 //   setGridCellInfluenceRadius(dataBase, oldGridCellRadius);
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
@@ -463,7 +421,6 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
 //     if (communicatedNodeList(**nodeListItr)) updateGhostNodes(**nodeListItr);
     this->updateGhostNodes(**nodeListItr);
   }
-  TAU_PROFILE_STOP(TimeNDExchangeMinimal);
 
   // And that's all.  At this point each domain knows who it it sending nodes to,
   // what nodes to send them, who it is receiving nodes from, and what nodes it
@@ -497,9 +454,6 @@ template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
 buildSendNodes(const DataBase<Dimension>& dataBase) {
-
-  // TAU timers.
-  TAU_PROFILE("NestedGridDistributedBoundary::", "buildSendNodes", TAU_USER);
 
   // This processor's ID.
   int procID = this->domainID();
