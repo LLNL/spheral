@@ -7,8 +7,7 @@
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -28,7 +27,6 @@ ConstantZVelocityBoundary<Dimension>::
 ConstantZVelocityBoundary(const NodeList<Dimension>& nodeList,
                           const vector<int>& nodeIndicies):
   ConstantVelocityBoundary<Dimension>(nodeList, nodeIndicies) {
-  cdebug << "ConstantZVelocityBoundary::ConstantZVelocityBoundary" << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -36,7 +34,6 @@ ConstantZVelocityBoundary(const NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ConstantZVelocityBoundary<Dimension>::~ConstantZVelocityBoundary() {
-  cdebug << "ConstantZVelocityBoundary::~ConstantZVelocityBoundary() " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +43,6 @@ template<typename Dimension>
 void
 ConstantZVelocityBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "ConstantZVelocityBoundary::enforceBoundary(VectorField) " << this << endl;
 
   REQUIRE(this->valid());
 

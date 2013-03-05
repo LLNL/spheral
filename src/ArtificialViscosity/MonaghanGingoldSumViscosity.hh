@@ -13,7 +13,7 @@
 #define MonaghanGingoldSumViscosity_HH
 
 #include "MonaghanGingoldViscosity.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
   namespace FieldSpace {

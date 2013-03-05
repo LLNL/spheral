@@ -14,7 +14,7 @@ using namespace std;
 #include "Field/Field.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace SolidMaterial {

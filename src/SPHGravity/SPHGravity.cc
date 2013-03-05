@@ -29,8 +29,7 @@
 #include "Boundary/Boundary.hh"
 #include "Boundary/PeriodicBoundary.hh"
 #include "Distributed/DistributedBoundary.hh"
-#include "cdebug.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Material/PhysicalConstants.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Spasmos/Config.h"
@@ -80,7 +79,6 @@ SPHGravity(const KernelSpace::TableKernel<Dimension>& kernel,
   REQUIRE((safetyFactor > 0.0) && (safetyFactor <= 1.0));
 
   using namespace std;
-  cdebug << "SPHGravity<Dimension>::SPHGravity()" << endl;
 
   // Make sure Spasmos is around.
   importConfig();
@@ -127,7 +125,6 @@ mComputeMatrixStructure(const DataBase<Dimension>& dataBase,
                         const State<Dimension>& state) const
 {
   // Initialize the matrix with a nonzero structure.
-  cdebug << "Computing matrix structure\n";
 
   // Refresh our global indexing scheme for all the nodes in the database.
   mNodeIndices = globalNodeIDs(dataBase);
@@ -249,7 +246,6 @@ mUpdateLaplacianMatrix(const DataBase<Dimension>& dataBase,
                        const State<Dimension>& state) const
 {
   REQUIRE(mMatrix != 0);
-  cdebug << "Updating matrix\n";
 
   // Get the FieldLists storing the data we will use in computing our matrix.
   const FieldList<Dimension, Scalar> weight = state.scalarFields(HydroFieldNames::weight);
@@ -422,7 +418,6 @@ mCreateRHS(const State<Dimension>& state) const {
 
   REQUIRE(mMatrix != 0);
 //  REQUIRE(PetscMatrix_Check(mMatrix));
-  cdebug << "Creating RHS\n";
 
   // Here's a brand new vector that fits with our matrix!
   Py_ssize_t n = static_cast<Py_ssize_t>(mPotential.numInternalNodes());
@@ -501,7 +496,6 @@ mComputeGravitationalPotential(const DataBase<Dimension>& dataBase,
                                const State<Dimension>& state) const {
   // First, make sure that the matrix is up to date. 
   REQUIRE(mMatrix != 0);
-  cdebug << "Computing psi\n";
 
   // Create a vector representing the RHS of the Poisson equation.
   Py_XDECREF(mRHS);

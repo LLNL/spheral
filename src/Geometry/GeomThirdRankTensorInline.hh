@@ -7,7 +7,7 @@
 #include "GeomSymmetricTensor.hh"
 #include "GeomThirdRankTensor.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

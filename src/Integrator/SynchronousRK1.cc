@@ -14,8 +14,7 @@
 #include "Field/NodeIterators.hh"
 #include "Physics/Physics.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace IntegratorSpace {
@@ -32,7 +31,6 @@ using PhysicsSpace::Physics;
 template<typename Dimension>
 SynchronousRK1<Dimension>::SynchronousRK1():
   Integrator<Dimension>() {
-  cdebug << "SynchronousRK1::SynchronousRK1()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -42,7 +40,6 @@ template<typename Dimension>
 SynchronousRK1<Dimension>::
 SynchronousRK1(DataBase<Dimension>& dataBase):
   Integrator<Dimension>(dataBase) {
-  cdebug << "SynchronousRK1::SynchronousRK1(DataBase)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -53,7 +50,6 @@ SynchronousRK1<Dimension>::
 SynchronousRK1(DataBase<Dimension>& dataBase,
                const vector<Physics<Dimension>*>& physicsPackages):
   Integrator<Dimension>(dataBase, physicsPackages) {
-  cdebug << "SynchronousRK1::SynchronousRK1(DataBase, PhysicsPackages)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -61,7 +57,6 @@ SynchronousRK1(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SynchronousRK1<Dimension>::~SynchronousRK1() {
-  cdebug << "SynchronousRK1::~SynchronousRK1()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -71,7 +66,6 @@ template<typename Dimension>
 SynchronousRK1<Dimension>&
 SynchronousRK1<Dimension>::
 operator=(const SynchronousRK1<Dimension>& rhs) {
-  cdebug << "SynchronousRK1::operator=()" << endl;
   if (this != &rhs) {
     Integrator<Dimension>::operator=(rhs);
   }
@@ -100,7 +94,6 @@ step(typename Dimension::Scalar maxTime) {
                                    min(this->dtMax(), maxTime - t),
                                    state,
                                    derivs);
-  cdebug << "SynchronousRK1::step: chose dt = " << dt << endl;
 
   // Zero out the derivatives.
   derivs.Zero();

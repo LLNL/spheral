@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------//
 #include "Geometry/GeomPlane.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 template<typename Dimension>

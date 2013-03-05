@@ -1,6 +1,6 @@
 #include "DataBase/DataBase.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {

@@ -22,7 +22,7 @@
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
 extern "C" {

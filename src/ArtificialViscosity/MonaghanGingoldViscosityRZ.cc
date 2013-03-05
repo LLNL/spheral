@@ -13,7 +13,6 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
-#include "cdebug.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -38,7 +37,6 @@ using KernelSpace::TableKernel;
 MonaghanGingoldViscosityRZ::
 MonaghanGingoldViscosityRZ(Scalar Clinear, Scalar Cquadratic):
   MonaghanGingoldViscosity<Dim<2> >(Clinear, Cquadratic) {
-  cdebug << "MonaghanGingoldViscosityRZ::MonaghanGingoldViscosityRZ(Cl, Cq)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +44,6 @@ MonaghanGingoldViscosityRZ(Scalar Clinear, Scalar Cquadratic):
 //------------------------------------------------------------------------------
 MonaghanGingoldViscosityRZ::
 ~MonaghanGingoldViscosityRZ() {
-  cdebug << "MonaghanGingoldViscosityRZ::~MonaghanGingoldViscosityRZ()" << endl;
 }
 
 //------------------------------------------------------------------------------

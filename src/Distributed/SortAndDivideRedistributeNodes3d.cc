@@ -21,8 +21,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Communicator.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -41,7 +40,6 @@ using FieldSpace::FieldList;
 SortAndDivideRedistributeNodes3d::
 SortAndDivideRedistributeNodes3d(const double Hextent):
   SortAndDivideRedistributeNodes<Dim<3> >(Hextent) {
-  cdebug << "SortAndDivideRedistributeNodes3d::SortAndDivideRedistributeNodes3d()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -49,7 +47,6 @@ SortAndDivideRedistributeNodes3d(const double Hextent):
 //------------------------------------------------------------------------------
 SortAndDivideRedistributeNodes3d::
 ~SortAndDivideRedistributeNodes3d() {
-  cdebug << "SortAndDivideRedistributeNodes3d::~SortAndDivideRedistributeNodes3d()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -59,14 +56,12 @@ void
 SortAndDivideRedistributeNodes3d::
 redistributeNodes(DataBase<Dim<3> >& dataBase,
                   vector<Boundary<Dim<3> >*> boundaries) {
-  cdebug << "SortAndDivideRedistributeNodes3d::redistributeNodes" << endl;
 
   // Number of processors.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -78,7 +73,6 @@ redistributeNodes(DataBase<Dim<3> >& dataBase,
   // boundary for local use.
   // Note that if boundary conditions were passed in, we assume that the Distributed
   // boundary is already in there.
-  cdebug << "Building SortAndDivideDistributedBoundary" << endl;
   BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
 

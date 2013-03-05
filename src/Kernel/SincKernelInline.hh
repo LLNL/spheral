@@ -2,7 +2,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "VolumeIntegrationFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace KernelSpace {

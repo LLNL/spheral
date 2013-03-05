@@ -9,8 +9,7 @@
 #include "Boundary/Boundary.hh"
 #include "Geometry/Dimension.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -28,7 +27,6 @@ template<typename Dimension>
 MonaghanGingoldKurapatenkoViscosity<Dimension>::
 MonaghanGingoldKurapatenkoViscosity():
   MonaghanGingoldViscosity<Dimension>() {
-  cdebug << "MonaghanGingoldKurapatenkoViscosity::MonaghanGingoldKurapatenkoViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -38,7 +36,6 @@ template<typename Dimension>
 MonaghanGingoldKurapatenkoViscosity<Dimension>::
 MonaghanGingoldKurapatenkoViscosity(Scalar Clinear, Scalar Cquadratic):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
-  cdebug << "MonaghanGingoldKurapatenkoViscosity::MonaghanGingoldKurapatenkoViscosity(Cl, Cq)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -47,7 +44,6 @@ MonaghanGingoldKurapatenkoViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 MonaghanGingoldKurapatenkoViscosity<Dimension>::
 ~MonaghanGingoldKurapatenkoViscosity() {
-  cdebug << "MonaghanGingoldKurapatenkoViscosity::~MonaghanGingoldKurapatenkoViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 #include "EigenStruct.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/FastMath.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

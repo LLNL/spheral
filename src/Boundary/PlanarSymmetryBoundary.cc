@@ -1,8 +1,7 @@
 #include "PlanarSymmetryBoundary.hh"
 #include "NodeList/FluidNodeList.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -19,7 +18,6 @@ PlanarSymmetryBoundary(TableKernel<Dim<3> >* kernel):
    mFirstGhostIndex(0),
    mL(0.0),
    mdz(0.0) {
-   cdebug << "PlanarSymmetryBoundary::PlanarSymmetryBoundary(): " << this << endl;
 }
 //------------------------------------------------------------------------------
 
@@ -27,7 +25,6 @@ PlanarSymmetryBoundary(TableKernel<Dim<3> >* kernel):
 //------------------------------------------------------------------------------
 PlanarSymmetryBoundary::
 ~PlanarSymmetryBoundary() {
-  cdebug << "PlanarSymmetryBoundary::~PlanarSymmetryBoundary(): " << this << endl;
 }
 //------------------------------------------------------------------------------
 
@@ -36,7 +33,7 @@ PlanarSymmetryBoundary::
 void
 PlanarSymmetryBoundary::
 setGhostNodes(NodeList<Dim<3> >& nodeList) {
-   // Add this NodeList, creating space for control & ghost nodes.
+   // Add this NodeList, ecreating space for control & ghost nodes.
    addNodeList(nodeList);
 
    // Define control nodes (and here, every internal node is a control node).

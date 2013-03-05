@@ -9,7 +9,7 @@
 #ifndef __Spheral__CounterClockwiseCompareElements__
 #define __Spheral__CounterClockwiseCompareElements__
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 //------------------------------------------------------------------------------
 // Comparator to help sorting the faces counter-clockwise about a position.

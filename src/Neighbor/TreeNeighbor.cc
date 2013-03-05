@@ -26,7 +26,7 @@
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Distributed/Communicator.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace NeighborSpace {

@@ -14,7 +14,7 @@
 #include "Field/NodeIterators.hh"
 #include "Physics/Physics.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace IntegratorSpace {

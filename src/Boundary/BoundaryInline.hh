@@ -1,5 +1,4 @@
 #include "Utilities/DBC.hh"
-#include "Utilities/cdebug.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -25,7 +24,6 @@ inline
 void
 Boundary<Dimension>::
 applyFieldListGhostBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const {
-  cdebug << "Boundary::applyFieldListGhostBoundary(FieldList) " << this << std::endl;
   for (typename FieldSpace::FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
        fieldItr < fieldList.end();
        ++fieldItr) {
@@ -43,7 +41,6 @@ inline
 void
 Boundary<Dimension>::
 enforceFieldListBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) const {
-  cdebug << "Boundary::enforceFieldListBoundary(FieldList) " << this << std::endl;
   for (typename FieldSpace::FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
        fieldItr < fieldList.end();
        ++fieldItr) {

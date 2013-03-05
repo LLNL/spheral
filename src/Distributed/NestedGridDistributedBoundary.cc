@@ -18,7 +18,7 @@
 #include "Field/FieldList.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/removeElements.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
 

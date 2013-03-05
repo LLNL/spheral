@@ -17,8 +17,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Communicator.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -48,7 +47,6 @@ template<typename Dimension>
 DistributeByXPosition<Dimension>::
 DistributeByXPosition():
   RedistributeNodes<Dimension>() {
-  cdebug << "DistributeByXPosition::DistributeByXPosition()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +55,6 @@ DistributeByXPosition():
 template<typename Dimension>
 DistributeByXPosition<Dimension>::
 ~DistributeByXPosition() {
-  cdebug << "DistributeByXPosition::~DistributeByXPosition()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -69,7 +66,6 @@ void
 DistributeByXPosition<Dimension>::
 redistributeNodes(DataBase<Dimension>& dataBase,
                   vector<Boundary<Dimension>*> boundaries) {
-  cdebug << "DistributeByXPosition::redistributeNodes" << endl;
 
   // We're going to do this in a really dumb way (it's only a test for 1-D
   // anyway.)  Have all processors sort their own nodes positions by x,

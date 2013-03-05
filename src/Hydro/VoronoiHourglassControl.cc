@@ -20,7 +20,7 @@
 #include "Utilities/allReduce.hh"
 
 #include "Geometry/Dimension.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {

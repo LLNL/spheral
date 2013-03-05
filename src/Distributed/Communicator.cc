@@ -5,7 +5,7 @@
 // Created by JMO, Wed Jan 30 14:52:05 PST 2013
 //----------------------------------------------------------------------------//
 #include "Communicator.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

@@ -10,8 +10,7 @@
 #include "ThreeOneDimensionBoundary.hh"
 #include "NodeList/FluidNodeList.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -25,7 +24,6 @@ using Spheral::NodeSpace::FluidNodeList;
 template<typename Dimension>
 ThreeOneDimensionBoundary<Dimension>::ThreeOneDimensionBoundary():
   Boundary<Dimension>() {
-  cdebug << "ThreeOneDimensionBoundary::ThreeOneDimensionBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -33,7 +31,6 @@ ThreeOneDimensionBoundary<Dimension>::ThreeOneDimensionBoundary():
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ThreeOneDimensionBoundary<Dimension>::~ThreeOneDimensionBoundary() {
-  cdebug << "ThreeOneDimensionBoundary::~ThreeOneDimensionBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -63,7 +60,6 @@ ThreeOneDimensionBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& node
 template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ThreeOneDimensionBoundary::setViolationNodes(NodeList&)" << endl;
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -87,7 +83,6 @@ ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nod
 template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "ThreeOneDimensionBoundary::updateViolationNodes(NodeList&)" << endl;
 
   // Zero the y,z position values.
   Field<Dimension, Vector>& positions = nodeList.positions();
@@ -158,7 +153,6 @@ template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "ThreeOneDimensionBoundary::enforceBoundary(VectorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (int i = 0; i != field.numElements(); ++i) {
@@ -173,7 +167,6 @@ template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "ThreeOneDimensionBoundary::enforceBoundary(Vector3dField) " << this << endl;
 }
 
 // Specialization for tensor fields.  Zero the off diagonal terms, and set the yy
@@ -182,7 +175,6 @@ template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  cdebug << "ThreeOneDimensionBoundary::enforceBoundary(TensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (int i = 0; i != field.numElements(); ++i) {
@@ -197,7 +189,6 @@ template<typename Dimension>
 void
 ThreeOneDimensionBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  cdebug << "ThreeOneDimensionBoundary::enforceBoundary(SymTensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (int i = 0; i != field.numElements(); ++i) {

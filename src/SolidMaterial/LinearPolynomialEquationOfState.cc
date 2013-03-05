@@ -13,7 +13,7 @@ using namespace std;
 #include "LinearPolynomialEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/SpheralFunctions.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace SolidMaterial {

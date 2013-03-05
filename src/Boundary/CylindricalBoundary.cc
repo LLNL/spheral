@@ -10,8 +10,7 @@
 #include "NodeList/FluidNodeList.hh"
 #include "FileIO/FileIO.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -38,7 +37,6 @@ CylindricalBoundary(const DataBase<Dim<3> >& dataBase):
   mDeltaPhi(dataBase.newGlobalFieldList(0.0, "Delta angle for generating ghosts")),
   mGhostPositions(dataBase.newGlobalFieldList(Dim<3>::Vector(), "Ghost node positions")),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  cdebug << "CylindricalBoundary::CylindricalBoundary(dataBase): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +44,6 @@ CylindricalBoundary(const DataBase<Dim<3> >& dataBase):
 //------------------------------------------------------------------------------
 CylindricalBoundary::
 ~CylindricalBoundary() {
-  cdebug << "CylindricalBoundary::~CylindricalBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -55,8 +52,6 @@ CylindricalBoundary::
 void
 CylindricalBoundary::
 setGhostNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "CylindricalBoundary::setGhostNodes(NodeList&): " << this << endl;
-  cdebug << " Current number of NodeLists: " << this->accessBoundaryNodes().size() << endl;
   REQUIRE(mDeltaPhi.fieldForNodeList(nodeList) < mDeltaPhi.end());
 
   // Add this NodeList, creating space for control & ghost nodes.
@@ -177,7 +172,6 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 void
 CylindricalBoundary::
 updateGhostNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "CylindricalBoundary::updateGhostNodes(NodeList&): " << this << endl;
   REQUIRE(mDeltaPhi.fieldForNodeList(nodeList) < mDeltaPhi.end());
 
   // Get the control and ghost nodes for this NodeList.
@@ -243,7 +237,6 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, int>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(IntField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -262,7 +255,6 @@ applyGhostBoundary(Field<Dim<3>, int>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(ScalarField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -281,7 +273,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -311,7 +302,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -332,7 +322,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(SymTensorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -353,7 +342,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(ThirdRankTensorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -374,7 +362,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
 void
 CylindricalBoundary::
 applyGhostBoundary(Field<Dim<3>, std::vector<Dim<3>::Scalar> >& field) const {
-  cdebug << "CylindricalBoundary::applyGhostBoundary(VectorScalarField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -397,7 +384,6 @@ applyGhostBoundary(Field<Dim<3>, std::vector<Dim<3>::Scalar> >& field) const {
 void
 CylindricalBoundary::
 setViolationNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "CylindricalBoundary::setViolationNodes(NodeList&)" << endl;
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
@@ -419,7 +405,6 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
 void
 CylindricalBoundary::
 updateViolationNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "CylindricalBoundary::updateViolationNodes(NodeList&)" << endl;
 
   // Get the set of violation nodes.
   const vector<int>& vNodes = violationNodes(nodeList);
@@ -462,21 +447,18 @@ updateViolationNodes(NodeList<Dim<3> >& nodeList) {
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, int>& field) const {
-  cdebug << "CylindricalBoundary::enforceBoundary(IntField) " << this << endl;
 }
 
 // Specialization for scalar fields, no-op.
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
-  cdebug << "CylindricalBoundary::enforceBoundary(ScalarField) " << this << endl;
 }
 
 // Specialization for Vector fields, forcing Vector's to lie in the xy plane.
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
-  cdebug << "CylindricalBoundary::enforceBoundary(VectorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
@@ -499,7 +481,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
-  cdebug << "CylindricalBoundary::enforceBoundary(TensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
@@ -520,7 +501,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
 void
 CylindricalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
-  cdebug << "CylindricalBoundary::enforceBoundary(SymTensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);

@@ -9,7 +9,7 @@
 
 #include "DataBase/DataBase.hh"
 #include "Neighbor/NestedGridNeighbor.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

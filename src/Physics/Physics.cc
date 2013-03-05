@@ -6,7 +6,6 @@
 //----------------------------------------------------------------------------//
 #include "Physics.hh"
 #include "Boundary/Boundary.hh"
-#include "cdebug.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -22,7 +21,6 @@ template<typename Dimension>
 Physics<Dimension>::
 Physics():
   mBoundaryConditions(0) {
-  cdebug << "Physics::Physics()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -31,7 +29,6 @@ Physics():
 template<typename Dimension>
 Physics<Dimension>::
 ~Physics() {
-  cdebug << "Physics::~Physics()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -41,7 +38,6 @@ template<typename Dimension>
 void
 Physics<Dimension>::
 appendBoundary(Boundary<Dimension>& boundary) {
-  cdebug << "Physics::appendBoundary" << endl;
 //   if (!haveBoundary(boundary)) {
     mBoundaryConditions.push_back(&boundary);
 //   } else {
@@ -57,7 +53,6 @@ template<typename Dimension>
 void
 Physics<Dimension>::
 prependBoundary(Boundary<Dimension>& boundary) {
-  cdebug << "Physics::prependBoundary" << endl;
 //   if (!haveBoundary(boundary)) {
     mBoundaryConditions.insert(mBoundaryConditions.begin(), &boundary);
 //   } else {
@@ -73,7 +68,6 @@ template<typename Dimension>
 void
 Physics<Dimension>::
 clearBoundaries() {
-  cdebug << "Physics::clearBoundaries" << endl;
   mBoundaryConditions = vector<Boundary<Dimension>*>();
 }
 
@@ -84,7 +78,6 @@ template<typename Dimension>
 bool
 Physics<Dimension>::
 haveBoundary(const Boundary<Dimension>& boundary) const {
-  cdebug << "Physics::haveBoundary" << endl;
   return std::count(mBoundaryConditions.begin(), mBoundaryConditions.end(), &boundary) > 0;
 }
 

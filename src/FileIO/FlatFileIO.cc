@@ -6,7 +6,6 @@
 
 #include "FlatFileIO.hh"
 #include "Field/Field.hh"
-#include "Utilities/cdebug.hh"
 
 namespace Spheral {
 namespace FileIOSpace {
@@ -21,7 +20,6 @@ FlatFileIO::FlatFileIO():
   FileIO(),
   mPrecision(20),
   mFilePtr(0) {
-  cdebug << "FlatFileIO::FlatFileIO()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -33,7 +31,6 @@ FlatFileIO(const string fileName, AccessType access, FlatFileFormat format):
   mPrecision(20),
   mFilePtr(0),
   mFileFormat(format) {
-  cdebug << "FlatFileIO::FlatFileIO(string, access, format)" << endl;
   open(fileName, access);
   ENSURE(mFileOpen && mFilePtr != 0);
 }
@@ -45,7 +42,6 @@ FlatFileIO(const string fileName, int access, int format):
   mPrecision(20),
   mFilePtr(0),
   mFileFormat(FlatFileFormat(format)) {
-  cdebug << "FlatFileIO::FlatFileIO(string, int)" << endl;
   open(fileName, AccessType(access));
   ENSURE(mFileOpen && mFilePtr != 0);
 }
@@ -54,7 +50,6 @@ FlatFileIO(const string fileName, int access, int format):
 // Destructor.
 //------------------------------------------------------------------------------
 FlatFileIO::~FlatFileIO() {
-  cdebug << "FlatFileIO::~FlatFileIO" << endl;
   close();
 }
 
@@ -64,7 +59,6 @@ FlatFileIO::~FlatFileIO() {
 void
 FlatFileIO::open(const string fileName, AccessType access) {
 
-  cdebug << "FlatFileIO::open(" << fileName << ", " << access << ")" << endl;
 
   // If we currently have a file open and attached to this object, close it!
   close();
@@ -106,8 +100,6 @@ FlatFileIO::open(const string fileName, AccessType access) {
 void
 FlatFileIO::close() {
 
-  cdebug << "FlatFileIO::close()" << endl;
-
   if (mFilePtr != 0) {
     mFilePtr->flush();
     mFilePtr->close();
@@ -122,7 +114,6 @@ FlatFileIO::close() {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::write(const int value, const string pathName) {
-  cdebug << "FlatFileIO::write(int, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -131,7 +122,6 @@ FlatFileIO::write(const int value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::write(const bool value, const string pathName) {
-  cdebug << "FlatFileIO::write(bool, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -141,7 +131,6 @@ FlatFileIO::write(const bool value, const string pathName) {
 void
 FlatFileIO::
 write(const double value, const string pathName) {
-  cdebug << "FlatFileIO::write(double, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -151,21 +140,18 @@ write(const double value, const string pathName) {
 void
 FlatFileIO::
 write(const Dim<1>::Vector& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Vector, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<2>::Vector& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Vector, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<3>::Vector& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Vector, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -175,21 +161,18 @@ write(const Dim<3>::Vector& value, const string pathName) {
 void
 FlatFileIO::
 write(const Dim<1>::Tensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Tensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<2>::Tensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Tensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<3>::Tensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Tensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -199,21 +182,18 @@ write(const Dim<3>::Tensor& value, const string pathName) {
 void
 FlatFileIO::
 write(const Dim<1>::SymTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(SymTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<2>::SymTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(SymTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<3>::SymTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(SymTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -223,21 +203,18 @@ write(const Dim<3>::SymTensor& value, const string pathName) {
 void
 FlatFileIO::
 write(const Dim<1>::ThirdRankTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(ThirdRankTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<2>::ThirdRankTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(ThirdRankTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
-  cdebug << "FlatFileIO::write(ThirdRankTensor, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -247,7 +224,6 @@ write(const Dim<3>::ThirdRankTensor& value, const string pathName) {
 void
 FlatFileIO::
 write(const string value, const string pathName) {
-  cdebug << "FlatFileIO::write(string, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -256,7 +232,6 @@ write(const string value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(int& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(int, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -265,7 +240,6 @@ FlatFileIO::read(int& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(bool& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(bool, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -274,7 +248,6 @@ FlatFileIO::read(bool& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(double& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Scalar, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -283,19 +256,16 @@ FlatFileIO::read(double& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(Dim<1>::Vector& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Vector, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<2>::Vector& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Vector, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<3>::Vector& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Vector, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -304,19 +274,16 @@ FlatFileIO::read(Dim<3>::Vector& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(Dim<1>::Tensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Tensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<2>::Tensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Tensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<3>::Tensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Tensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -325,19 +292,16 @@ FlatFileIO::read(Dim<3>::Tensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(Dim<1>::SymTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(SymTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<2>::SymTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(SymTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<3>::SymTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(SymTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -346,19 +310,16 @@ FlatFileIO::read(Dim<3>::SymTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(Dim<1>::ThirdRankTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(ThirdRankTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<2>::ThirdRankTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(ThirdRankTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(ThirdRankTensor, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -367,7 +328,6 @@ FlatFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(string& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(string, string)" << endl;
   REQUIRE(readyToRead());
 
   // Set the current position to the beginning of the file.
@@ -388,7 +348,6 @@ FlatFileIO::read(string& value, const string pathName) const {
 void
 FlatFileIO::
 write(const vector<int>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<int>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -398,7 +357,6 @@ write(const vector<int>& value, const string pathName) {
 // void
 // FlatFileIO::
 // write(const vector<bool>& value, const string pathName) {
-//   cdebug << "FlatFileIO::write(vector<bool>, string)" << endl;
 
 //   // Convert to a vector of int and store that.
 //   vector<int> tmp(value.size());
@@ -418,7 +376,6 @@ write(const vector<int>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<double>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Scalar>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -428,21 +385,18 @@ write(const vector<double>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<Dim<1>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Vector>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<2>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Vector>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<3>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Vector>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -452,21 +406,18 @@ write(const vector<Dim<3>::Vector>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<Dim<1>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Tensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<2>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Tensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<3>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<Tensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -476,21 +427,18 @@ write(const vector<Dim<3>::Tensor>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<Dim<1>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<SymTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<2>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<SymTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<3>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<SymTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -500,21 +448,18 @@ write(const vector<Dim<3>::SymTensor>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<ThirdRankTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<ThirdRankTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const vector<Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<ThirdRankTensor>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -524,7 +469,6 @@ write(const vector<Dim<3>::ThirdRankTensor>& value, const string pathName) {
 void
 FlatFileIO::
 write(const vector<std::string>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(vector<string>, string)" << endl;
   writeGenericVector(value, pathName);
 }
 
@@ -534,7 +478,6 @@ write(const vector<std::string>& value, const string pathName) {
 void
 FlatFileIO::
 read(vector<int>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<int>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -544,7 +487,6 @@ read(vector<int>& value, const string pathName) const {
 // void
 // FlatFileIO::
 // read(vector<bool>& value, const string pathName) const {
-//   cdebug << "FlatFileIO::read(vector<bool>, string)" << endl;
 
 //   // Read to a temporary vector<int>, and convert it.
 //   vector<int> tmp(value.size());
@@ -565,7 +507,6 @@ read(vector<int>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<double>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Scalar>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -575,21 +516,18 @@ read(vector<double>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<Dim<1>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Vector>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<2>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Vector>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<3>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Vector>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -599,21 +537,18 @@ read(vector<Dim<3>::Vector>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<Dim<1>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Tensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<2>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Tensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<3>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<Tensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -623,21 +558,18 @@ read(vector<Dim<3>::Tensor>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<Dim<1>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<SymTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<2>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<SymTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<3>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<SymTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -647,21 +579,18 @@ read(vector<Dim<3>::SymTensor>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<ThirdRankTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<ThirdRankTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
 void
 FlatFileIO::
 read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<ThirdRankTensor>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -671,7 +600,6 @@ read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) const {
 void
 FlatFileIO::
 read(vector<std::string>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(vector<string>, string)" << endl;
   readGenericVector(value, pathName);
 }
 
@@ -681,21 +609,18 @@ read(vector<std::string>& value, const string pathName) const {
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Scalar>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Scalar>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Scalar>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -705,21 +630,18 @@ write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Vector>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Vector>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Vector>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -729,21 +651,18 @@ write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Tensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Tensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<Tensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -753,21 +672,18 @@ write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<SymTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<SymTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<SymTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -777,21 +693,18 @@ write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<ThirdRankTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<ThirdRankTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<ThirdRankTensor>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -801,21 +714,18 @@ write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName
 void
 FlatFileIO::
 write(const Field<Dim<1>, int>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<int>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<2>, int>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<int>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 write(const Field<Dim<3>, int>& value, const string pathName) {
-  cdebug << "FlatFileIO::write(Field<int>, string)" << endl;
   writeGenericType(value, pathName);
 }
 
@@ -825,21 +735,18 @@ write(const Field<Dim<3>, int>& value, const string pathName) {
 void
 FlatFileIO::
 read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Scalar>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Scalar>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Scalar>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -849,21 +756,18 @@ read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) const {
 void
 FlatFileIO::
 read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Vector>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Vector>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Vector>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -873,21 +777,18 @@ read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) const {
 void
 FlatFileIO::
 read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Tensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Tensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<Tensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -897,21 +798,18 @@ read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) const {
 void
 FlatFileIO::
 read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<SymTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<SymTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<SymTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -921,21 +819,18 @@ read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) const {
 void
 FlatFileIO::
 read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<ThirdRankTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<ThirdRankTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<ThirdRankTensor>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -945,21 +840,18 @@ read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const
 void
 FlatFileIO::
 read(Field<Dim<1>, int>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<int>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<2>, int>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<int>, string)" << endl;
   readGenericType(value, pathName);
 }
 
 void
 FlatFileIO::
 read(Field<Dim<3>, int>& value, const string pathName) const {
-  cdebug << "FlatFileIO::read(Field<int>, string)" << endl;
   readGenericType(value, pathName);
 }
 
@@ -987,7 +879,6 @@ void
 FlatFileIO::
 writeGenericType(const DataType& value,
 		 const string pathName) {
-  cdebug << "FlatFileIO::writeGenericType()" << endl;
   REQUIRE(readyToWrite());
 //   mFilePtr->seekp(ios::end);
   *mFilePtr << pathName << " " << value << endl;
@@ -1002,7 +893,6 @@ FlatFileIO::
 readGenericType(DataType& value,
 		const string pathName) const {
 
-  cdebug << "FlatFileIO::readGenericType()" << endl;
 
   REQUIRE(readyToRead());
 
@@ -1024,7 +914,6 @@ void
 FlatFileIO::
 writeGenericVector(const vector<DataType>& value,
                    const string pathName) {
-  cdebug << "FlatFileIO::writeGenericVector()" << endl;
   REQUIRE(readyToWrite());
 //   mFilePtr->seekp(ios::end);
   *mFilePtr << pathName << " " << value.size();
@@ -1043,7 +932,6 @@ FlatFileIO::
 readGenericVector(vector<DataType>& value,
                   const string pathName) const {
 
-  cdebug << "FlatFileIO::readGenericVector()" << endl;
 
   REQUIRE(readyToRead());
 
@@ -1091,7 +979,6 @@ void
 FlatFileIO::findPathName(const string pathName) const {
   REQUIRE(readyToRead());
 
-  cdebug << "FlatFileIO::findPathName(" << pathName << ")" << endl;
 
   // Set the pointer to the beginning of the file stream.
 //   mFilePtr->seekg(ios::beg);
@@ -1126,7 +1013,6 @@ FlatFileIO::findPathName(const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::beginningOfFile() const {
-  cdebug << "FlatFileIO::beginningOfFile()" << endl;
 
 //   mFilePtr->seekg(0);
 //   ENSURE(mFilePtr->tellg() == 0);

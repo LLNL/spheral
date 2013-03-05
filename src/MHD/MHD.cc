@@ -34,8 +34,7 @@
 #include "Boundary/Boundary.hh"
 #include "Boundary/PeriodicBoundary.hh"
 #include "Distributed/DistributedBoundary.hh"
-#include "cdebug.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Material/PhysicalConstants.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Spasmos/Config.h"
@@ -93,7 +92,6 @@ MHD(const KernelSpace::TableKernel<Dim<3> >& kernel,
   mFirstStep(true) { 
 
   using namespace std;
-  cdebug << "MHD constructor" << endl;
 
   // Make sure Spasmos is around.
   importConfig();
@@ -138,7 +136,6 @@ mComputeMatrixStructure(const DataBase<Dim<3> >& dataBase,
                         const State<Dim<3> >& state) const
 {
   // Initialize the matrix with a nonzero structure.
-  cdebug << "Computing matrix structure\n";
 
   // Refresh our global indexing scheme for all the nodes in the database.
   mNodeIndices = globalNodeIDs(dataBase);
@@ -263,7 +260,6 @@ mCurlCurlMatrix(const DataBase<Dim<3> >& dataBase,
                 const State<Dim<3> >& state) const
 {
   REQUIRE(mDiffMatrix != 0);
-  cdebug << "Creating curl-curl matrix\n";
 
   // Get the FieldLists storing the data we will use in computing our matrix.
   const FieldList<Dim<3>, Scalar> weight = state.scalarFields(HydroFieldNames::weight);
@@ -740,7 +736,6 @@ mAddDiffusionDerivatives(const DataBase<Dim<3> >& dataBase,
                          StateDerivatives<Dim<3> >& derivs) const {
   // First, make sure that the matrix is up to date. 
   REQUIRE(mDiffMatrix != 0);
-  cdebug << "Adding magnetic diffusion effects\n";
 
   // First we compute the curl-curl matrix representing the magnetic diffusion 
   // term in the induction evolution equation.

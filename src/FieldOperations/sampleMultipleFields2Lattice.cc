@@ -22,7 +22,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"

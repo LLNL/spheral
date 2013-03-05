@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include "HDF5IO.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Field/Field.hh"
 
 #ifdef GNUCXX

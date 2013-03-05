@@ -16,7 +16,6 @@
 #include "Mesh/Mesh.hh"
 #include "Mesh/generateMesh.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/cdebug.hh"
 
 namespace Spheral {
 

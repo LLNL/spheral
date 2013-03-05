@@ -10,7 +10,7 @@
 #define __Spheral_intpow2__
 
 #include <limits>
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

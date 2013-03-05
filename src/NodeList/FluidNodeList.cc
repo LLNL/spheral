@@ -8,7 +8,6 @@
 #include "SmoothingScaleBase.hh"
 #include "Material/EquationOfState.hh"
 #include "FileIO/FileIO.hh"
-#include "Utilities/cdebug.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"

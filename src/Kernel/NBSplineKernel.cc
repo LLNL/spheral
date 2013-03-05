@@ -6,7 +6,7 @@
 // Created by JMO, Mon Jan 13 22:24:23 PST 2003
 //----------------------------------------------------------------------------//
 #include "NBSplineKernel.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace KernelSpace {

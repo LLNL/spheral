@@ -8,7 +8,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {

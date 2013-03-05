@@ -10,8 +10,7 @@
 #include "FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace FileIOSpace {
@@ -84,7 +83,6 @@ FileIO::~FileIO() {
 //------------------------------------------------------------------------------
 vector<string>
 FileIO::splitPathComponents(const string path) const {
-  cdebug << "FileIO::splitPathComponents(" << path << ")" << endl;
 
   vector<string> components;
   string currentComponent = "";
@@ -105,21 +103,18 @@ FileIO::splitPathComponents(const string path) const {
 //------------------------------------------------------------------------------
 void
 FileIO::write(const GeomPlane<Dim<1> >& value, const string pathName) {
-  cdebug << "FileIO::write(const GeomPlane1d& value, pathName)" << endl;
   write(value.point(), pathName + "/point");
   write(value.normal(), pathName + "/normal");
 }
 
 void
 FileIO::write(const GeomPlane<Dim<2> >& value, const string pathName) {
-  cdebug << "FileIO::write(const GeomPlane2d& value, pathName)" << endl;
   write(value.point(), pathName + "/point");
   write(value.normal(), pathName + "/normal");
 }
 
 void
 FileIO::write(const GeomPlane<Dim<3> >& value, const string pathName) {
-  cdebug << "FileIO::write(const GeomPlane3d& value, pathName)" << endl;
   write(value.point(), pathName + "/point");
   write(value.normal(), pathName + "/normal");
 }
@@ -129,7 +124,6 @@ FileIO::write(const GeomPlane<Dim<3> >& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FileIO::read(GeomPlane<Dim<1> >& value, const string pathName) const {
-  cdebug << "FileIO::read(GeomPlane1d& value, pathName)" << endl;
   Dim<1>::Vector point, normal;
   read(point, pathName + "/point");
   read(normal, pathName + "/normal");
@@ -139,7 +133,6 @@ FileIO::read(GeomPlane<Dim<1> >& value, const string pathName) const {
 
 void
 FileIO::read(GeomPlane<Dim<2> >& value, const string pathName) const {
-  cdebug << "FileIO::read(GeomPlane2d& value, pathName)" << endl;
   Dim<2>::Vector point, normal;
   read(point, pathName + "/point");
   read(normal, pathName + "/normal");
@@ -149,7 +142,6 @@ FileIO::read(GeomPlane<Dim<2> >& value, const string pathName) const {
 
 void
 FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
-  cdebug << "FileIO::read(GeomPlane3d& value, pathName)" << endl;
   Dim<3>::Vector point, normal;
   read(point, pathName + "/point");
   read(normal, pathName + "/normal");
@@ -162,7 +154,6 @@ FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FileIO::write(const char* value, const string pathName) {
-  cdebug << "FileIO::write(const char* value, pathName)" << endl;
   write(string(value, strlen(value)), pathName);
 }
 
@@ -171,7 +162,6 @@ FileIO::write(const char* value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FileIO::read(char* value, const string pathName) const {
-  cdebug << "FileIO::read(char* value, pathName)" << endl;
   string strValue;
   read(strValue, pathName);
   strcpy(value, strValue.c_str());
@@ -182,7 +172,6 @@ FileIO::read(char* value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FileIO::write(const float& value, const string pathName) {
-  cdebug << "FileIO::write(const float& value, pathName)" << endl;
   write(double(value), pathName);
 }
 
@@ -191,7 +180,6 @@ FileIO::write(const float& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FileIO::read(float& value, const string pathName) const {
-  cdebug << "FileIO::read(float& value, pathName)" << endl;
   double scalarValue;
   read(scalarValue, pathName);
   value = float(scalarValue);
@@ -202,7 +190,6 @@ FileIO::read(float& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FileIO::write(const vector<float>& value, const string pathName) {
-  cdebug << "FileIO::write(const vector<float>& value, pathName)" << endl;
   vector<double> scalarValue;
   scalarValue.reserve(value.size());
   for (vector<float>::const_iterator valItr = value.begin();
@@ -216,7 +203,6 @@ FileIO::write(const vector<float>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FileIO::read(vector<float>& value, const string pathName) const {
-  cdebug << "FileIO::read(vector<float>& value, pathName)" << endl;
   vector<double> scalarValue;
   read(scalarValue, pathName);
   value.resize(0);
