@@ -12,8 +12,7 @@
 #include "NodeList/FluidNodeList.hh"
 #include "FileIO/FileIO.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -36,7 +35,6 @@ PlanarBoundary<Dimension>::PlanarBoundary():
   mEnterPlane(),
   mExitPlane(),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  cdebug << "PlanarBoundary::PlanarBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -50,7 +48,6 @@ PlanarBoundary(const GeomPlane<Dimension>& enterPlane,
   mEnterPlane(enterPlane),
   mExitPlane(exitPlane),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  cdebug << "PlanarBoundary::PlanarBoundary(enterPlane, exitPlane): " << this << endl;
   ENSURE(valid());
 }
 
@@ -59,7 +56,6 @@ PlanarBoundary(const GeomPlane<Dimension>& enterPlane,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PlanarBoundary<Dimension>::~PlanarBoundary() {
-  cdebug << "PlanarBoundary::~PlanarBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -68,9 +64,6 @@ PlanarBoundary<Dimension>::~PlanarBoundary() {
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "PlanarBoundary::setGhostNodes(NodeList& nodeList): " 
-	 << this << " " << &nodeList << endl;
-  cdebug << " Current number of NodeLists: " << this->accessBoundaryNodes().size() << endl;
 
   // Remember which node list we are setting the ghost nodes for.
   this->addNodeList(nodeList);
@@ -111,8 +104,6 @@ void
 PlanarBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList, 
               const vector<int>& presetControlNodes) {
-  cdebug << "PlanarBoundary::setGhostNodes(NodeList& presetControlNodes): " << this << endl;
-  cdebug << " Current number of NodeLists: " << this->accessBoundaryNodes().size() << endl;
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
 
@@ -149,7 +140,6 @@ setGhostNodes(NodeList<Dimension>& nodeList,
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "PlanarBoundary::setViolationNodes(NodeList&)" << endl;
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -176,7 +166,6 @@ PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
-  cdebug << "PlanarBoundary::updateViolationNodes(NodeList&)" << endl;
 
   // Get the set of violation nodes for this NodeList.
   const vector<int>& vNodes = this->violationNodes(nodeList);
@@ -209,7 +198,6 @@ PlanarBoundary<Dimension>::
 mapPosition(const Vector& position,
 	    const GeomPlane<Dimension>& enterPlane,
 	    const GeomPlane<Dimension>& exitPlane) const {
-  cdebug << "PlanarBoundary::mapPosition(enterPlane, exitPlane): " << this << endl;
   REQUIRE(enterPlane.valid() and exitPlane.valid());
   return mapPositionThroughPlanes(position, enterPlane, exitPlane);
 //   REQUIRE(enterPlane.parallel(exitPlane));
@@ -228,7 +216,6 @@ void
 PlanarBoundary<Dimension>::
 dumpState(FileIOSpace::FileIO& file,
           const std::string& pathName) const {
-  cdebug << "PlanarBoundary::dumpState: " << this << endl;
   file.write(enterPlane(), pathName + "/enterPlane");
   file.write(exitPlane(), pathName + "/exitPlane");
 }
@@ -241,7 +228,6 @@ void
 PlanarBoundary<Dimension>::
 restoreState(const FileIOSpace::FileIO& file,
              const std::string& pathName) {
-  cdebug << "PlanarBoundary::restoreState: " << this << endl;
   file.read(mEnterPlane, pathName + "/enterPlane");
   file.read(mExitPlane, pathName + "/exitPlane");
 }
@@ -252,7 +238,6 @@ restoreState(const FileIOSpace::FileIO& file,
 template<typename Dimension>
 bool
 PlanarBoundary<Dimension>::valid() const {
-  cdebug << "PlanarBoundary::valid(): " << this << endl;
   return (enterPlane().valid() and
           exitPlane().valid() and
           enterPlane().parallel(exitPlane()));
@@ -264,7 +249,6 @@ PlanarBoundary<Dimension>::valid() const {
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::setGhostNodeIndicies(NodeList<Dimension>& nodeList) {
-  cdebug << "PlanarBoundary::setGhostNodeIndicies(NodeList): " << this << endl;
 
   // Get the sets of control and ghost nodes.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);

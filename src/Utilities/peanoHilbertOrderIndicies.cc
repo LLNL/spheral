@@ -14,7 +14,7 @@
 #include "PeanoHilbertTransform.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

@@ -10,8 +10,7 @@
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FileIO/FileIO.hh"
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 using namespace std;
 
@@ -29,7 +28,6 @@ using DataBaseSpace::DataBase;
 template<typename Dimension>
 RigidBoundary<Dimension>::RigidBoundary():
   PlanarBoundary<Dimension>() {
-  cdebug << "RigidBoundary::RigidBoundary() " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -39,7 +37,6 @@ template<typename Dimension>
 RigidBoundary<Dimension>::
 RigidBoundary(const GeomPlane<Dimension>& plane):
   PlanarBoundary<Dimension>(plane, plane) {
-  cdebug << "RigidBoundary::RigidBoundary(const Plane&) " << this << endl;
 
   // Once the plane has been set, construct the reflection operator.
   mReflectOperator.Identity();
@@ -54,7 +51,6 @@ RigidBoundary(const GeomPlane<Dimension>& plane):
 //------------------------------------------------------------------------------
 template<typename Dimension>
 RigidBoundary<Dimension>::~RigidBoundary() {
-  cdebug << "RigidBoundary::~RigidBoundary() " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -65,7 +61,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(IntField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -87,7 +82,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(ScalarField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -109,7 +103,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -144,7 +137,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(Vector3dField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -182,7 +174,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -205,7 +196,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(SymTensorField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -227,7 +217,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(ThirdRankTensorField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -249,7 +238,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-  cdebug << "RigidBoundary::applyGhostBoundary(VectorScalarField) " << this << endl;
 
   REQUIRE(valid());
 
@@ -275,7 +263,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, int>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(IntField) " << this << endl;
   REQUIRE(valid());
 }
 
@@ -284,7 +271,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(ScalarField) " << this << endl;
   REQUIRE(valid());
 }
 
@@ -293,7 +279,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(VectorField) " << this << endl;
   REQUIRE(valid());
 
   if ((field.name() == HydroFieldNames::position) || 
@@ -314,7 +299,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(Vector3dField) " << this << endl;
   REQUIRE(valid());
 
   if ((field.name() == HydroFieldNames::position) || 
@@ -338,7 +322,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(TensorField) " << this << endl;
   REQUIRE(valid());
 }
 
@@ -347,7 +330,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(SymTensorField) " << this << endl;
   REQUIRE(valid());
 }
 
@@ -356,7 +338,6 @@ template<typename Dimension>
 void
 RigidBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  cdebug << "RigidBoundary::enforceBoundary(ThirdRankTensorField) " << this << endl;
   REQUIRE(valid());
 }
 
@@ -368,7 +349,6 @@ void
 RigidBoundary<Dimension>::
 dumpState(FileIOSpace::FileIO& file,
           const std::string& pathName) const {
-  cdebug << "RigidBoundary::dumpState: " << this << endl;
 
   // Call the ancestor class.
   PlanarBoundary<Dimension>::dumpState(file, pathName);
@@ -384,7 +364,6 @@ void
 RigidBoundary<Dimension>::
 restoreState(const FileIOSpace::FileIO& file,
              const std::string& pathName) {
-  cdebug << "RigidBoundary::restoreState: " << this << endl;
 
   // Call the ancestor class.
   PlanarBoundary<Dimension>::restoreState(file, pathName);
@@ -398,7 +377,6 @@ restoreState(const FileIOSpace::FileIO& file,
 template<typename Dimension>
 bool
 RigidBoundary<Dimension>::valid() const {
-  cdebug << "RigidBoundary::valid() " << this << endl;
   return (reflectOperator().Determinant() != 0.0 &&
           PlanarBoundary<Dimension>::valid());
 }

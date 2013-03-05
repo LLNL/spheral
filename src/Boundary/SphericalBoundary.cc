@@ -11,8 +11,7 @@
 #include "NodeList/FluidNodeList.hh"
 #include "FileIO/FileIO.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -37,7 +36,6 @@ SphericalBoundary(const DataBase<Dim<3> >& dataBase):
   mGhostPositions(dataBase.newGlobalFieldList(std::vector<Dim<3>::Vector>(),
                                               "Ghost node positions")),
   mRestart(DataOutput::registerWithRestart(*this)) {
-  cdebug << "SphericalBoundary::SphericalBoundary(dataBase): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -45,7 +43,6 @@ SphericalBoundary(const DataBase<Dim<3> >& dataBase):
 //------------------------------------------------------------------------------
 SphericalBoundary::
 ~SphericalBoundary() {
-  cdebug << "SphericalBoundary::~SphericalBoundary(): " << this << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -54,8 +51,6 @@ SphericalBoundary::
 void
 SphericalBoundary::
 setGhostNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "SphericalBoundary::setGhostNodes(NodeList&): " << this << endl;
-  cdebug << " Current number of NodeLists: " << this->accessBoundaryNodes().size() << endl;
   REQUIRE(mGhostPositions.fieldForNodeList(nodeList) < mGhostPositions.end());
 
   // Add this NodeList, creating space for control & ghost nodes.
@@ -192,7 +187,6 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 void
 SphericalBoundary::
 updateGhostNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "SphericalBoundary::updateGhostNodes(NodeList&): " << this << endl;
   REQUIRE(mGhostPositions.fieldForNodeList(nodeList) < mGhostPositions.end());
 
   // Get the control and ghost nodes for this NodeList.
@@ -245,7 +239,6 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3> , int>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(IntField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -264,7 +257,6 @@ applyGhostBoundary(Field<Dim<3> , int>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3> , Dim<3>::Scalar>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(ScalarField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -283,7 +275,6 @@ applyGhostBoundary(Field<Dim<3> , Dim<3>::Scalar>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -311,7 +302,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(VectorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -332,7 +322,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(SymTensorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -353,7 +342,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(ThirdRankTensorField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -374,7 +362,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
 void
 SphericalBoundary::
 applyGhostBoundary(Field<Dim<3> , std::vector<Dim<3>::Scalar> >& field) const {
-  cdebug << "SphericalBoundary::applyGhostBoundary(VectorScalarField) " << this << endl;
 
   // Apply the boundary condition to all the ghost node values.
   const NodeList<Dimension>& nodeList = field.nodeList();
@@ -397,7 +384,6 @@ applyGhostBoundary(Field<Dim<3> , std::vector<Dim<3>::Scalar> >& field) const {
 void
 SphericalBoundary::
 setViolationNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "SphericalBoundary::setViolationNodes(NodeList&)" << endl;
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
@@ -419,7 +405,6 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
 void
 SphericalBoundary::
 updateViolationNodes(NodeList<Dim<3> >& nodeList) {
-  cdebug << "SphericalBoundary::updateViolationNodes(NodeList&)" << endl;
 
   // Get the set of violation nodes for this NodeList.
   const vector<int>& vNodes = violationNodes(nodeList);
@@ -449,21 +434,18 @@ updateViolationNodes(NodeList<Dim<3> >& nodeList) {
 void
 SphericalBoundary::
 enforceBoundary(Field<Dim<3> , int>& field) const {
-  cdebug << "SphericalBoundary::enforceBoundary(IntField) " << this << endl;
 }
 
 // Specialization for scalar fields, no-op.
 void
 SphericalBoundary::
 enforceBoundary(Field<Dim<3> , Dim<3>::Scalar>& field) const {
-  cdebug << "SphericalBoundary::enforceBoundary(ScalarField) " << this << endl;
 }
 
 // Specialization for Vector fields, force radial along the x-axis.
 void
 SphericalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
-  cdebug << "SphericalBoundary::enforceBoundary(VectorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
@@ -487,7 +469,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
 void
 SphericalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
-  cdebug << "SphericalBoundary::enforceBoundary(TensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
@@ -508,7 +489,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
 void
 SphericalBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
-  cdebug << "SphericalBoundary::enforceBoundary(SymTensorField) " << this << endl;
 
   const NodeList<Dimension>& nodeList = field.nodeList();
   for (vector<int>::const_iterator itr = violationBegin(nodeList);

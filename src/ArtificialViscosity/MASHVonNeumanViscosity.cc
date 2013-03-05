@@ -34,7 +34,6 @@ MASHVonNeumanViscosity(const Scalar Clinear,
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mVelocityDivergence(FieldList<Dimension, Scalar>::Copy),
   mCorrection(FieldList<Dimension, Tensor>::Copy) {
-  cdebug << "MASHVonNeumanViscosity::VonNeumanViscosity(Cl, Cq)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -43,7 +42,6 @@ MASHVonNeumanViscosity(const Scalar Clinear,
 template<typename Dimension>
 MASHVonNeumanViscosity<Dimension>::
 ~MASHVonNeumanViscosity() {
-  cdebug << "MASHVonNeumanViscosity::~MASHVonNeumanViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -58,8 +56,6 @@ initialize(const DataBase<Dimension>& dataBase,
 	   const typename Dimension::Scalar time,
 	   const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-
-  cdebug << "MASHVonNeumanViscosity::initialize()" << endl;
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 

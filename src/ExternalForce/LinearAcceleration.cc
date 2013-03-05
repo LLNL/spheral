@@ -10,7 +10,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {

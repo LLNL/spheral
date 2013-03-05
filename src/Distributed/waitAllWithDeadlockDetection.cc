@@ -16,7 +16,7 @@
 #include <sstream>
 #include <algorithm>
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

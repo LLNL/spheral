@@ -14,7 +14,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace FieldSpace {

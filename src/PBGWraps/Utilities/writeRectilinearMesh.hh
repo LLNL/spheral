@@ -12,7 +12,7 @@
 #include "visit_writer.h"
 
 #include "Geometry/Dimension.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

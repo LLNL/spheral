@@ -8,8 +8,7 @@
 #include "Boundary/Boundary.hh"
 #include "Geometry/Dimension.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -26,7 +25,6 @@ template<typename Dimension>
 RadialViscosity<Dimension>::
 RadialViscosity():
   MonaghanGingoldViscosity<Dimension>() {
-  cdebug << "RadialViscosity::RadialViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -36,7 +34,6 @@ template<typename Dimension>
 RadialViscosity<Dimension>::
 RadialViscosity(Scalar Clinear, Scalar Cquadratic):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
-  cdebug << "RadialViscosity::RadialViscosity(Cl, Cq)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -45,7 +42,6 @@ RadialViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 RadialViscosity<Dimension>::
 ~RadialViscosity() {
-  cdebug << "RadialViscosity::~RadialViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------

@@ -6,8 +6,7 @@
 
 #include "DbFileIO.hh"
 #include "Field/FieldList.hh"
-#include "Utilities/cdebug.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 // #ifdef GNUCXX
 // #include <strstream>
@@ -39,7 +38,6 @@ DbFileIO<Dimension>::sDatabasePtr = 0;
 template<typename Dimension>
 DbFileIO<Dimension>::DbFileIO():
 FileIO<Dimension>() {
-  cdebug << "DbFileIO::DbFileIO()" << endl; 
 
   // The connection will be made the first time it is accessed, per the 
   // mConnection() method.
@@ -51,7 +49,6 @@ FileIO<Dimension>() {
 template<typename Dimension>
 DbFileIO<Dimension>::DbFileIO(const string filename) :
 FileIO<Dimension>(filename, ReadWrite) {
-  cdebug << "DbFileIO::DbFileIO(string)" << endl;
 
   // The connection will be made the first time it is accessed, per the 
   // mConnection() method.
@@ -62,7 +59,6 @@ FileIO<Dimension>(filename, ReadWrite) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DbFileIO<Dimension>::~DbFileIO() {
-  cdebug << "DbFileIO::~DbFileIO()" << endl;
 
   // Close the database connection.
   close();
@@ -132,7 +128,6 @@ const char*
 DbFileIO<Dimension>::mSingleResult(strstream& query) const {
   // Make sure that the strstream is null-terminated.
   query << '\0';
-  cdebug << "Query is: " << query.str() << endl;
   // Get results from the query.
   int status = 
     mConnection().ExecTuplesOk(const_cast<const char*>(query.str()));
@@ -149,7 +144,6 @@ DbFileIO<Dimension>::mSingleResult(strstream& query) const {
   } // end if
   else
   {
-    cdebug << "Warning: No value found!\n";
     return "";
   } // end else
 } // end mSingleResult
@@ -162,7 +156,6 @@ void
 DbFileIO<Dimension>::mSendQuery(strstream& query) const {
   // Make sure that the strstream is null-terminated.
   query << '\0';
-  cdebug << "Query is: " << query.str() << endl;
   int status = 
     mConnection().ExecCommandOk(const_cast<const char*>(query.str()));
   // HACK: We really shouldn't have to check the length of the error message,
@@ -182,7 +175,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::write(const int& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(int, string)" << endl;
   // Form a command to write our value to the database.
   strstream query;
   query << "SELECT write_integer('" << mFileName << "', '" << pathName << "', " << value << ");" << '\0';
@@ -199,7 +191,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::write(const bool& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(bool, string)" << endl;
   // Form a command to write our value to the database.
   strstream query;
   query << "SELECT write_boolean('" << mFileName << "', '" << pathName << "', " << value << ");" << '\0';
@@ -217,7 +208,6 @@ void
 DbFileIO<Dimension>::
 write(const typename Dimension::Scalar& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Scalar, string)" << endl;
   // Form a command to write our value to the database.
   strstream query;
   query << "SELECT write_scalar('" << mFileName << "', '" << pathName << "', " << value << ");" << '\0';
@@ -235,7 +225,6 @@ void
 DbFileIO<Dimension>::
 write(const typename Dimension::Vector& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Vector, string)" << endl;
   // Construct a string representation of the vector as follows:
   // (v1, v2, ..., vN) for an N-dimensional vector v.
   strstream valueStr;
@@ -268,7 +257,6 @@ void
 DbFileIO<Dimension>::
 write(const typename Dimension::Tensor& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Tensor, string)" << endl;
   // Construct a string representation of the tensor as follows:
   // (t11, t12, ..., t1N, t21, ..., t2N, ..., tNN) 
   // for a general N-dimensional tensor t.
@@ -305,7 +293,6 @@ void
 DbFileIO<Dimension>::
 write(const typename Dimension::SymTensor& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(SymTensor, string)" << endl;
   // Construct a string representation of the tensor as in the example below:
   // In 3 dimensions:
   // (t11, t12, t13, t22, t23, t33)
@@ -342,7 +329,6 @@ void
 DbFileIO<Dimension>::
 write(const string& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(string, string)" << endl;
   // Form a command to write our value to the database.
   strstream query;
   query << "SELECT write_string('" << mFileName << "', '" << pathName << "', '" << value << "');" << '\0';
@@ -359,7 +345,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(int& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(int, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_integer('" << mFileName << "', '"
@@ -377,7 +362,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(bool& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(bool, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_boolean('" << mFileName << "', '"
@@ -395,7 +379,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(typename Dimension::Scalar& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Scalar, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_scalar('" << mFileName << "', '"
@@ -413,7 +396,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(typename Dimension::Vector& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Vector, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_vector" << Dimension::nDim << "d('" << mFileName << "', '" << pathName << "');" << '\0';
@@ -431,7 +413,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(typename Dimension::Tensor& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Tensor, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_tensor" << Dimension::nDim << "d('" << mFileName << "', '" << pathName << "');" << '\0';
@@ -449,7 +430,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(typename Dimension::SymTensor& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(SymTensor, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_symtensor" << Dimension::nDim << "d('" << mFileName << "', '" << pathName << "');" << '\0';
@@ -467,7 +447,6 @@ template<typename Dimension>
 void
 DbFileIO<Dimension>::read(string& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(string, string)" << endl;
   // Set up the query.
   strstream query;
   query << "SELECT read_string('" << mFileName << "', '" << pathName << "');" << '\0';
@@ -485,7 +464,6 @@ void
 DbFileIO<Dimension>::
 write(const Field<Dimension, typename Dimension::Scalar>& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Field<Scalar>, string)" << endl;
   // Delete any existing information about this field.
   strstream query;
   query << "SELECT delete_scalarfield('" << mFileName << "', '"
@@ -518,7 +496,6 @@ void
 DbFileIO<Dimension>::
 write(const Field<Dimension, typename Dimension::Vector>& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Field<Vector>, string)" << endl;
   // Delete any existing information about this field.
   strstream query;
   query << "SELECT delete_vector" << Dimension::nDim
@@ -562,7 +539,6 @@ void
 DbFileIO<Dimension>::
 write(const Field<Dimension, typename Dimension::Tensor>& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Field<Tensor>, string)" << endl;
   // Delete any existing information about this field.
   strstream query;
   query << "SELECT delete_tensor" << Dimension::nDim
@@ -611,7 +587,6 @@ void
 DbFileIO<Dimension>::
 write(const Field<Dimension, typename Dimension::SymTensor>& value, const string pathName) {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::write(Field<SymTensor>, string)" << endl;
   // Delete any existing information about this field.
   strstream query;
   query << "SELECT delete_symtensor" << Dimension::nDim
@@ -658,7 +633,6 @@ void
 DbFileIO<Dimension>::
 read(Field<Dimension, typename Dimension::Scalar>& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Field<Scalar>, string)" << endl;
   // Get the elements of the given field from the database.
   strstream query;
   query << "SELECT elements "
@@ -707,7 +681,6 @@ void
 DbFileIO<Dimension>::
 read(Field<Dimension, typename Dimension::Vector>& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Field<Vector>, string)" << endl;
   // Get the elements of the given field from the database.
   strstream query;
   query << "SELECT elements "
@@ -753,7 +726,6 @@ void
 DbFileIO<Dimension>::
 read(Field<Dimension, typename Dimension::Tensor>& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Field<Tensor>, string)" << endl;
   // Get the elements of the given field from the database.
   strstream query;
   query << "SELECT elements "
@@ -799,7 +771,6 @@ void
 DbFileIO<Dimension>::
 read(Field<Dimension, typename Dimension::SymTensor>& value, const string pathName) const {
 #ifdef USE_POSTGRES
-  cdebug << "DbFileIO::read(Field<SymTensor>, string)" << endl;
   // Get the elements of the given field from the database.
   strstream query;
   query << "SELECT elements "

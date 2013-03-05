@@ -5,8 +5,7 @@
 #include "ArtificialViscosityList.hh"
 #include "Kernel/TableKernel.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 #include <algorithm>
 
@@ -22,7 +21,6 @@ ArtificialViscosityList<Dimension>::
 ArtificialViscosityList():
   ArtificialViscosity<Dimension>(),
   vector<ArtificialViscosity<Dimension>*>() {
-  cdebug << "ArtificialViscosityList::ArtificialViscosityList()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -33,7 +31,6 @@ ArtificialViscosityList<Dimension>::
 ArtificialViscosityList(const vector<ArtificialViscosity<Dimension>*>& QPtrs):
   ArtificialViscosity<Dimension>(),
   vector<ArtificialViscosity<Dimension>*>(QPtrs) {
-  cdebug << "ArtificialViscosityList::ArtificialViscosityList(vector)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -42,7 +39,6 @@ ArtificialViscosityList(const vector<ArtificialViscosity<Dimension>*>& QPtrs):
 template<typename Dimension>
 ArtificialViscosityList<Dimension>::
 ~ArtificialViscosityList() {
-  cdebug << "ArtificialViscosityList::~ArtificialViscosityList()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +53,6 @@ initialize(const DataBase<Dimension>& dataBase,
 	   const typename Dimension::Scalar time,
 	   const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-  cdebug << "ArtificialViscosityList::initialize()" << endl;
 
   // Loop over the Q's and initialize each one.
   for (iterator QItr = this->begin(); QItr != this->end(); ++QItr) {
@@ -92,7 +87,6 @@ viscousEffects(typename Dimension::Vector& acceleration,
                const typename Dimension::Scalar hi,
                const typename Dimension::Scalar hj,
                const typename Dimension::Vector& gradW) const {
-  cdebug << "ArtificialViscosityList::viscousEffects" << endl;
 
   REQUIRE(rhoi > 0.0);
 
@@ -106,7 +100,6 @@ viscousEffects(typename Dimension::Vector& acceleration,
   Scalar localWork;
   Scalar localPressure;
   for (const_iterator QItr = this->begin(); QItr != this->end(); ++QItr) {
-    cdebug << "Invoking viscousEffects on " << *QItr << endl;
     (*QItr)->viscousEffects(localAcceleration, localWork, localPressure,
                             nodeI, nodeJ, rij, rijUnit,
                             vi, vj, etai, etaj, ci, cj, Pi, Pj, rhoi, rhoj, 
@@ -115,7 +108,6 @@ viscousEffects(typename Dimension::Vector& acceleration,
     work += localWork;
     pressure += localPressure;
   }
-  cdebug << "Done." << endl;
 }
 
 //------------------------------------------------------------------------------

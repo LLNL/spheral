@@ -9,7 +9,7 @@
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/innerProduct.hh"
 #include "Field/Field.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "FileIO/FileIO.hh"
 #include "Utilities/planarReflectingOperator.hh"
 

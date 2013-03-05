@@ -25,8 +25,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -53,7 +52,6 @@ NFWPotential(double deltac, double rs, double h0,
   mDeltaPhiFraction(0.01),
   mCriticalDensity(0.0),
   mPotentialEnergy(0.0) {
-  cdebug << "NFWPotential::NFWPotential(dc,rs,h0,origin)" << endl;
   ENSURE(deltac > 0.0);
   ENSURE(rs > 0.0);
   ENSURE(h0 > 0.0);
@@ -69,7 +67,6 @@ NFWPotential(double deltac, double rs, double h0,
 template<typename Dimension>
 NFWPotential<Dimension>::
 ~NFWPotential() {
-  cdebug << "NFWPotential::~NFWPotential()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -83,7 +80,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  cdebug << "NFWPotential::evaluateDerivatives" << endl;
 
   // Get the node positions from the state.
   const FieldList<Dimension, Scalar> mnode = state.fields(HydroFieldNames::mass, 0.0);

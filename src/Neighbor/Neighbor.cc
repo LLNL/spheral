@@ -7,7 +7,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"

@@ -6,7 +6,7 @@
 #ifndef __Spheral_log2__
 #define __Spheral_log2__
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 

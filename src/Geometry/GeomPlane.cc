@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include "GeomPlane.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Dimension.hh"
 

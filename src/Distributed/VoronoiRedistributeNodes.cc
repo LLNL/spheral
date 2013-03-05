@@ -37,8 +37,7 @@
 #include "Utilities/allReduce.hh"
 #include "Communicator.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PartitionSpace {

@@ -16,7 +16,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 
 namespace Spheral {
@@ -179,10 +179,6 @@ communicatedProcs(vector<int>& sendProcs,
 // DistributedBoundary<Dimension>::
 // exchangeField(Field<Dimension, DataType>& field) const {
 
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::exchangeField(field)" << endl
-//          << "Exchanging " << field.name() << " on " << field.nodeListPtr()->name() << endl;
-
 //   // We use a handy trait class to tell us how many elements there are in the
 //   // type we're exchanging.
 //   typedef typename DataTypeTraits<DataType>::ElementType ElementType;
@@ -318,14 +314,8 @@ communicatedProcs(vector<int>& sendProcs,
 //     CHECK(packedSendValues.size() == sendRequests.size());
 
 //     // Wait until all of our receives have been satisfied.
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField waiting at WAITALL for receives to complete..."
-//            << endl;
 //     vector<MPI_Status> recvStatus(recvRequests.size());
 //     MPI_Waitall(recvRequests.size(), &(*recvRequests.begin()), &(*recvStatus.begin()));
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField receive WAITALL finished"
-//            << endl;
 
 //     // Unpack encoded Field values into the Field.
 //     typename list< vector<ElementType> >::const_iterator recvVectorItr = packedRecvValues.begin();
@@ -351,20 +341,11 @@ communicatedProcs(vector<int>& sendProcs,
 //     CHECK(recvVectorItr == packedRecvValues.end());
 
 //     // Wait until all of our sends have been satisfied.
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField waiting at WAITALL for sends to complete..."
-//            << endl;
 //     vector<MPI_Status> sendStatus(sendRequests.size());
 //     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField send WAITALL finished"
-//            << endl;
 
 //   }
 
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::exchangeField(field)" << endl
-//          << "Completed " << field.name() << " on " << field.nodeListPtr()->name() << endl;
 // }
 
 // //------------------------------------------------------------------------------
@@ -374,10 +355,6 @@ communicatedProcs(vector<int>& sendProcs,
 // void
 // DistributedBoundary<Dimension>::
 // exchangeField(Field<Dimension, vector<double> >& field) const {
-
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::exchangeField<vector<double> >(field)" << endl
-//          << "Exchanging " << field.name() << " on " << field.nodeListPtr()->name() << endl;
 
 //   // Get the NodeList.
 //   const NodeList<Dimension>* nodeListPtr = field.nodeListPtr();
@@ -544,14 +521,8 @@ communicatedProcs(vector<int>& sendProcs,
 //     CHECK(packedRecvValues.size() == recvRequests.size());
 
 //     // Wait until all of our receives have been satisfied.
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField waiting at WAITALL for receives to complete..."
-//            << endl;
 //     vector<MPI_Status> recvStatus(recvRequests.size());
 //     MPI_Waitall(recvRequests.size(), &(*recvRequests.begin()), &(*recvStatus.begin()));
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField receive WAITALL finished"
-//            << endl;
 
 //     // Unpack encoded Field values into the Field.
 //     typename list< vector<int> >::const_iterator numRecvItr = packedNumRecvValues.begin();
@@ -596,20 +567,11 @@ communicatedProcs(vector<int>& sendProcs,
 //     CHECK(recvVectorItr == packedRecvValues.end());
 
 //     // Wait until all of our sends have been satisfied.
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField waiting at WAITALL for sends to complete..."
-//            << endl;
 //     vector<MPI_Status> sendStatus(sendRequests.size());
 //     MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
-//     cdebug << domainID() << " "
-//            << "DistributedBoundary::exchangeField send WAITALL finished"
-//            << endl;
 
 //   }
 
-//   cdebug << domainID() << " "
-//          << "DistributedBoundary::exchangeField(field)" << endl
-//          << "Completed " << field.name() << " on " << field.nodeListPtr()->name() << endl;
 // }
 
 //------------------------------------------------------------------------------

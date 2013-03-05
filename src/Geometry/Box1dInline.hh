@@ -1,5 +1,5 @@
 #include <numeric>
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "GeomVector.hh"
 
 namespace Spheral {

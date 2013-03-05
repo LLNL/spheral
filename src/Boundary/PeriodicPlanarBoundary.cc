@@ -6,8 +6,7 @@
 //----------------------------------------------------------------------------//
 
 // #include "PeriodicBoundary.hh"
-#include "cdebug.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 using NodeSpace::NodeList;
 using FieldSpace::Field;
@@ -42,7 +41,6 @@ PeriodicPlanarBoundary(const GeomPlane<Dimension>& plane1,
 template<typename Dimension>
 PeriodicBoundary<Dimension>::PeriodicPlanarBoundary::
 ~PeriodicPlanarBoundary() {
-  cdebug << "In PeriodicPlanarBoundary destructor for " << this << endl;
 }
 
 //------------------------------------------------------------------------------

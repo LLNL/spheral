@@ -1,8 +1,7 @@
 #include "AxialSymmetryBoundary.hh"
 
 #include "Field/NodeIterators.hh"
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -19,7 +18,6 @@ AxialSymmetryBoundary(TableKernel<Dim<3> >* kernel):
    Boundary<Dim<3> >(),
    mKernel(kernel),
    mR() {
-   cdebug << "AxialSymmetryBoundary::AxialSymmetryBoundary(): " << this << endl;
 }
 //------------------------------------------------------------------------------
 
@@ -27,7 +25,6 @@ AxialSymmetryBoundary(TableKernel<Dim<3> >* kernel):
 //------------------------------------------------------------------------------
 AxialSymmetryBoundary::
 ~AxialSymmetryBoundary() {
-  cdebug << "AxialSymmetryBoundary::~AxialSymmetryBoundary(): " << this << endl;
 }
 //------------------------------------------------------------------------------
 

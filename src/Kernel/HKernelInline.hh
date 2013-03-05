@@ -1,6 +1,6 @@
 #include "Geometry/Dimension.hh"
 #include "TableKernel.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namspace Spheral {
 namespace KernelSpace {

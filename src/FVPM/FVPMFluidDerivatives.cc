@@ -22,8 +22,7 @@
 
 #include "NodeList/secondMomentUtilities.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace FVPMSpace {
@@ -137,7 +136,6 @@ calculateDerivatives(const typename Dimension::Scalar time,
                      const State<Dimension>& state,
                      StateDerivatives<Dimension>& derivatives) const 
 {
-  cdebug << "FVPMFluidDerivatives::calculateDerivatives" << endl;
   REQUIRE(dt >= 0.0);
   REQUIRE(nPerh > 0.0);
   REQUIRE(epsTensile >= 0.0);

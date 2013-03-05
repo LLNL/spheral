@@ -26,8 +26,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Communicator.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -50,7 +49,6 @@ template<typename Dimension>
 NestedGridRedistributeNodes<Dimension>::
 NestedGridRedistributeNodes(const double Hextent):
   mHextent(Hextent) {
-  cdebug << "NestedGridRedistributeNodes::NestedGridRedistributeNodes()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +57,6 @@ NestedGridRedistributeNodes(const double Hextent):
 template<typename Dimension>
 NestedGridRedistributeNodes<Dimension>::
 ~NestedGridRedistributeNodes() {
-  cdebug << "NestedGridRedistributeNodes::~NestedGridRedistributeNodes()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -70,14 +67,12 @@ void
 NestedGridRedistributeNodes<Dimension>::
 redistributeNodes(DataBase<Dimension>& dataBase,
                   vector<Boundary<Dimension>*> boundaries) {
-  cdebug << "NestedGridRedistributeNodes::redistributeNodes" << endl;
 
   // Number of processors.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -89,7 +84,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
 
   // Get the local description of the domain distribution.
-  cdebug << "Building current domain decomposition" << endl;
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs);
   const int numLocalNodes = nodeDistribution.size();
 
@@ -97,7 +91,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // boundary for local use.
   // Note that if boundary conditions were passed in, we assume that the Distributed
   // boundary is already in there.
-  cdebug << "Building NestedGridDistributedBoundary" << endl;
   NestedGridDistributedBoundary<Dimension>& bound = 
     NestedGridDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);

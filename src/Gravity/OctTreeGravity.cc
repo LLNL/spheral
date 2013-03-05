@@ -23,7 +23,7 @@
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace GravitySpace {

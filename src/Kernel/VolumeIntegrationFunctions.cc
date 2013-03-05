@@ -11,7 +11,7 @@
 #include "VolumeIntegrationFunctions.hh"
 #include "Utilities/simpsonsIntegration.hh"
 #include "Geometry/Dimension.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace KernelSpace {

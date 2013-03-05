@@ -260,7 +260,6 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
 
-  cdebug << "ArtificialViscosity::calculateSigmaAndGradDivV" << endl;
   const double tiny = 1.0e-10;
 
   // Verify that the internal FieldLists mSigma and mGradDivVelocity are properly

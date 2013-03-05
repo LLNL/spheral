@@ -7,8 +7,7 @@
 #include "GradPressureViscosity.hh"
 #include "Kernel/TableKernel.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 #include <algorithm>
 
@@ -25,7 +24,6 @@ GradPressureViscosity():
   ArtificialViscosity<Dimension>(),
   mKernelPtr(0),
   mWeight(FieldList<Dimension, typename Dimension::Scalar>::Reference) {
-  cdebug << "GradPressureViscosity::GradPressureViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -37,7 +35,6 @@ GradPressureViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mKernelPtr(0),
   mWeight(FieldList<Dimension, typename Dimension::Scalar>::Reference) {
-  cdebug << "GradPressureViscosity::GradPressureViscosity(Cl, Cq)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +43,6 @@ GradPressureViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 GradPressureViscosity<Dimension>::
 ~GradPressureViscosity() {
-  cdebug << "GradPressureViscosity::~GradPressureViscosity()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -61,7 +57,6 @@ initialize(const DataBase<Dimension>& dataBase,
            const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-  cdebug << "GradPressureViscosity::initialize" << endl;
 
   // Invoke the base class initialization.
   ArtificialViscosity<Dimension>::initialize(dataBase, 
@@ -100,7 +95,6 @@ initialize(const DataBase<Dimension>& dataBase,
 //                const typename Dimension::Scalar rhoj,
 //                const typename Dimension::Vector& gradW) const {
 
-//   cdebug << "GradPressureViscosity::viscousEffects" << endl;
 
 //   REQUIRE(negligibleSoundSpeed() > 0.0);
 //   REQUIRE(epsilon2() > 0.0);
@@ -149,7 +143,6 @@ viscousEffects(typename Dimension::Vector& acceleration,
                const typename Dimension::Scalar hj,
                const typename Dimension::Vector& gradW) const {
 
-  cdebug << "GradPressureViscosity::viscousEffects" << endl;
 
   REQUIRE(this->negligibleSoundSpeed() > 0.0);
   REQUIRE(this->epsilon2() > 0.0);

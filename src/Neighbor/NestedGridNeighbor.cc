@@ -22,7 +22,7 @@
 #include "GridCellIndex.hh"
 #include "Boundary/mapPositionThroughPlanes.hh"
 #include "Utilities/intpow2.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace NeighborSpace {

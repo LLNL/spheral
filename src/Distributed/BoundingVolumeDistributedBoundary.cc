@@ -23,7 +23,7 @@
 #include "Utilities/nodeBoundingBoxes.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packWMElement.hh"
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
 

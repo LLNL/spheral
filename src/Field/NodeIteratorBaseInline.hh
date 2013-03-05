@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 #include "Neighbor/Neighbor.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"

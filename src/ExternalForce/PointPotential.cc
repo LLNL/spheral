@@ -9,8 +9,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -34,7 +33,6 @@ PointPotential(double G, double mass, double coreRadius,
   mOrigin(origin),
   mDeltaPhiFraction(0.01),
   mPotentialEnergy(0.0) {
-  cdebug << "PointPotential::PointPotential(G,m,rc,origin)" << endl;
   ENSURE(mG > 0.0);
   ENSURE(mMass >= 0.0);
   ENSURE(mCoreRadius2 >= 0.0);
@@ -46,7 +44,6 @@ PointPotential(double G, double mass, double coreRadius,
 template<typename Dimension>
 PointPotential<Dimension>::
 ~PointPotential() {
-  cdebug << "PointPotential::~PointPotential()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -60,8 +57,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
-  cdebug << "PointPotential::evaluateDerivatives" << endl;
 
   // Get the node positions from the state.
   const FieldList<Dimension, Scalar> mnode = state.fields(HydroFieldNames::mass, 0.0);

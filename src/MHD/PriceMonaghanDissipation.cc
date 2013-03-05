@@ -14,7 +14,6 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
-#include "cdebug.hh"
 
 namespace Spheral {
 namespace MHDSpace {
@@ -54,7 +53,6 @@ PriceMonaghanDissipation(Scalar alpha,
   mMu0(mu0),
   mMinDt(FLT_MAX) {
   setLimiter(false);
-  cdebug << "PriceMonaghanDissipation::PriceMonaghanDissipation(alpha, alphaU, alphaB, beta)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -62,7 +60,6 @@ PriceMonaghanDissipation(Scalar alpha,
 //------------------------------------------------------------------------------
 PriceMonaghanDissipation::
 ~PriceMonaghanDissipation() {
-  cdebug << "PriceMonaghanDissipation::~PriceMonaghanDissipation()" << endl;
 }
 
 //------------------------------------------------------------------------------

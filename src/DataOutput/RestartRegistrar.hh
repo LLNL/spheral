@@ -17,7 +17,7 @@
 #include "boost/smart_ptr.hpp"
 #include "boost/weak_ptr.hpp"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 #else
 #include "fakestl.hh"

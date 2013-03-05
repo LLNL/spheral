@@ -15,7 +15,7 @@
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/GeometricUtilities.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {

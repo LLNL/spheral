@@ -15,7 +15,7 @@
 #include "DataBase/IncrementState.hh"
 #include "SolidMaterial/StrengthModel.hh"
 
-#include "DBC.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace SolidMaterial {

@@ -24,8 +24,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Communicator.hh"
 
-#include "DBC.hh"
-#include "cdebug.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace PartitionSpace {
@@ -64,7 +63,6 @@ ParmetisRedistributeNodes<Dimension>::
 ParmetisRedistributeNodes(double extent):
   RedistributeNodes<Dimension>(),
   mNormalizedNodeExtent(0.0) {
-  cdebug << "ParmetisRedistributeNodes::ParmetisRedistributeNodes()" << endl;
   setNormalizedNodeExtent(extent);
 }
 
@@ -74,7 +72,6 @@ ParmetisRedistributeNodes(double extent):
 template<typename Dimension>
 ParmetisRedistributeNodes<Dimension>::
 ~ParmetisRedistributeNodes() {
-  cdebug << "ParmetisRedistributeNodes::~ParmetisRedistributeNodes()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -86,12 +83,10 @@ void
 ParmetisRedistributeNodes<Dimension>::
 redistributeNodes(DataBase<Dimension>& dataBase,
                   vector<Boundary<Dimension>*> boundaries) {
-  cdebug << "ParmetisRedistributeNodes::redistributeNodes" << endl;
 
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -102,7 +97,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // If the user did not specify any boundaries, then create a Distributed
   // boundary for local use.
   // Build a BoundingVolumeDistributedBoundary, and construct the ghost nodes.
-  cdebug << "Building BoundingVolumeDistributedBoundary" << endl;
   BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
 
@@ -129,7 +123,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Get the local description of the domain distribution.
-  cdebug << "Building current domain decomposition" << endl;
   vector<DomainNode<Dimension> > nodeDistribution = currentDomainDecomposition(dataBase, globalIDs);
   const int numLocalNodes = nodeDistribution.size();
 
@@ -171,7 +164,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // We're done with the ghost nodes now, so eliminate them before we try 
   // rearranging nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -196,7 +188,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
   vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
   MPI_Barrier(Communicator::communicator());
-  cdebug << "Calling ParMETIS" << endl;
   ParMETIS_V3_PartGeomKway(&(*vtxdist.begin()), 
                            &(*xadj.begin()), 
                            &(*adjacency.begin()),
@@ -215,7 +206,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                            &(*part.begin()),
                            &Communicator::communicator());
   MPI_Barrier(Communicator::communicator());
-  cdebug << "Done." << endl;
 
   // Loop over the domain decomposition, and fill in the new domain assignments.
   CHECK(nodeDistribution.size() == part.size());
@@ -238,12 +228,10 @@ void
 ParmetisRedistributeNodes<Dimension>::
 refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
                            vector<Boundary<Dimension>*> boundaries) {
-  cdebug << "ParmetisRedistributeNodes::refineNodes" << endl;
 
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -254,7 +242,6 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   // If the user did not specify any boundaries, then create a Distributed
   // boundary for local use.
   // Build a BoundingVolumeDistributedBoundary, and construct the ghost nodes.
-  cdebug << "Building BoundingVolumeDistributedBoundary" << endl;
   BoundingVolumeDistributedBoundary<Dimension>& bound = BoundingVolumeDistributedBoundary<Dimension>::instance();
   if (boundaries.size() == 0) boundaries.push_back(&bound);
 
@@ -281,7 +268,6 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Get the local description of the domain distribution.
-  cdebug << "Building current domain decomposition" << endl;
   vector<DomainNode<Dimension> > nodeDistribution = currentDomainDecomposition(dataBase, globalIDs);
   const int numLocalNodes = nodeDistribution.size();
 
@@ -323,7 +309,6 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
 
   // We're done with the ghost nodes now, so eliminate them before we try 
   // rearranging nodes.
-  cdebug << "Removing ghost nodes." << endl;
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
@@ -348,7 +333,6 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
   vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
   MPI_Barrier(Communicator::communicator());
-  cdebug << "Calling ParMETIS" << endl;
   ParMETIS_V3_RefineKway(&(*vtxdist.begin()), 
                          &(*xadj.begin()), 
                          &(*adjacency.begin()),
@@ -365,7 +349,6 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
                          &(*part.begin()),
                          &Communicator::communicator());
   MPI_Barrier(Communicator::communicator());
-  cdebug << "Done." << endl;
 
   // Loop over the domain decomposition, and fill in the new domain assignments.
   CHECK(nodeDistribution.size() == part.size());
@@ -395,7 +378,6 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
               vector<idxtype>& vweight,
               vector<float>& xyz) const {
 
-  cdebug << "ParmetisRedistributeNodes::buildCSRGraph" << endl;
 
   // Grab that parallel info.
   const int procID = this->domainID();
@@ -722,7 +704,6 @@ validConnectivity(const vector<DomainNode<Dimension> >& nodeDistribution,
                   const DataBase<Dimension>& dataBase,
                   const map<int, vector<pair<int, double> > >& neighbors,
 		  const FieldList<Dimension, int>& globalNodeIDs) const {
-  cdebug << "ParmetisRedistributeNodes::validConnectivity" << endl;
 
   // The result.
   bool valid = true;
@@ -773,7 +754,6 @@ validCSRGraph(const vector<DomainNode<Dimension> >& nodeDistribution,
               const vector<idxtype>& xadj,
               const vector<idxtype>& adjacency,
               const vector<idxtype>& vtxdist) const {
-  cdebug << "ParmetisRedistributeNodes::validCSRGraph" << endl;
 
   // The result.
   bool valid = true;
@@ -885,7 +865,6 @@ verifyNeighborPresent(const int globalNeighborID,
                       const vector<int>& xadj,
                       const vector<int>& adjacency,
                       const vector<int>& vtxdist) const {
-//   cdebug << "ParmetisRedistributeNodes::verifyNeighborPresent" << endl;
 
   // Make sure that this global node is indeed on this domain.
   {
