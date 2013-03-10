@@ -28,7 +28,7 @@ commandLine(
     numOrbits = 2,                 # How many orbits do we want to follow?
 
     # Which N-body method should we use?
-    nbody = NBodyGravity,
+    nbody = OctTreeGravity,
 
     # Output
     dataDir = "Two-Earth-Nbody",
@@ -127,6 +127,11 @@ if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
                            maxDeltaVelocity = 1e-2*v0,
                            G = G)
+elif nbody is OctTreeGravity:
+    gravity = OctTreeGravity(G = G,
+                             softeningLength = plummerLength,
+                             opening = opening,
+                             ftimestep = fdt)
 elif nbody is FractalGravity:
     gravity = FractalGravity(G = G,
                              xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
@@ -137,11 +142,6 @@ elif nbody is FractalGravity:
                              minHighParticles = 10,
                              padding = 0,
                              maxDeltaVelocity = 1e-2*v0)
-elif nbody is OctTreeGravity:
-    gravity = OctTreeGravity(G = G,
-                             softeningLength = plummerLength,
-                             opening = opening,
-                             ftimestep = fdt)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
