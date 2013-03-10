@@ -29,7 +29,7 @@ PYTHONTARGETS = \
 	siloMeshDump.py
 
 #EXTRAINCLUDES = -I $(SPHERALDIR)/include/polytope
-#EXTRALIBS = -l polytope
+#EXTRALIBS = $(EXTRALIBS) $(POLYTOPELIBS)
 
 LINKLIST = linklist
 SPHERALTOP = ..
