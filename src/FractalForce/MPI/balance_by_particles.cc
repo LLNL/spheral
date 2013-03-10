@@ -7,12 +7,21 @@ namespace FractalSpace
   {
     Fractal* PF=PFM->p_fractal;
     ofstream& FFM=PFM->p_file->FileFractalMemory;
+    int balance=PFM->balance;
+
     const int ROOT=0;
     const int mult=10;
+    const double scalepoint=1.0;
+    const double scalepart=1.0;
+    const double MN=PFM->minimum_number;
+    const double logMNinv=1.0/log(MN);
 
     const int FractalNodes0=PFM->FractalNodes0;
     const int FractalNodes1=PFM->FractalNodes1;
     const int FractalNodes2=PFM->FractalNodes2;
+    const double aFractalNodes0=FractalNodes0;
+    const double aFractalNodes1=FractalNodes1;
+    const double aFractalNodes2=FractalNodes2;
 
     const int length0=FractalNodes0*mult;
     const int length1=FractalNodes1*mult;
@@ -27,7 +36,8 @@ namespace FractalSpace
     const int real_length=PFM->grid_length;
     const int real_cells=Misc::pow(real_length,3);
     const double a_real_cells=real_cells;
-    const int min_count=a_real_cells/alength3;
+    const double min_count=a_real_cells/alength3;
+    const double min_count_inv=1.0/min_count;
     int* numbers=new int[length3];
     for(int ni=0;ni<length3;ni++)
       numbers[ni]=0;
@@ -42,20 +52,34 @@ namespace FractalSpace
 	int nx=pos[0]*alength0;
 	int ny=pos[1]*alength1;
 	int nz=pos[2]*alength2;
-	assert(nx >= 0 && nx < alength0);
-	assert(ny >= 0 && ny < alength1);
-	assert(nz >= 0 && nz < alength2);
+	assert(nx >= 0 && nx < length0);
+	assert(ny >= 0 && ny < length1);
+	assert(nz >= 0 && nz < length2);
 	int n=nx+(ny+nz*length1)*length0;
 	numbers[n]++;
       }
     PFM->p_mess->Find_Sum_INT_to_ROOT(numbers,length3,ROOT);
     PFM->p_mess->Send_INT_from_ROOT(numbers,length3,ROOT);
-    vector <int>pointsa(length3);
+    vector <double>pointsa(length3);
     for(int ni=0;ni<length3;ni++)
-      pointsa[ni]=numbers[ni]+min_count;
+      pointsa[ni]=numbers[ni];
     delete [] numbers;
     numbers=0;
-    vector <int>sumz(length2+1,0);
+    for(int ni=0;ni<length3;ni++)
+      {
+	if(balance > 1)
+	  {
+	    double lev=log(pointsa[ni]*min_count_inv)*logMNinv;
+	    pointsa[ni]*=(lev+1.0)*scalepart;
+	    pointsa[ni]+=min_count*pow(8.0,lev)*scalepoint;
+	  }
+	else
+	  {
+	    pointsa[ni]=pointsa[ni]*scalepart+min_count*scalepoint;
+	  }
+
+      }
+    vector <double>sumz(length2+1,0);
     for(int nz=0;nz<length2;nz++)
       {
 	Misc::sum_up(sumz[nz+1],pointsa,nz*length0*length1,(nz+1)*length0*length1,1);
@@ -68,10 +92,11 @@ namespace FractalSpace
     vector < vector <int> > uppery(FractalNodes2);
     vector < vector < vector <int> > > lowerx(FractalNodes2);
     vector < vector < vector <int> > > upperx(FractalNodes2);
-    int pztotal=sumz[length2];
+    double pztotal=sumz[length2];
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
-	int target=(FRZ*pztotal)/FractalNodes2;
+	double aFRZ=FRZ;
+	double target=(aFRZ*pztotal)/aFractalNodes2;
 	lowerz[FRZ]=std::lower_bound(sumz.begin(),sumz.end(),target)-sumz.begin();
 	FFM << " target " << FRZ << " " << target << " " << pztotal << " " << lowerz[FRZ] << endl;
 	if(FRZ > 0)
@@ -84,7 +109,7 @@ namespace FractalSpace
 	FFM << sumz[lowerz[FRZ]] << " " << sumz[upperz[FRZ]] << endl;
       }
 
-    vector <int>pointsb(length0*length1,0);
+    vector <double>pointsb(length0*length1,0);
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	lowery[FRZ].resize(FractalNodes1);
@@ -103,16 +128,17 @@ namespace FractalSpace
 		ni++;
 	      }
 	  }
-	vector <int>sumy(length1+1,0);
+	vector <double>sumy(length1+1,0);
 	for(int ny=0;ny<length1;ny++)
 	  {
 	    Misc::sum_up(sumy[ny+1],pointsb,ny*length0,(ny+1)*length0,1);
 	    sumy[ny+1]+=sumy[ny];
 	  }
-	int pytotal=sumy[length1];
+	double pytotal=sumy[length1];
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
-	    int target=(FRY*pytotal)/FractalNodes1;
+	    double aFRY=FRY;
+	    double target=(FRY*pytotal)/aFractalNodes1;
 	    lowery[FRZ][FRY]=std::lower_bound(sumy.begin(),sumy.end(),target)-sumy.begin();
 	    if(FRY > 0)
 	      uppery[FRZ][FRY-1]=lowery[FRZ][FRY];
@@ -124,7 +150,7 @@ namespace FractalSpace
 	    FFM << sumy[lowery[FRZ][FRY]] << " " << sumy[uppery[FRZ][FRY]] << endl;
 	  }
 
-	vector <int>pointsc(length0,0);
+	vector <double>pointsc(length0,0);
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
 	    lowerx[FRZ][FRY].resize(FractalNodes0);
@@ -136,13 +162,14 @@ namespace FractalSpace
 	      {
 		Misc::sum_up(pointsc[nx],pointsb,nx+start,nx+end,stride);
 	      }
-	    vector <int>sumx(length0+1,0);
+	    vector <double>sumx(length0+1,0);
 	    for(int nx=0;nx<length0;nx++)
 	      sumx[nx+1]=sumx[nx]+pointsc[nx];
-	    int pxtotal=sumx[length0];
+	    double pxtotal=sumx[length0];
 	    for(int FRX=0;FRX<FractalNodes0;FRX++)
 	      {
-		int target=(FRX*pxtotal)/FractalNodes0;
+		double aFRX=FRX;
+		double target=(aFRX*pxtotal)/aFractalNodes0;
 		lowerx[FRZ][FRY][FRX]=std::lower_bound(sumx.begin(),sumx.end(),target)-sumx.begin();
 		if(FRX > 0)
 		  upperx[FRZ][FRY][FRX-1]=lowerx[FRZ][FRY][FRX];
@@ -191,17 +218,21 @@ namespace FractalSpace
 		PFM->Boxes[FR][5]=real_length-1;
 		if(FRZ < FractalNodes2-1)
 		  PFM->Boxes[FR][5]=PFM->Boxes[FR+FractalNodes0*FractalNodes1][4]-1;
-		FFM << " BOXES " << FR << " " << PFM->Boxes[FR][0] << " " << PFM->Boxes[FR][1] << " " << PFM->Boxes[FR][2];
+		int VOL=(PFM->Boxes[FR][1]-PFM->Boxes[FR][0]);
+		VOL*=(PFM->Boxes[FR][3]-PFM->Boxes[FR][2]);
+		VOL*=(PFM->Boxes[FR][5]-PFM->Boxes[FR][4]);
+		FFM << " BOXES " << FR << " " << FRX << " " << FRY << " " << FRZ << " " << VOL << " ";
+		FFM << PFM->Boxes[FR][0] << " " << PFM->Boxes[FR][1] << " " << PFM->Boxes[FR][2];
 		FFM << " " << PFM->Boxes[FR][3] << " " << PFM->Boxes[FR][4] << " " << PFM->Boxes[FR][5] << endl;
 		FR++;
 	      }
 	  }
       }
-    PFM->p_file->note(true," made new Boxes with equal particles ");
+    PFM->p_file->note(true," made new Boxes with equal smart particles ");
     PFM->calc_Buffers_and_more();
-    PFM->p_file->note(true," made new Buffers with equal particles ");
+    PFM->p_file->note(true," made new Buffers with equal smart particles ");
     PFM->calc_RealBoxes();
-    PFM->p_file->note(true," made new RealBoxes with equal particles ");
+    PFM->p_file->note(true," made new RealBoxes with equal smart particles ");
     PF->redo(PFM);
     PFM->p_file->note(true," redo fractal ");
   }
