@@ -52,8 +52,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_52_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.52.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_53_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.53.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -287,7 +287,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.4
+POLYTOPEVER = 0.5.9
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
@@ -1400,19 +1400,25 @@ $(TETGENDIST):
 $(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(TRIANGLEDIST) $(TETGENDIST) $(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
+$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
 	rm -fr $(POLYTOPEDIR) $(POLYTOPEINCDIR) $(TRIANGLEDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(POLYTOPEINCDIR) $(TRIANGLEDIR)
-	$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"
-	$(GZIP) -cd $(TETGENDIST) | $(TAR) -xf -
 	$(BZIP2) -dc $(POLYTOPEDIST) | $(TAR) -xf -
-	$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src
-	$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src
-	$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src
-	$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src
+	@if test "$(USE_TRIANGLE)" = "1"; then \
+		$(MAKE) $(TRIANGLEDIST); \
+		$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"; \
+		$(CP) -f $(TRIANGLEDIR)/triangle.h $(POLYTOPEDIR)/src; \
+		$(CP) -f $(TRIANGLEDIR)/triangle.c $(POLYTOPEDIR)/src; \
+	fi
+	@if test "$(USE_TETGEN)" = "1"; then \
+		$(MAKE) $(TETGENDIST); \
+		$(GZIP) -cd $(TETGENDIST) | $(TAR) -xf - ; \
+		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
+		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
+	fi
 	env PATH=$(SPHERALDIR)/bin:$(PATH) $(SHELL) -ec "cd $(POLYTOPEDIR); \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
