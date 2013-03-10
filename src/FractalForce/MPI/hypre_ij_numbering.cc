@@ -14,7 +14,6 @@ namespace FractalSpace
     const int mult=Misc::pow(2,level);
     int wrap=zoom*frac.get_grid_length();
     const bool period=frac.get_periodic();
-    int count=0;
     vector <int> posa(3);
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
@@ -22,18 +21,20 @@ namespace FractalSpace
 	Group& group=**group_itr;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  {
-	    Point* p=*point_itr;
-	    p->get_pos_point(posa);
-	    int rp=p->get_real_pointer();
+	    //	    Point* p=*point_itr;
+	    //	    p->get_pos_point(posa);
+	    //	    int rp=p->get_real_pointer();
 	    //	    FH << "posa " << posa[0] << " " << posa[1] << " " << posa[2] << " " << rp << " " << p << " " << *group_itr << endl;
 	    //	    if(!p->get_really_passive())
 	    //	      {
-	    hypre_points.push_back(p);
-	    count++;
+	    //	    hypre_points.push_back(p);
+	    hypre_points.push_back(*point_itr);
+	    //	    count++;
 	    //	      }
 	  }    
       }
-    if(hypre_points.size()==0)
+    int count=hypre_points.size();
+    if(count==0)
       {
 	count=1;
 	hypre_points.push_back(0);

@@ -14,6 +14,7 @@ namespace FractalSpace
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    bool time_trial;
     int number_split;
     int min_hypre_group_size;
     vector < vector <int> > Boxes;
@@ -31,6 +32,7 @@ namespace FractalSpace
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
+    //    vector <double>total_time;
     //
     bool amnesia;
     bool mind_wipe;
@@ -149,6 +151,7 @@ namespace FractalSpace
       FractalNodes0(1),
       FractalNodes1(1),
       FractalNodes2(1),
+      time_trial(false),
       number_split(10000),
       min_hypre_group_size(1),
       amnesia(true),
@@ -231,6 +234,7 @@ namespace FractalSpace
       hypre_precond="AMG";
       global_level_max=level_max;
       padding=min(padding,1);
+      //      total_time.assign(50,0.0);
       //
     }
     ~Fractal_Memory()
@@ -383,7 +387,7 @@ namespace FractalSpace
 	}
     }
     // public interface functions
-    void fractal_memory_setup();
+    void fractal_memory_setup(Fractal_Memory* PFM);
     void setBalance(int B);
     void addParticles(int first,int total,
 		      vector <double>& xmin,vector <double>& xmax,
@@ -405,6 +409,7 @@ namespace FractalSpace
     void setHypreTolerance(double HT);
     void setBaseDirectory(string BD);
     void setRunIdentifier(string RI);
+    void setTimeTrial(bool tt);
     // static functions
     static double hubble(const double& arad,const double& omega_0,const double& omega_lambda)
     {
