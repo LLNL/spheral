@@ -299,15 +299,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
 //------------------------------------------------------------------------------
 void
 AxialSymmetryBoundary::
-applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
-   mApplyGhostBoundary(field);
-}
-//------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------
-void
-AxialSymmetryBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
    mApplyGhostBoundary(field);
 }
@@ -361,14 +352,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Scalar>& field) const {
 void
 AxialSymmetryBoundary::
 enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
-}
-//------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------
-void
-AxialSymmetryBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
 }
 //------------------------------------------------------------------------------
 

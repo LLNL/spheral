@@ -116,13 +116,6 @@ ThreeOneDimensionBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 }
 
-// Specialization for Vector3d fields.
-template<typename Dimension>
-void
-ThreeOneDimensionBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-}
-
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
@@ -160,13 +153,6 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
     field(i).Zero();
     field(i).x(x);
   }
-}
-
-// Specialization for vector3d fields.  No-op.
-template<typename Dimension>
-void
-ThreeOneDimensionBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 }
 
 // Specialization for tensor fields.  Zero the off diagonal terms, and set the yy

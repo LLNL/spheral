@@ -18,7 +18,6 @@ def generateBoundaryVirtualBindings(x, ndim, pureVirtual):
     intfield = "Spheral::FieldSpace::IntField%id" % ndim
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
     vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-    vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
     tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
     thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
     vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -26,7 +25,6 @@ def generateBoundaryVirtualBindings(x, ndim, pureVirtual):
     intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
     scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
     vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-    vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
     tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
     symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
     thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -37,28 +35,28 @@ def generateBoundaryVirtualBindings(x, ndim, pureVirtual):
     connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
 
     # Virtual methods.
-    x.add_method("setGhostNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("updateGhostNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("setGhostNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
+    x.add_method("updateGhostNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
 
-    x.add_method("setViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("updateViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("setViolationNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
+    x.add_method("updateViolationNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
 
-    x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_pure_virtual=pureVirtual)
 
-    x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+
+    x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
 
     return
 
@@ -205,7 +203,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -213,7 +210,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -252,7 +248,6 @@ class Boundary:
         x.add_method("enforceFieldListBoundary", None, [refparam(intfieldlist, "fieldList")], custom_template_method_name="enforceIntFieldListBoundary", is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(scalarfieldlist, "fieldList")], custom_template_method_name="enforceScalarFieldListBoundary", is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(vectorfieldlist, "fieldList")], custom_template_method_name="enforceVectorFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(vector3dfieldlist, "fieldList")], custom_template_method_name="enforceVector3dFieldListBoundary", is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(tensorfieldlist, "fieldList")], custom_template_method_name="enforceTensorFieldListBoundary", is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(symtensorfieldlist, "fieldList")], custom_template_method_name="enforceSymTensorFieldListBoundary", is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(thirdranktensorfieldlist, "fieldList")], custom_template_method_name="enforceThirdRankTensorFieldListBoundary", is_const=True)
@@ -308,7 +303,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -316,7 +310,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -371,7 +364,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -379,7 +371,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -400,7 +391,6 @@ class Boundary:
         x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("applyGhostBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
@@ -409,7 +399,6 @@ class Boundary:
         x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("enforceBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
@@ -430,7 +419,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -438,7 +426,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -459,7 +446,6 @@ class Boundary:
         x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("applyGhostBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
@@ -468,7 +454,6 @@ class Boundary:
         x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True)
-        x.add_method("enforceBoundary", None, [refparam(vector3dfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True)
@@ -507,7 +492,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -515,7 +499,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -565,7 +548,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -573,7 +555,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -603,7 +584,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -611,7 +591,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -641,7 +620,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -649,7 +627,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -679,7 +656,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -687,7 +663,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -731,7 +706,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -739,7 +713,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
@@ -783,7 +756,6 @@ class Boundary:
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
@@ -791,7 +763,6 @@ class Boundary:
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
-        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim

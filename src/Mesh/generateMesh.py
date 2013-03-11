@@ -35,6 +35,11 @@ def genericGenerateMesh(nodeLists,
             xmax = xmax0
         del db
 
+    # Clip the range by any boundaries.
+    for b in boundaries:
+        b.clip(xmin, xmax)
+    print "New range : %s %s" % (xmin, xmax)
+
     nodeListsVec = vector_of_NodeList()
     for x in nodeLists:
         nodeListsVec.append(x)

@@ -292,5 +292,14 @@ Boundary<Dimension>::numGhostNodes() const {
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Default clipping opertion to a no-op.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Boundary<Dimension>::
+clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
+}
+
 }
 }

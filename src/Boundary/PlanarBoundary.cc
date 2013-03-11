@@ -27,6 +27,48 @@ using DataBaseSpace::DataBase;
 using NeighborSpace::Neighbor;
 
 //------------------------------------------------------------------------------
+// Internal worker method to help with clipping a box range.
+//------------------------------------------------------------------------------
+// 1D
+void
+clipBoxWithPlane(const GeomPlane<Dim<1> >& plane,
+                 Dim<1>::Vector& point) {
+  if (plane.compare(point) == -1) point = plane.point();
+}
+
+// 2D
+// For now we only check cardinally aligned planes.
+void
+clipBoxWithPlane(const GeomPlane<Dim<2> >& plane,
+                 Dim<2>::Vector& point) {
+  typedef Dim<2>::Vector Vector;
+  if (plane.compare(point) == 1) {
+    if (fuzzyEqual(std::abs(plane.normal().x()), 1.0)) {
+      point.x(plane.point().x());
+    } else if (fuzzyEqual(std::abs(plane.normal().y()), 1.0)) {
+      point.y(plane.point().y());
+    }
+  }
+}
+
+// 3D
+// For now we only check cardinally aligned planes.
+void
+clipBoxWithPlane(const GeomPlane<Dim<3> >& plane,
+                 Dim<3>::Vector& point) {
+  typedef Dim<3>::Vector Vector;
+  if (plane.compare(point) == -1) {
+    if (fuzzyEqual(std::abs(plane.normal().x()), 1.0)) {
+      point.x(plane.point().x());
+    } else if (fuzzyEqual(std::abs(plane.normal().y()), 1.0)) {
+      point.y(plane.point().y());
+    } else if (fuzzyEqual(std::abs(plane.normal().z()), 1.0)) {
+      point.z(plane.point().z());
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Empty constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -318,5 +360,19 @@ PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
 //   // Update the neighbor information.
 //   nodeList.neighbor().updateNodes(); // (ghostNodes);
 }
+
+//------------------------------------------------------------------------------
+// Clip an input box range.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PlanarBoundary<Dimension>::
+clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
+  clipBoxWithPlane(mEnterPlane, xmin);
+  clipBoxWithPlane(mEnterPlane, xmax);
+  clipBoxWithPlane(mExitPlane, xmin);
+  clipBoxWithPlane(mExitPlane, xmax);
+}
+
 }
 }

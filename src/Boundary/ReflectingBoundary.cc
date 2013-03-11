@@ -120,30 +120,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
   }
 }
 
-// Specialization for Vector3d fields.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-
-  REQUIRE(valid());
-
-  // Apply the boundary condition to all the ghost node values.
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  CHECK(this->controlNodes(nodeList).size() == this->ghostNodes(nodeList).size());
-  vector<int>::const_iterator controlItr = this->controlBegin(nodeList);
-  vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
-  for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
-    CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
-    Dim<3>::Tensor R3(mReflectOperator.xx(), mReflectOperator.xy(), mReflectOperator.xz(),
-                      mReflectOperator.yx(), mReflectOperator.yy(), mReflectOperator.yz(),
-                      mReflectOperator.zx(), mReflectOperator.zy(), mReflectOperator.zz());
-    field(*ghostItr) = R3*field(*controlItr);
-  }
-}
-
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
@@ -271,25 +247,6 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
        ++itr) {
     CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
     field(*itr) = reflectOperator()*field(*itr);
-  }
-}
-
-// Specialization for vector3d fields.  Apply the reflection operator.
-template<typename Dimension>
-void
-ReflectingBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  REQUIRE(valid());
-
-  const NodeList<Dimension>& nodeList = field.nodeList();
-  for (vector<int>::const_iterator itr = this->violationBegin(nodeList);
-       itr < this->violationEnd(nodeList); 
-       ++itr) {
-    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
-    Dim<3>::Tensor R3(mReflectOperator.xx(), mReflectOperator.xy(), mReflectOperator.xz(),
-                      mReflectOperator.yx(), mReflectOperator.yy(), mReflectOperator.yz(),
-                      mReflectOperator.zx(), mReflectOperator.zy(), mReflectOperator.zz());
-    field(*itr) = R3*field(*itr);
   }
 }
 

@@ -35,7 +35,6 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
   mNodeListPtr(&nodeList),
   mScalarValues(),
   mVectorValues(),
-  mVector3dValues(),
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
@@ -45,7 +44,6 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
   storeFieldValues<int>(nodeList, nodeIDs, mIntValues);
   storeFieldValues<Scalar>(nodeList, nodeIDs, mScalarValues);
   storeFieldValues<Vector>(nodeList, nodeIDs, mVectorValues);
-  storeFieldValues<Vector3d>(nodeList, nodeIDs, mVector3dValues);
   storeFieldValues<Tensor>(nodeList, nodeIDs, mTensorValues);
   storeFieldValues<SymTensor>(nodeList, nodeIDs, mSymTensorValues);
   storeFieldValues<ThirdRankTensor>(nodeList, nodeIDs, mThirdRankTensorValues);
@@ -152,14 +150,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
   setGhostValues<Vector>(field, mVectorValues);
 }
 
-// Specialization for Vector3d fields.
-template<typename Dimension>
-void
-ConstantBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  setGhostValues<Vector3d>(field, mVector3dValues);
-}
-
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
@@ -234,13 +224,6 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-// Specialization for Vector fields.
-template<typename Dimension>
-void
-ConstantBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
 }
 
 // Specialization for Tensor fields.

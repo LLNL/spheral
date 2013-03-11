@@ -1021,14 +1021,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  beginExchangeField(field);
-  mVector3dExchangeFields.push_back(&field);
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
   beginExchangeField(field);
   mTensorExchangeFields.push_back(&field);
@@ -1093,12 +1085,6 @@ template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-}
-
-template<typename Dimension>
-void
-DistributedBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
 }
 
 template<typename Dimension>
@@ -1293,16 +1279,14 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     int nInt = mIntExchangeFields.size();
     int nScalar = mScalarExchangeFields.size();
     int nVector = mVectorExchangeFields.size();
-    int nVector3d = mVector3dExchangeFields.size();
     int nTensor = mTensorExchangeFields.size();
     int nSymTensor = mSymTensorExchangeFields.size();
     int nThirdRankTensor = mThirdRankTensorExchangeFields.size();
     int nVectorScalar = mVectorScalarExchangeFields.size();
-    const int nFields = nInt + nScalar + nVector + nVector3d + nTensor + nSymTensor + nThirdRankTensor + nVectorScalar;
+    const int nFields = nInt + nScalar + nVector + nTensor + nSymTensor + nThirdRankTensor + nVectorScalar;
     MPI_Bcast(&nInt, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nScalar, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nVector, 1, MPI_INT, 0, Communicator::communicator());
-    MPI_Bcast(&nVector3d, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nSymTensor, 1, MPI_INT, 0, Communicator::communicator());
     MPI_Bcast(&nThirdRankTensor, 1, MPI_INT, 0, Communicator::communicator());
@@ -1310,7 +1294,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     REQUIRE(nInt == mIntExchangeFields.size());
     REQUIRE(nScalar == mScalarExchangeFields.size());
     REQUIRE(nVector == mVectorExchangeFields.size());
-    REQUIRE(nVector3d == mVector3dExchangeFields.size());
     REQUIRE(nTensor == mTensorExchangeFields.size());
     REQUIRE(nSymTensor == mSymTensorExchangeFields.size());
     REQUIRE(nThirdRankTensor == mThirdRankTensorExchangeFields.size());
@@ -1373,13 +1356,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
       if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
     }
 
-    // Unpack Vector3d field values.
-    for (typename vector<Field<Dimension, Vector3d>*>::const_iterator fieldItr = mVector3dExchangeFields.begin();
-         fieldItr != mVector3dExchangeFields.end();
-         ++fieldItr) {
-      if (mField2RecvBuffer.find(&(**fieldItr)) != mField2RecvBuffer.end()) unpackField(**fieldItr, *mField2RecvBuffer[&(**fieldItr)]);
-    }
-
     // Unpack Tensor field values.
     for (typename vector<Field<Dimension, Tensor>*>::const_iterator fieldItr = mTensorExchangeFields.begin();
          fieldItr != mTensorExchangeFields.end();
@@ -1428,7 +1404,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   mIntExchangeFields = vector<Field<Dimension, int>*>();
   mScalarExchangeFields = vector<Field<Dimension, Scalar>*>();
   mVectorExchangeFields = vector<Field<Dimension, Vector>*>();
-  mVector3dExchangeFields = vector<Field<Dimension, Vector3d>*>();
   mTensorExchangeFields = vector<Field<Dimension, Tensor>*>();
   mSymTensorExchangeFields = vector<Field<Dimension, SymTensor>*>();
   mThirdRankTensorExchangeFields = vector<Field<Dimension, ThirdRankTensor>*>();
@@ -1453,7 +1428,6 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
   ENSURE(mIntExchangeFields.size() == 0);
   ENSURE(mScalarExchangeFields.size() == 0);
   ENSURE(mVectorExchangeFields.size() == 0);
-  ENSURE(mVector3dExchangeFields.size() == 0);
   ENSURE(mTensorExchangeFields.size() == 0);
   ENSURE(mSymTensorExchangeFields.size() == 0);
   ENSURE(mThirdRankTensorExchangeFields.size() == 0);

@@ -98,13 +98,6 @@ ConstantVelocityBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 }
 
-// Specialization for Vector3d fields.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-}
-
 // Specialization for Tensor fields.
 template<typename Dimension>
 void
@@ -203,13 +196,6 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
       field[*itr] = mVelocity[*itr];
     }
   }
-}
-
-// Specialization for vector3d fields, no-op.
-template<typename Dimension>
-void
-ConstantVelocityBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
 }
 
 // Specialization for Tensor fields, no-op.
