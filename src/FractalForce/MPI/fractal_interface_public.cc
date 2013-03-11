@@ -22,6 +22,7 @@ namespace FractalSpace
   //! PFM->setHypreTolerance;
   //! PFM->setBaseDirectory;
   //! PFM->setRunIdentifier;
+  //! PFM->setTimeTrial
   //!
   //! PFM->fractal_memory_setup();
   //!
@@ -30,6 +31,7 @@ namespace FractalSpace
   //! Do Your own stuff;
   //! fractal_create;
   //! addParticles;
+  //! balance_particles
   //! doFractalForce;
   //! getField;
   //! fractal_delete;
@@ -91,6 +93,7 @@ namespace FractalSpace
     // This will be used throughout the simulation.
     Mess* p_mess=new Mess(PFM->MPIrun,PFM->grid_length,PFM->periodic,PFM->number_particles);
     PFM->p_mess=p_mess;
+    p_mess->time_trial=PFM->time_trial;
     
     // Construct a File object. 
     // All output is done in File member functions. 
@@ -188,7 +191,10 @@ namespace FractalSpace
   }
   void fractal_delete(Fractal_Memory* PFM)
   {
+    vector <double>total_times(50);
     Fractal* PF=PFM->p_fractal;
+    //    PF->get_total_times(total_times);
+    //    PFM->total_time=total_times;
     Particle* P=PFM->p_mess->Parts_in;
     delete [] P;
     P=0;
@@ -252,5 +258,9 @@ namespace FractalSpace
   void Fractal_Memory::setRunIdentifier(string RI)
   {
     RUN=RI;
+  }
+  void Fractal_Memory::setTimeTrial(bool tt)
+  {
+    time_trial=tt;
   }
 }

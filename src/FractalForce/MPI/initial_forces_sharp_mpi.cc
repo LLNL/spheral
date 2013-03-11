@@ -19,7 +19,7 @@ namespace FractalSpace
     highest_level_used=used[0];
     delete [] used;
     int length=frac.get_grid_length();
-    double length_5=pow((double)length,-5);
+    double length_5=pow(static_cast<double>(length),-5);
     assert(length >0);
     int nyq=length/2;
     int length_c=nyq+1;
@@ -53,9 +53,9 @@ namespace FractalSpace
 	int cut_lev=-1;
 	if(lev > 0) cut_lev=nyq/2;
 	double step_wave=pow(2.0,lev);
-	int begin_x=mem.p_mess->start_x;
-	int end_x=begin_x+mem.p_mess->length_x;
-	for(int kx=begin_x;kx < end_x ; kx++)
+	//	int begin_x=mem.p_mess->start_x;
+	//	int end_x=begin_x+mem.p_mess->length_x;
+	for(ptrdiff_t kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x; kx++)
 	  {
 	    int ka=min(kx,length-kx);
 	    bool nyq_x= kx==0 || kx== nyq;

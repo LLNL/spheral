@@ -30,13 +30,15 @@ namespace FractalSpace
     MPI_Comm FractalWorld;
     MPI_Comm HypreWorld;
     MPI_Comm SELF;
+    bool time_trial;
     Mess():
       FractalRank(0),
       FractalNodes(1),
       number_particles_total(-1),
       start_x(0),
       length_x(-1),
-      total_memory(-1)
+      total_memory(-1),
+      time_trial(false)
     {
       cout << " Empty Mess " << endl;
     }
@@ -46,7 +48,8 @@ namespace FractalSpace
       number_particles_total(-1),
       start_x(0),
       length_x(GR),
-      total_memory(-1)
+      total_memory(-1),
+      time_trial(false)
     {
       int grid_length=GR;
       bool periodic=PR;
@@ -130,22 +133,22 @@ namespace FractalSpace
 	  Full_Stop();
 	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << endl;
 	  Full_Stop();
-	  cout << "mess haha " << FractalRank << " " << green.max_size();
+	  cout << "mess haha " << FractalRank << " " << green.max_size() << endl;
 	  green.resize(length_x*Length_11*Length_11);
 	  Full_Stop();
-	  cout << " mess a " << FractalRank;
+	  cout << " mess a " << FractalRank << endl;
 	  create_potRC();
 	  Full_Stop();
-	  cout << " mess b " << FractalRank;
+	  cout << " mess b " << FractalRank << endl;
 	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FractalWorld,FFTW_MEASURE);
 	  Full_Stop();
-	  cout << " mess c " << FractalRank;
+	  cout << " mess c " << FractalRank << endl;
 	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_2,Length_2,Length_2,potC,potR,FractalWorld,FFTW_MEASURE);
 	  Full_Stop();
-	  cout << " mess d " << FractalRank;
+	  cout << " mess d " << FractalRank << endl;
 	  zeroR();
 	  Full_Stop();
-	  cout << " mess e " << FractalRank;
+	  cout << " mess e " << FractalRank << endl;
 	  pint Length_22=Length_2+2;
 	  for(pint nx=start_x;nx < start_x+length_x;++nx)
 	    {
@@ -298,14 +301,14 @@ namespace FractalSpace
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_out[FR]=counts_out_send[FR];
-	  cout << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << endl;
+	  //	  cout << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << endl;
 	}
       for(int FR=0;FR<FractalNodes;FR++)
 	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,FractalWorld);
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_in_send[FR]=counts_in[FR];
-	  cout << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << endl;
+	  //	  cout << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << endl;
 	}
       delete [] counts_out;
       delete [] counts_in;
@@ -448,7 +451,8 @@ namespace FractalSpace
     }
     void Full_Stop()
     {
-      MPI_Barrier(HypreWorld);
+      if(time_trial)
+	MPI_Barrier(HypreWorld);
     }
     void zeroR()
     {

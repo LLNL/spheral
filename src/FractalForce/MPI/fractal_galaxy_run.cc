@@ -8,14 +8,14 @@ int main()
   cout << "starting out " << endl;
   Fractal_Memory* PFM=fractal_memory_create();
 
-  int balance=1;
-  int NumberParticles=666667;
-  int FractalNodes0=6;
-  int FractalNodes1=4;
+  int balance=0;
+  int NumberParticles=50000;
+  int FractalNodes0=8;
+  int FractalNodes1=5;
   int FractalNodes2=8;
   bool Periodic=false;
   bool Debug=true;
-  int GridLength=512;
+  int GridLength=256;
   int Padding=-1;
   int LevelMax=8;
   int MinimumNumber=8;
@@ -23,6 +23,7 @@ int main()
   double HypreTolerance=1.0e-7;
   string BaseDirectory="/p/lscratchd/jensv/";
   string RunIdentifier="KongenErEnFinke";
+  bool TimeTrial=false;
 
   PFM->setBalance(balance);
   PFM->setNumberParticles(NumberParticles);
@@ -37,7 +38,7 @@ int main()
   PFM->setHypreTolerance(HypreTolerance);
   PFM->setBaseDirectory(BaseDirectory);
   PFM->setRunIdentifier(RunIdentifier);
-
+  PFM->setTimeTrial(TimeTrial);
   fractal_memory_setup(PFM);
 
   int FractalNodes=PFM->p_mess->FractalNodes;
@@ -47,7 +48,8 @@ int main()
   vector <double> xmax(3,50.0);
   double total_mass=1.0e7;
   double G=2.718281828;
-  double m=total_mass/static_cast<double>(NumberParticles*FractalNodes);
+  int TotalNumberParticles=PFM->p_mess->number_particles_total;
+  double m=total_mass/static_cast<double>(TotalNumberParticles);
   vector <double> posx(NumberParticles,0.0);
   vector <double> posy(NumberParticles,0.0);
   vector <double> posz(NumberParticles,0.0);
@@ -65,7 +67,7 @@ int main()
     {
       fractal_create(PFM);
       add_particles(PFM,0,NumberParticles,xmin,xmax,posx,posy,posz,masses);
-      if(PFM->balance == 1)
+      if(PFM->balance > 0)
 	balance_by_particles(PFM);
       do_fractal_force(PFM);
       take_a_leap_isol(PFM,masses,G,xmin,xmax,posx,posy,posz,velx,vely,velz);
