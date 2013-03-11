@@ -273,15 +273,6 @@ applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
   mPlane2Boundary.applyGhostBoundary(field);
 }
 
-// 3-D Vector fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-applyGhostBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
-  mPlane1Boundary.applyGhostBoundary(field);
-  mPlane2Boundary.applyGhostBoundary(field);
-}
-
 // Tensor fields.
 template<typename Dimension>
 void
@@ -345,15 +336,6 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  mPlane1Boundary.enforceBoundary(field);
-  mPlane2Boundary.enforceBoundary(field);
-}
-
-// Vector3d fields.
-template<typename Dimension>
-void
-PeriodicBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Vector3d>& field) const {
   mPlane1Boundary.enforceBoundary(field);
   mPlane2Boundary.enforceBoundary(field);
 }

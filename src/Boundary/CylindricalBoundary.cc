@@ -289,15 +289,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
   }
 }
 
-// Specialization for Vector3d fields.
-void
-CylindricalBoundary::
-applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
-  // Since this boundary condition only exists in 3 dimensions, just call 
-  // the "regular" vector field form of this method.
-  applyGhostBoundary(field);
-}
-
 // Specialization for Tensor fields.
 void
 CylindricalBoundary::
@@ -467,13 +458,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
     CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
     field(*itr).z(0.0);
   }
-}
-
-// Specialization for Vector3d fields, same as N-vector form.
-void
-CylindricalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
-   enforceBoundary(field);
 }
 
 // Specialization for Tensor fields, force all off-diagonal components

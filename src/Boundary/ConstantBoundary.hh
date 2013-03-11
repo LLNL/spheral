@@ -36,7 +36,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
@@ -58,7 +57,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, int>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Vector3d>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
@@ -75,7 +73,6 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, int>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, Scalar>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dimension, Vector3d>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
@@ -113,7 +110,6 @@ private:
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<int> > mIntValues;
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Scalar> > mScalarValues;
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Vector> > mVectorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Vector3d> > mVector3dValues;
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Tensor> > mTensorValues;
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<SymTensor> > mSymTensorValues;
   std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<ThirdRankTensor> > mThirdRankTensorValues;

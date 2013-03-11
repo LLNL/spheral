@@ -37,7 +37,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
@@ -84,6 +83,9 @@ public:
   virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
   //****************************************************************************
+
+  // Override the clip method for clipping a box.
+  virtual void clip(Vector& xmin, Vector& xmax) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -29,7 +29,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::Vector3d Vector3d;
   typedef Dim<3>::Tensor Tensor;
   typedef Dim<3>::SymTensor SymTensor;
   typedef Dim<3>::ThirdRankTensor ThirdRankTensor;
@@ -53,7 +52,6 @@ public:
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , int>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , Scalar>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , Vector>& field) const;
-  virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , Vector3d>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , Tensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3> , SymTensor>& field) const;
   virtual void applyGhostBoundary(FieldSpace::Field<Dim<3>, ThirdRankTensor>& field) const;
@@ -63,7 +61,6 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dim<3> , int>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dim<3> , Scalar>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dim<3> , Vector>& field) const;
-  virtual void enforceBoundary(FieldSpace::Field<Dim<3> , Vector3d>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dim<3> , Tensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dim<3> , SymTensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dim<3>, ThirdRankTensor>& field) const;

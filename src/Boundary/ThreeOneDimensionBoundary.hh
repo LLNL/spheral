@@ -22,7 +22,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Vector3d Vector3d;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
@@ -44,14 +43,12 @@ public:
   // Apply the boundary condition to ghost nodes.
   virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const;
-  virtual void applyGhostBoundary(Field<Dimension, Vector3d>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const;
   virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, Scalar>& field) const;
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const;
-  virtual void enforceBoundary(Field<Dimension, Vector3d>& field) const;
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const;
   virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const;
 

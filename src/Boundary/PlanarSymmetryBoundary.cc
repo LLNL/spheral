@@ -204,14 +204,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
 //------------------------------------------------------------------------------
 void
 PlanarSymmetryBoundary::
-applyGhostBoundary(Field<Dim<3>, typename Dimension::Vector3d>& field) const {
-}
-//------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------
-void
-PlanarSymmetryBoundary::
 applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
 }
 //------------------------------------------------------------------------------

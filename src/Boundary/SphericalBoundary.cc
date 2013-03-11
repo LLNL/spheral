@@ -291,13 +291,6 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
   }
 }
 
-// Specialization for Vector3d fields -- same as N-vectors.
-void
-SphericalBoundary::
-applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
-   applyGhostBoundary(field);
-}
-
 // Specialization for Tensor fields.
 void
 SphericalBoundary::
@@ -457,13 +450,6 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
   }
 }
 
-// Specialization for Vector3d fields, same as N-vectors.
-void
-SphericalBoundary::
-enforceBoundary(Field<Dim<3>, Dim<3>::Vector3d>& field) const {
-   enforceBoundary(field);
-}
-   
 // Specialization for Tensor fields, force all off-diagonal components
 // to zero.
 void
