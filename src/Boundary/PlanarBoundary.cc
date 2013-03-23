@@ -33,7 +33,7 @@ using NeighborSpace::Neighbor;
 void
 clipBoxWithPlane(const GeomPlane<Dim<1> >& plane,
                  Dim<1>::Vector& point) {
-  if (plane.compare(point) == -1) point = plane.point();
+  if (plane.compare(point) == 1) point = plane.point();
 }
 
 // 2D
@@ -57,7 +57,7 @@ void
 clipBoxWithPlane(const GeomPlane<Dim<3> >& plane,
                  Dim<3>::Vector& point) {
   typedef Dim<3>::Vector Vector;
-  if (plane.compare(point) == -1) {
+  if (plane.compare(point) == 1) {
     if (fuzzyEqual(std::abs(plane.normal().x()), 1.0)) {
       point.x(plane.point().x());
     } else if (fuzzyEqual(std::abs(plane.normal().y()), 1.0)) {
