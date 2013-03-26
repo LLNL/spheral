@@ -140,6 +140,7 @@ HASHMAPBUILDDATE = $(patsubst %.tar.gz, .%.date, $(HASHMAPDIST))
 
 # Visit writer software from Hank.
 VISITWRITERDIST = visit_writer.tar.gz
+VISITWRITERURL = http://sourceforge.net/projects/spheral/files/ThirdPartySources/$(VISITWRITERDIST)/download
 VISITWRITERDIR = $(VISITWRITERDIST:.tar.gz=)
 VISITWRITERBUILDDATE = $(patsubst %.tar.gz, .%.date, $(VISITWRITERDIST))
 
@@ -186,13 +187,13 @@ PILBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PILDIST))
 
 # pybindgen
 PYBINDGENDIST = pybindgen-0.15.9.zip
-PYBINDGENURL = http://pybindgen.googlecode.com/files/$(PYBINDGENDIST)
+PYBINDGENURL = http://sourceforge.net/projects/spheral/files/ThirdPartySources/$(PYBINDGENDIST)/download
 PYBINDGENDIR = $(PYBINDGENDIST:.zip=)
 PYBINDGENBUILDDATE = $(patsubst %.zip, .%.date, $(PYBINDGENDIST))
 
 # WildMagic
 WILDMAGICDIST = WildMagic5p9.zip
-WILDMAGICURL = http://www.geometrictools.com/Downloads/$(WILDMAGICDIST)
+WILDMAGICURL = http://sourceforge.net/projects/spheral/files/ThirdPartySources/$(WILDMAGICDIST)/download
 WILDMAGICDIR = GeometricTools
 WILDMAGICBUILDDATE = $(patsubst %.zip, .%.date, $(WILDMAGICDIST))
 
@@ -287,7 +288,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.9
+POLYTOPEVER = 0.5.10
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
@@ -369,7 +370,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYTHONDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/bin
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PYTHONDIR)
 	$(BZIP2) -dc $(PYTHONDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYTHONDIR); \
@@ -395,6 +396,7 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(NUMPYDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
@@ -417,6 +419,7 @@ $(GNUPLOTBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(GNUPLOTDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GNUPLOTDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(GNUPLOTDIR)
 	$(GZIP) -dc $(GNUPLOTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(GNUPLOTDIR); $(PYTHONEXE) setup.py install;'
@@ -440,6 +443,7 @@ $(PSYCOBUILDDATE):	$(PYTHONBUILDDATE) $(PSYCODIST)
 	@echo "################################################################################"
 	@echo "# Building $(PSYCODIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(SHELL) -ec 'cd $(PSYCOBUILDDIR); $(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import psyco'`"; then \
 	echo "ERROR building Psyco python extension."; \
@@ -480,7 +484,7 @@ $(BOOSTDATE):	$(BOOSTDIST) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(BOOSTDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/bin
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(BOOSTDIR)
 	$(BZIP2) -dc $(BOOSTDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(BOOSTDIR); \
@@ -516,7 +520,7 @@ $(GCCXMLDATE):		$(CMAKEEXE) $(GCCXMLDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GCCXMLDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/bin
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(GCCXMLDIR)
 	$(BZIP2) -dc $(GCCXMLDIST) | $(TAR) -xf -
 	$(MKDIR) $(GCCXMLDIR)/build
@@ -540,6 +544,7 @@ $(CMAKEEXE):	$(CMAKEDIST)
 	@echo "################################################################################"
 	@echo "# Building $(CMAKEDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc $(CMAKEDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(CMAKEDIR); \
@@ -562,7 +567,7 @@ $(PARMETISBUILDDATE):  $(PARMETISDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(PARMETISDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PARMETISDIR)
 	$(GZIP) -dc $(PARMETISDIST) | $(TAR) -xf -
 	env PATH="$(SPHERALDIR)/bin:$$PATH" CC="$(MPICC)" CXX="$(MPICXX)" CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(MAKE) -C $(PARMETISDIR) config shared=1 prefix=$(SPHERALDIR)
@@ -587,6 +592,7 @@ $(TAUBUILDDATE):  $(TAUDIST)
 	@echo "################################################################################"
 	@echo "# Building $(TAUDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(TAUDIR) $(TAUDUMMYDATE)
 	$(GZIP) -dc $(TAUDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(TAUDIR); ./configure $(TAUCONFIGUREFLAGS)"
@@ -602,6 +608,7 @@ $(TAUDUMMYDATE):  $(TAUDIST)
 	@echo "################################################################################"
 	@echo "# Building $(TAUDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(TAUDIR) $(TAUBUILDDATE)
 	$(GZIP) -dc $(TAUDIST) | $(TAR) -xf -
 	touch $(TAUDIR)/include/TAU.h
@@ -617,6 +624,7 @@ $(PYGTKBUILDDATE):  $(NUMPYBUILDDATE) $(PYGTKDIST)
 	@echo "################################################################################"
 	@echo "# Building $(PYGTKDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PYGTKDIR) $(PYGTKDUMMYDATE)
 	$(GZIP) -dc $(PYGTKDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYGTKDIR); \
@@ -641,6 +649,7 @@ $(MATPLOTLIBBUILDDATE): $(MATPLOTLIBDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MATPLOTLIBDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(MATPLOTLIBDIR) $(MATPLOTLIBDUMMYDATE)
 	$(GZIP) -dc $(MATPLOTLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(MATPLOTLIBDIR); \
@@ -664,6 +673,7 @@ $(SCIPYBUILDDATE):  $(PYTHONBUILDDATE) $(NUMPYBUILDDATE) $(SCIPYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(SCIPYDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(SCIPYDIR) $(SCIPYDUMMYDATE)
 	$(GZIP) -dc $(SCIPYDIST) | $(TAR) -xf -
 #	$(PATCH) $(SCIPYDIR)/setup.py $(SCIPYDIR)-setup.py-patch 
@@ -708,6 +718,7 @@ $(GSLBUILDDATE): $(GSLDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GSLDIST) $(GSLBUILDDATE)" 
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(GSLDIR)
 	$(GZIP) -dc $(GSLDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(GSLDIR); \
@@ -733,6 +744,7 @@ $(PYGSLBUILDDATE): $(PYGSLDIST) $(GSLBUILDDATE) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PYGSLDIST) $(PYGSLBUILDDATE)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PYGSLDIR)
 	$(GZIP) -dc $(PYGSLDIST) | $(TAR) -xf -
 	env PATH=$(SPHERALDIR)/bin:$$PATH $(SHELL) -ec 'cd $(PYGSLDIR); $(PYTHONEXE) setup.py install;'
@@ -754,6 +766,7 @@ $(PETSCBUILDDATE):	$(PETSCIDIST)
 	@echo "################################################################################"
 	@echo "# Fetching and building $(PETSCDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	@if ! test -e $(PETSC_DIR) ; then \
 	$(MKDIR) $(PETSC_DIR); \
 	fi
@@ -779,6 +792,7 @@ $(PETSC4PYBUILDDATE): $(PETSC4PYDIST)
 	@echo "################################################################################"
 	@echo "# Fetching and building $(PETSC4PYDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(GZIP) -dc $(PETSC4PYDIST) | $(TAR) -xf -
 #	$(PATCH) $(SCIPYDIR)/setup.py $(SCIPYDIR)-setup.py-patch 
 	$(SHELL) -ec "cd $(PETSC4PYDIR); \
@@ -801,7 +815,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HASHMAPDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(GZIP) -dc $(HASHMAPDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HASHMAPDIR); \
 	env CC='$(CC)' CXX='$(CXX)' ./configure --enable-namespace=google --prefix=$(SPHERALDIR); \
@@ -817,11 +831,14 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 #-------------------------------------------------------------------------------
 # Hank's visit_writer 
 #-------------------------------------------------------------------------------
+$(VISITWRITERDIST):
+	$(CURL) "$(VISITWRITERURL)" > $(VISITWRITERDIST)
+
 $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(WILDMAGICBUILDDATE) $(POLYTOPEBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(GZIP) -dc $(VISITWRITERDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE)"
 	@if ! test -e $(SPHERALDIR)/include/visit_writer.h -a \
@@ -842,6 +859,7 @@ $(ATSBUILDDATE):	$(ATSDIST) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(ATSDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(ATSDIR)
 	$(GZIP) -dc $(ATSDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(ATSDIR); \
@@ -866,6 +884,7 @@ $(FFTWBUILDDATE):	$(FFTWDIST)
 	@echo "################################################################################"
 	@echo "# Building $(FFTWDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(FFTWDIR)
 	$(GZIP) -dc $(FFTWDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(FFTWDIR); \
@@ -890,7 +909,7 @@ $(ARRAYBUILDDATE):	$(ARRAYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(ARRAYDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	$(CP) -f $(ARRAYDIST) $(SPHERALDIR)/include
 	@if ! test -e $(SPHERALDIR)/include/$(ARRAYDIST); then \
 	echo "ERROR building ARRAY."; \
@@ -908,7 +927,7 @@ $(FFTWPPBUILDDATE):	$(FFTWPPDIST) $(ARRAYBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(FFTWPPDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(FFTWPPDIR)
 	$(GZIP) -dc $(FFTWPPDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(FFTWPPDIR); \
@@ -934,6 +953,7 @@ $(ZLIBBUILDDATE):	$(ZLIBDIST)
 	@echo "################################################################################"
 	@echo "# Building $(ZLIBDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(ZLIBDIR)
 	$(BZIP2) -dc $(ZLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(ZLIBDIR); \
@@ -959,7 +979,7 @@ $(JPEGBUILDDATE):	$(JPEGDIST)
 	@echo "################################################################################"
 	@echo "# Building $(JPEGDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(JPEGDIR)
 	$(GZIP) -dc $(JPEGDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(JPEGDIR); \
@@ -989,6 +1009,7 @@ $(PILBUILDDATE):	$(PYTHONBUILDDATE) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(PILDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PILDIR)
 	$(GZIP) -dc $(PILDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(PILDIR); $(PYTHONEXE) setup.py install;'
@@ -1003,8 +1024,8 @@ $(PILBUILDDATE):	$(PYTHONBUILDDATE) $(PILDIST) $(JPEGBUILDDATE) $(ZLIBBUILDDATE)
 #-------------------------------------------------------------------------------
 # pybindgen (Python bindings)
 #-------------------------------------------------------------------------------
-#$(PYBINDGENDIST):
-#	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
+$(PYBINDGENDIST):
+	$(CURL) "$(PYBINDGENURL)" > $(PYBINDGENDIST)
 
 $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 	@echo "################################################################################"
@@ -1046,6 +1067,7 @@ $(WILDMAGICBUILDDATE):	$(PYTHONBUILDDATE) $(WILDMAGICDIST)
 	@echo "################################################################################"
 	@echo "# Building $(WILDMAGICDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(WILDMAGICDIR)
 	$(UNZIP) $(WILDMAGICDIST)
 	rm -fr $(SPHERALDIR)/WildMagic5
@@ -1080,6 +1102,7 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@echo "################################################################################"
 	@echo "# Building $(QHULLDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(QHULLDIR) $(QHULLINCDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
@@ -1128,7 +1151,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 	@echo "################################################################################"
 	@echo "# Building $(HDF5DIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR)
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(HDF5DIR)
 	$(BZIP2) -dc $(HDF5DIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HDF5DIR); \
@@ -1155,7 +1178,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(SILODIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(LIBDIR)
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
@@ -1182,7 +1205,7 @@ $(EIGENBUILDDATE):  $(EIGENDIST) $(HDF5BUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(EIGENDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(EIGENDIR)
 	$(BZIP2) -dc $(EIGENDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(EIGENDIR); $(CP) -r Eigen $(SPHERALDIR)/include'
@@ -1204,6 +1227,7 @@ $(VOROPPBUILDDATE):  $(VOROPPDIST)
 	@echo "################################################################################"
 	@echo "# Building $(VOROPPDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	@$(MKDIR) $(SPHERALDIR)/include/voro++
 	rm -fr $(VOROPPDIR)
 	$(GZIP) -dc $(VOROPPDIST) | $(TAR) -xf -
@@ -1223,6 +1247,7 @@ $(VOROPP2DBUILDDATE):  $(VOROPP2DDIST)
 	@echo "################################################################################"
 	@echo "# Building $(VOROPP2DDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(VOROPP2DDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(MKDIR) $(SPHERALDIR)/include/$(VOROPP2DINC)
 	$(BZIP2) -dc $(VOROPP2DDIST) | $(TAR) -xf -
@@ -1248,7 +1273,7 @@ $(GMPBUILDDATE):  $(GMPDIST)
 	@echo "################################################################################"
 	@echo "# Building $(GMPDIST)"
 	@echo "################################################################################"
-	@$(MKDIR) $(SPHERALDIR)/include $(SPHERALDIR)/lib
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(GMPDIR)
 	$(BZIP2) -dc $(GMPDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(GMPDIR); \
@@ -1275,6 +1300,7 @@ $(MPMATHBUILDDATE):  $(PYTHONBUILDDATE) $(MPMATHDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MPMATHDIST)"
 	@echo "################################################################################"
+	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(MPMATHDIR)
 	$(GZIP) -dc $(MPMATHDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(MPMATHDIR); $(PYTHONEXE) setup.py install"
@@ -1296,8 +1322,8 @@ $(HYPREBUILDDATE):	$(HYPREDIST)
 	@echo "################################################################################"
 	@echo "# Building $(HYPREDIST)"
 	@echo "################################################################################"
-	rm -fr $(HYPREDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	rm -fr $(HYPREDIR)
 	$(GZIP) -dc $(HYPREDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(HYPREDIR)/src; \
 	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' ./configure --prefix=$(SPHERALDIR) ;\
@@ -1322,8 +1348,8 @@ $(FLANNBUILDDATE):	$(FLANNDIST) $(CMAKEEXE) $(FLANNDATE) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(FLANNDIST)"
 	@echo "################################################################################"
-	rm -fr $(FLANNDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	rm -fr $(FLANNDIR)
 	$(UNZIP) $(FLANNDIST)
 	$(MKDIR) $(FLANNDIR)/build
 	$(SHELL) -ec "cd $(FLANNDIR)/build; \
@@ -1348,8 +1374,8 @@ $(PCLBUILDDATE):	$(PCLDIST) $(CMAKEEXE) $(BOOSTDATE) $(EIGENDATE) $(QHULLDATE) $
 	@echo "################################################################################"
 	@echo "# Building $(PCLDIST)"
 	@echo "################################################################################"
-	rm -fr $(PCLDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	rm -fr $(PCLDIR)
 	$(BZIP2) -dc $(PCLDIST) | $(TAR) -xf -
 	$(MKDIR) $(PCLDIR)/build
 	$(SHELL) -ec "cd $(PCLDIR)/build; \
@@ -1374,8 +1400,8 @@ $(OCTTREEBUILDDATE):	$(OCTTREEDIST)
 	@echo "################################################################################"
 	@echo "# Building $(OCTTREEDIST)"
 	@echo "################################################################################"
-	rm -fr $(OCTTREEDIR) $(OCTTREEINCDIR)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(OCTTREEINCDIR)
+	rm -fr $(OCTTREEDIR) $(OCTTREEINCDIR)
 	$(MKDIR) $(OCTTREEDIR)
 	$(SHELL) -ec "cd $(OCTTREEDIR); \
 	$(UNZIP) ../$(OCTTREEDIST)"
