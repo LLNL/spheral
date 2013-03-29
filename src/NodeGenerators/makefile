@@ -22,6 +22,7 @@ PYTHONTARGETS = \
 	VoronoiDistributeNodes.py \
 	NestedGridDistributeNodes.py \
 	GzipFileNodeGenerator.py \
+	DumpGzipFileNodeGenerator.py \
 	CubicNodeGenerator.py \
 	GenerateSphericalShellSection.py \
 	AbaqusNodeGenerator.py \
