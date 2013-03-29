@@ -26,6 +26,7 @@ PYTHONTARGETS = \
 	Pnorm.py \
 	numericalIntegration.py \
 	newtonRaphson.py \
+	bisectFunction.py \
 	NodeHistory.py \
 	AverageStrain.py \
 	SpheralHadesDump.py
