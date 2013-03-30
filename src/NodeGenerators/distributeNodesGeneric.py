@@ -36,11 +36,13 @@ def distributeNodesGeneric(listOfNodeTuples,
         print "  distributeNodesGeneric: performing initial crappy distribution."
         r = nodes.positions()
         m = nodes.mass()
+        vel = nodes.velocity()
         rho = nodes.massDensity()
         H = nodes.Hfield()
         for i in xrange(nlocal):
             r[i] = generator.localPosition(i)
             m[i] = generator.localMass(i)
+            vel[i] = generator.localVelocity(i)
             rho[i] = generator.localMassDensity(i)
             H[i] = generator.localHtensor(i)
         H.applyScalarMin(hmaxInv)

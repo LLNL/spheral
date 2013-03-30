@@ -135,6 +135,16 @@ class NodeGeneratorBase:
             result.append(x)
         return result
 
+    #---------------------------------------------------------------------------
+    # Default no-op field methods, which can be over-ridden in descendents.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        return 0.0
+
+    def localVelocity(self, i):
+        return {type(SymTensor2d.zero) : Vector2d.zero,
+                type(SymTensor3d.zero) : Vector3d.zero}[type(self.H[0])]
+
 #-------------------------------------------------------------------------------
 # Helper class for providing default constant density behaviour.
 #-------------------------------------------------------------------------------
