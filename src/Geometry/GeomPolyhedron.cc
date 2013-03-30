@@ -98,41 +98,68 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
 //       FILE *errfile= stderr;    /* error messages from qhull code */
 //       const int exitcode_qhull = qh_new_qhull(3, points.size(), &points_qhull.front(), ismalloc, flags, errfile, errfile);
 //     }
-    VERIFY2(exitcode_qhull == 0,
-            "Qhull emitted an error code while generating GeomPolyhedron");
 
-    // Copy Qhull's vertex information.
-    vertexT *vertex, **vertexp;
-    map<unsigned, unsigned> vertexIDmap;
-    {
-      unsigned i = 0;
-      FORALLvertices {
-        mVertices.push_back(fscale*Vector(vertex->point[0], vertex->point[1], vertex->point[2]) + xmin);
-        vertexIDmap[vertex->id] = i;
-        ++i;
+    // VERIFY2(exitcode_qhull == 0,
+    //         "Qhull emitted an error code while generating GeomPolyhedron");
+
+    // If Qhull failed, we fall back on constructing the bounding box.
+    if (exitcode_qhull != 0) {
+      mVertices.push_back(Vector(xmax.x(), xmin.y(), xmin.z()));
+      mVertices.push_back(Vector(xmax.x(), xmax.y(), xmin.z()));
+      mVertices.push_back(Vector(xmin.x(), xmax.y(), xmin.z()));
+      mVertices.push_back(Vector(xmin.x(), xmin.y(), xmin.z()));
+      mVertices.push_back(Vector(xmax.x(), xmin.y(), xmax.z()));
+      mVertices.push_back(Vector(xmax.x(), xmax.y(), xmax.z()));
+      mVertices.push_back(Vector(xmin.x(), xmax.y(), xmax.z()));
+      mVertices.push_back(Vector(xmin.x(), xmin.y(), xmax.z()));
+      vector<unsigned> ipoints0, ipoints1, ipoints2, ipoints3, ipoints4, ipoints5;
+      ipoints0.push_back(0); ipoints0.push_back(3); ipoints0.push_back(2); ipoints0.push_back(1);
+      ipoints1.push_back(0); ipoints1.push_back(1); ipoints1.push_back(5); ipoints1.push_back(4);
+      ipoints2.push_back(1); ipoints2.push_back(2); ipoints2.push_back(6); ipoints2.push_back(5);
+      ipoints3.push_back(2); ipoints3.push_back(3); ipoints3.push_back(7); ipoints3.push_back(6);
+      ipoints4.push_back(0); ipoints4.push_back(4); ipoints4.push_back(7); ipoints4.push_back(3);
+      ipoints5.push_back(4); ipoints5.push_back(5); ipoints5.push_back(6); ipoints5.push_back(7);
+      mFacets.push_back(Facet(mVertices, ipoints0, Vector(0, 0, -1)));
+      mFacets.push_back(Facet(mVertices, ipoints1, Vector(1, 0, 0)));
+      mFacets.push_back(Facet(mVertices, ipoints2, Vector(0, 1, 0)));
+      mFacets.push_back(Facet(mVertices, ipoints3, Vector(-1, 0, 0)));
+      mFacets.push_back(Facet(mVertices, ipoints4, Vector(0, -1, 0)));
+      mFacets.push_back(Facet(mVertices, ipoints5, Vector(0, 0, 1)));
+
+    } else {
+
+      // Copy Qhull's vertex information.
+      vertexT *vertex, **vertexp;
+      map<unsigned, unsigned> vertexIDmap;
+      {
+        unsigned i = 0;
+        FORALLvertices {
+          mVertices.push_back(fscale*Vector(vertex->point[0], vertex->point[1], vertex->point[2]) + xmin);
+          vertexIDmap[vertex->id] = i;
+          ++i;
+        }
       }
-    }
-    CHECK(vertexIDmap.size() == mVertices.size());
+      CHECK(vertexIDmap.size() == mVertices.size());
 
-    // Copy Qhull's facet information to our own format.
-    vector<unsigned> vertex_indices;
-    FORALLfacets {
-      vertex_indices = vector<unsigned>();
-      Vector fc;
-      FOREACHvertex_(facet->vertices) {
-        CHECK(vertexIDmap.find(vertex->id) != vertexIDmap.end());
-        const unsigned vertex_i = vertexIDmap[vertex->id];
-        CHECK(vertex_i < mVertices.size());
-        vertex_indices.push_back(vertex_i);
-        fc += mVertices[vertex_indices.back()];
-      }
-      CHECK(vertex_indices.size() >= 3);
-      fc /= vertex_indices.size();
-      const Vector normal(facet->normal[0], facet->normal[1], facet->normal[2]);
+      // Copy Qhull's facet information to our own format.
+      vector<unsigned> vertex_indices;
+      FORALLfacets {
+        vertex_indices = vector<unsigned>();
+        Vector fc;
+        FOREACHvertex_(facet->vertices) {
+          CHECK(vertexIDmap.find(vertex->id) != vertexIDmap.end());
+          const unsigned vertex_i = vertexIDmap[vertex->id];
+          CHECK(vertex_i < mVertices.size());
+          vertex_indices.push_back(vertex_i);
+          fc += mVertices[vertex_indices.back()];
+        }
+        CHECK(vertex_indices.size() >= 3);
+        fc /= vertex_indices.size();
+        const Vector normal(facet->normal[0], facet->normal[1], facet->normal[2]);
 
-      // Enforce counter-clockwise ordering (viewed from outside) for the facet vertices.
-      CHECK(vertex_indices.size() > 2);
-      sort(vertex_indices.begin() + 1, vertex_indices.end(), CounterClockwiseComparator<Vector, vector<Vector> >(mVertices, mVertices[vertex_indices[0]], normal));
+        // Enforce counter-clockwise ordering (viewed from outside) for the facet vertices.
+        CHECK(vertex_indices.size() > 2);
+        sort(vertex_indices.begin() + 1, vertex_indices.end(), CounterClockwiseComparator<Vector, vector<Vector> >(mVertices, mVertices[vertex_indices[0]], normal));
 
 //       // If this is a triangular facet, we enforce counter-clockwise ordering (viewed from the outside) for the facet vertices.
 //       if (vertex_indices.size() == 3) {
@@ -142,9 +169,10 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
 //         CHECK((mVertices[vertex_indices[2]] - mVertices[vertex_indices[0]]).cross(mVertices[vertex_indices[1]] - mVertices[vertex_indices[0]]).dot(normal) > 0.0);
 //       }
 
-      mFacets.push_back(Facet(mVertices,
-                              vertex_indices,
-                              normal));
+        mFacets.push_back(Facet(mVertices,
+                                vertex_indices,
+                                normal));
+      }
     }
 
     // Free Qhull's resources.
