@@ -36,7 +36,7 @@ namespace FractalSpace
     bool mom_buff_group=mother.get_buffer_group();
     int new_level=mother.get_level()+1;
     new_group.set_level(new_level);
-    double grid_multiplier=(double)misc.grid_multiply;
+    double grid_multiplier=misc.grid_multiply;
     int d_point=Misc::pow(2,fractal.get_level_max()-new_group.get_level());
     new_group.set_points_in_group(0);
     new_group.list_points.reserve(high_group.list_high_points.size()*27);
@@ -122,13 +122,20 @@ namespace FractalSpace
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// Splitting the particles from the mother point into the eight points that can have particles
 	//--------------------------------------------------------------------------------------------------------------------------------
+	double ah_x=h_x;
+	double ah_y=h_y;
+	double ah_z=h_z;
 	for(vector <Particle*>::const_iterator particle_itr=high_point.list_particles.begin();particle_itr !=high_point.list_particles.end();++particle_itr)
 	  {
 	    Particle* p=*particle_itr;
 	    p->get_pos(pos);
-	    int p_x=((int)(pos[0]*grid_multiplier)-h_x)/d_point;
-	    int p_y=((int)(pos[1]*grid_multiplier)-h_y)/d_point;
-	    int p_z=((int)(pos[2]*grid_multiplier)-h_z)/d_point;
+	    int p_x=static_cast<int>(pos[0]*grid_multiplier-ah_x)/d_point;
+	    int p_y=static_cast<int>(pos[1]*grid_multiplier-ah_y)/d_point;
+	    int p_z=static_cast<int>(pos[2]*grid_multiplier-ah_z)/d_point;
+
+	    //	    int p_x=((int)(pos[0]*grid_multiplier)-h_x)/d_point;
+	    //	    int p_y=((int)(pos[1]*grid_multiplier)-h_y)/d_point;
+	    //	    int p_z=((int)(pos[2]*grid_multiplier)-h_z)/d_point;
 	    int pp=p_x+p_y*3+p_z*9;
 	    p_point_tmp[pp]->list_particles.push_back(p);
 	    p->set_p_highest_level_group(p_new);
