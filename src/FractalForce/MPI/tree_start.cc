@@ -124,9 +124,23 @@ namespace FractalSpace
 	p->set_p_highest_level_group(misc.p_group_0);
 	p->set_highest_level(0);
 	p->get_pos(pos);
-	int grid_x=static_cast<int>(floor(pos[0]*a_grid_length));
-	int grid_y=static_cast<int>(floor(pos[1]*a_grid_length));
-	int grid_z=static_cast<int>(floor(pos[2]*a_grid_length));
+	//
+	double a_grid_x=pos[0]*a_grid_length;
+	double a_grid_y=pos[1]*a_grid_length;
+	double a_grid_z=pos[2]*a_grid_length;
+	int grid_x=a_grid_x;
+	int grid_y=a_grid_y;
+	int grid_z=a_grid_z;
+	if(a_grid_x < 0.0)
+	  grid_x=-static_cast<int>(-a_grid_x+1.0);
+	if(a_grid_y < 0.0)
+	  grid_y=-static_cast<int>(-a_grid_y+1.0);
+	if(a_grid_z < 0.0)
+	  grid_z=-static_cast<int>(-a_grid_z+1.0);
+	//
+	//	int grid_x=static_cast<int>(floor(pos[0]*a_grid_length));
+	//	int grid_y=static_cast<int>(floor(pos[1]*a_grid_length));
+	//	int grid_z=static_cast<int>(floor(pos[2]*a_grid_length));
 	bool do_it=
 	  grid_x >= PBox[0] && grid_x < PBox[1] &&
 	  grid_y >= PBox[2] && grid_y < PBox[3] &&
