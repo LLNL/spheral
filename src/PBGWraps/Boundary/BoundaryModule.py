@@ -35,28 +35,26 @@ def generateBoundaryVirtualBindings(x, ndim, pureVirtual):
     connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
 
     # Virtual methods.
-    x.add_method("setGhostNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
-    x.add_method("updateGhostNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
+    x.add_method("setGhostNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("updateGhostNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
 
-    x.add_method("setViolationNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
-    x.add_method("updateViolationNodes", None, [refparam(nodelist, "nodeList")], is_pure_virtual=pureVirtual)
+    x.add_method("setViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("updateViolationNodes", None, [refparam(nodelist, "nodeList")], is_virtual=True, is_pure_virtual=pureVirtual)
 
-    x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("applyGhostBoundary", None, [refparam(vectordoublefield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
-    x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-    x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_pure_virtual=pureVirtual)
-
-    x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
+    x.add_method("enforceBoundary", None, [refparam(intfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(scalarfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(vectorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(tensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(symtensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    x.add_method("enforceBoundary", None, [refparam(thirdranktensorfield, "field")], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     return
 
@@ -253,6 +251,7 @@ class Boundary:
         x.add_method("enforceFieldListBoundary", None, [refparam(thirdranktensorfieldlist, "fieldList")], custom_template_method_name="enforceThirdRankTensorFieldListBoundary", is_const=True)
 
         x.add_method("finalizeGhostBoundary", None, [], is_const=True, is_virtual=True)
+        x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
 
         # x.add_method("meshGhostNodes", "bool", [], is_virtual=True, is_const=True)
 
