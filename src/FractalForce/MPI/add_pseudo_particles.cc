@@ -14,6 +14,21 @@ namespace FractalSpace
     double Rlow=-2.0*Rdelta;
     double Rhigh=1.0+Rdelta;
     vector <double>pos(3);
+    vector <double> boxinner(6);
+    vector <double> boxouter(6);
+    boxinner[0]=0.0;
+    boxinner[1]=1.0;
+    boxinner[2]=0.0;
+    boxinner[3]=1.0;
+    boxinner[4]=0.0;
+    boxinner[5]=1.0;
+    boxouter[0]=Rlow;
+    boxouter[1]=Rhigh;
+    boxouter[2]=Rlow;
+    boxouter[3]=Rhigh;
+    boxouter[4]=Rlow;
+    boxouter[5]=Rhigh;
+    vector <double> posp(3);
     for(int particle=0; particle < frac.get_number_particles(); ++particle)
       {
 	Particle* P=frac.particle_list[particle];
@@ -22,26 +37,22 @@ namespace FractalSpace
 	P->get_pos(pos);
 	for(int nz=-1;nz<=1;nz++)
 	  {
-	    double posz=pos[2]+nz;
-	    bool okz=posz > Rlow && posz < Rhigh;
-	    if(!okz)
-	      continue;
+	    posp[2]=pos[2]+nz;
 	    for(int ny=-1;ny<=1;ny++)
 	      {
-		double posy=pos[1]+ny;
-		bool oky=posy > Rlow && posy < Rhigh;
-		if(!oky)
-		  continue;
+		posp[1]=pos[1]+ny;
 		for(int nx=-1;nx<=1;nx++)
 		  {
-		    double posx=pos[0]+nx;
-		    bool okx=posx > Rlow && posx < Rhigh;
-		    if(!okx || (nz==0 && ny==0 && nx==0 ))
+		    posp[0]=pos[0]+nx;
+		    if(nz==0 && ny==0 && nx==0)
 		      continue;
+		    if(overlap(posp,boxinner))
+		       continue;
+		    if(!overlap(posp,boxouter))
+		       continue;
 		    double m=P->get_mass();
 		    Particle* Pb=new Particle;
-		    Pb->set_pos(posx,posy,posz);
-		    Pb->set_mass(m);
+		    Pb->set_posm(posp,m);
 		    Pb->set_real_particle(false);
 		    frac.particle_list.push_back(Pb);
 		    //		    Pb->dump(mem.p_file->FileFractal);
