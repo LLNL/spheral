@@ -349,14 +349,14 @@ namespace FractalSpace
 	n[0] < BBox[0] || n[0] > BBox[1] ||
 	n[1] < BBox[2] || n[1] > BBox[3] ||
 	n[2] < BBox[4] || n[2] > BBox[5];
-      if(pass)
-	return;
+      //      if(pass)
+      //	return;
       buff=
 	n[0] < Box[0] || n[0] > Box[1] ||
 	n[1] < Box[2] || n[1] > Box[3] ||
 	n[2] < Box[4] || n[2] > Box[5];
-      if(buff)
-	return;
+      //      if(buff)
+      //	return;
       edge=
 	n[0]==Box[0] || n[0] == Box[1] ||
 	n[1]==Box[2] || n[1] == Box[3] ||
@@ -656,12 +656,12 @@ namespace FractalSpace
 	{
 	  if(pos[j] < 0.0)
 	    {
-	      pos[j]++;
+	      pos[j]+=1.0;
 	      doit=true;
 	    }
 	  else if(pos[j] >= 1.0)
 	    {
-	      pos[j]--;
+	      pos[j]-=1.0;
 	      doit=true;
 	    }
 	}
