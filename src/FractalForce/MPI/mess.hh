@@ -200,8 +200,7 @@ namespace FractalSpace
 	      for(nz=0;nz<Length;nz++)
 		{
 		  pint n=fftw_where(nx,ny,nz,length,length+2);
-		  if(!test || potR[n] != 0.0)
-		    FILE << " dumpR " << nx << " " << ny << " " << nz << " " << n << " " << potR[n] << endl;
+		  FILE << " dumpR " << nx << " " << ny << " " << nz << " " << n << " " << potR[n] << endl;
 		}
 	    }
 	}
@@ -458,6 +457,11 @@ namespace FractalSpace
     {
       for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
 	potR[ni]=0.0;
+    }
+    void zeroR(double grail)
+    {
+      for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
+	potR[ni]=grail;
     }
     double Clock()
     {

@@ -209,8 +209,8 @@ namespace FractalSpace
     void subtract_density(const double& d)
     {
       for(vector <Point*>:: const_iterator point_itr=list_points.begin();point_itr != list_points.end();++point_itr)
-	if((*point_itr)->get_inside()) 
-	  (*point_itr)->subtract_dens_at_point(d);
+	//	if((*point_itr)->get_inside()) 
+	(*point_itr)->subtract_dens_at_point(d);
     }
     void scale_pot_forces(const double& scaling)
     {

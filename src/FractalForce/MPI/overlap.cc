@@ -29,3 +29,17 @@ namespace FractalSpace
   template bool overlap(vector <int>& xleft,vector <int>& xright,vector <int>& box);
   template bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& box);
 }
+namespace FractalSpace
+{
+  template <class T> bool overlap(vector <T>& xvec,vector <T>& box)
+  {
+    return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
+	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
+	    xvec[2] <= box[5] && xvec[2] >= box[4]);
+  }
+}
+namespace FractalSpace
+{
+  template bool overlap(vector <int>& xvec,vector <int>& box);
+  template bool overlap(vector <double>& xvec,vector <double>& box);
+}

@@ -9,6 +9,7 @@ namespace FractalSpace
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
   void balance_by_particles(Fractal_Memory*PFM);
+  void balance_by_particles_smarter(Fractal_Memory* PFM);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
@@ -80,6 +81,9 @@ namespace FractalSpace
   void make_me_a_galaxy(int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
 		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
+  void make_me_some_particles(int rank,int numbers,double total_mass,vector <double>& masses,double G,
+		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
+		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
@@ -87,7 +91,8 @@ namespace FractalSpace
   void neighbors_nina(Point& point, vector <Point*>& adj);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
-  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleftright);
+  template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
+  template <class T> bool overlap(vector <T>& xvec,vector <T>& box);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleft,vector <double>& yright);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleftright);
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_ghost,Misc& misc);
