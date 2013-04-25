@@ -83,12 +83,21 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   polytope::Tessellation<2, double> tessellation;
   {
 #ifdef USE_MPI
-    polytope::DistributedTessellator<2, double> tessellator(new polytope::TriangleTessellator<double>(),
-                                                            true,     // Manage memory for serial tessellator
-                                                            true);    // Build parallel connectivity
+    polytope::DistributedTessellator<2, double> tessellator
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+        (new polytope::TriangleTessellator<double>(),
+#else
+        (new polytope::VoroPP_2d<double>(),
+#endif
+                                                                  true,     // Manage memory for serial tessellator
+                                                                  true);    // Build parallel connectivity
     tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #else
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
     polytope::TriangleTessellator<double> tessellator;
+#else
+    polytope::VoroPP_2d<double> tessellator;
+#endif
     tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
 #endif
   }
