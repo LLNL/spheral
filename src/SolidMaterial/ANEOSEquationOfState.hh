@@ -34,6 +34,11 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  typedef typename boost::multi_array<double, 2> array_type;
+  typedef typename array_type::array_view<1>::type slice_type;
+  typedef typename array_type::const_array_view<1>::type const_slice_type;
+  typedef boost::multi_array_types::index_range range;
+
   // Constructors, destructors.
   ANEOSEquationOfState(const int materialNumber,
                        const unsigned numRhoVals,
@@ -112,7 +117,7 @@ public:
   double rhoMax() const;
   double Tmin() const;
   double Tmax() const;
-  const boost::multi_array<double, 2>& specificThermalEnergyVals() const;
+  const array_type& specificThermalEnergyVals() const;
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
@@ -125,7 +130,7 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mExternalPressure;
-  boost::multi_array<double, 2> mSTEvals;
+  array_type mSTEvals;
 
   // ANEOS internal units.
   Material::PhysicalConstants mANEOSunits;

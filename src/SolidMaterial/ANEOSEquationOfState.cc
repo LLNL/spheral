@@ -279,8 +279,9 @@ temperature(const Scalar massDensity,
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
   const unsigned irho0 = min(mNumRhoVals - 2, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
                  irho1 = irho0 + 1;
+  const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
   const unsigned iT0 = max(0, min(int(mNumTvals - 2), 
-                                  bisectSearch(mSTEvals[irho0].begin(), mSTEvals[irho0].end(), specificThermalEnergy))),
+                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
                  iT1 = iT0 + 1;
   const double u = max(0.0, min(1.0, (massDensity - mRhoMin - irho0*drho)/drho));
   const double num = specificThermalEnergy - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
