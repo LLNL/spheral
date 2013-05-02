@@ -60,6 +60,9 @@ generateANEOSEquationOfStateBindings(self.ANEOSEquationOfState%(dim)id, %(dim)i)
 #---------------------------------------------------------------------------
 def generateANEOSEquationOfStateBindings(x, ndim):
 
+    dim = "Spheral::Dim< %i >" % ndim
+    me = "Spheral::SolidMaterial::ANEOSEquationOfState%id" % ndim
+
     # Constructors.
     x.add_constructor([param("int", "materialNumber"),
                        param("unsigned int", "numRhoVals"),
@@ -75,6 +78,12 @@ def generateANEOSEquationOfStateBindings(x, ndim):
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)
+
+    # Methods.
+    x.add_function_as_method("ANEOS_STEvals", "vector_of_vector_of_double", 
+                             [param(me, "self")],
+                             template_parameters = [dim],
+                             custom_name = "specificThermalEnergyVals")
 
     # Attributes.
     x.add_instance_attribute("materialNumber", "int", getter="materialNumber", is_const=True)
