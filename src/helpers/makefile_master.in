@@ -55,6 +55,10 @@ POLYTOPELIBS = @POLYTOPELIBS@
 USE_TRIANGLE = @USE_TRIANGLE@
 USE_TETGEN = @USE_TETGEN@
 
+ANEOSSRCS = @ANEOSSRCS@
+ANEOSFSRCS = @ANEOSFSRCS@
+ANEOSLIBS = @ANEOSLIBS@
+
 UTILDIR = $(SRCTOP)/Utilities
 HDFINCDIR = /usr/local/Spheral++/include
 HDFLIBDIR = /usr/local/Spheral++/lib
@@ -70,7 +74,7 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
-OBJS = $(SRCTARGETS:.cc=.o) $(F77TARGETS:.f=.o)
+OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o)
 
 TAULIBS = # @TAULIBS@
 LIBS =  -L$(WILDMAGICLIBDIR) $(WILDMAGICLIBS) -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS)
@@ -91,7 +95,7 @@ endif
 #set compile line here
 CC =  @CC@
 CXX = @CXX@
-F77 = @F77@
+FORT = @FORT@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
 PYTHONCC = @PYTHONCC@
@@ -109,7 +113,7 @@ CFLAGS   =   @CFLAGS@ $(INCS) $(TAUFLAGS)
 CXXFLAGS =   @CXXFLAGS@ $(INCS) $(TAUFLAGS)
 MPICCFLAGS = @MPICCFLAGS@
 MPICXXFLAGS = @MPICXXFLAGS@
-F77FLAGS =   @F77FLAGS@
+FORTFLAGS =   @FORTFLAGS@
 DYNLIBFLAG = @DYNLIBFLAG@
 SHAREDFLAG = @SHAREDFLAG@
 OPTFLAGS =   @OPT@
@@ -221,7 +225,7 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 %.o: %.f
-	$(F77) $(F77FLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 # %.C: %.py # $(MODPKGS)
 # 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
@@ -273,9 +277,9 @@ ifneq "$(SRCTARGETS)" ""
 -include $(SRCTARGETS:.cc=.d)
 endif
 
-#ifneq "$(F77TARGETS)" ""
-#-include $(F77TARGETS:.f=.d)
-#endif
+ifneq "$(FSRCTARGETS)" ""
+-include $(FSRCTARGETS:.f=.d)
+endif
 
 ifneq "$(BPLTARGETS)" "" 
 -include $(BPLTARGETS:.cpp=.d)
@@ -391,7 +395,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(F77TARGETS:.f=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:

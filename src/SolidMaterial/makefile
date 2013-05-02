@@ -14,7 +14,11 @@ SRCTARGETS = \
 	SteinbergGuinanLundStrengthInst.cc \
 	PorousEquationOfStateInst.cc \
 	PorousStrengthModelInst.cc \
-	StrainPorosityInst.cc
+	StrainPorosityInst.cc \
+	$(ANEOSSRCS)
+
+FSRCTARGETS = \
+	$(ANEOSFSRCS)
 
 PYTHONTARGETS = \
 	SolidMaterialUnits.py \
@@ -23,6 +27,8 @@ PYTHONTARGETS = \
 SPHERALTOP = ../../../spheral/src
 SOLIDTOP = ..
 ARCH = $(SPHERALARCH)
+
+EXTRALIBS = $(ANEOSLIBS)
 
 #-------------------------------------------------------------------------------
 include $(SOLIDTOP)/helpers/makefile_master
