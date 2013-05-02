@@ -9,21 +9,25 @@
 #define __Spheral_bisectSearch__
 
 #include <vector>
+#include <algorithm>
 
 namespace Spheral {
 
-template<typename DataType>
+// General iterator based method.
+template<typename DataType, typename IteratorType>
 inline
 int
-bisectSearch(const std::vector<DataType>& table, 
+bisectSearch(const IteratorType& begin,
+             const IteratorType& end,
              const DataType& val) {
-  const int n = table.size();
-  const bool ascnd = (table[n - 1] >= table[0]);
+  const int n = std::distance(begin, end);
+  REQUIRE(n > 1);
+  const bool ascnd = (*(end - 1) >= *begin);
   int jl = -1;
   int ju = n;
   while (ju - jl > 1) {
     const int jm = (ju + jl)/2;
-    if ((val >= table[jm]) == ascnd) {
+    if ((val >= *(begin + jm)) == ascnd) {
       jl = jm;
     } else {
       ju = jm;
@@ -32,11 +36,20 @@ bisectSearch(const std::vector<DataType>& table,
 
   // Post conditions.
   ENSURE(ju - jl == 1);
-  ENSURE((jl == -1 && (val <= table[0]) == ascnd) ||
-         (jl == n - 1 && (val >= table[n - 1]) == ascnd) ||
-         (((val >= table[jl]) == ascnd) &&
-          ((val <= table[ju]) == ascnd)));
+  ENSURE((jl == -1 and (val <= *begin) == ascnd) or
+         (jl == n - 1 and (val >= *(end - 1)) == ascnd) or
+         (((val >= *(begin + jl)) == ascnd) and
+          ((val <= *(begin + ju)) == ascnd)));
   return jl;
+}
+
+// Specialized for a std::vector for backwards compatibility.
+template<typename DataType>
+inline
+int
+bisectSearch(const std::vector<DataType>& table, 
+             const DataType& val) {
+  return bisectSearch(table.begin(), table.end(), val);
 }
 
 }

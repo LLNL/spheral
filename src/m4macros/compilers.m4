@@ -13,7 +13,7 @@ AC_DEFUN([SETUP_COMPILERS_THE_WAY_I_WANT],[
 
 AC_SUBST(CC)
 AC_SUBST(CXX)
-AC_SUBST(F77)
+AC_SUBST(FORT)
 
 AC_SUBST(MPICC)
 AC_SUBST(MPICXX)
@@ -50,7 +50,7 @@ AC_SUBST(SHAREDFLAG)
 AC_SUBST(LDPASSTHROUGH)
 
 AC_SUBST(CXXFLAGS)
-AC_SUBST(F77FLAGS)
+AC_SUBST(FORTFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(MPICCFLAGS)
 AC_SUBST(MPICXXFLAGS)
@@ -88,7 +88,7 @@ case $COMPILERS in
       if test $OSNAME = "Linux" -a "$GCC446TEST" != "nope"; then
          CC=gcc-4.4.6
          CXX=g++-4.4.6
-         F77=g77
+         FORT=gfortran
          MPICC=mpicc
          MPICXX=mpig++
          MPICCFLAGS="-cc=$CC"
@@ -105,7 +105,7 @@ case $COMPILERS in
       elif test $OSNAME = "Linux" -a "$GCCTEST" != "nope"; then
          CC=gcc
          CXX=g++
-         F77=g77
+         FORT=gfortran
          MPICC=mpicc
          MPICXX=mpiCC
          if test "$GCC333TEST" != "nope"; then
@@ -124,7 +124,7 @@ case $COMPILERS in
       elif test $OSNAME = "Darwin"; then
          CC=clang
          CXX=clang++
-         F77=f77
+         FORT=gfortran
          MPICC=mpicc
          MPICXX=mpicxx
          MPICCFLAGS="-cc=clang"
@@ -140,7 +140,7 @@ case $COMPILERS in
       else
          CC=gcc
          CXX=g++
-         F77=g77
+         FORT=gfortran
          MPICC=mpicc # $SRCDIR/helpers/mpicc
          MPICXX=mpic++ # $SRCDIR/helpers/mpic++
          CMAKECC=$CC
@@ -177,7 +177,7 @@ case $COMPILERS in
    intel)
       CC=icc
       CXX=icpc
-      F77=ifort
+      FORT=ifort
       MPICC=mpiicc
       MPICXX=mpiicpc
       PYTHONCC=icc
@@ -389,6 +389,21 @@ AC_ARG_WITH(parmetis-CC,
 ]
 )
 
+# =======================================================================
+# Fortran compiler
+# =======================================================================
+AC_MSG_CHECKING(for fortran)
+AC_ARG_WITH(fortran,
+[  --with-fortran=ARG ....................... manually set the fortran compiler],
+[
+   FORT=$withval
+   AC_MSG_RESULT($FORT)
+],
+[
+   AC_MSG_RESULT($FORT)
+]
+)
+
 # ======================================================================
 # Set up the linker to be used generating shared libs
 # ======================================================================
@@ -527,10 +542,11 @@ DYNLIBFLAG="$SHAREDFLAG"
 
 case $CXXCOMPILERTYPE in 
 GNU)
+  LDFLAGS="$LDFLAGS -lgfortran"
   if test "$OSNAME" = "Darwin"; then
      CFLAGS="$CFLAGS -fPIC"
      CXXFLAGS="$CXXFLAGS -fPIC -DHAVE_XCPT -DGNUCXX"
-     F77FLAGS="$F77FLAGS -fPIC"
+     FORTFLAGS="$FORTFLAGS -fPIC"
      DYNLIBFLAG="-dynamiclib -undefined suppress -flat_namespace"
      SHAREDFLAG="-bundle -undefined suppress -flat_namespace"
      JAMTOOLSET=darwin
@@ -538,7 +554,7 @@ GNU)
   else
      CFLAGS="$CFLAGS -fpic -fexceptions"
      CXXFLAGS="$CXXFLAGS -fpic -fexceptions -DHAVE_XCPT -DGNUCXX"
-     F77FLAGS="$F77FLAGS -fpic"
+     FORTFLAGS="$FORTFLAGS -fpic"
      JAMTOOLSET=gcc
      BOOSTEXT="-$JAMTOOLSET$COMPILERVERSION"
      if test "$OSNAME" = "AIX"; then
@@ -552,7 +568,7 @@ INTEL)
   # emits by design.
   CFLAGS="$CFLAGS -fpic -wd654"
   CXXFLAGS="$CXXFLAGS -fpic -wd654"
-  F77FLAGS="$F77FLAGS -fpic"
+  FORTFLAGS="$FORTFLAGS -fpic"
   #LIBS="$LIBS -lrt -lcxa -lirc"
   JAMTOOLSET="intel-linux"
   BOOSTEXT="-il"
@@ -566,7 +582,7 @@ INTEL)
   ;;
 KAI)
   CXXFLAGS="$CXXFLAGS --restrict -DHAVE_XCPT"
-  F77FLAGS="$F77FLAGS -fpic"
+  FORTFLAGS="$FORTFLAGS -fpic"
   if test "$OSNAME" = "AIX"; then
     CXXFLAGS="$CXXFLAGS -qstaticinline -qnofullpath"
   fi
@@ -578,7 +594,7 @@ KAI)
   ;;
 VACPP)
   CXXFLAGS="$CXXFLAGS -I/usr/include -DHAVE_XCPT -qstaticinline -qtempinc -qrtti=dynamiccast"
-  F77FLAGS="$F77FLAGS -fpic"
+  FORTFLAGS="$FORTFLAGS -fpic"
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"
   DEPENDRULES="dependrules.aix"
