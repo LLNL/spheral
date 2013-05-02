@@ -266,6 +266,9 @@ right_diff.o :	right_diff.cc $(classes)
 scatter_particles.o :	scatter_particles.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c scatter_particles.cc
 #
+scatter_particles_faster.o :	scatter_particles_faster.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c scatter_particles_faster.cc
+#
 shortest_vector.o :	shortest_vector.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c shortest_vector.cc
 #
@@ -463,7 +466,7 @@ files_mpi_comm_nina_o= \
 dens_to_slices.o \
 gather_particles.o \
 info_to_slices.o \
-scatter_particles.o \
+scatter_particles_faster.o \
 slices_to_potf.o \
 slices_to_pot_init.o 
 #
