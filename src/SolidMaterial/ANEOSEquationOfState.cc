@@ -82,7 +82,7 @@ ANEOSEquationOfState(const int materialNumber,
   mSTEvals(boost::extents[numRhoVals][numTvals]),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
-              1e-6),  // usec in secs.
+              1.0),   // sec in secs.
   mRhoConv(1.0),
   mTconv(1.0),
   mPconv(1.0),
@@ -98,31 +98,25 @@ ANEOSEquationOfState(const int materialNumber,
   VERIFY2(Tmin < Tmax,
           "ANEOSEquationOfState ERROR : specify Tmin < Tmax");
   VERIFY2(Tmin > 0.0,
-          "ANEOSEquationOfState ERROR : ANEOS does not seem happy with temperature at or below 0K.");
+          "ANEOSEquationOfState ERROR : specify Tmin > 0.0");
+
+  // Convert temperature range to log space.
+  mTmin = log(mTmin);
+  mTmax = log(mTmax);
   
-  // Build our unit conversion factors.
+  // Build our unit conversion factors.  After looking through the ANEOS source some it appears to me 
+  // that they use mostly CGS units, except for temperatures which are in eV.
   const double lconv = constants.unitLengthMeters() / mANEOSunits.unitLengthMeters(),
                mconv = constants.unitMassKg() / mANEOSunits.unitMassKg(),
                tconv = constants.unitTimeSec() / mANEOSunits.unitTimeSec();
   mRhoConv = mconv/(lconv*lconv*lconv);
   mPconv = mconv/(lconv*tconv*tconv);
-  mTconv = 1.0;
+  mTconv = 1.0/1.160564e4;
   mEconv = mconv*FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
 
-  // This is now handled in a standalone function call (initializeANEOS) that must be invoked 
-  // before constructing any ANEOSEquationsOfState!
-
-  // // Call the fortran intialization.
-  // char* cfilename = filename.c_str();
-  // int len_filename = strlen(cfilename);
-  // int izetl[21];
-  // izetl[0] = -1;
-  // std::fill(&izetl[1], &izetl[20], 0);
-  // aneos_initialize_(cfilename, &len_filename, &materialNumber, izetl);
-
-  // Build our lookup table to find eps(rho, T).
+  // Build our lookup table to find eps(rho, T).  We use linear rho vs. log(T) space.
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
   double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi;
@@ -131,11 +125,11 @@ ANEOSEquationOfState(const int materialNumber,
   for (unsigned i = 0; i != mNumRhoVals; ++i) {
     rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
     for (unsigned j = 0; j != mNumTvals; ++j) {
-      Ti = min(mTmin + j*dT, mTmax) / mTconv;
+      Ti = exp(min(mTmin + j*dT, mTmax)) / mTconv;
       call_aneos1_(&Ti, &rhoi,
                    &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi,
                    &mMaterialNumber);
-      mSTEvals[i][j] *= mEconv;
+      mSTEvals[i][j] = log(mSTEvals[i][j] * mEconv);
     }
   }
 }
@@ -275,16 +269,17 @@ typename Dimension::Scalar
 ANEOSEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
+  const double logeps = log(specificThermalEnergy);
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
   const unsigned irho0 = min(mNumRhoVals - 2, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
                  irho1 = irho0 + 1;
   const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
   const unsigned iT0 = max(0, min(int(mNumTvals - 2), 
-                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
+                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), logeps))),
                  iT1 = iT0 + 1;
   const double u = max(0.0, min(1.0, (massDensity - mRhoMin - irho0*drho)/drho));
-  const double num = specificThermalEnergy - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
+  const double num = logeps - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
   const double den = (1.0 - u)*(mSTEvals[irho1][iT0] - mSTEvals[irho0][iT0]) + u*(mSTEvals[irho1][iT1] - mSTEvals[irho0][iT1]);
   CHECK(den != 0.0);
   const double t = max(0.0, min(1.0, num*safeInv(den, 1.0e-100)));
@@ -295,7 +290,7 @@ temperature(const Scalar massDensity,
   //      << "                         " << u << " " << t << endl
   //      << "                         " << num << " " << den << endl
   //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return mTmin + (iT0 + t)*dT;
+  return exp(mTmin + (iT0 + t)*dT);
 }
 
 //------------------------------------------------------------------------------
@@ -430,14 +425,14 @@ template<typename Dimension>
 double
 ANEOSEquationOfState<Dimension>::
 Tmin() const {
-  return mTmin;
+  return exp(mTmin);
 }
 
 template<typename Dimension>
 double
 ANEOSEquationOfState<Dimension>::
 Tmax() const {
-  return mTmax;
+  return exp(mTmax);
 }
 
 template<typename Dimension>

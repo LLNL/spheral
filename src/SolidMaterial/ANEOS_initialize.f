@@ -24,7 +24,8 @@ C Declare the arguments.
 
 C Open the files.
       open(10, file=in_filename, status='old')
-      open(12, file=out_filename, status='new')
+      open(12, file=out_filename)
+C      open(12, file=out_filename, status='new')
       kinp = 10
       klst = 12
 
