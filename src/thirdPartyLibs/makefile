@@ -168,10 +168,10 @@ ARRAYURL = http://www.math.ualberta.ca/~bowman/$(ARRAYDIST)
 ARRAYBUILDDATE = $(patsubst %.h, .%.date, $(ARRAYDIST))
 
 # ZLIB
-ZLIBDIST = zlib-1.2.7.tar.bz2
-ZLIBURL = http://www.zlib.net/$(ZLIBDIST)
-ZLIBDIR = $(ZLIBDIST:.tar.bz2=)
-ZLIBBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(ZLIBDIST))
+ZLIBDIST = zlib-1.2.8.tar.gz
+ZLIBURL = http://zlib.net/$(ZLIBDIST)
+ZLIBDIR = $(ZLIBDIST:.tar.gz=)
+ZLIBBUILDDATE = $(patsubst %.tar.gz, .%.date, $(ZLIBDIST))
 
 # JPEG
 JPEGDIST = jpegsrc.v8d.tar.gz
@@ -955,7 +955,7 @@ $(ZLIBBUILDDATE):	$(ZLIBDIST)
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(ZLIBDIR)
-	$(BZIP2) -dc $(ZLIBDIST) | $(TAR) -xf -
+	$(GZIP) -dc $(ZLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(ZLIBDIR); \
 	./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
