@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// ANEOSEquationOfState -- An interface to the ANEOS equation of state from 
+// ANEOS -- An interface to the ANEOS equation of state from 
 // Melosh amony others.  This is a C++ wrapper around calls to the underlying
 // ANEOS fortran library.  The user must provide the ancillary file containing
 // parameters for ANEOS in it's expected format.  Also make sure to keep units
@@ -10,7 +10,7 @@
 #include <iostream>
 using namespace std;
 
-#include "ANEOSEquationOfState.hh"
+#include "ANEOS.hh"
 #include "Field/Field.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
@@ -56,18 +56,18 @@ using FieldSpace::Field;
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-ANEOSEquationOfState<Dimension>::
-ANEOSEquationOfState(const int materialNumber,
-                     const unsigned numRhoVals,
-                     const unsigned numTvals,
-                     const double rhoMin,
-                     const double rhoMax,
-                     const double Tmin,
-                     const double Tmax,
-                     const Material::PhysicalConstants& constants,
-                     const double externalPressure,
-                     const double minimumPressure,
-                     const double maximumPressure):
+ANEOS<Dimension>::
+ANEOS(const int materialNumber,
+      const unsigned numRhoVals,
+      const unsigned numTvals,
+      const double rhoMin,
+      const double rhoMax,
+      const double Tmin,
+      const double Tmax,
+      const Material::PhysicalConstants& constants,
+      const double externalPressure,
+      const double minimumPressure,
+      const double maximumPressure):
   Material::EquationOfState<Dimension>(constants,
                                        minimumPressure,
                                        maximumPressure),
@@ -90,15 +90,15 @@ ANEOSEquationOfState(const int materialNumber,
   mCVconv(1.0),
   mVelConv(1.0) {
   VERIFY2(numRhoVals > 1,
-          "ANEOSEquationOfState ERROR : specify numRhoVals > 1");
+          "ANEOS ERROR : specify numRhoVals > 1");
   VERIFY2(numTvals > 1,
-          "ANEOSEquationOfState ERROR : specify numTvals > 1");
+          "ANEOS ERROR : specify numTvals > 1");
   VERIFY2(rhoMin < rhoMax,
-          "ANEOSEquationOfState ERROR : specify rhoMin < rhoMax");
+          "ANEOS ERROR : specify rhoMin < rhoMax");
   VERIFY2(Tmin < Tmax,
-          "ANEOSEquationOfState ERROR : specify Tmin < Tmax");
+          "ANEOS ERROR : specify Tmin < Tmax");
   VERIFY2(Tmin > 0.0,
-          "ANEOSEquationOfState ERROR : specify Tmin > 0.0");
+          "ANEOS ERROR : specify Tmin > 0.0");
 
   // Convert temperature range to log space.
   mTmin = log(mTmin);
@@ -138,8 +138,8 @@ ANEOSEquationOfState(const int materialNumber,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-ANEOSEquationOfState<Dimension>::
-~ANEOSEquationOfState() {
+ANEOS<Dimension>::
+~ANEOS() {
 }
 
 //------------------------------------------------------------------------------
@@ -147,7 +147,7 @@ ANEOSEquationOfState<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -161,7 +161,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -175,7 +175,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -189,7 +189,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
@@ -203,7 +203,7 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -217,7 +217,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -229,7 +229,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -243,7 +243,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
@@ -266,7 +266,7 @@ pressure(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   const double logeps = log(specificThermalEnergy);
@@ -298,7 +298,7 @@ temperature(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
@@ -315,7 +315,7 @@ specificThermalEnergy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
@@ -332,7 +332,7 @@ specificHeat(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
@@ -350,7 +350,7 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   VERIFY2(false, "gamma not defined for ANEOS EOS!");
@@ -361,7 +361,7 @@ gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
@@ -378,7 +378,7 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 valid() const {
   return true;
 }
@@ -388,56 +388,56 @@ valid() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 int
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 materialNumber() const {
   return mMaterialNumber;
 }
 
 template<typename Dimension>
 unsigned
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 numRhoVals() const {
   return mNumRhoVals;
 }
 
 template<typename Dimension>
 unsigned
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 numTvals() const {
   return mNumTvals;
 }
 
 template<typename Dimension>
 double
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 rhoMin() const {
   return mRhoMin;
 }
 
 template<typename Dimension>
 double
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 rhoMax() const {
   return mRhoMax;
 }
 
 template<typename Dimension>
 double
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 Tmin() const {
   return exp(mTmin);
 }
 
 template<typename Dimension>
 double
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 Tmax() const {
   return exp(mTmax);
 }
 
 template<typename Dimension>
 const boost::multi_array<double, 2>&
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 specificThermalEnergyVals() const {
   return mSTEvals;
 }
@@ -447,14 +447,14 @@ specificThermalEnergyVals() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
 
 template<typename Dimension>
 void
-ANEOSEquationOfState<Dimension>::
+ANEOS<Dimension>::
 externalPressure(const double x) {
   mExternalPressure = x;
 }
