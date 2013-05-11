@@ -14,6 +14,7 @@ AC_DEFUN([SETUP_COMPILERS_THE_WAY_I_WANT],[
 AC_SUBST(CC)
 AC_SUBST(CXX)
 AC_SUBST(FORT)
+AC_SUBST(FORTLINK)
 
 AC_SUBST(MPICC)
 AC_SUBST(MPICXX)
@@ -64,6 +65,7 @@ LIBTARGETFLAGS=
 JAMTOOLSETOPTS=
 LDINSTALLNAME=
 LDRPATH=
+FORTLINK=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -542,7 +544,7 @@ DYNLIBFLAG="$SHAREDFLAG"
 
 case $CXXCOMPILERTYPE in 
 GNU)
-  LDFLAGS="$LDFLAGS -lgfortran"
+  FORTLINK=" -lgfortran"
   if test "$OSNAME" = "Darwin"; then
      CFLAGS="$CFLAGS -fPIC"
      CXXFLAGS="$CXXFLAGS -fPIC -DHAVE_XCPT -DGNUCXX"

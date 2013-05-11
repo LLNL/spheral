@@ -6,6 +6,7 @@ AC_SUBST(ANEOSSRCS)
 AC_SUBST(ANEOSFSRCS)
 AC_SUBST(ANEOSLIBS)
 AC_SUBST(PYTHONPKGS)
+AC_SUBST(LDFLAGS)
 
 # -----------------------------------------------------------------
 # Optionally build the ANEOS package
@@ -15,9 +16,10 @@ AC_ARG_WITH(aneos,
 [  --with-aneos ............................. optionally build the interface to ANEOS (requires the external ANEOS library)],
 [
    AC_MSG_RESULT(yes)
-   ANEOSSRCS="ANEOSEquationOfStateInst.cc"
-   ANEOSFSRCS="ANEOS_initialize.f"
-   PYTHONPKGS="$PYTHONPKGS ANEOS"
+   ANEOSSRCS = "ANEOSEquationOfStateInst.cc"
+   ANEOSFSRCS = "ANEOS_initialize.f"
+   PYTHONPKGS += " ANEOS"
+   LDFLAGS += " $FORTLINK"
 ],
 [
    AC_MSG_RESULT(no)

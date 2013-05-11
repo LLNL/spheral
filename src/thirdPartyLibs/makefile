@@ -288,7 +288,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.10
+POLYTOPEVER = 0.5.12
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
