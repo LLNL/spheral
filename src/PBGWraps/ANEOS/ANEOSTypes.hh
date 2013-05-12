@@ -6,7 +6,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "Material/EquationOfState.hh"
-#include "SolidMaterial/ANEOSEquationOfState.hh"
+#include "SolidMaterial/ANEOS.hh"
 
 // Fortran baby!
 extern "C" {
@@ -25,9 +25,9 @@ typedef EquationOfState<Dim<3> > EquationOfState3d;
 }
 
 namespace SolidMaterial {
-typedef ANEOSEquationOfState<Dim<1> > ANEOSEquationOfState1d;
-typedef ANEOSEquationOfState<Dim<2> > ANEOSEquationOfState2d;
-typedef ANEOSEquationOfState<Dim<3> > ANEOSEquationOfState3d;
+typedef ANEOS<Dim<1> > ANEOS1d;
+typedef ANEOS<Dim<2> > ANEOS2d;
+typedef ANEOS<Dim<3> > ANEOS3d;
 
 //------------------------------------------------------------------------------
 // Wrap the ANEOS initialize function in something a bit more helpful.
@@ -57,7 +57,7 @@ void initializeANEOS(std::string in_filename, std::string out_filename, std::vec
 template<typename Dimension>
 inline
 std::vector<std::vector<double> >
-ANEOS_STEvals(const ANEOSEquationOfState<Dimension>& eos) {
+ANEOS_STEvals(const ANEOS<Dimension>& eos) {
   typedef typename boost::multi_array<double, 2> array_type;
   typedef typename array_type::array_view<1>::type slice_type;
   typedef typename array_type::const_array_view<1>::type const_slice_type;

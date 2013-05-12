@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// ANEOSEquationOfState -- An interface to the ANEOS equation of state from 
+// ANEOS -- An interface to the ANEOS equation of state from 
 // Melosh amony others.  This is a C++ wrapper around calls to the underlying
 // ANEOS fortran library.  The user must provide the ancillary file containing
 // parameters for ANEOS in it's expected format.  Also make sure to keep units
@@ -7,8 +7,8 @@
 //
 // Created by JMO, Tue Apr 23 14:55:28 PDT 2013
 //----------------------------------------------------------------------------//
-#ifndef ANEOSEquationOfState_HH
-#define ANEOSEquationOfState_HH
+#ifndef ANEOS_HH
+#define ANEOS_HH
 
 #include "boost/multi_array.hpp"
 
@@ -25,7 +25,7 @@ namespace Spheral {
 namespace SolidMaterial {
 
 template<typename Dimension>
-class ANEOSEquationOfState: public Material::EquationOfState<Dimension> {
+class ANEOS: public Material::EquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,18 +40,18 @@ public:
   typedef boost::multi_array_types::index_range range;
 
   // Constructors, destructors.
-  ANEOSEquationOfState(const int materialNumber,
-                       const unsigned numRhoVals,
-                       const unsigned numTvals,
-                       const double rhoMin,
-                       const double rhoMax,
-                       const double Tmin,
-                       const double Tmax,
-                       const Material::PhysicalConstants& constants,
-                       const double externalPressure = 0.0,
-                       const double minimumPressure = -std::numeric_limits<double>::max(),
-                       const double maximumPressure = std::numeric_limits<double>::max());
-  ~ANEOSEquationOfState();
+  ANEOS(const int materialNumber,
+        const unsigned numRhoVals,
+        const unsigned numTvals,
+        const double rhoMin,
+        const double rhoMax,
+        const double Tmin,
+        const double Tmax,
+        const Material::PhysicalConstants& constants,
+        const double externalPressure = 0.0,
+        const double minimumPressure = -std::numeric_limits<double>::max(),
+        const double maximumPressure = std::numeric_limits<double>::max());
+  ~ANEOS();
 
   // We require any equation of state to define the following properties.
   virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
@@ -139,7 +139,7 @@ private:
   double mRhoConv, mTconv, mPconv, mEconv, mCVconv, mVelConv;
 
   // Disallow default constructor
-  ANEOSEquationOfState();
+  ANEOS();
 
   using Material::EquationOfState<Dimension>::mConstants;
 };
@@ -152,7 +152,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace SolidMaterial {
-    template<typename Dimension> class ANEOSEquationOfState;
+    template<typename Dimension> class ANEOS;
   }
 }
 
