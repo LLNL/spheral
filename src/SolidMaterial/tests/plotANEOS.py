@@ -42,14 +42,14 @@ izetl = vector_of_int(1, -1)
 initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
 rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
 Tmin, Tmax = 1.0, 1.0e8
-eosANEOS = ANEOSEquationOfState(0,                 # Material number
-                                1000,              # num rho vals
-                                1000,              # num T vals
-                                rhoMin,            # minimum density (kg/m^3)
-                                rhoMax,            # maximum density (kg/m^3)
-                                Tmin,              # minimum temperature (K)
-                                Tmax,              # maximum temperature (K)
-                                units)
+eosANEOS = ANEOS(0,                 # Material number
+                 1000,              # num rho vals
+                 1000,              # num T vals
+                 rhoMin,            # minimum density (kg/m^3)
+                 rhoMax,            # maximum density (kg/m^3)
+                 Tmin,              # minimum temperature (K)
+                 Tmax,              # maximum temperature (K)
+                 units)
 eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
 print "eps0ANEOS = ", eps0ANEOS
 

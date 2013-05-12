@@ -26,7 +26,7 @@ class ANEOS:
         for dim in self.dimSet:
             exec('''
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
-self.ANEOSEquationOfState%(dim)id = addObject(self.space, "ANEOSEquationOfState%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
+self.ANEOS%(dim)id = addObject(self.space, "ANEOS%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
 
         return
@@ -38,7 +38,7 @@ self.ANEOSEquationOfState%(dim)id = addObject(self.space, "ANEOSEquationOfState%
 
         for dim in self.dimSet:
             exec('''
-generateANEOSEquationOfStateBindings(self.ANEOSEquationOfState%(dim)id, %(dim)i)
+generateANEOSBindings(self.ANEOS%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
         self.space.add_function("initializeANEOS", None,
@@ -56,12 +56,12 @@ generateANEOSEquationOfStateBindings(self.ANEOSEquationOfState%(dim)id, %(dim)i)
         return []
 
 #---------------------------------------------------------------------------
-# ANEOSEquationOfState
+# ANEOS
 #---------------------------------------------------------------------------
-def generateANEOSEquationOfStateBindings(x, ndim):
+def generateANEOSBindings(x, ndim):
 
     dim = "Spheral::Dim< %i >" % ndim
-    me = "Spheral::SolidMaterial::ANEOSEquationOfState%id" % ndim
+    me = "Spheral::SolidMaterial::ANEOS%id" % ndim
 
     # Constructors.
     x.add_constructor([param("int", "materialNumber"),
