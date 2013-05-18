@@ -106,9 +106,9 @@ ANEOS(const int materialNumber,
   
   // Build our unit conversion factors.  After looking through the ANEOS source some it appears to me 
   // that they use mostly CGS units, except for temperatures which are in eV.
-  const double lconv = constants.unitLengthMeters() / mANEOSunits.unitLengthMeters(),
-               mconv = constants.unitMassKg() / mANEOSunits.unitMassKg(),
-               tconv = constants.unitTimeSec() / mANEOSunits.unitTimeSec();
+  const double lconv = mANEOSunits.unitLengthMeters() / constants.unitLengthMeters(),
+               mconv = mANEOSunits.unitMassKg() / constants.unitMassKg(),
+               tconv = mANEOSunits.unitTimeSec() / constants.unitTimeSec();
   mRhoConv = mconv/(lconv*lconv*lconv);
   mPconv = mconv/(lconv*tconv*tconv);
   mTconv = 1.0/1.160564e4;
