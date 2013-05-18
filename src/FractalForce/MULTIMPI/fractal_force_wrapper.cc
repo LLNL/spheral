@@ -86,7 +86,7 @@ namespace FractalSpace
 	    FR.timing(0,0);
 	    FR.timing_lev(0,0);
 	    FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
-	    write_rv(-6,FR);
+	    //	    write_rv(-6,FR);
 	  }
 	if(FM.norm_what == 1)omega_fraction/=vfratio;
 	update_rv(FR,1,omega_fraction,0.0);
@@ -99,13 +99,13 @@ namespace FractalSpace
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
-	write_rv(-5,FR);
+	//	write_rv(-5,FR);
 	double lambda=Lambda(FM.omega_0,FM.omega_lambda,FM.redshift_start);
 	double dp=-FM.step_length*0.5;
 	if(Fractal::integrator != "leapfrog") dp=0.0;
 	double omega_fraction_v=dGrowthdT(FM.omega_start,lambda,1.0/(1.0+dp)-1.0);
 	update_rv(FR,2,omega_fraction,omega_fraction*omega_fraction_v);
-	write_rv(-4,FR);
+	//	write_rv(-4,FR);
 	FM.arad=1.0;
 	FM.time=Age_of_the_universe(FM.omega_start,FM.lambda_start,0.0);
       }
@@ -130,7 +130,7 @@ namespace FractalSpace
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
 	velocities(FM,FR);
-	write_rv(-3,FR);
+	//	write_rv(-3,FR);
       }
     //
     if(FM.number_steps_total == 0)
@@ -146,7 +146,7 @@ namespace FractalSpace
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
-	return 1;
+	return 0;
       }
     for(int step=0;step < FM.number_steps_total; ++step)
       {
@@ -172,6 +172,6 @@ namespace FractalSpace
 	if(step % FM.number_steps_out == 0)
 	  write_rv(step,FR);
       }
-    return 1;
+    return 0;
   }
 }

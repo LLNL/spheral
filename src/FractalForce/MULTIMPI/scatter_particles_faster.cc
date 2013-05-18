@@ -43,7 +43,7 @@ namespace FractalSpace
 	FF << " " << pos_left_safe[ni] << " " << pos_right_safe[ni];
       }
     FF << endl;
-    int blocks=4;
+    int blocks=11;
     double ablocks=blocks;
     ablocks=1.0/ablocks;
     int blocks3=blocks*blocks*blocks;
@@ -111,6 +111,7 @@ namespace FractalSpace
 	    //	      }
 	  }
       }
+    FF << " finished with big blocks" << endl;
     double bblocks=blocks;
     double dxinv=bblocks/dx;		
     double dyinv=bblocks/dy;		
@@ -128,7 +129,6 @@ namespace FractalSpace
 	for(int look=0;look<looks;look++)
 	  {
 	    int FR=LookHere[ni][look];
-	    RealPBox=mem.RealPBoxes[FR];
 	    if(!vector_in_box(pos,mem.RealPBoxes[FR]))
 	      continue;
 	    int part=particle;
@@ -155,10 +155,13 @@ namespace FractalSpace
     frac.timing(-1,33);
     mem.p_mess->Full_Stop();
     frac.timing(1,33);
+    FF << "send stuff to other nodes a " << endl;
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
-    mem.p_mess->Send_Data_Somewhere(counts_out,counts_in,integers,doubles,
+    FF << "send stuff to other nodes b " << endl;
+    mem.p_mess->Send_Data_Somewhere_Faster(counts_out,counts_in,integers,doubles,
 				    dataI_out,dataI_in,how_manyI,
 				    dataR_out,dataR_in,how_manyR);
+    FF << "send stuff to other nodes c " << endl;
     dataR_out.clear();
     dataI_out.clear();
     frac.particle_list.resize(how_manyI);
