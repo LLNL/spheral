@@ -212,7 +212,7 @@ MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
 HDF5DIST = hdf5-1.8.10-patch1.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.10/src/$(HDF5DIST)
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.10-patch1/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
