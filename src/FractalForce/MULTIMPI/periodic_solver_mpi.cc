@@ -54,7 +54,9 @@ namespace FractalSpace
 	  }
       }
     mem.p_mess->fftw_complex_to_real();
+    frac.timing(-1,24);
     slices_to_potf(group,mem,frac);
+    frac.timing(1,24);
     mem.p_mess->free_potRC();
     FileFFT << "exiting periodic " << endl;
   }
