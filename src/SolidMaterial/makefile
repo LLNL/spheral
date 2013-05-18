@@ -22,7 +22,8 @@ FSRCTARGETS = \
 
 PYTHONTARGETS = \
 	SolidMaterialUnits.py \
-	SolidMaterialEquationsOfState.py
+	SolidMaterialEquationsOfState.py \
+	makeTillotsonEquationOfState.py
 
 SPHERALTOP = ../../../spheral/src
 SOLIDTOP = ..

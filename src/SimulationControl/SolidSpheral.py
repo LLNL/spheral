@@ -15,4 +15,4 @@ from SolidSPHHydros import *
 # ------------------------------------------------------------------------------
 from SolidMaterialUnits import *
 from SolidMaterialEquationsOfState import *
-
+from makeTillotsonEquationOfState import *
