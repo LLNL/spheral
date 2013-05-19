@@ -346,7 +346,7 @@ SpheralMaterialPropertiesLib = {
 #-------------------------------------------------------------------------------
     "5% silicate ice" : {
         "rho0" : 0.948,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 18.015,# dimensionless
         "Tillotson" : {
             "a"    : 0.3,           # dimensionless
             "b"    : 0.1,           # dimensionless
