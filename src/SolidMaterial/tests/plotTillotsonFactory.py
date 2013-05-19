@@ -9,7 +9,7 @@ from SolidSpheral3d import *
 #-------------------------------------------------------------------------------
 # Build the EOS's we're going to consider.
 #-------------------------------------------------------------------------------
-mats = ["Pumice", "Nylon", "Glass"]
+mats = ["Granite", "Pumice", "Nylon", "Glass"]
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
