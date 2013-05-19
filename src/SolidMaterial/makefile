@@ -21,6 +21,7 @@ FSRCTARGETS = \
 	$(ANEOSFSRCS)
 
 PYTHONTARGETS = \
+	MaterialPropertiesLib.py \
 	SolidMaterialUnits.py \
 	SolidMaterialEquationsOfState.py \
 	makeTillotsonEquationOfState.py
