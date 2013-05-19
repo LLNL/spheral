@@ -16,10 +16,10 @@ AC_ARG_WITH(aneos,
 [  --with-aneos ............................. optionally build the interface to ANEOS (requires the external ANEOS library)],
 [
    AC_MSG_RESULT(yes)
-   ANEOSSRCS = "ANEOSInst.cc"
-   ANEOSFSRCS = "ANEOS_initialize.f"
-   PYTHONPKGS += " ANEOS"
-   LDFLAGS += " $FORTLINK"
+   ANEOSSRCS="ANEOSInst.cc"
+   ANEOSFSRCS="ANEOS_initialize.f"
+   PYTHONPKGS+=" ANEOS"
+   LDFLAGS+=" $FORTLINK"
 ],
 [
    AC_MSG_RESULT(no)

@@ -78,26 +78,26 @@ def _TillotsonFactory(materialName,        # Label for the material in _Tillotso
     params = dict(_TillotsonParams[materialName])
     
     # Figure out the conversions to the requested units.
-    lconv = units.unitLengthMeters / CGS.unitLengthMeters
-    mconv = units.unitMassKg / CGS.unitMassKg
-    tconv = units.unitTimeSec / CGS.unitTimeSec
+    lconv = CGS.unitLengthMeters / units.unitLengthMeters
+    mconv = CGS.unitMassKg / units.unitMassKg
+    tconv = CGS.unitTimeSec / units.unitTimeSec
     rhoConv = mconv/(lconv*lconv*lconv)
     Pconv = mconv/(lconv*tconv*tconv)
     specificEconv = (lconv/tconv)**2
 
     # Build the arguments for constructing the Tillotson.
-    args = [params["rho0"] / rhoConv,
+    args = [params["rho0"] * rhoConv,
             etamin,
             etamax,
             params["a"],
             params["b"],
-            params["A"] / Pconv,
-            params["B"] / Pconv,
+            params["A"] * Pconv,
+            params["B"] * Pconv,
             params["alpha"],
             params["beta"],
-            params["eps0"] / specificEconv,
-            params["epsLiquid"] / specificEconv,
-            params["epsVapor"] / specificEconv,
+            params["eps0"] * specificEconv,
+            params["epsLiquid"] * specificEconv,
+            params["epsVapor"] * specificEconv,
             params["atomicWeight"],
             units]
     if externalPressure:
