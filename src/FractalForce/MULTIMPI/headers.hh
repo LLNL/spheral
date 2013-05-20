@@ -92,7 +92,7 @@ namespace FractalSpace
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
-  template <class T> bool overlap(vector <T>& xvec,vector <T>& box);
+  template <class T> bool overlap_boxes(vector <T>& xvec,vector <T>& box);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleft,vector <double>& yright);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleftright);
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_ghost,Misc& misc);
@@ -132,6 +132,7 @@ namespace FractalSpace
   void tree_start(Group& group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
+  template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);
   void velocities(Fractal_Memory& mem,Fractal& frac);
   int which_element(vector <Point*>& vec,const int& x,const int& y,const int& z,ofstream& FF);
   void write_rv(const int& step,Fractal& fractal);

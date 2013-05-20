@@ -1146,41 +1146,6 @@ namespace FractalSpace
       assert(abs(d_y-0.5) <= 0.5);
       assert(abs(d_z-0.5) <= 0.5);
     }
-    bool get_bcs(vector < vector <bool> >& bcs,int* dprl)
-    {
-      vector <Point*> ud(6);
-      int n=0;
-      bool anybcs=false;
-      Point* p_point_z=this;
-      for(int nz=1;nz <= dprl[2];++nz)
-	{
-	  Point* p_point_y=p_point_z;
-	  for(int ny=1;ny <= dprl[1];++ny)
-	    {
-	      Point* p_point_x=p_point_y; 
-	      for(int nx=1;nx <= dprl[0];++nx)
-		{
-		  if(!p_point_x->get_inside())
-		    {
-		      bcs[n][0]=true;
-		      anybcs=true;
-		      bcs[n].resize(7);
-		      p_point_x->get_point_ud(ud);
-		      for(int ni=0;ni<6;ni++)
-			bcs[n][ni+1]=!(ud[ni] != 0 && ud[ni]->get_inside());
-		    }
-		  if(nx < dprl[0])
-		    p_point_x=p_point_x->get_point_up_x_0();
-		  n++;
-		}
-	      if(ny < dprl[1])
-		p_point_y=p_point_y->get_point_up_y_0();
-	    }
-	  if(nz < dprl[2])
-	    p_point_z=p_point_z->get_point_up_z_0();
-	}
-      return anybcs;
-    }
     void get_potss_denss(const int* dprl,const double& g_c,double* potss,double* denss)
     {
       int n=0;

@@ -46,9 +46,9 @@ namespace FractalSpace
 		    posp[0]=pos[0]+nx;
 		    if(nz==0 && ny==0 && nx==0)
 		      continue;
-		    if(overlap(posp,boxinner))
+		    if(vector_in_box(posp,boxinner))
 		       continue;
-		    if(!overlap(posp,boxouter))
+		    if(!vector_in_box(posp,boxouter))
 		       continue;
 		    double m=P->get_mass();
 		    Particle* Pb=new Particle;

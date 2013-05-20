@@ -14,11 +14,13 @@ int main()
   int FN=p_fractal_memory->FFTNodes;
   Mess* p_mess=new Mess(MR,GR,PR,NP,FN);
   p_fractal_memory->p_mess=p_mess;
+  p_fractal_memory->FFTNodes=p_fractal_memory->p_mess->FFTNodes;
   string BD=p_fractal_memory->BaseDirectory;
   int FR=p_mess->FractalRank;
   string RUN=p_fractal_memory->RUN;
   File* p_file=new File(BD,FR,RUN);
   p_fractal_memory->p_file=p_file;
+  p_fractal_memory->p_mess->p_file=p_file;
   fractal_force_init(p_fractal_memory);
   Fractal* p_fractal=new Fractal(*p_fractal_memory);
   //  p_fractal->p_mess=p_mess;

@@ -27,7 +27,7 @@ namespace FractalSpace
     //total number of nodes
     mem.MPIrun=mem.MPIrun || mem.FractalNodes > 1;
     // makes sense
-    mem.FFTNodes=32;
+    mem.FFTNodes=9876543;
     mem.FFTNodes=min(mem.FFTNodes,mem.FractalNodes);
     // max number of nodes for FFTW
     mem.periodic = true ;
@@ -39,7 +39,7 @@ namespace FractalSpace
     mem.max_particles=(mem.number_particles*4);
     //    mem.max_particles=1;
     //The max number of particles the initial conditions code can generate through particle splitting
-    mem.level_max = 8 ; 
+    mem.level_max = 10 ; 
     mem.global_level_max=mem.level_max;
     mem.highest_level_init=min(mem.highest_level_init,mem.level_max);
     // highest level, nothing magical about this
@@ -66,7 +66,7 @@ namespace FractalSpace
     //Generate this many Points in each go
     mem.number_steps_total=503;
     // Total number of steps
-    mem.number_steps_out=40;
+    mem.number_steps_out=100;
     // Output how often
     mem.redshift_start=99.0;
     // initial redshift
@@ -96,7 +96,7 @@ namespace FractalSpace
     mem.total_mass=1.0;
     cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << endl;
     //
-    mem.crash_levels=5;
+    mem.crash_levels=10;
     mem.crash_pow=2.0;
     mem.density_crash=5.5;
     mem.splits=2;
