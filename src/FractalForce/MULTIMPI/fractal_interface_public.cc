@@ -102,6 +102,7 @@ namespace FractalSpace
     // This will be used throughout the simulation.
     File* p_file=new File(PFM->BaseDirectory,p_mess->FractalRank,PFM->RUN);
     PFM->p_file=p_file;
+    PFM->p_mess->p_file=p_file;
     
     // Calculate all simulation information needed. 
     // Includes Boxes, FFTW startup etc.

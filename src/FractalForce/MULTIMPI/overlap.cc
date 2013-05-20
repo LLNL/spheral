@@ -31,7 +31,7 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template <class T> bool overlap(vector <T>& xvec,vector <T>& box)
+  template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box)
   {
     return (xvec[0] <= box[1] && xvec[0] >= box[0] && 
 	    xvec[1] <= box[3] && xvec[1] >= box[2] &&
@@ -40,6 +40,20 @@ namespace FractalSpace
 }
 namespace FractalSpace
 {
-  template bool overlap(vector <int>& xvec,vector <int>& box);
-  template bool overlap(vector <double>& xvec,vector <double>& box);
+  template bool vector_in_box(vector <int>& xvec,vector <int>& box);
+  template bool vector_in_box(vector <double>& xvec,vector <double>& box);
+}
+namespace FractalSpace
+{
+  template <class T> bool overlap_boxes(vector <T>& boxa,vector <T>& boxb)
+  {
+    return (boxa[0] <= boxb[1] && boxa[1] >= boxb[0] && 
+	    boxa[2] <= boxb[3] && boxa[3] >= boxb[2] &&
+	    boxa[4] <= boxb[5] && boxa[5] >= boxb[4]);
+  }
+}
+namespace FractalSpace
+{
+  template bool overlap_boxes(vector <int>& boxa,vector <int>& boxb);
+  template bool overlap_boxes(vector <double>& boxa,vector <double>& boxb);
 }
