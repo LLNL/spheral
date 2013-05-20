@@ -63,7 +63,7 @@ def _TillotsonFactory(*args,
                       **kwargs):
 
     # The arguments that need to be passed to this method.
-    expectedArgs = ("materialName", "etamin", "etamax", "units")
+    expectedArgs = ["materialName", "etamin", "etamax", "units"]
     optionalKwArgs = {"externalPressure" : None,
                       "minimumPressure"  : None,
                       "maximumPressure"  : None}
@@ -83,7 +83,7 @@ def _TillotsonFactory(*args,
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
         else:
             for arg in kwargs:
-                if arg not in (expectedArgs + optionalKwArgs.keys()):
+                if arg not in (expectedArgs + optionalKwArgs.keys() + ["TillConstructor"]):
                     raise ValueError, expectedUsageString
                 exec("%s = kwargs['%s']" % (arg, arg))
             for arg in optionalKwArgs:
