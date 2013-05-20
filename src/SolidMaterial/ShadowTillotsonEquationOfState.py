@@ -12,31 +12,9 @@ from SpheralModules.Spheral.Material import PhysicalConstants
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------
-# The base units for parameters in this file.
+# Define a string providing the help for building a TillotsonEquationOfState.
 #-------------------------------------------------------------------------------
-CGS = PhysicalConstants(0.01,    # Length in m
-                        0.001,   # Mass in kg
-                        1.0)     # Time in sec
-
-#-------------------------------------------------------------------------------
-# The generic factory function, where you pass in the dimension specific 
-# Tillotson constructor.
-# This one is for internal use only -- people will actually call the dimension
-# specific front-ends at the end of this script.
-#-------------------------------------------------------------------------------
-# def _TillotsonFactory(
-#                       
-#                       
-#                       
-#                       
-#                       
-#                       
-#                       
-
-def _TillotsonFactory(*args, 
-                      **kwargs):
-
-    expectedUsageString = """
+expectedUsageString = """
 TillotsonEquationOfState can be constructed one of two ways:
 
 1.  Using canned material values stored in our internal data base.  Expected arguments:
@@ -67,6 +45,22 @@ TillotsonEquationOfState can be constructed one of two ways:
         minimumPressure     : Optional minimum pressure                          
         maximumPressure     : Optional maximum pressure                          
 """
+
+#-------------------------------------------------------------------------------
+# The base units for parameters in this file.
+#-------------------------------------------------------------------------------
+CGS = PhysicalConstants(0.01,    # Length in m
+                        0.001,   # Mass in kg
+                        1.0)     # Time in sec
+
+#-------------------------------------------------------------------------------
+# The generic factory function, where you pass in the dimension specific 
+# Tillotson constructor.
+# This one is for internal use only -- people will actually call the dimension
+# specific front-ends at the end of this script.
+#-------------------------------------------------------------------------------
+def _TillotsonFactory(*args, 
+                      **kwargs):
 
     # The arguments that need to be passed to this method.
     expectedArgs = ("materialName", "etamin", "etamax", "units")
@@ -168,3 +162,9 @@ def TillotsonEquationOfState3d(*args, **kwargs):
     kwargs["TillConstructor"] = RealTillotsonEquationOfState3d
     return _TillotsonFactory(*args, **kwargs)
 
+#-------------------------------------------------------------------------------
+# Override the doc strings to provide useful help.
+#-------------------------------------------------------------------------------
+TillotsonEquationOfState1d.__doc__ = expectedUsageString
+TillotsonEquationOfState2d.__doc__ = expectedUsageString
+TillotsonEquationOfState3d.__doc__ = expectedUsageString
