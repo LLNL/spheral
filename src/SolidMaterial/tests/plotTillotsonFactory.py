@@ -14,7 +14,7 @@ units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
 etamin, etamax = 0.01, 100.0
-EOSes = [makeTillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
+EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
 
 #-------------------------------------------------------------------------------
 # Plot the pressure and sound speed for each EOS.

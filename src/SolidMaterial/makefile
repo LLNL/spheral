@@ -24,7 +24,7 @@ PYTHONTARGETS = \
 	MaterialPropertiesLib.py \
 	SolidMaterialUnits.py \
 	SolidMaterialEquationsOfState.py \
-	makeTillotsonEquationOfState.py
+	ShadowTillotsonEquationOfState.py
 
 SPHERALTOP = ../../../spheral/src
 SOLIDTOP = ..

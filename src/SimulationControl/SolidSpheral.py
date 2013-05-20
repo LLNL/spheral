@@ -16,3 +16,9 @@ from SolidSPHHydros import *
 from SolidMaterialUnits import *
 from SolidMaterialEquationsOfState import *
 from makeTillotsonEquationOfState import *
+
+# ------------------------------------------------------------------------------
+# Import our shadow layers for augmenting C++ types.
+# ------------------------------------------------------------------------------
+from ShadowTillotsonEquationOfState import \
+    TillotsonEquationOfState1d, TillotsonEquationOfState2d, TillotsonEquationOfState3d
