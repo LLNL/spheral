@@ -15,7 +15,6 @@ from SolidSPHHydros import *
 # ------------------------------------------------------------------------------
 from SolidMaterialUnits import *
 from SolidMaterialEquationsOfState import *
-from makeTillotsonEquationOfState import *
 
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.
