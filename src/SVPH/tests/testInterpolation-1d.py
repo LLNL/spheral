@@ -1,4 +1,4 @@
-#ATS:test(SELF, "--graphics False", label="SVPH interpolation test -- 1-D (serial)")
+#ATS:test(SELF, "--linearConsistent True --graphics False", label="SVPH interpolation test -- 1-D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
@@ -7,53 +7,6 @@ from SpheralTestUtilities import *
 from generateMesh import *
 
 title("SVPH Interpolation tests")
-
-#-------------------------------------------------------------------------------
-# Define helper methods to do our integrals over a mesh cell with a given
-# kernel function.
-#-------------------------------------------------------------------------------
-def linearKernelIntegral(x0, x1, F0, F1, W0, W1):
-    dx = x1 - x0
-    assert abs(dx) > 0
-    dF = F1 - F0
-    dW = W1 - W0
-    mF = dF/dx
-    mW = dW/dx
-    num = F0*W0*dx + 0.5*(W0*mF + F0*mW)*dx*dx + mW*mF*dx*dx*dx/3.0
-    den = W0*dx + 0.5*mW*dx*dx
-    return num, den
-
-def zoneIntegral(xi, Hi, j, mesh, W, func):
-    Hdeti = Hi.xx
-    zone = mesh.zone(j)
-    nodes = zone.nodeIDs
-    assert len(nodes) == 2
-    xn1 = mesh.node(nodes[0]).position().x
-    xn2 = mesh.node(nodes[1]).position().x
-    assert xn1 < xn2
-
-    if xn1 < xi.x and xi.x < xn2:
-        # This is the zone containing the position we're interpolating for
-        Fi = func(xi.x)
-        Wi = W.kernelValue(0.0, Hdeti)
-        xmin = max(xn1, xi.x - 1.0/Hdeti)
-        xmax = min(xn2, xi.x + 1.0/Hdeti)
-        num0, den0 = linearKernelIntegral(xmin, xi.x, func(xmin), Fi, W((xi.x - xmin)*Hdeti, Hdeti), Wi)
-        num1, den1 = linearKernelIntegral(xi.x, xmax, Fi, func(xmax), Wi, W((xmax - xi.x)*Hdeti, Hdeti))
-        return num0 + num1, den0 + den1
-
-    else:
-        if xn1 > xi.x:
-            x0 = xn1
-            x1 = min(xi.x + 1.0/Hdeti, xn2)
-        elif xn2 < xi.x:
-            x0 = max(xn1, xi.x - 1.0/Hdeti)
-            x1 = xn2
-        F0 = func(x0)
-        F1 = func(x1)
-        W0 = W.kernelValue(abs(x0 - xi.x)*Hdeti, Hdeti)
-        W1 = W.kernelValue(abs(x1 - xi.x)*Hdeti, Hdeti)
-        return linearKernelIntegral(x0, x1, F0, F1, W0, W1)
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -143,9 +96,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-W = HatKernel(2.0, 1.0)
 WT = TableKernel(BSplineKernel(), 1000)
-output("W")
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -249,6 +200,32 @@ db.updateConnectivityMap()
 cm = db.connectivityMap()
 
 #-------------------------------------------------------------------------------
+# If we're using linearly consistent FVSPH, we need the simple finite-difference
+# estimate of the slope for each point.
+#-------------------------------------------------------------------------------
+G = ScalarField("test field FD linear gradient", nodes1)
+if linearConsistent:
+    for i in xrange(nodes1.numInternalNodes):
+        ri = positions[i]
+        zi = mesh.zone(i)
+        normi = 0.0
+        for fid in zi.faceIDs:
+            if fid < 0:
+                fid = ~fid
+            face = mesh.face(fid)
+            j = mesh.face(fid).oppositeZoneID(i)
+            if j < 0:
+                j = ~j
+            if j >= 0 and j < nx1:
+                rj = positions[j]
+                xji = (rj - ri).x
+                assert abs(xji) > 0.0
+                normi += 0.5*abs(xji)
+                G[i] += 0.5*abs(xji) * (f[j] - f[i])/xji
+        assert normi > 0.0
+        G[i] /= normi
+
+#-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
 for i in xrange(nodes1.numInternalNodes):
@@ -258,15 +235,15 @@ for i in xrange(nodes1.numInternalNodes):
     mi = mass[i]
     Vi = mesh.zone(i).volume()
     fi = f[i]
+    Gi = G[i]
 
     # Self contribution.
     W0 = WT.kernelValue(0.0, Hdeti)
     fSPH[i] = mi*W0 * fi
+    fSVPH[i] = Vi*W0 * fi
+    norm[i] = Vi*W0
     if linearConsistent:
-        fSVPH[i], norm[i] = zoneIntegral(ri, Hi, i, mesh, W, func)
-    else:
-        fSVPH[i] = Vi*W0 * fi
-        norm[i] = Vi*W0
+        dfSVPH[i] += Vi*W0 * Gi
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -278,6 +255,7 @@ for i in xrange(nodes1.numInternalNodes):
         mj = mass[j]
         Vj = mesh.zone(j).volume()
         fj = f[j]
+        Gj = G[j]
 
         # The standard SPH kernel and it's gradient.
         rij = ri - rj
@@ -288,15 +266,13 @@ for i in xrange(nodes1.numInternalNodes):
         # Increment the result.
         fSPH[i] += mj*Wj * fj
         dfSPH[i] += mj*gradWj * fj
-
+        norm[i] += Vj*Wj
         if linearConsistent:
-            stuff = zoneIntegral(rj, Hi, j, mesh, W, func)
-            fSVPH[i] += stuff[0]
-            norm[i] += stuff[1]
+            fSVPH[i] += Vj*Wj * (fj + Gj*rij.x)
+            dfSVPH[i] += Vj*((fj - fi + Gj*rij.x)*gradWj + Gj*Wj)
         else:
             fSVPH[i] += Vj*Wj * fj
             dfSVPH[i] += Vj*gradWj * (fj - fi)
-            norm[i] += Vj*Wj
 
     # Finalize the SVPH values.
     assert norm[i] > 0.0
@@ -399,14 +375,14 @@ if graphics:
 
     p3 = generateNewGnuPlot()
     p3.plot(dansdata)
-    #p3.replot(dSPHdata)
+    p3.replot(dSPHdata)
     p3.replot(dSVPHdata)
     p3("set key top left")
     p3.title("Derivative values")
     p3.refresh()
 
     p4 = generateNewGnuPlot()
-    #p4.plot(errdSPHdata)
+    p4.plot(errdSPHdata)
     p4.replot(errdSVPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
