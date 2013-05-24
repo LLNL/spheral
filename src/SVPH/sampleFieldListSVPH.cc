@@ -40,7 +40,7 @@ inline Dim<1>::Scalar scalarAdapter(const Dim<1>::SymTensor& val) { return val.x
 template<typename DataType>
 typename MathTraits<Dim<1>, DataType>::GradientType
 computeCellGradient(const FieldSpace::FieldList<Dim<1>, DataType>& fieldList,
-                    const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positions,
+                    const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position,
                     const int nodeListi,
                     const int i,
                     const MeshSpace::Mesh<Dim<1> >& mesh) {
@@ -74,8 +74,8 @@ computeCellGradient(const FieldSpace::FieldList<Dim<1>, DataType>& fieldList,
   const Scalar fi = scalarAdapter(fieldList(nodeListi, i)),
                f1 = scalarAdapter(fieldList(nodeList1ID, node1ID)),
                f2 = scalarAdapter(fieldList(nodeList2ID, node2ID));
-  const Scalar dx01 = (positions(nodeList1ID, node1ID) - positions(nodeListi, i)).x(),
-               dx02 = (positions(nodeList2ID, node2ID) - positions(nodeListi, i)).x();
+  const Scalar dx01 = (position(nodeList1ID, node1ID) - position(nodeListi, i)).x(),
+               dx02 = (position(nodeList2ID, node2ID) - position(nodeListi, i)).x();
   CHECK(std::abs(dx01) + std::abs(dx02) > 0.0);
   const GradientType result((sgn(dx01)*(f1 - fi) + sgn(dx02)*(f2 - fi))*
                             safeInv(std::abs(dx01) + std::abs(dx02)));
@@ -88,7 +88,7 @@ computeCellGradient(const FieldSpace::FieldList<Dim<1>, DataType>& fieldList,
 template<typename Dimension, typename DataType>
 FieldList<Dimension, DataType>
 sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
-                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                     const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
                     const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                     const KernelSpace::TableKernel<Dimension>& W,
@@ -98,7 +98,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
   // Pre-conditions.
   const size_t numNodeLists = fieldList.size();
-  REQUIRE(positions.size() == numNodeLists);
+  REQUIRE(position.size() == numNodeLists);
   REQUIRE(Hfield.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
@@ -128,7 +128,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
       for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
 
         // Do the dimension specific lookup of the internal cell gradient, based on the cell geometry.
-        G(nodeListi, i) = computeCellGradient(fieldList, positions, nodeListi, i, mesh);
+        G(nodeListi, i) = computeCellGradient(fieldList, position, nodeListi, i, mesh);
       }
     }
   }
@@ -145,7 +145,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Vector& ri = positions(nodeListi, i);
+      const Vector& ri = position(nodeListi, i);
       const Scalar Vi = mesh.zone(nodeListi, i).volume();
       Scalar norm = Vi*W0;
       result(nodeListi, i) = Vi*W0 * fieldList(nodeListi, i);
@@ -161,7 +161,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
           // Get the state for node j.
           const DataType& Fj = fieldList(nodeListj, j);
-          const Vector& rj = positions(nodeListj, j);
+          const Vector& rj = position(nodeListj, j);
           const SymTensor& Hj = Hfield(nodeListj, j);
           const Scalar Vj = mesh.zone(nodeListj, j).volume();
           const GradientType& Gj = G(nodeListj, j);

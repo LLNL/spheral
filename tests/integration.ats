@@ -15,7 +15,7 @@ source("../src/Geometry/tests/testPolyhedron.py")
 source("../src/CSPH/tests/testInterpolation.py")
 
 # SVPH unit tests
-source("../src/SVPH/tests/testInterpolation-1d.py")
+source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
 
 # Field unit tests
 source("../src/Field/tests/testField.py")

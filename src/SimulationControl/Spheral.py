@@ -41,6 +41,7 @@ from SpheralModules.Spheral.GravitySpace import *
 from SpheralModules.Spheral.IntegratorSpace import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.CSPHSpace import *
+from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 from SpheralModules.Wm5 import *
 
