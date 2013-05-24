@@ -103,6 +103,21 @@ quantizedPositionWrapper(PyObject* hashTup,
   return quantizedPosition(boost::tuple<uint64_t, uint64_t, uint64_t>(ix, iy, iz), xmin, xmax);
 }
 
+//------------------------------------------------------------------------------
+// Wrap the offset lookup up method to return a tuple -- nicer python interface.
+//------------------------------------------------------------------------------
+template<typename MeshType>
+inline
+PyObject*
+lookupNodeListID(MeshType* self,
+                 unsigned zoneID) {
+  unsigned nodeListi, i;
+  self->lookupNodeListID(zoneID, nodeListi, i);
+  PyObject* result;
+  result = Py_BuildValue("(II)", nodeListi, i);
+  return result;
+}
+
 }
 }
 
