@@ -124,6 +124,12 @@ self.addFunctions("%(prefix)sMesh", %(ndim)i)
         x.add_method("zone", zone, [param("unsigned int", "nodeListi"), param("unsigned int", "i")], is_const=True)
         x.add_method("offset", "unsigned int", [constrefparam(nodelist, "nodeList")], is_const=True)
         x.add_method("offset", "unsigned int", [param("unsigned int", "nodeListi")], is_const=True)
+        x.add_function_as_method("lookupNodeListID", 
+                                 retval("PyObject*", caller_owns_return=True),
+                                 [param(ptr(me), "self", transfer_ownership=False),
+                                  param("unsigned int", "zoneID")],
+                                 template_parameters = [me],
+                                 custom_name = "lookupNodeListID")
         x.add_method("generateDomainInfo", None, [])
         x.add_method("generateParallelRind", None, [])
         x.add_method("generateParallelRind", None, [refparam(vector_of_vector, "generators"),

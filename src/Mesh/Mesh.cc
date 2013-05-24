@@ -687,6 +687,21 @@ cleanEdges(const double edgeTol) {
   mSharedFaces = vector<vector<unsigned> >();
 }
 
+//------------------------------------------------------------------------------
+// Look up the NodeList offset and nodeID for the given zone.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Mesh<Dimension>::
+lookupNodeListID(const unsigned zoneID, unsigned& nodeListi, unsigned& i) const {
+  REQUIRE(zoneID < mZones.size());
+  const std::vector<unsigned>::const_iterator itr = std::lower_bound(mNodeListIndexOffsets.begin(),
+                                                                     mNodeListIndexOffsets.end(),
+                                                                     zoneID);
+  CHECK(itr != mNodeListIndexOffsets.end() and *itr <= zoneID);
+  nodeListi = std::distance(mNodeListIndexOffsets.begin(), itr);
+  i = zoneID - *itr;
+}
 
 //------------------------------------------------------------------------------
 // Mesh::generateDomainInfo

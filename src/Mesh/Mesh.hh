@@ -30,6 +30,7 @@ template<typename Dimension>
 class Mesh {
   //--------------------------- Public Interface ---------------------------//
 public:
+  typedef Dimension DimensionType;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ConvexHull ConvexHull;
@@ -144,6 +145,9 @@ public:
   // Extract the zone offset for the given NodeList.
   unsigned offset(const NodeSpace::NodeList<Dimension>& nodeList) const;
   unsigned offset(const unsigned nodeListi) const;
+
+  // Look up the (nodeListID, nodeID) corresponding to the given zoneID.
+  void lookupNodeListID(const unsigned zoneID, unsigned& nodeListi, unsigned& i) const;
 
   // Compute the communicated mesh structures.
   void generateDomainInfo();
