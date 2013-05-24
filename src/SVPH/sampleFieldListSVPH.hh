@@ -17,12 +17,12 @@ namespace Spheral {
     template<typename Dimension, typename DataType>
     FieldList<Dimension, DataType>
     sampleFieldListSVPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-                        const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions,
+                        const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                         const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
                         const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                         const KernelSpace::TableKernel<Dimension>& W,
                         const MeshSpace::Mesh<Dimension>& mesh,
-                        const std::vector<BoundarySpace::Boundary<Dimension>*> boundaries,
+                        const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                         const bool firstOrderConsistent);
   }
 }

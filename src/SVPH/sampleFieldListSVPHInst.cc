@@ -21,7 +21,7 @@ using BoundarySpace::Boundary;
 template 
 FieldList<Dim<1>, Dim<1>::Scalar> 
 sampleFieldListSVPH<Dim<1>, Dim<1>::Scalar>(const FieldList<Dim<1>, Dim<1>::Scalar>& fieldList,
-                                            const FieldList<Dim<1>, Dim<1>::Vector>& positions,
+                                            const FieldList<Dim<1>, Dim<1>::Vector>& position,
                                             const FieldList<Dim<1>, Dim<1>::SymTensor>& Hfield,
                                             const ConnectivityMap<Dim<1> >& connectivityMap,
                                             const TableKernel< Dim<1> >& W,
@@ -33,7 +33,7 @@ sampleFieldListSVPH<Dim<1>, Dim<1>::Scalar>(const FieldList<Dim<1>, Dim<1>::Scal
 template 
 FieldList<Dim<1>, Dim<1>::Vector> 
 sampleFieldListSVPH<Dim<1>, Dim<1>::Vector>(const FieldList<Dim<1>, Dim<1>::Vector>& fieldList,
-                                            const FieldList<Dim<1>, Dim<1>::Vector>& positions,
+                                            const FieldList<Dim<1>, Dim<1>::Vector>& position,
                                             const FieldList<Dim<1>, Dim<1>::SymTensor>& Hfield,
                                             const ConnectivityMap<Dim<1> >& connectivityMap,
                                             const TableKernel< Dim<1> >& W,

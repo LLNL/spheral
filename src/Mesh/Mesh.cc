@@ -698,9 +698,10 @@ lookupNodeListID(const unsigned zoneID, unsigned& nodeListi, unsigned& i) const 
   const std::vector<unsigned>::const_iterator itr = std::lower_bound(mNodeListIndexOffsets.begin(),
                                                                      mNodeListIndexOffsets.end(),
                                                                      zoneID);
-  CHECK(itr != mNodeListIndexOffsets.end() and *itr <= zoneID);
-  nodeListi = std::distance(mNodeListIndexOffsets.begin(), itr);
-  i = zoneID - *itr;
+  CHECK(itr != mNodeListIndexOffsets.end() and *itr >= zoneID);
+  nodeListi = std::distance(mNodeListIndexOffsets.begin(), itr) - (*itr == zoneID ? 0 : 1);
+  CHECK(zoneID >= mNodeListIndexOffsets[nodeListi]);
+  i = zoneID - mNodeListIndexOffsets[nodeListi];
 }
 
 //------------------------------------------------------------------------------
