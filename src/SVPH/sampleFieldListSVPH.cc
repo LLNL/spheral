@@ -2,6 +2,7 @@
 // Use SVPH to sample a FieldList.
 //------------------------------------------------------------------------------
 #include "sampleFieldListSVPH.hh"
+#include "computeSVPHCorrections.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Utilities/safeInv.hh"
@@ -21,7 +22,6 @@ using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using BoundarySpace::Boundary;
 
 namespace {
 //------------------------------------------------------------------------------
@@ -93,7 +93,6 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
                     const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const MeshSpace::Mesh<Dimension>& mesh,
-                    const vector<Boundary<Dimension>*>& boundaries,
                     const bool firstOrderConsistent) {
 
   // Pre-conditions.
@@ -109,28 +108,36 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
   // Prepare the result and some work fields.
   FieldList<Dimension, DataType> result(FieldList<Dimension, DataType>::Copy);
-  FieldList<Dimension, GradientType> G(FieldList<Dimension, GradientType>::Copy);
+  FieldList<Dimension, Scalar> volume(FieldList<Dimension, Scalar>::Copy);
+  FieldList<Dimension, Vector> B(FieldList<Dimension, Vector>::Copy);
+  FieldList<Dimension, Tensor> gradB(FieldList<Dimension, SymTensor>::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH sample of " + fieldList[nodeListi]->name(), nodeList, DataType(0));
-    G.appendNewField("internal gradient of " + fieldList[nodeListi]->name(), nodeList, GradientType(0));
+    volume.appendNewField("volume", nodeList, 0.0);
+    B.appendNewField("SVPH linear correction for " + fieldList[nodeListi]->name(), nodeList, Vector::zero);
+    gradB.appendNewField("SVPH linear correction gradient for " + fieldList[nodeListi]->name(), nodeList, Tensor::zero);
   }
 
-  // Make a first pass to evaluate the per cell gradients if we're doing first-order
-  // consistency.
+  // If we're enforcing first-order consistency, compute the correction fields.
   if (firstOrderConsistent) {
 
-    // Walk the NodeLists.
+    // Copy the cell volumes to the FieldList.
     for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
-
-      // Iterate over the nodes in this node list.
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-
-        // Do the dimension specific lookup of the internal cell gradient, based on the cell geometry.
-        G(nodeListi, i) = computeCellGradient(fieldList, position, nodeListi, i, mesh);
+      for (int i = 0; i != nodeList.numNodes(); ++i) {
+        volume(nodeListi, i) = mesh.zone(nodeListi, i).volume();
       }
     }
+
+    // We have a handy utility method to compute the corrections.
+    computeSVPHCorrections(connectivityMap,
+                           W,
+                           volume,
+                           position,
+                           Hfield,
+                           B,
+                           gradB);
   }
 
   // Walk the NodeLists to build our answer.
@@ -147,6 +154,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
       const Scalar Vi = mesh.zone(nodeListi, i).volume();
+      const Vector& Bi = B(nodeListi, i);
       Scalar norm = Vi*W0;
       result(nodeListi, i) = Vi*W0 * fieldList(nodeListi, i);
 
@@ -164,7 +172,6 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
           const Vector& rj = position(nodeListj, j);
           const SymTensor& Hj = Hfield(nodeListj, j);
           const Scalar Vj = mesh.zone(nodeListj, j).volume();
-          const GradientType& Gj = G(nodeListj, j);
 
           // Pair-wise kernel type stuff.
           const Vector rij = ri - rj;
@@ -172,8 +179,9 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
           const Scalar Wj = W.kernelValue(etaj.magnitude(), 1.0);
 
           // Increment the result.
-          norm += Vj*Wj;
-          result(nodeListi, i) += Vj*Wj * (Fj + Gj.dot(rij));
+          const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
+          norm += VWRj;
+          result(nodeListi, i) += VWRj * Fj;
         }
       }
 

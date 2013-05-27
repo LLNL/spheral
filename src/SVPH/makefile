@@ -5,6 +5,7 @@ PKGNAME = SVPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
+	computeSVPHCorrectionsInst.cc \
 	sampleFieldListSVPHInst.cc
 
 LINKLIST = linklist
