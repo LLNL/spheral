@@ -9,7 +9,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "Mesh/Mesh.hh"
-#include "Boundary/Boundary.hh"
 
 namespace Spheral {
   namespace SVPHSpace {
@@ -22,7 +21,6 @@ namespace Spheral {
                         const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                         const KernelSpace::TableKernel<Dimension>& W,
                         const MeshSpace::Mesh<Dimension>& mesh,
-                        const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                         const bool firstOrderConsistent);
   }
 }

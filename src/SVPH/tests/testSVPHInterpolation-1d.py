@@ -194,7 +194,6 @@ fSVPHfl = sampleFieldListSVPH(fl,
                               db.connectivityMap(),
                               WT,
                               mesh,
-                              bounds,
                               linearConsistent)
 fSVPH = fSVPHfl[0]
 

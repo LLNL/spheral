@@ -47,6 +47,8 @@ class SVPH:
         # self.generateSVPHHydroBaseBindings(self.SVPHHydroBase3d, 3)
         
         self.generateDimBindings(1)
+        self.generateDimBindings(2)
+        self.generateDimBindings(3)
 
         return
 
@@ -72,11 +74,12 @@ class SVPH:
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         mesh = {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
-        vector_of_boundary = "vector_of_Boundary%id" % ndim
 
         # SVPH sampling.
         for (fl, val) in [(scalarfieldlist, "double"),
                           (vectorfieldlist, vector),
+                          (tensorfieldlist, tensor),
+                          (symtensorfieldlist, symtensor),
                           ]:
             self.space.add_function("sampleFieldListSVPH", 
                                     fl,
@@ -86,7 +89,6 @@ class SVPH:
                                      constrefparam(connectivitymap, "connectivityMap"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam(mesh, "mesh"),
-                                     constrefparam(vector_of_boundary, "boundaries"),
                                      param("bool", "firstOrderConsistent", default_value="true")],
                                     template_parameters = [dim],
                                     custom_name = "sampleFieldListSVPH%id" % ndim)
