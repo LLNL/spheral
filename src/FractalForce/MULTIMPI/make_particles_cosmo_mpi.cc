@@ -39,7 +39,7 @@ namespace FractalSpace
       }
     else
       {
-	int iimax=100;
+	int iimax=200;
 	double crash_0=mem.redshift_start+1.0;
 	double scale_crash=pow(crash_0,1.0/(double)(iimax+1));
 	for(int ii=0;ii<=iimax;ii++)

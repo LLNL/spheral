@@ -19,34 +19,53 @@ namespace FractalSpace
 	group_itr!=mem.all_groups[level].end();group_itr++)
       {
 	Group& group=**group_itr;
-	if(!group.get_buffer_group() && group.list_particles.size() < mem.min_hypre_group_size)
+	if(!group.get_buffer_group() && group.list_points.size() < mem.min_hypre_group_size)
 	  continue;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  hypre_points.push_back(*point_itr);
       }
     int count=hypre_points.size();
+    mem.p_mess->IAmAHypreNode=count > 0;
+    /*
     if(count==0)
       {
 	count=1;
 	hypre_points.push_back(0);
 	FH << " fake a" << endl;
       }
+    */
     frac.timing(-1,36);
     mem.p_mess->Full_Stop();
     frac.timing(1,36);
     mem.p_mess->How_Many_On_Nodes(count,mem.ij_counts);
     mem.ij_offsets.resize(FractalNodes);
     mem.ij_offsets[0]=0;
-    for(int ni=1;ni<FractalNodes;ni++)
-      mem.ij_offsets[ni]=mem.ij_offsets[ni-1]+mem.ij_counts[ni-1];
+
+    vector <int> ranks(FractalNodes);
+    int nhyp=0;
     for(int ni=0;ni<FractalNodes;ni++)
-      FH << " offsets " << ni << " " << level << " " << mem.ij_offsets[ni] << " " << mem.ij_counts[ni] << endl;
-    int totals=mem.ij_offsets[FractalNodes-1]+mem.ij_counts[FractalNodes-1];
-    if(totals <= FractalNodes)
+      {
+	if(mem.ij_counts[ni] == 0)
+	  continue;
+	ranks[nhyp]=ni;
+	if(ni > 0)
+	  mem.ij_offsets[nhyp]=mem.ij_offsets[ni-1]+mem.ij_counts[ni-1];
+	nhyp++;
+      }
+    int HypreNodes=nhyp;
+    if(HypreNodes == 0)
       {
 	frac.timing(1,32);
 	return false;
       }
+    mem.p_mess->HypreNodes=HypreNodes;
+    for(int ni=0;ni<HypreNodes;ni++)
+      FH << " offsets " << ni << " " << level << " " << mem.ij_offsets[ni] << " " << mem.ij_counts[ni] << endl;
+    int totals=mem.ij_offsets[FractalNodes-1]+mem.ij_counts[FractalNodes-1];
+    mem.p_mess->HypreGroupCreate(ranks);
+    int HypreRank=mem.p_mess->what_is_my_Hypre_rank();
+    mem.p_mess->HypreRank=HypreRank;
+    assert(HypreNodes == mem.p_mess->how_many_Hypre_nodes());
     FH << " total " << totals << " " << level << endl;
     vector <int>PBox(6);
     vector <int>PBoxLeft(3);
@@ -175,6 +194,6 @@ namespace FractalSpace
 	  }
       }
     frac.timing(1,32);
-    return true;
+    return hypre_points.size() > 0;
   }
 }
