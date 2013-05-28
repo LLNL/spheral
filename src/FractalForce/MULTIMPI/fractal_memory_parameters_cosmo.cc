@@ -17,11 +17,11 @@ namespace FractalSpace
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
-    mem.FractalNodes0=4;
+    mem.FractalNodes0=8;
     //number of nodes in x-direction
-    mem.FractalNodes1=4;
+    mem.FractalNodes1=8;
     //number of nodes in y-direction
-    mem.FractalNodes2=4;
+    mem.FractalNodes2=8;
     //number of nodes in z-direction
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     //total number of nodes
@@ -32,7 +32,7 @@ namespace FractalSpace
     // max number of nodes for FFTW
     mem.periodic = true ;
     //true for periodic BC and false for isolated BC
-    mem.grid_length = 256;    
+    mem.grid_length = 512;    
     // length of fundamental grid, must be even
     mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
@@ -44,7 +44,7 @@ namespace FractalSpace
     mem.highest_level_init=min(mem.highest_level_init,mem.level_max);
     // highest level, nothing magical about this
     // total resolution = grid_length*2**level_max
-    mem.min_hypre_group_size=5000;
+    mem.min_hypre_group_size=100;
     //    mem.min_hypre_group_size=-1;
     // minum group size to use hypre
     mem.minimum_number = 8 ; 
@@ -96,7 +96,7 @@ namespace FractalSpace
     mem.total_mass=1.0;
     cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << endl;
     //
-    mem.crash_levels=10;
+    mem.crash_levels=5;
     mem.crash_pow=2.0;
     mem.density_crash=5.5;
     mem.splits=2;
@@ -137,18 +137,18 @@ namespace FractalSpace
     mem.masks_center_x[0]=0.5;
     mem.masks_center_y[0]=0.5;
     mem.masks_center_z[0]=0.5;
-    mem.masks_rad_x[0]=0.5;
-    mem.masks_rad_y[0]=0.5;
-    mem.masks_rad_z[0]=0.5;
+    mem.masks_rad_x[0]=1.5;
+    mem.masks_rad_y[0]=1.5;
+    mem.masks_rad_z[0]=1.5;
     mem.masks_level[0]=0;
     mem.masks_square[0]=true;
     mem.masks_center_x[1]=0.5;
     mem.masks_center_y[1]=0.5;
     mem.masks_center_z[1]=0.5;
-    mem.masks_rad_x[1]=0.35;
-    mem.masks_rad_y[1]=0.35;
-    mem.masks_rad_z[1]=0.35;
-    mem.masks_level[1]=2;
+    mem.masks_rad_x[1]=1.48;
+    mem.masks_rad_y[1]=1.48;
+    mem.masks_rad_z[1]=1.48;
+    mem.masks_level[1]=4;
     mem.masks_square[2]=true;
     mem.masks_center_x[2]=0.5;
     mem.masks_center_y[2]=0.5;
@@ -156,7 +156,7 @@ namespace FractalSpace
     mem.masks_rad_x[2]=0.25;
     mem.masks_rad_y[2]=0.25;
     mem.masks_rad_z[2]=0.25;
-    mem.masks_level[2]=4;
+    mem.masks_level[2]=6;
     mem.masks_square[2]=true;
     mem.masks_center_x[3]=0.5;
     mem.masks_center_y[3]=0.5;
@@ -203,6 +203,7 @@ namespace FractalSpace
     mem.masks_rad_z_init[2]=0.2;
     mem.masks_level_init[2]=4;
     mem.masks_square_init[2]=true;
+    mem.masks_init=0;
     cout << " finishing cosmo " << endl;
   }
 }

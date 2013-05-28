@@ -91,7 +91,8 @@ namespace FractalSpace
       omega_fraction(2.0/3.0)
     {
       cout << " starting fractal " << endl;
-      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
+      //      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
+      clocks_per_sec=1.0;
       steps=0;
       omega_start=mem.omega_start;
       p_generated_from=&mem;
