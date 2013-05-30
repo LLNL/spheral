@@ -26,6 +26,8 @@ namespace FractalSpace
       {
 	double m=0.375*FM.omega_start/pi/(double)FM.p_mess->number_particles_total;
 	FileFractal << "m= " << m << endl;
+	PFM->base_mass=m;
+	PF->set_base_mass(m);
 	bool zel_predict=FM.crash_levels > 0 && FM.max_particles > FM.number_particles; 
 	int splits_tmp=0;
 	double cut_off_tmp=0.0;

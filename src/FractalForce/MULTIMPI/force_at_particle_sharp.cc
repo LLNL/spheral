@@ -50,7 +50,7 @@ namespace FractalSpace
 		    particle.set_field_pf(sum_pf,scale_force);
 		    if(sum_pf[0]*sum_pf[1]*sum_pf[2]*sum_pf[3] ==0.0)
 		      particle.dump(FileFractal,pott,f_x,f_y,f_z);
-		    particle.dump(FileFractal);
+		    //		    particle.dump(FileFractal);
 		  }
 	      }
 	    else

@@ -65,7 +65,8 @@ namespace FractalSpace
     mem.p_mess->HypreGroupCreate(ranks);
     int HypreRank=mem.p_mess->what_is_my_Hypre_rank();
     mem.p_mess->HypreRank=HypreRank;
-    assert(HypreNodes == mem.p_mess->how_many_Hypre_nodes());
+    if(mem.p_mess->IAmAHypreNode)
+      assert(HypreNodes == mem.p_mess->how_many_Hypre_nodes());
     FH << " total " << totals << " " << level << endl;
     vector <int>PBox(6);
     vector <int>PBoxLeft(3);

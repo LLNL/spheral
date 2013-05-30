@@ -62,6 +62,7 @@ namespace FractalSpace
     vector <string> time_string;
     int steps;
     double omega_start;
+    double base_mass;
   public:
     Mess* p_mess;
     File* p_file;
@@ -111,6 +112,7 @@ namespace FractalSpace
       random_offset=mem.random_offset;
       maxits=mem.maxits;
       debug=mem.debug;
+      base_mass=mem.base_mass;
       //
       cout << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << endl;
       p_mess=mem.p_mess;
@@ -240,6 +242,14 @@ namespace FractalSpace
     double get_omega_start()
     {
       return omega_start;
+    }
+    double get_base_mass()
+    {
+      return base_mass;
+    }
+    void set_base_mass(double bm)
+    {
+      base_mass=bm;
     }
     void setBox(vector <int>& B)
     {
@@ -602,6 +612,7 @@ namespace FractalSpace
 	    total_time[i]+=delta_time[i];
 	  double dt49=(delta_time[49]/clocks_per_sec)+1.0e-6;
 	  double dtt49=(total_time[49]/clocks_per_sec)+1.0e-6;
+	  total_time[48]=0.0;
 	  for(int ni=33;ni<=41;ni++)
 	    {
 	      delta_time[48]+=delta_time[ni];
