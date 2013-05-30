@@ -161,6 +161,8 @@ namespace FractalSpace
     }
     int how_many_Hypre_nodes()
     {
+      if(!IAmAHypreNode)
+	return -1;
       int size;
       MPI_Comm_size(HypreWorld,&size);
       return size;
@@ -822,6 +824,8 @@ namespace FractalSpace
     }
     void HypreFree()
     {
+      if(!IAmAHypreNode)
+	return;
       MPI_Group_free(&HypreGroup);
       MPI_Comm_free(&HypreWorld);
     }
