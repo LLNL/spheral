@@ -3,5 +3,6 @@
 
 #include "Geometry/Dimension.hh"
 #include "SVPH/sampleFieldListSVPH.hh"
+#include "SVPH/gradientFieldListSVPH.hh"
 
 #endif

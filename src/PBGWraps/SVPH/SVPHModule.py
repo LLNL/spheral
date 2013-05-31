@@ -76,11 +76,10 @@ class SVPH:
         mesh = {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
 
         # SVPH sampling.
-        for (fl, val) in [(scalarfieldlist, "double"),
-                          (vectorfieldlist, vector),
-                          (tensorfieldlist, tensor),
-                          (symtensorfieldlist, symtensor),
-                          ]:
+        for fl in [scalarfieldlist,
+                   vectorfieldlist,
+                   tensorfieldlist,
+                   symtensorfieldlist]:
             self.space.add_function("sampleFieldListSVPH", 
                                     fl,
                                     [constrefparam(fl, "fieldList"),
@@ -92,6 +91,21 @@ class SVPH:
                                      param("bool", "firstOrderConsistent", default_value="true")],
                                     template_parameters = [dim],
                                     custom_name = "sampleFieldListSVPH%id" % ndim)
+
+        # SVPH gradient.
+        for (fl, gfl) in [(scalarfieldlist, vectorfieldlist),
+                          (vectorfieldlist, tensorfieldlist)]:
+            self.space.add_function("gradientFieldListSVPH", 
+                                    gfl,
+                                    [constrefparam(fl, "fieldList"),
+                                     constrefparam(vectorfieldlist, "position"),
+                                     constrefparam(symtensorfieldlist, "H"),
+                                     constrefparam(connectivitymap, "connectivityMap"),
+                                     constrefparam(tablekernel, "W"),
+                                     constrefparam(mesh, "mesh"),
+                                     param("bool", "firstOrderConsistent", default_value="true")],
+                                    template_parameters = [dim],
+                                    custom_name = "gradientFieldListSVPH%id" % ndim)
 
         return
 
