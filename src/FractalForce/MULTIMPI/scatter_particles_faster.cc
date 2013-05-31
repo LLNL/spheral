@@ -43,7 +43,7 @@ namespace FractalSpace
 	FF << " " << pos_left_safe[ni] << " " << pos_right_safe[ni];
       }
     FF << endl;
-    int blocks=11;
+    int blocks=23;
     double ablocks=blocks;
     ablocks=1.0/ablocks;
     int blocks3=blocks*blocks*blocks;

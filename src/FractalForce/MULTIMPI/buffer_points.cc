@@ -67,9 +67,16 @@ namespace FractalSpace
 		Particle& particle=**particle_itr;
 		particle.get_pos(pos);
 		point.get_pos_point(p_x,p_y,p_z);
-		n_x=(static_cast<int>(pos[0]*scale)-p_x)/width;
-		n_y=(static_cast<int>(pos[1]*scale)-p_y)/width;
-		n_z=(static_cast<int>(pos[2]*scale)-p_z)/width;
+		n_x=(static_cast<int>(floor(pos[0]*scale))-p_x)/width;
+		n_y=(static_cast<int>(floor(pos[1]*scale))-p_y)/width;
+		n_z=(static_cast<int>(floor(pos[2]*scale))-p_z)/width;
+		if(n_x > 1 || n_y > 1 || n_z > 1 || n_x < 0 || n_y < 0 || n_z < 0)
+		  {
+		    fractal.p_mess->Full_Stop();
+		    FileFractal << " buffer badd " << endl;
+		    point.dump();
+		    particle.dump(*point.p_FILE);
+		  }
 		assert(n_x==0 || n_x==1);
 		assert(n_y==0 || n_y==1);
 		assert(n_z==0 || n_z==1);

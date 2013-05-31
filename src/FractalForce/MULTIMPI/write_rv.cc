@@ -9,6 +9,10 @@ namespace FractalSpace
     int nphase=-1;
     int nfield=-1;
     int nparts=fractal.get_number_particles();
+    double base_mass=fractal.get_base_mass();
+    bool period=fractal.get_periodic();
+    int level=-1;
+    double alevel=0.0;
     for(int n=0;n<nparts;++n)
       {
 	Particle& particle=*fractal.particle_list[n];
@@ -23,7 +27,19 @@ namespace FractalSpace
 	else
 	  vel.assign(3,-1234.5);
 	FilePos << scientific << "\t" << vel[0] << "\t" << vel[1] << "\t" << vel[2];
-	FilePos << "\t" << particle.get_mass() ;
+	double m=particle.get_mass();
+	FilePos << "\t" << m ;
+	if(period)
+	  {
+	    if(m > 0.0)
+	      {
+		alevel=base_mass/m;
+		level=(alevel+0.01);
+	      }
+	    else
+	      level=-1;
+	    FilePos << "\t" << "L" << level << "A";
+	  }
 	if(nfield >= 4)
 	  particle.get_field_pf(pf);
 	else

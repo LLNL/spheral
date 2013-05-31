@@ -111,7 +111,7 @@ namespace FractalSpace
       HypreWorld=MPI_COMM_WORLD;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Comm_group(FFTWorld,&FFTGroup);
-      MPI_Comm_group(HypreWorld,&HypreGroup);
+      //      MPI_Comm_group(HypreWorld,&HypreGroup);
       FractalRank=what_is_my_rank(); 
       FractalNodes=how_many_nodes();
       FFTRank=FractalRank;
@@ -153,12 +153,16 @@ namespace FractalSpace
     }
     int what_is_my_Hypre_rank()
     {
+      if(!IAmAHypreNode)
+	return -1;
       int rank;
       MPI_Comm_rank(HypreWorld,&rank);
       return rank;
     }
     int how_many_Hypre_nodes()
     {
+      if(!IAmAHypreNode)
+	return -1;
       int size;
       MPI_Comm_size(HypreWorld,&size);
       return size;
@@ -586,6 +590,7 @@ namespace FractalSpace
       dataI_in=0;
       dataR_in=0;
     }
+    /*
     void Send_Data_Somewhere_No_Block(vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
 			     vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
 			     vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
@@ -732,6 +737,7 @@ namespace FractalSpace
       dataI_in=0;
       dataR_in=0;
     }
+    */
     void calc_total_particles(const int& NP)
     {
       int particles[1]={NP};
@@ -803,12 +809,13 @@ namespace FractalSpace
     }
     double Clock()
     {
-      return clock();
+      return MPI_Wtime();
+      //      return clock();
     }
     void HypreGroupCreate(vector <int>& ranks)
     {
-      int* Ranks=new int[FractalNodes];
-      for(int ni=0;ni<FractalNodes;ni++)
+      int* Ranks=new int[HypreNodes];
+      for(int ni=0;ni<HypreNodes;ni++)
 	Ranks[ni]=ranks[ni];
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Group_incl(FractalGroup, HypreNodes, Ranks, &HypreGroup);
@@ -817,6 +824,8 @@ namespace FractalSpace
     }
     void HypreFree()
     {
+      if(!IAmAHypreNode)
+	return;
       MPI_Group_free(&HypreGroup);
       MPI_Comm_free(&HypreWorld);
     }

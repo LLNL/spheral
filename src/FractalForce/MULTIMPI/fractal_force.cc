@@ -157,6 +157,7 @@ namespace FractalSpace
   bool Fractal::first_time_solver=true;
   void fractal_force(Fractal& fractal,Fractal_Memory& fractal_memory)
   {
+    fractal_memory.p_mess->Full_Stop();
     ofstream& FileFractal=fractal.p_file->FileFractal;
     FileFractal << "here in fractal_force " << endl;
     //    write_rv(-16,fractal);

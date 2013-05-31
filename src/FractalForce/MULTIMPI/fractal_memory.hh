@@ -34,6 +34,7 @@ namespace FractalSpace
     int global_level_max;
     //    vector <double>total_time;
     //
+    bool split_particles;
     bool amnesia;
     bool mind_wipe;
     bool fixed_potential;
@@ -65,6 +66,7 @@ namespace FractalSpace
     int number_steps_out;
     int random_offset;
     int maxits;
+    double base_mass;
     double epsilon_sor;
     double force_max;
     double halo_scale;
@@ -185,6 +187,7 @@ namespace FractalSpace
       number_steps_out(20),
       random_offset(0),
       maxits(20),
+      base_mass(1.0),
       epsilon_sor(1.0e-7),
       force_max(-1.0),
       halo_scale(1.0),
@@ -234,6 +237,7 @@ namespace FractalSpace
       hypre_precond="AMG";
       global_level_max=level_max;
       padding=min(padding,1);
+      split_particles= force_max > 0.0;
       //      total_time.assign(50,0.0);
       //
     }
