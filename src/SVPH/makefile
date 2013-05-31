@@ -6,7 +6,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	computeSVPHCorrectionsInst.cc \
-	sampleFieldListSVPHInst.cc
+	sampleFieldListSVPHInst.cc \
+	gradientFieldListSVPHInst.cc
 
 LINKLIST = linklist
 SPHERALTOP = ..
