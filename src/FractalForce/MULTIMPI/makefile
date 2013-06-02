@@ -7,7 +7,8 @@ debug = -g
 #ATM Loptfftw = -L/g/g90/jensv/cplus/fftw-3.3.2/mpi/.libs
 Loptfftw = -L/g/g90/jensv/cplus/fftw-3.3.2/install_intel/lib
 #Loptfftw = -L/usr/local/tools/fftw3-3.2/lib
-Lopthypre = -L/g/g90/jensv/cplus/hypre-2.8.0b/src/lib/
+Lopthypre = -L/g/g90/jensv/cplus/hypre-2.9.0b/src/lib/
+#Lopthypre = -L/g/g90/jensv/cplus/hypre-2.8.0b/src/lib/
 loptfftw = -lfftw3_mpi -lfftw3 -lm
 lopthypre = -lHYPRE 
 #fftwmpifile = /g/g90/jensv/cplus/fftw-3.3.2/mpi/.libs/libfftw3_mpi.a
@@ -17,7 +18,8 @@ dir   = test/
 #ATM head_dir_fftw = /g/g90/jensv/cplus/fftw-3.3.2/mpi/
 head_dir_fftw = /g/g90/jensv/cplus/fftw-3.3.2/install_intel/include
 #head_dir_fftw = /usr/local/tools/fftw3-3.2/include
-head_dir_hypre = /g/g90/jensv/cplus/hypre-2.8.0b/src/hypre/include
+#head_dir_hypre = /g/g90/jensv/cplus/hypre-2.8.0b/src/hypre/include
+head_dir_hypre = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/include
 #ATM compiler = mpiicpc -mpicpp
 compiler = mpiicpc
 compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(verbose) $(debug)
@@ -125,6 +127,9 @@ force_test.o :	force_test.cc $(classes)
 fractal_force.o :	fractal_force.cc  $(classes) 
 	$(compile) $(fopt1) $(Wopt1) -c fractal_force.cc
 #
+fractal_force_sync.o :	fractal_force_sync.cc  $(classes) 
+	$(compile) $(fopt1) $(Wopt1) -c fractal_force_sync.cc
+#
 fractal_galaxy_run.o :	fractal_galaxy_run.cc  $(classes) 
 	$(compile) $(fopt1) $(Wopt1) -c fractal_galaxy_run.cc
 #
@@ -173,8 +178,14 @@ hypre_divide_groups.o :	hypre_divide_groups.cc $(classes)
 hypre_ij_numbering.o :	hypre_ij_numbering.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_numbering.cc
 #
+hypre_ij_numbering_multi.o :	hypre_ij_numbering_multi.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_numbering_multi.cc
+#
 hypre_ij_solver.o :	hypre_ij_solver.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_solver.cc
+#
+hypre_ij_solver_pcg.o :	hypre_ij_solver_pcg.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_solver_pcg.cc
 #
 hypre_little_boxes.o :	hypre_little_boxes.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c hypre_little_boxes.cc
@@ -253,6 +264,9 @@ potential_start.o :	potential_start.cc $(classes)
 #
 poisson_solver.o :	poisson_solver.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c poisson_solver.cc
+#
+poisson_solver_multi.o :	poisson_solver_multi.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c poisson_solver_multi.cc
 #
 power_spectrum.o :	power_spectrum.cc $(classes)
 	$(compile) $(fopt1) $(fftopt1) $(Wopt1) -c power_spectrum.cc

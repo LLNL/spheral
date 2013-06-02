@@ -18,7 +18,7 @@ namespace FractalSpace
     bool buffer_point;
     bool edge_point;
     int number_in_list;
-    int which_Slice;
+    //    int which_Slice;
     //
     int ij_number;
     vector <int>ij_ud;
@@ -66,7 +66,7 @@ namespace FractalSpace
       buffer_point(false),
       edge_point(false),
       number_in_list(-1),
-      which_Slice(-1),
+      //      which_Slice(-1),
       potential_point(0.0),
       density_point(0.0),
       pos_point(3,-1),
@@ -131,6 +131,7 @@ namespace FractalSpace
     {
       number_in_list=n;
     }
+    /*
     int get_which_Slice()
     {
       return which_Slice;
@@ -139,6 +140,7 @@ namespace FractalSpace
     {
       which_Slice=wS;
     }
+    */
     void set_eureka_adj(const vector <bool>& eu)
     {
       eureka_adj=eu;
@@ -281,7 +283,7 @@ namespace FractalSpace
     }
     void set_ij_neighbors()
     {
-      if(!inside)
+      if(!inside || passive_point)
 	{
 	  ij_ud.clear();
 	  return;
@@ -289,7 +291,7 @@ namespace FractalSpace
       ij_ud.resize(6);
       for(int ni=0;ni<6;ni++)
 	{
-	  //	  assert(!point_ud[ni]->really_passive);
+	  assert(!point_ud[ni]->really_passive);
 	  ij_ud[ni]=point_ud[ni]->ij_number;
 	}
     }

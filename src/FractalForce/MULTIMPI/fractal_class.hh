@@ -308,6 +308,7 @@ namespace FractalSpace
       point.get_pos_point(pos);
       edge=false;
       buff=false;
+      really=false;
       pass=
 	pos[0]< BBoxLev[level][0] ||
 	pos[0]> BBoxLev[level][1] ||

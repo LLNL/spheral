@@ -47,5 +47,7 @@ namespace FractalSpace
 	FilePos << scientific << "\t" << pf[0] << "\t" << pf[1] << "\t" << pf[2] << "\t" << pf[3] ;
 	FilePos  << endl;
       }
+    fractal.p_mess->Full_Stop();
+    FilePos << " wrote it " << endl;
   }
 }
