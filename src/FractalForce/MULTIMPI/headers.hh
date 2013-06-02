@@ -61,10 +61,10 @@ namespace FractalSpace
   void high_points(Group& group, Fractal& fractal,Misc& misc);
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  void hypre_solver(Fractal& fractal,Fractal_Memory& mem,const int& level);
+  void hypre_solver(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_struct_solver(vector <Point*>& p_points_left,vector <Point*>& p_points_right,
 			   Fractal& fractal,Fractal_Memory& mem,const int& level,const bool& buffer_groups);
-  void hypre_eror(ofstream& FH,const int& er,const int& level,const int& lab);
+  void hypre_eror(ofstream& FH,int level,int ni,int er);
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,const int& lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);
   void isolated_solver(Group& group,Fractal_Memory& fractal_memory,Fractal& fractal);
@@ -134,7 +134,7 @@ namespace FractalSpace
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
   template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);
   void velocities(Fractal_Memory& mem,Fractal& frac);
-  int which_element(vector <Point*>& vec,const int& x,const int& y,const int& z,ofstream& FF);
+  int which_element(vector <Point*>& vec,int x,int y,int z,bool periodic,int period,ofstream& FF);
   void write_rv(const int& step,Fractal& fractal);
 }
 

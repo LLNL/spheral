@@ -13,7 +13,7 @@ namespace FractalSpace
     const int spacing=Misc::pow(2,frac.get_level_max()-level);
     const int mult=Misc::pow(2,level);
     int wrap=zoom*frac.get_grid_length();
-    const bool period=frac.get_periodic();
+    bool period=frac.get_periodic();
     vector <int> posa(3);
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
@@ -21,7 +21,9 @@ namespace FractalSpace
 	Group& group=**group_itr;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  {
-	    hypre_points.push_back(*point_itr);
+	    Point* p=*point_itr;
+	    if(!p->get_really_passive())
+	      hypre_points.push_back(p);
 	  }    
       }
     int count=hypre_points.size();
@@ -66,20 +68,17 @@ namespace FractalSpace
     for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
       {
 	Point*p=*point_itr;
-	if(p)p->set_ij_number(count);
+	if(p)
+	  p->set_ij_number(count);
 	count++;
       }
     vector <int>pp;
     for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
       {
 	Point*p=*point_itr;
-	if(p == 0) continue;
+	if(p == 0) 
+	  continue;
 	p->set_ij_neighbors();
-	//	p->get_pos_point(pp);
-	//	pp.push_back(p->get_ij_number());
-	//	Misc::vector_print(pp,FH);
-	//	p->get_ij_neighbors(pp);
-	//	if(pp.size()) Misc::vector_print(pp,FH);
       }
     vector <Point*> send_list;
     int x,y,z;
@@ -91,8 +90,6 @@ namespace FractalSpace
 	if(p->to_be_sent())
 	  {
 	    send_list.push_back(p);
-	    //	    p->get_pos_point(pos);
-	    //	    FH << " send " << pos[0] << " " << pos[1] << " " << pos[2] << endl;
 	  }
 	else if(p->to_receive())
 	  {
@@ -137,6 +134,7 @@ namespace FractalSpace
 	      }
 	    if(!overlap(pos,pos,PBox))
 	      continue;
+	    //	    FH << " send " << FR << " " << pos[0] << " " << pos[1] << " " << pos[2] << endl;
 	    dataI_out[FR].push_back(pos[0]);
 	    dataI_out[FR].push_back(pos[1]);
 	    dataI_out[FR].push_back(pos[2]);
@@ -174,7 +172,7 @@ namespace FractalSpace
 	    xyz[1]=(dataI_in[ni4+1]-PBoxLeft[1])/spacing;
 	    xyz[2]=(dataI_in[ni4+2]-PBoxLeft[2])/spacing;
 	    int ni=shortest_vector(searches[0][xyz[0]],searches[1][xyz[1]],searches[2][xyz[2]]);
-	    int number=which_element(searches[ni][xyz[ni]],dataI_in[ni4],dataI_in[ni4+1],dataI_in[ni4+2],FH);
+	    int number=which_element(searches[ni][xyz[ni]],dataI_in[ni4],dataI_in[ni4+1],dataI_in[ni4+2],period,wrap,FH);
 	    if(number < 0)
 	      FH << "not found " << FR << " " << c << endl;
 	    else

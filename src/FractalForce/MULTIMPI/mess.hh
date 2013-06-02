@@ -590,7 +590,6 @@ namespace FractalSpace
       dataI_in=0;
       dataR_in=0;
     }
-    /*
     void Send_Data_Somewhere_No_Block(vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
 			     vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
 			     vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
@@ -737,7 +736,6 @@ namespace FractalSpace
       dataI_in=0;
       dataR_in=0;
     }
-    */
     void calc_total_particles(const int& NP)
     {
       int particles[1]={NP};
