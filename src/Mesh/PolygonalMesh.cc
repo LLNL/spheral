@@ -83,7 +83,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   polytope::Tessellation<2, double> tessellation;
   {
 #ifdef USE_MPI
-    polytope::SerialDistributedTessellator<2, double> tessellator
+    polytope::DistributedTessellator<2, double> tessellator
 #if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
         (new polytope::TriangleTessellator<double>(),
 #else
