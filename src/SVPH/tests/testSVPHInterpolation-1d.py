@@ -195,7 +195,15 @@ fSVPHfl = sampleFieldListSVPH(fl,
                               WT,
                               mesh,
                               linearConsistent)
+dfSVPHfl = gradientFieldListSVPH(fl,
+                                 db.globalPosition,
+                                 db.globalHfield,
+                                 db.connectivityMap(),
+                                 WT,
+                                 mesh,
+                                 linearConsistent)
 fSVPH = fSVPHfl[0]
+dfSVPH = dfSVPHfl[0]
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
@@ -209,17 +217,19 @@ dyans = [dfunc(x) for x in xans]
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
 ySVPH = fSVPH.internalValues()
-#dySVPH = [x.x for x in dfSVPH.internalValues()]
+dySVPH = [x.x for x in dfSVPH.internalValues()]
 
 errySVPH = [y - z for y, z in zip(ySVPH, yans)]
 maxySVPHerror = max([abs(x) for x in errySVPH])
 
-# errdySPH = [y - z for y, z in zip(dySPH, dyans)]
-# errdySVPH = [y - z for y, z in zip(dySVPH, dyans)]
-# maxdySPHerror = max([abs(x) for x in errdySPH])
-# maxdySVPHerror = max([abs(x) for x in errdySVPH])
+errdySVPH = [y - z for y, z in zip(dySVPH, dyans)]
+maxdySVPHerror = max([abs(x) for x in errdySVPH])
 
-print "Maximum errors (interpolation): SVPH = %g" % (maxySVPHerror)
+# errdySPH = [y - z for y, z in zip(dySPH, dyans)]
+# maxdySPHerror = max([abs(x) for x in errdySPH])
+
+print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxySVPHerror,
+                                                                     maxdySVPHerror)
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -253,6 +263,32 @@ if graphics:
     p2.replot(errSVPHdata)
     p2.title("Error in interpolation")
     p2.refresh()
+
+    # Derivative values.
+    dansdata = Gnuplot.Data(xans, dyans,
+                            with_ = "lines",
+                            title = "Answer",
+                            inline = True)
+    dSVPHdata = Gnuplot.Data(xans, dySVPH,
+                             with_ = "points",
+                             title = "SVPH",
+                             inline = True)
+    errdSVPHdata = Gnuplot.Data(xans, errdySVPH,
+                                with_ = "points",
+                                title = "SVPH",
+                                inline = True)
+
+    p3 = generateNewGnuPlot()
+    p3.plot(dansdata)
+    p3.replot(dSVPHdata)
+    p3("set key top left")
+    p3.title("Derivative values")
+    p3.refresh()
+
+    p4 = generateNewGnuPlot()
+    p4.replot(errdSVPHdata)
+    p4.title("Error in derivatives")
+    p4.refresh()
 
 #-------------------------------------------------------------------------------
 # Check the maximum SVPH error and fail the test if it's out of bounds.
