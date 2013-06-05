@@ -295,3 +295,5 @@ if graphics:
 #-------------------------------------------------------------------------------
 if maxySVPHerror > interpolationTolerance:
     raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance)
+if maxdySVPHerror > interpolationTolerance:
+    raise ValueError, "SVPH gradient error out of bounds: %g > %g" % (maxdySVPHerror, interpolationTolerance)

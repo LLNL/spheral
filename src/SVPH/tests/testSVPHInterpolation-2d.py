@@ -220,7 +220,15 @@ fSVPHfl = sampleFieldListSVPH(fl,
                               WT,
                               mesh,
                               linearConsistent)
+dfSVPHfl = gradientFieldListSVPH(fl,
+                                 db.globalPosition,
+                                 db.globalHfield,
+                                 db.connectivityMap(),
+                                 WT,
+                                 mesh,
+                                 linearConsistent)
 fSVPH = fSVPHfl[0]
+dfSVPH = dfSVPHfl[0]
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
@@ -234,25 +242,28 @@ dfans = [dfunc(positions[i]) for i in xrange(nodes1.numInternalNodes)]
 errfSVPH = [y - z for y, z in zip(fSVPH.internalValues(), fans)]
 maxfSVPHerror = max([abs(x) for x in errfSVPH])
 
-# errdySPH = [y - z for y, z in zip(dySPH, dyans)]
-# errdySVPH = [y - z for y, z in zip(dySVPH, dyans)]
-# maxdySPHerror = max([abs(x) for x in errdySPH])
-# maxdySVPHerror = max([abs(x) for x in errdySVPH])
+errdfSVPH = [y - z for y, z in zip(dfSVPH, dfans)]
+maxdfSVPHerror = max([x.magnitude() for x in errdfSVPH])
 
-print "Maximum errors (interpolation): SVPH = %g" % (maxfSVPHerror)
+print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxfSVPHerror,
+                                                                     maxdfSVPHerror)
 
 #-------------------------------------------------------------------------------
 # Plot the things.
 #-------------------------------------------------------------------------------
 if graphics:
     from SpheralVoronoiSiloDump import *
-    fansField = ScalarField("answer", nodes1)
+    fansField = ScalarField("answer interpolation", nodes1)
+    dfansField = VectorField("answer gradient", nodes1)
     for i in xrange(nodes1.numInternalNodes):
         fansField[i] = fans[i]
+        dfansField[i] = dfans[i]
     d = SpheralVoronoiSiloDump(baseFileName = vizFileName,
                                baseDirectory = vizDir,
                                listOfFields = [fSVPH,
-                                               fansField],
+                                               dfSVPH,
+                                               fansField,
+                                               dfansField],
                                boundaries = bounds)
     d.dump(0.0, 0)
 
@@ -261,3 +272,5 @@ if graphics:
 #-------------------------------------------------------------------------------
 if maxfSVPHerror > interpolationTolerance:
     raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxfSVPHerror, interpolationTolerance)
+# if maxdfSVPHerror > interpolationTolerance:
+#     raise ValueError, "SVPH gradient error out of bounds: %g > %g" % (maxdfSVPHerror, interpolationTolerance)
