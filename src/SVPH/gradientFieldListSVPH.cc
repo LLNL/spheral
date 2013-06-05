@@ -125,7 +125,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
           // Increment the result.
           norm += Vj*(1.0 + Bi.dot(rij))*Wj;
-          result(nodeListi, i) += Vj*((Fj - Fi)*(1.0 + Bi.dot(rij))*gradWj + (Bi + gradBi*rij)*(Fj - Fi)*Wj);
+          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + gradBi*rij)*Wj);
         }
       }
 
