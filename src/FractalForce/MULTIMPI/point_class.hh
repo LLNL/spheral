@@ -13,6 +13,7 @@ namespace FractalSpace
     bool inside;
     bool it_is_high;
     //
+    bool found_it;
     bool really_passive;
     bool passive_point;
     bool buffer_point;
@@ -61,6 +62,7 @@ namespace FractalSpace
       p_in_high_group(0),
       inside(false),
       it_is_high(false),
+      found_it(false),
       really_passive(false),
       passive_point(false),
       buffer_point(false),
@@ -93,6 +95,14 @@ namespace FractalSpace
 	    return true;
 	}
       return false;
+    }
+    void set_found_it(bool fi)
+    {
+      found_it=fi;
+    }
+    bool get_found_it()
+    {
+      return found_it;
     }
     void set_edge_buffer_passive_point(const bool& e,const bool& b,const bool& p)
     {
@@ -1078,6 +1088,20 @@ namespace FractalSpace
       *p_FILE << pos_point[2] << " ";
       *p_FILE << density_point << " ";
       *p_FILE << potential_point << endl;
+    }
+    void dumpp(ofstream& FF)
+    {
+      FF << "dumpp " << this << " ";
+      FF << real_pointer << " ";
+      FF << inside << " ";
+      FF << edge_point << " ";
+      FF << buffer_point << " ";
+      FF << passive_point << " ";
+      FF << pos_point[0] << " ";
+      FF << pos_point[1] << " ";
+      FF << pos_point[2] << " ";
+      FF << density_point << " ";
+      FF << potential_point << endl;
     }
     void dumppf()
     {
