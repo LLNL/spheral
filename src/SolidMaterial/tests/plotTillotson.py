@@ -34,19 +34,23 @@ rho0Granite = 2.63 * 1e3
 etaMinGranite = 0.5
 etaMaxGranite = 1.5
 
-eosGranite = TillotsonEquationOfStateMKS(rho0Granite,     # ref density (kg/m^3)
-                                         etaMinGranite,   # etamin             
-                                         etaMaxGranite,   # etamax             
-                                         0.5,             # a      (dimensionless)
-                                         1.5,             # b      (dimensionless)
-                                         60.0 * GPa,      # A      (Pa)
-                                         40.0 * GPa,      # B      (Pa)
-                                         5.0,             # alpha  (dimensionless)
-                                         5.0,             # beta   (dimensionless)
-                                         10.0  * MJperKg, # eps0   (J/Kg) -- energies for Dolomite
-                                         250.0 * MJperKg, # epsLiq (J/Kg) -- energies for Dolomite
-                                         1.4   * GJperKg, # epsVap (J/Kg) -- energies for Dolomite
-                                         55.350)          # atomic weight -- complete punt
+units = PhysicalConstants(1.0,  # unit length in meters
+                          1.0,  # unit mass in kg
+                          1.0)  # unit time in sec
+eosGranite = TillotsonEquationOfState(rho0Granite,     # ref density (kg/m^3)
+                                      etaMinGranite,   # etamin             
+                                      etaMaxGranite,   # etamax             
+                                      0.5,             # a      (dimensionless)
+                                      1.5,             # b      (dimensionless)
+                                      60.0 * GPa,      # A      (Pa)
+                                      40.0 * GPa,      # B      (Pa)
+                                      5.0,             # alpha  (dimensionless)
+                                      5.0,             # beta   (dimensionless)
+                                      10.0  * MJperKg, # eps0   (J/Kg) -- energies for Dolomite
+                                      250.0 * MJperKg, # epsLiq (J/Kg) -- energies for Dolomite
+                                      1.4   * GJperKg, # epsVap (J/Kg) -- energies for Dolomite
+                                      55.350,          # atomic weight -- complete punt
+                                      units)
 
 #-------------------------------------------------------------------------------
 # Plot the pressure as a 

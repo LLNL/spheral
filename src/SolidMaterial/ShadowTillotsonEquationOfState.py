@@ -62,6 +62,9 @@ CGS = PhysicalConstants(0.01,    # Length in m
 def _TillotsonFactory(*args, 
                       **kwargs):
 
+    # The calling routine must provide the appropriate C++ constructor.
+    TillConstructor = kwargs["TillConstructor"]
+
     # The arguments that need to be passed to this method.
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
     optionalKwArgs = {"externalPressure" : None,
@@ -89,9 +92,6 @@ def _TillotsonFactory(*args,
             for arg in optionalKwArgs:
                 if arg not in kwargs:
                     exec("%s = optionalKwArgs['%s']" % (arg, arg))
-
-        # The calling routine must provide the appropriate C++ constructor.
-        TillConstructor = kwargs["TillConstructor"]
 
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
@@ -139,6 +139,7 @@ def _TillotsonFactory(*args,
         # Just pass through the arguments.
         passargs = args
         passkwargs = kwargs
+        del passkwargs["TillConstructor"]
     
     # Return the EOS.
     return TillConstructor(*tuple(passargs), **passkwargs)
