@@ -32,6 +32,7 @@ namespace FractalSpace
   template <class M>  void energy_simple(M& mem, Fractal& fractal);
   void equivalence_class(Group& group);
   int find_global_level_max(Fractal_Memory& mem,Fractal& frac);
+  int findPointByPos(vector <Point*>& plist,Point* psend,ofstream& FF);
   void fix_memory(Fractal& frac,const int& ispace,const int& jfield);
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve);
   void force_at_particle(vector <vector <Group*> >& all_groups, Fractal& fractal);
@@ -73,6 +74,7 @@ namespace FractalSpace
   double Lambda (const double& omega_0, const double& omega_lambda, const double& redshift);
   double Length(const double& omega_0, const double& omega_lambda, const double& redshift);
   bool LesserPoint(Point* p1,Point* p2);
+  bool LesserPointA(Point* p1,Point* p2);
   void left_right(vector <Point*>& all_points,vector <int>& pos_left,vector <int>& pos_right);
   void left_right(vector <Point*>& all_points,vector <int>& pos_left,vector <int>& pos_right,const int& wrap);
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
@@ -112,8 +114,8 @@ namespace FractalSpace
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
   void sor(Group& group, Fractal& fractal,vector <Point*>& list_left_x,const int& dir);
   void sor_solver(Group& group, Fractal& fractal);
-  void sort3_list(Group& group,const int& what);
-  void sort3_list(vector <Point*> list_points,const int& what);
+  void sort3_list(Group& group,int what);
+  void sort3_list(vector <Point*>& list_points,int what);
   void sort_3(Fractal& fractal,Group& group);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
 						 int& count,const double& m,const int& split_to,const bool& gen_part);

@@ -13,7 +13,7 @@ namespace FractalSpace
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	  {
 	    Group& group=**group_itr;
-	    sort3_list(group,2); // sort the points in x,y,z and test for dupes
+	    sort3_list(group,0); // sort the points in x,y,z and test for dupes
 	    if(test_group(group)) FileFractal << "badd group " << &group << group.get_level() << endl;
 	  }
       }

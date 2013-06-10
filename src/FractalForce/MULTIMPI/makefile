@@ -94,6 +94,9 @@ fftw_where.o :	fftw_where.cc $(classes)
 find_global_level_max.o :	find_global_level_max.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c find_global_level_max.cc
 #
+findPointByPos.o :	findPointByPos.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c findPointByPos.cc
+#
 fix_memory.o :	fix_memory.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c fix_memory.cc
 #
@@ -180,6 +183,9 @@ hypre_ij_numbering.o :	hypre_ij_numbering.cc $(classes)
 #
 hypre_ij_numbering_multi.o :	hypre_ij_numbering_multi.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_numbering_multi.cc
+#
+hypre_ij_numbering_sort.o :	hypre_ij_numbering_sort.cc $(classes)
+	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_numbering_sort.cc
 #
 hypre_ij_solver.o :	hypre_ij_solver.cc $(classes)
 	$(compile) $(fopt1) $(Wopt1) -c hypre_ij_solver.cc
@@ -409,6 +415,7 @@ daughter_group_nina.o \
 dump_tree.o \
 equivalence_class.o \
 find_global_level_max.o \
+findPointByPos.o \
 fix_memory.o \
 force_at_particle.o \
 force_at_particle_other.o \
@@ -460,7 +467,7 @@ which_element.o \
 write_rv.o
 #
 files_hypre_nina_o= \
-hypre_ij_numbering.o \
+hypre_ij_numbering_sort.o \
 hypre_ij_solver.o
 #
 files_hypre_empty_o= \
