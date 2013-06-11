@@ -127,7 +127,7 @@ class GzipFileIO(PyFileIO):
         npath = len(pathstring)
 
         # If we read everything to memory, just scan that.
-        if self.readToMemory:
+        if self.readToMemory and pathstring in self.lines:
             return self.lines[pathstring]
 
         else:
@@ -165,7 +165,11 @@ class GzipFileIO(PyFileIO):
         return
 
     def read_string(self, pathName):
-        return self.findPath(pathName)
+        try:
+            return self.findPath(pathName)
+        except Exception as excp:
+            print "WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp)
+            pass
 
     #---------------------------------------------------------------------------
     # Use pickling for the majority of the write methods.  Most objects we just

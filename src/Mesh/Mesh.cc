@@ -461,6 +461,14 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   removeElements(mSharedNodes, killDomains);
   removeElements(mSharedFaces, killDomains);
 
+  // // Any pre-existing parallel info is now invalid.
+  // if (allReduce(mNeighborDomains.size(), MPI_MAX, Communicator::communicator()) > 0) {
+  //   mNeighborDomains = vector<unsigned>();
+  //   mSharedNodes = vector<vector<unsigned> >();
+  //   mSharedFaces = vector<vector<unsigned> >();
+  //   this->generateDomainInfo();
+  // }
+
   // That's it.
   BEGIN_CONTRACT_SCOPE;
   {
