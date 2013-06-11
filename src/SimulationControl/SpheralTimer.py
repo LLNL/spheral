@@ -53,7 +53,10 @@ class SpheralTimer(RestartableObject):
         return minVar, maxVar, avgVar
 
     def label(self):
-        return "SpheralTimer"
+        result = "SpheralTimer"
+        if self.__label:
+            result += "_" + self.__label.replace(" ", "_")
+        return result
 
     def dumpState(self, file, path):
         file.writeObject(self.numInvocations, path + "/numInvocations")

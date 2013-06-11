@@ -1,7 +1,7 @@
 #ATS:test(SELF,        label="LineMesh serial unit tests")
-#ATS:test(SELF, np=2,  label="LineMesh serial (2 proc) tests")
-#ATS:test(SELF, np=4,  label="LineMesh serial (4 proc) tests")
-#ATS:test(SELF, np=10, label="LineMesh serial (10 proc) tests")
+#ATS:test(SELF, np=2,  label="LineMesh parallel (2 proc) tests")
+#ATS:test(SELF, np=4,  label="LineMesh parallel (4 proc) tests")
+#ATS:test(SELF, np=10, label="LineMesh parallel (10 proc) tests")
 
 from math import *
 import unittest
