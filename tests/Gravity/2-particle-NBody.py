@@ -132,6 +132,11 @@ elif nbody is OctTreeGravity:
                              softeningLength = plummerLength,
                              opening = opening,
                              ftimestep = fdt)
+elif nbody is OctTreeGravity2:
+    gravity = OctTreeGravity2(G = G,
+                             softeningLength = plummerLength,
+                             opening = opening,
+                             ftimestep = fdt)
 elif nbody is FractalGravity:
     gravity = FractalGravity(G = G,
                              xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),

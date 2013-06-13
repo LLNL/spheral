@@ -91,10 +91,10 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
            ++jItr) {
         const int j = *jItr;
 
-        // Check if this node pair has already been calculated.
-        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                     nodeListi, j,
-                                                     firstGhostNodei)) {
+        // // Check if this node pair has already been calculated.
+        // if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+        //                                              nodeListi, j,
+        //                                              firstGhostNodei)) {
 
           // State of node j.
           const Scalar Vj = volume(nodeListi, j);
@@ -114,27 +114,38 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
           // First moment. 
           m1(i) += Vj*Wj * rij;
-          m1(j) -= Vi*Wi * rij;
           gradm1(i) += Vj*( rij*gradWj + Tensor::one*Wj);
-          gradm1(j) += Vi*(-rij*gradWi + Tensor::one*Wi);
 
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
           m2(i) += Vj*Wj * thpt;
-          m2(j) += Vi*Wi * thpt;
-          gradm2(i) += Vj*outerProduct<Dimension>(thpt, gradWj);
-          gradm2(j) += Vi*outerProduct<Dimension>(thpt, gradWi);
-          for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-            for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-              gradm2(i)(ii, jj, jj) += Vj*Wj * rij(ii);
-              gradm2(j)(ii, jj, jj) -= Vi*Wi * rij(ii);
+          gradm2(i) += Vj*(outerProduct<Dimension>(thpt, gradWj) +
+                           Wj*(outerProduct<Dimension>(rij, Tensor::one) +
+                               outerProduct<Dimension>(Tensor::one, rij)));
 
-              gradm2(i)(ii, jj, ii) += Vj*Wj * rij(jj);
-              gradm2(j)(ii, jj, ii) -= Vi*Wi * rij(jj);
-            }
-          }
+          // // First moment. 
+          // m1(i) += Vj*Wj * rij;
+          // m1(j) -= Vi*Wi * rij;
+          // gradm1(i) += Vj*( rij*gradWj + Tensor::one*Wj);
+          // gradm1(j) += Vi*(-rij*gradWi + Tensor::one*Wi);
 
-        }
+          // // Second moment.
+          // const SymTensor thpt = rij.selfdyad();
+          // m2(i) += Vj*Wj * thpt;
+          // m2(j) += Vi*Wi * thpt;
+          // gradm2(i) += Vj*outerProduct<Dimension>(thpt, gradWj);
+          // gradm2(j) += Vi*outerProduct<Dimension>(thpt, gradWi);
+          // for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+          //   for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+          //     gradm2(i)(ii, jj, jj) += Vj*Wj * rij(ii);
+          //     gradm2(j)(ii, jj, jj) -= Vi*Wi * rij(ii);
+
+          //     gradm2(i)(ii, jj, ii) += Vj*Wj * rij(jj);
+          //     gradm2(j)(ii, jj, ii) -= Vi*Wi * rij(jj);
+          //   }
+          // }
+
+        // }
       }
 
       // Based on the moments we can calculate the SVPH corrections terms and their gradients.
@@ -143,7 +154,10 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const SymTensor m2inv = m2(i).Inverse();
         const Vector m2invm1 = m2inv*m1(i);
         B(nodeListi, i) = -m2invm1;
-        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(i)) - gradm1(i));
+        gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
+          innerProduct<Dimension>(innerProduct<Dimension>(m2inv, m2inv),
+                                  innerProduct<Dimension>(gradm2(i), m1(i)));
+        // gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(i)) - gradm1(i));
       }
     }
   }

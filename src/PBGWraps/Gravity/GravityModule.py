@@ -34,6 +34,9 @@ class Gravity:
         self.NBodyGravity2d = addObject(space, "NBodyGravity2d", allow_subclassing=True, parent=genericbodyforce2d)
         self.NBodyGravity3d = addObject(space, "NBodyGravity3d", allow_subclassing=True, parent=genericbodyforce3d)
 
+        self.QuadTreeGravity = addObject(space, "QuadTreeGravity", allow_subclassing=True, parent=genericbodyforce2d)
+        self.OctTreeGravity2 = addObject(space, "OctTreeGravity2", allow_subclassing=True, parent=genericbodyforce3d)
+
         self.OctTreeGravity = addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
         return
@@ -46,7 +49,9 @@ class Gravity:
         self.generateNBodyGravityBindings(self.NBodyGravity2d, 2)
         self.generateNBodyGravityBindings(self.NBodyGravity3d, 3)
 
-        self.generateOctTreeGravityBindings(self.OctTreeGravity)
+        self.generateTreeGravityBindings(self.QuadTreeGravity, "Spheral::GravitySpace::QuadTreeGravity", 2)
+        self.generateTreeGravityBindings(self.OctTreeGravity2, "Spheral::GravitySpace::OctTreeGravity2", 3)
+        self.generateTreeGravityBindings(self.OctTreeGravity, "Spheral::GravitySpace::OctTreeGravity", 3)
 
         return
 
@@ -114,13 +119,11 @@ class Gravity:
         return
 
     #---------------------------------------------------------------------------
-    # Bindings (OctTreeGravity)
+    # Bindings (TreeGravity)
     #---------------------------------------------------------------------------
-    def generateOctTreeGravityBindings(self, x):
+    def generateTreeGravityBindings(self, x, me, ndim):
 
         # Object names.
-        ndim = 3
-        me = "Spheral::GravitySpace::OctTreeGravity"
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
