@@ -6,7 +6,6 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	NBodyGravityInst.cc \
-	OctTreeGravity.cc \
 	TreeGravityInst.cc
 #	SPHGravity.cc
 
