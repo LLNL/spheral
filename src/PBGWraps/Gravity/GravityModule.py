@@ -35,9 +35,7 @@ class Gravity:
         self.NBodyGravity3d = addObject(space, "NBodyGravity3d", allow_subclassing=True, parent=genericbodyforce3d)
 
         self.QuadTreeGravity = addObject(space, "QuadTreeGravity", allow_subclassing=True, parent=genericbodyforce2d)
-        self.OctTreeGravity2 = addObject(space, "OctTreeGravity2", allow_subclassing=True, parent=genericbodyforce3d)
-
-        self.OctTreeGravity = addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
+        self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
         return
 
@@ -50,7 +48,6 @@ class Gravity:
         self.generateNBodyGravityBindings(self.NBodyGravity3d, 3)
 
         self.generateTreeGravityBindings(self.QuadTreeGravity, "Spheral::GravitySpace::QuadTreeGravity", 2)
-        self.generateTreeGravityBindings(self.OctTreeGravity2, "Spheral::GravitySpace::OctTreeGravity2", 3)
         self.generateTreeGravityBindings(self.OctTreeGravity, "Spheral::GravitySpace::OctTreeGravity", 3)
 
         return
