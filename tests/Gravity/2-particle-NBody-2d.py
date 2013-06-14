@@ -17,9 +17,9 @@ print "3-D N-Body Gravity test -- two particle problem"
 commandLine(
 
     # Initial particle stuff
-    r0 = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
-    m0 = 1.0,                      # (earth masses) particle mass
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    r0 = 1.0,                      # (m) Start stuff out at 1 m from center of mass
+    m0 = 1.0e11,                   # (kg) particle mass
+    plummerLength = 1.0e-3,        # (m) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
@@ -28,31 +28,23 @@ commandLine(
     numOrbits = 2,                 # How many orbits do we want to follow?
 
     # Output
-    dataDir = "Two-Earth-Nbody-2d",
+    dataDir = "two-particle-2d",
     baseName = "2_particle_nbody",
     restoreCycle = None,
     restartStep = 100,
     numViz = 100,
     )
 
-# Convert to MKS units.
-AU = 149597870700.0  # m
-Mearth = 5.9722e24   # kg
-r0 *= AU
-m0 *= Mearth
-plummerLength *= AU
-
 # Compute the velocity necessary for a circular orbit.
 G = MKS().G
-a = 2*r0
-M = 2*m0
-orbitTime = 2.0*pi*sqrt(a**3/(G*M))
-v0 = 0.0 # 2.0*pi*r0/orbitTime
+v0 = 0.25*G*m0
+orbitTime = 2.0*pi*r0/v0
+print "Calcualted (velocity, orbit time) = (%g, %g)" % (v0, orbitTime)
 
 # Miscellaneous problem control parameters.
-dt = orbitTime / 90
+dt = orbitTime / 180
 goalTime = orbitTime * numOrbits
-dtMin, dtMax = 0.1*dt, 100.0*dt
+dtMin, dtMax = dt, dt # 0.1*dt, 100.0*dt
 dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
@@ -89,7 +81,9 @@ eos = GammaLawGasMKS(gamma = 5.0/3.0, mu = 1.0)
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
                           xmin = Vector(-100*r0, -100*r0),
-                          xmax = Vector( 100*r0,  100*r0))
+                          xmax = Vector( 100*r0,  100*r0),
+                          hmin = 1e-10,
+                          hmax = 1.0)
 mass = nodes.mass()
 pos = nodes.positions()
 vel = nodes.velocity()
@@ -106,8 +100,8 @@ vel[1] = Vector(0.0,  v0)
 # These are fluid variables we shouldn't need.  Just set them to valid values.
 H = nodes.Hfield()
 rho = nodes.massDensity()
-H[0] = r0*SymTensor.one
-H[1] = r0*SymTensor.one
+H[0] = 1.0/(1.0e-3*r0) * SymTensor.one
+H[1] = 1.0/(1.0e-3*r0) * SymTensor.one
 rho[0] = 1.0
 rho[1] = 1.0
 
@@ -128,9 +122,9 @@ gravity = QuadTreeGravity(G = G,
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = SynchronousRK2Integrator(db)
+integrator = SynchronousRK4Integrator(db)
 integrator.appendPhysicsPackage(gravity)
-integrator.lastDt = 1e3    # seconds
+integrator.lastDt = 1e-10    # seconds
 if dtMin:
     integrator.dtMin = dtMin
 if dtMax:
@@ -164,7 +158,7 @@ history = NodeHistory(nodes, sampleNodes, sampleMethod,
                       os.path.join(dataDir, "node_history.txt"),
                       header = "# Orbit history of a 2 earth (no sun) system.",
                       labels = ("m1", "x1", "y1", "vx1", "vy1",
-                                "m1", "x1", "y1", "vx1", "vy1"))
+                                "m2", "x2", "y2", "vx2", "vy2"))
 control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
@@ -182,17 +176,17 @@ else:
     control.advance(goalTime)
 
 # Plot the final state.
-x1 = [stuff[1]/AU for stuff in history.sampleHistory]
-y1 = [stuff[2]/AU for stuff in history.sampleHistory]
-x2 = [stuff[8]/AU for stuff in history.sampleHistory]
-y2 = [stuff[9]/AU for stuff in history.sampleHistory]
+x1 = [stuff[1] for stuff in history.sampleHistory]
+y1 = [stuff[2] for stuff in history.sampleHistory]
+x2 = [stuff[6] for stuff in history.sampleHistory]
+y2 = [stuff[7] for stuff in history.sampleHistory]
 
 import Gnuplot
 gdata1 = Gnuplot.Data(x1, y1,
-                      with_ = 'linespoints',
+                      with_ = 'linespoints ps 3',
                       title = 'Particle 1')
 gdata2 = Gnuplot.Data(x2, y2,
-                      with_ = 'linespoints',
+                      with_ = 'linespoints ps 3',
                       title = 'Particle 2')
 plot = Gnuplot.Gnuplot()
 plot.plot(gdata1)
