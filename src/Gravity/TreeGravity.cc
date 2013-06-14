@@ -152,7 +152,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
 
   // Zero out the total gravitational potential energy.
-  mExtraEnergy = 0.0;
   mPotential = 0.0;
 
   // Prepare the flags to remember which cells have terminated for each node.
@@ -224,6 +223,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Set the motion to be Lagrangian.
   DxDt.assignFields(velocity);
+
+  // Sum up the potential for the extra energy term.
+  mExtraEnergy = mPotential.sumElements();
 }
 
 //------------------------------------------------------------------------------
@@ -761,6 +763,9 @@ applyTreeForces(const Tree& tree,
           // Update the set of cells to check on the next pass.
           remainingCells = newDaughters;
         }
+
+        // Complete the potential energy.
+        phii *= mi;
       }
     }
   }
