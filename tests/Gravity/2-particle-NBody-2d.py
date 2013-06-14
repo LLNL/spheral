@@ -2,7 +2,7 @@
 # Set up a pair of equal mass N-body points in a simple circular orbit of each
 # other.
 #-------------------------------------------------------------------------------
-from Spheral3d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from NodeHistory import *
@@ -27,11 +27,8 @@ commandLine(
     steps = None,
     numOrbits = 2,                 # How many orbits do we want to follow?
 
-    # Which N-body method should we use?
-    nbody = OctTreeGravity,
-
     # Output
-    dataDir = "Two-Earth-Nbody",
+    dataDir = "Two-Earth-Nbody-2d",
     baseName = "2_particle_nbody",
     restoreCycle = None,
     restartStep = 100,
@@ -50,7 +47,7 @@ G = MKS().G
 a = 2*r0
 M = 2*m0
 orbitTime = 2.0*pi*sqrt(a**3/(G*M))
-v0 = 2.0*pi*r0/orbitTime
+v0 = 0.0 # 2.0*pi*r0/orbitTime
 
 # Miscellaneous problem control parameters.
 dt = orbitTime / 90
@@ -84,15 +81,15 @@ mpi.barrier()
 # need.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-eos = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
+eos = GammaLawGasMKS(gamma = 5.0/3.0, mu = 1.0)
 
 #-------------------------------------------------------------------------------
 # Make the NodeList, and set our initial properties.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("nodes", eos,
                           numInternal = 2,
-                          xmin = Vector(-100*r0, -100*r0, -100*r0),
-                          xmax = Vector( 100*r0,  100*r0,  100*r0))
+                          xmin = Vector(-100*r0, -100*r0),
+                          xmax = Vector( 100*r0,  100*r0))
 mass = nodes.mass()
 pos = nodes.positions()
 vel = nodes.velocity()
@@ -100,11 +97,11 @@ vel = nodes.velocity()
 mass[0] = m0
 mass[1] = m0
 
-pos[0] = Vector(-r0, 0.0, 0.0)
-pos[1] = Vector( r0, 0.0, 0.0)
+pos[0] = Vector(-r0, 0.0)
+pos[1] = Vector( r0, 0.0)
 
-vel[0] = Vector(0.0, -v0, 0.0)
-vel[1] = Vector(0.0,  v0, 0.0)
+vel[0] = Vector(0.0, -v0)
+vel[1] = Vector(0.0,  v0)
 
 # These are fluid variables we shouldn't need.  Just set them to valid values.
 H = nodes.Hfield()
@@ -123,25 +120,10 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 # Gimme gravity.
 #-------------------------------------------------------------------------------
-if nbody is NBodyGravity:
-    gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                           maxDeltaVelocity = 1e-2*v0,
-                           G = G)
-elif nbody is OctTreeGravity:
-    gravity = OctTreeGravity(G = G,
-                             softeningLength = plummerLength,
-                             opening = opening,
-                             ftimestep = fdt)
-elif nbody is FractalGravity:
-    gravity = FractalGravity(G = G,
-                             xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
-                             xmax = Vector( 1.5*r0,  1.5*r0,  1.5*r0),
-                             periodic = False,
-                             ngrid = 64,
-                             nlevelmax = 1,
-                             minHighParticles = 10,
-                             padding = 0,
-                             maxDeltaVelocity = 1e-2*v0)
+gravity = QuadTreeGravity(G = G,
+                          softeningLength = plummerLength,
+                          opening = opening,
+                          ftimestep = fdt)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -174,15 +156,15 @@ def sampleMethod(nodes, indices):
     pos = nodes.positions()
     vel = nodes.velocity()
     assert nodes.numInternalNodes == 2
-    return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z, 
-            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z)
+    return (m[0], pos[0].x, pos[0].y, vel[0].x, vel[0].y, 
+            m[1], pos[1].x, pos[1].y, vel[1].x, vel[1].y)
 
 sampleNodes = [0, 1]  # We're going to sample both of our nodes!
 history = NodeHistory(nodes, sampleNodes, sampleMethod,
                       os.path.join(dataDir, "node_history.txt"),
                       header = "# Orbit history of a 2 earth (no sun) system.",
-                      labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
-                                "m1", "x1", "y1", "z1", "vx1", "vy1", "vz1"))
+                      labels = ("m1", "x1", "y1", "vx1", "vy1",
+                                "m1", "x1", "y1", "vx1", "vy1"))
 control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
