@@ -869,7 +869,7 @@ findTreeNeighbors(const LevelKey& masterLevel,
   vector<int> result;
 
   // Walk the tree until we run out of daughters to check.
-  CHECK(mTree[0].begin()->second.members.size() == 0);
+  CHECK2(mTree[0].begin()->second.members.size() == 0, mTree[0].begin()->second.members.size());
   while (remainingDaughters.size() > 0) {
     newDaughters = vector<Cell*>();
     ++ilevel;
