@@ -723,8 +723,8 @@ applyTreeForces(const Tree& tree,
                 CHECK(rji2 > 0.0);
 
                 // Increment the acceleration and potential.
-                DvDti += mG*cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                phii -= mG*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                DvDti += cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
+                phii -= cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                 cellsCompleted[inode][ilevel].insert(cell.key);
 
               } else if (cell.daughterPtrs.size() == 0) {
@@ -745,8 +745,8 @@ applyTreeForces(const Tree& tree,
                     CHECK(rji2 > 0.0);
 
                     // Increment the acceleration and potential.
-                    DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                    phii -= mG*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                    DvDti += mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
+                    phii -= mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                   }
                 }
 
@@ -764,8 +764,9 @@ applyTreeForces(const Tree& tree,
           remainingCells = newDaughters;
         }
 
-        // Complete the potential energy.
-        phii *= mi;
+        // Complete the values for this point.
+        DvDti *= mG;
+        phii *= mG*mi;
       }
     }
   }
