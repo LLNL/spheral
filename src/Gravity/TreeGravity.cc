@@ -78,7 +78,7 @@ struct TreeDimensionTraits<Dim<3> > {
   }
 
   static double forceLaw(const double r2) { return 1.0/r2; }
-  static double potentialLaw(const double r2) { return 1.0/sqrt(r2); }
+  static double potentialLaw(const double r2) { return -1.0/sqrt(r2); }
 };
 
 }
@@ -724,7 +724,7 @@ applyTreeForces(const Tree& tree,
 
                 // Increment the acceleration and potential.
                 DvDti += cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                phii -= cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                phii += cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                 cellsCompleted[inode][ilevel].insert(cell.key);
 
               } else if (cell.daughterPtrs.size() == 0) {
@@ -746,7 +746,7 @@ applyTreeForces(const Tree& tree,
 
                     // Increment the acceleration and potential.
                     DvDti += mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
-                    phii -= mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+                    phii += mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                   }
                 }
 
