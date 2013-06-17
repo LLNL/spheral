@@ -42,6 +42,7 @@ namespace FractalSpace
     bool time_trial;
     bool standalone;
     File* p_file;
+    double WallTime;
     Mess():
       FractalRank(0),
       FractalNodes(1),
@@ -58,6 +59,7 @@ namespace FractalSpace
       time_trial(true),
       standalone(true)
     {
+      WallTime=Clock();
       cout << " Empty Mess " << endl;
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN):
@@ -76,6 +78,7 @@ namespace FractalSpace
     {
       int grid_length=GR;
       bool periodic=PR;
+      WallTime=Clock();
       if(MR)
 	{
 	  MPIStartup();
@@ -403,14 +406,14 @@ namespace FractalSpace
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_out[FR]=counts_out_send[FR];
-	  FF << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << endl;
+	  //	  FF << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << endl;
 	}
       for(int FR=0;FR<FractalNodes;FR++)
 	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,FractalWorld);
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_in_send[FR]=counts_in[FR];
-	  FF << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << endl;
+	  //	  FF << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << endl;
 	}
       delete [] counts_out;
       delete [] counts_in;
@@ -447,7 +450,7 @@ namespace FractalSpace
       double* DataR_out=new double[max(maxcount*doubles,1)];
       int* dataI_in=new int[how_manyI];
       double* dataR_in=new double[how_manyR];
-      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(integers > 0)
@@ -479,16 +482,18 @@ namespace FractalSpace
       countsR_out=0;
       DataI_out=0;
       DataR_out=0;
-      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
+	  //      std::copy(dataI_in,dataI_in+how_manyI,dataI_in_send.begin());
 	  for(int ni=0;ni<how_manyI;ni++)
 	    dataI_in_send[ni]=dataI_in[ni];
 	}
       if(doubles > 0)
 	{
 	  dataR_in_send.resize(how_manyR);
+	  //      std::copy(dataR_in,dataR_in+how_manyR,dataR_in_send.begin());
 	  for(int ni=0;ni<how_manyR;ni++)
 	    dataR_in_send[ni]=dataR_in[ni];
 	}
@@ -536,7 +541,7 @@ namespace FractalSpace
       double* DataR_out=new double[max(maxcount*doubles,1)];
       int* dataI_in=new int[how_manyI];
       double* dataR_in=new double[how_manyR];
-      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(integers > 0)
@@ -568,20 +573,23 @@ namespace FractalSpace
       countsR_out=0;
       DataI_out=0;
       DataR_out=0;
-      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
 	  for(int ni=0;ni<extraI;ni++)
 	    dataI_in[ni+startI]=dataI_out[FractalRank][ni];
+	  //      std::copy(dataI_in,dataI_in+how_manyI,dataI_in_send.begin());
 	  for(int ni=0;ni<how_manyI;ni++)
 	    dataI_in_send[ni]=dataI_in[ni];
 	}
       if(doubles > 0)
 	{
 	  dataR_in_send.resize(how_manyR);
+	  //      std::copy(dataR_out,dataR_out+extraR,dataR_in_send.begin());
 	  for(int ni=0;ni<extraR;ni++)
 	    dataR_in[ni+startR]=dataR_out[FractalRank][ni];
+	  //      std::copy(dataR_in,dataR_in+how_manyR,dataR_in_send.begin());
 	  for(int ni=0;ni<how_manyR;ni++)
 	    dataR_in_send[ni]=dataR_in[ni];
 	}
@@ -633,7 +641,7 @@ namespace FractalSpace
       MPI_Request* requestR=new MPI_Request[FractalNodes];
       MPI_Status* statusI=new MPI_Status[FractalNodes];
       MPI_Status* statusR=new MPI_Status[FractalNodes];
-      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(FR == FractalRank)
@@ -718,16 +726,18 @@ namespace FractalSpace
       countsR_out=0;
       DataI_out=0;
       DataR_out=0;
-      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
+	  //      std::copy(dataI_in,dataI_in+how_manyI,dataI_in_send.begin());
 	  for(int ni=0;ni<how_manyI;ni++)
 	    dataI_in_send[ni]=dataI_in[ni];
 	}
       if(doubles > 0)
 	{
 	  dataR_in_send.resize(how_manyR);
+	  //      std::copy(dataR_in,dataR_in+how_manyR,dataR_in_send.begin());
 	  for(int ni=0;ni<how_manyR;ni++)
 	    dataR_in_send[ni]=dataR_in[ni];
 	}
@@ -746,6 +756,7 @@ namespace FractalSpace
     {
       int* maxy=new int[how_long];
       MPI_Allreduce(integers,maxy,how_long,MPI_INT,MPI_MAX,FractalWorld);
+      //      std::copy(maxy,maxy+how_long,integers.begin());
       for(int ni=0;ni<how_long;ni++)
 	integers[ni]=maxy[ni];
       delete [] maxy;
@@ -754,6 +765,7 @@ namespace FractalSpace
     {
       double* maxy=new double[how_long];
       MPI_Allreduce(doubles,maxy,how_long,MPI_DOUBLE,MPI_MAX,FractalWorld);
+      //      std::copy(maxy,maxy+how_long,doubles.begin());
       for(int ni=0;ni<how_long;ni++)
 	doubles[ni]=maxy[ni];
       delete [] maxy;
@@ -762,6 +774,7 @@ namespace FractalSpace
     {
       int* sumup=new int[how_long];
       MPI_Allreduce(integers,sumup,how_long,MPI_INT,MPI_SUM,FractalWorld);
+      //      std::copy(sumup,sumup+how_long,integers.begin());
       for(int ni=0;ni<how_long;ni++)
 	integers[ni]=sumup[ni];
       delete [] sumup;
@@ -773,6 +786,7 @@ namespace FractalSpace
 	doublesa[ni]=doubles[ni];
       double* doublesb=new double[how_long];
       MPI_Allreduce(doublesa,doublesb,how_long,MPI_DOUBLE,MPI_SUM,FractalWorld);
+      //      std::copy(doublesb,doublesb+how_long,doubles.begin());
       for(int ni=0;ni<how_long;ni++)
 	doubles[ni]=doublesb[ni];
       delete [] doublesa;
@@ -782,6 +796,7 @@ namespace FractalSpace
     {
       int* sumup=new int[how_long];
       MPI_Reduce(numbers,sumup,how_long,MPI_INT,MPI_SUM,ROOT,FractalWorld);
+      //      std::copy(sumup,sumup+how_long,numbers.begin());
       for(int ni=0;ni<how_long;ni++)
 	numbers[ni]=sumup[ni];
       delete [] sumup;
@@ -797,11 +812,13 @@ namespace FractalSpace
     }
     void zeroR()
     {
+      //      std::fill(potR.begin(),potR.begin()+2*total_memory,0.0);
       for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
 	potR[ni]=0.0;
     }
     void zeroR(double grail)
     {
+      //      std::fill(potR.begin(),potR.begin()+2*total_memory,grail);
       for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
 	potR[ni]=grail;
     }
