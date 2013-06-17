@@ -60,7 +60,11 @@ setPressure(Field<Dimension, Scalar>& Pressure,
   mSolidEOS.setPressure(Pressure, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
-  Pressure /= *mAlphaPtr;
+  for (unsigned i = 0; i != Pressure.size(); ++i) {
+    Pressure(i) = max(this->minimumPressure(),
+                      min(this->maximumPressure(),
+                          Pressure(i)/(*mAlphaPtr)(i)));
+  }
 }
 
 //------------------------------------------------------------------------------
