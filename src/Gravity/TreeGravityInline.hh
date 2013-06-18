@@ -61,7 +61,7 @@ addDaughter(TreeGravity<Dimension>::Cell& cell,
             const TreeGravity<Dimension>::CellKey daughterKey) const {
   if (std::find(cell.daughters.begin(), cell.daughters.end(), daughterKey) == cell.daughters.end())
     cell.daughters.push_back(daughterKey);
-  ENSURE(cell.daughters.size() <= 8);
+  ENSURE(cell.daughters.size() <= Dimension::pownu(2));
 }
 
 //------------------------------------------------------------------------------
