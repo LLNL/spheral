@@ -27,14 +27,29 @@ template<typename Dimension>
 ConstantAcceleration<Dimension>::
 ConstantAcceleration(const Vector a0,
                      const NodeList<Dimension>& nodeList,
-                     const vector<int>& indicies):
+                     const vector<int>& indices):
   GenericBodyForce<Dimension>(),
   ma0(a0),
   mNodeListPtr(&nodeList),
-  mIndicies(indicies) {
-  for (vector<int>::const_iterator itr = mIndicies.begin();
-       itr != mIndicies.end();
+  mIndices(indices) {
+  for (vector<int>::const_iterator itr = mIndices.begin();
+       itr != mIndices.end();
        ++itr) ENSURE(*itr >= 0 && *itr < mNodeListPtr->numNodes());
+}
+
+//------------------------------------------------------------------------------
+// Constructor for all nodes in NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+ConstantAcceleration<Dimension>::
+ConstantAcceleration(const Vector a0,
+                     const NodeList<Dimension>& nodeList):
+  GenericBodyForce<Dimension>(),
+  ma0(a0),
+  mNodeListPtr(&nodeList),
+  mIndices() {
+  mIndices.reserve(nodeList.numInternalNodes());
+  for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) mIndices.push_back(i);
 }
 
 //------------------------------------------------------------------------------
@@ -63,8 +78,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Field<Dimension, Vector>& DvDt = derivs.field(key, Vector::zero);
 
   // Increment the acceleration.
-  for (vector<int>::const_iterator itr = mIndicies.begin();
-       itr != mIndicies.end();
+  for (vector<int>::const_iterator itr = mIndices.begin();
+       itr != mIndices.end();
        ++itr) {
     CHECK(*itr >= 0 && *itr < mNodeListPtr->numNodes());
     DvDt(*itr) += ma0;

@@ -29,14 +29,14 @@ nodeList() const {
 }
 
 //------------------------------------------------------------------------------
-// The set of indicies the acceleration is to be applied to.
+// The set of indices the acceleration is to be applied to.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const std::vector<int>&
 ConstantAcceleration<Dimension>::
-indicies() const {
-  return mIndicies;
+indices() const {
+  return mIndices;
 }
 
 }
