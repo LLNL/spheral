@@ -158,7 +158,7 @@ namespace FractalSpace
 	      point.set_point_up_z(try_harder(point,22,false));
 	  }
       }
-    FilePoint << " first try f " << new_level << " " << buff_group << endl;
+    //    FilePoint << " first try f " << new_level << " " << buff_group << endl;
     fractal.timing(1,15);
     fractal.timing(-1,14);
     for(vector <Point*>::const_iterator point_itr=new_group.list_points.begin();point_itr != new_group.list_points.end();++point_itr)
@@ -169,7 +169,7 @@ namespace FractalSpace
 	Point& point=**point_itr;
 	point.down_from_up();
       }
-    FilePoint << " first try g " << endl;
+    //    FilePoint << " first try g " << endl;
     for(vector<Point*>::const_iterator high_point_itr=high_group.list_high_points.begin();
 	high_point_itr != high_group.list_high_points.end();++high_point_itr)
       {
@@ -184,7 +184,7 @@ namespace FractalSpace
 	  FileDau << "daughter wrong " << endl;
 	p_point->point_pointers_all(*p_high_point);
       }
-    FilePoint << " first try i " << endl;
+    //    FilePoint << " first try i " << endl;
     fractal.timing(1,14);
     fractal.timing(-1,16);
 	//

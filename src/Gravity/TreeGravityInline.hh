@@ -11,16 +11,37 @@ namespace GravitySpace {
 //------------------------------------------------------------------------------
 // Build a cell key from coordinate indices.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<>
 inline
 void
-TreeGravity<Dimension>::
-buildCellKey(const TreeGravity<Dimension>::LevelKey ilevel,
-             const TreeGravity<Dimension>::Vector& xi,
-             TreeGravity<Dimension>::CellKey& key,
-             TreeGravity<Dimension>::CellKey& ix,
-             TreeGravity<Dimension>::CellKey& iy,
-             TreeGravity<Dimension>::CellKey& iz) const {
+TreeGravity<Dim<2> >::
+buildCellKey(const TreeGravity<Dim<2> >::LevelKey ilevel,
+             const TreeGravity<Dim<2> >::Vector& xi,
+             TreeGravity<Dim<2> >::CellKey& key,
+             TreeGravity<Dim<2> >::CellKey& ix,
+             TreeGravity<Dim<2> >::CellKey& iy,
+             TreeGravity<Dim<2> >::CellKey& iz) const {
+  REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
+  REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
+  const CellKey ncell = (1U << ilevel);
+  const CellKey maxcell = ncell - 1U;
+  ix = std::min(maxcell, CellKey((xi.x() - mXmin.x())/mBoxLength * ncell));
+  iy = std::min(maxcell, CellKey((xi.y() - mXmin.y())/mBoxLength * ncell));
+  iz = 0U;
+  key = ((std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
+         (std::max(CellKey(0), std::min(max1dKey, ix))));
+}
+
+template<>
+inline
+void
+TreeGravity<Dim<3> >::
+buildCellKey(const TreeGravity<Dim<3> >::LevelKey ilevel,
+             const TreeGravity<Dim<3> >::Vector& xi,
+             TreeGravity<Dim<3> >::CellKey& key,
+             TreeGravity<Dim<3> >::CellKey& ix,
+             TreeGravity<Dim<3> >::CellKey& iy,
+             TreeGravity<Dim<3> >::CellKey& iz) const {
   REQUIRE(xi.x() >= mXmin.x() and xi.x() <= mXmax.x());
   REQUIRE(xi.y() >= mXmin.y() and xi.y() <= mXmax.y());
   REQUIRE(xi.z() >= mXmin.z() and xi.z() <= mXmax.z());

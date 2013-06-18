@@ -24,6 +24,8 @@ namespace FractalSpace
     vector < vector < vector <int> > > BoxesLev;
     vector < vector < vector <int> > > BBoxesLev;
     vector < vector < vector <int> > > PBoxesLev;
+    vector < vector < vector <int> > > HRBoxesLev;
+    vector < vector < vector <int> > > HSBoxesLev;
     vector < vector <int> > PBoxesLength;
     vector < vector <double> > RealBoxes;
     vector < vector <double> > RealPBoxes;
@@ -291,6 +293,8 @@ namespace FractalSpace
       BoxesLev.resize(FractalNodes);
       BBoxesLev.resize(FractalNodes);
       PBoxesLev.resize(FractalNodes);
+      HRBoxesLev.resize(FractalNodes);
+      HSBoxesLev.resize(FractalNodes);
 
       for(int count=0;count<FractalNodes;count++)
 	{
@@ -317,6 +321,8 @@ namespace FractalSpace
 	  BoxesLev[count].resize(level_max+1);
 	  BBoxesLev[count].resize(level_max+1);
 	  PBoxesLev[count].resize(level_max+1);
+	  HRBoxesLev[count].resize(level_max+1);
+	  HSBoxesLev[count].resize(level_max+1);
 	  BoxesLev[count][0].resize(6);
 	  BBoxesLev[count][0].resize(6);
 	  PBoxesLev[count][0].resize(6);
@@ -332,6 +338,9 @@ namespace FractalSpace
 	      BoxesLev[count][lev].resize(6);
 	      BBoxesLev[count][lev].resize(6);
 	      PBoxesLev[count][lev].resize(6);
+	      PBoxesLev[count][lev].resize(6);
+	      HRBoxesLev[count][lev].resize(6);
+	      HSBoxesLev[count][lev].resize(6);
 	      zoom=Misc::pow(2,level_max-lev);
 	      for(int n=0;n<3;n++)
 		{
@@ -343,6 +352,12 @@ namespace FractalSpace
 		  
 		  PBoxesLev[count][lev][2*n+1]=BBoxesLev[count][lev][2*n+1]+zoom*Buffers[count][2*n+1];
 		  PBoxesLev[count][lev][2*n]=BBoxesLev[count][lev][2*n]-zoom*Buffers[count][2*n];
+		  
+		  HRBoxesLev[count][lev][2*n+1]=PBoxesLev[count][lev][2*n+1];
+		  HRBoxesLev[count][lev][2*n]=BBoxesLev[count][lev][2*n];
+		  
+		  HSBoxesLev[count][lev][2*n+1]=BoxesLev[count][lev][2*n+1];
+		  HSBoxesLev[count][lev][2*n]=BoxesLev[count][lev][2*n]+zoom*Buffers[count][2*n];
 		}
 	    }
 	}

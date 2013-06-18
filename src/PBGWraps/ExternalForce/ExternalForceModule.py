@@ -172,14 +172,16 @@ class ExternalForce:
         # Constructors.
         x.add_constructor([param(vector, "a0"),
                            constrefparam(nodelist, "nodeList"),
-                           constrefparam("vector_of_int", "indicies")])
+                           constrefparam("vector_of_int", "indices")])
+        x.add_constructor([param(vector, "a0"),
+                           constrefparam(nodelist, "nodeList")])
 
         # Wrap the generic physics methods.
         generatePhysicsVirtualBindings(x, ndim, False)
 
         # Methods.
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
-        const_ref_return_value(x, me, "%s::indicies" % me, "vector_of_int", [], "indicies")
+        const_ref_return_value(x, me, "%s::indices" % me, "vector_of_int", [], "indices")
 
         # Attributes.
         x.add_instance_attribute("a0", vector, getter="a0", is_const=True)
