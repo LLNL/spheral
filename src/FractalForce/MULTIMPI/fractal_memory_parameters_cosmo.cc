@@ -17,11 +17,11 @@ namespace FractalSpace
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
-    mem.FractalNodes0=8;
+    mem.FractalNodes0=4;
     //number of nodes in x-direction
-    mem.FractalNodes1=8;
+    mem.FractalNodes1=4;
     //number of nodes in y-direction
-    mem.FractalNodes2=8;
+    mem.FractalNodes2=4;
     //number of nodes in z-direction
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     //total number of nodes
@@ -32,7 +32,7 @@ namespace FractalSpace
     // max number of nodes for FFTW
     mem.periodic = true ;
     //true for periodic BC and false for isolated BC
-    mem.grid_length = 512;    
+    mem.grid_length = 256;    
     // length of fundamental grid, must be even
     mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
@@ -51,9 +51,9 @@ namespace FractalSpace
     // min number of particles in a cell to make it a high density cell
     // minimum_number**(1/3) is the local resolution in units of the local
     // mean interparticle spacing
-    mem.padding = -1 ;
+    mem.padding = 0 ;
     mem.padding=min(mem.padding,1);
-    // if (0) high cells are selectively padded so that resolution never jumps more than factor of 2.
+    // if (-1) high cells are selectively padded so that resolution never jumps more than factor of 2.
     // if (padding > 0) each high cell is padded by (2*padding+1)**3 cells.
     // padding has to be (0) or(1)in an MPI version
     mem.maxits = 20 ;
@@ -66,7 +66,7 @@ namespace FractalSpace
     //Generate this many Points in each go
     mem.number_steps_total=503;
     // Total number of steps
-    mem.number_steps_out=100;
+    mem.number_steps_out=40;
     // Output how often
     mem.redshift_start=99.0;
     // initial redshift
@@ -96,7 +96,7 @@ namespace FractalSpace
     mem.total_mass=1.0;
     cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << endl;
     //
-    mem.crash_levels=5;
+    mem.crash_levels=8;
     mem.crash_pow=2.0;
     mem.density_crash=5.5;
     mem.splits=2;
@@ -145,9 +145,9 @@ namespace FractalSpace
     mem.masks_center_x[1]=0.5;
     mem.masks_center_y[1]=0.5;
     mem.masks_center_z[1]=0.5;
-    mem.masks_rad_x[1]=1.48;
-    mem.masks_rad_y[1]=1.48;
-    mem.masks_rad_z[1]=1.48;
+    mem.masks_rad_x[1]=0.48;
+    mem.masks_rad_y[1]=0.48;
+    mem.masks_rad_z[1]=0.48;
     mem.masks_level[1]=4;
     mem.masks_square[2]=true;
     mem.masks_center_x[2]=0.5;

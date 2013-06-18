@@ -81,21 +81,6 @@ namespace FractalSpace
     {    
       number_points--;
     };
-    bool to_receive()
-    {
-      return passive_point && !really_passive;
-    }
-    bool to_be_sent()
-    {
-      if(passive_point || buffer_point || edge_point)
-	return false;
-      for(int ni=0;ni<6;ni++)
-	{
-	  if(point_ud[ni] !=0 && point_ud[ni]->edge_point)
-	    return true;
-	}
-      return false;
-    }
     void set_found_it(bool fi)
     {
       found_it=fi;
@@ -304,6 +289,25 @@ namespace FractalSpace
 	  assert(!point_ud[ni]->really_passive);
 	  ij_ud[ni]=point_ud[ni]->ij_number;
 	}
+    }
+    void set_ij_neighbors(vector <int>Box)
+    {
+      if(!inside)
+	{
+	  ij_ud.clear();
+	  return;
+	}
+      if(pos_point[0] > Box[0] && pos_point[0] < Box[1] &&
+	 pos_point[1] > Box[2] && pos_point[1] < Box[3] &&
+	 pos_point[2] > Box[4] && pos_point[2] < Box[5])
+	{
+	  ij_ud.resize(6);
+	  for(int ni=0;ni<6;ni++)
+	    ij_ud[ni]=get_point_ud_0(ni)->ij_number;
+	  return;
+	}
+      ij_ud.clear();
+      return;
     }
     void get_ij_neighbors(vector <int>& ijud)
     {

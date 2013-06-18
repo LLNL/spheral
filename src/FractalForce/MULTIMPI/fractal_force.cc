@@ -243,7 +243,7 @@ namespace FractalSpace
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	  {
 	    Group& group=**group_itr;
-	    FileFractal << "a group=  " << *group_itr << endl;
+	    //	    FileFractal << "a group=  " << *group_itr << endl;
 	    assert(group.get_number_high_groups() <= 0);
 	    if(group.get_number_high_groups() == 0) continue;
 	    //--------------------------------------------------------------------------
@@ -256,7 +256,7 @@ namespace FractalSpace
 	    //--------------------------------------------------------------------------
 	    // If there are any high_points, go on
 	    //--------------------------------------------------------------------------
-	    FileFractal << "aa group=  " << *group_itr << " " << group.get_number_high_points() << endl;
+	    //	    FileFractal << "aa group=  " << *group_itr << " " << group.get_number_high_points() << endl;
 	    if(group.get_number_high_points() == 0) continue;
 	    //--------------------------------------------------------------------------
 	    // If padding or buffering allowed, padding has priority, add buffer points
@@ -541,6 +541,7 @@ namespace FractalSpace
     //    if(!fractal.get_periodic() && debug)
     //          test_gal(fractal_memory,fractal);
     //    assert(0);
-    FileFractal << " Made It fractal_force " << endl;
+    fractal_memory.p_mess->Full_Stop();
+    FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << endl;
   }
 }

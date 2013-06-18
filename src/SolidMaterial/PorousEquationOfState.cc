@@ -22,13 +22,10 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousEquationOfState<Dimension>::
-PorousEquationOfState(const SolidEquationOfState<Dimension>& solidEOS):
-  SolidEquationOfState<Dimension>(solidEOS.referenceDensity(),
-                                  solidEOS.etamin(),
-                                  solidEOS.etamax(),
-                                  solidEOS.constants(),
-                                  solidEOS.minimumPressure(),
-                                  solidEOS.maximumPressure()),
+PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
+  Material::EquationOfState<Dimension>(solidEOS.constants(),
+                                       solidEOS.minimumPressure(),
+                                       solidEOS.maximumPressure()),
   mSolidEOS(solidEOS),
   mAlphaPtr(0) {
 }
@@ -62,7 +59,9 @@ setPressure(Field<Dimension, Scalar>& Pressure,
   // Now apply the porosity modifier.
   const unsigned n = Pressure.numInternalElements();
   for (unsigned i = 0; i != n; ++i) {
-    Pressure(i) /= (*mAlphaPtr)(i);
+    Pressure(i) = max(this->minimumPressure(),
+                      min(this->maximumPressure(),
+                          Pressure(i)/(*mAlphaPtr)(i)));
   }
 }
 
@@ -187,7 +186,7 @@ PorousEquationOfState<Dimension>::valid() const {
 // Access the underlying solid EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const SolidEquationOfState<Dimension>&
+const Material::EquationOfState<Dimension>&
 PorousEquationOfState<Dimension>::
 solidEOS() const {
   return mSolidEOS;

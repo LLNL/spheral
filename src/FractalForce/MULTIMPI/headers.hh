@@ -92,6 +92,7 @@ namespace FractalSpace
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
+  bool on_edge(vector <int>& pos,vector <int>& Box);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
   template <class T> bool overlap_boxes(vector <T>& xvec,vector <T>& box);
