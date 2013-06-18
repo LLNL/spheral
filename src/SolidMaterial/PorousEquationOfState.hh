@@ -30,7 +30,7 @@ namespace SolidMaterial {
 
 template<typename Dimension>
 class PorousEquationOfState: 
-    public SolidEquationOfState<Dimension> {
+    public Material::EquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,7 +40,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  PorousEquationOfState(const SolidEquationOfState<Dimension>& solidEOS); // Solid EOS we're going to modify
+  PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS); // Solid EOS we're going to modify
   virtual ~PorousEquationOfState();
 
   //............................................................................
@@ -103,13 +103,13 @@ public:
   //............................................................................
 
   // Access the material parameters.
-  const SolidEquationOfState<Dimension>& solidEOS() const;
+  const Material::EquationOfState<Dimension>& solidEOS() const;
   const FieldSpace::Field<Dimension, Scalar>& alpha() const;
   void alpha(const FieldSpace::Field<Dimension, Scalar>& x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const SolidEquationOfState<Dimension>& mSolidEOS;
+  const Material::EquationOfState<Dimension>& mSolidEOS;
   const FieldSpace::Field<Dimension, Scalar>* mAlphaPtr;
 
   // Disallow default constructor

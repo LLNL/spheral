@@ -22,13 +22,10 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousEquationOfState<Dimension>::
-PorousEquationOfState(const SolidEquationOfState<Dimension>& solidEOS):
-  SolidEquationOfState<Dimension>(solidEOS.referenceDensity(),
-                                  solidEOS.etamin(),
-                                  solidEOS.etamax(),
-                                  solidEOS.constants(),
-                                  solidEOS.minimumPressure(),
-                                  solidEOS.maximumPressure()),
+PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
+  Material::EquationOfState<Dimension>(solidEOS.constants(),
+                                       solidEOS.minimumPressure(),
+                                       solidEOS.maximumPressure()),
   mSolidEOS(solidEOS),
   mAlphaPtr(0) {
 }
@@ -185,7 +182,7 @@ PorousEquationOfState<Dimension>::valid() const {
 // Access the underlying solid EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const SolidEquationOfState<Dimension>&
+const Material::EquationOfState<Dimension>&
 PorousEquationOfState<Dimension>::
 solidEOS() const {
   return mSolidEOS;
