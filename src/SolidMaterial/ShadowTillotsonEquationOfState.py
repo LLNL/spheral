@@ -1,0 +1,171 @@
+#-------------------------------------------------------------------------------
+# ShadowTillotsonEquationOfState
+#
+# Provides convenient constructors for the Tillotson using the canned values
+# in MaterialPropertiesLib.py.
+#-------------------------------------------------------------------------------
+from SpheralModules.Spheral.SolidMaterial import \
+    TillotsonEquationOfState1d as RealTillotsonEquationOfState1d, \
+    TillotsonEquationOfState2d as RealTillotsonEquationOfState2d, \
+    TillotsonEquationOfState3d as RealTillotsonEquationOfState3d
+from SpheralModules.Spheral.Material import PhysicalConstants
+from MaterialPropertiesLib import SpheralMaterialPropertiesLib
+
+#-------------------------------------------------------------------------------
+# Define a string providing the help for building a TillotsonEquationOfState.
+#-------------------------------------------------------------------------------
+expectedUsageString = """
+TillotsonEquationOfState can be constructed one of two ways:
+
+1.  Using canned material values stored in our internal data base.  Expected arguments:
+        materialName        : Label for the material in data base
+        etamin              : Lower bound for rho/rho0                           
+        etamax              : Upper bound for rho/rho0                           
+        units               : Units the user wants to work in                    
+        externalPressure    : Optional external pressure                         
+        minimumPressure     : Optional minimum pressure                          
+        maximumPressure     : Optional maximum pressure                          
+
+2.  You can directly set all the Tillotson parameters explicitly, as
+        referenceDensity    : reference material mass density
+        etamin              : minimum allowed ratio rho/rho0
+        etamax              : maximum allowed ratio rho/rho0
+        a
+        b
+        A
+        B
+        alpha
+        beta
+        eps0
+        epsLiquid
+        epsVapor
+        atomicWeight
+        units
+        externalPressure    : Optional external pressure                         
+        minimumPressure     : Optional minimum pressure                          
+        maximumPressure     : Optional maximum pressure                          
+"""
+
+#-------------------------------------------------------------------------------
+# The base units for parameters in this file.
+#-------------------------------------------------------------------------------
+CGS = PhysicalConstants(0.01,    # Length in m
+                        0.001,   # Mass in kg
+                        1.0)     # Time in sec
+
+#-------------------------------------------------------------------------------
+# The generic factory function, where you pass in the dimension specific 
+# Tillotson constructor.
+# This one is for internal use only -- people will actually call the dimension
+# specific front-ends at the end of this script.
+#-------------------------------------------------------------------------------
+def _TillotsonFactory(*args, 
+                      **kwargs):
+
+    # The calling routine must provide the appropriate C++ constructor.
+    TillConstructor = kwargs["TillConstructor"]
+
+    # The arguments that need to be passed to this method.
+    expectedArgs = ["materialName", "etamin", "etamax", "units"]
+    optionalKwArgs = {"externalPressure" : None,
+                      "minimumPressure"  : None,
+                      "maximumPressure"  : None}
+
+    # What sort of information did the user pass in?
+    if ("materialName" in kwargs or 
+        len(args) > 0 and type(args[0]) is str):
+
+        # It looks like the user is trying to use one of the libarary canned values.
+        # Evaluate the arguments to the method.
+        if len(args) > 0:
+            if len(args) != len(expectedArgs):
+                raise ValueError, expectedUsageString
+            for i in xrange(len(expectedArgs)):
+                exec("%s = args[i]" % expectedArgs[i])
+            for arg in optionalKwArgs:
+                exec("%s = optionalKwArgs['%s']" % (arg, arg))
+        else:
+            for arg in kwargs:
+                if arg not in (expectedArgs + optionalKwArgs.keys() + ["TillConstructor"]):
+                    raise ValueError, expectedUsageString
+                exec("%s = kwargs['%s']" % (arg, arg))
+            for arg in optionalKwArgs:
+                if arg not in kwargs:
+                    exec("%s = optionalKwArgs['%s']" % (arg, arg))
+
+        # Check that the caller specified a valid material label.
+        mat = materialName.lower()
+        if mat not in SpheralMaterialPropertiesLib:
+            raise ValueError, "You must specify one of %s" % str(SpheralMaterialPropertiesLib.keys())
+        if "Tillotson" not in SpheralMaterialPropertiesLib[mat]:
+            raise ValueError, "The material %s does not provide Tillotson paramters." % materialName
+
+        # Extract the parameters for this material.
+        params = dict(SpheralMaterialPropertiesLib[mat]["Tillotson"])
+    
+        # Figure out the conversions to the requested units.
+        lconv = CGS.unitLengthMeters / units.unitLengthMeters
+        mconv = CGS.unitMassKg / units.unitMassKg
+        tconv = CGS.unitTimeSec / units.unitTimeSec
+        rhoConv = mconv/(lconv*lconv*lconv)
+        Pconv = mconv/(lconv*tconv*tconv)
+        specificEconv = (lconv/tconv)**2
+
+        # Build the arguments for constructing the Tillotson.
+        passargs = [SpheralMaterialPropertiesLib[mat]["rho0"] * rhoConv,
+                    etamin,
+                    etamax,
+                    params["a"],
+                    params["b"],
+                    params["A"] * Pconv,
+                    params["B"] * Pconv,
+                    params["alpha"],
+                    params["beta"],
+                    params["eps0"] * specificEconv,
+                    params["epsLiquid"] * specificEconv,
+                    params["epsVapor"] * specificEconv,
+                    SpheralMaterialPropertiesLib[mat]["atomicWeight"],
+                    units]
+        if externalPressure:
+            passargs.append(externalPressure)
+        if minimumPressure:
+            passargs.append(minimumPressure)
+        if maximumPressure:
+            passargs.append(maximumPressure)
+        passkwargs = {}
+
+    else:
+
+        # Just pass through the arguments.
+        passargs = args
+        passkwargs = kwargs
+        del passkwargs["TillConstructor"]
+    
+    # Return the EOS.
+    return TillConstructor(*tuple(passargs), **passkwargs)
+
+#-------------------------------------------------------------------------------
+# Create the dimension specific Tillotson factories.  These are the ones
+# you actually use.
+#-------------------------------------------------------------------------------
+# 1D
+def TillotsonEquationOfState1d(*args, **kwargs):
+    kwargs["TillConstructor"] = RealTillotsonEquationOfState1d
+    return _TillotsonFactory(*args, **kwargs)
+
+# 2D
+def TillotsonEquationOfState2d(*args, **kwargs):
+    kwargs["TillConstructor"] = RealTillotsonEquationOfState2d
+    return _TillotsonFactory(*args, **kwargs)
+
+# 3D
+def TillotsonEquationOfState3d(*args, **kwargs):
+    kwargs["TillConstructor"] = RealTillotsonEquationOfState3d
+    return _TillotsonFactory(*args, **kwargs)
+
+#-------------------------------------------------------------------------------
+# Override the doc strings to provide useful help.
+#-------------------------------------------------------------------------------
+TillotsonEquationOfState1d.__doc__ = expectedUsageString
+TillotsonEquationOfState2d.__doc__ = expectedUsageString
+TillotsonEquationOfState3d.__doc__ = expectedUsageString
