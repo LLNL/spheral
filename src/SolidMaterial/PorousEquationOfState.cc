@@ -60,7 +60,10 @@ setPressure(Field<Dimension, Scalar>& Pressure,
   mSolidEOS.setPressure(Pressure, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
-  Pressure /= *mAlphaPtr;
+  const unsigned n = Pressure.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    Pressure(i) /= (*mAlphaPtr)(i);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -165,7 +168,10 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   mSolidEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
-  bulkModulus /= *mAlphaPtr;
+  const unsigned n = bulkModulus.numInternalElements();
+  for (unsigned i = 0; i != n; ++i) {
+    bulkModulus(i) /= (*mAlphaPtr)(i);
+  }
 }
 
 //------------------------------------------------------------------------------
