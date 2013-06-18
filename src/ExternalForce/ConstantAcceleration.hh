@@ -44,7 +44,9 @@ public:
   // Constructors.
   ConstantAcceleration(const Vector a0,
                        const NodeSpace::NodeList<Dimension>& nodeList,
-                       const std::vector<int>& indicies);
+                       const std::vector<int>& indices);
+  ConstantAcceleration(const Vector a0,
+                       const NodeSpace::NodeList<Dimension>& nodeList);
 
   // Destructor.
   virtual ~ConstantAcceleration();
@@ -72,14 +74,14 @@ public:
   // Access the NodeList.
   const NodeSpace::NodeList<Dimension>& nodeList() const;
 
-  // Access the set of node indicies.
-  const std::vector<int>& indicies() const;
+  // Access the set of node indices.
+  const std::vector<int>& indices() const;
 
 private:
   //--------------------------- Public Interface ---------------------------//
   Vector ma0;
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  const std::vector<int> mIndicies;
+  std::vector<int> mIndices;
 
   // No default constructor, copying, or assignment.
   ConstantAcceleration();
