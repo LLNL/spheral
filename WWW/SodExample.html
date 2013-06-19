@@ -1,0 +1,66 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.77 [en] (X11; U; Linux 2.4.3-20mdk i686) [Netscape]">
+   <meta name="Author" content="Mike Owen">
+   <meta name="Description" content="Sod example for Spheral++">
+   <title>Spheral++ Example Page</title>
+</head>
+<body text="#FFFFFF" bgcolor="#C7C3C7" link="#66FFFF" vlink="#3366FF" alink="#FF0000" background="background.gif">
+
+<blockquote>
+<pre>&nbsp;</pre>
+
+<center><table COLS=2 WIDTH="100%" NOSAVE >
+<tr NOSAVE>
+<a href="http://sourceforge.net"> 
+<IMG src="http://sourceforge.net/sflogo.php?group_id=4943&type=5" width="210"
+     height="62" border="0" alt="SourceForge Logo"></A>
+</tr>
+</table></center>
+
+<hr ALIGN=LEFT WIDTH="100%"></blockquote>
+
+<center>
+<h1>
+&nbsp;<a href="index.html">Back to Spheral++ main page</a></h1></center>
+
+<blockquote><font color="#FF0000">*Disclaimer: Spheral++ is still in an
+Alpha stage of development, as is this Web page! Don't expect everything
+on this page to be available or working yet.*</font></blockquote>
+
+<ul>
+<center>
+<hr WIDTH="100%"><font color="#CCFFFF"><font size=+2>Example: Sod shock
+tube</font></font></center>
+<font color="#FFFFFF">
+In this example we demonstrate a classic hydrodynamic test problem,
+the Sod shock tube.  The setup is quite simple.  Two regions of
+gas with different initial densities and pressures are established in
+contact with one and other.  This will set up a shock travelling into
+the low density/pressure region, and a rarefaction moving into the
+high density high pressure region.  There is a semi-analytic
+solution for this system, and in the results we plot the simulated
+solution against the analytic.
+</font><br><br>
+<h2>
+<p>&nbsp;<a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spheral/src/tests/Hydro/Sod/Sod-demo.py?rev=HEAD&content-type=text/vnd.viewcvs-markup">Here
+is the link to</a><font color="#FFFFFF"></h2>
+the Spheral++ script which sets
+up, runs, and then plots the result.&nbsp; To run this example with your
+own
+Spheral++ client just issue the command:</font>
+<p><font color="#FFFFFF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </font><font color="#FF0000"><font size=+1>python
+-i Sod-demo.py</font></font>
+<p>And here are some of the diagnostic graphics plotting the results against
+the known solution:
+<br>&nbsp;
+<p>
+<img SRC="Sod-demo-rho.png" height=480 width=640><br>
+<img SRC="Sod-demo-P.png" height=480 width=640><br>
+<img SRC="Sod-demo-vel.png" height=480 width=640><br>
+<img SRC="Sod-demo-eps.png" height=480 width=640></ul>
+
+</body>
+</html>
