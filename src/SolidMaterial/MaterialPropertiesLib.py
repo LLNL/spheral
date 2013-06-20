@@ -54,7 +54,7 @@ SpheralMaterialPropertiesLib = {
         },
     },
 
-#-------------------------------------------------------------------------------
+# 1 ----------------------------------------------------------------------------
     "granite" : {
         "rho0" : 2.680,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -69,9 +69,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.50e10,  # erg/gm
             "epsVapor"  : 1.80e11,  # erg/gm
         },
+        "mu0": 2.50e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 1.00e27,       # cm^-3
+        "mWeibull" : 6.2,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+# 2 ----------------------------------------------------------------------------
     "basalt" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -86,9 +90,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 4.72e10,  # erg/gm
             "epsVapor"  : 1.82e11,  # erg/gm
         },
+        "mu0": 2.27e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 5.00e24,       # cm^-3
+        "mWeibull" : 9.0,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+# 3 ----------------------------------------------------------------------------
     "aluminum" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 24.032,# dimensionless
@@ -103,9 +111,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 2.70e10,  # erg/gm
             "epsVapor"  : 1.41e11,  # erg/gm
         },
+        "mu0": 2.65e11,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+# 4 ----------------------------------------------------------------------------
     "copper" : {
         "rho0" : 8.900,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -120,9 +130,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 1.35e10,  # erg/gm
             "epsVapor"  : 3.00e10,  # erg/gm
         },
+        "mu0": 0.0,                 # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+# 5 ----------------------------------------------------------------------------
     "iron 130pt" : {
         "rho0" : 7.860,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -137,9 +149,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 1.42e10,  # erg/gm
             "epsVapor"  : 8.45e10,  # erg/gm
         },
+        "mu0": 0.0,                 # dyne/cm^2
+        "Y0" : 6.00e9,              # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+# 6 ----------------------------------------------------------------------------
     "lucite" : {
         "rho0" : 1.180,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -154,9 +168,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 2.00e10,  # erg/gm
             "epsVapor"  : 2.40e10,  # erg/gm
         },
+        "mu0": 7.30e8,              # dyne/cm^2
+        "Y0" : 1.00e9,              # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+# 7 ----------------------------------------------------------------------------
     "limestone" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -171,9 +187,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 2.50e10,  # erg/gm
             "epsVapor"  : 1.40e11,  # erg/gm
         },
+        "mu0": 2.50e11,             # dyne/cm^2
+        "Y0" : 1.00e33,             # dyne/cm^2
+        "kWeibull" : 6.00e42,       # cm^-3
+        "mWeibull" : 12.8,          # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+# 8 ----------------------------------------------------------------------------
     "halite" : {
         "rho0" : 2.160,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -188,9 +208,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 2.00e10,  # erg/gm
             "epsVapor"  : 1.50e11,  # erg/gm
         },
+        "mu0": 3.00e11,             # dyne/cm^2
+        "Y0" : 9.00e8,              # dyne/cm^2
+        "kWeibull" : 3.00e38,       # cm^-3
+        "mWeibull" : 8.7,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+# 9 ----------------------------------------------------------------------------
     "oil shale" : {
         "rho0" : 2.300,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -205,9 +229,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.20e10,  # erg/gm
             "epsVapor"  : 1.60e11,  # erg/gm
         },
+        "mu0": 1.40e11,             # dyne/cm^2
+        "Y0" : 1.00e33,             # dyne/cm^2
+        "kWeibull" : 2.00e21,       # cm^-3
+        "mWeibull" : 8.1,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#10 ----------------------------------------------------------------------------
     "wet tuff" : {
         "rho0" : 1.970,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -222,9 +250,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.20e10,  # erg/gm
             "epsVapor"  : 1.60e11,  # erg/gm
         },
+        "mu0": 4.00e10,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+#11 ----------------------------------------------------------------------------
     "dry tuff" : {
         "rho0" : 1.700,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -239,9 +269,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.50e10,  # erg/gm
             "epsVapor"  : 1.80e11,  # erg/gm
         },
+        "mu0": 2.00e11,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+#12 ----------------------------------------------------------------------------
     "alluvium" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -256,9 +288,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.50e10,  # erg/gm
             "epsVapor"  : 1.80e11,  # erg/gm
         },
+        "mu0": 0.0,                 # dyne/cm^2
+        "Y0" : 1.00e9,              # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+#13 ----------------------------------------------------------------------------
     "anorthosite 1pp" : {
         "rho0" : 2.867,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -273,9 +307,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 4.72e10,  # erg/gm
             "epsVapor"  : 1.82e11,  # erg/gm
         },
+        "mu0": 8.30e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 1.39e12,       # cm^-3
+        "mWeibull" : 3.0,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#14 ----------------------------------------------------------------------------
     "anorthosite hpp" : {
         "rho0" : 3.970,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -290,9 +328,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.19e10,  # erg/gm
             "epsVapor"  : 1.68e11,  # erg/gm
         },
+        "mu0": 8.30e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 5.00e22,       # cm^-3
+        "mWeibull" : 9.1,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#15 ----------------------------------------------------------------------------
     "andesite" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -307,9 +349,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 3.50e10,  # erg/gm
             "epsVapor"  : 1.80e11,  # erg/gm
         },
+        "mu0": 4.00e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 5.00e22,       # cm^-3
+        "mWeibull" : 8.5,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#16 ----------------------------------------------------------------------------
     "water" : {
         "rho0" : 0.998,         # gm/cm^3
         "atomicWeight" : 18.015,# dimensionless
@@ -324,9 +370,11 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 4.19e9,   # erg/gm
             "epsVapor"  : 2.69e10,  # erg/gm
         },
+        "mu0": 0.0,                 # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
     },
 
-#-------------------------------------------------------------------------------
+#17 ----------------------------------------------------------------------------
     "pure ice" : {
         "rho0" : 0.917,         # gm/cm^3
         "atomicWeight" : 18.015,# dimensionless
@@ -341,9 +389,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 7.73e9,   # erg/gm
             "epsVapor"  : 3.04e10,  # erg/gm
         },
+        "mu0": 2.80e10,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
+        "kWeibull" : 1.42e32,       # cm^-3
+        "mWeibull" : 9.59,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#18 ----------------------------------------------------------------------------
     "5% silicate ice" : {
         "rho0" : 0.948,         # gm/cm^3
         "atomicWeight" : 18.015,# dimensionless
@@ -358,9 +410,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 7.73e9,   # erg/gm
             "epsVapor"  : 3.04e10,  # erg/gm
         },
+        "mu0": 2.80e10,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
+        "kWeibull" : 5.60e37,       # cm^-3
+        "mWeibull" : 9.4,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#19 ----------------------------------------------------------------------------
     "30% silicate ice"  : {
         "rho0" : 1.141,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -375,9 +431,13 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 7.73e9,   # erg/gm
             "epsVapor"  : 3.04e10,  # erg/gm
         },
+        "mu0": 2.80e10,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
+        "kWeibull" : 5.60e38,       # cm^-3
+        "mWeibull" : 9.4,           # dimensionless
     },
 
-#-------------------------------------------------------------------------------
+#20 ----------------------------------------------------------------------------
     "special" : {
         "rho0" : 1.130,         # gm/cm^3
         "atomicWeight" : 60.08, # dimensionless
@@ -392,6 +452,10 @@ SpheralMaterialPropertiesLib = {
             "epsLiquid" : 4.72e10,  # erg/gm
             "epsVapor"  : 1.82e11,  # erg/gm
         },
+        "mu0": 2.27e11,             # dyne/cm^2
+        "Y0" : 3.50e10,             # dyne/cm^2
+        "kWeibull" : 5.00e24,       # cm^-3
+        "mWeibull" : 9.0,           # dimensionless
     },
 
 }
