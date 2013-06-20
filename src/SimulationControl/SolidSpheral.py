@@ -19,5 +19,6 @@ from SolidMaterialEquationsOfState import *
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.
 # ------------------------------------------------------------------------------
-from ShadowTillotsonEquationOfState import \
-    TillotsonEquationOfState1d, TillotsonEquationOfState2d, TillotsonEquationOfState3d
+for shadowedthing in ("TillotsonEquationOfState",
+                      "ConstantStrength"):
+    exec("from Shadow%(thing)s import %(thing)s1d, %(thing)s2d, %(thing)s3d" % {"thing" : shadowedthing})
