@@ -188,11 +188,11 @@ class Damage:
         # Constructors.
         x.add_constructor([refparam(solidnodelist, "nodeList"),
                            param("TensorStrainAlgorithm", "strainAlgorithm"),
-                           param("EffectiveDamageAlgorithm", "effDamageAlgorithm"),
+                           param("EffectiveDamageAlgorithm", "effectiveDamageAlgorithm"),
                            param("bool", "useDamageGradient"),
-                           constrefparam(tablekernel, "W"),
+                           constrefparam(tablekernel, "kernel"),
                            param("double", "crackGrowthMultiplier"),
-                           param("EffectiveFlawAlgorithm", "effectiveFlawAlgorithm"),
+                           param("EffectiveFlawAlgorithm", "flawAlgorithm"),
                            param("double", "criticalDamageThreshold"),
                            refparam(vectordoublefield, "flaws")])
 
