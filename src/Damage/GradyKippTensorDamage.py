@@ -57,12 +57,21 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
 """
 
 #-------------------------------------------------------------------------------
-# GradyKippTensorDamage : generic definition
+# The material library values are in CGS, so build a units object for 
+# conversions.
+#-------------------------------------------------------------------------------
+CGS = PhysicalConstants(0.01,   # unit length in m
+                        0.001,  # unit mass in kg
+                        1.0)    # unit time in sec
+
+#-------------------------------------------------------------------------------
+# GradyKippTensorDamageBenzAsphaug : generic definition
 #-------------------------------------------------------------------------------
 GradyKippTensorDamageBAGenString = """
 class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args_in, **kwargs):
+        args = list(args_in)
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
@@ -84,6 +93,10 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                           "minFlawsPerNode"          : 1,
                           "minTotalFlaws"            : 1}
 
+        # Extra arguments for our convenient constructor.
+        convenient_kwargs = {"materialName"          : None,
+                             "units"                 : None}
+
         # The order of all arguments in the original constructor for these classes.
         backCompatOrder = ["nodeList",
                            "kWeibull",
@@ -103,15 +116,22 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         for x in backCompatOrder:
             assert (x in weibull_kwargs) or (x in damage_kwargs)
 
-        # Is the user trying to use a convenient constructor?
-        iarg_start = 0
+        # Check the input arguments.
+        validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys()
+        for argname in kwargs:
+            if not argname in validKeys:
+                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
+                                   expectedUsageStringBA)
+
+        # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
             "materialName" in kwargs):
             if len(args) > 0 and type(args[0]) == str:
-                iarg_start = 1
                 materialName = args[0]
+                del args[0]
             else:
                 materialName = kwargs["materialName"]
+                del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
                 raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
                                    expectedUsageStringBA)
@@ -122,8 +142,14 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
             weibull_kwargs["kWeibull"] = matprops["kWeibull"]
             weibull_kwargs["mWeibull"] = matprops["mWeibull"]
 
+            # Any attempt to specify units?
+            if "units" in kwargs:
+                units = kwargs["units"]
+                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                del kwargs["units"]
+
         # Process the other user arguments.
-        for iarg in xrange(iarg_start, len(args)):
+        for iarg in xrange(len(args)):
             argname = backCompatOrder[iarg]
             if argname in damage_kwargs:
                 damage_kwargs[argname] = args[iarg]
@@ -179,7 +205,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 GradyKippTensorDamageOwenGenString = """
 class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args_in, **kwargs):
+        args = list(args_in)
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
@@ -199,6 +226,10 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                           "numFlawsPerNode"          : 1,
                           "volumeMultiplier"         : 1.0}
 
+        # Extra arguments for our convenient constructor.
+        convenient_kwargs = {"materialName"          : None,
+                             "units"                 : None}
+
         # The order of all arguments in the original constructor for these classes.
         backCompatOrder = ["nodeList",
                            "kWeibull",
@@ -216,15 +247,22 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         for x in backCompatOrder:
             assert (x in weibull_kwargs) or (x in damage_kwargs)
 
-        # Is the user trying to use a convenient constructor?
-        iarg_start = 0
+        # Check the input arguments.
+        validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys()
+        for argname in kwargs:
+            if not argname in validKeys:
+                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
+                                   expectedUsageStringO)
+
+        # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
             "materialName" in kwargs):
             if len(args) > 0 and type(args[0]) == str:
-                iarg_start = 1
                 materialName = args[0]
+                del args[0]
             else:
                 materialName = kwargs["materialName"]
+                del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
                 raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
                                    expectedUsageStringO)
@@ -235,8 +273,14 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
             weibull_kwargs["kWeibull"] = matprops["kWeibull"]
             weibull_kwargs["mWeibull"] = matprops["mWeibull"]
 
+            # Any attempt to specify units?
+            if "units" in kwargs:
+                units = kwargs["units"]
+                weibull_kwargs["kWeibull"] *= (CGS.unitLengthMeters/units.unitLengthMeters)**3
+                del kwargs["units"]
+
         # Process the other user arguments.
-        for iarg in xrange(iarg_start, len(args)):
+        for iarg in xrange(len(args)):
             argname = backCompatOrder[iarg]
             if argname in damage_kwargs:
                 damage_kwargs[argname] = args[iarg]
