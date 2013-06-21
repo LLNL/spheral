@@ -77,7 +77,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         # Arguments needed to build the Weibull distribution.
         weibull_kwargs = {"volume"                   : 0.0,
                           "volumeStretchFactor"      : 1.0,
-                          "seed"                     : 48927595992,
+                          "seed"                     : 48927592,
                           "kWeibull"                 : None,
                           "mWeibull"                 : None,
                           "nodeList"                 : None,
@@ -192,7 +192,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                          "criticalDamageThreshold"  : 1.0}
 
         # Arguments needed to build the Weibull distribution.
-        weibull_kwargs = {"seed"                     : 48927595992,
+        weibull_kwargs = {"seed"                     : 48927592,
                           "kWeibull"                 : None,
                           "mWeibull"                 : None,
                           "nodeList"                 : None,
