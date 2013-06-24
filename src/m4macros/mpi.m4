@@ -86,7 +86,7 @@ AC_ARG_WITH(parmetis,
 [
     EXTRATHIRDPARTYTARGETS+=" .parmetis-4.0.3.date"
     PARMETISPATH=$SPHERALDIR
-    PARMETISTARGET="ParmetisRedistributeNodes.cc"
+    PARMETISTARGET="ParmetisRedistributeNodesInst.cc"
     PARMETISBPLTARGET="ParmetisRedistributeNodes.pyste"
     PARMETISINCS="-I$PARMETISPATH/include"
     PARMETISLIBS="-L$PARMETISPATH/lib -lparmetis"
