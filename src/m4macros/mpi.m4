@@ -84,12 +84,12 @@ AC_MSG_CHECKING(for --with-parmetis)
 AC_ARG_WITH(parmetis,
 [  --with-parmetis .......................... compile with ParMETIS],
 [
-    EXTRATHIRDPARTYTARGETS+=" .parmetis-4.0.date"
+    EXTRATHIRDPARTYTARGETS+=" .parmetis-4.0.3.date"
     PARMETISPATH=$SPHERALDIR
     PARMETISTARGET="ParmetisRedistributeNodes.cc"
     PARMETISBPLTARGET="ParmetisRedistributeNodes.pyste"
     PARMETISINCS="-I$PARMETISPATH/include"
-    PARMETISLIBS="-L$PARMETISPATH/lib -lparmetis -lmetis"
+    PARMETISLIBS="-L$PARMETISPATH/lib -lparmetis"
     PYTHONPKGS="$PYTHONPKGS Parmetis"
     AC_MSG_RESULT(yes)
 ],
