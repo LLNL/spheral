@@ -22,7 +22,7 @@ extern "C" {
 #include "parmetis.h"
 }
 #else
-typedef int idxtype;
+typedef int idx_t;
 #endif
 
 #include "RedistributeNodes.hh"
@@ -85,10 +85,10 @@ private:
   void buildCSRGraph(const DataBaseSpace::DataBase<Dimension>& dataBase,
                      const std::vector<DomainNode<Dimension> >& nodeDistribution,
                      const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
-                     std::vector<idxtype>& xadj,
-                     std::vector<idxtype>& adjacency,
-                     std::vector<idxtype>& vtxdist,
-                     std::vector<idxtype>& vweight,
+                     std::vector<idx_t>& xadj,
+                     std::vector<idx_t>& adjacency,
+                     std::vector<idx_t>& vtxdist,
+                     std::vector<idx_t>& vweight,
                      std::vector<float>& xyz) const;
 
   // Cull the connectivity graph down to a dimension dependent number of connections per point.
@@ -109,9 +109,9 @@ private:
   // domain decomposition.
   bool validCSRGraph(const std::vector<DomainNode<Dimension> >& nodeDistribution,
                      const DataBaseSpace::DataBase<Dimension>& dataBase,
-                     const std::vector<idxtype>& xadj,
-                     const std::vector<idxtype>& adjacency,
-                     const std::vector<idxtype>& vtxdist) const;
+                     const std::vector<idx_t>& xadj,
+                     const std::vector<idx_t>& adjacency,
+                     const std::vector<idx_t>& vtxdist) const;
 
   // Helper method to check the given CSR graph lists a given node as connected
   // to another given node.

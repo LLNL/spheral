@@ -70,7 +70,7 @@ GCCXMLDIR = $(GCCXMLDIST:.tar.bz2=)
 GCCXMLDATE = $(patsubst %.tar.bz2, .%.date, $(GCCXMLDIST))
 
 # Parmetis
-PARMETISDIST = parmetis-4.0.tar.gz
+PARMETISDIST = parmetis-4.0.3.tar.gz
 PARMETISURL = http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/$(PARMETISDIST)
 PARMETISDIR = $(PARMETISDIST:.tar.gz=)
 PARMETISBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PARMETISDIST))
@@ -573,8 +573,10 @@ $(PARMETISBUILDDATE):  $(PARMETISDIST) $(CMAKEEXE)
 	env PATH="$(SPHERALDIR)/bin:$$PATH" CC="$(MPICC)" CXX="$(MPICXX)" CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(MAKE) -C $(PARMETISDIR) config shared=1 prefix=$(SPHERALDIR)
 	$(MAKE) MAKEFLAGS= -C $(PARMETISDIR) 
 	$(MAKE) MAKEFLAGS= -C $(PARMETISDIR) install
-	@if ! test -e $(SPHERALDIR)/lib/libparmetis.so -a \
-	           -e $(SPHERALDIR)/include/parmetis.h; then \
+	$(CP) -f $(PARMETISDIR)/metis/include/metis.h $(SPHERALDIR)/include
+	@if ! test -e $(SPHERALDIR)/lib/libparmetis.$(DYLIBEXT) -a \
+	           -e $(SPHERALDIR)/include/parmetis.h -a \
+	           -e $(SPHERALDIR)/include/metis.h; then \
 	echo "ERROR building ParMETIS."; \
 	rm -f $(PARMETISBUILDDATE); \
 	exit 1; \

@@ -127,10 +127,10 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const int numLocalNodes = nodeDistribution.size();
 
   // Build the Parmetis data structures.
-  vector<idxtype> xadj;
-  vector<idxtype> adjacency;
-  vector<idxtype> vtxdist;
-  vector<idxtype> vweight;
+  vector<idx_t> xadj;
+  vector<idx_t> adjacency;
+  vector<idx_t> vtxdist;
+  vector<idx_t> vweight;
   vector<float> xyz;
   buildCSRGraph(dataBase, nodeDistribution, globalIDs,
                 xadj, adjacency, vtxdist, vweight, xyz);
@@ -141,19 +141,19 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //     filename << "CSR" << this->domainID();
 //     ofstream file(filename.str().c_str());
 //     file << "xadj:";
-//     for (vector<idxtype>::const_iterator itr = xadj.begin();
+//     for (vector<idx_t>::const_iterator itr = xadj.begin();
 //          itr < xadj.end();
 //          ++itr) 
 //       file  << " " << *itr;
 //     file << endl 
 //          << "adj:";
-//     for (vector<idxtype>::const_iterator itr = adjacency.begin();
+//     for (vector<idx_t>::const_iterator itr = adjacency.begin();
 //          itr < adjacency.end();
 //          ++itr)
 //       file  << " " << *itr;
 //     file << endl
 //          << "vtxdist:";
-//     for (vector<idxtype>::const_iterator itr = vtxdist.begin();
+//     for (vector<idx_t>::const_iterator itr = vtxdist.begin();
 //          itr < vtxdist.end();
 //          ++itr)
 //       file  << " " << *itr;
@@ -186,7 +186,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   float ubvec[1] = {1.05};        // imbalance tolerance per vertex weight
   int options[3] = {0, 0, 0};  // optional parameters that can be passed
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
-  vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
+  vector<idx_t> part((vector<idx_t>::size_type) numLocalNodes); // Output, the parmetis decoposition.
   MPI_Barrier(Communicator::communicator());
   ParMETIS_V3_PartGeomKway(&(*vtxdist.begin()), 
                            &(*xadj.begin()), 
@@ -272,10 +272,10 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   const int numLocalNodes = nodeDistribution.size();
 
   // Build the Parmetis data structures.
-  vector<idxtype> xadj;
-  vector<idxtype> adjacency;
-  vector<idxtype> vtxdist;
-  vector<idxtype> vweight;
+  vector<idx_t> xadj;
+  vector<idx_t> adjacency;
+  vector<idx_t> vtxdist;
+  vector<idx_t> vweight;
   vector<float> xyz;
   buildCSRGraph(dataBase, nodeDistribution, globalIDs,
                 xadj, adjacency, vtxdist, vweight, xyz);
@@ -286,19 +286,19 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
 //     filename << "CSR" << this->domainID();
 //     ofstream file(filename.str().c_str());
 //     file << "xadj:";
-//     for (vector<idxtype>::const_iterator itr = xadj.begin();
+//     for (vector<idx_t>::const_iterator itr = xadj.begin();
 //          itr < xadj.end();
 //          ++itr) 
 //       file  << " " << *itr;
 //     file << endl 
 //          << "adj:";
-//     for (vector<idxtype>::const_iterator itr = adjacency.begin();
+//     for (vector<idx_t>::const_iterator itr = adjacency.begin();
 //          itr < adjacency.end();
 //          ++itr)
 //       file  << " " << *itr;
 //     file << endl
 //          << "vtxdist:";
-//     for (vector<idxtype>::const_iterator itr = vtxdist.begin();
+//     for (vector<idx_t>::const_iterator itr = vtxdist.begin();
 //          itr < vtxdist.end();
 //          ++itr)
 //       file  << " " << *itr;
@@ -331,7 +331,7 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   float ubvec[1] = {1.05};        // imbalance tolerance per vertex weight
   int options[3] = {0, 0, 0};  // optional parameters that can be passed
   int edgecut;                 // Output -- number of edges cut in the parmetis decomp.
-  vector<idxtype> part((vector<idxtype>::size_type) numLocalNodes); // Output, the parmetis decoposition.
+  vector<idx_t> part((vector<idx_t>::size_type) numLocalNodes); // Output, the parmetis decoposition.
   MPI_Barrier(Communicator::communicator());
   ParMETIS_V3_RefineKway(&(*vtxdist.begin()), 
                          &(*xadj.begin()), 
@@ -372,10 +372,10 @@ ParmetisRedistributeNodes<Dimension>::
 buildCSRGraph(const DataBase<Dimension>& dataBase,
               const vector<DomainNode<Dimension> >& nodeDistribution,
               const FieldSpace::FieldList<Dimension, int>& globalNodeIDs,
-              vector<idxtype>& xadj,
-              vector<idxtype>& adjacency,
-              vector<idxtype>& vtxdist,
-              vector<idxtype>& vweight,
+              vector<idx_t>& xadj,
+              vector<idx_t>& adjacency,
+              vector<idx_t>& vtxdist,
+              vector<idx_t>& vweight,
               vector<float>& xyz) const {
 
 
@@ -513,7 +513,7 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
   // Use the full connectivity to construct the nodal weights.
   const int numLocalNodes = nodeDistribution.size();
   CHECK(numLocalNodes == neighbors.size());
-  vweight = vector<idxtype>();
+  vweight = vector<idx_t>();
   vweight.reserve(numLocalNodes);
   for (typename vector<DomainNode<Dimension> >::const_iterator itr = nodeDistribution.begin();
        itr != nodeDistribution.end();
@@ -535,9 +535,9 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
   END_CONTRACT_SCOPE;
 
   // Size the output vectors.
-  xadj = vector<idxtype>();
-  adjacency = vector<idxtype>();
-  vtxdist = vector<idxtype>();
+  xadj = vector<idx_t>();
+  adjacency = vector<idx_t>();
+  vtxdist = vector<idx_t>();
   xyz = vector<float>();
   xadj.reserve(numLocalNodes + 1);
   adjacency.reserve(totalNumNeighbors);
@@ -751,9 +751,9 @@ bool
 ParmetisRedistributeNodes<Dimension>::
 validCSRGraph(const vector<DomainNode<Dimension> >& nodeDistribution,
               const DataBase<Dimension>& dataBase,
-              const vector<idxtype>& xadj,
-              const vector<idxtype>& adjacency,
-              const vector<idxtype>& vtxdist) const {
+              const vector<idx_t>& xadj,
+              const vector<idx_t>& adjacency,
+              const vector<idx_t>& vtxdist) const {
 
   // The result.
   bool valid = true;
@@ -776,7 +776,7 @@ validCSRGraph(const vector<DomainNode<Dimension> >& nodeDistribution,
 
   // The xadj array should be monotonically increasing.
   {
-    vector<idxtype>::const_iterator xadjItr = xadj.begin();
+    vector<idx_t>::const_iterator xadjItr = xadj.begin();
     while (xadjItr < xadj.end() - 1 && valid) {
       valid = valid && *xadjItr <= *(xadjItr + 1);
       ++xadjItr;
@@ -789,7 +789,7 @@ validCSRGraph(const vector<DomainNode<Dimension> >& nodeDistribution,
 
   // Make sure that all the global node IDs are in a kosher range.
   const int numGlobal = numGlobalNodes(dataBase);
-  for (vector<idxtype>::const_iterator adjItr = adjacency.begin();
+  for (vector<idx_t>::const_iterator adjItr = adjacency.begin();
        adjItr < adjacency.end();
        ++adjItr) {
     valid = valid && *adjItr >= 0 && *adjItr < numGlobal;
