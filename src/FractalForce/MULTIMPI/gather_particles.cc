@@ -7,11 +7,11 @@ namespace FractalSpace
   {
     Group* p_fake_group=new Group;
     ofstream& FF=frac.p_file->FileFractal;
-    ofstream& FP=frac.p_file->FileParticle;
+    //    ofstream& FP=frac.p_file->FileParticle;
     FF << " entered gather_particles " << endl;
     if(!mem.MPIrun)
       return;
-    int FractalRank=mem.p_mess->FractalRank;
+    //    int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     bool sendrad=mem.calc_shear;
     vector <double> pf(4);

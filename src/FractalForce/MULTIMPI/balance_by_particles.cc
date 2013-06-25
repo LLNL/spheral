@@ -138,7 +138,7 @@ namespace FractalSpace
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
 	    double aFRY=FRY;
-	    double target=(FRY*pytotal)/aFractalNodes1;
+	    double target=(aFRY*pytotal)/aFractalNodes1;
 	    lowery[FRZ][FRY]=std::lower_bound(sumy.begin(),sumy.end(),target)-sumy.begin();
 	    if(FRY > 0)
 	      uppery[FRZ][FRY-1]=lowery[FRZ][FRY];

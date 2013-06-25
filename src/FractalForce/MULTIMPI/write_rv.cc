@@ -11,12 +11,13 @@ namespace FractalSpace
     int nparts=fractal.get_number_particles();
     double base_mass=fractal.get_base_mass();
     bool period=fractal.get_periodic();
-    int level=-1;
-    double alevel=0.0;
+    int mlevel=-1;
+    double amlevel=0.0;
     for(int n=0;n<nparts;++n)
       {
 	Particle& particle=*fractal.particle_list[n];
 	particle.get_phase_field_sizes(nphase,nfield);
+	int plevel=particle.get_highest_level();
 	vector <double> pos(3);
 	vector <double> vel(3);
 	vector <double> pf(4);
@@ -33,13 +34,14 @@ namespace FractalSpace
 	  {
 	    if(m > 0.0)
 	      {
-		alevel=base_mass/m;
-		level=(alevel+0.01);
+		amlevel=base_mass/m;
+		mlevel=(amlevel+0.01);
 	      }
 	    else
-	      level=-1;
-	    FilePos << "\t" << "L" << level << "A";
+	      mlevel=-1;
+	    FilePos << "\t" << "L" << mlevel << "M";
 	  }
+	FilePos << "\t" << "L" << plevel << "P";
 	if(nfield >= 4)
 	  particle.get_field_pf(pf);
 	else

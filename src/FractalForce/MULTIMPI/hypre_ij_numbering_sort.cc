@@ -9,11 +9,11 @@ namespace FractalSpace
     const int FractalRank=mem.p_mess->FractalRank;
     const int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FH=mem.p_file->FileHypre;
-    const int zoom=Misc::pow(2,frac.get_level_max());
-    const int spacing=Misc::pow(2,frac.get_level_max()-level);
-    const int mult=Misc::pow(2,level);
-    int wrap=zoom*frac.get_grid_length();
-    bool period=frac.get_periodic();
+    //    const int zoom=Misc::pow(2,frac.get_level_max());
+    //    const int spacing=Misc::pow(2,frac.get_level_max()-level);
+    //    const int mult=Misc::pow(2,level);
+    //    int wrap=zoom*frac.get_grid_length();
+    //    bool period=frac.get_periodic();
     vector <int>pos(3);
     vector <int>HBox=mem.HRBoxesLev[FractalRank][level];
     vector <int>HRBox=HBox;
@@ -25,15 +25,7 @@ namespace FractalSpace
       {
 	Group& group=**group_itr;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	  //	  {
 	  hypre_points.push_back(*point_itr);
-	//	Point* p=*point_itr;
-	//	    p->get_pos_point(pos);
-	//	    if(vector_in_box(pos,HBox))
-	//	      {	 
-	//		FH << "inside box " << p->get_pos_point(0) << " " << p->get_pos_point(1) << " " << p->get_pos_point(2) << endl;
-	//	      }
-	//	  }    
       }
     int count=hypre_points.size();
     if(count==0)
@@ -88,18 +80,8 @@ namespace FractalSpace
 	  receive_list.push_back(p);
       }
     sort3_list(receive_list,0);
-    /*
-    for(vector<Point*>::const_iterator point_itr=receive_list.begin();point_itr !=receive_list.end();++point_itr)
-      {
-	Point* p=*point_itr;
-	FH << "receive " << p->get_pos_point(0) << " " << p->get_pos_point(1) << " " << p->get_pos_point(2) << endl;
-      }
-    */
     vector <int> pos_lefts(3);
     vector <int> pos_rights(3);
-    //    if(period)
-    //      left_right(send_list,pos_lefts,pos_rights,wrap);
-    //    else
     left_right(send_list,pos_lefts,pos_rights);
     vector <int> counts_out(FractalNodes);
     vector <vector <int> > dataI_out(FractalNodes);
@@ -116,10 +98,8 @@ namespace FractalSpace
 	for(int ni=0;ni<ssize;ni++)
 	  {
 	    send_list[ni]->get_pos_point(pos);
-	    //	    if(!overlap(pos,pos,HRBox))
 	    if(!vector_in_box(pos,HRBox))
 	      continue;
-	    //	    FH << " send point " << FR << " " << pos[0] << " " << pos[1] << " " << pos[2] << endl;
 	    dataI_out[FR].push_back(pos[0]);
 	    dataI_out[FR].push_back(pos[1]);
 	    dataI_out[FR].push_back(pos[2]);
@@ -147,7 +127,7 @@ namespace FractalSpace
     mem.p_file->note(true," hypre numbering c ");
     dataR_out.clear();
     dataI_out.clear();
-    Point* p=0;
+    //    Point* p=0;
     Point* psend= new Point;
     int what=0;
     Misc::dim2=(what+2) % 3;
@@ -160,8 +140,6 @@ namespace FractalSpace
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    //	    FH << " try this " << FR << " " << c << " " << ni4 << endl;
-	    //	    FH << dataI_in[ni4] << " " << dataI_in[ni4+1] << " " << dataI_in[ni4+2] << " " << psend << endl;
 	    psend->set_pos_point(dataI_in[ni4],dataI_in[ni4+1],dataI_in[ni4+2]);
 	    int number=findPointByPos(receive_list,psend,FH);
 	    if(number < 0)
@@ -172,13 +150,12 @@ namespace FractalSpace
 		receive_list[number]->copy_ij_index(dataI_in[ni4+3]);
 		receive_list[number]->set_found_it(true);
 		found++;
-		//		FH << "found it OK " << FR << " " << c << " " << dataI_in[ni4] << " " << dataI_in[ni4+1] << " " << dataI_in[ni4+2] << endl;
 	      }
 	    ni4+=4;
 	  }
       }
     delete psend;
-    FH << "found connections " << FractalRank << " " << found << endl;
+    FH << "found connections " << FractalRank << " " << level << " " << found << endl;
     for(vector<Point*>::const_iterator point_itr=receive_list.begin();point_itr !=receive_list.end();++point_itr)
       {
 	Point* p=*point_itr;
@@ -187,8 +164,6 @@ namespace FractalSpace
 	FH << " not found possibly bad" << " ";
 	p->dumpp(FH);
       }
-    //    mem.p_mess->Full_Stop();
-    //    assert(0);
     frac.timing(1,32);
     return true;
   }

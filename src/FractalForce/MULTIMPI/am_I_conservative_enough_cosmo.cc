@@ -11,7 +11,7 @@ namespace FractalSpace
   {
     ofstream& FileEnergy=PFM->p_file->FileEnergy;
     ofstream& FileMom=PFM->p_file->FileMom;
-    ofstream& FileP=PFM->p_file->FileParticle;
+    //    ofstream& FileP=PFM->p_file->FileParticle;
     int stride=100;
     int NP=PFM->number_particles;
     vector <double>pot(stride);
@@ -29,7 +29,7 @@ namespace FractalSpace
     double dpda=PFM->pexp*parad/PFM->arad;
     double parad_half=parad+0.5*PFM->step_length;
     double arad_half=pow(parad_half,1.0/PFM->pexp);
-    double dadt=arad_half*Fractal_Memory::hubble(arad_half,PFM->omega_start,PFM->lambda_start);
+    //    double dadt=arad_half*Fractal_Memory::hubble(arad_half,PFM->omega_start,PFM->lambda_start);
     double v_consta=1.0-2.0*correction*PFM->step_length/PFM->arad/dpda;
     double f_const=PFM->step_length/pow(PFM->arad,4)/Fractal_Memory::hubble(arad_half,PFM->omega_start,PFM->lambda_start)/dpda;
     double v_constb=correction*f_const*(1.0+2.0*PFM->step_length/PFM->arad/dpda);

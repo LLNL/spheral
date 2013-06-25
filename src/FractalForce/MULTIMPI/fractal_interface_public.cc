@@ -24,7 +24,7 @@ namespace FractalSpace
   //! PFM->setBaseDirectory;
   //! PFM->setRunIdentifier;
   //! PFM->setTimeTrial
-  //! PFM->setStandAlone
+  //! PFM->setTalkToMe
   //!
   //! PFM->fractal_memory_setup();
   //!
@@ -43,6 +43,54 @@ namespace FractalSpace
   //! fractal_memory_content_delete;
   //! fractal_memory_delete;
 
+  Fractal_Memory* FractalGravityFirstTime(int NumberParticles,
+					  int balance,
+					  int FractalNodes0,
+					  int FractalNodes1,
+					  int FractalNodes2,
+					  int FFTNodes,
+					  bool Periodic,
+					  bool Debug,
+					  int GridLength,
+					  int Padding,
+					  int LevelMax,
+					  int MinimumNumber,
+					  int MaxHypreIterations,
+					  double HypreTolerance,
+					  string BaseDirectory,
+					  string RunIdentifier,
+					  bool TimeTrial,
+					  MPI_Comm& TalkToMe)
+  {
+    Fractal_Memory* PFM=fractal_memory_create();
+    //
+    PFM->setNumberParticles(NumberParticles);
+    PFM->setBalance(balance);
+    PFM->setFractalNodes(FractalNodes0,FractalNodes1,FractalNodes2);
+    FFTNodes=min(FFTNodes,FractalNodes0*FractalNodes1*FractalNodes2);
+    if(Periodic)
+      FFTNodes=min(FFTNodes,GridLength/2);
+    else
+      FFTNodes=min(FFTNodes,GridLength);
+    PFM->setFFTNodes(FFTNodes);
+    PFM->setPeriodic(Periodic);
+    PFM->setDebug(Debug);
+    PFM->setGridLength(GridLength);
+    PFM->setPadding(Padding);
+    PFM->setLevelMax(LevelMax);
+    PFM->setMinimumNumber(MinimumNumber);
+    PFM->setHypreIterations(MaxHypreIterations);
+    PFM->setHypreTolerance(HypreTolerance);
+    PFM->setBaseDirectory(BaseDirectory);
+    PFM->setRunIdentifier(RunIdentifier);
+    PFM->setTimeTrial(TimeTrial);
+    PFM->setTalkToMe(TalkToMe);
+    //
+    fractal_memory_setup(PFM);
+    PFM->p_mess->standalone=false;
+    //
+    return PFM;    
+  }
 
 
   void do_fractal_force(Fractal_Memory* PFM)
@@ -175,10 +223,11 @@ namespace FractalSpace
 		vector <double>& fy,vector <double>& fz)
   {
     total=min(first+total,PFM->number_particles)-first;
-    assert(total <= pot.size());
-    assert(total <= fx.size());
-    assert(total <= fy.size());
-    assert(total <= fz.size());
+    unsigned int utotal=total;
+    assert(utotal <= pot.size());
+    assert(utotal <= fx.size());
+    assert(utotal <= fy.size());
+    assert(utotal <= fz.size());
     vector <double> potforce(4);
     double dinv=1.0/(xmax[0]-xmin[0]);
     double convpot=G*dinv;
@@ -270,8 +319,8 @@ namespace FractalSpace
   {
     time_trial=tt;
   }
-  void Fractal_Memory::setStandAlone(bool sa)
+  void Fractal_Memory::setTalkToMe(MPI_Comm& ttm)
   {
-    p_mess->standalone=sa;
+    FractalWorld=ttm;
   }
 }

@@ -7,8 +7,8 @@ namespace FractalSpace
   {
     mem.p_file->note(true," slices to pot init enter ");
     int FractalNodes=mem.p_mess->FractalNodes;
-    int length_1=frac.get_grid_length();
-    int length_S=length_1;
+    //    int length_1=frac.get_grid_length();
+    //    int length_S=length_1;
     vector <int> counts_out(FractalNodes);
     counts_out.assign(FractalNodes,0);
     double potential=-1.0;

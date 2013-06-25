@@ -15,7 +15,7 @@ namespace FractalSpace
     fractal.timing(1,49);
     fractal.timing(0,0);
     fractal.timing_lev(0,0);
-    ofstream& FP=mem.p_file->FileParticle;
+    //    ofstream& FP=mem.p_file->FileParticle;
     vector <double> pos(3);
     vector <double> vel(3);
     vector <double> force(3);

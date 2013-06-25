@@ -11,7 +11,7 @@ namespace FractalSpace
   {
     ofstream& FileEnergy=PFM->p_file->FileEnergy;
     ofstream& FileMom=PFM->p_file->FileMom;
-    ofstream& FileP=PFM->p_file->FileParticle;
+    //    ofstream& FileP=PFM->p_file->FileParticle;
     int stride=100;
     int NP=PFM->number_particles;
     double dt5=correction*PFM->step_length;

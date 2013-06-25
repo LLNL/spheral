@@ -3,6 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
+  typedef ptrdiff_t pint;
   void initial_forces_sharp(Fractal_Memory& mem,Fractal& frac)
   {
     ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
@@ -55,7 +56,7 @@ namespace FractalSpace
 	double step_wave=pow(2.0,lev);
 	//	int begin_x=mem.p_mess->start_x;
 	//	int end_x=begin_x+mem.p_mess->length_x;
-	for(ptrdiff_t kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x; kx++)
+	for(pint kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x; kx++)
 	  {
 	    int ka=min(kx,length-kx);
 	    bool nyq_x= kx==0 || kx== nyq;
@@ -137,9 +138,10 @@ namespace FractalSpace
 	//
 	for(int i=0;i < length/2;i++)
 	  {
-	    FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << endl;
+	    if(mem.p_mess->IAmAnFFTNode)
+	      FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << endl;
 	  }
-	for(ptrdiff_t kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x ; kx++)
+	for(pint kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x ; kx++)
 	  {
 	    int ka=min(kx,length-kx);
 	    for(int ky=0;ky < length ; ky++)

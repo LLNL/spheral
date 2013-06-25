@@ -6,7 +6,7 @@ namespace FractalSpace
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve)
   { 
     ofstream& FileFractal=fractal.p_file->FileFractal;
-    ofstream& FileForce=fractal.p_file->FileForce;
+    //    ofstream& FileForce=fractal.p_file->FileForce;
     //
     if(fractal.get_debug()) FileFractal << " enter force at particle " << &group << " " << group.get_level() << endl;
     vector <double> dens(8);

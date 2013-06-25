@@ -7,7 +7,7 @@ namespace FractalSpace
   {
     ofstream& FileFractal=fractal.p_file->FileFractal;
     FileFractal << " Made It test_gal a " << endl;
-    double rand_max=(double)RAND_MAX;
+    //    double rand_max=(double)RAND_MAX;
     //    double rmax=1.0e-5;
     double rmax=0.3;
     double x_off=0.405;
@@ -26,7 +26,7 @@ namespace FractalSpace
 	Particle* p=fractal.particle_list[n];
 	if(p->get_p_highest_level_group() == 0)
 	  continue;
-	double m=p->get_mass();
+	//	double m=p->get_mass();
 	p->get_pos(pos);
 	p->get_field_pf(field);
 	double dx=pos[0]-x_off;

@@ -17,9 +17,9 @@ namespace FractalSpace
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
-    ptrdiff_t start_x;
-    ptrdiff_t length_x;
-    ptrdiff_t total_memory;
+    pint start_x;
+    pint length_x;
+    pint total_memory;
     fftw_plan plan_rc;
     fftw_plan plan_cr;
     double* potR;
@@ -65,12 +65,12 @@ namespace FractalSpace
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN):
       FractalRank(0),
       FractalNodes(1),
-      number_particles_total(-1),
-      start_x(0),
-      length_x(GR),
       FFTNodes(FN),
       HypreRank(0),
       HypreNodes(0),
+      number_particles_total(-1),
+      start_x(0),
+      length_x(GR),
       total_memory(1),
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
@@ -81,7 +81,7 @@ namespace FractalSpace
       WallTime=Clock();
       if(MR)
 	{
-	  MPIStartup();
+	  MPIStartup(FractalWorld);
 	  FractalRank=what_is_my_rank(); 
 	  FractalNodes=how_many_nodes(); 
 	  FFTWStartup(grid_length,periodic);
@@ -103,15 +103,15 @@ namespace FractalSpace
 	MPIFinal();
       cout << " cleaned up a mess " << FractalRank << endl;
     }
-    void MPIStartup()
+    void MPIStartup(MPI_Comm& FW)
     {
       int knights;
       MPI_Initialized(&knights);
       if(!knights)
 	MPI_Init(NULL,NULL);
-      FractalWorld=MPI_COMM_WORLD;
-      FFTWorld=MPI_COMM_WORLD;
-      HypreWorld=MPI_COMM_WORLD;
+      FractalWorld=FW;
+      FFTWorld=FW;
+      HypreWorld=FW;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Comm_group(FFTWorld,&FFTGroup);
       //      MPI_Comm_group(HypreWorld,&HypreGroup);
@@ -323,7 +323,7 @@ namespace FractalSpace
     }
     void calc_fftw_Slices(const int& length_a,const bool& periodic)
     {
-      int paramsend[2]={start_x,start_x+length_x-1};
+      int paramsend[2]={(int)start_x,(int)(start_x+length_x-1)};
       //      int* paramrecv=(int*)malloc(2*FractalNodes*sizeof(int));
       int* paramrecv=new int[2*FractalNodes];
       int length_1=length_a;
@@ -400,7 +400,7 @@ namespace FractalSpace
     {
       assert(p_file);
       cout << " into how many " << FractalNodes << " " << p_file << endl;
-      ofstream& FF=p_file->FileFractal;
+      //      ofstream& FF=p_file->FileFractal;
       int* counts_out=new int[FractalNodes];
       int* counts_in=new int[FractalNodes];
       for(int FR=0;FR<FractalNodes;FR++)
@@ -813,13 +813,13 @@ namespace FractalSpace
     void zeroR()
     {
       //      std::fill(potR.begin(),potR.begin()+2*total_memory,0.0);
-      for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
+      for(pint ni=0;ni<2*total_memory;ni++)
 	potR[ni]=0.0;
     }
     void zeroR(double grail)
     {
       //      std::fill(potR.begin(),potR.begin()+2*total_memory,grail);
-      for(ptrdiff_t ni=0;ni<2*total_memory;ni++)
+      for(pint ni=0;ni<2*total_memory;ni++)
 	potR[ni]=grail;
     }
     double Clock()

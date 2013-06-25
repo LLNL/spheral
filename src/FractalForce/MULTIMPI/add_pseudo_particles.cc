@@ -8,7 +8,7 @@ namespace FractalSpace
     frac.p_file->FileFractal << " entered into add pseudo particles " << endl;
     if(!mem.periodic)
       return;
-    ofstream& FF=mem.p_file->FileFractal;
+    //    ofstream& FF=mem.p_file->FileFractal;
     int length=mem.grid_length;
     double Rdelta=1.0/static_cast<double>(length);
     double Rlow=-2.0*Rdelta;

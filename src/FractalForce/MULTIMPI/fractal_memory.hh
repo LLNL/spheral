@@ -8,6 +8,7 @@ namespace FractalSpace
     //
     string BaseDirectory;
     string RUN;
+    MPI_Comm FractalWorld;
     bool MPIrun;
     bool balance;
     int FractalNodes;
@@ -149,6 +150,7 @@ namespace FractalSpace
       //
       BaseDirectory("FFRRAACCTTAALL/"),
       RUN("abc"),
+      FractalWorld(MPI_COMM_WORLD),
       MPIrun(false),
       balance(0),
       FractalNodes(1),
@@ -430,7 +432,7 @@ namespace FractalSpace
     void setBaseDirectory(string BD);
     void setRunIdentifier(string RI);
     void setTimeTrial(bool tt);
-    void setStandAlone(bool sa);
+    void setTalkToMe(MPI_Comm& ttm);
     // static functions
     static double hubble(const double& arad,const double& omega_0,const double& omega_lambda)
     {
