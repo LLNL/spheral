@@ -165,14 +165,14 @@ class SpheralConservation(RestartableObject):
     #---------------------------------------------------------------------------
     def writeHistory(self, filename):
         f = open(filename, 'w')
-        labels = ['cycle', 'time',
-                  'Mass',
-                  'Lin Mom Mag', 'Lin Mom X', 'Lin Mom Y', 'Lin Mom Z',
-                  'Ang Mom Mag', 'Ang Mom X', 'Ang Mom Y', 'Ang Mom Z',
-                  'Total E', 'Kin E', 'Therm E']
+        labels = ['"cycle"', '"time"',
+                  '"Mass"',
+                  '"Lin Mom Mag"', '"Lin Mom X"', '"Lin Mom Y"', '"Lin Mom Z"',
+                  '"Ang Mom Mag"', '"Ang Mom X"', '"Ang Mom Y"', '"Ang Mom Z"',
+                  '"Total E"', '"Kin E"', '"Therm E"']
         f.write('#')
         for lab in labels:
-            f.write('%14s' % lab)
+            f.write('%14s ' % lab)
         f.write('\n')
         for i in xrange(len(self.cycleHistory)):
             for var in [self.cycleHistory[i], self.timeHistory[i],
@@ -188,7 +188,7 @@ class SpheralConservation(RestartableObject):
                         self.EHistory[i],
                         self.KEHistory[i],
                         self.TEHistory[i]]:
-                f.write('%14.8g' % var)
+                f.write('%14.8g ' % var)
             f.write('\n')
         f.close()
         return
