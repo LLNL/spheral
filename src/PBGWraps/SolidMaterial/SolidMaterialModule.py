@@ -384,6 +384,10 @@ def generateConstantStrengthBindings(x, ndim):
     # Add the abstract interface.
     generateStrengthModelVirtualBindings(x, ndim, False)
 
+    # Attributes.
+    x.add_instance_attribute("mu0", "double", getter="mu0", is_const=True)
+    x.add_instance_attribute("Y0", "double", getter="Y0", is_const=True)
+
     return
 
 #---------------------------------------------------------------------------
