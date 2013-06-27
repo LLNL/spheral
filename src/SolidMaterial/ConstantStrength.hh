@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // ConstantStrength -- An implentation of StrengthModel returning constant
-// values for the shear modulus and yeild strength.
+// values for the shear modulus and yield strength.
 //
 // Created by JMO, Mon Jul 24 10:34:40 PDT 2006
 //----------------------------------------------------------------------------//
@@ -38,11 +38,15 @@ public:
                             const double pressure,
                             const double fluidSoundSpeed) const;
 
+  // Read only access to the parameters.
+  double mu0() const;
+  double Y0() const; 
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  // The values for shear modulus and yeild strength.
+  // The values for shear modulus and yield strength.
   double mShearModulus0;
-  double mYeildStrength0;
+  double mYieldStrength0;
 
   // No copying or assignment.
   ConstantStrength(const ConstantStrength&);
@@ -61,7 +65,7 @@ ConstantStrength(const double mu0,
                  const double Y0):
   StrengthModel<Dimension>(),
   mShearModulus0(mu0),
-  mYeildStrength0(Y0) {
+  mYieldStrength0(Y0) {
 }
 
 //------------------------------------------------------------------------------
@@ -89,7 +93,7 @@ yieldStrength(const double density,
               const double pressure,
               const double plasticStrain,
               const double plasticStrainRate) const {
-  return mYeildStrength0;
+  return mYieldStrength0;
 }
 
 //------------------------------------------------------------------------------
@@ -104,6 +108,28 @@ soundSpeed(const double density,
            const double pressure,
            const double fluidSoundSpeed) const {
   return fluidSoundSpeed;
+}
+
+//------------------------------------------------------------------------------
+// Return the input shear modulus.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+ConstantStrength<Dimension>::
+mu0() const {
+  return mShearModulus0;
+}
+
+//------------------------------------------------------------------------------
+// Return the input yield strength.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+ConstantStrength<Dimension>::
+Y0() const {
+  return mYieldStrength0;
 }
 
 #endif
