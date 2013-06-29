@@ -15,6 +15,7 @@
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
 #include "Distributed/Communicator.hh"
+#include "Utilities/allReduce.hh"
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -90,11 +91,8 @@ weibullFlawDistributionBenzAsphaug(double volume,
         volume += mass(i)/rho(i);
       }
 #ifdef USE_MPI
-      {
-        double tmp = volume;
-        MPI_Allreduce(&tmp, &volume, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
-      }
-#endif      
+      volume = allReduce(volume, MPI_SUM, Communicator::communicator());
+#endif
     }
     volume = std::max(volume, 1e-100);
     CHECK(volume > 0.0);
@@ -105,10 +103,9 @@ weibullFlawDistributionBenzAsphaug(double volume,
     CHECK(epsMin > 0.0);
 
     // Construct a random number generator.
-    typedef boost::minstd_rand base_generator_type;
+    typedef boost::mt19937 base_generator_type;
     base_generator_type basegen(seed);
-    boost::uniform_int<> uniformIntDist(0, n - 1);
-    boost::variate_generator<base_generator_type&, boost::uniform_int<> > generator(basegen, uniformIntDist);
+    boost::uniform_01<base_generator_type> generator(basegen);
 
     // Loop and initialize flaws until:
     // a) every node has the minimum number of flaws per node, and
@@ -118,7 +115,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
     while ((numCompletedNodes < n) || (ienergy <= minTotalFlaws)) {
 
       // Randomly select a global node.
-      const int iglobal = generator();
+      const int iglobal = int(generator() * n);
       CHECK(iglobal >= 0 && iglobal < n);
 
       // Increment the number of flaws for this node, and check if this

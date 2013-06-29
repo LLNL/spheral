@@ -24,6 +24,8 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
+#include "Utilities/peanoHilbertOrderIndicies.hh"
+#include "Utilities/KeyTraits.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -84,24 +86,23 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   using namespace std;
   using FieldSpace::Field;
   typedef typename Dimension::Vector Vector;
+  typedef typename KeyTraits::Key Key;
 
   // Get the local domain ID and number of processors.
-  int procID = 0;
-  int numProcs = 1;
-#ifdef USE_MPI
-  MPI_Comm_rank(Communicator::communicator(), &procID);
-  MPI_Comm_size(Communicator::communicator(), &numProcs);
-#endif
+  const int procID = Process::getRank();
+  const int numProcs = Process::getTotalNumberOfProcesses();
 
-  // Get the position field for this NodeList.
-  int numLocalNodes = nodeList.numInternalNodes();
-  const FieldSpace::Field<Dimension, Vector>& r = nodeList.positions();
+  // Build keys to sort the nodes by.
+  DataBaseSpace::DataBase<Dimension> db;
+  db.appendNodeList(const_cast<NodeList<Dimension>&>(nodeList));
+  FieldList<Dimension, Key> keys = peanoHilbertOrderIndicies(db);
 
   // Build the local list of node info.
-  typedef std::vector<boost::tuples::tuple<Vector, int, int> > InfoType;
+  typedef std::vector<boost::tuples::tuple<Key, int, int> > InfoType;
   InfoType nodeInfo;
+  int numLocalNodes = nodeList.numInternalNodes();
   for (int i = 0; i != numLocalNodes; ++i) {
-    nodeInfo.push_back(boost::tuples::tuple<Vector, int, int>(r(i), i, procID));
+    nodeInfo.push_back(boost::tuples::tuple<Key, int, int>(keys(0, i), i, procID));
   }
 
   // Reduce the list of node info to processor 0.
@@ -116,45 +117,34 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
       MPI_Recv(&numRecvNodes, 1, MPI_INT, recvDomain, 10, Communicator::communicator(), &status);
       CHECK(numRecvNodes >= 0);
       numGlobalNodes += numRecvNodes;
-      std::vector<double> packedPositions(numRecvNodes*Dimension::nDim);
+      std::vector<Key> packedKeys(numRecvNodes);
       std::vector<int> packedLocalIDs(numRecvNodes);
-      MPI_Recv(&(*packedPositions.begin()), numRecvNodes*Dimension::nDim, MPI_DOUBLE,
+      MPI_Recv(&(*packedKeys.begin()), numRecvNodes, DataTypeTraits<Key>::MpiDataType(),
                recvDomain, 11, Communicator::communicator(), &status);
       MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, MPI_INT,
                recvDomain, 12, Communicator::communicator(), &status);
-      int offset = 0;
       for (int i = 0; i != numRecvNodes; ++i) {
-        Vector ri;
-        for (int j = 0; j != Dimension::nDim; ++j) {
-          CHECK(offset + j < packedPositions.size());
-          ri(j) = packedPositions[offset + j];
-        }
-        offset += Dimension::nDim;
-        nodeInfo.push_back(boost::tuples::tuple<Vector, int, int>(ri, packedLocalIDs[i], recvDomain));
+        nodeInfo.push_back(boost::tuples::tuple<Key, int, int>(packedKeys[i], packedLocalIDs[i], recvDomain));
       }
     }
 
   } else {
              
     // Send our local info to processor 0.
-    std::vector<double> packedPositions;
+    std::vector<Key> packedKeys;
     std::vector<int> packedLocalIDs;
     for (typename InfoType::const_iterator itr = nodeInfo.begin();
          itr != nodeInfo.end();
          ++itr) {
-      for (typename Vector::const_iterator ritr = boost::tuples::get<0>(*itr).begin();
-           ritr != boost::tuples::get<0>(*itr).end();
-           ++ritr) {
-        packedPositions.push_back(*ritr);
-      }
+      packedKeys.push_back(boost::tuples::get<0>(*itr));
       packedLocalIDs.push_back(boost::tuples::get<1>(*itr));
     }
-    CHECK(packedPositions.size() == nodeInfo.size() * Dimension::nDim);
+    CHECK(packedKeys.size() == nodeInfo.size());
     CHECK(packedLocalIDs.size() == nodeInfo.size());
 
     MPI_Send(&numLocalNodes, 1, MPI_INT, 0, 10, Communicator::communicator());
-    MPI_Send(&(*packedPositions.begin()), numLocalNodes*Dimension::nDim,
-             MPI_DOUBLE, 0, 11, Communicator::communicator());
+    MPI_Send(&(*packedKeys.begin()), numLocalNodes, DataTypeTraits<Key>::MpiDataType(),
+             0, 11, Communicator::communicator());
     MPI_Send(&(*packedLocalIDs.begin()), numLocalNodes,
              MPI_INT, 0, 12, Communicator::communicator());
 
@@ -248,9 +238,8 @@ globalNodeIDs(const NodeListIterator& begin,
 
 #ifdef USE_MPI
   // This processors domain id.
-  int procID, numProcs;
-  MPI_Comm_rank(Communicator::communicator(), &procID);
-  MPI_Comm_size(Communicator::communicator(), &numProcs);
+  const int procID = Process::getRank();
+  const int numProcs = Process::getTotalNumberOfProcesses();
 
   // Count up how many nodes are on this domain.
   int numDomainNodes = 0;
