@@ -12,7 +12,8 @@ int main()
   bool PR=p_fractal_memory->periodic;
   int NP=p_fractal_memory->number_particles;
   int FN=p_fractal_memory->FFTNodes;
-  Mess* p_mess=new Mess(MR,GR,PR,NP,FN);
+  MPI_Comm FW=MPI_COMM_WORLD;
+  Mess* p_mess=new Mess(MR,GR,PR,NP,FN,FW);
   p_fractal_memory->p_mess=p_mess;
   p_fractal_memory->FFTNodes=p_fractal_memory->p_mess->FFTNodes;
   string BD=p_fractal_memory->BaseDirectory;

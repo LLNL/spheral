@@ -51,7 +51,7 @@ namespace FractalSpace
     // min number of particles in a cell to make it a high density cell
     // minimum_number**(1/3) is the local resolution in units of the local
     // mean interparticle spacing
-    mem.padding = 0 ;
+    mem.padding = -1 ;
     mem.padding=min(mem.padding,1);
     // if (-1) high cells are selectively padded so that resolution never jumps more than factor of 2.
     // if (padding > 0) each high cell is padded by (2*padding+1)**3 cells.
@@ -64,9 +64,9 @@ namespace FractalSpace
     // Does extra testing and prints out a bunch of diagnostics
     mem.new_points_gen=9;
     //Generate this many Points in each go
-    mem.number_steps_total=503;
+    mem.number_steps_total=903;
     // Total number of steps
-    mem.number_steps_out=40;
+    mem.number_steps_out=100;
     // Output how often
     mem.redshift_start=99.0;
     // initial redshift

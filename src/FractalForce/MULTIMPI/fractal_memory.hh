@@ -9,6 +9,7 @@ namespace FractalSpace
     string BaseDirectory;
     string RUN;
     MPI_Comm FractalWorld;
+    bool standalone;
     bool MPIrun;
     bool balance;
     int FractalNodes;
@@ -151,6 +152,7 @@ namespace FractalSpace
       BaseDirectory("FFRRAACCTTAALL/"),
       RUN("abc"),
       FractalWorld(MPI_COMM_WORLD),
+      standalone(true),
       MPIrun(false),
       balance(0),
       FractalNodes(1),

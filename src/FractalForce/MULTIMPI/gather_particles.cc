@@ -88,17 +88,15 @@ namespace FractalSpace
     delete p_fake_group;
     FF << " gather b " << how_manyI << " " << frac.particle_list_world.size() << endl;
     frac.set_number_particles((how_manyI/2));
-    FF << " gather c " << endl;
     frac.particle_list=frac.particle_list_world;
-    FF << " gather d " << endl;
     frac.particle_list_world.clear();
     FF << " gather e " << mem.p_mess->parts_tmp << endl;
     Particle* pt=mem.p_mess->parts_tmp;
     delete [] pt;
-    FF << " gather f " << endl;
     pt=0;
-    FF << " gather g " << endl;
     remove_pseudo_particles(mem,frac);
+    frac.particle_list.resize((how_manyI/2));
+    frac.set_number_particles((how_manyI/2));
     FF << " finished remove_particles " << endl;
   }
 }
