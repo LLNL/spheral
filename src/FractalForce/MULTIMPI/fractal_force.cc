@@ -160,6 +160,8 @@ namespace FractalSpace
     fractal_memory.p_mess->Full_Stop();
     ofstream& FileFractal=fractal.p_file->FileFractal;
     FileFractal << "here in fractal_force " << endl;
+    FileFractal << "number of everything entering fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
+    FileFractal << " Total number of particles entering Fractal " << Particle::number_particles << endl;
     //    write_rv(-16,fractal);
     fractal.timing_lev(-1,0);
     fractal.timing(-1,27);
@@ -542,6 +544,8 @@ namespace FractalSpace
     //          test_gal(fractal_memory,fractal);
     //    assert(0);
     fractal_memory.p_mess->Full_Stop();
+    FileFractal << "number of everything exiting Fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
+    FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << endl;
     FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << endl;
   }
 }

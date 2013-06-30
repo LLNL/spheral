@@ -85,9 +85,9 @@ namespace FractalSpace
     PFM->setRunIdentifier(RunIdentifier);
     PFM->setTimeTrial(TimeTrial);
     PFM->setTalkToMe(TalkToMe);
+    PFM->standalone=false;
     //
     fractal_memory_setup(PFM);
-    PFM->p_mess->standalone=false;
     //
     return PFM;    
   }
@@ -141,7 +141,12 @@ namespace FractalSpace
     // Construct a Mess object. 
     // All MPI and FFTW stuff is done in Mess member functions. 
     // This will be used throughout the simulation.
-    Mess* p_mess=new Mess(PFM->MPIrun,PFM->grid_length,PFM->periodic,PFM->number_particles,PFM->FFTNodes);
+    Mess* p_mess=new Mess(PFM->MPIrun,
+			  PFM->grid_length,
+			  PFM->periodic,
+			  PFM->number_particles,
+			  PFM->FFTNodes,
+			  PFM->FractalWorld);
     PFM->p_mess=p_mess;
     p_mess->time_trial=PFM->time_trial;
     
