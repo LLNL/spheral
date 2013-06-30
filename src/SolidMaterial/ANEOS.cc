@@ -247,7 +247,7 @@ ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  rhoi = massDensity / mRhoConv;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
@@ -302,7 +302,7 @@ ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  rhoi = massDensity / mRhoConv;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
@@ -319,7 +319,7 @@ ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  rhoi = massDensity / mRhoConv;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = temperature / mTconv;
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
@@ -336,7 +336,7 @@ ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  rhoi = massDensity / mRhoConv;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
@@ -365,7 +365,7 @@ ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi;
-  rhoi = massDensity / mRhoConv;
+  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
   Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
