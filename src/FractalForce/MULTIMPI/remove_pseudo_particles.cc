@@ -7,22 +7,14 @@ namespace FractalSpace
   {
     if(!mem.periodic)
       return;
-    frac.p_file->FileFractal << " entered remove_particles " << frac.get_number_particles() << endl;
-    int counterR=0;
-    for(int particle=0; particle < frac.get_number_particles(); ++particle)
-      {
-	Particle* P=frac.particle_list[particle];
-	if(P->get_real_particle())
-	  {
-	    if(counterR < particle)
-	      frac.particle_list[counterR]=P;
-	    counterR++;
-	  }
-	else
-	  delete P;
-      }
-    frac.particle_list.resize(counterR);
-    frac.set_number_particles(counterR);
-    frac.p_file->FileFractal << " leaving remove_particles " << frac.get_number_particles() << endl;
+    ofstream& FF=frac.p_file->FileFractal;
+    FF << " entered remove_particles " << frac.get_number_particles() << endl;
+    FF << " Total number of particles entering Gather " << Particle::number_particles << endl;
+    int total=frac.pseudo_particle_list.size();
+    for(int particle=0;particle < total;particle++)
+      delete frac.pseudo_particle_list[particle];
+    frac.pseudo_particle_list.clear();
+    FF << " Total number of particles exiting Gather " << Particle::number_particles << endl;
+    FF << " leaving remove_particles " << frac.get_number_particles() << endl;
   }
 }  
