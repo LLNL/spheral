@@ -55,6 +55,7 @@ namespace FractalSpace
 		    Pb->set_posm(posp,m);
 		    Pb->set_real_particle(false);
 		    frac.particle_list.push_back(Pb);
+		    frac.pseudo_particle_list.push_back(Pb);
 		    //		    Pb->dump(mem.p_file->FileFractal);
 		  }
 	      }
