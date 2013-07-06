@@ -84,6 +84,7 @@ commandLine(seed = "constantDTheta",
             compatibleEnergy = True,
             gradhCorrection = False,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
@@ -330,11 +331,18 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralVisitDump
+    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
