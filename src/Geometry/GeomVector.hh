@@ -16,15 +16,13 @@
 
 #include <iostream>
 
-#include "GeomVectorBase.hh"
-
 namespace Spheral {
 
 template<int nDim> class GeomTensor;
 template<int nDim> class GeomSymmetricTensor;
 
 template<int nDim>
-class GeomVector: public GeomVectorBase<nDim> {
+class GeomVector {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -120,20 +118,16 @@ public:
   double maxElement() const;
   double maxAbsElement() const;
   double sumElements() const;
+
+private:
+  double* mData;
+
 };
 
 // Declare explicit specializations.
 template<> GeomVector<1>::GeomVector(const double, const double, const double);
 template<> GeomVector<2>::GeomVector(const double, const double, const double);
 template<> GeomVector<3>::GeomVector(const double, const double, const double);
-
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
-
-template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
 
 template<> double GeomVector<1>::y() const;
 template<> double GeomVector<1>::z() const;
@@ -142,10 +136,6 @@ template<> double GeomVector<2>::z() const;
 template<> void GeomVector<1>::y(const double val);
 template<> void GeomVector<1>::z(const double val);
 template<> void GeomVector<2>::z(const double val);
-
-template<> void GeomVector<1>::Zero();
-template<> void GeomVector<2>::Zero();
-template<> void GeomVector<3>::Zero();
 
 template<> GeomVector<1> GeomVector<1>::operator-() const;
 template<> GeomVector<2> GeomVector<2>::operator-() const;
