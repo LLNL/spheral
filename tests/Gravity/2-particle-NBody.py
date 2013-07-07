@@ -174,15 +174,19 @@ def sampleMethod(nodes, indices):
     pos = nodes.positions()
     vel = nodes.velocity()
     assert nodes.numInternalNodes == 2
+    r = (pos[1] - pos[0]).magnitude()
     return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z, 
-            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z)
+            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z,
+            0.5*(m[0]*vel[0].magnitude2() + m[1]*vel[1].magnitude2()),
+            -2.0*G*m[0]*m[1]/r)
 
 sampleNodes = [0, 1]  # We're going to sample both of our nodes!
 history = NodeHistory(nodes, sampleNodes, sampleMethod,
                       os.path.join(dataDir, "node_history.txt"),
                       header = "# Orbit history of a 2 earth (no sun) system.",
                       labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
-                                "m1", "x1", "y1", "z1", "vx1", "vy1", "vz1"))
+                                "m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
+                                "KE", "PE"))
 control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
