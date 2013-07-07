@@ -19,7 +19,7 @@ commandLine(
     # Initial particle stuff
     r0 = 1.0,                      # (m) Start stuff out at 1 m from center of mass
     m0 = 1.0e11,                   # (kg) particle mass
-    plummerLength = 1.0e-3,        # (m) Plummer softening scale
+    plummerLength = 1.0e-10,       # (m) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
@@ -122,7 +122,7 @@ gravity = QuadTreeGravity(G = G,
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = SynchronousRK4Integrator(db)
+integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
 integrator.lastDt = 1e-10    # seconds
 if dtMin:
