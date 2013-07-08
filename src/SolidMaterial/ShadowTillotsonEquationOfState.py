@@ -150,16 +150,19 @@ def _TillotsonFactory(*args,
 #-------------------------------------------------------------------------------
 # 1D
 def TillotsonEquationOfState1d(*args, **kwargs):
+    expectedUsageString
     kwargs["TillConstructor"] = RealTillotsonEquationOfState1d
     return _TillotsonFactory(*args, **kwargs)
 
 # 2D
 def TillotsonEquationOfState2d(*args, **kwargs):
+    expectedUsageString
     kwargs["TillConstructor"] = RealTillotsonEquationOfState2d
     return _TillotsonFactory(*args, **kwargs)
 
 # 3D
 def TillotsonEquationOfState3d(*args, **kwargs):
+    expectedUsageString
     kwargs["TillConstructor"] = RealTillotsonEquationOfState3d
     return _TillotsonFactory(*args, **kwargs)
 
