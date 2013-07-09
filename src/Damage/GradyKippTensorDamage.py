@@ -69,6 +69,7 @@ CGS = PhysicalConstants(0.01,   # unit length in m
 #-------------------------------------------------------------------------------
 GradyKippTensorDamageBAGenString = """
 class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
+    '''%(help)s'''
 
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
@@ -204,6 +205,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 #-------------------------------------------------------------------------------
 GradyKippTensorDamageOwenGenString = """
 class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
+    '''%(help)s'''
 
     def __init__(self, *args_in, **kwargs):
         args = list(args_in)
@@ -333,16 +335,16 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 #-------------------------------------------------------------------------------
 # GradyKippTensorDamageBenzAsphaug instantiations.
 #-------------------------------------------------------------------------------
-exec(GradyKippTensorDamageBAGenString % {"dim": "1d"})
-exec(GradyKippTensorDamageBAGenString % {"dim": "2d"})
-exec(GradyKippTensorDamageBAGenString % {"dim": "3d"})
+exec(GradyKippTensorDamageBAGenString % {"dim": "1d", "help": expectedUsageStringBA})
+exec(GradyKippTensorDamageBAGenString % {"dim": "2d", "help": expectedUsageStringBA})
+exec(GradyKippTensorDamageBAGenString % {"dim": "3d", "help": expectedUsageStringBA})
 
 #-------------------------------------------------------------------------------
 # GradyKippTensorDamageOwen instantiations.
 #-------------------------------------------------------------------------------
-exec(GradyKippTensorDamageOwenGenString % {"dim": "1d"})
-exec(GradyKippTensorDamageOwenGenString % {"dim": "2d"})
-exec(GradyKippTensorDamageOwenGenString % {"dim": "3d"})
+exec(GradyKippTensorDamageOwenGenString % {"dim": "1d", "help": expectedUsageStringO})
+exec(GradyKippTensorDamageOwenGenString % {"dim": "2d", "help": expectedUsageStringO})
+exec(GradyKippTensorDamageOwenGenString % {"dim": "3d", "help": expectedUsageStringO})
 
 #-------------------------------------------------------------------------------
 # Aliases

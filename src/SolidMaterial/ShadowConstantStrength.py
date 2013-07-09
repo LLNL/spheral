@@ -114,16 +114,19 @@ def _ConstantStrengthFactory(*args,
 #-------------------------------------------------------------------------------
 # 1D
 def ConstantStrength1d(*args, **kwargs):
+    expectedUsageString
     kwargs["CSConstructor"] = RealConstantStrength1d
     return _ConstantStrengthFactory(*args, **kwargs)
 
 # 2D
 def ConstantStrength2d(*args, **kwargs):
+    expectedUsageString
     kwargs["CSConstructor"] = RealConstantStrength2d
     return _ConstantStrengthFactory(*args, **kwargs)
 
 # 3D
 def ConstantStrength3d(*args, **kwargs):
+    expectedUsageString
     kwargs["CSConstructor"] = RealConstantStrength3d
     return _ConstantStrengthFactory(*args, **kwargs)
 
