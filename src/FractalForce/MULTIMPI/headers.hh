@@ -132,6 +132,7 @@ namespace FractalSpace
   void test_gal(Fractal_Memory& mem,Fractal& fractal);
   bool test_group(Group& group);
   bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal);
+  void tree_dump(Fractal_Memory& FM);
   void tree_start(Group& group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);

@@ -80,35 +80,16 @@ namespace FractalSpace
 	BigBlocks[ni][3]=pos_left_safe[1]+BigBlocks[ni][3]*dy;
 	BigBlocks[ni][4]=pos_left_safe[2]+BigBlocks[ni][4]*dz;
 	BigBlocks[ni][5]=pos_left_safe[2]+BigBlocks[ni][5]*dz;
-	//	FF << " big " << ni << " ";
-	//	for(int i=0;i<6;i++)
-	//	  FF << BigBlocks[ni][i] << " ";
-	//	FF << endl;
       }
     vector < vector <int> > LookHere(blocks3);
     for(int bl=0;bl<blocks3;bl++)
       {
-	//	FF << " Look " << bl << " ";
-	//	for(int ni=0;ni<6;ni++)
-	//	  FF << BigBlocks[bl][ni] << " " ;
-	//	FF << endl;
 	for(int FR=0;FR<FractalNodes;FR++)
 	  {
 	    if(overlap_boxes(mem.RealPBoxes[FR],BigBlocks[bl]))
 	      {
 		LookHere[bl].push_back(FR);
-		//		FF << " good FR " << FR << " ";
-		//		for(int ni=0;ni<6;ni++)
-		//		  FF << mem.RealPBoxes[FR][ni] << " ";
-		//		FF << endl;
 	      }
-	    //	    else
-	    //	      {
-		//		FF << " bad FR " << FR << " ";
-		//		for(int ni=0;ni<6;ni++)
-		//		  FF << mem.RealPBoxes[FR][ni] << " ";
-		//		FF << endl;
-	    //	      }
 	  }
       }
     FF << " finished with big blocks" << endl;
@@ -140,9 +121,7 @@ namespace FractalSpace
 	    dataR_out[FR].push_back(P->get_mass());
 	    dataI_out[FR].push_back(part);
 	    counts_out[FR]++;
-	    //	    success=true;
 	  }
-	//	assert(success);
       }
 
     vector <int> counts_in(FractalNodes);
@@ -158,7 +137,7 @@ namespace FractalSpace
     FF << "send stuff to other nodes a " << endl;
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     FF << "send stuff to other nodes b " << endl;
-    mem.p_mess->Send_Data_Somewhere_Faster(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
 				    dataI_out,dataI_in,how_manyI,
 				    dataR_out,dataR_in,how_manyR);
     FF << "send stuff to other nodes c " << endl;
@@ -173,23 +152,46 @@ namespace FractalSpace
     if(mem.calc_shear)
       field_length=6;
     const bool change_it= field_length > 4;
+    vector <double>testRBox(6);
+    //    testRBox=mem.RealPBoxes[FractalRank];
+    //    vector <double>testRPos(3);
     int particle=0;
     int p4=-1;
     Particle* P=0;
+    //    bool allok=true;
     for(int FR=0;FR<FractalNodes;FR++)
       {
+	FF << " testing " << FR << endl;
 	for(int c=0;c<counts_in[FR];c++)
 	  {
+	    //	    FF << " testing " << FR << " " << c << endl;
 	    P=&particles_tmp[particle];
 	    assert(P);
 	    frac.particle_list[particle]=P;
 	    p4=particle*4;
 	    P->set_posmIFR(dataR_in[p4],dataR_in[p4+1],dataR_in[p4+2],dataR_in[p4+3],dataI_in[particle],FR);
+	    //
+	    /*
+	    testRPos[0]=dataR_in[p4];
+	    testRPos[1]=dataR_in[p4+1];
+	    testRPos[2]=dataR_in[p4+2];
+	    if(!vector_in_box(testRPos,testRBox))
+	      {
+		allok=false;
+		FF << " Outside the Box " << FR << " " << c << " " << testRPos[0] << " " << testRPos[1] << " " << testRPos[2];
+		FF << " " << testRBox[0] << " " << testRBox[1] << " " << testRBox[2];
+		FF << " " << testRBox[3] << " " << testRBox[4] << " " << testRBox[5] << endl;
+	      }
+	    */
+	    //
 	    if(change_it)
 	      P->field_resize(field_length);
 	    particle++;
 	  }
       }
     frac.set_number_particles(particle);
+    //
+    //    mem.p_mess->Full_Stop();
+    //    assert(0);
   }
 }

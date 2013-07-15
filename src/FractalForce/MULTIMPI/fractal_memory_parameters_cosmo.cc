@@ -13,7 +13,7 @@ namespace FractalSpace
     cout << " enter parameters " << endl;
     mem.BaseDirectory="/p/lscratchc/jensv/";
     //base directory
-    mem.RUN="cosmo_run_mpi";
+    mem.RUN="test";
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
@@ -64,11 +64,13 @@ namespace FractalSpace
     // Does extra testing and prints out a bunch of diagnostics
     mem.new_points_gen=9;
     //Generate this many Points in each go
-    mem.number_steps_total=903;
+    mem.number_steps_total=906;
     // Total number of steps
     mem.number_steps_out=100;
     // Output how often
     mem.redshift_start=99.0;
+    // step length
+    mem.step_length=0.025;
     // initial redshift
     mem.omega_0=0.3;
     // Omega_matter at current epoch, NOT initial epoch.

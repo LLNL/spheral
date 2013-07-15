@@ -524,6 +524,8 @@ namespace FractalSpace
     // Clean up all dynamically allocated memory except fractal
     //--------------------------------------------------------------------------
     groups_level(fractal,fractal_memory.all_groups);
+    if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
+      tree_dump(fractal_memory);
     fractal.timing(-1,26);
     clean_up(fractal_memory,misc,fractal_ghost);
     fractal.timing(1,26);

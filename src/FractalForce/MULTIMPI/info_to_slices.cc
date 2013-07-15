@@ -54,7 +54,7 @@ namespace FractalSpace
     mem.p_file->note(true," info to slices a ");
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," info to slices b ");
-    mem.p_mess->Send_Data_Somewhere_Faster(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
 				    dataI_out,dataI_in,how_manyI,
 				    dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," info to slices c ");

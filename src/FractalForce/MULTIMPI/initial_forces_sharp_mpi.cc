@@ -124,13 +124,13 @@ namespace FractalSpace
 	      }
 	    else if(mem.norm_what == 1 || mem.norm_what==2)
 	      {
-		assert(0);
 		var_obs_0=((1.0-a)*variance_force_s[n1]+a*variance_force_s[n1+1]);
+		assert(0);
 	      }
 	    else if(mem.norm_what == 3)
 	      {
-		assert(0);
 		var_obs_0=((1.0-a)*variance_pot[n1]+a*variance_pot[n1+1]);
+		assert(0);
 	      }
 	    else
 	      assert(0);

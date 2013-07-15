@@ -18,6 +18,7 @@ namespace FractalSpace
     double slope3=slope+3.0;
     double expo=1.0/(3.0+slope);
     double twopi=8.0*atan(1.0);
+    double m=total_mass/static_cast<double>(numbers);
     for(int ni=0;ni<numbers;ni++)
       {
 	double r1=Fractal::my_rand(rand_max);
@@ -36,6 +37,7 @@ namespace FractalSpace
 	velx[ni]=-sphi*vt;
 	vely[ni]=cphi*vt;
 	velz[ni]=0.0;
+	masses[ni]=m;
       }
   }
 }

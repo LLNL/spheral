@@ -26,6 +26,8 @@ namespace FractalSpace
     ofstream FilePos;
     ofstream FileTimeLev;
     ofstream FileTime;
+    ofstream FileTree;
+    ofstream FileSurface;
     File()
     {
     }
@@ -71,6 +73,8 @@ namespace FractalSpace
       generate_file(FilePos,Directory+"pos.d");
       generate_file(FileTimeLev,Directory+"time_lev.d");
       generate_file(FileTime,Directory+"time.d");
+      generate_file(FileTree,Directory+"tree.d");
+      generate_file(FileSurface,Directory+"surface.d");
 
       FileMom.precision(5);
       FileForce.precision(5);
@@ -117,6 +121,8 @@ namespace FractalSpace
       FilePos.close();
       FileTimeLev.close();
       FileTime.close();
+      FileTree.close();
+      FileSurface.close();
     }
   };
 }

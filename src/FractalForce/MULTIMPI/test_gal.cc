@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void test_gal(Fractal_Memory& mem,Fractal& fractal)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileFractal=mem.p_file->FileFractal;
     FileFractal << " Made It test_gal a " << endl;
     //    double rand_max=(double)RAND_MAX;
     //    double rmax=1.0e-5;

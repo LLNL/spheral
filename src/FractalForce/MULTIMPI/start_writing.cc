@@ -10,7 +10,6 @@ namespace FractalSpace
 		     vector<double>& velx,vector<double>& vely,vector<double>& velz,vector<double>& masses)
   {
     ofstream& FilePos=PFM->p_file->FilePos;
-    int NP=PFM->number_particles;
     vector <double> pf(4);
     double conv_pot=G/(xmax[0]-xmin[0]);
     double conv_force=conv_pot/(xmax[0]-xmin[0]);
@@ -18,7 +17,7 @@ namespace FractalSpace
     double timevar=PFM->time;
     if(period)
       timevar=PFM->arad;
-    for(int ni=0;ni<NP;ni++)
+    for(int ni=0;ni<Numberparticles;ni++)
       {
 	PFM->p_fractal->particle_list[ni]->get_field_pf(pf);
 	int lev=PFM->p_fractal->particle_list[ni]->get_highest_level();
