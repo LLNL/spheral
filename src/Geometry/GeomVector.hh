@@ -16,15 +16,13 @@
 
 #include <iostream>
 
-#include "GeomVectorBase.hh"
-
 namespace Spheral {
 
 template<int nDim> class GeomTensor;
 template<int nDim> class GeomSymmetricTensor;
 
-template<int nDim>
-class GeomVector: public GeomVectorBase<nDim> {
+template<int nDim, bool ownMemory = true>
+class GeomVector {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -41,13 +39,13 @@ public:
   GeomVector(const double x = 0.0,
              const double y = 0.0,
              const double z = 0.0);
-  GeomVector(const GeomVector& vec);
+  template<bool otherMemory> GeomVector(const GeomVector<nDim, otherMemory>& vec);
 
   // Destructor.
   ~GeomVector();
 
   // Assignment.
-  GeomVector& operator=(const GeomVector<nDim>& vec);
+  template<bool otherMemory> GeomVector& operator=(const GeomVector<nDim, otherMemory>& vec);
   GeomVector& operator=(const double val);
 
   // Allow the elements by indicies.
@@ -73,46 +71,46 @@ public:
   void Zero();
 
   // Mathematical operators.
-  GeomVector operator-() const;
+  GeomVector<nDim, true> operator-() const;
 
-  GeomVector operator+(const GeomVector& vec) const;
-  GeomVector operator-(const GeomVector& vec) const;
-  GeomVector operator+(const double val) const;
-  GeomVector operator-(const double val) const;
-  GeomVector operator*(const double val) const;
-  GeomVector operator/(const double val) const;
+  template<bool otherMemory> GeomVector<nDim, true> operator+(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> GeomVector<nDim, true> operator-(const GeomVector<nDim, otherMemory>& vec) const;
+  GeomVector<nDim, true> operator+(const double val) const;
+  GeomVector<nDim, true> operator-(const double val) const;
+  GeomVector<nDim, true> operator*(const double val) const;
+  GeomVector<nDim, true> operator/(const double val) const;
 
-  GeomVector& operator+=(const GeomVector& vec);
-  GeomVector& operator-=(const GeomVector& vec);
+  template<bool otherMemory> GeomVector& operator+=(const GeomVector<nDim, otherMemory>& vec);
+  template<bool otherMemory> GeomVector& operator-=(const GeomVector<nDim, otherMemory>& vec);
   GeomVector& operator+=(const double val);
   GeomVector& operator-=(const double val);
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
-  int compare(const GeomVector& vec) const;
+  template<bool otherMemory> int compare(const GeomVector<nDim, otherMemory>& vec) const;
   int compare(const double val) const;
 
-  bool operator==(const GeomVector& vec) const;
-  bool operator!=(const GeomVector& vec) const;
-  bool operator<(const GeomVector& vec) const;
-  bool operator>(const GeomVector& vec) const;
-  bool operator<=(const GeomVector& vec) const;
-  bool operator>=(const GeomVector& vec) const;
+  template<bool otherMemory> bool operator==(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> bool operator!=(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> bool operator< (const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> bool operator> (const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> bool operator<=(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> bool operator>=(const GeomVector<nDim, otherMemory>& vec) const;
 
   bool operator==(const double val) const;
   bool operator!=(const double val) const;
-  bool operator<(const double val) const;
-  bool operator>(const double val) const;
+  bool operator< (const double val) const;
+  bool operator> (const double val) const;
   bool operator<=(const double val) const;
   bool operator>=(const double val) const;
 
-  double dot(const GeomVector& vec) const;
-  GeomVector<3> cross(const GeomVector& vec) const;
-  GeomTensor<nDim> dyad(const GeomVector& rhs) const;
+  template<bool otherMemory> double dot(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> GeomVector<3, true> cross(const GeomVector<nDim, otherMemory>& vec) const;
+  template<bool otherMemory> GeomTensor<nDim> dyad(const GeomVector<nDim, otherMemory>& rhs) const;
   GeomSymmetricTensor<nDim> selfdyad() const;
-  GeomTensor<nDim> operator*(const GeomVector& vec) const;
+  template<bool otherMemory> GeomTensor<nDim> operator*(const GeomVector<nDim, otherMemory>& vec) const;
 
-  GeomVector unitVector() const;
+  GeomVector<nDim, true> unitVector() const;
 
   double magnitude() const;
   double magnitude2() const;
@@ -120,143 +118,143 @@ public:
   double maxElement() const;
   double maxAbsElement() const;
   double sumElements() const;
+
+private:
+  double* mData;
+
+  //  friend class GeomVector<nDim, !ownMemory>;
 };
 
 // Declare explicit specializations.
-template<> GeomVector<1>::GeomVector(const double, const double, const double);
-template<> GeomVector<2>::GeomVector(const double, const double, const double);
-template<> GeomVector<3>::GeomVector(const double, const double, const double);
+template<> GeomVector<1, true>::GeomVector(const double, const double, const double);
+template<> GeomVector<2, true>::GeomVector(const double, const double, const double);
+template<> GeomVector<3, true>::GeomVector(const double, const double, const double);
 
-template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
+template<int nDim>
+template<bool otherMemory>
+GeomVector<nDim, true>::GeomVector(const GeomVector<nDim, otherMemory>& vec);
 
-template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
+template<int nDim> GeomVector<nDim, true>::~GeomVector();
+template<int nDim> GeomVector<nDim, false>::~GeomVector();
 
-template<> double GeomVector<1>::y() const;
-template<> double GeomVector<1>::z() const;
-template<> double GeomVector<2>::z() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::y() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::z() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::z() const;
 
-template<> void GeomVector<1>::y(const double val);
-template<> void GeomVector<1>::z(const double val);
-template<> void GeomVector<2>::z(const double val);
+template<bool ownMemory> void GeomVector<1, ownMemory>::y(const double val);
+template<bool ownMemory> void GeomVector<1, ownMemory>::z(const double val);
+template<bool ownMemory> void GeomVector<2, ownMemory>::z(const double val);
 
-template<> void GeomVector<1>::Zero();
-template<> void GeomVector<2>::Zero();
-template<> void GeomVector<3>::Zero();
+template<bool ownMemory> GeomVector<1, ownMemory> GeomVector<1, ownMemory>::operator-() const;
+template<bool ownMemory> GeomVector<2, ownMemory> GeomVector<2, ownMemory>::operator-() const;
+template<bool ownMemory> GeomVector<3, ownMemory> GeomVector<3, ownMemory>::operator-() const;
 
-template<> GeomVector<1> GeomVector<1>::operator-() const;
-template<> GeomVector<2> GeomVector<2>::operator-() const;
-template<> GeomVector<3> GeomVector<3>::operator-() const;
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator+=(const GeomVector<1, ownMemory>& vec);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator+=(const GeomVector<2, ownMemory>& vec);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator+=(const GeomVector<3, ownMemory>& vec);
 
-template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator-=(const GeomVector<1, ownMemory>& vec);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator-=(const GeomVector<2, ownMemory>& vec);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator-=(const GeomVector<3, ownMemory>& vec);
 
-template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator+=(const double val);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator+=(const double val);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator+=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator+=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator+=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator+=(const double val);
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator-=(const double val);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator-=(const double val);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator-=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator-=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator-=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator-=(const double val);
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator*=(const double val);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator*=(const double val);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator*=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator*=(const double val);
+template<bool ownMemory> GeomVector<1, ownMemory>& GeomVector<1, ownMemory>::operator/=(const double val);
+template<bool ownMemory> GeomVector<2, ownMemory>& GeomVector<2, ownMemory>::operator/=(const double val);
+template<bool ownMemory> GeomVector<3, ownMemory>& GeomVector<3, ownMemory>::operator/=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator/=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator/=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator/=(const double val);
+template<bool ownMemory> template<bool otherMemory> int GeomVector<1, ownMemory>::compare(const GeomVector<1, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> int GeomVector<2, ownMemory>::compare(const GeomVector<2, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> int GeomVector<3, ownMemory>::compare(const GeomVector<3, otherMemory>& vec) const;
 
-template<> int GeomVector<1>::compare(const GeomVector<1>& vec) const;
-template<> int GeomVector<2>::compare(const GeomVector<2>& vec) const;
-template<> int GeomVector<3>::compare(const GeomVector<3>& vec) const;
+template<bool ownMemory> int GeomVector<1, ownMemory>::compare(const double val) const;
+template<bool ownMemory> int GeomVector<2, ownMemory>::compare(const double val) const;
+template<bool ownMemory> int GeomVector<3, ownMemory>::compare(const double val) const;
 
-template<> int GeomVector<1>::compare(const double val) const;
-template<> int GeomVector<2>::compare(const double val) const;
-template<> int GeomVector<3>::compare(const double val) const;
+template<bool ownMemory> template<bool otherMemory> bool GeomVector<1, ownMemory>::operator==(const GeomVector<1, ownMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> bool GeomVector<2, ownMemory>::operator==(const GeomVector<2, ownMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> bool GeomVector<3, ownMemory>::operator==(const GeomVector<3, ownMemory>& vec) const;
 
-template<> bool GeomVector<1>::operator==(const GeomVector<1>& vec) const;
-template<> bool GeomVector<2>::operator==(const GeomVector<2>& vec) const;
-template<> bool GeomVector<3>::operator==(const GeomVector<3>& vec) const;
+template<bool ownMemory> bool GeomVector<1, ownMemory>::operator==(const double val) const;
+template<bool ownMemory> bool GeomVector<2, ownMemory>::operator==(const double val) const;
+template<bool ownMemory> bool GeomVector<3, ownMemory>::operator==(const double val) const;
 
-template<> bool GeomVector<1>::operator==(const double val) const;
-template<> bool GeomVector<2>::operator==(const double val) const;
-template<> bool GeomVector<3>::operator==(const double val) const;
+template<bool ownMemory> template<bool otherMemory> double GeomVector<1, ownMemory>::dot(const GeomVector<1, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> double GeomVector<2, ownMemory>::dot(const GeomVector<2, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> double GeomVector<3, ownMemory>::dot(const GeomVector<3, otherMemory>& vec) const;
 
-template<> double GeomVector<1>::dot(const GeomVector<1>& vec) const;
-template<> double GeomVector<2>::dot(const GeomVector<2>& vec) const;
-template<> double GeomVector<3>::dot(const GeomVector<3>& vec) const;
+template<bool ownMemory> template<bool otherMemory> GeomVector<3, true> GeomVector<1, ownMemory>::cross(const GeomVector<1, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> GeomVector<3, true> GeomVector<2, ownMemory>::cross(const GeomVector<2, otherMemory>& vec) const;
+template<bool ownMemory> template<bool otherMemory> GeomVector<3, true> GeomVector<3, ownMemory>::cross(const GeomVector<3, otherMemory>& vec) const;
 
-template<> GeomVector<3> GeomVector<1>::cross(const GeomVector<1>& vec) const;
-template<> GeomVector<3> GeomVector<2>::cross(const GeomVector<2>& vec) const;
-template<> GeomVector<3> GeomVector<3>::cross(const GeomVector<3>& vec) const;
+template<bool ownMemory> template<bool otherMemory> GeomTensor<1, ownMemory> GeomVector<1, ownMemory>::dyad(const GeomVector<1, ownMemory>& rhs) const;
+template<bool ownMemory> template<bool otherMemory> GeomTensor<2, ownMemory> GeomVector<2, ownMemory>::dyad(const GeomVector<2, ownMemory>& rhs) const;
+template<bool ownMemory> template<bool otherMemory> GeomTensor<3, ownMemory> GeomVector<3, ownMemory>::dyad(const GeomVector<3, ownMemory>& rhs) const;
 
-template<> GeomTensor<1> GeomVector<1>::dyad(const GeomVector<1>& rhs) const;
-template<> GeomTensor<2> GeomVector<2>::dyad(const GeomVector<2>& rhs) const;
-template<> GeomTensor<3> GeomVector<3>::dyad(const GeomVector<3>& rhs) const;
+template<bool ownMemory> GeomSymmetricTensor<1, ownMemory> GeomVector<1, ownMemory>::selfdyad() const;
+template<bool ownMemory> GeomSymmetricTensor<2, ownMemory> GeomVector<2, ownMemory>::selfdyad() const;
+template<bool ownMemory> GeomSymmetricTensor<3, ownMemory> GeomVector<3, ownMemory>::selfdyad() const;
 
-template<> GeomSymmetricTensor<1> GeomVector<1>::selfdyad() const;
-template<> GeomSymmetricTensor<2> GeomVector<2>::selfdyad() const;
-template<> GeomSymmetricTensor<3> GeomVector<3>::selfdyad() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::magnitude() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::magnitude() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::magnitude() const;
 
-template<> double GeomVector<1>::magnitude() const;
-template<> double GeomVector<2>::magnitude() const;
-template<> double GeomVector<3>::magnitude() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::magnitude2() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::magnitude2() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::magnitude2() const;
 
-template<> double GeomVector<1>::magnitude2() const;
-template<> double GeomVector<2>::magnitude2() const;
-template<> double GeomVector<3>::magnitude2() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::minElement() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::minElement() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::minElement() const;
 
-template<> double GeomVector<1>::minElement() const;
-template<> double GeomVector<2>::minElement() const;
-template<> double GeomVector<3>::minElement() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::maxElement() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::maxElement() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::maxElement() const;
 
-template<> double GeomVector<1>::maxElement() const;
-template<> double GeomVector<2>::maxElement() const;
-template<> double GeomVector<3>::maxElement() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::maxAbsElement() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::maxAbsElement() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::maxAbsElement() const;
 
-template<> double GeomVector<1>::maxAbsElement() const;
-template<> double GeomVector<2>::maxAbsElement() const;
-template<> double GeomVector<3>::maxAbsElement() const;
-
-template<> double GeomVector<1>::sumElements() const;
-template<> double GeomVector<2>::sumElements() const;
-template<> double GeomVector<3>::sumElements() const;
+template<bool ownMemory> double GeomVector<1, ownMemory>::sumElements() const;
+template<bool ownMemory> double GeomVector<2, ownMemory>::sumElements() const;
+template<bool ownMemory> double GeomVector<3, ownMemory>::sumElements() const;
 
 // Forward declare the global functions.
-template<int nDim> GeomVector<nDim> operator+(const double val, const GeomVector<nDim>& vec);
-template<int nDim> GeomVector<nDim> operator-(const double val, const GeomVector<nDim>& vec);
-template<int nDim> GeomVector<nDim> operator*(const double val, const GeomVector<nDim>& vec);
+template<int nDim, bool ownMemory> GeomVector<nDim> operator+(const double val, const GeomVector<nDim, ownMemory>& vec);
+template<int nDim, bool ownMemory> GeomVector<nDim> operator-(const double val, const GeomVector<nDim, ownMemory>& vec);
+template<int nDim, bool ownMemory> GeomVector<nDim> operator*(const double val, const GeomVector<nDim, ownMemory>& vec);
 
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
                                                    const GeomVector<nDim>& rhs);
 template<int nDim> GeomVector<nDim> elementWiseMax(const GeomVector<nDim>& lhs,
                                                    const GeomVector<nDim>& rhs);
 
-template<> GeomVector<1> elementWiseMin(const GeomVector<1>& lhs,
-                                        const GeomVector<1>& rhs);
-template<> GeomVector<2> elementWiseMin(const GeomVector<2>& lhs,
-                                        const GeomVector<2>& rhs);
-template<> GeomVector<3> elementWiseMin(const GeomVector<3>& lhs,
-                                        const GeomVector<3>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<1> elementWiseMin(const GeomVector<1, ownMemory>& lhs,
+                                                                        const GeomVector<1, otherMemory>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<2> elementWiseMin(const GeomVector<2, ownMemory>& lhs,
+                                                                        const GeomVector<2, otherMemory>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<3> elementWiseMin(const GeomVector<3, ownMemory>& lhs,
+                                                                        const GeomVector<3, otherMemory>& rhs);
 
-template<> GeomVector<1> elementWiseMax(const GeomVector<1>& lhs,
-                                        const GeomVector<1>& rhs);
-template<> GeomVector<2> elementWiseMax(const GeomVector<2>& lhs,
-                                        const GeomVector<2>& rhs);
-template<> GeomVector<3> elementWiseMax(const GeomVector<3>& lhs,
-                                        const GeomVector<3>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<1> elementWiseMax(const GeomVector<1, ownMemory>& lhs,
+                                                                        const GeomVector<1, otherMemory>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<2> elementWiseMax(const GeomVector<2, ownMemory>& lhs,
+                                                                        const GeomVector<2, otherMemory>& rhs);
+template<bool ownMemory, bool otherMemory> GeomVector<3> elementWiseMax(const GeomVector<3, ownMemory>& lhs,
+                                                                        const GeomVector<3, otherMemory>& rhs);
 
-template<int nDim> std::istream& operator>>(std::istream& is, GeomVector<nDim>& vec);
-template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomVector<nDim>& vec);
+template<int nDim, bool ownMemory> std::istream& operator>>(std::istream& is, GeomVector<nDim, ownMemory>& vec);
+template<int nDim, bool ownMemory> std::ostream& operator<<(std::ostream& os, const GeomVector<nDim, ownMemory>& vec);
 
 }
 
@@ -268,7 +266,7 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomVector<n
 
 // Forward declare the GeomVector class.
 namespace Spheral {
-  template<int nDim> class GeomVector;
+  template<int nDim, bool ownMemory = true> class GeomVector;
 }
 
 #endif
