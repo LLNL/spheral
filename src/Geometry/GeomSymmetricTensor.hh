@@ -17,13 +17,13 @@
 
 #include <iostream>
 
-#include "GeomSymmetricTensorBase.hh"
+#include "Geometry/GeomVector_fwd.hh"
+#include "Geometry/GeomTensor_fwd.hh"
+#include "Geometry/GeomSymmetricTensor_fwd.hh"
+#include "Geometry/EigenStruct_fwd.hh"
+#include "Geometry/GeomSymmetricTensorBase.hh"
 
 namespace Spheral {
-
-template<int nDim> class GeomVector;
-template<int nDim> class GeomTensor;
-template<int nDim> struct EigenStruct;
 
 template<int nDim>
 class GeomSymmetricTensor: public GeomSymmetricTensorBase<nDim> {
@@ -443,12 +443,5 @@ template<int nDim> ::std::ostream& operator<<(::std::ostream& os, const GeomSymm
 #ifndef __GCCXML__
 #include "GeomSymmetricTensorInline.hh"
 #endif
-
-#else
-
-// Forward declare the GeomSymmetricTensor class.
-namespace Spheral {
-  template<int nDim> class GeomSymmetricTensor;
-}
 
 #endif

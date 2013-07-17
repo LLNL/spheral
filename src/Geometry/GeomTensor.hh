@@ -17,12 +17,12 @@
 
 #include <iostream>
 
-#include "GeomTensorBase.hh"
+#include "Geometry/GeomVector_fwd.hh"
+#include "Geometry/GeomTensor_fwd.hh"
+#include "Geometry/GeomSymmetricTensor_fwd.hh"
+#include "Geometry/GeomTensorBase.hh"
 
 namespace Spheral {
-
-template<int nDim> class GeomVector;
-template<int nDim> class GeomSymmetricTensor;
 
 template<int nDim>
 class GeomTensor: public GeomTensorBase<nDim> {
@@ -415,12 +415,5 @@ template<int nDim> std::ostream& operator<<(std::ostream& os, const GeomTensor<n
 #ifndef __GCCXML__
 #include "GeomTensorInline.hh"
 #endif
-
-#else
-
-// Forward declare the GeomTensor class.
-namespace Spheral {
-  template<int nDim> class GeomTensor;
-}
 
 #endif
