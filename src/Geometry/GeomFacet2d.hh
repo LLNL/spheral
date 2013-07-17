@@ -13,9 +13,9 @@
 #include <vector>
 #include <iostream>
 
-namespace Spheral {
+#include "Geometry/GeomVector_fwd.hh"
 
-template<int nDim> class GeomVector;
+namespace Spheral {
 
 class GeomFacet2d {
 public:

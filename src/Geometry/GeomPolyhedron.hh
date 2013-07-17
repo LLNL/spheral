@@ -15,8 +15,6 @@
 
 namespace Spheral {
 
-template<int nDim> class GeomVector;
-
 class GeomPolyhedron {
 public:
   //--------------------------- Public Interface ---------------------------//

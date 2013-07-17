@@ -13,7 +13,7 @@
 
 namespace Spheral {
 
-template<int nDim> class GeomVector;
+template<int nDim, bool ownMemory> class GeomVector;
 template<int nDim> class GeomTensor;
 template<int nDim> class GeomSymmetricTensor;
 

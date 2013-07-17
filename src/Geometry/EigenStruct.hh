@@ -4,14 +4,17 @@
 //
 // Created by J. Michael Owen, Thu Dec 28 16:10:05 PST 2000
 //----------------------------------------------------------------------------//
-#ifndef EigenStruct_HH
-#define EigenStruct_HH
+#ifndef __Spheral_EigenStruct_hh__
+#define __Spheral_EigenStruct_hh__
 
 #include <iostream>
+#include "Geometry/GeomVector_fwd.hh"
+#include "Geometry/GeomTensor_fwd.hh"
+#include "Geometry/GeomSymmetricTensor_fwd.hh"
 
 namespace Spheral {
 
-template<int nDim> class GeomVector;
+template<int nDim, bool ownMemory> class GeomVector;
 template<int nDim> class GeomTensor;
 
 // EigenStruct
@@ -47,12 +50,5 @@ template<int nDim> std::ostream& operator<<(::std::ostream os, Spheral::EigenStr
 #ifndef __GCCXML__
 #include "EigenStructInline.hh"
 #endif
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<int nDim> struct EigenStruct;
-}
 
 #endif

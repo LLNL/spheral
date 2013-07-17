@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 #include <limits.h>
 #include <math.h>
 #include <cfloat>
@@ -49,13 +50,34 @@ GeomVector(const double x,
 //------------------------------------------------------------------------------
 // Copy constructors.
 //------------------------------------------------------------------------------
-template<int nDim>
+template<>
 template<bool otherMemory> 
 inline
-GeomVector<nDim, true>::
-GeomVector(const GeomVector<nDim, otherMemory>& vec):
-  mData(new double[nDim]) {
-  std::copy(vec.mData, vec.mData + nDim, mData);
+GeomVector<1, true>::
+GeomVector(const GeomVector<1, otherMemory>& vec):
+  mData(new double[1]) {
+  mData[0] = vec.mData[0];
+}
+
+template<>
+template<bool otherMemory> 
+inline
+GeomVector<2, true>::
+GeomVector(const GeomVector<2, otherMemory>& vec):
+  mData(new double[2]) {
+  mData[0] = vec.mData[0];
+  mData[1] = vec.mData[1];
+}
+
+template<>
+template<bool otherMemory> 
+inline
+GeomVector<3, true>::
+GeomVector(const GeomVector<3, otherMemory>& vec):
+  mData(new double[3]) {
+  mData[0] = vec.mData[0];
+  mData[1] = vec.mData[1];
+  mData[2] = vec.mData[2];
 }
 
 //------------------------------------------------------------------------------
@@ -84,16 +106,42 @@ GeomVector<nDim, ownMemory>::operator=(const double val) {
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-template<int nDim>
+template<>
 inline
-GeomVector<nDim, true>::
+GeomVector<1, true>::
 ~GeomVector() {
   delete [] mData;
 }
 
-template<int nDim>
+template<>
 inline
-GeomVector<nDim, false>::
+GeomVector<2, true>::
+~GeomVector() {
+  delete [] mData;
+}
+
+template<>
+inline
+GeomVector<3, true>::
+~GeomVector() {
+  delete [] mData;
+}
+
+template<>
+inline
+GeomVector<1, false>::
+~GeomVector() {
+}
+
+template<>
+inline
+GeomVector<2, false>::
+~GeomVector() {
+}
+
+template<>
+inline
+GeomVector<3, false>::
 ~GeomVector() {
 }
 
@@ -137,16 +185,7 @@ inline
 double
 GeomVector<nDim, ownMemory>::
 y() const {
-  REQUIRE(nDim > 1);
-  return mData[1];
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<1, ownMemory>::
-y() const {
-  return 0.0;
+  return (1 < nDim ? mData[1] : 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -157,24 +196,7 @@ inline
 double
 GeomVector<nDim, ownMemory>::
 z() const {
-  REQUIRE(nDim > 2);
-  return mData[2];
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<1, ownMemory>::
-z() const {
-  return 0.0;
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-z() const {
-  return 0.0;
+  return (2 < nDim ? mData[2] : 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -196,15 +218,7 @@ inline
 void
 GeomVector<nDim, ownMemory>::
 y(const double val) {
-  REQUIRE(nDim > 1);
-  mData[1] = val;
-}
-
-template<bool ownMemory>
-inline
-void
-GeomVector<1, ownMemory>::
-y(const double val) {
+  if (1 < nDim) mData[1] = val;
 }
 
 //------------------------------------------------------------------------------
@@ -215,22 +229,7 @@ inline
 void
 GeomVector<nDim, ownMemory>::
 z(const double val) {
-  REQUIRE(nDim > 2);
-  mData[2] = val;
-}
-
-template<bool ownMemory>
-inline
-void
-GeomVector<1, ownMemory>::
-z(const double val) {
-}
-
-template<bool ownMemory>
-inline
-void
-GeomVector<2, ownMemory>::
-z(const double val) {
+  if (2 < nDim) mData[2] = val;
 }
 
 //------------------------------------------------------------------------------
@@ -240,7 +239,7 @@ z(const double val) {
 template<int nDim, bool ownMemory>
 inline
 typename GeomVector<nDim, ownMemory>::iterator
-GeomVector<nDim>::
+GeomVector<nDim, ownMemory>::
 begin() {
   return &mData[0];
 }
@@ -248,7 +247,7 @@ begin() {
 template<int nDim, bool ownMemory>
 inline
 typename GeomVector<nDim, ownMemory>::iterator
-GeomVector<nDim>::
+GeomVector<nDim, ownMemory>::
 end() {
   return &mData[nDim];
 }
@@ -257,7 +256,7 @@ end() {
 template<int nDim, bool ownMemory>
 inline
 typename GeomVector<nDim, ownMemory>::const_iterator
-GeomVector<nDim>::
+GeomVector<nDim, ownMemory>::
 begin() const {
   return &mData[0];
 }
@@ -265,7 +264,7 @@ begin() const {
 template<int nDim, bool ownMemory>
 inline
 typename GeomVector<nDim, ownMemory>::const_iterator
-GeomVector<nDim>::
+GeomVector<nDim, ownMemory>::
 end() const {
   return &mData[nDim];
 }
@@ -284,26 +283,50 @@ Zero() {
 //------------------------------------------------------------------------------
 // Return the negative of a vector.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
 GeomVector<1>
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 operator-() const {
   return GeomVector<1>(-(mData[0]));
 }
 
-template<bool ownMemory>
+template<>
 inline
 GeomVector<2>
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 operator-() const {
   return GeomVector<2>(-(mData[0]), -(mData[1]));
 }
 
-template<bool ownMemory>
+template<>
 inline
 GeomVector<3>
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+operator-() const {
+  return GeomVector<3>(-(mData[0]), -(mData[1]), -(mData[2]));
+}
+
+template<>
+inline
+GeomVector<1>
+GeomVector<1, false>::
+operator-() const {
+  return GeomVector<1>(-(mData[0]));
+}
+
+template<>
+inline
+GeomVector<2>
+GeomVector<2, false>::
+operator-() const {
+  return GeomVector<2>(-(mData[0]), -(mData[1]));
+}
+
+template<>
+inline
+GeomVector<3>
+GeomVector<3, false>::
 operator-() const {
   return GeomVector<3>(-(mData[0]), -(mData[1]), -(mData[2]));
 }
@@ -404,32 +427,65 @@ operator/(const double val) const {
 //------------------------------------------------------------------------------
 // Add two vectors in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<1, ownMemory>&
-GeomVector<1, ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator+=(const GeomVector<1, otherMemory>& vec) {
   mData[0] += vec.mData[0];
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator+=(const GeomVector<2, otherMemory>& vec) {
   mData[0] += vec.mData[0];
   mData[1] += vec.mData[1];
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
+operator+=(const GeomVector<3, otherMemory>& vec) {
+  mData[0] += vec.mData[0];
+  mData[1] += vec.mData[1];
+  mData[2] += vec.mData[2];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator+=(const GeomVector<1, otherMemory>& vec) {
+  mData[0] += vec.mData[0];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator+=(const GeomVector<2, otherMemory>& vec) {
+  mData[0] += vec.mData[0];
+  mData[1] += vec.mData[1];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
 operator+=(const GeomVector<3, otherMemory>& vec) {
   mData[0] += vec.mData[0];
   mData[1] += vec.mData[1];
@@ -440,32 +496,65 @@ operator+=(const GeomVector<3, otherMemory>& vec) {
 //------------------------------------------------------------------------------
 // Subtract a vector in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<1, bool ownMemory>& 
-GeomVector<1, bool ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator-=(const GeomVector<1, otherMemory>& vec) {
   mData[0] -= vec.mData[0];
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator-=(const GeomVector<2, otherMemory>& vec) {
   mData[0] -= vec.mData[0];
   mData[1] -= vec.mData[1];
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
+operator-=(const GeomVector<3, otherMemory>& vec) {
+  mData[0] -= vec.mData[0];
+  mData[1] -= vec.mData[1];
+  mData[2] -= vec.mData[2];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator-=(const GeomVector<1, otherMemory>& vec) {
+  mData[0] -= vec.mData[0];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator-=(const GeomVector<2, otherMemory>& vec) {
+  mData[0] -= vec.mData[0];
+  mData[1] -= vec.mData[1];
+  return *this;
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
 operator-=(const GeomVector<3, otherMemory>& vec) {
   mData[0] -= vec.mData[0];
   mData[1] -= vec.mData[1];
@@ -476,29 +565,59 @@ operator-=(const GeomVector<3, otherMemory>& vec) {
 //------------------------------------------------------------------------------
 // Add a scalar to this vector in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
-GeomVector<1, bool ownMemory>&
-GeomVector<1, bool ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator+=(const double val) {
   mData[0] += val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator+=(const double val) {
   mData[0] += val;
   mData[1] += val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
+operator+=(const double val) {
+  mData[0] += val;
+  mData[1] += val;
+  mData[2] += val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator+=(const double val) {
+  mData[0] += val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator+=(const double val) {
+  mData[0] += val;
+  mData[1] += val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
 operator+=(const double val) {
   mData[0] += val;
   mData[1] += val;
@@ -509,29 +628,59 @@ operator+=(const double val) {
 //------------------------------------------------------------------------------
 // Subtract a scalar from this vector in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
-GeomVector<1, ownMemory>&
-GeomVector<1, ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator-=(const double val) {
   mData[0] -= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator-=(const double val) {
   mData[0] -= val;
   mData[1] -= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
+operator-=(const double val) {
+  mData[0] -= val;
+  mData[1] -= val;
+  mData[2] -= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator-=(const double val) {
+  mData[0] -= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator-=(const double val) {
+  mData[0] -= val;
+  mData[1] -= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
 operator-=(const double val) {
   mData[0] -= val;
   mData[1] -= val;
@@ -542,29 +691,59 @@ operator-=(const double val) {
 //------------------------------------------------------------------------------
 // Multiply this vector by a scalar in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
-GeomVector<1, ownMemory>&
-GeomVector<1, ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator*=(const double val) {
   mData[0] *= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator*=(const double val) {
   mData[0] *= val;
   mData[1] *= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
+operator*=(const double val) {
+  mData[0] *= val;
+  mData[1] *= val;
+  mData[2] *= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator*=(const double val) {
+  mData[0] *= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator*=(const double val) {
+  mData[0] *= val;
+  mData[1] *= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
 operator*=(const double val) {
   mData[0] *= val;
   mData[1] *= val;
@@ -575,38 +754,69 @@ operator*=(const double val) {
 //------------------------------------------------------------------------------
 // Divide this vector by a scalar in place.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
-GeomVector<1, ownMemory>&
-GeomVector<1, ownMemory>::
+GeomVector<1, true>&
+GeomVector<1, true>::
 operator/=(const double val) {
   REQUIRE(val != 0.0);
   mData[0] /= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<2, ownMemory>&
-GeomVector<2, ownMemory>::
+GeomVector<2, true>&
+GeomVector<2, true>::
 operator/=(const double val) {
   REQUIRE(val != 0.0);
-  const double valInv = 1.0/val;
-  mData[0] *= valInv;
-  mData[1] *= valInv;
+  mData[0] /= val;
+  mData[1] /= val;
   return *this;
 }
 
-template<bool ownMemory>
+template<>
 inline
-GeomVector<3, ownMemory>&
-GeomVector<3, ownMemory>::
+GeomVector<3, true>&
+GeomVector<3, true>::
 operator/=(const double val) {
   REQUIRE(val != 0.0);
-  const double valInv = 1.0/val;
-  mData[0] *= valInv;
-  mData[1] *= valInv;
-  mData[2] *= valInv;
+  mData[0] /= val;
+  mData[1] /= val;
+  mData[2] /= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<1, false>&
+GeomVector<1, false>::
+operator/=(const double val) {
+  REQUIRE(val != 0.0);
+  mData[0] /= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<2, false>&
+GeomVector<2, false>::
+operator/=(const double val) {
+  REQUIRE(val != 0.0);
+  mData[0] /= val;
+  mData[1] /= val;
+  return *this;
+}
+
+template<>
+inline
+GeomVector<3, false>&
+GeomVector<3, false>::
+operator/=(const double val) {
+  REQUIRE(val != 0.0);
+  mData[0] /= val;
+  mData[1] /= val;
+  mData[2] /= val;
   return *this;
 }
 
@@ -614,22 +824,22 @@ operator/=(const double val) {
 // Return (-1, 0, 1) if this vector is (less than, equal to, greater than)
 // the given vector.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 int
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 compare(const GeomVector<1, otherMemory>& vec) const {
   return (mData[0] < vec.mData[0] ? -1 :
           mData[0] > vec.mData[0] ?  1 :
           0);
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 int
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 compare(const GeomVector<2, otherMemory>& vec) const {
   return (mData[1] < vec.mData[1] ? -1 :
           mData[1] > vec.mData[1] ?  1 :
@@ -638,11 +848,50 @@ compare(const GeomVector<2, otherMemory>& vec) const {
           0);
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 int
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+compare(const GeomVector<3, otherMemory>& vec) const {
+  return (mData[2] < vec.mData[2] ? -1 :
+          mData[2] > vec.mData[2] ?  1 :
+          mData[1] < vec.mData[1] ? -1 :
+          mData[1] > vec.mData[1] ?  1 :
+          mData[0] < vec.mData[0] ? -1 :
+          mData[0] > vec.mData[0] ?  1 :
+          0);
+}
+
+template<>
+template<bool otherMemory>
+inline
+int
+GeomVector<1, false>::
+compare(const GeomVector<1, otherMemory>& vec) const {
+  return (mData[0] < vec.mData[0] ? -1 :
+          mData[0] > vec.mData[0] ?  1 :
+          0);
+}
+
+template<>
+template<bool otherMemory>
+inline
+int
+GeomVector<2, false>::
+compare(const GeomVector<2, otherMemory>& vec) const {
+  return (mData[1] < vec.mData[1] ? -1 :
+          mData[1] > vec.mData[1] ?  1 :
+          mData[0] < vec.mData[0] ? -1 :
+          mData[0] > vec.mData[0] ?  1 :
+          0);
+}
+
+template<>
+template<bool otherMemory>
+inline
+int
+GeomVector<3, false>::
 compare(const GeomVector<3, otherMemory>& vec) const {
   return (mData[2] < vec.mData[2] ? -1 :
           mData[2] > vec.mData[2] ?  1 :
@@ -657,20 +906,20 @@ compare(const GeomVector<3, otherMemory>& vec) const {
 // Return (-1, 0, 1) if this vector is (less than, equal to, greater than)
 // the given double.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
 int
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 compare(const double val) const {
   return (mData[0] < val ? -1 :
           mData[0] > val ?  1 :
           0);
 }
 
-template<bool ownMemory>
+template<>
 inline
 int
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 compare(const double val) const {
   return (mData[1] < val ? -1 :
           mData[1] > val ?  1 :
@@ -679,10 +928,46 @@ compare(const double val) const {
           0);
 }
 
-template<bool ownMemory>
+template<>
 inline
 int
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+compare(const double val) const {
+  return (mData[2] < val ? -1 :
+          mData[2] > val ?  1 :
+          mData[1] < val ? -1 :
+          mData[1] > val ?  1 :
+          mData[0] < val ? -1 :
+          mData[0] > val ?  1 :
+          0);
+}
+
+template<>
+inline
+int
+GeomVector<1, false>::
+compare(const double val) const {
+  return (mData[0] < val ? -1 :
+          mData[0] > val ?  1 :
+          0);
+}
+
+template<>
+inline
+int
+GeomVector<2, false>::
+compare(const double val) const {
+  return (mData[1] < val ? -1 :
+          mData[1] > val ?  1 :
+          mData[0] < val ? -1 :
+          mData[0] > val ?  1 :
+          0);
+}
+
+template<>
+inline
+int
+GeomVector<3, false>::
 compare(const double val) const {
   return (mData[2] < val ? -1 :
           mData[2] > val ?  1 :
@@ -696,29 +981,56 @@ compare(const double val) const {
 //------------------------------------------------------------------------------
 // The equivalence comparator.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 bool
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 operator==(const GeomVector<1, otherMemory>& vec) const {
   return mData[0] == vec.mData[0];
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 bool
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 operator==(const GeomVector<2, otherMemory>& vec) const {
   return (mData[0] == vec.mData[0]) and (mData[1] == vec.mData[1]);
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 bool
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+operator==(const GeomVector<3, otherMemory>& vec) const {
+  return (mData[0] == vec.mData[0]) and (mData[1] == vec.mData[1]) and (mData[2] == vec.mData[2]);
+}
+
+template<>
+template<bool otherMemory>
+inline
+bool
+GeomVector<1, false>::
+operator==(const GeomVector<1, otherMemory>& vec) const {
+  return mData[0] == vec.mData[0];
+}
+
+template<>
+template<bool otherMemory>
+inline
+bool
+GeomVector<2, false>::
+operator==(const GeomVector<2, otherMemory>& vec) const {
+  return (mData[0] == vec.mData[0]) and (mData[1] == vec.mData[1]);
+}
+
+template<>
+template<bool otherMemory>
+inline
+bool
+GeomVector<3, false>::
 operator==(const GeomVector<3, otherMemory>& vec) const {
   return (mData[0] == vec.mData[0]) and (mData[1] == vec.mData[1]) and (mData[2] == vec.mData[2]);
 }
@@ -786,26 +1098,50 @@ operator>=(const GeomVector<nDim, otherMemory>& rhs) const {
 //------------------------------------------------------------------------------
 // The equivalence comparator (double).
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
 bool
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 operator==(const double val) const {
   return mData[0] == val;
 }
 
-template<bool ownMemory>
+template<>
 inline
 bool
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 operator==(const double val) const {
   return (mData[0] == val) and (mData[1] == val);
 }
 
-template<bool ownMemory>
+template<>
 inline
 bool
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+operator==(const double val) const {
+  return (mData[0] == val) and (mData[1] == val) and (mData[2] == val);
+}
+
+template<>
+inline
+bool
+GeomVector<1, false>::
+operator==(const double val) const {
+  return mData[0] == val;
+}
+
+template<>
+inline
+bool
+GeomVector<2, false>::
+operator==(const double val) const {
+  return (mData[0] == val) and (mData[1] == val);
+}
+
+template<>
+inline
+bool
+GeomVector<3, false>::
 operator==(const double val) const {
   return (mData[0] == val) and (mData[1] == val) and (mData[2] == val);
 }
@@ -868,29 +1204,56 @@ operator>=(const double val) const {
 //------------------------------------------------------------------------------
 // Dot two vectors.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 dot(const GeomVector<1, otherMemory>& vec) const {
   return mData[0]*vec.mData[0];
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 double
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 dot(const GeomVector<2, otherMemory>& vec) const {
   return mData[0]*vec.mData[0] + mData[1]*vec.mData[1];
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 double
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+dot(const GeomVector<3, otherMemory>& vec) const {
+  return mData[0]*vec.mData[0] + mData[1]*vec.mData[1] + mData[2]*vec.mData[2];
+}
+
+template<>
+template<bool otherMemory>
+inline
+double
+GeomVector<1, false>::
+dot(const GeomVector<1, otherMemory>& vec) const {
+  return mData[0]*vec.mData[0];
+}
+
+template<>
+template<bool otherMemory>
+inline
+double
+GeomVector<2, false>::
+dot(const GeomVector<2, otherMemory>& vec) const {
+  return mData[0]*vec.mData[0] + mData[1]*vec.mData[1];
+}
+
+template<>
+template<bool otherMemory>
+inline
+double
+GeomVector<3, false>::
 dot(const GeomVector<3, otherMemory>& vec) const {
   return mData[0]*vec.mData[0] + mData[1]*vec.mData[1] + mData[2]*vec.mData[2];
 }
@@ -898,33 +1261,64 @@ dot(const GeomVector<3, otherMemory>& vec) const {
 //------------------------------------------------------------------------------
 // Cross two vectors.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomVector<3>
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
 cross(const GeomVector<3, otherMemory>& vec) const {
   return GeomVector<3>(mData[1]*vec.mData[2] - mData[2]*vec.mData[1],
 		       mData[2]*vec.mData[0] - mData[0]*vec.mData[2],
 		       mData[0]*vec.mData[1] - mData[1]*vec.mData[0]);
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomVector<3>
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 cross(const GeomVector<2, otherMemory>& vec) const {
   return GeomVector<3>(0.0,
                        0.0,
 		       mData[0]*vec.mData[1] - mData[1]*vec.mData[0]);
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomVector<3>
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
+cross(const GeomVector<1, otherMemory>& vec) const {
+  return GeomVector<3>(0.0, 0.0, 0.0);
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<3>
+GeomVector<3, false>::
+cross(const GeomVector<3, otherMemory>& vec) const {
+  return GeomVector<3>(mData[1]*vec.mData[2] - mData[2]*vec.mData[1],
+		       mData[2]*vec.mData[0] - mData[0]*vec.mData[2],
+		       mData[0]*vec.mData[1] - mData[1]*vec.mData[0]);
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<3>
+GeomVector<2, false>::
+cross(const GeomVector<2, otherMemory>& vec) const {
+  return GeomVector<3>(0.0,
+                       0.0,
+		       mData[0]*vec.mData[1] - mData[1]*vec.mData[0]);
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomVector<3>
+GeomVector<1, false>::
 cross(const GeomVector<1, otherMemory>& vec) const {
   return GeomVector<3>(0.0, 0.0, 0.0);
 }
@@ -932,30 +1326,60 @@ cross(const GeomVector<1, otherMemory>& vec) const {
 //------------------------------------------------------------------------------
 // Perform the dyad operation with another vector.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomTensor<1>
-GeomVector<1, ownMemory>::
-dyad(const GeomVector<1, otherMemory>& vec) const {
+GeomVector<1, true>::
+dyad(const GeomVector<1, otherMemory>& rhs) const {
   return GeomTensor<1>(mData[0]*rhs(0));
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomTensor<2>
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 dyad(const GeomVector<2, otherMemory>& rhs) const {
   return GeomTensor<2>(mData[0]*rhs(0), mData[0]*rhs(1),
                        mData[1]*rhs(0), mData[1]*rhs(1));
 }
 
-template<bool ownMemory>
+template<>
 template<bool otherMemory>
 inline
 GeomTensor<3>
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+dyad(const GeomVector<3, otherMemory>& rhs) const {
+  return GeomTensor<3>(mData[0]*rhs(0), mData[0]*rhs(1), mData[0]*rhs(2),
+                       mData[1]*rhs(0), mData[1]*rhs(1), mData[1]*rhs(2),
+                       mData[2]*rhs(0), mData[2]*rhs(1), mData[2]*rhs(2));
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomTensor<1>
+GeomVector<1, false>::
+dyad(const GeomVector<1, otherMemory>& rhs) const {
+  return GeomTensor<1>(mData[0]*rhs(0));
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomTensor<2>
+GeomVector<2, false>::
+dyad(const GeomVector<2, otherMemory>& rhs) const {
+  return GeomTensor<2>(mData[0]*rhs(0), mData[0]*rhs(1),
+                       mData[1]*rhs(0), mData[1]*rhs(1));
+}
+
+template<>
+template<bool otherMemory>
+inline
+GeomTensor<3>
+GeomVector<3, false>::
 dyad(const GeomVector<3, otherMemory>& rhs) const {
   return GeomTensor<3>(mData[0]*rhs(0), mData[0]*rhs(1), mData[0]*rhs(2),
                        mData[1]*rhs(0), mData[1]*rhs(1), mData[1]*rhs(2),
@@ -965,18 +1389,18 @@ dyad(const GeomVector<3, otherMemory>& rhs) const {
 //------------------------------------------------------------------------------
 // Perform the dyad operation with ourself, resulting in a symmetric tensor.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
 GeomSymmetricTensor<1>
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 selfdyad() const {
   return GeomSymmetricTensor<1>((mData[0])*(mData[0]));
 }
 
-template<bool ownMemory>
+template<>
 inline
 GeomSymmetricTensor<2>
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 selfdyad() const {
   const double a = (mData[0])*(mData[0]);
   const double b = (mData[0])*(mData[1]);
@@ -985,10 +1409,46 @@ selfdyad() const {
                                 b, c);
 }
 
-template<bool ownMemory>
+template<>
 inline
 GeomSymmetricTensor<3>
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+selfdyad() const {
+  const double a = (mData[0])*(mData[0]);
+  const double b = (mData[0])*(mData[1]);
+  const double c = (mData[0])*(mData[2]);
+  const double d = (mData[1])*(mData[1]);
+  const double e = (mData[1])*(mData[2]);
+  const double f = (mData[2])*(mData[2]);
+  return GeomSymmetricTensor<3>(a, b, c,
+                                b, d, e,
+                                c, e, f);
+}
+
+template<>
+inline
+GeomSymmetricTensor<1>
+GeomVector<1, false>::
+selfdyad() const {
+  return GeomSymmetricTensor<1>((mData[0])*(mData[0]));
+}
+
+template<>
+inline
+GeomSymmetricTensor<2>
+GeomVector<2, false>::
+selfdyad() const {
+  const double a = (mData[0])*(mData[0]);
+  const double b = (mData[0])*(mData[1]);
+  const double c = (mData[1])*(mData[1]);
+  return GeomSymmetricTensor<2>(a, b,
+                                b, c);
+}
+
+template<>
+inline
+GeomSymmetricTensor<3>
+GeomVector<3, false>::
 selfdyad() const {
   const double a = (mData[0])*(mData[0]);
   const double b = (mData[0])*(mData[1]);
@@ -1016,135 +1476,99 @@ unitVector() const {
 //------------------------------------------------------------------------------
 // Return the magnitude of the Vector.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<int nDim, bool ownMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<nDim, ownMemory>::
 magnitude() const {
-  return std::abs(mData[0]);
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-magnitude() const {
-  return sqrt((mData[0])*(mData[0]) + (mData[1])*(mData[1]));
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<3, ownMemory>::
-magnitude() const {
-  return sqrt((mData[0])*(mData[0]) + (mData[1])*(mData[1]) + (mData[2])*(mData[2]));
+  return sqrt(this->dot(*this));
 }
 
 //------------------------------------------------------------------------------
 // Return the square of the magnitude.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<int nDim, bool ownMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<nDim, ownMemory>::
 magnitude2() const {
-  return (mData[0])*(mData[0]);
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-magnitude2() const {
-  return (mData[0])*(mData[0]) + (mData[1])*(mData[1]);
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<3, ownMemory>::
-magnitude2() const {
-  return (mData[0])*(mData[0]) + (mData[1])*(mData[1]) + (mData[2])*(mData[2]);
+  return this->dot(*this);
 }
 
 //------------------------------------------------------------------------------
 // Return the minimum element.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<int nDim, bool ownMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<nDim, ownMemory>::
 minElement() const {
-  return mData[0];
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-minElement() const {
-  return std::min(mData[0], mData[1]);
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<3, ownMemory>::
-minElement() const {
-  return std::min(mData[0], std::min(mData[1], mData[2]));
+  return *std::min_element(mData, mData + nDim);
 }
 
 //------------------------------------------------------------------------------
 // Return the maximum element.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<int nDim, bool ownMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<nDim, ownMemory>::
 maxElement() const {
-  return mData[0];
+  return *std::max_element(mData, mData + nDim);
 }
 
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-maxElement() const {
-  return std::max(mData[0], mData[1]);
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<3, ownMemory>::
-maxElement() const {
-  return std::max(mData[0], std::max(mData[1], mData[2]));
-}
 
 //------------------------------------------------------------------------------
 // Return the maximum element by absolute value.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<1, true>::
 maxAbsElement() const {
   return std::abs(mData[0]);
 }
 
-template<bool ownMemory>
+template<>
 inline
 double
-GeomVector<2, ownMemory>::
+GeomVector<2, true>::
 maxAbsElement() const {
   return std::max(std::abs(mData[0]), 
                   std::abs(mData[1]));
 }
 
-template<bool ownMemory>
+template<>
 inline
 double
-GeomVector<3, ownMemory>::
+GeomVector<3, true>::
+maxAbsElement() const {
+  return std::max(std::abs(mData[0]),
+                  std::max(std::abs(mData[1]),
+                           std::abs(mData[2])));
+}
+
+template<>
+inline
+double
+GeomVector<1, false>::
+maxAbsElement() const {
+  return std::abs(mData[0]);
+}
+
+template<>
+inline
+double
+GeomVector<2, false>::
+maxAbsElement() const {
+  return std::max(std::abs(mData[0]), 
+                  std::abs(mData[1]));
+}
+
+template<>
+inline
+double
+GeomVector<3, false>::
 maxAbsElement() const {
   return std::max(std::abs(mData[0]),
                   std::max(std::abs(mData[1]),
@@ -1154,28 +1578,12 @@ maxAbsElement() const {
 //------------------------------------------------------------------------------
 // Return the sum of the elements.
 //------------------------------------------------------------------------------
-template<bool ownMemory>
+template<int nDim, bool ownMemory>
 inline
 double
-GeomVector<1, ownMemory>::
+GeomVector<nDim, ownMemory>::
 sumElements() const {
-  return mData[0];
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<2, ownMemory>::
-sumElements() const {
-  return mData[0] + mData[1];
-}
-
-template<bool ownMemory>
-inline
-double
-GeomVector<3, ownMemory>::
-sumElements() const {
-  return mData[0] + mData[1] + mData[2];
+  return std::accumulate(mData, mData + nDim, 0.0);
 }
 
 //******************************************************************************
@@ -1209,6 +1617,7 @@ template<int nDim, bool ownMemory>
 inline
 GeomVector<nDim>
 operator*(const double val, const GeomVector<nDim, ownMemory>& vec) {
+  std::cerr << "BLAGO!" << std::endl;
   return vec*val;
 }
 
