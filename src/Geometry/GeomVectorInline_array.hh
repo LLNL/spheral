@@ -1617,7 +1617,6 @@ template<int nDim, bool ownMemory>
 inline
 GeomVector<nDim>
 operator*(const double val, const GeomVector<nDim, ownMemory>& vec) {
-  std::cerr << "BLAGO!" << std::endl;
   return vec*val;
 }
 

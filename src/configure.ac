@@ -41,6 +41,11 @@ SETUP_DISTRIBUTEDMAKE
 # SETUP_KCC
 
 # -------------------------------------------------
+# setup geommem (m4macros/geommem.m4)
+# -------------------------------------------------
+SETUP_GEOMMEM
+
+# -------------------------------------------------
 # setup polytope (m4macros/polytope.m4)
 # -------------------------------------------------
 SETUP_POLYTOPE

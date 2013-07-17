@@ -14,9 +14,6 @@
 
 namespace Spheral {
 
-template<int nDim, bool ownMemory> class GeomVector;
-template<int nDim> class GeomTensor;
-
 // EigenStruct
 template<int nDim>
 struct EigenStruct {
