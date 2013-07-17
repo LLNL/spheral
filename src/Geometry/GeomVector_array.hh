@@ -11,8 +11,8 @@
 //                internal data types in accordance with suggestions from
 //                Brian White
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GeomVector_hh__
-#define __Spheral_GeomVector_hh__
+#ifndef __Spheral_GeomVector_array_hh__
+#define __Spheral_GeomVector_array_hh__
 
 #include <iostream>
 
@@ -279,7 +279,7 @@ template<int nDim, bool ownMemory> std::ostream& operator<<(std::ostream& os, co
 }
 
 #ifndef __GCCXML__
-#include "GeomVectorInline.hh"
+#include "GeomVectorInline_array.hh"
 #endif
 
 #endif

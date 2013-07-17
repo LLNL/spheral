@@ -11,11 +11,12 @@
 
 #include <iostream>
 
-namespace Spheral {
+#include "Geometry/GeomVector_fwd.hh"
+#include "Geometry/GeomTensor_fwd.hh"
+#include "Geometry/GeomSymmetricTensor_fwd.hh"
+#include "Geometry/GeomThirdRankTensor_fwd.hh"
 
-template<int nDim, bool ownMemory> class GeomVector;
-template<int nDim> class GeomTensor;
-template<int nDim> class GeomSymmetricTensor;
+namespace Spheral {
 
 template<int nDim>
 class GeomThirdRankTensor {
@@ -112,12 +113,5 @@ template<int nDim> ::std::ostream& operator<<(std::ostream& os, const GeomThirdR
 #ifndef __GCCXML__
 #include "GeomThirdRankTensorInline.hh"
 #endif
-
-#else
-
-// Forward declare the GeomThirdRankTensor class.
-namespace Spheral {
-  template<int nDim> class GeomThirdRankTensor;
-}
 
 #endif
