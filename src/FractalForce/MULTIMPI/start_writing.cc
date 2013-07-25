@@ -21,7 +21,7 @@ namespace FractalSpace
       {
 	PFM->p_fractal->particle_list[ni]->get_field_pf(pf);
 	int lev=PFM->p_fractal->particle_list[ni]->get_highest_level();
-	FilePos << "out " << PFM->steps << "\t" << timevar << "\t" << ni << "\t" << "L" << lev << "\t" << scientific << posx[ni] << "\t" << posy[ni] << "\t" << posz[ni];
+	FilePos << "out " << PFM->steps << "S" << "\t" << timevar << "\t" << ni << "\t" << "L" << lev << "\t" << scientific << posx[ni] << "\t" << posy[ni] << "\t" << posz[ni];
 	FilePos << scientific << "\t" << velx[ni] << "\t" << vely[ni] << "\t" << velz[ni];
 	FilePos << "\t" << masses[ni];
 	FilePos << scientific << "\t" << pf[0]*conv_pot << "\t" << pf[1]*conv_force << "\t" << pf[2]*conv_force << "\t" << pf[3]*conv_force ;
