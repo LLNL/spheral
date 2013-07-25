@@ -10,6 +10,7 @@ namespace FractalSpace
     string RUN;
     ofstream FileFFT;
     ofstream FileHypre;
+    ofstream FileHypreTime;
     ofstream FileMisc;
     ofstream FileFractalMemory;
     ofstream FileParticle;
@@ -57,6 +58,7 @@ namespace FractalSpace
 	}
       generate_file(FileFFT,Directory+"fft.d");
       generate_file(FileHypre,Directory+"hypre.d");
+      generate_file(FileHypreTime,Directory+"hypretime.d");
       generate_file(FileMisc,Directory+"misc.d");
       generate_file(FileFractalMemory,Directory+"fractal_memory.d");
       generate_file(FileParticle,Directory+"particle.d");

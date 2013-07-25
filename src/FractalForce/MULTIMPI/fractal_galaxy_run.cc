@@ -8,23 +8,23 @@ int main()
   cout << "starting out " << endl;
   Fractal_Memory* PFM=fractal_memory_create();
 
-  int balance=2;
+  int balance=1;
   int NumberParticles=50000;
-  int FractalNodes0=2;
-  int FractalNodes1=2;
-  int FractalNodes2=2;
+  int FractalNodes0=4;
+  int FractalNodes1=4;
+  int FractalNodes2=4;
   int FFTNodes=64;
   bool Periodic=false;
   bool Debug=true;
   int GridLength=128;
-  int Padding=-1;
-  int LevelMax=0;
+  int Padding=1;
+  int LevelMax=8;
   int MinimumNumber=8;
-  int MaxHypreIterations=20;
+  int MaxHypreIterations=40;
   double HypreTolerance=1.0e-7;
   string BaseDirectory="/p/lscratchd/jensv/";
   string RunIdentifier="KongenErEnFinke";
-  bool TimeTrial=false;
+  bool TimeTrial=true;
 
   FFTNodes=min(FFTNodes,FractalNodes0*FractalNodes1*FractalNodes2);
 
@@ -48,10 +48,10 @@ int main()
   int FractalNodes=PFM->p_mess->FractalNodes;
   int FractalRank=PFM->p_mess->FractalRank;
   std::srand(9973+256*FractalRank);
-  vector <double> xmin(3,-50.0);
+  vector <double> xmin(3,-60.0);
   vector <double> xmax(3,50.0);
-  double total_mass=1.0e7;
-  double G=2.718281828;
+  double total_mass=1.0e9;
+  double G=3.141592;
   int TotalNumberParticles=PFM->p_mess->number_particles_total;
   double m=total_mass/static_cast<double>(TotalNumberParticles);
   vector <double> posx(NumberParticles,0.0);
@@ -61,12 +61,13 @@ int main()
   vector <double> vely(NumberParticles,0.0);
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
-  PFM->number_steps_total=50;
-  PFM->number_steps_out=100;
-  PFM->step_length=1.0e-3;
+  PFM->number_steps_total=500;
+  PFM->number_steps_out=10;
+  PFM->step_length=1.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
-
+  ofstream& FFM=PFM->p_file->FileFractalMemory;
+  FFM << " info " << NumberParticles << " " << m << " " << total_mass << " " << PFM->time << " " << PFM->step_length << endl;
   for(int step=0;step<PFM->number_steps_total;step++)
     {
       fractal_create(PFM);
