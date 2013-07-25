@@ -155,8 +155,9 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const Vector m2invm1 = m2inv*m1(i);
         B(nodeListi, i) = -m2invm1;
         gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
-          innerProduct<Dimension>(innerProduct<Dimension>(m2inv, m2inv),
-                                  innerProduct<Dimension>(gradm2(i), m1(i)));
+          innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
+          // innerProduct<Dimension>(innerProduct<Dimension>(m2inv, m2inv),
+          //                         innerProduct<Dimension>(gradm2(i), m1(i)));
         // gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(i)) - gradm1(i));
       }
     }
