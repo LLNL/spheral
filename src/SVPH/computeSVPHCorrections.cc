@@ -119,9 +119,10 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
           m2(i) += Vj*Wj * thpt;
+          // gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
+          //                  Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
           gradm2(i) += Vj*(outerProduct<Dimension>(thpt, gradWj) +
-                           Wj*(outerProduct<Dimension>(rij, Tensor::one) +
-                               outerProduct<Dimension>(Tensor::one, rij)));
+                           Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
 
           // // First moment. 
           // m1(i) += Vj*Wj * rij;
@@ -152,13 +153,16 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       if (i < firstGhostNodei) {
         CHECK2(abs(m2(i).Determinant()) > 1.0e-30, i << " " << m2(i).Determinant());
         const SymTensor m2inv = m2(i).Inverse();
-        const Vector m2invm1 = m2inv*m1(i);
-        B(nodeListi, i) = -m2invm1;
-        gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
-          innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
-          // innerProduct<Dimension>(innerProduct<Dimension>(m2inv, m2inv),
-          //                         innerProduct<Dimension>(gradm2(i), m1(i)));
-        // gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(i)) - gradm1(i));
+        B(nodeListi, i) = -(m2inv*m1(i));
+
+        // gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
+        //   innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
+
+        // gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
+        //   innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
+
+        gradB(nodeListi, i) = -innerProduct<Dimension>(gradm1(i), m2inv) + 
+          innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m1(i), m2inv), gradm2(i)), m2inv);
       }
     }
   }

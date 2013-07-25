@@ -268,6 +268,75 @@ if graphics:
     d.dump(0.0, 0)
 
 #-------------------------------------------------------------------------------
+# 1D plotting
+#-------------------------------------------------------------------------------
+if graphics:
+    from SpheralGnuPlotUtilities import *
+    import Gnuplot
+
+    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+    yans = [fansField[i]   for i in xrange(nodes1.numInternalNodes)]
+    dyans = [dfansField[i].x for i in xrange(nodes1.numInternalNodes)]
+    ySVPH = fSVPH.internalValues()
+    dySVPH = [x.x for x in dfSVPH.internalValues()]
+    errySVPH = [y - z for y, z in zip(ySVPH, yans)]
+    errdySVPH = [y - z for y, z in zip(dySVPH, dyans)]
+
+    # Interpolated values.
+    ansdata = Gnuplot.Data(xans, yans,
+                           with_ = "points",
+                           title = "Answer",
+                           inline = True)
+    SVPHdata = Gnuplot.Data(xans, ySVPH,
+                            with_ = "points",
+                            title = "SVPH",
+                            inline = True)
+    errSVPHdata = Gnuplot.Data(xans, errySVPH,
+                               with_ = "points",
+                               title = "SVPH",
+                               inline = True)
+
+    p1 = generateNewGnuPlot()
+    p1.plot(ansdata)
+    p1.replot(SVPHdata)
+    p1("set key top left")
+    p1.title("Interpolated values")
+    p1.refresh()
+
+    p2 = generateNewGnuPlot()
+    p2.replot(errSVPHdata)
+    p2.title("Error in interpolation")
+    p2.refresh()
+
+    # Derivative values.
+    dansdata = Gnuplot.Data(xans, dyans,
+                            with_ = "points",
+                            title = "Answer",
+                            inline = True)
+    dSVPHdata = Gnuplot.Data(xans, dySVPH,
+                             with_ = "points",
+                             title = "SVPH",
+                             inline = True)
+    errdSVPHdata = Gnuplot.Data(xans, errdySVPH,
+                                with_ = "points",
+                                title = "SVPH",
+                                inline = True)
+
+    p3 = generateNewGnuPlot()
+    p3.plot(dansdata)
+    p3.replot(dSVPHdata)
+    p3("set key top left")
+    p3.title("Derivative values")
+    p3.refresh()
+
+    p4 = generateNewGnuPlot()
+    p4.replot(errdSVPHdata)
+    p4.title("Error in derivatives")
+    p4.refresh()
+
+
+
+#-------------------------------------------------------------------------------
 # Check the maximum SVPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxfSVPHerror > interpolationTolerance:
