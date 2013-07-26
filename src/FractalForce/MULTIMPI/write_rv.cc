@@ -22,7 +22,7 @@ namespace FractalSpace
 	vector <double> vel(3);
 	vector <double> pf(4);
 	particle.get_pos(pos);
-	FilePos << "stepout " << step << "\t" << n << "\t" << fixed << pos[0] << "\t" <<pos[1] << "\t" << pos[2];
+	FilePos << "out " << step << "S" << "\t" << n << "\t" << fixed << pos[0] << "\t" <<pos[1] << "\t" << pos[2];
 	if(nphase >= 6)
 	  particle.get_vel(vel);
 	else
