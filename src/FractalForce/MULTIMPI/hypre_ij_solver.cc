@@ -12,17 +12,36 @@ namespace FractalSpace
 {
   void hypre_solver(Fractal& frac,Fractal_Memory& mem,int level)
   {
+    static vector <double> Hypre_sum_time(frac.get_level_max()+1,0.0);
+    double Hypre_total_time=0.0;
+    double Hypre_search_time=0.0;
+    double Hypre_gen_time=0.0;
+    double Hypre_setup_time=0.0;
+    double Hypre_solve_time=0.0;
+    double Hypre_dump_time=0.0;
+    const int FractalRank=mem.p_mess->FractalRank;
+    if(FractalRank == 0)
+      cout << "Hypre Calc " << mem.steps << " " << level << endl;
     ofstream& FH=mem.p_file->FileHypre;
+    ofstream& FHT=mem.p_file->FileHypreTime;
     FH << " enter hypre solver " << level << " steps " << mem.steps << endl;
+    Hypre_total_time=-mem.p_mess->Clock();
+    Hypre_search_time=-mem.p_mess->Clock();
     vector <Point*>hypre_points;
     if(!hypre_ij_numbering(mem,frac,hypre_points,level))
       {
 	FH << " nothing here hypre solver " << level << endl;
 	return;
       }
+    Hypre_search_time+=mem.p_mess->Clock();
+
+    FHT << endl;
+    FHT << scientific;
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time" << endl;
+
+    Hypre_gen_time=-mem.p_mess->Clock();
     FH << " really enter hypre solver a " << level << endl;
     bool inside;
-    const int FractalRank=mem.p_mess->FractalRank;
     MPI_Comm HypreComm=mem.p_mess->HypreWorld;
     HYPRE_IJMatrix ij_matrix;
     HYPRE_ParCSRMatrix par_matrix;
@@ -60,8 +79,10 @@ namespace FractalSpace
 	  maxcols[countr]=1;
 	countr++;
       }
+    assert(countr == total_rows);
     HYPRE_IJMatrixSetRowSizes(ij_matrix,maxcols);
     delete [] maxcols;
+    HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,0);
     hypre_eror(FH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
     HYPRE_IJVector ij_vector_pot;
     HYPRE_IJVector ij_vector_rho;
@@ -153,49 +174,51 @@ namespace FractalSpace
 	else
 	  assert(0);
       }
-    FH << " made it this far a " << endl;
     hypre_eror(FH,level,22,HYPRE_IJMatrixAssemble(ij_matrix));
-    FH << " made it this far b " << endl;
-    //    HYPRE_IJMatrixPrint(ij_matrix,"matrix.a");
     hypre_eror(FH,level,23,HYPRE_IJMatrixGetObject(ij_matrix,(void **) &par_matrix));
-    FH << " made it this far c " << endl;
     hypre_eror(FH,level,24,HYPRE_IJVectorAssemble(ij_vector_pot));
-    FH << " made it this far d " << endl;
-    //    HYPRE_IJVectorPrint(ij_vector_pot,"vector.pot");
     hypre_eror(FH,level,25,HYPRE_IJVectorAssemble(ij_vector_rho));
-    FH << " made it this far e " << endl;
-    //    HYPRE_IJVectorPrint(ij_vector_rho,"vector.rho");
     hypre_eror(FH,level,26,HYPRE_IJVectorGetObject(ij_vector_pot,(void **) &par_vector_pot));
-    FH << " made it this far f " << endl;
     hypre_eror(FH,level,27,HYPRE_IJVectorGetObject(ij_vector_rho,(void **) &par_vector_rho));
-    FH << " made it this far g " << endl;
     HYPRE_Solver par_solver;
     hypre_eror(FH,level,28,HYPRE_BoomerAMGCreate(&par_solver));
-    FH << " made it this far h " << endl;
+    hypre_eror(FH,level,-1,HYPRE_BoomerAMGSetDebugFlag(par_solver,1));
     hypre_eror(FH,level,29,HYPRE_BoomerAMGSetCoarsenType(par_solver, 6));
-    FH << " made it this far i " << endl;
     hypre_eror(FH,level,30,HYPRE_BoomerAMGSetStrongThreshold(par_solver, 0.55));
-    FH << " made it this far j " << endl;
     hypre_eror(FH,level,31,HYPRE_BoomerAMGSetTol(par_solver, frac.get_epsilon_sor()));
-    FH << " made it this far k " << endl;
     hypre_eror(FH,level,32,HYPRE_BoomerAMGSetPrintLevel(par_solver, 1));
-    FH << " made it this far l " << endl;
     hypre_eror(FH,level,33,HYPRE_BoomerAMGSetPrintFileName(par_solver, "amg_real.log"));
-    FH << " made it this far m " << endl;
     hypre_eror(FH,level,34,HYPRE_BoomerAMGSetMaxIter(par_solver, frac.get_maxits()));
-    FH << " made it this far n " << endl;
-    hypre_eror(FH,level,35,HYPRE_BoomerAMGSetup(par_solver, par_matrix, par_vector_rho, par_vector_pot));
-    FH << " made it this far o " << endl;
-    hypre_eror(FH,level,36,HYPRE_BoomerAMGSolve(par_solver, par_matrix, par_vector_rho, par_vector_pot));
-    FH << " made it this far p " << endl;
+    Hypre_gen_time+=mem.p_mess->Clock();
 
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_gen_time << "\t" << "Gen    Time" << endl;
+
+    Hypre_setup_time=-mem.p_mess->Clock();
+    hypre_eror(FH,level,35,HYPRE_BoomerAMGSetup(par_solver, par_matrix, par_vector_rho, par_vector_pot));
+    Hypre_setup_time+=mem.p_mess->Clock();
+
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_setup_time << "\t" << "Setup  Time" << endl;
+
+    Hypre_solve_time=-mem.p_mess->Clock();
+    hypre_eror(FH,level,36,HYPRE_BoomerAMGSolve(par_solver, par_matrix, par_vector_rho, par_vector_pot));
+    Hypre_solve_time+=mem.p_mess->Clock();
+
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_solve_time << "\t" << "Solve  Time" << endl;
+
+    Hypre_dump_time=-mem.p_mess->Clock();
     int its;
     double final_res_norm;
     hypre_eror(FH,level,37,HYPRE_BoomerAMGGetNumIterations(par_solver, &its));
-    FH << " made it this far q " << endl;
     hypre_eror(FH,level,38,HYPRE_BoomerAMGGetFinalRelativeResidualNorm(par_solver,&final_res_norm));
     FH << "fini " << level << " " << total << " " << its << " " << final_res_norm << endl;
-    assert(its < frac.get_maxits());
+    if(its >= frac.get_maxits())
+      { 
+	hypre_dump(level,hypre_points,FH);
+        HYPRE_IJMatrixPrint(ij_matrix,"matrix.a");
+        HYPRE_IJVectorPrint(ij_vector_rho,"vector.rho");
+	HYPRE_IJVectorPrint(ij_vector_pot,"vector.pot");
+	assert(its < frac.get_maxits());
+      }
     hypre_eror(FH,level,39,HYPRE_IJMatrixDestroy(ij_matrix));
     hypre_eror(FH,level,40,HYPRE_IJVectorDestroy(ij_vector_rho));
     hypre_eror(FH,level,41,HYPRE_BoomerAMGDestroy(par_solver));
@@ -215,6 +238,15 @@ namespace FractalSpace
 	ni++;
       }
     hypre_eror(FH,level,43,HYPRE_IJVectorDestroy(ij_vector_pot));
+    Hypre_dump_time+=mem.p_mess->Clock();
+
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_dump_time << "\t" << "Dump   Time" << endl;
+
+    Hypre_total_time+=mem.p_mess->Clock();
+    Hypre_sum_time[level]+=Hypre_total_time;
+
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_total_time << "\t" << Hypre_sum_time[level] << " Total Time " << endl;
+
     FH << " exit hypre solver " << level << " " << total << " steps " << mem.steps << endl;
   }
   void hypre_eror(ofstream& FH,int level,int ni,int er)

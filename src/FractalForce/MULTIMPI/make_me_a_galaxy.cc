@@ -8,9 +8,9 @@ namespace FractalSpace
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     double rand_max=(double)RAND_MAX;
-    double rmax=10.0;
+    double rmax=20.0;
     double x_off=10.0;
-    double y_off=-28.0;
+    double y_off=-18.0;
     double z_off=11.0;
     double slope=-0.5;
     double velratio=0.5;
@@ -37,7 +37,7 @@ namespace FractalSpace
 	velx[ni]=-sphi*vt;
 	vely[ni]=cphi*vt;
 	velz[ni]=0.0;
-	masses[ni]=m;
+	//	masses[ni]=m;
       }
   }
 }

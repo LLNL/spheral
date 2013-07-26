@@ -65,6 +65,7 @@ namespace FractalSpace
   void hypre_solver(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_struct_solver(vector <Point*>& p_points_left,vector <Point*>& p_points_right,
 			   Fractal& fractal,Fractal_Memory& mem,const int& level,const bool& buffer_groups);
+  void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(ofstream& FH,int level,int ni,int er);
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,const int& lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);

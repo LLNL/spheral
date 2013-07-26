@@ -91,6 +91,11 @@
 *** It all started with the big bang!
 *** It all started with the big ... BANG! 
 
+*** Curiosity Rover
+***  Tango Delta Nominal
+***  RIMU Stable
+***  UHF Strong
+
 ***  This is a prototype of fractal force, it is not supposed to be pretty
 ***  or fast, it is just supposed to work.
 ***  This is a multi node version
@@ -207,6 +212,9 @@ namespace FractalSpace
     FileFractal << "group f " << p_group << " " << misc.p_group_0 << endl;
     fractal_memory.all_groups.resize(fractal.get_level_max()+1);
     fractal_memory.all_groups[0].push_back(p_group);
+    fractal_memory.all_buffer_groups.resize(fractal.get_level_max()+1);
+    fractal_memory.all_buffer_groups[0].push_back(p_group);
+    fractal_memory.all_inside_groups.resize(fractal.get_level_max()+1);
     //--------------------------------------------------------------------------
     // If isolated BC and this is the first time through fractal_force
     // call isolated_solver to generate the FT of the Green's function only.
@@ -346,6 +354,10 @@ namespace FractalSpace
 		//--------------------------------------------------------------------------
 		group_counter++;
 		fractal_memory.all_groups[level+1].push_back(p_new_group);
+		if(p_new_group->get_buffer_group())
+		  fractal_memory.all_buffer_groups[level+1].push_back(p_new_group);
+		else
+		  fractal_memory.all_inside_groups[level+1].push_back(p_new_group);
 	      }
 	  }
 	fractal.timing_lev(2,level+1);
@@ -377,6 +389,7 @@ namespace FractalSpace
     FileFractal << " not baddd " << badd << endl;
     fractal.timing(1,18);
     fractal.timing(1,46);
+    //    fractal_memory.p_mess->TreeTime=fractal.delta_time[46];
     FileFractal << "start up " << fractal_memory.start_up << endl;
     if(!fractal_memory.start_up)
       {
