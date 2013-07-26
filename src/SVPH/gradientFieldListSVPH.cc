@@ -7,6 +7,7 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Utilities/safeInv.hh"
 #include "Geometry/Dimension.hh"
+#include "Geometry/innerProduct.hh"
 
 namespace Spheral {
 namespace SVPHSpace {
@@ -21,6 +22,7 @@ using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
+using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
 // The method itself.
@@ -125,7 +127,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
           // Increment the result.
           norm += Vj*(1.0 + Bi.dot(rij))*Wj;
-          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + gradBi*rij)*Wj);
+          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + innerProduct<Dimension>(rij, gradBi))*Wj);
         }
       }
 
