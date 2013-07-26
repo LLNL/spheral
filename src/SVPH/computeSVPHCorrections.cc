@@ -27,6 +27,38 @@ using NodeSpace::NodeList;
 using Geometry::outerProduct;
 using Geometry::innerProduct;
 
+//------------------------------------------------------------------------------
+// Internal utility functions in the unnamed namespace.
+//------------------------------------------------------------------------------
+namespace {
+
+// 1D
+Dim<1>::SymTensor
+signedIdentityTensor(const Dim<1>::Vector& xij) {
+  return Dim<1>::SymTensor(sgn(xij.x()));
+}
+
+// 2D
+Dim<2>::SymTensor
+signedIdentityTensor(const Dim<2>::Vector& xij) {
+  return Dim<2>::SymTensor(1.0, 1.0, 1.0, 1.0);
+  // return Dim<2>::SymTensor(sgn(xij.x()), 0.0,
+  //                          0.0, sgn(xij.y()));
+}
+
+// 3D
+Dim<3>::SymTensor
+signedIdentityTensor(const Dim<3>::Vector& xij) {
+  return Dim<3>::SymTensor(sgn(xij.x()), 0.0, 0.0,
+                           0.0, sgn(xij.y()), 0.0,
+                           0.0, 0.0, sgn(xij.z()));
+}
+
+}
+
+//------------------------------------------------------------------------------
+// The actual method.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -112,9 +144,11 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& Wj = WWj.first;
           const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
+          const SymTensor gradrij = SymTensor::one; // signedIdentityTensor(rij);
+
           // First moment. 
           m1(i) += Vj*Wj * rij;
-          gradm1(i) += Vj*( rij*gradWj + Tensor::one*Wj);
+          gradm1(i) += Vj*(outerProduct<Dimension>(rij, gradWj) + Wj*gradrij);
 
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
@@ -122,7 +156,7 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           // gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
           //                  Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
           gradm2(i) += Vj*(outerProduct<Dimension>(thpt, gradWj) +
-                           Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
+                           Wj*(outerProduct<Dimension>(rij, gradrij) + outerProduct<Dimension>(gradrij, rij)));
 
           // // First moment. 
           // m1(i) += Vj*Wj * rij;
@@ -155,14 +189,22 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const SymTensor m2inv = m2(i).Inverse();
         B(nodeListi, i) = -(m2inv*m1(i));
 
-        // gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
-        //   innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
+        gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
+          innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
 
-        // gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv, gradm1(i)) + 
-        //   innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i));
+        // gradB(nodeListi, i) = -innerProduct<Dimension>(gradm1(i), m2inv) + 
+        //   innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m1(i), m2inv), gradm2(i)), m2inv);
 
-        gradB(nodeListi, i) = -innerProduct<Dimension>(gradm1(i), m2inv) + 
-          innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m1(i), m2inv), gradm2(i)), m2inv);
+        if (i == 1275) {
+          cerr << ri << " " << Vi << " " << Hi << endl
+               << "m1     = " << m1(i) << endl
+               << "m2     = " << m2(i) << endl
+               << "gradm1 = " << gradm1(i) << endl
+               << "gradm2 = " << gradm2(i) << endl
+               << "B      = " << B(nodeListi, i) << endl
+               << "gradB  = " << gradB(nodeListi, i) << endl;
+        }
+
       }
     }
   }
