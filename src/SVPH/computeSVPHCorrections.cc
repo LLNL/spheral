@@ -144,18 +144,18 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& Wj = WWj.first;
           const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
-          const SymTensor gradrij = SymTensor::one; // signedIdentityTensor(rij);
+          const Tensor gradrij = Tensor::one; // signedIdentityTensor(rij);
 
           // First moment. 
           m1(i) += Vj*Wj * rij;
-          gradm1(i) += Vj*(outerProduct<Dimension>(rij, gradWj) + Wj*gradrij);
+          gradm1(i) += Vj*(outerProduct<Dimension>(gradWj, rij) + Wj*gradrij);
 
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
           m2(i) += Vj*Wj * thpt;
           // gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
           //                  Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
-          gradm2(i) += Vj*(outerProduct<Dimension>(thpt, gradWj) +
+          gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
                            Wj*(outerProduct<Dimension>(rij, gradrij) + outerProduct<Dimension>(gradrij, rij)));
 
           // // First moment. 
