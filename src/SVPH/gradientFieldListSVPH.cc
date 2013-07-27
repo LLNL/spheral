@@ -25,6 +25,32 @@ using NodeSpace::FluidNodeList;
 using Geometry::innerProduct;
 
 //------------------------------------------------------------------------------
+// Local utility methods.
+//------------------------------------------------------------------------------
+namespace {
+
+// 1D
+Dim<1>::Vector
+graddot(const Dim<1>::Vector& xij, const Dim<1>::Vector& Bi, const Dim<1>::Tensor& gradBi) {
+  return Dim<1>::Vector(Bi(0) + xij(0)*gradBi(0,0));
+}
+
+// 2D
+Dim<2>::Vector
+graddot(const Dim<2>::Vector& xij, const Dim<2>::Vector& Bi, const Dim<2>::Tensor& gradBi) {
+  return Dim<2>::Vector(Bi(0) + xij(0)*gradBi(0,0) + xij(1)*gradBi(0,1) + xij(1)*(gradBi(1,0) - gradBi(0,1)),
+                        Bi(1) + xij(0)*gradBi(1,0) + xij(1)*gradBi(1,1) - xij(0)*(gradBi(1,0) - gradBi(0,1)));
+}
+
+// 3D
+Dim<3>::Vector
+graddot(const Dim<3>::Vector& xij, const Dim<3>::Vector& Bi, const Dim<3>::Tensor& gradBi) {
+  return Dim<3>::Vector();
+}
+
+}
+
+//------------------------------------------------------------------------------
 // The method itself.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -52,7 +78,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   FieldList<Dimension, GradientType> result(FieldList<Dimension, GradientType>::Copy);
   FieldList<Dimension, Scalar> volume(FieldList<Dimension, Scalar>::Copy);
   FieldList<Dimension, Vector> B(FieldList<Dimension, Vector>::Copy);
-  FieldList<Dimension, Tensor> gradB(FieldList<Dimension, SymTensor>::Copy);
+  FieldList<Dimension, Tensor> gradB(FieldList<Dimension, Tensor>::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH gradient of " + fieldList[nodeListi]->name(), nodeList, GradientType());
@@ -127,7 +153,8 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
           // Increment the result.
           norm += Vj*(1.0 + Bi.dot(rij))*Wj;
-          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + innerProduct<Dimension>(rij, gradBi))*Wj);
+          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + graddot(rij, Bi, gradBi)*Wj);
+          // result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + innerProduct<Dimension>(rij, gradBi))*Wj);
         }
       }
 

@@ -33,25 +33,41 @@ using Geometry::innerProduct;
 namespace {
 
 // 1D
-Dim<1>::SymTensor
-signedIdentityTensor(const Dim<1>::Vector& xij) {
-  return Dim<1>::SymTensor(sgn(xij.x()));
+Dim<1>::ThirdRankTensor
+gradxij2(const Dim<1>::Vector& xij) {
+  Dim<1>::ThirdRankTensor result;
+  result(0,0,0) = 2.0*xij(0);
+  return result;
 }
 
 // 2D
-Dim<2>::SymTensor
-signedIdentityTensor(const Dim<2>::Vector& xij) {
-  return Dim<2>::SymTensor(1.0, 1.0, 1.0, 1.0);
-  // return Dim<2>::SymTensor(sgn(xij.x()), 0.0,
-  //                          0.0, sgn(xij.y()));
+Dim<2>::ThirdRankTensor
+gradxij2(const Dim<2>::Vector& xij) {
+  Dim<2>::ThirdRankTensor result;
+  result(0,0,0) = 2.0*xij(0);
+  result(0,0,1) =        0.0;
+  result(0,1,0) =     xij(1);
+  result(0,1,1) =     xij(0);
+  result(1,0,0) =     xij(1);
+  result(1,0,1) =     xij(0);
+  result(1,1,0) =        0.0;
+  result(1,1,1) = 2.0*xij(1);
+  return result;
 }
 
 // 3D
-Dim<3>::SymTensor
-signedIdentityTensor(const Dim<3>::Vector& xij) {
-  return Dim<3>::SymTensor(sgn(xij.x()), 0.0, 0.0,
-                           0.0, sgn(xij.y()), 0.0,
-                           0.0, 0.0, sgn(xij.z()));
+Dim<3>::ThirdRankTensor
+gradxij2(const Dim<3>::Vector& xij) {
+  Dim<3>::ThirdRankTensor result;
+  // result(0,0,0) = 2.0*xij(0);
+  // result(0,0,1) =     xij(1);
+  // result(0,1,0) =     xij(1);
+  // result(0,1,1) =        0.0;
+  // result(1,0,0) =        0.0;
+  // result(1,0,1) =     xij(0);
+  // result(1,1,0) =     xij(0);
+  // result(1,1,1) = 2.0*xij(1);
+  return result;
 }
 
 }
@@ -144,19 +160,16 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& Wj = WWj.first;
           const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
-          const Tensor gradrij = Tensor::one; // signedIdentityTensor(rij);
-
           // First moment. 
           m1(i) += Vj*Wj * rij;
-          gradm1(i) += Vj*(outerProduct<Dimension>(gradWj, rij) + Wj*gradrij);
+          gradm1(i) += Vj*(Wj*Tensor::one + outerProduct<Dimension>(rij, gradWj));
 
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
           m2(i) += Vj*Wj * thpt;
           // gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
           //                  Wj*(outerProduct<Dimension>(rij, Tensor::one) + outerProduct<Dimension>(Tensor::one, rij)));
-          gradm2(i) += Vj*(outerProduct<Dimension>(gradWj, thpt) +
-                           Wj*(outerProduct<Dimension>(rij, gradrij) + outerProduct<Dimension>(gradrij, rij)));
+          gradm2(i) += Vj*(Wj*gradxij2(rij) + outerProduct<Dimension>(gradWj, thpt));
 
           // // First moment. 
           // m1(i) += Vj*Wj * rij;
