@@ -31,20 +31,32 @@ namespace {
 
 // 1D
 Dim<1>::Vector
-graddot(const Dim<1>::Vector& xij, const Dim<1>::Vector& Bi, const Dim<1>::Tensor& gradBi) {
-  return Dim<1>::Vector(Bi(0) + xij(0)*gradBi(0,0));
+delta_grad(const Dim<1>::Vector& xij,
+           const Dim<1>::Vector& Bi,
+           const Dim<1>::Tensor& gradBi,
+           const Dim<1>::Scalar& Wj,
+           const Dim<1>::Vector& gradWj) {
+  return Dim<1>::Vector((1.0 + Bi(0)*xij(0))*gradWj(0) + (Bi(0) + xij(0)*gradBi(0,0))*Wj);
 }
 
 // 2D
 Dim<2>::Vector
-graddot(const Dim<2>::Vector& xij, const Dim<2>::Vector& Bi, const Dim<2>::Tensor& gradBi) {
-  return Dim<2>::Vector(Bi(0) + xij(0)*gradBi(0,0) + xij(1)*gradBi(0,1) + xij(1)*(gradBi(1,0) - gradBi(0,1)),
-                        Bi(1) + xij(0)*gradBi(1,0) + xij(1)*gradBi(1,1) - xij(0)*(gradBi(1,0) - gradBi(0,1)));
+delta_grad(const Dim<2>::Vector& xij,
+           const Dim<2>::Vector& Bi,
+           const Dim<2>::Tensor& gradBi,
+           const Dim<2>::Scalar& Wj,
+           const Dim<2>::Vector& gradWj) {
+  return Dim<2>::Vector((1.0 + Bi(0)*xij(0) + Bi(1)*xij(1))*gradWj(0) + (Bi(0) + xij(0)*gradBi(0,0) + xij(1)*gradBi(1,0))*Wj,
+                        (1.0 + Bi(0)*xij(0) + Bi(1)*xij(1))*gradWj(1) + (Bi(1) + xij(0)*gradBi(0,1) + xij(1)*gradBi(1,1))*Wj);
 }
 
 // 3D
 Dim<3>::Vector
-graddot(const Dim<3>::Vector& xij, const Dim<3>::Vector& Bi, const Dim<3>::Tensor& gradBi) {
+delta_grad(const Dim<3>::Vector& xij,
+           const Dim<3>::Vector& Bi,
+           const Dim<3>::Tensor& gradBi,
+           const Dim<3>::Scalar& Wj,
+           const Dim<3>::Vector& gradWj) {
   return Dim<3>::Vector();
 }
 
@@ -153,7 +165,8 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
           // Increment the result.
           norm += Vj*(1.0 + Bi.dot(rij))*Wj;
-          result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + graddot(rij, Bi, gradBi)*Wj);
+          result(nodeListi, i) += Vj*(Fj - Fi)*delta_grad(rij, Bi, gradBi, Wj, gradWj);
+          // result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + graddot(rij, Bi, gradBi)*Wj);
           // result(nodeListi, i) += Vj*(Fj - Fi)*((1.0 + Bi.dot(rij))*gradWj + (Bi + innerProduct<Dimension>(rij, gradBi))*Wj);
         }
       }
