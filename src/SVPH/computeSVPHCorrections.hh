@@ -5,6 +5,8 @@
 #ifndef __Spheral__computeSVPHCorrections__
 #define __Spheral__computeSVPHCorrections__
 
+#include "Geometry/Dimension.hh"
+
 namespace Spheral {
 
   // Forward declarations.
@@ -29,6 +31,17 @@ namespace Spheral {
                            const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                            FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB);
+
+    // Specializations.
+    template<>
+    void
+    computeSVPHCorrections<Dim<2> >(const NeighborSpace::ConnectivityMap<Dim<2> >& connectivityMap,
+                                    const KernelSpace::TableKernel<Dim<2> >& W,
+                                    const FieldSpace::FieldList<Dim<2> ,  Dim<2>::Scalar>& volume,
+                                    const FieldSpace::FieldList<Dim<2> ,  Dim<2>::Vector>& position,
+                                    const FieldSpace::FieldList<Dim<2> ,  Dim<2>::SymTensor>& H,
+                                    FieldSpace::FieldList<Dim<2> ,  Dim<2>::Vector>& B,
+                                    FieldSpace::FieldList<Dim<2> ,  Dim<2>::Tensor>& gradB);
   }
 }
 
