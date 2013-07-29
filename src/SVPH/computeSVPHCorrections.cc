@@ -271,7 +271,7 @@ computeSVPHCorrections<Dim<2> >(const ConnectivityMap<Dim<2> >& connectivityMap,
     Field<Dimension, Vector> m2det_3("m2det_3", nodeList);
 
     // Iterate over the nodes in this node list.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    for (ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
       const int i = *iItr;
