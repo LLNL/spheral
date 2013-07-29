@@ -3,8 +3,6 @@
 // given our standard SPH momentum equation.
 // We only cover the 3D case here.
 //------------------------------------------------------------------------------
-#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
-
 #include "Eigen/Core"
 #include "Eigen/Sparse"
 #include "Eigen/SVD"
@@ -74,7 +72,7 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
   // Build the sparse matrix that represents the full pressure gradient operator.
   // We have one of these matrix operators for each dimension, hence the 3 vector.
   const unsigned n = pressure.numInternalNodes();
-  vector<Eigen::DynamicSparseMatrix<double, Eigen::RowMajor> > M(3, Eigen::DynamicSparseMatrix<double, Eigen::RowMajor>(n, n));
+  vector<Eigen::SparseMatrix<double, Eigen::RowMajor> > M(3, Eigen::SparseMatrix<double, Eigen::RowMajor>(n, n));
   vector<Eigen::VectorXd> s(3, Eigen::VectorXd(n));
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = pressure[nodeListi]->numInternalElements();
