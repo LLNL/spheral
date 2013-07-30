@@ -8,11 +8,24 @@ namespace FractalSpace
     Fractal* PF=PFM->p_fractal;
     ofstream& FFM=PFM->p_file->FileFractalMemory;
     int balance=PFM->balance;
-
+    double scalepoint=1.0;
+    double scalepart=7.0;
+    int steps=PFM->steps;
+    /*
+    if(steps % 20 < 10 )
+      {
+	scalepoint= 1.0+1.5*static_cast<double>(steps % 10);
+	scalepart= 1.0;
+      }
+    else
+      {
+	scalepoint=1.0;
+	scalepart= 1.0+1.5*static_cast<double>(steps % 10);
+      }
+    */
+    FFM << " scalings balance " << steps << " " << scalepoint << " " << scalepart << endl;
     const int ROOT=0;
     const int mult=10;
-    const double scalepoint=1.0;
-    const double scalepart=1.0;
     const double MN=PFM->minimum_number;
     const double logMNinv=1.0/log(MN);
 

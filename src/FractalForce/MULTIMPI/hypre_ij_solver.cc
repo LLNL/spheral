@@ -10,7 +10,7 @@
 #endif
 namespace FractalSpace
 {
-  void hypre_solver(Fractal& frac,Fractal_Memory& mem,int level)
+  void hypre_ij_solver(Fractal& frac,Fractal_Memory& mem,int level,bool& do_over)
   {
     static vector <double> Hypre_sum_time(frac.get_level_max()+1,0.0);
     double Hypre_total_time=0.0;
@@ -211,31 +211,30 @@ namespace FractalSpace
     hypre_eror(FH,level,37,HYPRE_BoomerAMGGetNumIterations(par_solver, &its));
     hypre_eror(FH,level,38,HYPRE_BoomerAMGGetFinalRelativeResidualNorm(par_solver,&final_res_norm));
     FH << "fini " << level << " " << total << " " << its << " " << final_res_norm << endl;
-    if(its >= frac.get_maxits())
-      { 
-	hypre_dump(level,hypre_points,FH);
-        HYPRE_IJMatrixPrint(ij_matrix,"matrix.a");
-        HYPRE_IJVectorPrint(ij_vector_rho,"vector.rho");
-	HYPRE_IJVectorPrint(ij_vector_pot,"vector.pot");
-	assert(its < frac.get_maxits());
-      }
+
+    do_over=its >= frac.get_maxits();
+    if(do_over)
+      FHT << " no convergence, try again " << " " << level << endl;
     hypre_eror(FH,level,39,HYPRE_IJMatrixDestroy(ij_matrix));
     hypre_eror(FH,level,40,HYPRE_IJVectorDestroy(ij_vector_rho));
     hypre_eror(FH,level,41,HYPRE_BoomerAMGDestroy(par_solver));
-    //    double pot0=-1.0;
-    int ni=mem.ij_offsets[FractalRank];
-    for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
+
+    if(!do_over)
       {
-	Point* p=*point_itr;
-	if(p)
+	int ni=mem.ij_offsets[FractalRank];
+	for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
 	  {
-	    rows[0]=ni;
-	    hypre_eror(FH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,1,rows,potv));
-	    p->set_potential_point(potv[0]);
+	    Point* p=*point_itr;
+	    if(p)
+	      {
+		rows[0]=ni;
+		hypre_eror(FH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,1,rows,potv));
+		p->set_potential_point(potv[0]);
+	      }
+	    else
+	      FH << " OUT0" << endl;
+	    ni++;
 	  }
-	else
-	  FH << " OUT0" << endl;
-	ni++;
       }
     hypre_eror(FH,level,43,HYPRE_IJVectorDestroy(ij_vector_pot));
     Hypre_dump_time+=mem.p_mess->Clock();

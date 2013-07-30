@@ -8,7 +8,12 @@ namespace FractalSpace
     if(mem.MPIrun && mem.min_hypre_group_size > 0)
       {
 	mem.p_file->FileHypre << " enter MPI Hypre " << level << " " << mem.min_hypre_group_size << endl;
-	hypre_solver(fractal,mem,level);
+	bool do_over=false;
+	bool play_it_safe=false;
+	if(!play_it_safe)
+	  hypre_ij_solver(fractal,mem,level,do_over);
+	if(do_over || play_it_safe)
+	  hypre_ij_solver_pcg(fractal,mem,level);
 	mem.p_file->FileHypre << "  exit MPI Hypre " << level << " " << mem.min_hypre_group_size << endl;
 	return;
       }

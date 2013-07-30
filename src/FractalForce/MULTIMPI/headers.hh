@@ -62,7 +62,8 @@ namespace FractalSpace
   void high_points(Group& group, Fractal& fractal,Misc& misc);
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  void hypre_solver(Fractal& fractal,Fractal_Memory& mem,int level);
+  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool& do_over);
+  void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_struct_solver(vector <Point*>& p_points_left,vector <Point*>& p_points_right,
 			   Fractal& fractal,Fractal_Memory& mem,const int& level,const bool& buffer_groups);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
