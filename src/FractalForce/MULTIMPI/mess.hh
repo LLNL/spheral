@@ -43,6 +43,7 @@ namespace FractalSpace
     bool standalone;
     File* p_file;
     double WallTime;
+    double TreeTime;
     Mess():
       FractalRank(0),
       FractalNodes(1),
@@ -57,7 +58,8 @@ namespace FractalSpace
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
       time_trial(true),
-      standalone(true)
+      standalone(true),
+      TreeTime(-1.0)
     {
       WallTime=Clock();
       cout << " Empty Mess " << endl;
@@ -75,7 +77,8 @@ namespace FractalSpace
       FractalWorld(FW),
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
-      time_trial(true)
+      time_trial(true),
+      TreeTime(-1.0)
     {
       cout << " Making a Mess with parameters" << endl;
       int grid_length=GR;
@@ -193,7 +196,10 @@ namespace FractalSpace
 	{
 	  const pint Length_11=Length_1+1;
 	  const pint Length_2=2*Length_1;
-	  const double g_c=pow(static_cast<double>(Length_1),-5)/8.0;
+	  double g_c=pow(static_cast<double>(Length_1),-5)/8.0;
+
+	  //	  g_c/=64.0;
+
 	  cout << " g_c= " << g_c << " " << FractalRank << endl;
 	  total_memory=fftw_mpi_local_size_3d(Length_2,Length_2,Length_11,FFTWorld,&length_x,&start_x);
 	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << endl;
@@ -395,6 +401,18 @@ namespace FractalSpace
       int* counts_in=new int[FractalNodes];
       counts_out[0]=count;
       MPI_Allgather(counts_out,1,MPI_INT,counts_in,1,MPI_INT,FractalWorld);
+      for(int ni=0;ni<FractalNodes;ni++)
+	counts[ni]=counts_in[ni];
+      delete [] counts_out;
+      delete [] counts_in; 
+    }
+    void How_Much_On_Nodes(const double& count,vector <double>& counts)
+    {
+      counts.resize(FractalNodes);
+      double* counts_out=new double[1];
+      double* counts_in=new double[FractalNodes];
+      counts_out[0]=count;
+      MPI_Allgather(counts_out,1,MPI_DOUBLE,counts_in,1,MPI_DOUBLE,FractalWorld);
       for(int ni=0;ni<FractalNodes;ni++)
 	counts[ni]=counts_in[ni];
       delete [] counts_out;
@@ -688,18 +706,24 @@ namespace FractalSpace
 	      MPI_MYTest(3,answer);
 	    }
 	}
-      vector <MPI_Status> statusIout(requestIout.size());
-      vector <MPI_Status> statusRout(requestRout.size());
-      vector <MPI_Status> statusIin(requestIin.size());
-      vector <MPI_Status> statusRin(requestRin.size());
-      answer=MPI_Waitall(requestIout.size(),&(*requestIout.begin()),&(*statusIout.begin()));
-      MPI_MYTest(4,answer);
-      answer=MPI_Waitall(requestRout.size(),&(*requestRout.begin()),&(*statusRout.begin()));
-      MPI_MYTest(5,answer);
-      answer=MPI_Waitall(requestIin.size(),&(*requestIin.begin()),&(*statusIin.begin()));
-      MPI_MYTest(6,answer);
-      answer=MPI_Waitall(requestRin.size(),&(*requestRin.begin()),&(*statusRin.begin()));
-      MPI_MYTest(7,answer);
+      if(integers > 0)
+	{
+	  vector <MPI_Status> statusIout(requestIout.size());
+	  vector <MPI_Status> statusIin(requestIin.size());
+	  answer=MPI_Waitall(requestIout.size(),&(*requestIout.begin()),&(*statusIout.begin()));
+	  MPI_MYTest(4,answer);
+	  answer=MPI_Waitall(requestIin.size(),&(*requestIin.begin()),&(*statusIin.begin()));
+	  MPI_MYTest(5,answer);
+	}
+      if(doubles > 0)
+	{
+	  vector <MPI_Status> statusRout(requestRout.size());
+	  vector <MPI_Status> statusRin(requestRin.size());
+	  answer=MPI_Waitall(requestRout.size(),&(*requestRout.begin()),&(*statusRout.begin()));
+	  MPI_MYTest(6,answer);
+	  answer=MPI_Waitall(requestRin.size(),&(*requestRin.begin()),&(*statusRin.begin()));
+	  MPI_MYTest(7,answer);
+	}
       FF << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
     }
     void MPI_MYTest(int which,int test)
