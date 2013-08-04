@@ -39,6 +39,7 @@ commandLine(
     restoreCycle = None,
     restartStep = 100,
     numViz = 200,
+    verbosedt = False,
     )
 
 # Convert to MKS units.
@@ -156,6 +157,7 @@ integrator.lastDt = dtMin
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.verbose = verbosedt
 
 #-------------------------------------------------------------------------------
 # Build the problem controller to follow the problem evolution.

@@ -19,6 +19,9 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
+namespace FileIOSpace {
+  class FileIO;
+}
 
 namespace GravitySpace {
 
@@ -74,9 +77,6 @@ public:
                           State<Dimension>& state,
                           StateDerivatives<Dimension>& derivs);
                        
-  //! Required label for Physics interface.
-  virtual std::string label() const { return "TreeGravity"; }
-
   //! This package opts out of building connectivity.
   virtual bool requireConnectivity() const;
 
@@ -116,6 +116,13 @@ public:
   //! The last computed maximum tree cell density.
   double maxCellDensity() const;
 
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const { return "TreeGravity"; }
+  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  //****************************************************************************
+
 private:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
@@ -133,19 +140,21 @@ private:
   struct Cell {
     double M, Mglobal;               // total mass (and global sum)
     Vector xcm;                      // center of mass
+    Vector vcm;                      // velocity of center of mass
     double rcm2cc2;                  // square of the distance between center of mass and geometric center
     CellKey key;                     // Key for this cell.
     std::vector<CellKey> daughters;  // Keys of any daughter cells on level+1
     std::vector<Cell*> daughterPtrs; // Pointers to the daughter cells.
     std::vector<double> masses;      // Masses of the nodes that terminate in this cell.
     std::vector<Vector> positions;   // Positions of the nodes that terminate in this cell.
+    std::vector<Vector> velocities;  // Velocities of the nodes that terminate in this cell.
 
     // Convenience constructors for TreeGravity::addNodeToTree.
-    Cell(): M(0.0), Mglobal(0.0), xcm(), rcm2cc2(0.0), key(0), daughters(), daughterPtrs(), masses(), positions() {}
-    Cell(const double mi, const Vector& xi, const CellKey& keyi):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), key(keyi), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi) {}
-    Cell(const double mi, const Vector& xi, const CellKey& keyi, const CellKey& daughter):
-      M(mi), Mglobal(mi), xcm(xi), rcm2cc2(0.0), key(keyi), daughters(1, daughter), daughterPtrs(), masses(), positions() {}
+    Cell(): M(0.0), Mglobal(0.0), xcm(), vcm(), rcm2cc2(0.0), key(0), daughters(), daughterPtrs(), masses(), positions(), velocities() {}
+    Cell(const double mi, const Vector& xi, const Vector& vi, const CellKey& keyi):
+      M(mi), Mglobal(mi), xcm(xi), vcm(vi), rcm2cc2(0.0), key(keyi), daughters(), daughterPtrs(), masses(1, mi), positions(1, xi), velocities(1, vi) {}
+    Cell(const double mi, const Vector& xi, const Vector& vi, const CellKey& keyi, const CellKey& daughter):
+      M(mi), Mglobal(mi), xcm(xi), vcm(vi), rcm2cc2(0.0), key(keyi), daughters(1, daughter), daughterPtrs(), masses(), positions(), velocities() {}
 
     // Throw in comparison operators for help sorting.
     bool operator==(const Cell& rhs) const { return key == rhs.key; }
@@ -164,7 +173,11 @@ private:
   // The potential fields filled in during evaluateDerivates.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
   mutable Scalar mExtraEnergy;
+  mutable Scalar mPairWiseDtMin;
   
+  // The restart registration.
+  DataOutput::RestartRegistrationType mRestart;
+
   // Default constructor -- disabled.
   TreeGravity();
 
@@ -193,19 +206,20 @@ private:
 
   // Add a node to the internal tree.
   void addNodeToTree(const double mi,
-                     const Vector& xi);
+                     const Vector& xi,
+                     const Vector& vi);
 
   // Construct all the daughterPtrs in a tree.
   void constructDaughterPtrs(Tree& tree) const;
 
   // Walk a tree and apply it's forces to a set of points.
-  void applyTreeForces(const Tree& tree,
-                       const FieldSpace::FieldList<Dimension, Scalar>& mass,
-                       const FieldSpace::FieldList<Dimension, Vector>& position,
-                       FieldSpace::FieldList<Dimension, Vector>& DxDt,
-                       FieldSpace::FieldList<Dimension, Vector>& DvDt,
-                       FieldSpace::FieldList<Dimension, Scalar>& potential,
-                       CompletedCellSet& cellsCompleted) const;
+  Scalar applyTreeForces(const Tree& tree,
+                         const FieldSpace::FieldList<Dimension, Scalar>& mass,
+                         const FieldSpace::FieldList<Dimension, Vector>& position,
+                         FieldSpace::FieldList<Dimension, Vector>& DxDt,
+                         FieldSpace::FieldList<Dimension, Vector>& DvDt,
+                         FieldSpace::FieldList<Dimension, Scalar>& potential,
+                         CompletedCellSet& cellsCompleted) const;
 
   // Methods to help serializing/deserializing Trees to buffers of char.
   void serialize(const Tree& tree, std::vector<char>& buffer) const;
