@@ -22,36 +22,25 @@ class ArtificialViscosity:
         space = Spheral.add_cpp_namespace("ArtificialViscositySpace")
 
         # Expose types.
-        self.ArtificialViscosity1d = addObject(space, "ArtificialViscosity1d", allow_subclassing=True)
-        self.ArtificialViscosity2d = addObject(space, "ArtificialViscosity2d", allow_subclassing=True)
-        self.ArtificialViscosity3d = addObject(space, "ArtificialViscosity3d", allow_subclassing=True)
-
-        self.MonaghanGingoldViscosity1d = addObject(space, "MonaghanGingoldViscosity1d", allow_subclassing=True, parent=self.ArtificialViscosity1d)
-        self.MonaghanGingoldViscosity2d = addObject(space, "MonaghanGingoldViscosity2d", allow_subclassing=True, parent=self.ArtificialViscosity2d)
-        self.MonaghanGingoldViscosity3d = addObject(space, "MonaghanGingoldViscosity3d", allow_subclassing=True, parent=self.ArtificialViscosity3d)
-
-        self.TensorMonaghanGingoldViscosity1d = addObject(space, "TensorMonaghanGingoldViscosity1d", allow_subclassing=True, parent=self.ArtificialViscosity1d)
-        self.TensorMonaghanGingoldViscosity2d = addObject(space, "TensorMonaghanGingoldViscosity2d", allow_subclassing=True, parent=self.ArtificialViscosity2d)
-        self.TensorMonaghanGingoldViscosity3d = addObject(space, "TensorMonaghanGingoldViscosity3d", allow_subclassing=True, parent=self.ArtificialViscosity3d)
-
+        self.dimSet = (1, 2, 3)
+        for dim in self.dimSet:
+            exec('''
+self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
+self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+''' % {"dim" : dim})
         return
 
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        self.addArtificialViscosityMethods(self.ArtificialViscosity1d, 1)
-        self.addArtificialViscosityMethods(self.ArtificialViscosity2d, 2)
-        self.addArtificialViscosityMethods(self.ArtificialViscosity3d, 3)
-
-        self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity1d, 1)
-        self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity2d, 2)
-        self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity3d, 3)
-
-        self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity1d, 1)
-        self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity2d, 2)
-        self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity3d, 3)
-
+        for dim in self.dimSet:
+            exec('''
+self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
+self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
+''' % {"dim" : dim})
         return
 
     #---------------------------------------------------------------------------
@@ -150,10 +139,16 @@ class ArtificialViscosity:
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
-                           param("double", "Cquadratic", default_value="1.0")])
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false")])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        # Attributes
+        x.add_instance_attribute("linearInExpansion", "bool", getter="linearInExpansion", setter="linearInExpansion")
+        x.add_instance_attribute("quadraticInExpansion", "bool", getter="quadraticInExpansion", setter="quadraticInExpansion")
 
         return
 

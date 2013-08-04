@@ -40,8 +40,12 @@ using KernelSpace::TableKernel;
 template<typename Dimension>
 MonaghanGingoldViscosity<Dimension>::
 MonaghanGingoldViscosity(const Scalar Clinear,
-                         const Scalar Cquadratic):
-  ArtificialViscosity<Dimension>(Clinear, Cquadratic) {
+                         const Scalar Cquadratic,
+                         const bool linearInExpansion,
+                         const bool quadraticInExpansion):
+  ArtificialViscosity<Dimension>(Clinear, Cquadratic),
+  mLinearInExpansion(linearInExpansion),
+  mQuadraticInExpansion(quadraticInExpansion) {
 }
 
 //------------------------------------------------------------------------------
@@ -108,18 +112,54 @@ Piij(const unsigned nodeListi, const unsigned i,
 //                           1.0);
 
   // Compute mu.
-  const Scalar mui = min(0.0, vij.dot(etai)/(etai.magnitude2() + eps2));
-  const Scalar muj = min(0.0, vij.dot(etaj)/(etaj.magnitude2() + eps2));
+  const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
+  const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  const Scalar ei = fshear*(-Cl*csi + Cq*mui)*mui;
-  const Scalar ej = fshear*(-Cl*csj + Cq*muj)*muj;
-  CHECK(ei >= 0.0);
-  CHECK(ej >= 0.0);
+  const Scalar ei = fshear*(-Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                            Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                            Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+  CHECK(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
+  CHECK(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
 
   // Now compute the symmetrized artificial viscous pressure.
   return make_pair(ei/rhoi*Tensor::one,
                    ej/rhoj*Tensor::one);
+}
+
+//------------------------------------------------------------------------------
+// linearInExpansion
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+MonaghanGingoldViscosity<Dimension>::
+linearInExpansion() const {
+  return mLinearInExpansion;
+}
+
+template<typename Dimension>
+void
+MonaghanGingoldViscosity<Dimension>::
+linearInExpansion(const bool x) {
+  mLinearInExpansion = x;
+}
+
+//------------------------------------------------------------------------------
+// quadraticInExpansion
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+MonaghanGingoldViscosity<Dimension>::
+quadraticInExpansion() const {
+  return mQuadraticInExpansion;
+}
+
+template<typename Dimension>
+void
+MonaghanGingoldViscosity<Dimension>::
+quadraticInExpansion(const bool x) {
+  mQuadraticInExpansion = x;
 }
 
 }
