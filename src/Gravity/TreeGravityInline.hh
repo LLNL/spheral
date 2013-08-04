@@ -93,7 +93,8 @@ inline
 void
 TreeGravity<Dimension>::
 addNodeToTree(const double mi,
-              const TreeGravity<Dimension>::Vector& xi) {
+              const TreeGravity<Dimension>::Vector& xi,
+              const TreeGravity<Dimension>::Vector& vi) {
   mTree.reserve(num1dbits); // This is necessary to avoid memory errors!
 
   LevelKey ilevel = 0;
@@ -113,14 +114,15 @@ addNodeToTree(const double mi,
       // If this is an unregistered cell, add it with this node as the sole leaf
       // and we're done.
       terminated = true;
-      mTree[ilevel][key] = Cell(mi, xi, key);
+      mTree[ilevel][key] = Cell(mi, xi, vi, key);
 
     } else {
       Cell& cell = itr->second;
 
       // Is this cell a single leaf already?
       if (cell.masses.size() > 0) {
-        CHECK(cell.masses.size() == cell.positions.size());
+        CHECK(cell.masses.size() == cell.positions.size() and
+              cell.masses.size() == cell.velocities.size());
         CHECK(cell.daughters.size() == 0);
 
         // Yep, so we need to split it unless we're at the maximum refinement.
@@ -130,21 +132,24 @@ addNodeToTree(const double mi,
           CHECK(ilevel1 < TreeGravity<Dimension>::num1dbits);
           if (ilevel1 == mTree.size()) mTree.push_back(TreeLevel());
           buildCellKey(ilevel1, cell.xcm, otherKey, ix, iy, iz);
-          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm, otherKey);
+          mTree[ilevel1][otherKey] = Cell(cell.M, cell.xcm, cell.vcm, otherKey);
           cell.daughters = std::vector<CellKey>(1, otherKey);
           cell.masses = std::vector<double>();
           cell.positions = std::vector<Vector>();
+          cell.velocities = std::vector<Vector>();
 
         } else {
           // If we've maxed out the levels, then we just huck this node in 
           // the members of this cell.
           cell.masses.push_back(mi);
           cell.positions.push_back(xi);
+          cell.velocities.push_back(vi);
         }
       }
 
       // Increment the cell moments.
       cell.xcm = (cell.M*cell.xcm + mi*xi)/(cell.M + mi);
+      cell.vcm = (cell.M*cell.vcm + mi*vi)/(cell.M + mi);
       cell.M += mi;
       cell.Mglobal = cell.M;
     }

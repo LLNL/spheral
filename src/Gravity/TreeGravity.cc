@@ -25,6 +25,7 @@
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
+#include "FileIO/FileIO.hh"
 
 namespace Spheral {
 namespace GravitySpace {
@@ -33,6 +34,7 @@ using namespace std;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
+using FileIOSpace::FileIO;
 
 namespace {
 //------------------------------------------------------------------------------
@@ -103,7 +105,8 @@ TreeGravity(const double G,
   mXmax(),
   mTree(),
   mPotential(FieldList<Dimension, Scalar>::Copy),
-  mExtraEnergy(0.0) {
+  mExtraEnergy(0.0),
+  mRestart(DataOutput::registerWithRestart(*this)) {
   VERIFY(G > 0.0);
   VERIFY(opening > 0.0);
   VERIFY(softeningLength > 0.0);
@@ -154,6 +157,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Zero out the total gravitational potential energy.
   mPotential = 0.0;
 
+  // Initialize the pair-wise time step vote.
+  mPairWiseDtMin = numeric_limits<Scalar>::max();
+
   // Prepare the flags to remember which cells have terminated for each node.
   CompletedCellSet cellsCompleted;
   for (unsigned nodeListi = 0; nodeListi != mass.numFields(); ++nodeListi) {
@@ -203,7 +209,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         bufItr = buffer.begin();
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
-        applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
+        mPairWiseDtMin = min(mPairWiseDtMin, 
+                             applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
       }
     }
   }
@@ -211,7 +218,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #endif
 
   // Apply the forces from our local tree.
-  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted);
+  mPairWiseDtMin = min(mPairWiseDtMin,
+                       applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
+
+  // Complete the pair-wise limit for the next time step.
+  mPairWiseDtMin = allReduce(mPairWiseDtMin, MPI_MIN, Communicator::communicator());
 
 #ifdef USE_MPI
 
@@ -261,6 +272,7 @@ initialize(const Scalar time,
   // Access to pertinent fields in the database.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const size_t numNodeLists = mass.numFields();
 
   // Determine the box size.
@@ -275,7 +287,7 @@ initialize(const Scalar time,
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const size_t n = mass[nodeListi]->numInternalElements();
     for (size_t i = 0; i != n; ++i) {
-      this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i));
+      this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i), velocity(nodeListi, i));
     }
   }
 
@@ -324,6 +336,7 @@ initialize(const Scalar time,
           if (otherItr != tree[ilevel].end()) {
             const Cell& otherCell = otherItr->second;
             cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
+            cell.vcm = (cell.Mglobal*cell.vcm + otherCell.M*otherCell.vcm)/(cell.Mglobal + otherCell.M);
             cell.Mglobal += otherCell.M;
           }
         }
@@ -388,15 +401,23 @@ dt(const DataBase<Dimension>& dataBase,
    const Scalar currentTime) const {
   REQUIRE(mMaxCellDensity > 0.0);
 
-  // We use the gravitational dynamical time (sqrt(G/rho)) to estimate the 
-  // necessary timestep.
-  const double dt = mftimestep * sqrt(1.0/(mG*mMaxCellDensity));
+  // Check our most restrictive restraint.
+  const double dtDyn = sqrt(1.0/(mG*mMaxCellDensity));
+  if (dtDyn < mPairWiseDtMin) {
 
-  stringstream reasonStream;
-  reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
-               << mG << " * " << mMaxCellDensity
-               << ")) = " << dt << ends;
-  return TimeStepType(dt, reasonStream.str());
+    const double dt = mftimestep * dtDyn;
+    stringstream reasonStream;
+    reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
+                 << mG << " * " << mMaxCellDensity
+                 << ")) = " << dt << ends;
+    return TimeStepType(dt, reasonStream.str());
+
+  } else {
+    const double dt = mftimestep * mPairWiseDtMin;
+    stringstream reasonStream;
+    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
+    return TimeStepType(dt, reasonStream.str());
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -478,7 +499,7 @@ dumpTree(const bool globalTree) const {
       const Cell& cell = *itr;
       extractCellIndices(cell.key, ix, iy, iz);
       ss << "    Cell key=" << cell.key << " : (ix,iy,iz)=(" << ix << " " << iy << " " << iz << ")\n"
-         << "         xcm=" << cell.xcm << " rcm2cc=" << sqrt(cell.rcm2cc2) << " M=" << cell.M  << " Mglobal=" << cell.Mglobal << "\n"
+         << "         xcm=" << cell.xcm << " vcm=" << cell.vcm << " rcm2cc=" << sqrt(cell.rcm2cc2) << " M=" << cell.M  << " Mglobal=" << cell.Mglobal << "\n"
          << "         daughters = ( ";
       for (vector<CellKey>::const_iterator ditr = cell.daughters.begin();
            ditr != cell.daughters.end();
@@ -487,7 +508,8 @@ dumpTree(const bool globalTree) const {
          << "         nodes = [";
       for (unsigned k = 0; k != cell.masses.size(); ++k) ss << " ("
                                                             << cell.masses[k] << " "
-                                                            << cell.positions[k] << ")";
+                                                            << cell.positions[k] << " "
+                                                            << cell.velocities[k] << ")";
       ss <<" ]\n";
     }
   }
@@ -655,10 +677,34 @@ maxCellDensity() const {
 }
 
 //------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeGravity<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  file.write(mMaxCellDensity, pathName + "/maxCellDensity");
+  file.write(mPotential, pathName + "/potential");
+  file.write(mPairWiseDtMin, pathName + "/pairWiseDtMin");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TreeGravity<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mMaxCellDensity, pathName + "/maxCellDensity");
+  file.read(mPotential, pathName + "/potential");
+  file.read(mPairWiseDtMin, pathName + "/pairWiseDtMin");
+}
+
+//------------------------------------------------------------------------------
 // Apply the forces from a tree.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void 
+typename Dimension::Scalar
 TreeGravity<Dimension>::
 applyTreeForces(const Tree& tree,
                 const FieldSpace::FieldList<Dimension, Scalar>& mass,
@@ -671,6 +717,9 @@ applyTreeForces(const Tree& tree,
   const unsigned numNodeLists = mass.numFields();
   const unsigned numNodes = mass.numInternalNodes();
   const double boxLength2 = mBoxLength*mBoxLength;
+
+  // Prepare the result for the shortest timestep.
+  double result = numeric_limits<double>::max();
 
   // Declare variables we're going to need in the loop once.  May help with optimization?
   unsigned nodeListi, i, j, k, ilevel, nremaining;
@@ -692,6 +741,7 @@ applyTreeForces(const Tree& tree,
         // State of node i.
         mi = mass(nodeListi, i);
         const Vector& xi = position(nodeListi, i);
+        const Vector& vi = DxDt(nodeListi, i);
         Vector& DvDti = DvDt(nodeListi, i);
         Scalar& phii = potential(nodeListi, i);
         inode = NodeID(nodeListi, i);
@@ -732,10 +782,12 @@ applyTreeForces(const Tree& tree,
                 // This cell represents a leaf (termination of descent.  We just directly
                 // add up the node properties of any nodes in the cell.
                 CHECK(cell.masses.size() > 0 and
-                      cell.positions.size() == cell.masses.size());
+                      cell.positions.size() == cell.masses.size() and
+                      cell.velocities.size() == cell.masses.size());
                 for (j = 0; j != cell.masses.size(); ++j) {
                   mj = cell.masses[j];
                   const Vector& xj = cell.positions[j];
+                  const Vector& vj = cell.velocities[j];
                   xji = xj - xi;
                   rji2 = xji.magnitude2();
 
@@ -747,6 +799,9 @@ applyTreeForces(const Tree& tree,
                     // Increment the acceleration and potential.
                     DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
                     phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
+
+                    // Increment our vote for the next timestep.
+                    result = min(result, sqrt(rji2/max(1.0e-20, (vj - vi).magnitude2())));
                   }
                 }
 
@@ -766,6 +821,7 @@ applyTreeForces(const Tree& tree,
       }
     }
   }
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -801,11 +857,13 @@ serialize(const TreeGravity<Dimension>::Cell& cell,
   packElement(cell.M, buffer);
   packElement(cell.Mglobal, buffer);
   packElement(cell.xcm, buffer);
+  packElement(cell.vcm, buffer);
   packElement(cell.rcm2cc2, buffer);
   packElement(cell.key, buffer);
   packElement(cell.daughters, buffer);
   packElement(cell.masses, buffer);
   packElement(cell.positions, buffer);
+  packElement(cell.velocities, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -829,6 +887,7 @@ deserialize(TreeGravity<Dimension>::Tree& tree,
       cell.daughters = vector<CellKey>();
       cell.masses = vector<double>();
       cell.positions = vector<Vector>();
+      cell.velocities = vector<Vector>();
       unpackElement(key, bufItr, endItr);
       deserialize(cell, bufItr, endItr);
       tree[ilevel][key] = cell;
@@ -849,11 +908,13 @@ deserialize(TreeGravity<Dimension>::Cell& cell,
   unpackElement(cell.M, bufItr, endItr);
   unpackElement(cell.Mglobal, bufItr, endItr);
   unpackElement(cell.xcm, bufItr, endItr);
+  unpackElement(cell.vcm, bufItr, endItr);
   unpackElement(cell.rcm2cc2, bufItr, endItr);
   unpackElement(cell.key, bufItr, endItr);
   unpackElement(cell.daughters, bufItr, endItr);
   unpackElement(cell.masses, bufItr, endItr);
   unpackElement(cell.positions, bufItr, endItr);
+  unpackElement(cell.velocities, bufItr, endItr);
 }
 
 //------------------------------------------------------------------------------
