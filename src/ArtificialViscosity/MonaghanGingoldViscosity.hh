@@ -25,7 +25,9 @@ public:
 
   // Constructors.
   MonaghanGingoldViscosity(const Scalar Clinear,
-                           const Scalar Cquadratic);
+                           const Scalar Cquadratic,
+                           const bool linearInExpansion,
+                           const bool quadraticInExpansion);
 
   // Destructor.
   virtual ~MonaghanGingoldViscosity();
@@ -46,11 +48,20 @@ public:
                                          const Scalar csj,
                                          const SymTensor& Hj) const;
 
+  // Access the switches for acting in expansion.
+  bool linearInExpansion() const;
+  void linearInExpansion(const bool x);
+
+  bool quadraticInExpansion() const;
+  void quadraticInExpansion(const bool x);
+
   // Restart methods.
   virtual std::string label() const { return "MonaghanGingoldViscosity"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  bool mLinearInExpansion, mQuadraticInExpansion;
+
   MonaghanGingoldViscosity();
   MonaghanGingoldViscosity(const MonaghanGingoldViscosity&);
   MonaghanGingoldViscosity& operator=(const MonaghanGingoldViscosity&) const;

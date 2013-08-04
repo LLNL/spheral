@@ -773,9 +773,9 @@ void
 Integrator<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
-  file.write(dtMin(), pathName + "/dtMin");
-  file.write(dtMax(), pathName + "/dtMax");
-  file.write(dtGrowth(), pathName + "/dtGrowth");
+  // file.write(dtMin(), pathName + "/dtMin");
+  // file.write(dtMax(), pathName + "/dtMax");
+  // file.write(dtGrowth(), pathName + "/dtGrowth");
   file.write(lastDt(), pathName + "/lastDt");
   file.write(currentTime(), pathName + "/currentTime");
   file.write(currentCycle(), pathName + "/currentCycle");
@@ -789,9 +789,9 @@ void
 Integrator<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
 
-  file.read(mDtMin, pathName + "/dtMin");
-  file.read(mDtMax, pathName + "/dtMax");
-  file.read(mDtGrowth, pathName + "/dtGrowth");
+  // file.read(mDtMin, pathName + "/dtMin");
+  // file.read(mDtMax, pathName + "/dtMax");
+  // file.read(mDtGrowth, pathName + "/dtGrowth");
   file.read(mLastDt, pathName + "/lastDt");
   file.read(mCurrentTime, pathName + "/currentTime");
   file.read(mCurrentCycle, pathName + "/currentCycle");
