@@ -221,8 +221,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mPairWiseDtMin = min(mPairWiseDtMin,
                        applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
 
-  // Complete the pair-wise limit for the next time step.
-  mPairWiseDtMin = allReduce(mPairWiseDtMin, MPI_MIN, Communicator::communicator());
+  // // Complete the pair-wise limit for the next time step.
+  // mPairWiseDtMin = allReduce(mPairWiseDtMin, MPI_MIN, Communicator::communicator());
 
 #ifdef USE_MPI
 
