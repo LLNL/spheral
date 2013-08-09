@@ -35,10 +35,7 @@ FieldList<Dimension, DataType>::FieldList():
   mFieldCache(0),
   mStorageType(Reference),
   mNodeListPtrs(0),
-  mNodeListIndexMap(),
-  mLastFieldID(0),
-  mLastNodeListPtr(0),
-  mRefineCache() {
+  mNodeListIndexMap() {
 }
 
 //------------------------------------------------------------------------------
@@ -52,10 +49,7 @@ FieldList<Dimension, DataType>::FieldList(FieldStorageType aStorageType):
   mFieldCache(0),
   mStorageType(aStorageType),
   mNodeListPtrs(0),
-  mNodeListIndexMap(),
-  mLastFieldID(0),
-  mLastNodeListPtr(0),
-  mRefineCache() {
+  mNodeListIndexMap() {
 }
 
 //------------------------------------------------------------------------------
@@ -71,10 +65,7 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
   mFieldCache(),
   mStorageType(rhs.storageType()),
   mNodeListPtrs(rhs.mNodeListPtrs),
-  mNodeListIndexMap(rhs.mNodeListIndexMap),
-  mLastFieldID(rhs.mLastFieldID),
-  mLastNodeListPtr(rhs.mLastNodeListPtr),
-  mRefineCache(rhs.mRefineCache) {
+  mNodeListIndexMap(rhs.mNodeListIndexMap) {
 
   // If we're maintaining Fields by copy, then copy the Field cache.
   if (storageType() == Copy) {
@@ -133,9 +124,6 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
     mNodeListPtrs = rhs.mNodeListPtrs;
     mFieldCache = FieldCacheType();
     mNodeListIndexMap = rhs.mNodeListIndexMap;
-    mLastFieldID = rhs.mLastFieldID;
-    mLastNodeListPtr = rhs.mLastNodeListPtr;
-    mRefineCache = rhs.mRefineCache;
     mFieldPtrs = std::vector<ElementType>();
     mFieldPtrs.reserve(rhs.size());
 
@@ -546,13 +534,7 @@ inline
 DataType&
 FieldList<Dimension, DataType>::
 operator()(const NodeIteratorBase<Dimension>& itr) {
-  REQUIRE2(mNodeListIndexMap.find(itr.nodeListPtr()) != mNodeListIndexMap.end(),
-           "FieldList " + mFieldPtrs[0]->name() + " does not have NodeList " + itr.nodeListPtr()->name());
-  if (itr.nodeListPtr() != mLastNodeListPtr) {
-    mLastNodeListPtr = itr.nodeListPtr();
-    mLastFieldID = mNodeListIndexMap[itr.nodeListPtr()];
-  }
-  return mFieldPtrs[mLastFieldID]->operator()(itr.nodeID());
+  return this->operator()(itr.fieldID(), itr.nodeID());
 }
 
 template<typename Dimension, typename DataType>
@@ -560,13 +542,7 @@ inline
 const DataType&
 FieldList<Dimension, DataType>::
 operator()(const NodeIteratorBase<Dimension>& itr) const {
-  REQUIRE2(mNodeListIndexMap.find(itr.nodeListPtr()) != mNodeListIndexMap.end(),
-           "FieldList " + mFieldPtrs[0]->name() + " does not have NodeList " + itr.nodeListPtr()->name());
-  if (itr.nodeListPtr() != mLastNodeListPtr) {
-    mLastNodeListPtr = itr.nodeListPtr();
-    mLastFieldID = mNodeListIndexMap.find(itr.nodeListPtr())->second;
-  }
-  return mFieldPtrs[mLastFieldID]->operator()(itr.nodeID());
+  return this->operator()(itr.fieldID(), itr.nodeID());
 }
 
 //------------------------------------------------------------------------------
@@ -1531,106 +1507,6 @@ FieldList<Dimension, DataType>::numGhostNodes() const {
     numberOfNodes += static_cast<int>((*iter)->nodeList().numGhostNodes());
   }
   return numberOfNodes;
-}
-
-//------------------------------------------------------------------------------
-// Create the cache of refined element values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-cacheRefineElements() const {
-  std::vector<DataType>& cache = const_cast<std::vector<DataType>&>(mRefineCache);
-  cache = std::vector<DataType>();
-  for (RefineNodeIterator<Dimension> itr = refineNodeBegin();
-       itr != refineNodeEnd();
-       ++itr) cache.push_back((*this)(itr));
-}
-
-//------------------------------------------------------------------------------
-// Copy the refine cache values back into the real Field data.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-useCacheRefineElements() {
-  const_cache_iterator cacheItr = refineCacheBegin();
-  for (RefineNodeIterator<Dimension> itr = refineNodeBegin();
-       itr != refineNodeEnd();
-       ++itr, ++cacheItr) {
-    CHECK(cacheItr < refineCacheEnd());
-    (*this)(itr) = *cacheItr;
-  }
-  ENSURE(cacheItr == refineCacheEnd());
-}
-
-//------------------------------------------------------------------------------
-// Number of cached refined elements.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-int
-FieldList<Dimension, DataType>::
-numRefineCacheElements() const {
-  return mRefineCache.size();
-}
-
-//------------------------------------------------------------------------------
-// Iterators to the cached refined elements.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldList<Dimension, DataType>::cache_iterator
-FieldList<Dimension, DataType>::
-refineCacheBegin() {
-  return mRefineCache.begin();
-}
-
-template<typename Dimension, typename DataType>
-inline
-typename FieldList<Dimension, DataType>::cache_iterator
-FieldList<Dimension, DataType>::
-refineCacheEnd() {
-  return mRefineCache.end();
-}
-
-template<typename Dimension, typename DataType>
-inline
-typename FieldList<Dimension, DataType>::const_cache_iterator
-FieldList<Dimension, DataType>::
-refineCacheBegin() const {
-  return mRefineCache.begin();
-}
-
-template<typename Dimension, typename DataType>
-inline
-typename FieldList<Dimension, DataType>::const_cache_iterator
-FieldList<Dimension, DataType>::
-refineCacheEnd() const {
-  return mRefineCache.end();
-}
-
-//------------------------------------------------------------------------------
-// Index access to the refined cache values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-DataType&
-FieldList<Dimension, DataType>::
-refineCache(const int i) {
-  REQUIRE(i >= 0 && i < mRefineCache.size());
-  return mRefineCache[i];
-}
-
-template<typename Dimension, typename DataType>
-inline
-const DataType&
-FieldList<Dimension, DataType>::
-refineCache(const int i) const {
-  REQUIRE(i >= 0 && i < mRefineCache.size());
-  return mRefineCache[i];
 }
 
 //------------------------------------------------------------------------------
