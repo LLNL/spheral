@@ -7,7 +7,9 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	computeSVPHCorrectionsInst.cc \
 	sampleFieldListSVPHInst.cc \
-	gradientFieldListSVPHInst.cc
+	gradientFieldListSVPHInst.cc \
+	SVPHHydroBaseInst.cc \
+	SVPHCorrectionsPolicyInst.cc
 
 LINKLIST = linklist
 SPHERALTOP = ..

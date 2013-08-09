@@ -22,7 +22,7 @@ using NodeSpace::FluidNodeList;
 using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
-// Constructor.
+// Constructor without specifying bounds.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MeshPolicy<Dimension>::
@@ -31,7 +31,28 @@ MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
   UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
                               UpdatePolicyBase<Dimension>::wildcard()),
   mPackage(package),
-  mVoidThreshold(voidThreshold) {
+  mVoidThreshold(voidThreshold),
+  mComputeBounds(true),
+  mXmin(),
+  mXmax() {
+}
+
+//------------------------------------------------------------------------------
+// Constructor where we specify bounds.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+MeshPolicy<Dimension>::
+MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
+           const Vector& xmin,
+           const Vector& xmax,
+           const double voidThreshold):
+  UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
+                              UpdatePolicyBase<Dimension>::wildcard()),
+  mPackage(package),
+  mVoidThreshold(voidThreshold),
+  mComputeBounds(false),
+  mXmin(xmin),
+  mXmax(xmax) {
 }
 
 //------------------------------------------------------------------------------
@@ -57,30 +78,20 @@ update(const KeyType& key,
   REQUIRE(key == HydroFieldNames::mesh);
 
   // Find the global bounding box.
-  Vector xmin, xmax;
-  const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
-  globalBoundingBox<Dimension>(positions, xmin, xmax, 
-                               false);     // ghost points
-
-  // Puff things up a bit.
-  const Vector delta = xmax - xmin;
-  xmin -= 0.01*delta;
-  xmax += 0.01*delta;
+  if (mComputeBounds) {
+    const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
+    globalBoundingBox<Dimension>(positions, mXmin, mXmax, 
+                                 false);     // ghost points
+  }
 
   // This is a special case -- the state knows how to generate the mesh.
-  state.generateMesh(xmin,                     // xmin
-                     xmax,                     // xmax
-                     false,                    // generate void
-                     false,                    // parallel connectivity
+  state.generateMesh(mXmin,                     // xmin
+                     mXmax,                     // xmax
+                     false,                     // generate void
+                     false,                     // parallel connectivity
                      mVoidThreshold,
                      mPackage.boundaryBegin(),
                      mPackage.boundaryEnd());
-
-//   // Blago!
-//   double xmax = -1e10;
-//   const MeshSpace::Mesh<Dimension>& mesh = state.mesh();
-//   for (unsigned i = 0; i != mesh.numNodes(); ++i) xmax = std::max(xmax, mesh.node(i).position().x());
-//   cerr << "Max node position:  " << xmax << endl;
 }
 
 //------------------------------------------------------------------------------

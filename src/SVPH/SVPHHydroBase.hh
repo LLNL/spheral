@@ -51,20 +51,16 @@ public:
 
   // Constructors.
   SVPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               const KernelSpace::TableKernel<Dimension>& W,
-               const KernelSpace::TableKernel<Dimension>& WPi,
-               ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool gradhCorrection,
-               const bool XSVPH,
-               const PhysicsSpace::MassDensityType densityUpdate,
-               const PhysicsSpace::HEvolutionType HUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax);
+                const KernelSpace::TableKernel<Dimension>& W,
+                ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                const double cfl,
+                const bool useVelocityMagnitudeForDt,
+                const bool compatibleEnergyEvolution,
+                const bool XSVPH,
+                const PhysicsSpace::MassDensityType densityUpdate,
+                const PhysicsSpace::HEvolutionType HUpdate,
+                const Vector& xmin,
+                const Vector& xmax);
 
   // Destructor.
   virtual ~SVPHHydroBase();
@@ -126,18 +122,12 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
 
-  // A method to fill in the volume in the State, optionally enforcing
-  // boundary conditions.
-  void updateVolume(State<Dimension>& state,
-                    const bool boundaries) const;
-
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
   PhysicsSpace::MassDensityType densityUpdate() const;
   void densityUpdate(const PhysicsSpace::MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
-  // the continuity equation.
   PhysicsSpace::HEvolutionType HEvolution() const;
   void HEvolution(const PhysicsSpace::HEvolutionType type);
 
@@ -146,23 +136,11 @@ public:
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(const bool val);
 
-  // Flag to determine if we're using the grad h correction.
-  bool gradhCorrection() const;
-  void gradhCorrection(const bool val);
-
   // Flag to determine if we're using the XSVPH algorithm.
   bool XSVPH() const;
   void XSVPH(const bool val);
 
-  // Parameters for the tensile correction force at small scales.
-  Scalar epsilonTensile() const;
-  void epsilonTensile(const Scalar val);
-
-  Scalar nTensile() const;
-  void nTensile(const Scalar val);
-
-  // Optionally we can provide a bounding box for use generating the mesh
-  // for the Voronoi mass density update.
+  // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
   void xmin(const Vector& x);
@@ -171,19 +149,23 @@ public:
   // The object defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
+  // The tessellation.
+  const MeshSpace::Mesh<Dimension>& mesh() const;
+
   // The state field lists we're maintaining.
+  const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    B() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    XSVPHWeightSum() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
@@ -209,19 +191,21 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSVPH;
-
-  // Tensile correction.
-  Scalar mEpsTensile, mnTensile;
+  bool mCompatibleEnergyEvolution, mXSVPH;
 
   // Optional bounding box for generating the mesh.
-  Vector mxmin, mxmax;
+  Vector mXmin, mXmax;
+
+  // The mesh.
+  MeshSpace::Mesh<Dimension> mMesh;
 
   // Some internal scratch fields.
+  FieldSpace::FieldList<Dimension, Scalar>    mA;
+  FieldSpace::FieldList<Dimension, Vector>    mB;
+  FieldSpace::FieldList<Dimension, Tensor>    mGradB;
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
@@ -231,7 +215,6 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mXSVPHWeightSum;
   FieldSpace::FieldList<Dimension, Vector>    mXSVPHDeltaV;
 
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;

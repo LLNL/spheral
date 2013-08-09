@@ -89,12 +89,14 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   // Prepare the result and some work fields.
   FieldList<Dimension, GradientType> result(FieldList<Dimension, GradientType>::Copy);
   FieldList<Dimension, Scalar> volume(FieldList<Dimension, Scalar>::Copy);
+  FieldList<Dimension, Scalar> A(FieldList<Dimension, Scalar>::Copy);
   FieldList<Dimension, Vector> B(FieldList<Dimension, Vector>::Copy);
   FieldList<Dimension, Tensor> gradB(FieldList<Dimension, Tensor>::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
     result.appendNewField("SVPH gradient of " + fieldList[nodeListi]->name(), nodeList, GradientType());
     volume.appendNewField("volume", nodeList, 0.0);
+    A.appendNewField("SVPH normalization for " + fieldList[nodeListi]->name(), nodeList, 0.0);
     B.appendNewField("SVPH linear correction for " + fieldList[nodeListi]->name(), nodeList, Vector::zero);
     gradB.appendNewField("SVPH linear correction gradient for " + fieldList[nodeListi]->name(), nodeList, Tensor::zero);
   }
@@ -116,6 +118,7 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
                            volume,
                            position,
                            Hfield,
+                           A,
                            B,
                            gradB);
   }

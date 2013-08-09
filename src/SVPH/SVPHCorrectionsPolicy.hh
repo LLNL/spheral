@@ -1,16 +1,17 @@
 //---------------------------------Spheral++----------------------------------//
-// MeshPolicy -- An implementation of UpdatePolicyBase specialized
-// for the updating the Mesh in the state.
+// SVPHCorrectionsPolicy -- An implementation of UpdatePolicyBase specialized
+// for the updating the SVPHCorrections in the state.
 //
-// Created by JMO, Sat Feb 12 14:37:57 PST 2011
+// Created by JMO, Fri Aug  9 15:24:04 PDT 2013
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_MeshPolicy_hh__
-#define __Spheral_MeshPolicy_hh__
+#ifndef __Spheral_SVPHCorrectionsPolicy_hh__
+#define __Spheral_SVPHCorrectionsPolicy_hh__
 
 #include <string>
 
 #include "DataBase/UpdatePolicyBase.hh"
-#include "Physics/Physics.hh"
+#include "DataBase/DataBase.hh"
+#include "Kernel/TableKernel.hh"
 
 namespace Spheral {
 
@@ -19,21 +20,20 @@ template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension>
-class MeshPolicy: public UpdatePolicyBase<Dimension> {
+class SVPHCorrectionsPolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
+  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
-             const double voidThreshold = 2.0);
-  MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
-             const Vector& xmin,
-             const Vector& xmax,
-             const double voidThreshold = 2.0);
-  virtual ~MeshPolicy();
+  SVPHCorrectionsPolicy(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                        const KernelSpace::TableKernel<Dimension>& kernel);
+  virtual ~SVPHCorrectionsPolicy();
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -48,14 +48,12 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const PhysicsSpace::Physics<Dimension>& mPackage;
-  double mVoidThreshold;
-  bool mComputeBounds;
-  Vector mXmin, mXmax;
+  const DataBaseSpace::DataBase<Dimension>& mDataBase;
+  const KernelSpace::TableKernel<Dimension>& mKernel;
 
-  MeshPolicy();
-  MeshPolicy(const MeshPolicy& rhs);
-  MeshPolicy& operator=(const MeshPolicy& rhs);
+  SVPHCorrectionsPolicy();
+  SVPHCorrectionsPolicy(const SVPHCorrectionsPolicy& rhs);
+  SVPHCorrectionsPolicy& operator=(const SVPHCorrectionsPolicy& rhs);
 };
 
 }
@@ -64,7 +62,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class MeshPolicy;
+  template<typename Dimension> class SVPHCorrectionsPolicy;
 }
 
 #endif
