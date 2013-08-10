@@ -27,6 +27,7 @@
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
@@ -135,10 +136,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
   // Construct the mesh and volumes.
-  NodeList<Dimension> voidNodes("internal void", 0, 0);
+  NodeList<Dimension> voidNodes("ZZZZZZZZZ internal void", 0, 0);
   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
   nodeLists.push_back(&voidNodes);
-  std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
+  // std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
   MeshSpace::generateMesh<Dimension,
                           typename vector<const NodeList<Dimension>*>::iterator,
                           ConstBoundaryIterator>
@@ -220,8 +221,8 @@ registerState(DataBase<Dimension>& dataBase,
     // Mesh and volume.
     PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
-    state.enroll("SVPHHydroBase Mesh update", meshPolicy);
-    state.enroll(*mVolume[nodeListi]);
+    state.enroll(HydroFieldNames::mesh, meshPolicy);
+    state.enroll(*mVolume[nodeListi], volumePolicy);
 
     // SVPH corrections.
     // All of these corrections are computed in the same method/policy, so we register
@@ -232,6 +233,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(*mGradB[nodeListi]);
 
     // Register the position update.
+    // PolicyPointer positionPolicy(new PositionPolicy<Dimension>());
     PolicyPointer positionPolicy(new IncrementState<Dimension, Vector>());
     state.enroll((*itr)->positions(), positionPolicy);
 
@@ -376,7 +378,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
-  const TableKernel<Dimension>& WQ = this->PiKernel();
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -580,14 +581,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Wi = WWi.first;
               const Scalar gWi = WWi.second;
               const Vector gradWi = gWi*Hetai;
-              const Vector gradWQi = WQ.gradValue(etaMagi, 1.0) * Hetai;
 
               const Vector Hetaj = Hj*etaj.unitVector();
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, 1.0);
               const Scalar Wj = WWj.first;
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
-              const Vector gradWQj = WQ.gradValue(etaMagj, 1.0) * Hetaj;
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -613,7 +612,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = 0.5*(rhoi*QPiij.first - rhoj*QPiij.second)*(Ai*Vj/rhoi*gradWQj + Aj*Vi/rhoj*gradWQi);
+              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)*(Ai*Vj/rhoi*gradWj + Aj*Vi/rhoj*gradWi);
               const Scalar workQi = vij.dot(Qaccij);
               const Scalar workQj = vij.dot(Qaccij);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -624,16 +623,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDt = 0.5*(Pi - Pj)*(Ai*Vj/rhoi*gradWj + Aj*Vi/rhoj*gradWi);
-              DvDti -= deltaDvDt;
-              DvDtj += deltaDvDt;
+              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi * gradWj;
+              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj * gradWi;
+              DvDti += deltaDvDti;
+              DvDtj += deltaDvDtj;
+
+              // const Vector deltaDvDt = 0.5*(Pi - Pj)*(Ai*Vj/rhoi*gradWj + Aj*Vi/rhoj*gradWi) + Qaccij;
+              // DvDti -= deltaDvDt;
+              // DvDtj += deltaDvDt;
 
               // Specific thermal energy evolution.
               DepsDti += Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
               DepsDtj += Vi*Pj/rhoj*vij.dot(gradWj) + workQj;
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(-deltaDvDt);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back( deltaDvDt);
+                if (i < firstGhostNodei) pairAccelerationsi.push_back(deltaDvDti);
+                if (j < firstGhostNodej) pairAccelerationsj.push_back(deltaDvDtj);
               }
 
               // Velocity gradient.
