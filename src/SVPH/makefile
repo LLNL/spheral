@@ -11,6 +11,9 @@ SRCTARGETS = \
 	SVPHHydroBaseInst.cc \
 	SVPHCorrectionsPolicyInst.cc
 
+PYTHONTARGETS = \
+	SVPHHydros.py
+
 LINKLIST = linklist
 SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
