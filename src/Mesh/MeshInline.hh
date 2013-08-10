@@ -296,7 +296,8 @@ Mesh<Dimension>::
 offset(const NodeSpace::NodeList<Dimension>& nodeList) const {
   std::map<std::string, unsigned>::const_iterator itr = mNodeListNameOffsets.find(nodeList.name());
   REQUIRE(itr != mNodeListNameOffsets.end());
-  REQUIRE(itr->second < mZones.size());
+  REQUIRE(itr->second < mZones.size() or 
+          (itr->second == mZones.size() and nodeList.numInternalNodes() == 0));
   return itr->second;
 }
 
