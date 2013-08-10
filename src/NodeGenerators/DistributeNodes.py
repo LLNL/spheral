@@ -156,7 +156,8 @@ def distributeNodesInRange1d(listOfNodeTuples,
 
     # Set neighbor information.
     #Neighbor1d.setBoundingBox()
-    for nodes, n, rho0, (x0, x1) in listOfNodeTuples:
+    for nodeTuple in listOfNodeTuples:
+        nodes = nodeTuple[0]
         nodes.neighbor().updateNodes()
         assert nodes.neighbor().valid()
 

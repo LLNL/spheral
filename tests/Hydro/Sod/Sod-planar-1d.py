@@ -42,6 +42,7 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
 
+            SVPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 0.15,
@@ -159,17 +160,27 @@ output("q.epsilon2")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = SPHHydro(WT,
-                 WTPi,
-                 q,
-                 cfl = cfl,
-                 compatibleEnergyEvolution = compatibleEnergy,
-                 gradhCorrection = gradhCorrection,
-                 densityUpdate = densityUpdate,
-                 HUpdate = HEvolution,
-                 XSPH = XSPH,
-                 epsTensile = epsilonTensile,
-                 nTensile = nTensile)
+if SVPH:
+    hydro = SVPHHydro(WT, q,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSVPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HEvolution,
+                      xmin = Vector(-100.0),
+                      xmax = Vector( 100.0))
+else:
+    hydro = SPHHydro(WT,
+                     WTPi,
+                     q,
+                     cfl = cfl,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     gradhCorrection = gradhCorrection,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HEvolution,
+                     XSPH = XSPH,
+                     epsTensile = epsilonTensile,
+                     nTensile = nTensile)
 output("hydro")
 
 packages = [hydro]
@@ -251,14 +262,9 @@ if smoothDiscontinuity:
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro, maxIdealHIterations = 500)
 
 #-------------------------------------------------------------------------------
 # If we want to use refinement, build the refinemnt algorithm.
@@ -356,23 +362,23 @@ if graphics in ("gnu", "matplot"):
     xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 
-    # Plot the specific entropy.
-    if mpi.rank == 0:
-        ll = zip(xprof, A, Aans)
-        ll.sort()
-        AsimData = Gnuplot.Data(xprof, A,
-                                with_ = "points",
-                                title = "Simulation",
-                                inline = True)
-        AansData = Gnuplot.Data(xprof, Aans,
-                                with_ = "lines",
-                                title = "Analytic",
-                                inline = True)
-        Aplot = Gnuplot.Gnuplot()
-        Aplot.plot(AsimData)
-        Aplot.replot(AansData)
-    else:
-        Aplot = fakeGnuplot()
+    # # Plot the specific entropy.
+    # if mpi.rank == 0:
+    #     ll = zip(xprof, A, Aans)
+    #     ll.sort()
+    #     AsimData = Gnuplot.Data(xprof, A,
+    #                             with_ = "points",
+    #                             title = "Simulation",
+    #                             inline = True)
+    #     AansData = Gnuplot.Data(xprof, Aans,
+    #                             with_ = "lines",
+    #                             title = "Analytic",
+    #                             inline = True)
+    #     Aplot = Gnuplot.Gnuplot()
+    #     Aplot.plot(AsimData)
+    #     Aplot.replot(AansData)
+    # else:
+    #     Aplot = fakeGnuplot()
 
     # # Plot the grad h correction term (omega)
     # omegaPlot = plotFieldList(db.fluidOmegaGradh,
