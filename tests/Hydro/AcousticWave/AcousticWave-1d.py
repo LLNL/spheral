@@ -124,7 +124,7 @@ class MassFunctor(NewtonRaphsonFunction):
         NewtonRaphsonFunction.__init__(self)
         self.Mcumulative = Mcumulative
         return
-    def ___call__(self, x):
+    def __call__(self, x):
         return pair_double_double(self.Mcumulative - rho1*(x + A/(twopi*kfreq)*(1.0 - cos(twopi*kfreq*x))),
                                   -rho1*(1.0 + A*sin(twopi*kfreq*x)))
 
@@ -228,17 +228,9 @@ output("integrator.rigorousBoundaries")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
-    control.smoothState(smoothIters)
-    # if sumForMassDensity == RigorousSumDensity:
-    #     sumSPHMassDensity(db, WT)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
