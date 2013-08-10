@@ -7,7 +7,7 @@
 namespace Spheral {
   namespace SVPHSpace {
     template class SVPHHydroBase< Dim<1> >;
-    // template class SVPHHydroBase< Dim<2> >;
-    // template class SCPHHydroBase< Dim<3> >;
+    template class SVPHHydroBase< Dim<2> >;
+    template class SVPHHydroBase< Dim<3> >;
   }
 }

@@ -41,6 +41,7 @@ commandLine(nx1 = 100,
             epsilonTensile = 0.0,
             nTensile = 4,
 
+            SVPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 5.0,
@@ -176,26 +177,26 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = SPHHydro(WT, WTPi, q,
-                 cfl = cfl,
-                 compatibleEnergyEvolution = compatibleEnergy,
-                 gradhCorrection = gradhCorrection,
-                 XSPH = XSPH,
-                 densityUpdate = sumForMassDensity,
-                 HUpdate = HEvolution,
-                 epsTensile = epsilonTensile,
-                 nTensile = nTensile)
+if SVPH:
+    hydro = SVPHHydro(WT, q,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSVPH = XSPH,
+                      densityUpdate = sumForMassDensity,
+                      HUpdate = HEvolution,
+                      xmin = Vector(x0),
+                      xmax = Vector(x1))
+else:
+    hydro = SPHHydro(WT, WTPi, q,
+                     cfl = cfl,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     gradhCorrection = gradhCorrection,
+                     XSPH = XSPH,
+                     densityUpdate = sumForMassDensity,
+                     HUpdate = HEvolution,
+                     epsTensile = epsilonTensile,
+                     nTensile = nTensile)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.XSPH")
-output("hydro.sumForMassDensity")
-output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

@@ -120,6 +120,17 @@ smoothingScaleMethod() const {
 }
 
 //------------------------------------------------------------------------------
+// The mesh.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const MeshSpace::Mesh<Dimension>&
+SVPHHydroBase<Dimension>::
+mesh() const {
+  return mMesh;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
