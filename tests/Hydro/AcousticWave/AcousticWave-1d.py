@@ -54,7 +54,7 @@ commandLine(nx1 = 100,
             statsStep = 1,
             smoothIters = 0,
             HEvolution = IdealH,
-            sumForMassDensity = RigorousSumDensity,
+            densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
 
@@ -182,17 +182,17 @@ if SVPH:
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSVPH = XSPH,
-                      densityUpdate = sumForMassDensity,
+                      densityUpdate = densityUpdate,
                       HUpdate = HEvolution,
-                      xmin = Vector(x0),
-                      xmax = Vector(x1))
+                      xmin = Vector(-100.0),
+                      xmax = Vector( 100.0))
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,
                      compatibleEnergyEvolution = compatibleEnergy,
                      gradhCorrection = gradhCorrection,
                      XSPH = XSPH,
-                     densityUpdate = sumForMassDensity,
+                     densityUpdate = densityUpdate,
                      HUpdate = HEvolution,
                      epsTensile = epsilonTensile,
                      nTensile = nTensile)
@@ -226,6 +226,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+print "Making controller."
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -282,11 +283,16 @@ if graphics == "gnu":
 
     # Plot the grad h correction term (omega)
 
-    omegaPlot = plotFieldList(hydro.omegaGradh(),
-                              winTitle = "grad h correction",
-                              colorNodeLists = False)
+    if SVPH:
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                colorNodeLists = False)
+    else:
+        omegaPlot = plotFieldList(hydro.omegaGradh(),
+                                  winTitle = "grad h correction",
+                                  colorNodeLists = False)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
 if abs(Eerror) > 1e-13:
-    raise "Energy error outside allowed bounds."
+    raise ValueError, "Energy error outside allowed bounds."

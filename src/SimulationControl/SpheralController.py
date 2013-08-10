@@ -123,10 +123,6 @@ class SpheralController(RestartableObject):
         # Construct a timer to track the cycle step time.
         self.stepTimer = SpheralTimer("Time per integration cycle.")
 
-        # Do the per package one time initialization.
-        for package in self.integrator.physicsPackages():
-            package.initializeProblemStartup(self.integrator.dataBase())
-
         # Construct a fresh conservation check object.
         self.conserve = SpheralConservation(self.integrator.dataBase(),
                                             self.integrator.physicsPackages())
@@ -172,6 +168,10 @@ class SpheralController(RestartableObject):
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
             self.iterateIdealH()
             self.doPeriodicWork(force=True)
+
+        # Do the per package one time initialization.
+        for package in self.integrator.physicsPackages():
+            package.initializeProblemStartup(self.integrator.dataBase())
 
         return
 

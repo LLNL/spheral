@@ -612,9 +612,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qaccij = 0.5*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)*(Ai*Vj/rhoi*gradWj + Aj*Vi/rhoj*gradWi);
-              const Scalar workQi = vij.dot(Qaccij);
-              const Scalar workQj = vij.dot(Qaccij);
+              const Vector Qacci = (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)*Ai*Vj/rhoi * gradWj;
+              const Vector Qaccj = (rhoj*rhoj*QPiij.first - rhoj*rhoj*QPiij.second)*Aj*Vi/rhoj * gradWi;
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -623,8 +624,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi * gradWj;
-              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj * gradWi;
+              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
+              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
