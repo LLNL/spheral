@@ -613,7 +613,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)*Ai*Vj/rhoi * gradWj;
-              const Vector Qaccj = (rhoj*rhoj*QPiij.first - rhoj*rhoj*QPiij.second)*Aj*Vi/rhoj * gradWi;
+              const Vector Qaccj = (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)*Aj*Vi/rhoj * gradWi;
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
