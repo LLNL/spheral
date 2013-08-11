@@ -24,7 +24,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
@@ -239,7 +239,7 @@ registerState(DataBase<Dimension>& dataBase,
 
     // Are we using the compatible energy evolution scheme?
     if (compatibleEnergyEvolution()) {
-      PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
+      PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
       PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
                                                                          HydroFieldNames::specificThermalEnergy));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
@@ -634,11 +634,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DvDtj += deltaDvDt;
 
               // Specific thermal energy evolution.
-              DepsDti += Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
-              DepsDtj += Vi*Pj/rhoj*vij.dot(gradWj) + workQj;
+              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
+              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQj;
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(deltaDvDti);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back(deltaDvDtj);
+                pairAccelerationsi.push_back(deltaDvDti);
+                pairAccelerationsj.push_back(deltaDvDtj);
               }
 
               // Velocity gradient.
