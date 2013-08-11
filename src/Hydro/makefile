@@ -9,6 +9,7 @@ SRCTARGETS = \
 	PressurePolicyInst.cc \
 	SoundSpeedPolicyInst.cc \
 	SpecificThermalEnergyPolicyInst.cc \
+	NonSymmetricSpecificThermalEnergyPolicyInst.cc \
 	PositionPolicyInst.cc \
 	VolumePolicyInst.cc \
 	VoronoiMassDensityPolicyInst.cc \
