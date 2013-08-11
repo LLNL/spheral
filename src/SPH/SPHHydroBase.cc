@@ -680,8 +680,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
               DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back(mi*deltaDvDt);
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back(mi*deltaDvDt);
               }
 
               // Velocity gradient.
