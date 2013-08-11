@@ -9,7 +9,8 @@ SRCTARGETS = \
 	sampleFieldListSVPHInst.cc \
 	gradientFieldListSVPHInst.cc \
 	SVPHHydroBaseInst.cc \
-	SVPHCorrectionsPolicyInst.cc
+	SVPHCorrectionsPolicyInst.cc \
+	SVPHMassDensityPolicyInst.cc
 
 PYTHONTARGETS = \
 	SVPHHydros.py
