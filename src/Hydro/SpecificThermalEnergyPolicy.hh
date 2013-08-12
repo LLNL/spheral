@@ -74,6 +74,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
+  static bool mFired;
 
   SpecificThermalEnergyPolicy(const SpecificThermalEnergyPolicy& rhs);
   SpecificThermalEnergyPolicy& operator=(const SpecificThermalEnergyPolicy& rhs);

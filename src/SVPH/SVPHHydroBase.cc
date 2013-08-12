@@ -612,10 +612,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(-rhoj*rhoj*QPiij.second)*Ai*Vj/rhoi * gradWj;
-              const Vector Qaccj = 0.5*(rhoi*rhoi*QPiij.first)*Aj*Vi/rhoj * gradWi;
-              const Scalar workQi = vi.dot(Qacci);
-              const Scalar workQj = vj.dot(Qaccj);
+              const Vector Qacci = -rhoj*rhoj*QPiij.second*Ai*Vj/rhoi * gradWj;
+              const Vector Qaccj =  rhoi*rhoi*QPiij.first *Aj*Vi/rhoj * gradWi;
+              const Scalar workQi = (vi + 0.5*Qacci*dt).dot(Qacci);
+              const Scalar workQj = (vj + 0.5*Qaccj*dt).dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
