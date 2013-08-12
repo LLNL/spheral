@@ -110,10 +110,7 @@ double weighting(const double& ui,
 
   // First use our standard weighting algorithm.
   const double fi = standardWeighting(ui, uj, mi, mj, duij);
-  const double fj = 1.0 - fi;
   CHECK(fi >= 0.0 and fi <= 1.0);
-  CHECK(fj >= 0.0 and fj <= 1.0);
-  CHECK(fuzzyEqual(fi + fj, 1.0));
 
   // Now the monotonic weighting.
   const double mfi = monotonicWeighting(ui, uj, mi, mj, mi*duij*dt);
