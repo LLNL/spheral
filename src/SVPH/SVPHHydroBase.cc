@@ -612,10 +612,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = -rhoj*rhoj*QPiij.second*Ai*Vj/rhoi * gradWj;
-              const Vector Qaccj =  rhoi*rhoi*QPiij.first *Aj*Vi/rhoj * gradWi;
-              const Scalar workQi = (vi + 0.5*Qacci*dt).dot(Qacci);
-              const Scalar workQj = (vj + 0.5*Qaccj*dt).dot(Qaccj);
+              const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
+              const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
+              const Scalar workQij = -0.5*(vi.dot(Qacci) + vj.dot(Qaccj));
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -626,16 +625,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
               const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
+              // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
+              // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
+              // const Vector Fc = mi*aij + mj*aji;
+              // const Vector da = Fc/(mi + mj);
+              // const Vector deltaDvDti = aij - da;
+              // const Vector deltaDvDtj = aji - da;
+              // CHECK2(fuzzyEqual(Fc.dot(mi*deltaDvDti + mj*deltaDvDtj), Fc.magnitude2(), 1.0e-10),
+              //        "Pair-wise forces should sum to same central force:  "
+              //        << Fc << " "
+              //        << (mi*deltaDvDti + mj*deltaDvDtj));
+              // CHECK2(fuzzyEqual(-mi*mj*deltaDvDti.dot(deltaDvDtj), mi*mi*deltaDvDti.magnitude2(), 1.0e-10),
+              //        "Pair-wise forces should be equal and opposite:  "
+              //        << mi*deltaDvDti << " "
+              //        << mj*deltaDvDtj);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
-              // const Vector deltaDvDt = 0.5*(Pi - Pj)*(Ai*Vj/rhoi*gradWj + Aj*Vi/rhoj*gradWi) + Qaccij;
-              // DvDti -= deltaDvDt;
-              // DvDtj += deltaDvDt;
-
               // Specific thermal energy evolution.
-              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
-              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQj;
+              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQij;
+              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQij;
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(deltaDvDti);
                 pairAccelerationsj.push_back(deltaDvDtj);
