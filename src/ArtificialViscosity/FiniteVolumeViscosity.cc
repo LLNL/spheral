@@ -101,7 +101,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar DvDxj = min(0.0, mDvDx(nodeListj, j).Trace());
   const Scalar Pii = fshear*(-Cl*csi*DvDxi + Cq*hi*DvDxi*DvDxi)*hi/rhoi;
   const Scalar Pij = fshear*(-Cl*csj*DvDxj + Cq*hj*DvDxj*DvDxj)*hj/rhoj;
-  return make_pair(Pii, Pij);
+  return make_pair(Pii*Tensor::one, Pij*Tensor::one);
 }
 
 //------------------------------------------------------------------------------
