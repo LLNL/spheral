@@ -612,6 +612,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
+              // const Vector Qacci = (rhoi*QPiij.first - rhoj*QPiij.second)*Ai*Vj * gradWj;
+              // const Vector Qaccj = (rhoi*QPiij.first - rhoj*QPiij.second)*Aj*Vi * gradWi;
               const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
               const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
               const Scalar workQij = -0.5*(vi.dot(Qacci) + vj.dot(Qaccj));
@@ -623,8 +625,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
-              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
+              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi*gradWj + Qacci;
+              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj*gradWi + Qaccj;
               // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
               // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
               // const Vector Fc = mi*aij + mj*aji;
