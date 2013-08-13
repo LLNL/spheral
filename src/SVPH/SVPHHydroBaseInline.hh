@@ -127,7 +127,7 @@ inline
 const MeshSpace::Mesh<Dimension>&
 SVPHHydroBase<Dimension>::
 mesh() const {
-  return mMesh;
+  return *mMeshPtr;
 }
 
 //------------------------------------------------------------------------------

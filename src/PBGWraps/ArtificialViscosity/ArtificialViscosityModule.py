@@ -3,6 +3,7 @@ from pybindgen import *
 import sys
 sys.path.append("..")
 from PBGutils import *
+from ref_return_value import *
 
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
@@ -28,6 +29,7 @@ class ArtificialViscosity:
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
         return
 
@@ -40,6 +42,7 @@ self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGi
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
         return
 
@@ -163,6 +166,28 @@ self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosit
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Add methods to the FiniteVolumeViscosity.
+    #---------------------------------------------------------------------------
+    def addFiniteVolumeViscosityMethods(self, x, ndim):
+
+        me = "Spheral::ArtificialViscositySpace::FiniteVolumeViscosity%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "scalar", default_value="false")])
+
+        # Add the abstract methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        # Attributes
+        x.add_instance_attribute("scalar", "bool", getter="scalar", is_const=True)
+        const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
 
         return
 

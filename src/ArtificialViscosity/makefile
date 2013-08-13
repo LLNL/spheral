@@ -8,6 +8,7 @@ SRCTARGETS = \
 	ArtificialViscosityInst.cc \
 	MonaghanGingoldViscosityInst.cc \
 	TensorMonaghanGingoldViscosityInst.cc \
+	FiniteVolumeViscosityInst.cc
 #	MonaghanGingoldViscosityRZ.cc \
 #	GradPressureViscosity.cc \
 #	ArtificialViscosityList.cc \

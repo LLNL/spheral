@@ -197,7 +197,8 @@ protected:
   Vector mXmin, mXmax;
 
   // The mesh.
-  MeshSpace::Mesh<Dimension> mMesh;
+  typedef boost::shared_ptr<MeshSpace::Mesh<Dimension> > MeshPtr;
+  MeshPtr mMeshPtr;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, Scalar>    mA;
