@@ -36,7 +36,7 @@ StateBase():
   mStorage(),
   mCache(),
   mConnectivityMapPtr(),
-  mMeshPtr() {
+  mMeshPtr(new MeshType()) {
 }
 
 //------------------------------------------------------------------------------
@@ -115,6 +115,16 @@ operator==(const StateBase<Dimension>& rhs) const {
     }
   }
   return true;
+}
+
+//------------------------------------------------------------------------------
+// Enroll an external mesh.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enrollMesh(typename StateBase<Dimension>::MeshPtr meshPtr) {
+  mMeshPtr = meshPtr;
 }
 
 //------------------------------------------------------------------------------

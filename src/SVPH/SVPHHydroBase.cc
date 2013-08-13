@@ -85,7 +85,7 @@ SVPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSVPH(XSVPH),
   mXmin(xmin),
   mXmax(xmax),
-  mMesh(),
+  mMeshPtr(MeshPtr(new Mesh<Dimension>())),
   mA(FieldList<Dimension, Scalar>::Copy),
   mB(FieldList<Dimension, Vector>::Copy),
   mGradB(FieldList<Dimension, SymTensor>::Copy),
@@ -153,14 +153,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      true,              // generateParallelConnectivity
      true,              // removeBoundaryZones
      2.0,               // voidThreshold
-     mMesh,
+     *mMeshPtr,
      voidNodes);
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   for (unsigned nodeListi = 0; nodeListi != dataBase.numFluidNodeLists(); ++nodeListi) {
     const unsigned n = mVolume[nodeListi]->numInternalElements();
-    const unsigned offset = mMesh.offset(nodeListi);
+    const unsigned offset = mMeshPtr->offset(nodeListi);
     for (unsigned i = 0; i != n; ++i) {
-      mVolume(nodeListi, i) = mMesh.zone(offset + i).volume();
+      mVolume(nodeListi, i) = mMeshPtr->zone(offset + i).volume();
     }
   }
 
@@ -221,6 +221,7 @@ registerState(DataBase<Dimension>& dataBase,
     // Mesh and volume.
     PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
+    state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);
     state.enroll(*mVolume[nodeListi], volumePolicy);
 

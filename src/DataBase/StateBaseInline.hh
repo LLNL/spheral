@@ -176,7 +176,7 @@ generateMesh(const Vector& xmin,
   vector<const NodeList<Dimension>*> nodeLists(mNodeListPtrs.begin(), mNodeListPtrs.end());
   nodeLists.push_back(&voidNodes);
   sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
-  mMeshPtr = boost::shared_ptr<MeshType>(new MeshType());
+  mMeshPtr->clear();
   MeshSpace::generateMesh<Dimension, 
                           typename vector<const NodeList<Dimension>*>::iterator,
                           BoundaryIterator>

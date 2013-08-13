@@ -86,6 +86,9 @@ public:
   template<typename Value>
   void enrollFieldList(FieldSpace::FieldList<Dimension, Value>& fieldList);
 
+  // Enroll an externally held Mesh.
+  void enrollMesh(MeshPtr meshPtr);
+
   // Return the field for the given key.
   template<typename Value>
   FieldSpace::Field<Dimension, Value>& field(const KeyType& key,
