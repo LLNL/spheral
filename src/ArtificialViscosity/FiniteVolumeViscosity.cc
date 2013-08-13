@@ -99,8 +99,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar hj = 1.0/(Hj*xjihat).magnitude();
   const Scalar DvDxi = min(0.0, mDvDx(nodeListi, i).Trace());
   const Scalar DvDxj = min(0.0, mDvDx(nodeListj, j).Trace());
-  const Scalar Pii = fshear*(-Cl*csi*DvDxi + Cq*DvDxi*DvDxi)*hi/rhoi;
-  const Scalar Pij = fshear*(-Cl*csj*DvDxj + Cq*DvDxj*DvDxj)*hj/rhoj;
+  const Scalar Pii = fshear*(-Cl*csi*DvDxi + Cq*hi*DvDxi*DvDxi)*hi/rhoi;
+  const Scalar Pij = fshear*(-Cl*csj*DvDxj + Cq*hj*DvDxj*DvDxj)*hj/rhoj;
   return make_pair(Pii, Pij);
 }
 
@@ -138,6 +138,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // Make a finite-volume estimate of the local (to each Voronoi cell) velocity
   // gradient.
   unsigned nodeListj, j;
+  Scalar Vi, Vj;
   const Mesh<Dimension>& mesh = state.mesh();
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const unsigned numNodeLists = velocity.numFields();
@@ -148,6 +149,7 @@ initialize(const DataBase<Dimension>& dataBase,
       Tensor& DvDxi = mDvDx(nodeListi, i);
       const Zone& zonei = mesh.zone(nodeListi, i);
       const vector<int>& faces = zonei.faceIDs();
+      Vi = zonei.volume();
       for (vector<int>::const_iterator fitr = faces.begin();
            fitr != faces.end();
            ++fitr) {
@@ -164,9 +166,54 @@ initialize(const DataBase<Dimension>& dataBase,
         const Vector dA = faceij.area() * faceij.unitNormal() * (-sgn(*fitr));
         DvDxi += vij*dA;
       }
-      DvDxi /= zonei.volume();
+      DvDxi /= Vi;
     }
   }
+
+  // // Apply boundary conditions to our intermediate estimate.
+  // for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) {
+  //   (*boundItr)->applyFieldListGhostBoundary(mDvDx);
+  // }
+
+  // for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) {
+  //   (*boundItr)->finalizeGhostBoundary();
+  // }
+
+  // // Make a simple smoothing iteration over DvDx.
+  // FieldList<Dimension, Tensor> DvDx_smooth(mDvDx);
+  // DvDx_smooth.copyFields();
+  // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   const unsigned n = velocity[nodeListi]->numInternalElements();
+  //   for (unsigned i = 0; i != n; ++i) {
+  //     const Zone& zonei = mesh.zone(nodeListi, i);
+  //     const vector<int>& faces = zonei.faceIDs();
+  //     Vi = zonei.volume();
+  //     Scalar Vtot = Vi;
+  //     DvDx_smooth(nodeListi, i) = Vi*mDvDx(nodeListi, i);
+  //     for (vector<int>::const_iterator fitr = faces.begin();
+  //          fitr != faces.end();
+  //          ++fitr) {
+  //       const Face& faceij = mesh.face(*fitr);
+  //       const int oppZoneID = faceij.oppositeZoneID(zonei.ID());
+  //       if (Mesh<Dimension>::positiveID(oppZoneID) == Mesh<Dimension>::UNSETID) {
+  //         nodeListj = nodeListi;
+  //         j = i;
+  //         Vj = Vi;
+  //       } else {
+  //         mesh.lookupNodeListID(Mesh<Dimension>::positiveID(oppZoneID), nodeListj, j);
+  //         Vj = mesh.zone(Mesh<Dimension>::positiveID(oppZoneID)).volume();
+  //       }
+  //       Vtot += Vj;
+  //       DvDx_smooth(nodeListi, i) += Vj*mDvDx(nodeListj, j);
+  //     }
+  //     DvDx_smooth(nodeListi, i) /= Vtot;
+  //   }
+  // }
+  // mDvDx = DvDx_smooth;
 
   // Apply boundary conditions.  We depend on someone else finalizing these 
   // between now and calls to Piij.
