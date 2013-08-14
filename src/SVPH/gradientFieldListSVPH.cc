@@ -136,11 +136,13 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      const SymTensor& Hi = Hfield(nodeListi, i);
       const Scalar Vi = mesh.zone(nodeListi, i).volume();
       const Vector& Bi = B(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const DataType& Fi = fieldList(nodeListi, i);
-      Scalar norm = Vi*W0;
+      const Scalar Hdeti = Hi.Determinant();
+      Scalar norm = Vi*W0*Hdeti;
 
       // Walk the neighbors for this node.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -156,12 +158,13 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
           const Vector& rj = position(nodeListj, j);
           const SymTensor& Hj = Hfield(nodeListj, j);
           const Scalar Vj = mesh.zone(nodeListj, j).volume();
+          const Scalar Hdetj = Hj.Determinant();
 
           // Pair-wise kernel type stuff.
           const Vector rij = ri - rj;
           const Vector etaj = Hj*rij;
           const Vector Hetaj = Hj*etaj.unitVector();
-          const pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
+          const pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
           const Scalar Wj = WWj.first;
           const Scalar gWj = WWj.second;
           const Vector gradWj = gWj*Hetaj;

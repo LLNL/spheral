@@ -156,10 +156,12 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      const SymTensor& Hi = Hfield(nodeListi, i);
       const Scalar Vi = mesh.zone(nodeListi, i).volume();
       const Vector& Bi = B(nodeListi, i);
-      Scalar norm = Vi*W0;
-      result(nodeListi, i) = Vi*W0 * fieldList(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
+      Scalar norm = Vi*W0*Hdeti;
+      result(nodeListi, i) = Vi*W0*Hdeti * fieldList(nodeListi, i);
 
       // Walk the neighbors for this node.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -175,11 +177,12 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
           const Vector& rj = position(nodeListj, j);
           const SymTensor& Hj = Hfield(nodeListj, j);
           const Scalar Vj = mesh.zone(nodeListj, j).volume();
+          const Scalar Hdetj = Hj.Determinant();
 
           // Pair-wise kernel type stuff.
           const Vector rij = ri - rj;
           const Vector etaj = Hj*rij;
-          const Scalar Wj = W.kernelValue(etaj.magnitude(), 1.0);
+          const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
           // Increment the result.
           const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;

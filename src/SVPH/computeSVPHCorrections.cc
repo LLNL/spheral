@@ -127,10 +127,11 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     const Scalar Vi = volume(nodeListi, i);
     const Vector& ri = position(nodeListi, i);
     const SymTensor& Hi = H(nodeListi, i);
+    const Scalar Hdeti = Hi.Determinant();
 
     // Self contribution.
-    A(i) += Vi*W(0.0, 1.0);
-    gradm1(i) += Vi*W(0.0, 1.0);
+    A(i) += Vi*W(0.0, Hdeti);
+    gradm1(i) += Vi*W(0.0, Hdeti);
 
     // Neighbors!
     const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -152,15 +153,16 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Vj = volume(nodeListi, j);
       const Vector& rj = position(nodeListi, j);
       const SymTensor& Hj = H(nodeListi, j);
+      const Scalar Hdetj = Hj.Determinant();
 
       // Kernel weighting and gradient.
       const Vector rij = ri - rj;
       const Vector etai = Hi*rij;
       const Vector etaj = Hj*rij;
-      const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), 1.0);
+      const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
       const Scalar& Wi = WWi.first;
       const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
-      const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), 1.0);
+      const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
       const Scalar& Wj = WWj.first;
       const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 

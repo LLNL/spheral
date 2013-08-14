@@ -197,25 +197,32 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if HydroConstructor is SVPHHydro:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             HUpdate = HEvolution,
+                             xmin = Vector(-100.0),
+                             xmax = Vector(100.0))
+else:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HEvolution,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.XSPH")
-output("hydro.sumForMassDensity")
+output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
 
@@ -375,10 +382,10 @@ elif graphics == "gnu":
     Aplot.title("Specific entropy")
     Aplot.refresh()
 
-    # Plot the grad h correction term (omega)
-    omegaPlot = plotFieldList(hydro.omegaGradh(),
-                              winTitle = "grad h correction",
-                              colorNodeLists = False)
+    # # Plot the grad h correction term (omega)
+    # omegaPlot = plotFieldList(hydro.omegaGradh(),
+    #                           winTitle = "grad h correction",
+    #                           colorNodeLists = False)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
@@ -404,6 +411,7 @@ if checkError:
         xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
         import Pnorm
         print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        failure = False
         for (name, data, ans,
              L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
                                                  ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -418,17 +426,22 @@ if checkError:
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if not fuzzyEqual(L1, L1expect, tol):
-                raise ValueError, "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                                  L1,
-                                                                                                  L1expect)
+                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect)
+                failure = True
             if not fuzzyEqual(L2, L2expect, tol):
-                raise ValueError, "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                                  L2,
-                                                                                                  L2expect)
+                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect)
+                failure = True
             if not fuzzyEqual(Linf, Linfexpect, tol):
-                raise ValueError, "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                                    Linf,
-                                                                                                    Linfexpect)
+                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect)
+                failure = True
+        if failure:
+            raise ValueError, "Error bounds violated."
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
