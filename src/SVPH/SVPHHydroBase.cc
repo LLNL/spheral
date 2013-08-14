@@ -214,9 +214,15 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->mass());
 
     // Mass density.
-    PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
+    if (densityUpdate() == PhysicsSpace::IntegrateDensity) {
+      PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
+                                                                           (*itr)->rhoMax()));
+      state.enroll((*itr)->massDensity(), rhoPolicy);
+    } else {
+      PolicyPointer rhoPolicy(new ReplaceBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
                                                                          (*itr)->rhoMax()));
-    state.enroll((*itr)->massDensity(), rhoPolicy);
+      state.enroll((*itr)->massDensity(), rhoPolicy);
+    }
 
     // Mesh and volume.
     PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax));
@@ -613,22 +619,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi*Ai*Vj * gradWj;
-              const Vector Qaccj = (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj*Aj*Vi * gradWi;
+              const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
+              const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
               // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
               // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
-              const Scalar workQij = -0.5*(vi.dot(Qacci) + vj.dot(Qaccj));
+              const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
+              const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
+              // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              // if (max(Qacci.magnitude(), Qaccj.magnitude()) > 1.0e-5) cerr << " --> " << i << " " << j << " " << Qi << " " << Qj << " " << Qacci << " " << Qaccj << " " << endl;
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)*Ai*Vj/rhoi*gradWj + Qacci;
-              const Vector deltaDvDtj = (Pi - Pj)*Aj*Vi/rhoj*gradWi + Qaccj;
+              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj + Qacci;
+              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qaccj;
               // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
               // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
               // const Vector Fc = mi*aij + mj*aji;
@@ -647,8 +655,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDtj += deltaDvDtj;
 
               // Specific thermal energy evolution.
-              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQij;
-              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQij;
+              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
+              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQj;
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(deltaDvDti);
                 pairAccelerationsj.push_back(deltaDvDtj);
