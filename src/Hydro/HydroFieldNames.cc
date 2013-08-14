@@ -27,6 +27,7 @@ const std::string Spheral::HydroFieldNames::pressure = "pressure";
 const std::string Spheral::HydroFieldNames::temperature = "temperature";
 const std::string Spheral::HydroFieldNames::soundSpeed = "sound speed";
 const std::string Spheral::HydroFieldNames::pairAccelerations = "pair-wise accelerations";
+const std::string Spheral::HydroFieldNames::pairWork = "pair-wise work";
 const std::string Spheral::HydroFieldNames::omegaGradh = "grad h corrections";
 const std::string Spheral::HydroFieldNames::numberDensitySum = "number density sum";
 const std::string Spheral::HydroFieldNames::timeStepMask = "time step mask";
