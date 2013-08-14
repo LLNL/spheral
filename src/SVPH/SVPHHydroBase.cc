@@ -497,6 +497,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& Vi = volume(nodeListi, i);
       const Scalar& Ai = A(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Vi > 0.0);
@@ -555,6 +556,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& Vj = volume(nodeListj, j);
               const Scalar& Aj = A(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Vj > 0.0);
@@ -584,13 +586,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Symmetrized kernel weight and gradient.
               const Vector Hetai = Hi*etai.unitVector();
-              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, 1.0);
+              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
               const Scalar Wi = WWi.first;
               const Scalar gWi = WWi.second;
               const Vector gradWi = gWi*Hetai;
 
               const Vector Hetaj = Hj*etaj.unitVector();
-              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, 1.0);
+              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
               const Scalar Wj = WWj.first;
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
@@ -619,24 +621,37 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
-              const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
-              // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
-              // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
-              const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
-              const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
-              // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
-              // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              const Vector Qacci = 0.5*mj*(QPiij.first *gradWi);
+              const Vector Qaccj = 0.5*mi*(QPiij.second*gradWj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
+              // // Compute the pair-wise artificial viscosity.
+              // const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+              //                                           ri, etai, vi, rhoi, ci, Hi,
+              //                                           rj, etaj, vj, rhoj, cj, Hj);
+              // const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
+              // const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
+              // // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
+              // // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
+              // const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
+              // const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
+              // // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              // // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              // const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+              // const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              // maxViscousPressurei = max(maxViscousPressurei, Qi);
+              // maxViscousPressurej = max(maxViscousPressurej, Qj);
+
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj + Qacci;
-              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qaccj;
+              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj - Qacci - Qaccj;
+              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qacci + Qaccj;
               // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
               // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
               // const Vector Fc = mi*aij + mj*aji;
@@ -709,7 +724,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       localDvDxi *= Ai;
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
+      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
+      massSecondMomenti /= Hdeti*Hdeti;
+      // weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
 
       // Determine the position evolution, based on whether we're doing XSVPH or not.
       if (mXSVPH) {
