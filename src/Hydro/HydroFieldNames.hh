@@ -32,6 +32,7 @@ struct HydroFieldNames {
   static const std::string temperature;
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
+  static const std::string pairWork;
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
