@@ -135,7 +135,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
   // Construct the mesh and volumes.
-  NodeList<Dimension> voidNodes("ZZZZZZZZZ internal void", 0, 0);
+  NodeList<Dimension> voidNodes("internal void", 0, 0);
   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
   nodeLists.push_back(&voidNodes);
   // std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
@@ -230,13 +230,13 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(HydroFieldNames::mesh, meshPolicy);
     state.enroll(*mVolume[nodeListi], volumePolicy);
 
-    // SVPH corrections.
-    // All of these corrections are computed in the same method/policy, so we register
-    // the A field with the update policy and the others just come along for the ride.
-    PolicyPointer Apolicy(new SVPHFaceCorrectionsPolicy<Dimension>(dataBase, this->kernel()));
-    state.enroll(*mA[nodeListi], Apolicy);
-    state.enroll(*mB[nodeListi]);
-    state.enroll(*mGradB[nodeListi]);
+    // // SVPH corrections.
+    // // All of these corrections are computed in the same method/policy, so we register
+    // // the A field with the update policy and the others just come along for the ride.
+    // PolicyPointer Apolicy(new SVPHFaceCorrectionsPolicy<Dimension>(dataBase, this->kernel()));
+    // state.enroll(*mA[nodeListi], Apolicy);
+    // state.enroll(*mB[nodeListi]);
+    // state.enroll(*mGradB[nodeListi]);
 
     // Register the position update.
     // PolicyPointer positionPolicy(new PositionPolicy<Dimension>());
@@ -312,7 +312,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -338,7 +337,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDHDt[i]);
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
-    derivs.enroll(*mPairAccelerations[i]);
   }
 }
 
@@ -448,6 +446,61 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
 
+  // Prepare working arrays of face properties.
+  const unsigned numFaces = mesh.numFaces();
+  vector<Scalar> dAface(numFaces, 0.0), Pface(numFaces, 0.0), volFace(numFaces, 0.0);
+  vector<Vector> posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
+
+  // Walk the faces and sample their fluid properties.
+  const SymTensor Hface = 1.0e100*SymTensor::one;
+  for (unsigned i = 0; i != numFaces; ++i) {
+    const Face& face = mesh.face(i);
+    posFace[i] = face.position();
+    dAface[i] = face.area() * face.unitNormal();
+
+    // Set the neighbors for this face.
+    Neighbor<Dimension>::setMasterNeighborGroup(posFace[i], Hface,
+                                                nodeLists.begin(), nodeLists.end(),
+                                                W.kernelExtent());
+
+    // Iterate over the NodeLists.
+    for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+      const Neighbor<Dimension>& neighbor = nodeList.neighbor();
+      neighbor.setRefineNeighborList(posFace[i], Hface);
+      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
+           neighborItr != neighbor.refineNeighborEnd();
+           ++neighborItr) {
+        const int j = *neighborItr;
+      
+        // Get the state for node j
+        const Vector& rj = position(nodeListj, j);
+        const Vector& vj = velocity(nodeListj, j);
+        const Scalar& Pj = pressure(nodeListj, j);
+        const SymTensor& Hj = H(nodeListj, j);
+        const Scalar& Vj = volume(nodeListj, j);
+        const Scalar Hdetj = Hj.Determinant();
+        CHECK(Vj > 0.0);
+        CHECK(Hdetj > 0.0);
+
+        // Pair-wise kernel type stuff.
+        const Vector rij = posFace[i] - rj;
+        const Vector etaj = Hj*rij;
+        const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+
+        // Increment the face fluid properties.
+        volFace[i] += Vj*Wj;
+        velFace[i] += Vj*Wj*vj;
+        Pface[i] += Vj*Wj*Pj;
+      }
+    }
+
+    // Finish the face state.
+    CHECK(volFace[i] > 0.0);
+    velFace[i] /= volFace[i];
+    Pface[i] /= volFace[i];
+  }
+
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -484,12 +537,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& Vi = volume(nodeListi, i);
-      const vector<Scalar>& Aveci = A(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Vi > 0.0);
-      CHECK(Aveci.size() > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
@@ -501,25 +552,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
       Vector& XSVPHDeltaVi = XSVPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
 
+      Scalar Vsumi = 0.0;
+
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-
-      // Prepare the per face fields.
-      vector<Scalar> Pf(nfaces);
-      vector<Vector> velf(nfaces), dA(nfaces);
-
-      // We need the face geometry.
-      vector<Vector> posf(nfaces), dA(nfaces);
-      for (unsigned k = 0; k != nfaces; ++k) {
-        const Face& face = mesh.face(faceIDs[k]);
-        posf[k] = face.position();
-        dA[k] = face.area() * face.unitNormal() * sgn(faceIDs[k]);
-      }
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -579,150 +619,37 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             // Contribution to the sum density (only if the same material).
             if (nodeListi == nodeListj) {
               rhoSumi += mj*Wi;
-              rhoSumj += mi*Wj;
+              Vsumi += Vj*Wi;
             }
 
-            // Walk our faces and increment the fluid properties on each face.
-            for (unsigned k = 0; k != nfaces; ++k) {
-              const Scalar& Ai = Aveci[k];
-              const Vector rij = posf[k] - rj;
-              const Vector etaj = Hj*rij;
-              const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-              velf[k] += Ai*Vj*Wj*vj;
-              Pf[k] += Ai*Vj*Wj*Pj;
-            }
           }
         }
       }
 
-      // Walk the faces and measure the derivatives.
+      // Walk the faces and measure the primary fluid derivatives.
       for (unsigned k = 0; k != nfaces; ++k) {  
-        DrhoDti += velk[k].dot(dA[k]);
+        const unsigned fid = Mesh::positiveID(faceIDs[k]);
+        DvDti += Pface[fid]*dAface[fid];
+        DepsDti += Pface[fid]*dAface[fid].dot(velFace[fid]);
+        DvDxi += velFace[fid]*dAface[fid];
       }
 
-      // Finish the mass density derivative.
-      DrhoDti *= -rhoi;
-
-
-              // Mass density evolution.
-              const Vector vij = vi - vj;
-              DrhoDti += Vj*rhoi*vij.dot(gradWj);
-              DrhoDtj += Vi*rhoj*vij.dot(gradWi);
-
-              // Compute the pair-wise artificial viscosity.
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*mj*(QPiij.first *gradWi);
-              const Vector Qaccj = 0.5*mi*(QPiij.second*gradWj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
-
-              // // Compute the pair-wise artificial viscosity.
-              // const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-              //                                           ri, etai, vi, rhoi, ci, Hi,
-              //                                           rj, etaj, vj, rhoj, cj, Hj);
-              // const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
-              // const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
-              // // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
-              // // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
-              // const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
-              // const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
-              // // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
-              // // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
-              // const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              // const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              // maxViscousPressurei = max(maxViscousPressurei, Qi);
-              // maxViscousPressurej = max(maxViscousPressurej, Qj);
-
-              // Acceleration.
-              CHECK(rhoi > 0.0);
-              CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj - Qacci - Qaccj;
-              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qacci + Qaccj;
-              // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
-              // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
-              // const Vector Fc = mi*aij + mj*aji;
-              // const Vector da = Fc/(mi + mj);
-              // const Vector deltaDvDti = aij - da;
-              // const Vector deltaDvDtj = aji - da;
-              // CHECK2(fuzzyEqual(Fc.dot(mi*deltaDvDti + mj*deltaDvDtj), Fc.magnitude2(), 1.0e-10),
-              //        "Pair-wise forces should sum to same central force:  "
-              //        << Fc << " "
-              //        << (mi*deltaDvDti + mj*deltaDvDtj));
-              // CHECK2(fuzzyEqual(-mi*mj*deltaDvDti.dot(deltaDvDtj), mi*mi*deltaDvDti.magnitude2(), 1.0e-10),
-              //        "Pair-wise forces should be equal and opposite:  "
-              //        << mi*deltaDvDti << " "
-              //        << mj*deltaDvDtj);
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
-
-              // Specific thermal energy evolution.
-              DepsDti += Ai*Vj*Pi/rhoi*vij.dot(gradWj) + workQi;
-              DepsDtj += Aj*Vi*Pj/rhoj*vij.dot(gradWi) + workQj;
-              if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(deltaDvDti);
-                pairAccelerationsj.push_back(deltaDvDtj);
-              }
-
-              // Velocity gradient.
-              const Tensor deltaDvDxi = Vj*vij.dyad(gradWi);
-              const Tensor deltaDvDxj = Vi*vij.dyad(gradWj);
-              DvDxi -= deltaDvDxi;
-              DvDxj -= deltaDvDxj;
-              if (nodeListi == nodeListj) {
-                localDvDxi -= deltaDvDxi;
-                localDvDxj -= deltaDvDxj;
-              }
-
-              // Estimate of delta v (for XSVPH).
-              if (mXSVPH and (nodeListi == nodeListj)) {
-                const double fXSVPH = max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
-                CHECK(fXSVPH >= 0.0 and fXSVPH <= 1.0);
-                XSVPHDeltaVi -= fXSVPH*Vj*Wj*vij;
-                XSVPHDeltaVj += fXSVPH*Vi*Wj*vij;
-              }
-
-            }
-          }
-        }
-      }
-      const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK2(not mCompatibleEnergyEvolution or 
-             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-             (pairAccelerationsi.size() == numNeighborsi),
-             "Bad sizing for pair accelerations!  "
-             << i << " "
-             << firstGhostNodei << " "
-             << pairAccelerationsi.size() << " "
-             << numNeighborsi);
+      // Finish the time derivatives.
+      DvDti /= -mi;
+      DepsDti /= -mi;
+      DvDxi /= Vi;
+      localDvDxi = DvDxi;
+      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Finish the density sum.
-      rhoSumi += mi*W0;
-      rhoSumi *= Ai;
-
-      // Finish the continuity equation.
-      DrhoDti *= Ai;
-
-      // Finish the gradient of the velocity.
-      DvDxi *= Ai;
-      localDvDxi *= Ai;
+      rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
-      // weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
 
       // Determine the position evolution, based on whether we're doing XSVPH or not.
-      if (mXSVPH) {
-        DxDti = vi + Ai*XSVPHDeltaVi;
-      } else {
-        DxDti = vi;
-      }
+      DxDti = vi;
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -828,7 +755,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) {
@@ -846,7 +772,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
-    (*boundaryItr)->applyFieldListGhostBoundary(A);
     if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
   }
 }
@@ -868,7 +793,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
@@ -883,7 +807,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
-    (*boundaryItr)->applyFieldListGhostBoundary(A);
     if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
   }
 }
