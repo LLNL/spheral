@@ -713,7 +713,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
       // Finish the density sum.
-      rhoSumi += mi*W0;
+      rhoSumi += mi*W0*Hdeti;
       rhoSumi *= Ai;
 
       // Finish the continuity equation.
