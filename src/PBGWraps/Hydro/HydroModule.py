@@ -94,6 +94,7 @@ class Hydro:
         x.add_static_attribute("temperature", "std::string",  is_const=True)
         x.add_static_attribute("soundSpeed", "std::string",  is_const=True)
         x.add_static_attribute("pairAccelerations", "std::string",  is_const=True)
+        x.add_static_attribute("pairWork", "std::string",  is_const=True)
         x.add_static_attribute("omegaGradh", "std::string",  is_const=True)
         x.add_static_attribute("numberDensitySum", "std::string",  is_const=True)
         x.add_static_attribute("timeStepMask", "std::string",  is_const=True)
