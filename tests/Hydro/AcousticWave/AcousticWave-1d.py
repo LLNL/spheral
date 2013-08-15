@@ -178,14 +178,14 @@ output("q.limiter")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHHydro(WT, q,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSVPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HEvolution,
-                      xmin = Vector(-100.0),
-                      xmax = Vector( 100.0))
+    hydro = SVPHFacetedHydro(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSVPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HEvolution,
+                             xmin = Vector(-100.0),
+                             xmax = Vector( 100.0))
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,

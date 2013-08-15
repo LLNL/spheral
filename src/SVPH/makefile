@@ -9,6 +9,7 @@ SRCTARGETS = \
 	sampleFieldListSVPHInst.cc \
 	gradientFieldListSVPHInst.cc \
 	SVPHHydroBaseInst.cc \
+	SVPHFacetedHydroBaseInst.cc \
 	SVPHCorrectionsPolicyInst.cc \
 	SVPHMassDensityPolicyInst.cc
 
