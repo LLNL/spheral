@@ -617,41 +617,41 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDti += Vj*rhoi*vij.dot(gradWj);
               DrhoDtj += Vi*rhoj*vij.dot(gradWi);
 
-              // Compute the pair-wise artificial viscosity.
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*mj*(QPiij.first *gradWi);
-              const Vector Qaccj = 0.5*mi*(QPiij.second*gradWj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
-
               // // Compute the pair-wise artificial viscosity.
               // const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
               //                                           ri, etai, vi, rhoi, ci, Hi,
               //                                           rj, etaj, vj, rhoj, cj, Hj);
-              // const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
-              // const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
-              // // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
-              // // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
-              // const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
-              // const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
-              // // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
-              // // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              // const Vector Qacci = 0.5*mj*(QPiij.first *gradWi);
+              // const Vector Qaccj = 0.5*mi*(QPiij.second*gradWj);
+              // const Scalar workQi = vij.dot(Qacci);
+              // const Scalar workQj = vij.dot(Qaccj);
               // const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               // const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               // maxViscousPressurei = max(maxViscousPressurei, Qi);
               // maxViscousPressurej = max(maxViscousPressurej, Qj);
 
+              // Compute the pair-wise artificial viscosity.
+              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                                        ri, etai, vi, rhoi, ci, Hi,
+                                                        rj, etaj, vj, rhoj, cj, Hj);
+              const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
+              const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
+              // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
+              // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
+              const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
+              const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
+              // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
+              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              maxViscousPressurei = max(maxViscousPressurei, Qi);
+              maxViscousPressurej = max(maxViscousPressurej, Qj);
+
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj - Qacci - Qaccj;
-              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qacci + Qaccj;
+              const Vector deltaDvDti = Ai*Vj*(Pi - Pj)/rhoi*gradWj + Qacci; // - Qacci - Qaccj;
+              const Vector deltaDvDtj = Aj*Vi*(Pi - Pj)/rhoj*gradWi + Qaccj; // + Qacci + Qaccj;
               // const Vector aij = (Pi - Pj)*Ai*Vj/rhoi * gradWj + Qacci;
               // const Vector aji = (Pi - Pj)*Aj*Vi/rhoj * gradWi + Qaccj;
               // const Vector Fc = mi*aij + mj*aji;
