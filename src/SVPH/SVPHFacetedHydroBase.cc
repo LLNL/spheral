@@ -56,6 +56,7 @@ using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
+using NeighborSpace::Neighbor;
 using MeshSpace::Mesh;
 
 using PhysicsSpace::MassDensityType;
@@ -86,9 +87,9 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
-  mA(),
-  mB(),
-  mGradB(),
+  // mA(),
+  // mB(),
+  // mGradB(),
   mTimeStepMask(FieldList<Dimension, int>::Copy),
   mPressure(FieldList<Dimension, Scalar>::Copy),
   mSoundSpeed(FieldList<Dimension, Scalar>::Copy),
@@ -163,11 +164,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
 
-  // Compute the SVPH normalization and corrections.
-  computeSVPHCorrectionsOnFaces<Dimension>(dataBase.connectivityMap(),
-                                           this->kernel(),
-                                           mVolume, dataBase.fluidPosition(), dataBase.fluidHfield(),
-                                           mA, mB, mGradB);
+  // // Compute the SVPH normalization and corrections.
+  // computeSVPHCorrectionsOnFaces<Dimension>(dataBase.connectivityMap(),
+  //                                          this->kernel(),
+  //                                          mVolume, dataBase.fluidPosition(), dataBase.fluidHfield(),
+  //                                          mA, mB, mGradB);
 
 }
 
@@ -184,9 +185,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CSPH);
-  dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CSPH);
-  dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CSPH);
+  // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CSPH);
+  // dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CSPH);
+  // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CSPH);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
@@ -377,6 +378,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
+  typedef typename Mesh<Dimension>::Zone Zone;
+  typedef typename Mesh<Dimension>::Face Face;
+
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
 
@@ -406,7 +410,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-  const FieldList<Dimension, vector<Scalar> > A = state.fields(HydroFieldNames::A_CSPH, vector<Scalar>());
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -416,7 +419,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(volume.size() == numNodeLists);
-  CHECK(A.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -448,30 +450,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> dAface(numFaces, 0.0), Pface(numFaces, 0.0), volFace(numFaces, 0.0);
-  vector<Vector> posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
+  vector<Scalar> volFace(numFaces, 0.0), Pface(numFaces, 0.0);
+  vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
+  vector<Tensor> Qface(numFaces, Tensor::zero);
 
   // Walk the faces and sample their fluid properties.
+  unsigned i, j, k, nodeListi, nodeListj;
   const SymTensor Hface = 1.0e100*SymTensor::one;
-  for (unsigned i = 0; i != numFaces; ++i) {
-    const Face& face = mesh.face(i);
-    posFace[i] = face.position();
-    dAface[i] = face.area() * face.unitNormal();
+  for (k = 0; k != numFaces; ++k) {
+    const Face& face = mesh.face(k);
+    posFace[k] = face.position();
+    dAface[k] = face.area() * face.unitNormal();
 
     // Set the neighbors for this face.
-    Neighbor<Dimension>::setMasterNeighborGroup(posFace[i], Hface,
+    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hface,
                                                 nodeLists.begin(), nodeLists.end(),
                                                 W.kernelExtent());
 
     // Iterate over the NodeLists.
-    for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+    for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-      const Neighbor<Dimension>& neighbor = nodeList.neighbor();
-      neighbor.setRefineNeighborList(posFace[i], Hface);
+      Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+      neighbor.setRefineNeighborList(posFace[k], Hface);
       for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
            neighborItr != neighbor.refineNeighborEnd();
            ++neighborItr) {
-        const int j = *neighborItr;
+        j = *neighborItr;
       
         // Get the state for node j
         const Vector& rj = position(nodeListj, j);
@@ -484,25 +488,56 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(Hdetj > 0.0);
 
         // Pair-wise kernel type stuff.
-        const Vector rij = posFace[i] - rj;
+        const Vector rij = posFace[k] - rj;
         const Vector etaj = Hj*rij;
         const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
         // Increment the face fluid properties.
-        volFace[i] += Vj*Wj;
-        velFace[i] += Vj*Wj*vj;
-        Pface[i] += Vj*Wj*Pj;
+        volFace[k] += Vj*Wj;
+        velFace[k] += Vj*Wj*vj;
+        Pface[k] += Vj*Wj*Pj;
       }
     }
 
     // Finish the face state.
-    CHECK(volFace[i] > 0.0);
-    velFace[i] /= volFace[i];
-    Pface[i] /= volFace[i];
+    CHECK(volFace[k] > 0.0);
+    velFace[k] /= volFace[k];
+    Pface[k] /= volFace[k];
+
+    // Find the SVPH nodes on either side of this face.
+    mesh.lookupNodeListID(Mesh<Dimension>::positiveID(face.zone1ID()), nodeListi, i);
+    mesh.lookupNodeListID(Mesh<Dimension>::positiveID(face.zone2ID()), nodeListj, j);
+
+    // Get the node properties.
+    const Vector& ri = position(nodeListi, i);
+    const Vector& vi = velocity(nodeListi, i);
+    const Scalar& rhoi = massDensity(nodeListi, i);
+    const Scalar& ci = soundSpeed(nodeListi, i);
+    const SymTensor& Hi = H(nodeListi, i);
+
+    const Vector& rj = position(nodeListj, j);
+    const Vector& vj = velocity(nodeListj, j);
+    const Scalar& rhoj = massDensity(nodeListj, j);
+    const Scalar& cj = soundSpeed(nodeListj, j);
+    const SymTensor& Hj = H(nodeListj, j);
+
+    const Vector rij = ri - rj;
+    const Vector etai = Hi*rij;
+    const Vector etaj = Hj*rij;
+
+    // Get the face Q values (in this case P/rho^2).
+    const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                              ri, etai, vi, rhoi, ci, Hi,
+                                              rj, etaj, vj, rhoj, cj, Hj);
+    Qface[k] = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+    const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+    const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+    maxViscousPressure(nodeListi, i) = max(maxViscousPressure(nodeListi, i), Qi);
+    maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
   }
 
   // Start our big loop over all FluidNodeLists.
-  size_t nodeListi = 0;
+  nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
@@ -628,10 +663,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Walk the faces and measure the primary fluid derivatives.
       for (unsigned k = 0; k != nfaces; ++k) {  
-        const unsigned fid = Mesh::positiveID(faceIDs[k]);
-        DvDti += Pface[fid]*dAface[fid];
-        DepsDti += Pface[fid]*dAface[fid].dot(velFace[fid]);
-        DvDxi += velFace[fid]*dAface[fid];
+        const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
+        const Vector dA = dAface[fid] * (-sgn(faceIDs[k]));
+        const Vector accf = Pface[fid]*dA + Qface[fid]*dA;
+        DvDti += accf;
+        DepsDti += accf.dot(velFace[fid]);
+        DvDxi += velFace[fid]*dA;
       }
 
       // Finish the time derivatives.
@@ -640,6 +677,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DvDxi /= Vi;
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
+      // DepsDti = -Pi/rhoi*DvDxi.Trace();
 
       // Finish the density sum.
       rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);
@@ -659,6 +697,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              hminratio,
                                                              nPerh,
                                                              maxNumNeighbors);
+      const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
