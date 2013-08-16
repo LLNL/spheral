@@ -50,24 +50,6 @@ fieldFromStateBase(StateBase<Dimension>& self,
   return &(self.field(key, Value()));
 }
 
-//------------------------------------------------------------------------------
-// Provide a non-iterator based interface to StateBase::generateMesh
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-stateBaseGenerateMesh(StateBase<Dimension>& self,
-                      const typename Dimension::Vector& xmin,
-                      const typename Dimension::Vector& xmax,
-                      const bool generateVoid,
-                      const bool generateParallelConnectivity,
-                      const double voidThreshold,
-                      std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries) {
-  self.generateMesh(xmin, xmax,
-                    generateVoid, generateParallelConnectivity, voidThreshold,
-                    boundaries.begin(), boundaries.end());
-}
-
 }
 
 #endif

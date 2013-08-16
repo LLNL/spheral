@@ -1,6 +1,5 @@
 #include "boost/algorithm/string.hpp"
 #include "NodeList/NodeListRegistrar.hh"
-#include "Mesh/generateMesh.hh"
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"
 
@@ -152,43 +151,6 @@ allFields(const Value& dummy) const {
     }
   }
   return result;
-}
-
-//------------------------------------------------------------------------------
-// Create a mesh based on the known NodeLists.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename BoundaryIterator>
-inline
-void
-StateBase<Dimension>::
-generateMesh(const Vector& xmin,
-             const Vector& xmax,
-             const bool generateVoid,
-             const bool generateParallelConnectivity,
-             const double voidThreshold,
-             const BoundaryIterator boundaryBegin,
-             const BoundaryIterator boundaryEnd) {
-  using NodeSpace::NodeList;
-  using std::vector;
-  using std::sort;
-  NodeList<Dimension> voidNodes("void", 0, 0);
-  vector<const NodeList<Dimension>*> nodeLists(mNodeListPtrs.begin(), mNodeListPtrs.end());
-  nodeLists.push_back(&voidNodes);
-  sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
-  mMeshPtr->clear();
-  MeshSpace::generateMesh<Dimension, 
-                          typename vector<const NodeList<Dimension>*>::iterator,
-                          BoundaryIterator>
-    (nodeLists.begin(), nodeLists.end(),
-     boundaryBegin, boundaryEnd,
-     xmin, xmax, 
-     generateVoid,
-     generateParallelConnectivity,
-     (generateVoid ? false : true),                           // remove boundary zones
-     voidThreshold,
-     *mMeshPtr,
-     voidNodes);
 }
 
 //------------------------------------------------------------------------------

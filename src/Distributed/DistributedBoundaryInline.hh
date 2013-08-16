@@ -7,6 +7,17 @@
 namespace Spheral {
 namespace BoundarySpace {
 
+//------------------------------------------------------------------------------
+// Do not use the ghost nodes from the parallel boundary for mesh generation.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DistributedBoundary<Dimension>::
+meshGhostNodes() const {
+  return false;
+}
+
 #ifdef USE_MPI
 //------------------------------------------------------------------------------
 // Get the domain ID.

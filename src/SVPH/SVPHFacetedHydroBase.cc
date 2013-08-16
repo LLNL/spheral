@@ -29,6 +29,7 @@
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
+#include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -149,9 +150,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      this->boundaryEnd(),
      mXmin,
      mXmax,
+     true,              // mesh ghost nodes
      false,             // generateVoid
      true,              // generateParallelConnectivity
-     true,              // removeBoundaryZones
+     false,             // removeBoundaryZones
      2.0,               // voidThreshold
      *mMeshPtr,
      voidNodes);
@@ -225,7 +227,7 @@ registerState(DataBase<Dimension>& dataBase,
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax));
+    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);
@@ -455,7 +457,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   vector<Tensor> Qface(numFaces, Tensor::zero);
 
   // Walk the faces and sample their fluid properties.
-  unsigned i, j, k, nodeListi, nodeListj;
+  unsigned i, j, k, nodeListi, nodeListj, z1id, z2id;
   const SymTensor Hface = 1.0e100*SymTensor::one;
   for (k = 0; k != numFaces; ++k) {
     const Face& face = mesh.face(k);
@@ -505,35 +507,40 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Pface[k] /= volFace[k];
 
     // Find the SVPH nodes on either side of this face.
-    mesh.lookupNodeListID(Mesh<Dimension>::positiveID(face.zone1ID()), nodeListi, i);
-    mesh.lookupNodeListID(Mesh<Dimension>::positiveID(face.zone2ID()), nodeListj, j);
+    z1id = Mesh<Dimension>::positiveID(face.zone1ID());
+    z2id = Mesh<Dimension>::positiveID(face.zone2ID());
+    if (z1id != Mesh<Dimension>::UNSETID and
+        z1id != Mesh<Dimension>::UNSETID) {
+      mesh.lookupNodeListID(z1id, nodeListi, i);
+      mesh.lookupNodeListID(z2id, nodeListj, j);
 
-    // Get the node properties.
-    const Vector& ri = position(nodeListi, i);
-    const Vector& vi = velocity(nodeListi, i);
-    const Scalar& rhoi = massDensity(nodeListi, i);
-    const Scalar& ci = soundSpeed(nodeListi, i);
-    const SymTensor& Hi = H(nodeListi, i);
+      // Get the node properties.
+      const Vector& ri = position(nodeListi, i);
+      const Vector& vi = velocity(nodeListi, i);
+      const Scalar& rhoi = massDensity(nodeListi, i);
+      const Scalar& ci = soundSpeed(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
 
-    const Vector& rj = position(nodeListj, j);
-    const Vector& vj = velocity(nodeListj, j);
-    const Scalar& rhoj = massDensity(nodeListj, j);
-    const Scalar& cj = soundSpeed(nodeListj, j);
-    const SymTensor& Hj = H(nodeListj, j);
+      const Vector& rj = position(nodeListj, j);
+      const Vector& vj = velocity(nodeListj, j);
+      const Scalar& rhoj = massDensity(nodeListj, j);
+      const Scalar& cj = soundSpeed(nodeListj, j);
+      const SymTensor& Hj = H(nodeListj, j);
 
-    const Vector rij = ri - rj;
-    const Vector etai = Hi*rij;
-    const Vector etaj = Hj*rij;
+      const Vector rij = ri - rj;
+      const Vector etai = Hi*rij;
+      const Vector etaj = Hj*rij;
 
-    // Get the face Q values (in this case P/rho^2).
-    const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                              ri, etai, vi, rhoi, ci, Hi,
-                                              rj, etaj, vj, rhoj, cj, Hj);
-    Qface[k] = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-    const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-    const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-    maxViscousPressure(nodeListi, i) = max(maxViscousPressure(nodeListi, i), Qi);
-    maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+      // Get the face Q values (in this case P/rho^2).
+      const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                                ri, etai, vi, rhoi, ci, Hi,
+                                                rj, etaj, vj, rhoj, cj, Hj);
+      Qface[k] = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+      const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+      const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+      maxViscousPressure(nodeListi, i) = max(maxViscousPressure(nodeListi, i), Qi);
+      maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+    }
   }
 
   // Start our big loop over all FluidNodeLists.

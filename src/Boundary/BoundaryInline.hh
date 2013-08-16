@@ -49,5 +49,16 @@ enforceFieldListBoundary(FieldSpace::FieldList<Dimension, DataType>& fieldList) 
   }
 }
 
+//------------------------------------------------------------------------------
+// Default choice for whether to mesh ghost nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+Boundary<Dimension>::
+meshGhostNodes() const {
+  return true;
+}
+
 }
 }

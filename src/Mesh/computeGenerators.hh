@@ -18,6 +18,7 @@ namespace Spheral {
                       NodeListIterator nodeListEnd,
                       BoundaryIterator boundaryBegin,
                       BoundaryIterator boundaryEnd,
+                      const bool meshGhostNodes,
                       const typename Dimension::Vector& xmin,
                       const typename Dimension::Vector& xmax,
                       std::vector<typename Dimension::Vector>& positions,

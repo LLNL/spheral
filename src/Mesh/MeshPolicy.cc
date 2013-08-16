@@ -4,7 +4,9 @@
 //
 // Created by JMO, Sat Feb 12 14:37:57 PST 2011
 //----------------------------------------------------------------------------//
+#include <vector>
 #include "MeshPolicy.hh"
+#include "generateMesh.hh"
 #include "Physics/Physics.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/State.hh"
@@ -16,10 +18,13 @@
 
 namespace Spheral {
 
+using namespace std;
+
 using PhysicsSpace::Physics;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using FieldSpace::Field;
+using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor without specifying bounds.
@@ -27,12 +32,14 @@ using FieldSpace::Field;
 template<typename Dimension>
 MeshPolicy<Dimension>::
 MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
-           const double voidThreshold):
+           const double voidThreshold,
+           const bool meshGhostNodes):
   UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
                               UpdatePolicyBase<Dimension>::wildcard()),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(true),
+  mMeshGhostNodes(meshGhostNodes),
   mXmin(),
   mXmax() {
 }
@@ -45,12 +52,14 @@ MeshPolicy<Dimension>::
 MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
            const Vector& xmin,
            const Vector& xmax,
-           const double voidThreshold):
+           const double voidThreshold,
+           const bool meshGhostNodes):
   UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
                               UpdatePolicyBase<Dimension>::wildcard()),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(false),
+  mMeshGhostNodes(meshGhostNodes),
   mXmin(xmin),
   mXmax(xmax) {
 }
@@ -77,21 +86,35 @@ update(const KeyType& key,
        const double dt) {
   REQUIRE(key == HydroFieldNames::mesh);
 
-  // Find the global bounding box.
+  // Get the state.
+  const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
+  Mesh<Dimension>& mesh = state.mesh();
+  mesh.clear();
+
+  // If required, find the global bounding box.
   if (mComputeBounds) {
-    const FieldSpace::FieldList<Dimension, Vector> positions = state.fields(HydroFieldNames::position, Vector::zero);
-    globalBoundingBox<Dimension>(positions, mXmin, mXmax, 
-                                 false);     // ghost points
+    globalBoundingBox<Dimension>(positions, mXmin, mXmax, mMeshGhostNodes);
   }
 
-  // This is a special case -- the state knows how to generate the mesh.
-  state.generateMesh(mXmin,                     // xmin
-                     mXmax,                     // xmax
-                     false,                     // generate void
-                     false,                     // parallel connectivity
-                     mVoidThreshold,
-                     mPackage.boundaryBegin(),
-                     mPackage.boundaryEnd());
+  // Do the deed.
+  NodeList<Dimension> voidNodes("void", 0, 0);
+  vector<const NodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
+                                               positions.nodeListPtrs().end());
+  nodeLists.push_back(&voidNodes);
+  MeshSpace::generateMesh<Dimension, 
+                          typename vector<const NodeList<Dimension>*>::iterator,
+                          typename Physics<Dimension>::ConstBoundaryIterator>
+    (nodeLists.begin(), nodeLists.end(),
+     mPackage.boundaryBegin(),
+     mPackage.boundaryEnd(),
+     mXmin, mXmax,
+     mMeshGhostNodes,
+     false,                            // generateVoid
+     false,                            // generateParallelConnectivity
+     false,                            // removeBoundaryZones
+     2.0,                              // voidThreshold
+     mesh,
+     voidNodes);
 }
 
 //------------------------------------------------------------------------------

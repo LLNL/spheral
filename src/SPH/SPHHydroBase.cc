@@ -966,7 +966,9 @@ updateVolume(State<Dimension>& state,
              const bool boundaries) const {
 
   // Pre-conditions.
+  REQUIRE(state.fieldNameRegistered(HydroFieldNames::position));
   REQUIRE(state.fieldNameRegistered(HydroFieldNames::volume));
+  REQUIRE(state.meshRegistered());
 
   // Find the global bounding box.
   Vector xmin, xmax;
@@ -979,17 +981,29 @@ updateVolume(State<Dimension>& state,
   xmin -= delta;
   xmax += delta;
 
-  // This is a special case -- the state knows how to generate the mesh.
-  state.generateMesh(xmin,                     // xmin
-                     xmax,                     // xmax
-                     false,                    // generate void
-                     false,                    // parallel connectivity
-                     2.0,                      // void threshold
-                     this->boundaryBegin(),
-                     this->boundaryEnd());
-
-  // Extract the state.
+  // Create the mesh.
   Mesh<Dimension>& mesh = state.mesh();
+  mesh.clear();
+  NodeList<Dimension> voidNodes("void", 0, 0);
+  vector<const NodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
+                                               positions.nodeListPtrs().end());
+  nodeLists.push_back(&voidNodes);
+  MeshSpace::generateMesh<Dimension, 
+                          typename vector<const NodeList<Dimension>*>::iterator,
+                          ConstBoundaryIterator>
+    (nodeLists.begin(), nodeLists.end(),
+     this->boundaryBegin(),
+     this->boundaryEnd(),
+     xmin, xmax,
+     true,                             // meshGhostNodes
+     false,                            // generateVoid
+     false,                            // generateParallelConnectivity
+     false,                            // removeBoundaryZones
+     2.0,                              // voidThreshold
+     mesh,
+     voidNodes);
+
+  // Extract the volume.
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
 
   // Now walk the NodeLists and set the volume.
