@@ -174,6 +174,9 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceVelocity() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceForce() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Scalar> >& faceMass() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -226,6 +229,9 @@ protected:
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceVelocity;
+  FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceForce;
+  FieldSpace::FieldList<Dimension, std::vector<Scalar> >    mFaceMass;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -42,3 +42,6 @@ const std::string Spheral::HydroFieldNames::linearMomentum = "linear momentum";
 const std::string Spheral::HydroFieldNames::totalEnergy = "total energy";
 const std::string Spheral::HydroFieldNames::mesh = "mesh";
 const std::string Spheral::HydroFieldNames::hourglassMask = "hourglass mask";
+const std::string Spheral::HydroFieldNames::faceVelocity = "face velocity";
+const std::string Spheral::HydroFieldNames::faceForce = "face force";
+const std::string Spheral::HydroFieldNames::faceMass = "face mass";

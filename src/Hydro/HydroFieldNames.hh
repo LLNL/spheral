@@ -47,6 +47,9 @@ struct HydroFieldNames {
   static const std::string totalEnergy;
   static const std::string mesh;
   static const std::string hourglassMask;
+  static const std::string faceVelocity;
+  static const std::string faceForce;
+  static const std::string faceMass;
 };
 
 }

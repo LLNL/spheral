@@ -123,7 +123,11 @@ generateMesh(const NodeListIterator nodeListBegin,
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr, ++ioff) {
     if (ioff != voidOffset) {
       const unsigned zoneOffset = offsets[ioff];
-      fill(mask.begin() + zoneOffset, mask.begin() + zoneOffset + (*itr)->numInternalNodes(), 1);
+      if (meshGhostNodes) {
+        fill(mask.begin() + zoneOffset, mask.begin() + offsets[ioff + 1], 1);
+      } else {
+        fill(mask.begin() + zoneOffset, mask.begin() + zoneOffset + (*itr)->numInternalNodes(), 1);
+      }
     }
   }
   if (not removeBoundaryZones) {

@@ -161,14 +161,14 @@ output("q.epsilon2")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHHydro(WT, q,
+    hydro = SVPHFacetedHydro(WT, q,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSVPH = XSPH,
                       densityUpdate = densityUpdate,
                       HUpdate = HEvolution,
-                      xmin = Vector(-100.0),
-                      xmax = Vector( 100.0))
+                      xmin = Vector(x0), #Vector(-100.0),
+                      xmax = Vector(x2))  #Vector( 100.0))
 else:
     hydro = SPHHydro(WT,
                      WTPi,
@@ -220,6 +220,7 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.cullGhostNodes = False
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 if hourglass:
