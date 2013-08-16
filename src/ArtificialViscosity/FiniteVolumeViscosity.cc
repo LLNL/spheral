@@ -163,8 +163,8 @@ initialize(const DataBase<Dimension>& dataBase,
         }
         const Vector& vj = velocity(nodeListj, j);
         const Vector vij = 0.5*(vi + vj);
-        const Vector dA = faceij.area() * faceij.unitNormal() * (-sgn(*fitr));
-        DvDxi += vij*dA;
+        const Vector dA = faceij.area() * faceij.unitNormal() * sgn(*fitr);
+        DvDxi -= vij*dA;
       }
       DvDxi /= Vi;
     }

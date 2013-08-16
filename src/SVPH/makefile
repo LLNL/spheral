@@ -11,7 +11,8 @@ SRCTARGETS = \
 	SVPHHydroBaseInst.cc \
 	SVPHFacetedHydroBaseInst.cc \
 	SVPHCorrectionsPolicyInst.cc \
-	SVPHMassDensityPolicyInst.cc
+	SVPHMassDensityPolicyInst.cc \
+	CompatibleFaceSpecificThermalEnergyPolicyInst.cc
 
 PYTHONTARGETS = \
 	SVPHHydros.py

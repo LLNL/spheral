@@ -109,6 +109,9 @@ class Hydro:
         x.add_static_attribute("totalEnergy", "std::string",  is_const=True)
         x.add_static_attribute("mesh", "std::string",  is_const=True)
         x.add_static_attribute("hourglassMask", "std::string",  is_const=True)
+        x.add_static_attribute("faceVelocity", "std::string",  is_const=True)
+        x.add_static_attribute("faceForce", "std::string",  is_const=True)
+        x.add_static_attribute("faceMass", "std::string",  is_const=True)
         return
 
     #---------------------------------------------------------------------------

@@ -24,7 +24,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "SVPH/CompatibleFaceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
@@ -109,6 +109,9 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldList<Dimension, SymTensor>::Copy),
   mDvDx(FieldList<Dimension, Tensor>::Copy),
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
+  mFaceVelocity(FieldList<Dimension, vector<Vector> >::Copy),
+  mFaceForce(FieldList<Dimension, vector<Vector> >::Copy),
+  mFaceMass(FieldList<Dimension, vector<Scalar> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -150,7 +153,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      this->boundaryEnd(),
      mXmin,
      mXmax,
-     true,              // mesh ghost nodes
+     false,             // mesh ghost nodes
      false,             // generateVoid
      true,              // generateParallelConnectivity
      false,             // removeBoundaryZones
@@ -190,6 +193,7 @@ registerState(DataBase<Dimension>& dataBase,
   // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CSPH);
   // dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CSPH);
   // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CSPH);
+  dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
@@ -227,7 +231,7 @@ registerState(DataBase<Dimension>& dataBase,
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true));
+    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, false));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);
@@ -247,19 +251,19 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->positions(), positionPolicy);
 
     // Are we using the compatible energy evolution scheme?
-    // if (compatibleEnergyEvolution()) {
-    //   PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
-    //   PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
-    //                                                                      HydroFieldNames::specificThermalEnergy));
-    //   state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
-    //   state.enroll((*itr)->velocity(), velocityPolicy);
-    //   state.enroll(*mSpecificThermalEnergy0[nodeListi]);
-    // } else {
+    if (compatibleEnergyEvolution()) {
+      PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>());
+      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
+                                                                         HydroFieldNames::specificThermalEnergy));
+      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
+      state.enroll((*itr)->velocity(), velocityPolicy);
+      state.enroll(*mSpecificThermalEnergy0[nodeListi]);
+    } else {
       PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
       PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll((*itr)->velocity(), velocityPolicy);
-    // }
+    }
 
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
@@ -315,6 +319,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
+  dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), HydroFieldNames::faceVelocity, false);
+  dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
+  dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), HydroFieldNames::faceMass, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -340,6 +347,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDHDt[i]);
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
+    derivs.enroll(*mFaceVelocity[i]);
+    derivs.enroll(*mFaceForce[i]);
+    derivs.enroll(*mFaceMass[i]);
   }
 }
 
@@ -436,6 +446,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> XSVPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  FieldList<Dimension, vector<Vector> > faceVelocity = derivatives.fields(HydroFieldNames::faceVelocity, vector<Vector>());
+  FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
+  FieldList<Dimension, vector<Scalar> > faceMass = derivatives.fields(HydroFieldNames::faceMass, vector<Scalar>());
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -449,10 +462,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSVPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
+  CHECK(faceVelocity.size() == numNodeLists);
+  CHECK(faceForce.size() == numNodeLists);
+  CHECK(faceMass.size() == numNodeLists);
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> volFace(numFaces, 0.0), Pface(numFaces, 0.0);
+  vector<Scalar> volFace(numFaces, 1.0e-30), Pface(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
 
@@ -510,7 +526,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     z1id = Mesh<Dimension>::positiveID(face.zone1ID());
     z2id = Mesh<Dimension>::positiveID(face.zone2ID());
     if (z1id != Mesh<Dimension>::UNSETID and
-        z1id != Mesh<Dimension>::UNSETID) {
+        z2id != Mesh<Dimension>::UNSETID) {
       mesh.lookupNodeListID(z1id, nodeListi, i);
       mesh.lookupNodeListID(z2id, nodeListj, j);
 
@@ -597,6 +613,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& XSVPHDeltaVi = XSVPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
+      vector<Vector>& faceVeli = faceVelocity(nodeListi, i);
+      vector<Vector>& faceForcei = faceForce(nodeListi, i);
+      vector<Scalar>& faceMassi = faceMass(nodeListi, i);
 
       Scalar Vsumi = 0.0;
 
@@ -671,20 +690,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Walk the faces and measure the primary fluid derivatives.
       for (unsigned k = 0; k != nfaces; ++k) {  
         const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-        const Vector dA = dAface[fid] * (-sgn(faceIDs[k]));
-        const Vector accf = Pface[fid]*dA + Qface[fid]*dA;
-        DvDti += accf;
-        DepsDti += accf.dot(velFace[fid]);
+        const Vector dA = dAface[fid] * sgn(faceIDs[k]);
+        const Vector fforce = Pface[fid]*dA + Qface[fid]*dA;
+        DvDti += fforce;
+        // DepsDti += fforce.dot(velFace[fid]);
         DvDxi += velFace[fid]*dA;
+        faceVeli.push_back(velFace[fid]);
+        faceForcei.push_back(-fforce);
+        faceMassi.push_back(mi/nfaces);
       }
+      CHECK(faceVeli.size() == nfaces);
+      CHECK(faceForcei.size() == nfaces);
+      CHECK(faceMassi.size() == nfaces);
 
       // Finish the time derivatives.
-      DvDti /= -mi;
-      DepsDti /= -mi;
-      DvDxi /= Vi;
+      DvDti /= mi;
+      // DepsDti /= mi;
+      DvDxi /= -Vi;
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
-      // DepsDti = -Pi/rhoi*DvDxi.Trace();
+      DepsDti = -Pi/rhoi*DvDxi.Trace();
 
       // Finish the density sum.
       rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);

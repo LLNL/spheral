@@ -136,10 +136,13 @@ class SpheralController(RestartableObject):
         
         # Set the simulation time.
         self.integrator.currentTime = initialTime
-##         state = eval("State%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
-##         derivs = eval("StateDerivatives%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
-##         self.integrator.initialize(state, derivs)
-##         self.integrator.initialize(state, derivs)
+
+        # Initialize the integrator and packages.
+        for package in self.integrator.physicsPackages():
+            package.initializeProblemStartup(self.integrator.dataBase())
+        state = eval("State%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
+        derivs = eval("StateDerivatives%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
+        self.integrator.initialize(state, derivs)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives:
@@ -169,9 +172,9 @@ class SpheralController(RestartableObject):
             self.iterateIdealH()
             self.doPeriodicWork(force=True)
 
-        # Do the per package one time initialization.
-        for package in self.integrator.physicsPackages():
-            package.initializeProblemStartup(self.integrator.dataBase())
+        # # Do the per package one time initialization.
+        # for package in self.integrator.physicsPackages():
+        #     package.initializeProblemStartup(self.integrator.dataBase())
 
         return
 
