@@ -153,6 +153,10 @@ public:
   // Defaults to no-op.
   virtual void clip(Vector& xmin, Vector& xmax) const;
 
+  // Some boundaries have ghosts we should exclude from tessellations.
+  // Provide a hook to note such cases.
+  virtual bool meshGhostNodes() const;
+
 #ifndef __GCCXML__
   // protected:
   //--------------------------- Protected Interface ---------------------------//

@@ -14,7 +14,6 @@
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
-#include "Mesh/generateMesh.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {

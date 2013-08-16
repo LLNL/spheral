@@ -1538,6 +1538,17 @@ FieldList<Dimension, DataType>::numGhostNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
+const std::vector<NodeSpace::NodeList<Dimension>*>&
+FieldList<Dimension, DataType>::
+nodeListPtrs() const {
+  return mNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Create the cache of refined element values.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
 void
 FieldList<Dimension, DataType>::
 cacheRefineElements() const {

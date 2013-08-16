@@ -19,6 +19,7 @@ namespace Spheral {
                  const BoundaryIterator boundaryEnd,
                  const typename Dimension::Vector& xmin,
                  const typename Dimension::Vector& xmax,
+                 const bool meshGhostNodes,
                  const bool generateVoid,
                  const bool generateParallelConnectivity,
                  const bool removeBoundaryZones,

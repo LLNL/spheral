@@ -115,14 +115,6 @@ public:
   const ConnectivityMapType& connectivityMap() const;
 
   // We also provide support for registering a mesh (though only one per StateBase).
-  template<typename BoundaryIterator>
-  void generateMesh(const Vector& xmin,
-                    const Vector& xmax,
-                    const bool generateVoid,
-                    const bool generateParallelConnectivity,
-                    const double voidThreshold,
-                    const BoundaryIterator boundaryBegin,
-                    const BoundaryIterator boundaryEnd);
   bool meshRegistered() const;
   const MeshType& mesh() const;
   MeshType& mesh();

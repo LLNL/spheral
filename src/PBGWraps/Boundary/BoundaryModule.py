@@ -253,7 +253,7 @@ class Boundary:
         x.add_method("finalizeGhostBoundary", None, [], is_const=True, is_virtual=True)
         x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
 
-        # x.add_method("meshGhostNodes", "bool", [], is_virtual=True, is_const=True)
+        x.add_method("meshGhostNodes", "bool", [], is_virtual=True, is_const=True)
 
         x.add_method("reset", None, [refparam(database, "dataBase")], is_virtual=True)
 

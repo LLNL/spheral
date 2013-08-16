@@ -236,6 +236,9 @@ public:
   // The number of ghost nodes in the FieldList.
   int numGhostNodes() const;
 
+  // Get the NodeLists this FieldList is defined on.
+  const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
+
   // Methods for using the refine elements cache.
   void cacheRefineElements() const;
   void useCacheRefineElements();

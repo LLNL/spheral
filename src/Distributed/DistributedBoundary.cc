@@ -1116,17 +1116,6 @@ finalizeGhostBoundary() const {
 }
 
 //------------------------------------------------------------------------------
-// Do not use the ghost nodes from the parallel boundary for mesh generation.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-DistributedBoundary<Dimension>::
-meshGhostNodes() const {
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // Read/Write access to the domainID <-> DomainBoundaryNodes information for
 // the given NodeList.
 //------------------------------------------------------------------------------

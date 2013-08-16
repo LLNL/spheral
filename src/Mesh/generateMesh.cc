@@ -32,6 +32,7 @@ generateMesh(const NodeListIterator nodeListBegin,
              const BoundaryIterator boundaryEnd,
              const typename Dimension::Vector& xmin,
              const typename Dimension::Vector& xmax,
+             const bool meshGhostNodes,
              const bool generateVoid,
              const bool generateParallelConnectivity,
              const bool removeBoundaryZones,
@@ -66,6 +67,7 @@ generateMesh(const NodeListIterator nodeListBegin,
   vector<unsigned> offsets;
   computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                    boundaryBegin, boundaryEnd,
+                                                                   meshGhostNodes,
                                                                    xmin, xmax, 
                                                                    generators, Hs, offsets);
   // if (Process::getRank() == 0) cerr << "generateMesh:: required " 
@@ -96,6 +98,7 @@ generateMesh(const NodeListIterator nodeListBegin,
     // if (Process::getRank() == 0) cerr << "Recomputing generators with void." << endl;
     computeGenerators<Dimension, NodeListIterator, BoundaryIterator>(nodeListBegin, nodeListEnd, 
                                                                      boundaryBegin, boundaryEnd,
+                                                                     meshGhostNodes,
                                                                      xmin, xmax, 
                                                                      generators, Hs, offsets);
     // if (Process::getRank() == 0) cerr << "generateMesh:: required " 

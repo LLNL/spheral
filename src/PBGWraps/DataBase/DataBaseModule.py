@@ -187,16 +187,6 @@ class DataBase:
         x.add_method("keys", "vector_of_string", [], is_const=True)
         x.add_method("fieldKeys", "vector_of_string", [], is_const=True)
 
-        x.add_function_as_method("stateBaseGenerateMesh", None,
-                                 [param(me, "self"),
-                                  constrefparam(vector, "xmin"),
-                                  constrefparam(vector, "xmax"),
-                                  param("bool", "generateVoid"),
-                                  param("bool", "generateParallelConnectivity"),
-                                  param("double", "voidThreshold"),
-                                  constrefparam(vector_of_boundary, "boundaries")],
-                                 template_parameters = [dim],
-                                 custom_name = "generateMesh")
         x.add_method("meshRegistered", "bool", [], is_const=True)
         x.add_method("mesh", mesh, [])
 

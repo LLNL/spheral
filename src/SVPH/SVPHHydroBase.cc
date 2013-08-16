@@ -29,6 +29,7 @@
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
+#include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -136,7 +137,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
   // Construct the mesh and volumes.
-  NodeList<Dimension> voidNodes("ZZZZZZZZZ internal void", 0, 0);
+  NodeList<Dimension> voidNodes("internal void", 0, 0);
   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
   nodeLists.push_back(&voidNodes);
   // std::sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
@@ -149,9 +150,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      this->boundaryEnd(),
      mXmin,
      mXmax,
+     true,              // mesh ghost nodes
      false,             // generateVoid
      true,              // generateParallelConnectivity
-     true,              // removeBoundaryZones
+     false,             // removeBoundaryZones
      2.0,               // voidThreshold
      *mMeshPtr,
      voidNodes);

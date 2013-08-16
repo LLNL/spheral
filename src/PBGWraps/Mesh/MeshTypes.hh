@@ -29,6 +29,7 @@ inline
 void
 computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
                   std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+                  const bool meshGhostNodes,
                   const typename Dimension::Vector& xmin,
                   const typename Dimension::Vector& xmax,
                   std::vector<typename Dimension::Vector>& positions,
@@ -39,7 +40,7 @@ computeGenerators(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
                     typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator>
     (nodeLists.begin(), nodeLists.end(), 
      boundaries.begin(), boundaries.end(),
-     xmin, xmax, 
+     meshGhostNodes, xmin, xmax, 
      positions, Hs, offsets);
 }
 
@@ -53,6 +54,7 @@ generateMesh(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
              std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
              const typename Dimension::Vector& xmin,
              const typename Dimension::Vector& xmax,
+             const bool meshGhostNodes,
              const bool generateVoid,
              const bool generateParallelConnectivity,
              const bool removeBoundaryZones,
@@ -62,7 +64,7 @@ generateMesh(std::vector<NodeSpace::NodeList<Dimension>*>& nodeLists,
   generateMesh(nodeLists.begin(), nodeLists.end(), 
                boundaries.begin(), boundaries.end(),
                xmin, xmax,
-               generateVoid, generateParallelConnectivity, removeBoundaryZones, 
+               meshGhostNodes, generateVoid, generateParallelConnectivity, removeBoundaryZones, 
                voidThreshold,
                mesh, voidNodes);
 }
