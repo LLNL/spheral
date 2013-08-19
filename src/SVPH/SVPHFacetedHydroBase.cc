@@ -157,10 +157,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      this->boundaryEnd(),
      mXmin,
      mXmax,
-     true,             // mesh ghost nodes
+     true,              // mesh ghost nodes
      false,             // generateVoid
      true,              // generateParallelConnectivity
-     false,             // removeBoundaryZones
+     true,              // removeBoundaryZones
      2.0,               // voidThreshold
      *mMeshPtr,
      voidNodes);
@@ -229,7 +229,7 @@ registerState(DataBase<Dimension>& dataBase,
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true));
+    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true, false, true));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);

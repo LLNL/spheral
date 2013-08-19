@@ -29,12 +29,16 @@ public:
   // Constructors, destructor.
   MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
              const double voidThreshold = 2.0,
-             const bool meshGhostNodes = false);
+             const bool meshGhostNodes = true,
+             const bool generateVoid = false,
+             const bool removeBoundaryZones = true);
   MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
              const Vector& xmin,
              const Vector& xmax,
              const double voidThreshold = 2.0,
-             const bool meshGhostNodes = false);
+             const bool meshGhostNodes = true,
+             const bool generateVoid = false,
+             const bool removeBoundaryZones = true);
   virtual ~MeshPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -52,7 +56,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   const PhysicsSpace::Physics<Dimension>& mPackage;
   double mVoidThreshold;
-  bool mComputeBounds, mMeshGhostNodes;
+  bool mComputeBounds, mMeshGhostNodes, mGenerateVoid, mRemoveBoundaryZones;
   Vector mXmin, mXmax;
 
   MeshPolicy();
