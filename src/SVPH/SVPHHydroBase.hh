@@ -57,6 +57,7 @@ public:
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,
                 const bool XSVPH,
+                const bool linearConsistent,
                 const PhysicsSpace::MassDensityType densityUpdate,
                 const PhysicsSpace::HEvolutionType HUpdate,
                 const Vector& xmin,
@@ -140,6 +141,10 @@ public:
   bool XSVPH() const;
   void XSVPH(const bool val);
 
+  // Flag to select whether or not to use the linear corrections.
+  bool linearConsistent() const;
+  void linearConsistent(const bool val);
+
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
@@ -191,7 +196,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mXSVPH;
+  bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent;
 
   // Optional bounding box for generating the mesh.
   Vector mXmin, mXmax;

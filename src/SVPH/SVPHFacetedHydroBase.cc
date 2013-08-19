@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "SVPHFacetedHydroBase.hh"
-#include "computeSVPHCorrections.hh"
+#include "computeSVPHCorrectionsOnFaces.hh"
 #include "SVPHCorrectionsPolicy.hh"
 #include "SPH/computeSumVoronoiCellMassDensity.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -24,6 +24,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
+#include "SVPH/SpecificThermalEnergyVolumePolicy.hh"
 #include "SVPH/CompatibleFaceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
@@ -75,6 +76,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool useVelocityMagnitudeForDt,
                      const bool compatibleEnergyEvolution,
                      const bool XSVPH,
+                     const bool linearConsistent,
                      const MassDensityType densityUpdate,
                      const HEvolutionType HUpdate,
                      const Vector& xmin,
@@ -85,6 +87,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSVPH(XSVPH),
+  mLinearConsistent(linearConsistent),
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
@@ -96,6 +99,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSoundSpeed(FieldList<Dimension, Scalar>::Copy),
   mVolume(FieldList<Dimension, Scalar>::Copy),
   mSpecificThermalEnergy0(FieldList<Dimension, Scalar>::Copy),
+  mVolume0(FieldList<Dimension, Scalar>::Copy),
   mHideal(FieldList<Dimension, SymTensor>::Copy),
   mMaxViscousPressure(FieldList<Dimension, Scalar>::Copy),
   mMassDensitySum(FieldList<Dimension, Scalar>::Copy),
@@ -110,8 +114,8 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDx(FieldList<Dimension, Tensor>::Copy),
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
   mFaceVelocity(FieldList<Dimension, vector<Vector> >::Copy),
+  mFaceVelocity0(FieldList<Dimension, vector<Vector> >::Copy),
   mFaceForce(FieldList<Dimension, vector<Vector> >::Copy),
-  mFaceMass(FieldList<Dimension, vector<Scalar> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -153,7 +157,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      this->boundaryEnd(),
      mXmin,
      mXmax,
-     false,             // mesh ghost nodes
+     true,             // mesh ghost nodes
      false,             // generateVoid
      true,              // generateParallelConnectivity
      false,             // removeBoundaryZones
@@ -197,17 +201,11 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
-  // If we're using the compatibile energy discretization, prepare to maintain a copy
-  // of the thermal energy.
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  if (mCompatibleEnergyEvolution) {
-    size_t nodeListi = 0;
-    for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
-    }
+  // Take a snapshot of the starting volume.
+  mVolume0 = mVolume;
+  mVolume0.copyFields();
+  for (unsigned i = 0; i != mVolume0.size(); ++i) {
+    mVolume0[i]->name(HydroFieldNames::volume + "0");
   }
 
   // Now register away.
@@ -231,7 +229,7 @@ registerState(DataBase<Dimension>& dataBase,
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, false));
+    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);
@@ -251,20 +249,6 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll((*itr)->positions(), positionPolicy);
 
     // Are we using the compatible energy evolution scheme?
-    if (compatibleEnergyEvolution()) {
-      PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>());
-      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
-                                                                         HydroFieldNames::specificThermalEnergy));
-      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
-      state.enroll((*itr)->velocity(), velocityPolicy);
-      state.enroll(*mSpecificThermalEnergy0[nodeListi]);
-    } else {
-      PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
-      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
-      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
-      state.enroll((*itr)->velocity(), velocityPolicy);
-    }
-
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
@@ -286,6 +270,26 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer csPolicy(new SoundSpeedPolicy<Dimension>());
     state.enroll(*mPressure[nodeListi], pressurePolicy);
     state.enroll(*mSoundSpeed[nodeListi], csPolicy);
+
+    // Specific thermal energy.
+    if (compatibleEnergyEvolution()) {
+      PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
+                                                                                                 dataBase,
+                                                                                                 this->artificialViscosity(),
+                                                                                                 mLinearConsistent));
+      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position));
+      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
+      state.enroll((*itr)->velocity(), velocityPolicy);
+      // state.enroll(*mSpecificThermalEnergy0[nodeListi]);
+    } else {
+      // PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyVolumePolicy<Dimension>());
+      PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
+      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
+      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
+      state.enroll((*itr)->velocity(), velocityPolicy);
+      state.enroll(*mVolume0[nodeListi]);
+    }
+
   }
 }
 
@@ -319,9 +323,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), HydroFieldNames::faceVelocity, false);
-  dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
-  dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), HydroFieldNames::faceMass, false);
+  // dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), HydroFieldNames::faceVelocity, false);
+  // dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -347,9 +350,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDHDt[i]);
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
-    derivs.enroll(*mFaceVelocity[i]);
-    derivs.enroll(*mFaceForce[i]);
-    derivs.enroll(*mFaceMass[i]);
+    // derivs.enroll(*mFaceVelocity[i]);
+    // derivs.enroll(*mFaceForce[i]);
   }
 }
 
@@ -411,7 +413,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The mesh.
   const Mesh<Dimension>& mesh = state.mesh();
 
-  // Get the state and derivative FieldLists.
   // State FieldLists.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -446,9 +447,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> XSVPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  FieldList<Dimension, vector<Vector> > faceVelocity = derivatives.fields(HydroFieldNames::faceVelocity, vector<Vector>());
-  FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
-  FieldList<Dimension, vector<Scalar> > faceMass = derivatives.fields(HydroFieldNames::faceMass, vector<Scalar>());
+  // FieldList<Dimension, vector<Vector> > faceVelocity = derivatives.fields(HydroFieldNames::faceVelocity, vector<Vector>());
+  // FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -462,15 +462,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSVPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(faceVelocity.size() == numNodeLists);
-  CHECK(faceForce.size() == numNodeLists);
-  CHECK(faceMass.size() == numNodeLists);
+  // CHECK(faceVelocity.size() == numNodeLists);
+  // CHECK(faceForce.size() == numNodeLists);
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> volFace(numFaces, 1.0e-30), Pface(numFaces, 0.0);
+  vector<Scalar> Pface(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
+
+  // Compute the SVPH corrections.
+  vector<Scalar> A;
+  vector<Vector> B;
+  computeSVPHCorrectionsOnFaces(mesh, W,
+                                volume, position, H,
+                                A, B);
+  if (not mLinearConsistent) B = vector<Vector>(numFaces, Vector::zero);
 
   // Walk the faces and sample their fluid properties.
   unsigned i, j, k, nodeListi, nodeListj, z1id, z2id;
@@ -479,6 +486,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Face& face = mesh.face(k);
     posFace[k] = face.position();
     dAface[k] = face.area() * face.unitNormal();
+
+    const Scalar& Ai = A[k];
+    const Vector& Bi = B[k];
 
     // Set the neighbors for this face.
     Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hface,
@@ -511,16 +521,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
 
         // Increment the face fluid properties.
-        volFace[k] += Vj*Wj;
-        velFace[k] += Vj*Wj*vj;
-        Pface[k] += Vj*Wj*Pj;
+        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
+        velFace[k] += VWRj*vj;
+        Pface[k] += VWRj*Pj;
       }
     }
 
     // Finish the face state.
-    CHECK(volFace[k] > 0.0);
-    velFace[k] /= volFace[k];
-    Pface[k] /= volFace[k];
+    CHECK2(Ai >= 0.0, i << " " << Ai);
+    velFace[k] *= Ai;
+    Pface[k] *= Ai;
 
     // Find the SVPH nodes on either side of this face.
     z1id = Mesh<Dimension>::positiveID(face.zone1ID());
@@ -613,9 +623,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Vector& XSVPHDeltaVi = XSVPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
-      vector<Vector>& faceVeli = faceVelocity(nodeListi, i);
-      vector<Vector>& faceForcei = faceForce(nodeListi, i);
-      vector<Scalar>& faceMassi = faceMass(nodeListi, i);
+      // vector<Vector>& faceVeli = faceVelocity(nodeListi, i);
+      // vector<Vector>& faceForcei = faceForce(nodeListi, i);
 
       Scalar Vsumi = 0.0;
 
@@ -688,28 +697,35 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
 
       // Walk the faces and measure the primary fluid derivatives.
+      Tensor Qavg;
+      Scalar Asum = 0.0;
       for (unsigned k = 0; k != nfaces; ++k) {  
         const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
         const Vector dA = dAface[fid] * sgn(faceIDs[k]);
         const Vector fforce = Pface[fid]*dA + Qface[fid]*dA;
+        Qavg += Qface[fid] * dA.magnitude();
+        Asum += dA.magnitude();
         DvDti += fforce;
-        // DepsDti += fforce.dot(velFace[fid]);
+        DepsDti += fforce.dot(velFace[fid]);
         DvDxi += velFace[fid]*dA;
-        faceVeli.push_back(velFace[fid]);
-        faceForcei.push_back(-fforce);
-        faceMassi.push_back(mi/nfaces);
+        // faceVeli.push_back(velFace[fid]);
+        // faceForcei.push_back(-fforce);
       }
-      CHECK(faceVeli.size() == nfaces);
-      CHECK(faceForcei.size() == nfaces);
-      CHECK(faceMassi.size() == nfaces);
+      CHECK(Asum > 0.0);
+      Qavg /= Asum;
+      // CHECK(faceVeli.size() == nfaces);
+      // CHECK(faceForcei.size() == nfaces);
 
       // Finish the time derivatives.
       DvDti /= mi;
-      // DepsDti /= mi;
       DvDxi /= -Vi;
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
-      DepsDti = -Pi/rhoi*DvDxi.Trace();
+      if (mCompatibleEnergyEvolution) {
+        DepsDti /= mi;
+      } else {
+        DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
+      }
 
       // Finish the density sum.
       rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);
@@ -843,7 +859,9 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    }
   }
 }
 
@@ -866,7 +884,9 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+  if (compatibleEnergyEvolution()) {
+    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+  }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -878,7 +898,9 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    if (compatibleEnergyEvolution()) {
+      (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    }
   }
 }
 

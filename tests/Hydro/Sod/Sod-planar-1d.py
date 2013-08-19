@@ -57,6 +57,7 @@ commandLine(nx1 = 400,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
+            linearConsistent = False,
 
             useRefinement = False,
 
@@ -162,13 +163,14 @@ output("q.epsilon2")
 #-------------------------------------------------------------------------------
 if SVPH:
     hydro = SVPHFacetedHydro(WT, q,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSVPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HEvolution,
-                      xmin = Vector(x0), #Vector(-100.0),
-                      xmax = Vector(x2))  #Vector( 100.0))
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HEvolution,
+                             xmin = Vector(x0), #Vector(-100.0),
+                             xmax = Vector(x2))  #Vector( 100.0))
 else:
     hydro = SPHHydro(WT,
                      WTPi,
