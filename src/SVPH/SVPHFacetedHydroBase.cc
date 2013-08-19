@@ -522,7 +522,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // Increment the face fluid properties.
         const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
-        velFace[k] += VWRj*vj;
+        // velFace[k] += VWRj*vj;
         Pface[k] += VWRj*Pj;
       }
     }
@@ -579,11 +579,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
         }
       }
+      velFace[k] = vi;
     }
 
     // Finish the face state.
     CHECK2(Ai >= 0.0, i << " " << Ai);
-    velFace[k] *= Ai;
+    // velFace[k] *= Ai;
     Pface[k] *= Ai;
     Qface[k] *= Ai;
 
