@@ -74,6 +74,23 @@ SVPHFacetedHydroBase<Dimension>::XSVPH(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're using the linear consistency corretions.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SVPHFacetedHydroBase<Dimension>::linearConsistent() const {
+  return mLinearConsistent;
+}
+
+template<typename Dimension>
+inline
+void
+SVPHFacetedHydroBase<Dimension>::linearConsistent(const bool val) {
+  mLinearConsistent = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -199,6 +216,14 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SVPHFacetedHydroBase<Dimension>::
+volume0() const {
+  return mVolume0;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHFacetedHydroBase<Dimension>::
 Hideal() const {
@@ -313,16 +338,16 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 SVPHFacetedHydroBase<Dimension>::
-faceForce() const {
-  return mFaceForce;
+faceVelocity0() const {
+  return mFaceVelocity0;
 }
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Scalar> >&
+const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 SVPHFacetedHydroBase<Dimension>::
-faceMass() const {
-  return mFaceMass;
+faceForce() const {
+  return mFaceForce;
 }
 
 }

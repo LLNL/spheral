@@ -57,6 +57,7 @@ public:
                        const bool useVelocityMagnitudeForDt,
                        const bool compatibleEnergyEvolution,
                        const bool XSVPH,
+                       const bool linearConsistent,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const Vector& xmin,
@@ -140,6 +141,10 @@ public:
   bool XSVPH() const;
   void XSVPH(const bool val);
 
+  // Flag to select whether or not to use the linear corrections.
+  bool linearConsistent() const;
+  void linearConsistent(const bool val);
+
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
@@ -161,6 +166,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    volume0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
@@ -175,8 +181,8 @@ public:
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceVelocity() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceVelocity0() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceForce() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Scalar> >& faceMass() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -193,7 +199,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mXSVPH;
+  bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent;
 
   // Optional bounding box for generating the mesh.
   Vector mXmin, mXmax;
@@ -210,6 +216,7 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldSpace::FieldList<Dimension, Scalar>    mVolume0;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
@@ -230,8 +237,8 @@ protected:
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
   FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceVelocity;
+  FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceVelocity0;
   FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceForce;
-  FieldSpace::FieldList<Dimension, std::vector<Scalar> >    mFaceMass;
 
 private:
   //--------------------------- Private Interface ---------------------------//

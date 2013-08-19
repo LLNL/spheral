@@ -170,6 +170,7 @@ class SVPH:
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSVPH", default_value="true"),
+                           param("int", "linearConsistent", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
@@ -220,6 +221,7 @@ class SVPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSVPH", "bool", getter="XSVPH", setter="XSVPH")
+        x.add_instance_attribute("linearConsistent", "bool", getter="linearConsistent", setter="linearConsistent")
         x.add_instance_attribute("xmin", vector, getter="xmin", setter="xmin")
         x.add_instance_attribute("xmax", vector, getter="xmax", setter="xmax")
         x.add_instance_attribute("mesh", mesh, getter="mesh", is_const=True)
@@ -303,6 +305,7 @@ class SVPH:
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSVPH", default_value="true"),
+                           param("int", "linearConsistent", default_value="false"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
@@ -353,6 +356,7 @@ class SVPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSVPH", "bool", getter="XSVPH", setter="XSVPH")
+        x.add_instance_attribute("linearConsistent", "bool", getter="linearConsistent", setter="linearConsistent")
         x.add_instance_attribute("xmin", vector, getter="xmin", setter="xmin")
         x.add_instance_attribute("xmax", vector, getter="xmax", setter="xmax")
         x.add_instance_attribute("mesh", mesh, getter="mesh", is_const=True)

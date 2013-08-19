@@ -24,6 +24,12 @@ namespace FieldSpace {
 namespace DataBaseSpace {
   template<typename Dimension> class DataBase;
 }
+namespace KernelSpace {
+  template<typename Dimension> class TableKernel;
+}
+namespace ArtificialViscositySpace {
+  template<typename Dimension> class ArtificialViscosity;
+}
 
 template<typename Dimension>
 class CompatibleFaceSpecificThermalEnergyPolicy: 
@@ -33,10 +39,15 @@ public:
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
   typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  CompatibleFaceSpecificThermalEnergyPolicy();
+  CompatibleFaceSpecificThermalEnergyPolicy(const KernelSpace::TableKernel<Dimension>& W,
+                                            const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                            const ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                                            const bool linearConsistent);
   virtual ~CompatibleFaceSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -68,6 +79,12 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  const KernelSpace::TableKernel<Dimension>& mW;
+  const DataBaseSpace::DataBase<Dimension>& mDataBase;
+  const ArtificialViscositySpace::ArtificialViscosity<Dimension>& mQ;
+  const bool mLinearConsistent;
+  static bool mFired;
+
   CompatibleFaceSpecificThermalEnergyPolicy(const CompatibleFaceSpecificThermalEnergyPolicy& rhs);
   CompatibleFaceSpecificThermalEnergyPolicy& operator=(const CompatibleFaceSpecificThermalEnergyPolicy& rhs);
 };

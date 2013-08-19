@@ -77,6 +77,7 @@ public:
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldSpace::FieldBase<Dimension>& field) const;
+  bool registered(const std::vector<Scalar>& vec) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
   // Enroll a Field.
@@ -88,6 +89,9 @@ public:
 
   // Enroll an externally held Mesh.
   void enrollMesh(MeshPtr meshPtr);
+
+  // Enroll a std::vector<Scalar>.
+  void enroll(const FieldName& key, std::vector<Scalar>& vec);
 
   // Return the field for the given key.
   template<typename Value>
@@ -102,6 +106,9 @@ public:
   // Return all the fields of the given Value.
   template<typename Value>
   std::vector<FieldSpace::Field<Dimension, Value>*> allFields(const Value& dummy) const;
+
+  // Return the vector<Scalar>.
+  std::vector<Scalar>& array(const FieldName& key);
 
   // Return the complete set of keys registered.
   std::vector<KeyType> keys() const;
@@ -137,10 +144,14 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   typedef std::map<KeyType, FieldSpace::FieldBase<Dimension>*> StorageType;
   typedef std::list<boost::shared_ptr<FieldSpace::FieldBase<Dimension> > > CacheType;
+  typedef std::map<KeyType, std::vector<Scalar>*> VectorStorageType;
+  typedef std::list<boost::shared_ptr<std::vector<Scalar> > > VectorCacheType;
 
   // Protected data.
   StorageType mStorage;
   CacheType mCache;
+  VectorStorageType mVectorStorage;
+  VectorCacheType mVectorCache;
   std::set<const NodeSpace::NodeList<Dimension>*> mNodeListPtrs;
   ConnectivityMapPtr mConnectivityMapPtr;
   MeshPtr mMeshPtr;

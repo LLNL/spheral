@@ -74,6 +74,23 @@ SVPHHydroBase<Dimension>::XSVPH(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're using the linear consistency corretions.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SVPHHydroBase<Dimension>::linearConsistent() const {
+  return mLinearConsistent;
+}
+
+template<typename Dimension>
+inline
+void
+SVPHHydroBase<Dimension>::linearConsistent(const bool val) {
+  mLinearConsistent = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>
