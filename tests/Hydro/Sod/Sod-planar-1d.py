@@ -44,6 +44,7 @@ commandLine(nx1 = 400,
 
             SVPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            dtverbose = False,
             steps = None,
             goalTime = 0.15,
             dt = 1e-4,
@@ -222,7 +223,7 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.rigorousBoundaries = rigorousBoundaries
-integrator.cullGhostNodes = False
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 if hourglass:
@@ -341,6 +342,10 @@ if graphics in ("gnu", "matplot"):
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
+
+    cs = db.newFluidScalarFieldList(0.0, "sound speed")
+    db.fluidSoundSpeed(cs)
+    csPlot = plotFieldList(cs, winTitle="Sound speed")
 
     def createList(x):
         xx = x

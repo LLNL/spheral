@@ -817,6 +817,166 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
+// Determine the timestep requirements for a hydro step.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename SVPHFacetedHydroBase<Dimension>::TimeStepType
+SVPHFacetedHydroBase<Dimension>::
+dt(const DataBase<Dimension>& dataBase,
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   typename Dimension::Scalar currentTime) const {
+
+  // Get some useful fluid variables from the DataBase.
+  const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, Scalar());
+  const FieldList<Dimension, int> mask = state.fields(HydroFieldNames::timeStepMask, 1);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const int numNodeLists = connectivityMap.nodeLists().size();
+
+  // Initialize the return value to some impossibly high value.
+  Scalar minDt = FLT_MAX;
+
+  // Set up some history variables to track what set's our minimum Dt.
+  Scalar lastMinDt = minDt;
+  int lastNodeID;
+  string lastNodeListName, reason;
+  Scalar lastNodeScale, lastCs, lastRho, lastEps, lastDivVelocity, lastShearVelocity;
+  Vector lastVelocity, lastAcc;
+
+  // Loop over every fluid node.
+  size_t nodeListi = 0;
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+       nodeListItr != dataBase.fluidNodeListEnd();
+       ++nodeListItr, ++nodeListi) {
+    const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
+    const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
+    CHECK(kernelExtent > 0.0);
+
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+
+      // If this node is masked, don't worry about it.
+      if (mask(nodeListi, i) == 1) {
+
+        // Get this nodes length scale.  This is the only bit we specialize here from the
+        // generic base class method.
+        CHECK(vol(nodeListi, i) > 0.0);
+        const Scalar nodeScale = Dimension::rootnu(vol(nodeListi, i));
+
+        // Sound speed limit.
+        const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);
+        if (csDt < minDt) {
+          minDt = csDt;
+          reason = "sound speed limit";
+        }
+
+        // Artificial viscosity effective sound speed.
+        CHECK(rho(nodeListi, i) > 0.0);
+        const Scalar csq = sqrt(maxViscousPressure(nodeListi, i)/rho(nodeListi, i));
+        const double csqDt = nodeScale/(csq + FLT_MIN);
+        if (csqDt < minDt) {
+          minDt = csqDt;
+          reason = "artificial viscosity sound speed limit";
+        }
+
+        // Velocity divergence limit.
+        const Scalar divVelocity = DvDx(nodeListi, i).Trace();
+        const double divvDt = 1.0/(std::abs(divVelocity) + FLT_MIN);
+        if (divvDt < minDt) {
+          minDt = divvDt;
+          reason = "velocity divergence";
+        }
+
+        //     // Eigenvalues of the stress-strain tensor.
+        //     Vector eigenValues = DvDx(nodeListi, i).Symmetric().eigenValues();
+        //     Scalar maxValue = -1.0;
+        //     for (int i = 0; i < Dimension::nDim; ++i) {
+        //       maxValue = max(maxValue, fabs(eigenValues(i)));
+        //     }
+        //     const double strainDt = 1.0/(maxValue + FLT_MIN);
+        //     if (strainDt < minDt) {
+        //       minDt = strainDt;
+        //       reason = "strain limit";
+        //     }
+
+        //     // Limit by the velocity shear.
+        //     const Scalar shearVelocity = computeShearMagnitude(DvDx(nodeListi, i));
+        //     const double shearDt = 1.0/(shearVelocity + FLT_MIN);
+        //     if (shearDt < minDt) {
+        //       minDt = shearDt;
+        //       reason = "velocity shear limit";
+        //     }
+
+        // Total acceleration limit.
+        const double dtAcc = sqrt(nodeScale/(DvDt(nodeListi, i).magnitude() + FLT_MIN));
+        if (dtAcc < minDt) {
+          minDt = dtAcc;
+          reason = "total acceleration";
+        }
+
+        // If requested, limit against the absolute velocity.
+        if (this->useVelocityMagnitudeForDt()) {
+          const double velDt = nodeScale/(velocity(nodeListi, i).magnitude() + 1.0e-10);
+          if (velDt < minDt) {
+            minDt = velDt;
+            reason = "velocity magnitude";
+          }
+        }
+
+        if (minDt < lastMinDt) {
+          lastMinDt = minDt;
+          lastNodeID = i;
+          lastNodeListName = fluidNodeList.name();
+          lastNodeScale = nodeScale;
+          lastCs = soundSpeed(nodeListi, i);
+          lastAcc = DvDt(nodeListi, i);
+          //      lastCsq = csq;
+          lastRho = rho(nodeListi, i);
+          lastEps = eps(nodeListi, i);
+          lastVelocity = velocity(nodeListi, i);
+          lastDivVelocity = divVelocity;
+          //       lastShearVelocity = shearVelocity;
+        }
+      }
+    }
+  }
+
+  stringstream reasonStream;
+  reasonStream << "mindt = " << minDt << endl
+	       << reason << endl
+               << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
+               << "  h = " << lastNodeScale << endl
+               << "  cs = " << lastCs << endl
+               << "  acc = " << lastAcc << endl
+//               << " csq = " << lastCsq << endl
+               << "  rho = " << lastRho << endl
+               << "  eps = " << lastEps << endl
+               << "  velocity = " << lastVelocity << endl
+               << "  dtcs = " << lastNodeScale/(lastCs + FLT_MIN) << endl
+               << "  divVelocity = " << lastDivVelocity << endl
+//               << "  dtcsq = " << lastNodeScale/(lastCsq + FLT_MIN) << endl
+//                << "  dtdivV = " << 1.0/(fabs(lastDivVelocity) + FLT_MIN) << endl
+//                << "  shearVelocity = " << lastShearVelocity << endl
+               << ends;
+
+  // Now build the result.
+  TimeStepType result(this->cfl()*minDt, reasonStream.str());
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Finalize the derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>

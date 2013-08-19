@@ -312,6 +312,11 @@ class SVPH:
                            param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
 
         # Methods.
+        x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),
+                                                  constrefparam(state, "state"),
+                                                  constrefparam(derivatives, "derivatives"),
+                                                  param("double", "time")],
+                     is_const=True, is_virtual=True)
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
         x.add_method("registerState", None, [refparam(database, "dataBase"),
                                              refparam(state, "state")],
