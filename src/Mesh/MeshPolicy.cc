@@ -33,13 +33,17 @@ template<typename Dimension>
 MeshPolicy<Dimension>::
 MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
            const double voidThreshold,
-           const bool meshGhostNodes):
+           const bool meshGhostNodes,
+           const bool generateVoid,
+           const bool removeBoundaryZones):
   UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
                               UpdatePolicyBase<Dimension>::wildcard()),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(true),
   mMeshGhostNodes(meshGhostNodes),
+  mGenerateVoid(generateVoid),
+  mRemoveBoundaryZones(removeBoundaryZones),
   mXmin(),
   mXmax() {
 }
@@ -53,13 +57,17 @@ MeshPolicy(const PhysicsSpace::Physics<Dimension>& package,
            const Vector& xmin,
            const Vector& xmax,
            const double voidThreshold,
-           const bool meshGhostNodes):
+           const bool meshGhostNodes,
+           const bool generateVoid,
+           const bool removeBoundaryZones):
   UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
                               UpdatePolicyBase<Dimension>::wildcard()),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(false),
   mMeshGhostNodes(meshGhostNodes),
+  mGenerateVoid(generateVoid),
+  mRemoveBoundaryZones(removeBoundaryZones),
   mXmin(xmin),
   mXmax(xmax) {
 }
@@ -109,9 +117,9 @@ update(const KeyType& key,
      mPackage.boundaryEnd(),
      mXmin, mXmax,
      mMeshGhostNodes,
-     false,                            // generateVoid
-     false,                            // generateParallelConnectivity
-     false,                            // removeBoundaryZones
+     mGenerateVoid,                    // generateVoid
+     true,                             // generateParallelConnectivity
+     mRemoveBoundaryZones,             // removeBoundaryZones
      2.0,                              // voidThreshold
      mesh,
      voidNodes);
