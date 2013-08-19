@@ -208,6 +208,19 @@ registerState(DataBase<Dimension>& dataBase,
     mVolume0[i]->name(HydroFieldNames::volume + "0");
   }
 
+  // If we're using the compatibile energy discretization, prepare to maintain a copy
+  // of the thermal energy.
+  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
+  if (mCompatibleEnergyEvolution) {
+    size_t nodeListi = 0;
+    for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+         itr != dataBase.fluidNodeListEnd();
+         ++itr, ++nodeListi) {
+      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
+      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
+    }
+  }
+
   // Now register away.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -273,14 +286,16 @@ registerState(DataBase<Dimension>& dataBase,
 
     // Specific thermal energy.
     if (compatibleEnergyEvolution()) {
+      meshPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
       PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
                                                                                                  dataBase,
                                                                                                  this->artificialViscosity(),
                                                                                                  mLinearConsistent));
-      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position));
+      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
+                                                                         HydroFieldNames::specificThermalEnergy));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll((*itr)->velocity(), velocityPolicy);
-      // state.enroll(*mSpecificThermalEnergy0[nodeListi]);
+      state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
       // PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyVolumePolicy<Dimension>());
       PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
@@ -324,7 +339,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   // dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), HydroFieldNames::faceVelocity, false);
-  // dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
+  dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -351,7 +366,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
     // derivs.enroll(*mFaceVelocity[i]);
-    // derivs.enroll(*mFaceForce[i]);
+    derivs.enroll(*mFaceForce[i]);
   }
 }
 
@@ -448,7 +463,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   // FieldList<Dimension, vector<Vector> > faceVelocity = derivatives.fields(HydroFieldNames::faceVelocity, vector<Vector>());
-  // FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
+  FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -463,7 +478,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
   // CHECK(faceVelocity.size() == numNodeLists);
-  // CHECK(faceForce.size() == numNodeLists);
+  CHECK(faceForce.size() == numNodeLists);
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
@@ -680,7 +695,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       // vector<Vector>& faceVeli = faceVelocity(nodeListi, i);
-      // vector<Vector>& faceForcei = faceForce(nodeListi, i);
+      vector<Vector>& faceForcei = faceForce(nodeListi, i);
 
       Scalar Vsumi = 0.0;
 
@@ -765,12 +780,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         DepsDti += fforce.dot(velFace[fid]);
         DvDxi += velFace[fid]*dA;
         // faceVeli.push_back(velFace[fid]);
-        // faceForcei.push_back(-fforce);
+        faceForcei.push_back(fforce);
       }
       CHECK(Asum > 0.0);
       Qavg /= Asum;
       // CHECK(faceVeli.size() == nfaces);
-      // CHECK(faceForcei.size() == nfaces);
+      CHECK(faceForcei.size() == nfaces);
 
       // Finish the time derivatives.
       DvDti /= mi;

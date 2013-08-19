@@ -39,6 +39,119 @@ using MeshSpace::Mesh;
 using NeighborSpace::Neighbor;
 using ArtificialViscositySpace::ArtificialViscosity;
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Define the weighting function deciding how to divvy up the work between
+// nodes.
+//------------------------------------------------------------------------------
+// The old method.
+// inline
+// double standardWeighting(const double& ui,
+//                          const double& uj,
+//                          const double& mi,
+//                          const double& mj,
+//                          const double& duij) {
+//   const double uji = uj - ui;
+//   const double result = 0.5*(1.0 + uji/(abs(uji) + 1.0/(1.0 + abs(uji)))*sgn0(duij));
+//   ENSURE(result >= 0.0 and result <= 1.0);
+//   return result;
+// }
+
+inline
+double standardWeighting(const double& ui,
+                         const double& uj,
+                         const double& mi,
+                         const double& mj,
+                         const double& duij) {
+  const double uji = uj - ui;
+  const double result = 0.5*(1.0 + uji*sgn0(duij)/(abs(uji) + 0.5));
+  ENSURE(result >= 0.0 and result <= 1.0);
+  return result;
+}
+
+// A strictly monotonic scheme that *will* pull the specific thermal energies
+// together.
+inline
+double monotonicWeighting(const double& ui,
+                          const double& uj,
+                          const double& mi,
+                          const double& mj,
+                          const double& DEij) {
+  REQUIRE(mi > 0.0);
+  REQUIRE(mj > 0.0);
+  const double uji = uj - ui;
+  const double miInv = 1.0/mi;
+  const double mjInv = 1.0/mj;
+
+  double result;
+  if (uji*DEij >= 0.0) {
+    const double A = min(1.0, max(0.0, uji*mi*safeInv(DEij, 1.0e-50)));
+    const double B = min(1.0, max(0.0, mjInv/(miInv + mjInv)));
+    CHECK(A >= 0.0 and A <= 1.0);
+    CHECK(B >= 0.0 and B <= 1.0);
+    result = A + B*(1.0 - A);
+  } else {
+    const double A = min(1.0, max(0.0, -uji*mj*safeInv(DEij, 1.0e-50)));
+    const double B = min(1.0, max(0.0, miInv/(miInv + mjInv)));
+    CHECK(A >= 0.0 and A <= 1.0);
+    CHECK(B >= 0.0 and B <= 1.0);
+    result = 1.0 - A - B*(1.0 - A);
+  }
+  ENSURE(result >= 0.0 and result <= 1.0);
+  return result;
+}
+
+inline
+double weighting(const double& ui,
+                 const double& uj,
+                 const double& mi,
+                 const double& mj,
+                 const double& duij,
+                 const double& dt) {
+
+  // First use our standard weighting algorithm.
+  const double fi = standardWeighting(ui, uj, mi, mj, duij);
+  CHECK(fi >= 0.0 and fi <= 1.0);
+
+  // Now the monotonic weighting.
+  const double mfi = monotonicWeighting(ui, uj, mi, mj, mi*duij*dt);
+
+  // Combine them for the final answer.
+  const double chi = abs(ui - uj)/(abs(ui) + abs(uj) + 1.0e-50);
+  CHECK(chi >= 0.0 and chi <= 1.0);
+  return chi*mfi + (1.0 - chi)*fi;
+}
+
+// inline
+// double weighting(const double& ui,
+//                  const double& uj,
+//                  const double& mi,
+//                  const double& mj,
+//                  const double& duij,
+//                  const double& dt) {
+
+//   // First use our standard weighting algorithm.
+//   const double fi = standardWeighting(ui, uj, mi, mj, duij);
+//   const double fj = 1.0 - fi;
+//   CHECK(fi >= 0.0 and fi <= 1.0);
+//   CHECK(fj >= 0.0 and fj <= 1.0);
+//   CHECK(fuzzyEqual(fi + fj, 1.0));
+
+//   // Check if this would result in one (but not both) energies
+//   // flipping sign.  If so, we revert to the strictly monotonic, but not
+//   // quite as accurate scheme.
+//   const double ui1 = ui + fi*duij*dt;
+//   const double uj1 = uj + fj*duij*dt;
+//   if (sgn(ui*uj) == sgn(ui1*uj1)) {
+//     return fi;
+//   } else {
+//     return monotonicWeighting(ui, uj, mi, mj, mi*duij*dt);
+//   }
+// }
+
+}
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -48,12 +161,7 @@ CompatibleFaceSpecificThermalEnergyPolicy(const TableKernel<Dimension>& W,
                                           const DataBase<Dimension>& dataBase,
                                           const ArtificialViscosity<Dimension>& Q,
                                           const bool linearConsistent):
-  IncrementState<Dimension, typename Dimension::Scalar>(HydroFieldNames::mesh,
-                                                        HydroFieldNames::volume,
-                                                        HydroFieldNames::mass,
-                                                        HydroFieldNames::position,
-                                                        HydroFieldNames::velocity,
-                                                        HydroFieldNames::H),
+  IncrementState<Dimension, typename Dimension::Scalar>(),
   mW(W),
   mDataBase(dataBase),
   mQ(Q),
@@ -94,148 +202,66 @@ update(const KeyType& key,
     // Get the state fields.
     FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     const Mesh<Dimension>& mesh = state.mesh();
-    const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-    const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-    const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Scalar> DepsDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-    const ConnectivityMap<Dimension>& connectivityMap = mDataBase.connectivityMap();
-    const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-    const size_t numNodeLists = nodeLists.size();
+    const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+    const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+    const FieldList<Dimension, vector<Vector> > faceForce = derivs.fields(HydroFieldNames::faceForce, vector<Vector>());
 
+    const double hdt = 0.5*multiplier;
+    const size_t numNodeLists = eps.numFields();
     const unsigned numFaces = mesh.numFaces();
-    vector<Scalar> Pface(numFaces, 0.0);
-    vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
-    vector<Tensor> Qface(numFaces, Tensor::zero);
 
-    // Compute the SVPH corrections.
-    vector<Scalar> A;
-    vector<Vector> B;
-    SVPHSpace::computeSVPHCorrectionsOnFaces(mesh, mW,
-                                             volume, position, H,
-                                             A, B);
-    if (not mLinearConsistent) B = vector<Vector>(numFaces, Vector::zero);
-
-    // Walk the faces and interpolate the current velocity and old pressure.
-    const SymTensor Hface = 1.0e100*SymTensor::one;
-    unsigned i, j, k, z1id, z2id, nodeListi, nodeListj;
-    Scalar DepsDti;
-    for (k = 0; k != numFaces; ++k) {
-      const Face& face = mesh.face(k);
-      posFace[k] = face.position();
-      dAface[k] = face.area() * face.unitNormal();
-
-      const Scalar& Ai = A[k];
-      const Vector& Bi = B[k];
-
-      // Set the neighbors for this face.
-      Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hface,
-                                                  nodeLists.begin(), nodeLists.end(),
-                                                  mW.kernelExtent());
-
-      // Iterate over the NodeLists.
-      for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-        Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-        neighbor.setRefineNeighborList(posFace[k], Hface);
-        for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-             neighborItr != neighbor.refineNeighborEnd();
-             ++neighborItr) {
-          j = *neighborItr;
-      
-          // Get the state for node j
-          const Vector& rj = position(nodeListj, j);
-          const Vector& vj = velocity(nodeListj, j);
-          const Scalar& Pj = pressure(nodeListj, j);
-          const SymTensor& Hj = H(nodeListj, j);
-          const Scalar& Vj = volume(nodeListj, j);
-          const Scalar Hdetj = Hj.Determinant();
-          CHECK(Vj > 0.0);
-          CHECK(Hdetj > 0.0);
-
-          // Pair-wise kernel type stuff.
-          const Vector rij = posFace[k] - rj;
-          const Vector etaj = Hj*rij;
-          const Scalar Wj = mW.kernelValue(etaj.magnitude(), Hdetj);
-
-          // Increment the face fluid properties.
-          const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
-          velFace[k] += VWRj*vj;
-          Pface[k] += VWRj*Pj;
-        }
-      }
-
-      // Finish the face state.
-      CHECK2(Ai >= 0.0, i << " " << Ai);
-      velFace[k] *= Ai;
-      Pface[k] *= Ai;
-
-      // Find the SVPH nodes on either side of this face.
-      z1id = Mesh<Dimension>::positiveID(face.zone1ID());
-      z2id = Mesh<Dimension>::positiveID(face.zone2ID());
-      if (z1id != Mesh<Dimension>::UNSETID and
-          z2id != Mesh<Dimension>::UNSETID) {
-        mesh.lookupNodeListID(z1id, nodeListi, i);
-        mesh.lookupNodeListID(z2id, nodeListj, j);
-
-        // Get the node properties.
-        const Vector& ri = position(nodeListi, i);
-        const Vector& vi = velocity(nodeListi, i);
-        const Scalar& rhoi = massDensity(nodeListi, i);
-        const Scalar& ci = soundSpeed(nodeListi, i);
-        const SymTensor& Hi = H(nodeListi, i);
-
-        const Vector& rj = position(nodeListj, j);
-        const Vector& vj = velocity(nodeListj, j);
-        const Scalar& rhoj = massDensity(nodeListj, j);
-        const Scalar& cj = soundSpeed(nodeListj, j);
-        const SymTensor& Hj = H(nodeListj, j);
-
-        const Vector rij = ri - rj;
-        const Vector etai = Hi*rij;
-        const Vector etaj = Hj*rij;
-
-        // Get the face Q values (in this case P/rho^2).
-        const pair<Tensor, Tensor> QPiij = mQ.Piij(nodeListi, i, nodeListj, j,
-                                                   ri, etai, vi, rhoi, ci, Hi,
-                                                   rj, etaj, vj, rhoj, cj, Hj);
-        Qface[k] = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-      }
-    }
-
-    // Start our big loop over all FluidNodeLists.
-    nodeListi = 0;
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = mDataBase.fluidNodeListBegin();
-         itr != mDataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      const NodeList<Dimension>& nodeList = **itr;
-      const int firstGhostNodei = nodeList.firstGhostNode();
-
-      // Iterate over the internal nodes in this NodeList.
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
+    // Walk the nodes of this NodeList
+    unsigned i, j, k, n, nodeListi, nodeListj, z2id;
+    Scalar DepsDti, duij;
+    Vector vi12, vj12, vji12, vface12;
+    for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      n = eps[nodeListi]->numInternalElements();
+      for (i = 0; i != n; ++i) {
         const Zone& zonei = mesh.zone(nodeListi, i);
         const vector<int>& faceIDs = zonei.faceIDs();
-        const unsigned nfaces = faceIDs.size();
 
-        // Walk the faces and sum the face work.
+        // State for node i.
+        const Scalar& mi = mass(nodeListi, i);
+        const Vector& vi = velocity(nodeListi, i);
+        const Scalar& ui = specificEnergy0(nodeListi, i);
+        const Vector& ai = acceleration(nodeListi, i);
+        vi12 = vi + ai*hdt;
+        const vector<Vector>& fforcei = faceForce(nodeListi, i);
+        CHECK(fforcei.size() == faceIDs.size());
         DepsDti = 0.0;
-        for (k = 0; k != nfaces; ++k) {  
-          const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-          const Vector dA = dAface[fid] * sgn(faceIDs[k]);
-          const Vector fforce = Pface[fid]*dA + Qface[fid]*dA;
-          DepsDti += fforce.dot(velFace[fid]);
-        }
-        DepsDti /= mass(nodeListi, i);
 
-        // Now the final DepsDt is the average of the initial and final states.
-        DepsDti = 0.5*(DepsDti + DepsDt(nodeListi, i));
+        // Walk the faces of this SVPH node.
+        for (k = 0; k != faceIDs.size(); ++k) {
+          const Face& face = mesh.face(faceIDs[k]);
+
+          // Find the opposite SVPH node.
+          z2id = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+          if (z2id == Mesh<Dimension>::UNSETID) {
+            nodeListj = nodeListi;
+            j = i;
+          } else {
+            mesh.lookupNodeListID(z2id, nodeListj, j);
+          }
+
+          // State for node j.
+          const Scalar& mj = mass(nodeListj, j);
+          const Vector& vj = velocity(nodeListj, j);
+          const Scalar& uj = specificEnergy0(nodeListj, j);
+          const Vector& aj = acceleration(nodeListj, j);
+          vj12 = vj + aj*hdt;
+          vji12 = vj12 - vi12;
+
+          duij = vji12.dot(fforcei[k])/mi;
+          const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
+
+          CHECK(wi >= 0.0 and wi <= 1.0);
+          CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
+          DepsDti += wi*duij;
+        }
+
+        // Update the work on this node.
         eps(nodeListi, i) += multiplier*DepsDti;
       }
     }
