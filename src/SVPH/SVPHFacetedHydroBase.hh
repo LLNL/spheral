@@ -48,6 +48,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
   SVPHFacetedHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
@@ -69,6 +70,12 @@ public:
   // Tasks we do once on problem startup.
   virtual
   void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+
+  // Vote on a time step.
+  virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase, 
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
