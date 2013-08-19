@@ -173,7 +173,6 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    volume0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
@@ -187,8 +186,6 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceVelocity() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceVelocity0() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& faceForce() const;
 
   //****************************************************************************
@@ -223,7 +220,6 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldSpace::FieldList<Dimension, Scalar>    mVolume0;
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
@@ -243,8 +239,6 @@ protected:
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
-  FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceVelocity;
-  FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceVelocity0;
   FieldSpace::FieldList<Dimension, std::vector<Vector> >    mFaceForce;
 
 private:

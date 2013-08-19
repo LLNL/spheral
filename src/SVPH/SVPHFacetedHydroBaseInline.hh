@@ -216,14 +216,6 @@ specificThermalEnergy0() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-SVPHFacetedHydroBase<Dimension>::
-volume0() const {
-  return mVolume0;
-}
-
-template<typename Dimension>
-inline
 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHFacetedHydroBase<Dimension>::
 Hideal() const {
@@ -324,22 +316,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 SVPHFacetedHydroBase<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
-SVPHFacetedHydroBase<Dimension>::
-faceVelocity() const {
-  return mFaceVelocity;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
-SVPHFacetedHydroBase<Dimension>::
-faceVelocity0() const {
-  return mFaceVelocity0;
 }
 
 template<typename Dimension>
