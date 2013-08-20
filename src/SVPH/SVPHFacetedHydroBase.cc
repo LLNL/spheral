@@ -11,7 +11,7 @@
 #include "SVPHFacetedHydroBase.hh"
 #include "computeSVPHCorrectionsOnFaces.hh"
 #include "SVPHCorrectionsPolicy.hh"
-#include "SPH/computeSumVoronoiCellMassDensity.hh"
+#include "computeSumVoronoiCellMassDensityFromFaces.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -431,9 +431,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   typedef typename Timing::Time Time;
   const Scalar W0 = W(0.0, 1.0);
 
-  // The connectivity.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  // The set of NodeLists.
+  const vector<const NodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
+                                                     dataBase.fluidNodeListEnd());
   const size_t numNodeLists = nodeLists.size();
 
   // The mesh.
@@ -544,7 +544,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
       neighbor.setRefineNeighborList(posFace[k], H0);
-      set<int> neighbors;
       for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
            neighborItr != neighbor.refineNeighborEnd();
            ++neighborItr) {
@@ -589,11 +588,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Start our big loop over all FluidNodeLists.
-  nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr, ++nodeListi) {
-    const NodeList<Dimension>& nodeList = **itr;
+  for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
     const int firstGhostNodei = nodeList.firstGhostNode();
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();
@@ -602,10 +598,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
 
     // Iterate over the internal nodes in this NodeList.
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+    const unsigned n = nodeList.numInternalNodes();
+    for (unsigned i = 0; i != n; ++i) {
       const Zone& zonei = mesh.zone(nodeListi, i);
       const vector<int>& faceIDs = zonei.faceIDs();
       const unsigned nfaces = faceIDs.size();
@@ -708,8 +702,6 @@ dt(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const int numNodeLists = connectivityMap.nodeLists().size();
 
   // Initialize the return value to some impossibly high value.
   Scalar minDt = FLT_MAX;
@@ -730,10 +722,8 @@ dt(const DataBase<Dimension>& dataBase,
     const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
     CHECK(kernelExtent > 0.0);
 
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
+    const unsigned n = fluidNodeList.numInternalNodes();
+    for (unsigned i = 0; i != n; ++i) {
 
       // If this node is masked, don't worry about it.
       if (mask(nodeListi, i) == 1) {
@@ -859,15 +849,15 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
-  if (compatibleEnergyEvolution()) {
-    FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
+  // if (compatibleEnergyEvolution()) {
+  //   FieldList<Dimension, Vector> accelerations = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -889,13 +879,9 @@ finalize(const typename Dimension::Scalar time,
   // mass density.
   if (densityUpdate() == PhysicsSpace::RigorousSumDensity or
       densityUpdate() == PhysicsSpace::SumVoronoiCellDensity) {
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const Mesh<Dimension>& mesh = state.mesh();
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    SPHSpace::computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
+    computeSumVoronoiCellMassDensityFromFaces(mesh, this->kernel(), dataBase, massDensity);
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 

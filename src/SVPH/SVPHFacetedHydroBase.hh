@@ -120,6 +120,9 @@ public:
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs);
                
+  // This algorithm does not use node->node connectivity.
+  virtual bool requireConnectivity() const { return false; }
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
