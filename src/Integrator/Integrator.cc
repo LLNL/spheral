@@ -423,18 +423,18 @@ Integrator<Dimension>::setGhostNodes() {
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
 
+  // Get that DataBase.
+  DataBase<Dimension>& db = accessDataBase();
+
+  // Remove any old ghost node information from the NodeLists.
+  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
+       nodeListItr != db.fluidNodeListEnd(); 
+       ++nodeListItr) {
+    (*nodeListItr)->numGhostNodes(0);
+    (*nodeListItr)->neighbor().updateNodes();
+  }
+
   if (mRequireConnectivity) {
-
-    // Get that DataBase.
-    DataBase<Dimension>& db = accessDataBase();
-
-    // Remove any old ghost node information from the NodeLists.
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-         nodeListItr != db.fluidNodeListEnd(); 
-         ++nodeListItr) {
-      (*nodeListItr)->numGhostNodes(0);
-      (*nodeListItr)->neighbor().updateNodes();
-    }
 
     // Get the complete set of unique boundary conditions.
     const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
@@ -555,6 +555,15 @@ Integrator<Dimension>::setGhostNodes() {
       // The ConnectivityMap should be valid too.
       ENSURE(db.connectivityMap().valid());
     }
+
+  } else {
+
+    // We're not connectivity and don't need ghost nodes, so make sure all 
+    // boundaries are empty.
+    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+         boundaryItr != boundaries.end();
+         ++boundaryItr) (*boundaryItr)->reset(db);
   }
 }
 
