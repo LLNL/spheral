@@ -132,6 +132,8 @@ void
 SVPHFacetedHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
+  typedef typename Mesh<Dimension>::Zone Zone;
+
   // Create storage for the pressure and sound speed.
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
@@ -167,6 +169,29 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     const unsigned offset = mMeshPtr->offset(nodeListi);
     for (unsigned i = 0; i != n; ++i) {
       mVolume(nodeListi, i) = mMeshPtr->zone(offset + i).volume();
+    }
+  }
+
+  // Make a pass through the H tensors and initialize them to the "ideal" value.
+  if (Process::getRank() == 0) cout << "SVPHFacetedHydro initializing H tensors..." << endl;
+  FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
+  const unsigned numNodeLists = H.numFields();
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = H[nodeListi]->nodeList();
+    const unsigned n = nodeList.numInternalNodes();
+    const Scalar hmin = nodeList.hmin();
+    const Scalar hmax = nodeList.hmax();
+    const Scalar hminratio = nodeList.hminratio();
+    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+    for (unsigned i = 0; i != n; ++i) {
+      const Zone& zonei = mMeshPtr->zone(nodeListi, i);
+      H(nodeListi, i) = mSmoothingScaleMethod.idealSmoothingScale(H(nodeListi, i),
+                                                                  *mMeshPtr,
+                                                                  zonei,
+                                                                  hmin,
+                                                                  hmax,
+                                                                  hminratio,
+                                                                  nPerh);
     }
   }
 
