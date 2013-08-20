@@ -68,6 +68,16 @@ public:
                       const Scalar hminratio,
                       const Scalar nPerh,
                       const int maxNumNeighbors) const;
+
+  // Compute the new H tensors for a tessellation.
+  virtual SymTensor
+  idealSmoothingScale(const SymTensor& H,
+                      const MeshSpace::Mesh<Dimension>& mesh,
+                      const typename MeshSpace::Mesh<Dimension>::Zone& zone,
+                      const Scalar hmin,
+                      const Scalar hmax,
+                      const Scalar hminratio,
+                      const Scalar nPerh) const;
 };
 
 // We explicitly specialize the time derivatives.

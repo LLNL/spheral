@@ -519,6 +519,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
       neighbor.setRefineNeighborList(posFace[k], H0);
+      set<int> neighbors;
       for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
            neighborItr != neighbor.refineNeighborEnd();
            ++neighborItr) {
@@ -614,76 +615,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
       vector<Vector>& faceForcei = faceForce(nodeListi, i);
 
-      Scalar Vsumi = 0.0;
-
-      // Get the connectivity info for this node.
-      const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
-
-      // Iterate over the NodeLists.
-      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-
-        // Connectivity of this node with this NodeList.  We only need to proceed if
-        // there are some nodes in this list.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-          const double fweightij = (nodeListi == nodeListj ? 1.0 : 0.2);
-          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
-
-          // Loop over the neighbors and sum our properties across the faces.
-#pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
-
-            // Get the state for node j
-            const Vector& rj = position(nodeListj, j);
-            const Scalar& mj = mass(nodeListj, j);
-            const Vector& vj = velocity(nodeListj, j);
-            const Scalar& rhoj = massDensity(nodeListj, j);
-            const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-            const Scalar& Pj = pressure(nodeListj, j);
-            const SymTensor& Hj = H(nodeListj, j);
-            const Scalar& cj = soundSpeed(nodeListj, j);
-            const Scalar& Vj = volume(nodeListj, j);
-            const Scalar Hdetj = Hj.Determinant();
-            CHECK(mj > 0.0);
-            CHECK(rhoj > 0.0);
-            CHECK(Vj > 0.0);
-
-            // Node displacement.
-            const Vector rij = ri - rj;
-            const Vector etai = Hi*rij;
-            const Vector etaj = Hj*rij;
-            const Scalar etaMagi = etai.magnitude();
-            const Scalar etaMagj = etaj.magnitude();
-            CHECK(etaMagi >= 0.0);
-            CHECK(etaMagj >= 0.0);
-
-            // Symmetrized kernel weight and gradient.
-            const Vector Hetai = Hi*etai.unitVector();
-            const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
-            const Scalar Wi = WWi.first;
-            const Scalar gWi = WWi.second;
-            const Vector gradWi = gWi*Hetai;
-
-            // Zero'th and second moment of the node distribution -- used for the
-            // ideal H calculation.
-            const double rij2 = rij.magnitude2();
-            const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
-            weightedNeighborSumi += fweightij*std::abs(gWi);
-            massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
-
-            // Contribution to the sum density (only if the same material).
-            if (nodeListi == nodeListj) {
-              rhoSumi += mj*Wi;
-              Vsumi += Vj*Wi;
-            }
-
-          }
-        }
-      }
-
       // Walk the faces and measure the primary fluid derivatives.
       Tensor Qavg;
       Scalar Asum = 0.0;
@@ -710,13 +641,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
       DxDti = vi;
 
-      // Finish the density sum.
-      rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
-
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
                                                              DvDxi,
@@ -725,18 +649,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              hminratio,
                                                              nPerh,
                                                              maxNumNeighbors);
-      const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        weightedNeighborSumi,
-                                                        massSecondMomenti,
-                                                        numNeighborsi,
-                                                        W,
-                                                        hmin,
-                                                        hmax,
-                                                        hminratio,
-                                                        nPerh,
-                                                        maxNumNeighbors);
-
+      Hideali = mSmoothingScaleMethod.idealSmoothingScale(Hi,
+                                                          mesh,
+                                                          zonei,
+                                                          hmin,
+                                                          hmax,
+                                                          hminratio,
+                                                          nPerh);
     }
   }
 }

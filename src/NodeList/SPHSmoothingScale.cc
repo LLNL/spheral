@@ -7,14 +7,19 @@
 //----------------------------------------------------------------------------//
 #include "SPHSmoothingScale.hh"
 #include "Kernel/TableKernel.hh"
+#include "Field/FieldList.hh"
+#include "Mesh/Mesh.hh"
 
 namespace Spheral {
 namespace NodeSpace {
 
-using KernelSpace::TableKernel;
 using std::min;
 using std::max;
 using std::abs;
+
+using KernelSpace::TableKernel;
+using FieldSpace::FieldList;
+using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -158,6 +163,25 @@ newSmoothingScale(const SymTensor& H,
                              hminratio,
                              nPerh,
                              maxNumNeighbors);
+}
+
+//------------------------------------------------------------------------------
+// Use the volumes of tessellation to set the new Hs.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::SymTensor
+SPHSmoothingScale<Dimension>::
+idealSmoothingScale(const SymTensor& H,
+                    const Mesh<Dimension>& mesh,
+                    const typename Mesh<Dimension>::Zone& zone,
+                    const Scalar hmin,
+                    const Scalar hmax,
+                    const Scalar hminratio,
+                    const Scalar nPerh) const {
+  const Scalar vol = zone.volume();
+  CHECK(vol > 0.0);
+  const Scalar hi = max(hmin, min(hmax, nPerh * Dimension::rootnu(vol)));
+  return 1.0/hi * SymTensor::one;
 }
 
 }

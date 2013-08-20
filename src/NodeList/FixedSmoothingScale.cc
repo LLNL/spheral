@@ -6,11 +6,14 @@
 // Created by JMO, Wed Sep 14 13:50:49 PDT 2005
 //----------------------------------------------------------------------------//
 #include "FixedSmoothingScale.hh"
+#include "Field/FieldList.hh"
 
 namespace Spheral {
 namespace NodeSpace {
 
 using KernelSpace::TableKernel;
+using FieldSpace::FieldList;
+using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -100,6 +103,22 @@ idealSmoothingScale(const SymTensor& H,
                     const Scalar hminratio,
                     const Scalar nPerh,
                     const int maxNumNeighbors) const {
+  return H;
+}
+
+//------------------------------------------------------------------------------
+// Use the volumes of tessellation to set the new Hs.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::SymTensor
+FixedSmoothingScale<Dimension>::
+idealSmoothingScale(const SymTensor& H,
+                    const Mesh<Dimension>& mesh,
+                    const typename Mesh<Dimension>::Zone& zone,
+                    const Scalar hmin,
+                    const Scalar hmax,
+                    const Scalar hminratio,
+                    const Scalar nPerh) const {
   return H;
 }
 
