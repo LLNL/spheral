@@ -198,7 +198,7 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if HydroConstructor is SVPHFacetedHydro:
+if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,

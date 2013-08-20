@@ -9,6 +9,8 @@
 #ifndef __Spheral_NodeSpace_SmooothingScaleBase__
 #define __Spheral_NodeSpace_SmooothingScaleBase__
 
+#include "Mesh/Mesh.hh"
+
 namespace Spheral {
 
 namespace NeighborSpace {
@@ -16,6 +18,7 @@ namespace NeighborSpace {
 }
 namespace FieldSpace {
   template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
 }
 namespace KernelSpace {
   template<typename Dimension> class TableKernel;
@@ -60,8 +63,7 @@ public:
   //*****************************************************************************
   // Required methods for descendents.
   // Time derivative of the smoothing scale.
-  virtual
-  SymTensor
+  virtual SymTensor
   smoothingScaleDerivative(const SymTensor& H,
                            const Tensor& DvDx,
                            const Scalar hmin,
@@ -71,8 +73,7 @@ public:
                            const int maxNumNeighbors) const = 0;
   
   // Return a new H, with limiting based on the old value.
-  virtual
-  SymTensor
+  virtual SymTensor
   newSmoothingScale(const SymTensor& H,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
@@ -85,8 +86,7 @@ public:
                     const int maxNumNeighbors) const = 0;
 
   // Determine an "ideal" H for the given moments.
-  virtual
-  SymTensor
+  virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
@@ -97,6 +97,17 @@ public:
                       const Scalar hminratio,
                       const Scalar nPerh,
                       const int maxNumNeighbors) const = 0;
+
+  // Compute the new H tensors for a tessellation.
+  virtual SymTensor
+  idealSmoothingScale(const SymTensor& H,
+                      const MeshSpace::Mesh<Dimension>& mesh,
+                      const typename MeshSpace::Mesh<Dimension>::Zone& zone,
+                      const Scalar hmin,
+                      const Scalar hmax,
+                      const Scalar hminratio,
+                      const Scalar nPerh) const = 0;
+                      
 
   //*****************************************************************************
 

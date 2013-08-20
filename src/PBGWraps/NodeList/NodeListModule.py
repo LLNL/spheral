@@ -400,10 +400,10 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         tensor = "Spheral::Tensor%id" % ndim
         symtensor = "Spheral::SymTensor%id" % ndim
         fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
-        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-        vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
-        tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
-        symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldlist%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldlist%id" % ndim
         state = "Spheral::State%id" % ndim
         statederivatives = "Spheral::StateDerivatives%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
@@ -413,6 +413,8 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
+        mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
+        zone = "%s::Zone" % mesh
 
         # Constructors.
         x.add_constructor([])
@@ -447,6 +449,14 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
                                                         param("double", "hminratio"),
                                                         param("double", "nPerh"),
                                                         param("int", "maxNumNeighbors")],
+                     is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+        x.add_method("idealSmoothingScale", symtensor, [constrefparam(symtensor, "H"),
+                                                        constrefparam(mesh, "mesh"),
+                                                        constrefparam(zone, "zone"),
+                                                        param("double", "hmin"),
+                                                        param("double", "hmax"),
+                                                        param("double", "hminratio"),
+                                                        param("double", "nPerh")],
                      is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
         return

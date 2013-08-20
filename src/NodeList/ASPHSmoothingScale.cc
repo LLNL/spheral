@@ -10,6 +10,8 @@
 #include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"
 #include "Utilities/GeometricUtilities.hh"
+#include "Field/FieldList.hh"
+#include "Mesh/Mesh.hh"
 
 namespace Spheral {
 namespace NodeSpace {
@@ -20,6 +22,8 @@ using std::max;
 using std::abs;
 
 using KernelSpace::TableKernel;
+using FieldSpace::FieldList;
+using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Apply a distortion to a symmetric tensor, returning a new symmetric tensor.
@@ -450,6 +454,55 @@ newSmoothingScale(const SymTensor& H,
 
   return result;
 
+}
+
+//------------------------------------------------------------------------------
+// Use the volumes of tessellation to set the new Hs.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::SymTensor
+ASPHSmoothingScale<Dimension>::
+idealSmoothingScale(const SymTensor& H,
+                    const Mesh<Dimension>& mesh,
+                    const typename Mesh<Dimension>::Zone& zone,
+                    const Scalar hmin,
+                    const Scalar hmax,
+                    const Scalar hminratio,
+                    const Scalar nPerh) const {
+
+  typedef typename Mesh<Dimension>::Zone Zone;
+  typedef typename Mesh<Dimension>::Node Node;
+
+  const vector<unsigned>& nodeIDs = zone.nodeIDs();
+  const Scalar vol = zone.volume();
+  const Vector zc = zone.position();
+  CHECK(vol > 0.0);
+
+  // Measure the second moment of the zone shape.
+  SymTensor psi;
+  for (unsigned j = 0; j != nodeIDs.size(); ++j) {
+    const Vector dn = mesh.node(nodeIDs[j]).position() - zc;
+    psi += dn.selfdyad();
+  }
+  psi /= nodeIDs.size();
+
+  // Take the square root to get the shape, then rescale to get
+  // the correct volume.
+  SymTensor H1inv = psi.sqrt();
+  H1inv *= 2.0*nPerh;
+
+  // Apply limits.
+  const typename SymTensor::EigenStructType eigen = H1inv.eigenVectors();
+  const double effectivehmin = max(hmin,
+                                   hminratio*min(hmax, eigen.eigenValues.maxElement()));
+  CHECK(effectivehmin >= hmin && effectivehmin <= hmax);
+  CHECK(fuzzyGreaterThanOrEqual(effectivehmin/min(hmax, eigen.eigenValues.maxElement()), hminratio));
+  SymTensor result;
+  for (unsigned j = 0; j != Dimension::nDim; ++j) {
+    result(j,j) = 1.0/max(effectivehmin, min(hmax, eigen.eigenValues(j)));
+  }
+  result.rotationalTransform(eigen.eigenVectors);
+  return result;
 }
 
 }
