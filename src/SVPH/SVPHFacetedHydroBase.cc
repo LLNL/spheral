@@ -466,9 +466,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> Pface(numFaces, 0.0);
+  vector<Scalar> rhoSumFace(numFaces, 0.0), VsumFace(numFaces, 0.0), Pface(numFaces, 0.0), weightedNeighborSumFace(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
+  vector<SymTensor> PsiFace(numFaces, SymTensor::zero);
 
   // Compute the SVPH corrections.
   vector<Scalar> A;
@@ -480,17 +481,37 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Walk the faces and sample their fluid properties.
   unsigned i, j, k, nodeListi, nodeListj, z1id, z2id;
-  const SymTensor Hface = 1.0e100*SymTensor::one;
+  Scalar rhoFace, csFace, Hdetj;
+  SymTensor Hface;
+  const SymTensor Hinf = 1.0e100*SymTensor::one;
   for (k = 0; k != numFaces; ++k) {
     const Face& face = mesh.face(k);
-    posFace[k] = face.position();
-    dAface[k] = face.area() * face.unitNormal();
-
     const Scalar& Ai = A[k];
     const Vector& Bi = B[k];
 
+    // Look up the SVPH nodes either side of the Face.
+    z1id = Mesh<Dimension>::positiveID(face.zone1ID());
+    z2id = Mesh<Dimension>::positiveID(face.zone2ID());
+    if (z1id > z2id) std::swap(z1id, z2id);
+    CHECK(z1id != Mesh<Dimension>::UNSETID);
+    mesh.lookupNodeListID(z1id, nodeListi, i);
+    if (z2id == Mesh<Dimension>::UNSETID) {
+      nodeListj = nodeListi;
+      j = i;
+    } else {
+      mesh.lookupNodeListID(z2id, nodeListj, j);
+    }
+
+    // Properties on the face.
+    dAface[k] = face.area() * face.unitNormal();
+    posFace[k] = face.position();
+    velFace[k] = 0.5*(velocity(nodeListi, i) + velocity(nodeListj, j));
+    rhoFace = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
+    csFace = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
+    Hface = 0.5*(H(nodeListi, i) + H(nodeListj, j));
+
     // Set the neighbors for this face.
-    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hface,
+    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hinf,
                                                 nodeLists.begin(), nodeLists.end(),
                                                 W.kernelExtent());
 
@@ -498,7 +519,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace[k], Hface);
+      neighbor.setRefineNeighborList(posFace[k], Hinf);
       for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
            neighborItr != neighbor.refineNeighborEnd();
            ++neighborItr) {
@@ -507,86 +528,44 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // Get the state for node j
         const Vector& rj = position(nodeListj, j);
         const Vector& vj = velocity(nodeListj, j);
+        const Scalar& rhoj = massDensity(nodeListj, j);
         const Scalar& Pj = pressure(nodeListj, j);
+        const Scalar& cj = soundSpeed(nodeListj, j);
         const SymTensor& Hj = H(nodeListj, j);
         const Scalar& Vj = volume(nodeListj, j);
-        const Scalar Hdetj = Hj.Determinant();
+        Hdetj = Hj.Determinant();
         CHECK(Vj > 0.0);
         CHECK(Hdetj > 0.0);
 
         // Pair-wise kernel type stuff.
         const Vector rij = posFace[k] - rj;
+        const Vector etai = Hface*rij;
         const Vector etaj = Hj*rij;
-        const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+        // const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*WWj.first;
+        const Scalar gWj = WWj.second;
+        const Vector gradWj = gWj*Hj*etaj.unitVector();
 
         // Increment the face fluid properties.
-        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
-        // velFace[k] += VWRj*vj;
         Pface[k] += VWRj*Pj;
+
+        const Scalar rij2 = rij.magnitude2();
+        const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
+        weightedNeighborSumFace[k] += std::abs(gWj);
+        PsiFace[k] += gradWj.magnitude2()*thpt;
+
+        // Get the face Q values (in this case P/rho^2).
+        const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
+                                                  posFace[k], etai, velFace[k], rhoFace, csFace, Hface,
+                                                  rj, etaj, vj, rhoj, cj, Hj);
+        Qface[k] += 0.5*VWRj*(rhoFace*rhoFace*QPiij.first + rhoj*rhoj*QPiij.second);
+        const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+        maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
       }
     }
 
-    // Now for the Q...
-    // Find the SVPH nodes on either side of this face.
-    z1id = Mesh<Dimension>::positiveID(face.zone1ID());
-    z2id = Mesh<Dimension>::positiveID(face.zone2ID());
-    if (z1id != Mesh<Dimension>::UNSETID and
-        z2id != Mesh<Dimension>::UNSETID) {
-      mesh.lookupNodeListID(z1id, nodeListi, i);
-      mesh.lookupNodeListID(z2id, nodeListj, j);
-
-      // Net properties on the face.
-      const Vector ri = 0.5*(position(nodeListi, i) + position(nodeListj, j));
-      const Vector vi = 0.5*(velocity(nodeListi, i) + velocity(nodeListj, j));
-      const Scalar rhoi = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
-      const Scalar ci = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
-      const SymTensor Hi = 0.5*(H(nodeListi, i) + H(nodeListj, j));
-
-      for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-        Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-        neighbor.setRefineNeighborList(posFace[k], Hface);
-        for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-             neighborItr != neighbor.refineNeighborEnd();
-             ++neighborItr) {
-          j = *neighborItr;
-      
-          // Get the state for node j
-          const Vector& rj = position(nodeListj, j);
-          const Vector& vj = velocity(nodeListj, j);
-          const Scalar& rhoj = massDensity(nodeListj, j);
-          const Scalar& cj = soundSpeed(nodeListj, j);
-          const SymTensor& Hj = H(nodeListj, j);
-          const Scalar& Vj = volume(nodeListj, j);
-          const Scalar Hdetj = Hj.Determinant();
-          CHECK(Vj > 0.0);
-          CHECK(Hdetj > 0.0);
-
-          // Pair-wise kernel type stuff.
-          const Vector rij = posFace[k] - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
-          const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-          const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
-
-          // Get the face Q values (in this case P/rho^2).
-          const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
-                                                    ri, etai, vi, rhoi, ci, Hi,
-                                                    rj, etaj, vj, rhoj, cj, Hj);
-          Qface[k] += 0.5*VWRj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-          const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-          maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
-        }
-      }
-      velFace[k] = vi;
-    }
-
-    // Finish the face state.
-    CHECK2(Ai >= 0.0, i << " " << Ai);
-    // velFace[k] *= Ai;
-    Pface[k] *= Ai;
-    Qface[k] *= Ai;
-
+    // // Now for the Q...
     // // Find the SVPH nodes on either side of this face.
     // z1id = Mesh<Dimension>::positiveID(face.zone1ID());
     // z2id = Mesh<Dimension>::positiveID(face.zone2ID());
@@ -595,33 +574,56 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     //   mesh.lookupNodeListID(z1id, nodeListi, i);
     //   mesh.lookupNodeListID(z2id, nodeListj, j);
 
-    //   // Get the node properties.
-    //   const Vector& ri = position(nodeListi, i);
-    //   const Vector& vi = velocity(nodeListi, i);
-    //   const Scalar& rhoi = massDensity(nodeListi, i);
-    //   const Scalar& ci = soundSpeed(nodeListi, i);
-    //   const SymTensor& Hi = H(nodeListi, i);
+    //   // Net properties on the face.
+    //   const Vector ri = 0.5*(position(nodeListi, i) + position(nodeListj, j));
+    //   const Vector vi = 0.5*(velocity(nodeListi, i) + velocity(nodeListj, j));
+    //   const Scalar rhoi = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
+    //   const Scalar ci = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
+    //   const SymTensor Hi = 0.5*(H(nodeListi, i) + H(nodeListj, j));
 
-    //   const Vector& rj = position(nodeListj, j);
-    //   const Vector& vj = velocity(nodeListj, j);
-    //   const Scalar& rhoj = massDensity(nodeListj, j);
-    //   const Scalar& cj = soundSpeed(nodeListj, j);
-    //   const SymTensor& Hj = H(nodeListj, j);
+    //   velFace[k] = vi;
+    //   for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+    //     const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+    //     Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+    //     neighbor.setRefineNeighborList(posFace[k], Hface);
+    //     for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
+    //          neighborItr != neighbor.refineNeighborEnd();
+    //          ++neighborItr) {
+    //       j = *neighborItr;
+      
+    //       // Get the state for node j
+    //       const Vector& rj = position(nodeListj, j);
+    //       const Vector& vj = velocity(nodeListj, j);
+    //       const Scalar& rhoj = massDensity(nodeListj, j);
+    //       const Scalar& cj = soundSpeed(nodeListj, j);
+    //       const SymTensor& Hj = H(nodeListj, j);
+    //       const Scalar& Vj = volume(nodeListj, j);
+    //       const Scalar Hdetj = Hj.Determinant();
+    //       CHECK(Vj > 0.0);
+    //       CHECK(Hdetj > 0.0);
 
-    //   const Vector rij = ri - rj;
-    //   const Vector etai = Hi*rij;
-    //   const Vector etaj = Hj*rij;
+    //       // Pair-wise kernel type stuff.
+    //       const Vector rij = posFace[k] - rj;
+    //       const Vector etai = Hi*rij;
+    //       const Vector etaj = Hj*rij;
+    //       const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+    //       const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
-    //   // Get the face Q values (in this case P/rho^2).
-    //   const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-    //                                             ri, etai, vi, rhoi, ci, Hi,
-    //                                             rj, etaj, vj, rhoj, cj, Hj);
-    //   Qface[k] = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-    //   const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-    //   const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-    //   maxViscousPressure(nodeListi, i) = max(maxViscousPressure(nodeListi, i), Qi);
-    //   maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+    //       // Get the face Q values (in this case P/rho^2).
+    //       const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
+    //                                                 ri, etai, vi, rhoi, ci, Hi,
+    //                                                 rj, etaj, vj, rhoj, cj, Hj);
+    //       Qface[k] += 0.5*VWRj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+    //       const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+    //       maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+    //     }
+    //   }
     // }
+
+    // Finish the face state.
+    CHECK2(Ai >= 0.0, i << " " << Ai);
+    Pface[k] *= Ai;
+    Qface[k] *= Ai;
   }
 
   // Start our big loop over all FluidNodeLists.
