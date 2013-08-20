@@ -181,7 +181,7 @@ if restoreCycle is None:
                                                    xmin,
                                                    xmax,
                                                    nNodePerh = nPerh,
-                                                   SPH = (HydroConstructor == SPHHydro))
+                                                   SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
@@ -191,7 +191,7 @@ if restoreCycle is None:
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
-                                               SPH = (HydroConstructor == SPHHydro))
+                                               SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
 ##                                                relaxation = RadialCentroidalRelaxation(Vector(0,0),
 ##                                                                                        tolerance = 5.0e-4))
 
@@ -239,7 +239,7 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if HydroConstructor is SVPHFacetedHydro:
+if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,

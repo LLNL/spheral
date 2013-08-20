@@ -466,10 +466,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> rhoSumFace(numFaces, 0.0), VsumFace(numFaces, 0.0), Pface(numFaces, 0.0), weightedNeighborSumFace(numFaces, 0.0);
+  vector<Scalar> Pface(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
-  vector<SymTensor> PsiFace(numFaces, SymTensor::zero);
 
   // Compute the SVPH corrections.
   vector<Scalar> A;
@@ -483,7 +482,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   unsigned i, j, k, nodeListi, nodeListj, z1id, z2id;
   Scalar rhoFace, csFace, Hdetj;
   SymTensor Hface;
-  const SymTensor Hinf = 1.0e100*SymTensor::one;
+  const SymTensor H0 = 1.0e100*SymTensor::one;
   for (k = 0; k != numFaces; ++k) {
     const Face& face = mesh.face(k);
     const Scalar& Ai = A[k];
@@ -511,7 +510,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Hface = 0.5*(H(nodeListi, i) + H(nodeListj, j));
 
     // Set the neighbors for this face.
-    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], Hinf,
+    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
                                                 nodeLists.begin(), nodeLists.end(),
                                                 W.kernelExtent());
 
@@ -519,7 +518,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace[k], Hinf);
+      neighbor.setRefineNeighborList(posFace[k], H0);
       for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
            neighborItr != neighbor.refineNeighborEnd();
            ++neighborItr) {
@@ -541,19 +540,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const Vector rij = posFace[k] - rj;
         const Vector etai = Hface*rij;
         const Vector etaj = Hj*rij;
-        const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-        // const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*WWj.first;
-        const Scalar gWj = WWj.second;
-        const Vector gradWj = gWj*Hj*etaj.unitVector();
+        const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
         // Increment the face fluid properties.
         Pface[k] += VWRj*Pj;
-
-        const Scalar rij2 = rij.magnitude2();
-        const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
-        weightedNeighborSumFace[k] += std::abs(gWj);
-        PsiFace[k] += gradWj.magnitude2()*thpt;
 
         // Get the face Q values (in this case P/rho^2).
         const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
@@ -564,61 +555,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
       }
     }
-
-    // // Now for the Q...
-    // // Find the SVPH nodes on either side of this face.
-    // z1id = Mesh<Dimension>::positiveID(face.zone1ID());
-    // z2id = Mesh<Dimension>::positiveID(face.zone2ID());
-    // if (z1id != Mesh<Dimension>::UNSETID and
-    //     z2id != Mesh<Dimension>::UNSETID) {
-    //   mesh.lookupNodeListID(z1id, nodeListi, i);
-    //   mesh.lookupNodeListID(z2id, nodeListj, j);
-
-    //   // Net properties on the face.
-    //   const Vector ri = 0.5*(position(nodeListi, i) + position(nodeListj, j));
-    //   const Vector vi = 0.5*(velocity(nodeListi, i) + velocity(nodeListj, j));
-    //   const Scalar rhoi = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
-    //   const Scalar ci = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
-    //   const SymTensor Hi = 0.5*(H(nodeListi, i) + H(nodeListj, j));
-
-    //   velFace[k] = vi;
-    //   for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-    //     const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-    //     Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-    //     neighbor.setRefineNeighborList(posFace[k], Hface);
-    //     for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-    //          neighborItr != neighbor.refineNeighborEnd();
-    //          ++neighborItr) {
-    //       j = *neighborItr;
-      
-    //       // Get the state for node j
-    //       const Vector& rj = position(nodeListj, j);
-    //       const Vector& vj = velocity(nodeListj, j);
-    //       const Scalar& rhoj = massDensity(nodeListj, j);
-    //       const Scalar& cj = soundSpeed(nodeListj, j);
-    //       const SymTensor& Hj = H(nodeListj, j);
-    //       const Scalar& Vj = volume(nodeListj, j);
-    //       const Scalar Hdetj = Hj.Determinant();
-    //       CHECK(Vj > 0.0);
-    //       CHECK(Hdetj > 0.0);
-
-    //       // Pair-wise kernel type stuff.
-    //       const Vector rij = posFace[k] - rj;
-    //       const Vector etai = Hi*rij;
-    //       const Vector etaj = Hj*rij;
-    //       const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-    //       const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
-
-    //       // Get the face Q values (in this case P/rho^2).
-    //       const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
-    //                                                 ri, etai, vi, rhoi, ci, Hi,
-    //                                                 rj, etaj, vj, rhoj, cj, Hj);
-    //       Qface[k] += 0.5*VWRj*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-    //       const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-    //       maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
-    //     }
-    //   }
-    // }
 
     // Finish the face state.
     CHECK2(Ai >= 0.0, i << " " << Ai);
@@ -648,10 +584,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const vector<int>& faceIDs = zonei.faceIDs();
       const unsigned nfaces = faceIDs.size();
       
-      // Prepare to accumulate the time.
-      const Time start = Timing::currentTime();
-      size_t ncalc = 0;
-
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
       const Scalar& mi = mass(nodeListi, i);
@@ -759,27 +691,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
         const Vector dA = dAface[fid] * sgn(faceIDs[k]);
         const Vector fforce = Pface[fid]*dA + Qface[fid]*dA;
-        Qavg += Qface[fid] * dA.magnitude();
-        Asum += dA.magnitude();
+        const Scalar area = dAface[fid].magnitude();
         DvDti += fforce;
-        DepsDti += fforce.dot(velFace[fid]);
         DvDxi += velFace[fid]*dA;
         faceForcei.push_back(fforce);
+        Asum += area;
+        Qavg += area*Qface[fid];
       }
+      CHECK(faceForcei.size() == nfaces);
       CHECK(Asum > 0.0);
       Qavg /= Asum;
-      CHECK(faceForcei.size() == nfaces);
 
       // Finish the time derivatives.
       DvDti /= mi;
       DvDxi /= -Vi;
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
-      if (mCompatibleEnergyEvolution) {
-        DepsDti /= mi;
-      } else {
-        DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
-      }
+      DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
+      DxDti = vi;
 
       // Finish the density sum.
       rhoSumi = (rhoSumi + mi*W0*Hdeti)/(Vsumi + Vi*W0*Hdeti);
@@ -787,9 +716,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
-
-      // Determine the position evolution, based on whether we're doing XSVPH or not.
-      DxDti = vi;
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
