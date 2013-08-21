@@ -201,16 +201,20 @@ update(const KeyType& key,
 
     // Get the state fields.
     FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-    const Mesh<Dimension>& mesh = state.mesh();
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+    const FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
+    const FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
+    const FieldList<Dimension, vector<Vector> > faceAcceleration = state.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
+    const FieldList<Dimension, vector<Scalar> > faceSpecificEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
     const FieldList<Dimension, vector<Vector> > faceForce = derivs.fields(HydroFieldNames::faceForce, vector<Vector>());
 
     const double hdt = 0.5*multiplier;
     const size_t numNodeLists = eps.numFields();
-    const unsigned numFaces = mesh.numFaces();
+
+    const Mesh<Dimension>& mesh = state.mesh();
 
     // Walk the nodes of this NodeList
     unsigned i, j, k, n, nodeListi, nodeListj, z2id;
@@ -219,41 +223,54 @@ update(const KeyType& key,
     for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       n = eps[nodeListi]->numInternalElements();
       for (i = 0; i != n; ++i) {
-        const Zone& zonei = mesh.zone(nodeListi, i);
-        const vector<int>& faceIDs = zonei.faceIDs();
 
         // State for node i.
+        DepsDti = 0.0;
         const Scalar& mi = mass(nodeListi, i);
         const Vector& vi = velocity(nodeListi, i);
         const Scalar& ui = specificEnergy0(nodeListi, i);
         const Vector& ai = acceleration(nodeListi, i);
         vi12 = vi + ai*hdt;
-        const vector<Vector>& fforcei = faceForce(nodeListi, i);
-        CHECK(fforcei.size() == faceIDs.size());
-        DepsDti = 0.0;
+
+        // Face state for neighbor nodes.
+        const vector<Scalar>& mface = faceMass(nodeListi, i);
+        const vector<Vector>& vface = faceVelocity(nodeListi, i);
+        const vector<Scalar>& uface = faceSpecificEnergy0(nodeListi, i);
+        const vector<Vector>& aface = faceAcceleration(nodeListi, i);
+        const vector<Vector>& fforce = faceForce(nodeListi, i);
+        const unsigned nfaces = mface.size();
+        CHECK(vface.size() == nfaces);
+        CHECK(uface.size() == nfaces);
+        CHECK(aface.size() == nfaces);
+        CHECK2(fforce.size() == nfaces, fforce.size() << " " << nfaces);
+
+        const Zone& zonei = mesh.zone(nodeListi, i);
+        const vector<int>& faceIDs = zonei.faceIDs();
+        CHECK(faceIDs.size() == nfaces);
 
         // Walk the faces of this SVPH node.
-        for (k = 0; k != faceIDs.size(); ++k) {
-          const Face& face = mesh.face(faceIDs[k]);
+        for (k = 0; k != nfaces; ++k) {
 
-          // Find the opposite SVPH node.
-          z2id = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          if (z2id == Mesh<Dimension>::UNSETID) {
-            nodeListj = nodeListi;
-            j = i;
-          } else {
-            mesh.lookupNodeListID(z2id, nodeListj, j);
-          }
-
-          // State for node j.
-          const Scalar& mj = mass(nodeListj, j);
-          const Vector& vj = velocity(nodeListj, j);
-          const Scalar& uj = specificEnergy0(nodeListj, j);
-          const Vector& aj = acceleration(nodeListj, j);
+          // State for opposite node.
+          const Scalar& mj = mface[k];
+          const Vector& vj = vface[k];
+          const Scalar& uj = uface[k];
+          const Vector& aj = aface[k];
           vj12 = vj + aj*hdt;
           vji12 = vj12 - vi12;
 
-          duij = vji12.dot(fforcei[k])/mi;
+          const Face& face = mesh.face(faceIDs[k]);
+          unsigned nodeListj = nodeListi, j = i;
+          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+          if (oppZoneID != Mesh<Dimension>::UNSETID) {
+            mesh.lookupNodeListID(oppZoneID, nodeListj, j);
+          }
+          CHECK(mj == mass(nodeListj, j));
+          CHECK(uj == specificEnergy0(nodeListj, j));
+          CHECK(aj == acceleration(nodeListj, j));
+          CHECK2(vj == velocity(nodeListj, j), "Velocity! " << i << " " << j << " : " << vi << " " << vj << " " << velocity(nodeListj, j));
+
+          duij = vji12.dot(fforce[k])/mi;
           const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
           CHECK(wi >= 0.0 and wi <= 1.0);
