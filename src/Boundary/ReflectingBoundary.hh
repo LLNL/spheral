@@ -47,6 +47,14 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
 
+  // Apply the boundary condition to face centered fields on a tessellation.
+  virtual void enforceBoundary(std::vector<int>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Scalar>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Vector>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<Tensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
+
   // Allow read only access to the reflection operator.
   const Tensor& reflectOperator() const;
 

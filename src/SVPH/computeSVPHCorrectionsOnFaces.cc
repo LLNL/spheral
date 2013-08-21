@@ -35,13 +35,15 @@ using Geometry::innerProduct;
 //------------------------------------------------------------------------------
 // Compute corrections.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename BoundaryIterator>
 void
 computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
                               const TableKernel<Dimension>& W,
                               const FieldList<Dimension, typename Dimension::Scalar>& volume,
                               const FieldList<Dimension, typename Dimension::Vector>& position,
                               const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                              const BoundaryIterator& boundaryBegin,
+                              const BoundaryIterator& boundaryEnd,
                               vector<typename Dimension::Scalar>& A,
                               vector<typename Dimension::Vector>& B) {
 
@@ -117,8 +119,19 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
         m2[iface] += Vj*Wj * thpt;
       }
     }
+  }
 
-    // Based on the moments we can calculate the SVPH corrections terms and their gradients.
+  // Apply any boundary action to the sums.
+  for (BoundaryIterator itr = boundaryBegin;
+       itr != boundaryEnd;
+       ++itr) {
+    (*itr)->enforceBoundary(A, mesh);
+    (*itr)->enforceBoundary(m1, mesh);
+    (*itr)->enforceBoundary(m2, mesh);
+  }
+
+  // Based on the moments we can calculate the SVPH corrections terms and their gradients.
+  for (iface = 0; iface != nfaces; ++iface) {
     CHECK(A[iface] >= 0.0);
     if (A[iface] > 0.0) {
       A[iface] = 1.0/A[iface];

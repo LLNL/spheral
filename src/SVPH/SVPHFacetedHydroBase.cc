@@ -491,26 +491,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> Pface(numFaces, 0.0);
+  vector<Scalar> rhoFace(numFaces, 0.0), csFace(numFaces, 0.0), Pface(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
+  vector<SymTensor> Hface(numFaces, SymTensor::zero);
 
   // Compute the SVPH corrections.
   vector<Scalar> A;
   vector<Vector> B;
   computeSVPHCorrectionsOnFaces(mesh, W,
                                 volume, position, H,
+                                this->boundaryBegin(),
+                                this->boundaryEnd(),
                                 A, B);
   if (not mLinearConsistent) B = vector<Vector>(numFaces, Vector::zero);
 
   // Walk the faces and sample their fluid properties.
   unsigned i, j, k, nodeListi, nodeListj, z1id, z2id;
-  Scalar rhoFace, csFace, Hdetj;
-  SymTensor Hface;
+  Scalar Hdetj;
   const SymTensor H0 = 1.0e100*SymTensor::one;
   for (k = 0; k != numFaces; ++k) {
     const Face& face = mesh.face(k);
-    const Scalar& Ai = A[k];
     const Vector& Bi = B[k];
 
     // Look up the SVPH nodes either side of the Face.
@@ -530,9 +531,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     dAface[k] = face.area() * face.unitNormal();
     posFace[k] = face.position();
     velFace[k] = 0.5*(velocity(nodeListi, i) + velocity(nodeListj, j));
-    rhoFace = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
-    csFace = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
-    Hface = 0.5*(H(nodeListi, i) + H(nodeListj, j));
+    rhoFace[k] = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
+    csFace[k] = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
+    Hface[k] = 0.5*(H(nodeListi, i) + H(nodeListj, j));
 
     // Set the neighbors for this face.
     Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
@@ -563,25 +564,90 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // Pair-wise kernel type stuff.
         const Vector rij = posFace[k] - rj;
-        const Vector etai = Hface*rij;
         const Vector etaj = Hj*rij;
         const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
         const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
         // Increment the face fluid properties.
         Pface[k] += VWRj*Pj;
+      }
+    }
+  }
+
+  // Boundaries!
+  // cerr << "Before boundaries 1 : " << posFace[0] << " " << rhoFace[0] << " " << csFace[0] << " " << Pface[0] << " " << velFace[0] << " " << Hface[0] << endl;
+  for (ConstBoundaryIterator itr = this->boundaryBegin();
+       itr != this->boundaryEnd();
+       ++itr) {
+    (*itr)->enforceBoundary(rhoFace, mesh);
+    (*itr)->enforceBoundary(csFace, mesh);
+    (*itr)->enforceBoundary(Pface, mesh);
+    (*itr)->enforceBoundary(velFace, mesh);
+    (*itr)->enforceBoundary(Hface, mesh);
+  }
+  // cerr << "After boundaries 1 : " << posFace[0] << " " << rhoFace[0] << " " << csFace[0] << " " << Pface[0] << " " << velFace[0] << " " << Hface[0] << endl;
+
+  // Determine the Q (requires correct boundary enforced velocities).
+  for (k = 0; k != numFaces; ++k) {
+    const Vector& Bi = B[k];
+
+    // Set the neighbors for this face.
+    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
+                                                nodeLists.begin(), nodeLists.end(),
+                                                W.kernelExtent());
+
+    // Iterate over the NodeLists.
+    for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+      Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+      neighbor.setRefineNeighborList(posFace[k], H0);
+      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
+           neighborItr != neighbor.refineNeighborEnd();
+           ++neighborItr) {
+        j = *neighborItr;
+      
+        // Get the state for node j
+        const Vector& rj = position(nodeListj, j);
+        const Vector& vj = velocity(nodeListj, j);
+        const Scalar& rhoj = massDensity(nodeListj, j);
+        const Scalar& Pj = pressure(nodeListj, j);
+        const Scalar& cj = soundSpeed(nodeListj, j);
+        const SymTensor& Hj = H(nodeListj, j);
+        const Scalar& Vj = volume(nodeListj, j);
+        Hdetj = Hj.Determinant();
+        CHECK(Vj > 0.0);
+        CHECK(Hdetj > 0.0);
+
+        // Pair-wise kernel type stuff.
+        const Vector rij = posFace[k] - rj;
+        const Vector etai = Hface[k]*rij;
+        const Vector etaj = Hj*rij;
+        const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
         // Get the face Q values (in this case P/rho^2).
         const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
-                                                  posFace[k], etai, velFace[k], rhoFace, csFace, Hface,
+                                                  posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
                                                   rj, etaj, vj, rhoj, cj, Hj);
-        Qface[k] += 0.5*VWRj*(rhoFace*rhoFace*QPiij.first + rhoj*rhoj*QPiij.second);
+        Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
         const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
         maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
       }
     }
+  }
 
-    // Finish the face state.
+  // Boundaries!
+  // cerr << "Before boundaries 2 : " << posFace[0] << " " << Qface[0] << endl;
+  for (ConstBoundaryIterator itr = this->boundaryBegin();
+       itr != this->boundaryEnd();
+       ++itr) {
+    (*itr)->enforceBoundary(Qface, mesh);
+  }
+  // cerr << "After boundaries 2 : " << posFace[0] << " " << Qface[0] << endl;
+
+  // Finish the face state.
+  for (k = 0; k != numFaces; ++k) {
+    const Scalar& Ai = A[k];
     CHECK2(Ai >= 0.0, i << " " << Ai);
     Pface[k] *= Ai;
     Qface[k] *= Ai;

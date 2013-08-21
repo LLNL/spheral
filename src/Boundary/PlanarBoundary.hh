@@ -87,6 +87,11 @@ public:
   // Override the clip method for clipping a box.
   virtual void clip(Vector& xmin, Vector& xmax) const;
 
+  // Provide a method to identify tessellation faces on a plane.
+  std::vector<unsigned> facesOnPlane(const MeshSpace::Mesh<Dimension>& mesh,
+                                     const GeomPlane<Dimension>& plane,
+                                     const Scalar tol) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   GeomPlane<Dimension> mEnterPlane;
