@@ -207,9 +207,9 @@ update(const KeyType& key,
     const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
     const FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
     const FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
-    const FieldList<Dimension, vector<Vector> > faceAcceleration = state.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
     const FieldList<Dimension, vector<Scalar> > faceSpecificEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
     const FieldList<Dimension, vector<Vector> > faceForce = derivs.fields(HydroFieldNames::faceForce, vector<Vector>());
+    const FieldList<Dimension, vector<Vector> > faceAcceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
 
     const double hdt = 0.5*multiplier;
     const size_t numNodeLists = eps.numFields();
