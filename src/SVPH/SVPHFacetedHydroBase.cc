@@ -217,6 +217,8 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  typedef typename Mesh<Dimension>::Zone Zone;
+  typedef typename Mesh<Dimension>::Face Face;
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
@@ -227,20 +229,55 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
-  // If we're using the compatibile energy discretization, prepare to maintain a copy
-  // of the thermal energy.
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, false);
-  dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, false);
-  dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
-  dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", false);
+  // If we're using the compatible energy discretization we need to copy initial state and
+  // fill in the opposite node properties across faces.
   if (mCompatibleEnergyEvolution) {
-    size_t nodeListi = 0;
-    for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
+    const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+    const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
+    const FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
+    mSpecificThermalEnergy0.copyFields();
+    dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
+    dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, false);
+    dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, false);
+    dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", false);
+
+    const unsigned numNodeLists = mass.numFields();
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = mass[nodeListi]->numInternalElements();
+
+      // Iterate over the internal nodes in this NodeList.
+      for (unsigned i = 0; i != n; ++i) {
+        const Zone& zonei = mMeshPtr->zone(nodeListi, i);
+        const vector<int>& faceIDs = zonei.faceIDs();
+        const unsigned nfaces = faceIDs.size();
+
+        // Get the state for node i.
+        vector<Scalar>& faceMassi = mFaceMass(nodeListi, i);
+        vector<Vector>& faceVelocityi = mFaceVelocity(nodeListi, i);
+        vector<Scalar>& faceSpecificThermalEnergy0i = mFaceSpecificThermalEnergy0(nodeListi, i);
+
+        // Walk the faces.
+        for (unsigned k = 0; k != nfaces; ++k) {
+          const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
+          const Face& face = mMeshPtr->face(fid);
+
+          // Find the opposite node.
+          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+          unsigned nodeListj = nodeListi, j = i;
+          if (oppZoneID != Mesh<Dimension>::UNSETID) {
+            mMeshPtr->lookupNodeListID(oppZoneID, nodeListj, j);
+          }
+
+          // Record the opposite node properties.
+          faceMassi.push_back(mass(nodeListj, j));
+          faceVelocityi.push_back(velocity(nodeListj, j));
+          faceSpecificThermalEnergy0i.push_back(mSpecificThermalEnergy0(nodeListj, j));
+        }
+        CHECK(faceMassi.size() == nfaces);
+        CHECK(faceVelocityi.size() == nfaces);
+        CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
+      }
     }
   }
 
@@ -284,6 +321,10 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer positionPolicy(new IncrementState<Dimension, Vector>());
     state.enroll((*itr)->positions(), positionPolicy);
 
+    // Velocity.
+    PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
+    state.enroll((*itr)->velocity(), velocityPolicy);
+
     // Are we using the compatible energy evolution scheme?
     // Register the H tensor.
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
@@ -310,24 +351,20 @@ registerState(DataBase<Dimension>& dataBase,
     // Specific thermal energy.
     if (compatibleEnergyEvolution()) {
       meshPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+      velocityPolicy->addDependency(HydroFieldNames::position);
+      velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
       PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
                                                                                                  dataBase,
                                                                                                  this->artificialViscosity(),
                                                                                                  mLinearConsistent));
-      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>(HydroFieldNames::position,
-                                                                         HydroFieldNames::specificThermalEnergy));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
-      state.enroll((*itr)->velocity(), velocityPolicy);
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
       state.enroll(*mFaceMass[nodeListi]);
       state.enroll(*mFaceVelocity[nodeListi]);
-      state.enroll(*mFaceAcceleration[nodeListi]);
       state.enroll(*mFaceSpecificThermalEnergy0[nodeListi]);
     } else {
       PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
-      PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
-      state.enroll((*itr)->velocity(), velocityPolicy);
     }
 
   }
@@ -364,6 +401,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
+  dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -390,6 +428,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
     derivs.enroll(*mFaceForce[i]);
+    derivs.enroll(*mFaceAcceleration[i]);
   }
 }
 
@@ -461,10 +500,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
-  FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
-  FieldList<Dimension, vector<Vector> > faceAcceleration = state.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
-  FieldList<Dimension, vector<Scalar> > faceSpecificThermalEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -474,10 +509,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(volume.size() == numNodeLists);
-  CHECK(faceMass.size() == numNodeLists);
-  CHECK(faceVelocity.size() == numNodeLists);
-  CHECK(faceAcceleration.size() == numNodeLists);
-  CHECK(faceSpecificThermalEnergy0.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -494,6 +525,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
+  FieldList<Dimension, vector<Vector> > faceAcceleration = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -508,6 +540,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(faceForce.size() == numNodeLists);
+  CHECK(faceAcceleration.size() == numNodeLists);
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
@@ -767,7 +800,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Finally, if we're using the compatible energy discretization we need to
   // fill in the opposite properties across faces.
   if (mCompatibleEnergyEvolution) {
-    const FieldList<Dimension, Scalar> specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
     for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
 
@@ -779,10 +811,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const unsigned nfaces = faceIDs.size();
 
         // Get the state for node i.
-        vector<Scalar>& faceMassi = faceMass(nodeListi, i);
-        vector<Vector>& faceVelocityi = faceVelocity(nodeListi, i);
         vector<Vector>& faceAccelerationi = faceAcceleration(nodeListi, i);
-        vector<Scalar>& faceSpecificThermalEnergy0i = faceSpecificThermalEnergy0(nodeListi, i);
 
         // Walk the faces.
         for (unsigned k = 0; k != nfaces; ++k) {  
@@ -791,24 +820,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
           // Find the opposite node.
           const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          unsigned nodeListj, j;
+          unsigned nodeListj = nodeListi, j = i;
           if (oppZoneID != Mesh<Dimension>::UNSETID) {
             mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-          } else {
-            nodeListj = nodeListi;
-            j = i;
           }
 
           // Record the opposite node properties.
-          faceMassi.push_back(mass(nodeListj, j));
-          faceVelocityi.push_back(velocity(nodeListj, j));
           faceAccelerationi.push_back(DvDt(nodeListj, j));
-          faceSpecificThermalEnergy0i.push_back(specificThermalEnergy0(nodeListj, j));
         }
-        CHECK(faceMassi.size() == nfaces);
-        CHECK(faceVelocityi.size() == nfaces);
         CHECK(faceAccelerationi.size() == nfaces);
-        CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
       }
     }
   }
