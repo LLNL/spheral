@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include "boost/shared_ptr.hpp"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
   namespace NodeSpace {
@@ -24,6 +25,9 @@ namespace Spheral {
   }
   namespace DataBaseSpace {
     template<typename Dimension> class DataBase;
+  }
+  namespace MeshSpace {
+    template<typename Dimension> class Mesh;
   }
 }
 
@@ -137,6 +141,14 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, Tensor>& field) const = 0;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, SymTensor>& field) const = 0;
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const = 0;
+
+  // Apply the boundary condition to face centered fields on a tessellation.
+  virtual void enforceBoundary(std::vector<int>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Scalar>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Vector>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<Tensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
 
   // Provide an optional hook that is to be called when all ghost boundaries are

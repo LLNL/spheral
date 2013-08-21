@@ -11,6 +11,7 @@
 #include "Geometry/GeomPlane.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "FileIO/FileIO.hh"
+#include "Mesh/Mesh.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -25,6 +26,7 @@ using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
 using NeighborSpace::Neighbor;
+using MeshSpace::Mesh;
 
 //------------------------------------------------------------------------------
 // Internal worker method to help with clipping a box range.
@@ -372,6 +374,41 @@ clip(typename Dimension::Vector& xmin, typename Dimension::Vector& xmax) const {
   clipBoxWithPlane(mEnterPlane, xmax);
   clipBoxWithPlane(mExitPlane, xmin);
   clipBoxWithPlane(mExitPlane, xmax);
+}
+
+//------------------------------------------------------------------------------
+// Find the set of tessellation facets on a plane.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<unsigned>
+PlanarBoundary<Dimension>::
+facesOnPlane(const Mesh<Dimension>& mesh,
+             const GeomPlane<Dimension>& plane,
+             const Scalar tol) const {
+
+  typedef typename Mesh<Dimension>::Face Face;
+  typedef typename Mesh<Dimension>::Node Node;
+
+  vector<unsigned> result;
+
+  // Flag all the nodes that are on the plane to the given tolerance.
+  const unsigned numNodes = mesh.numNodes();
+  vector<unsigned> flagNodes(numNodes, 0);
+  for (unsigned inode = 0; inode != numNodes; ++inode) {
+    flagNodes[inode] = (plane.minimumDistance(mesh.node(inode).position()) <= tol ? 1 : 0);
+  }
+
+  // Look for any faces with all its nodes in the plane.
+  const unsigned numFaces = mesh.numFaces();
+  for (unsigned iface = 0; iface != numFaces; ++iface) {
+    const Face& face = mesh.face(iface);
+    const vector<unsigned> nodeIDs = face.nodeIDs();
+    unsigned i = 0;
+    while (i < nodeIDs.size() and flagNodes[nodeIDs[i]] == 1) ++i;
+    if (i == nodeIDs.size()) result.push_back(iface);
+  }
+
+  return result;
 }
 
 }

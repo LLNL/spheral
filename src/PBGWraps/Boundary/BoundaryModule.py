@@ -211,11 +211,16 @@ class Boundary:
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        vector_of_Vector = "vector_of_Vector%id" % ndim
+        vector_of_Tensor = "vector_of_Tensor%id" % ndim
+        vector_of_SymTensor = "vector_of_SymTensor%id" % ndim
+        vector_of_ThirdRankTensor = "vector_of_ThirdRankTensor%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
+        mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
 
         # Add the subclass.
         bn = x.add_class("BoundaryNodes", allow_subclassing=True)
@@ -260,6 +265,13 @@ class Boundary:
         x.add_method("cullGhostNodes", None, [constrefparam(intfieldlist, "flagSet"),
                                               refparam(intfieldlist, "old2newIndexMap"),
                                               refparam("vector_of_int", "numNodesRemoved")], is_virtual=True)
+
+        x.add_method("enforceBoundary", None, [refparam("vector_of_int", "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("enforceBoundary", None, [refparam("vector_of_double", "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("enforceBoundary", None, [refparam(vector_of_Vector, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("enforceBoundary", None, [refparam(vector_of_Tensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("enforceBoundary", None, [refparam(vector_of_SymTensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("enforceBoundary", None, [refparam(vector_of_ThirdRankTensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
 
         # Methods.
         x.add_method("haveNodeList", "bool", [constrefparam(nodelist, "nodeList")], is_const=True)
@@ -318,6 +330,7 @@ class Boundary:
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         fileio = "Spheral::FileIOSpace::FileIO"
+        mesh = "Spheral::MeshSpace::" + {1 : "LineMesh", 2 : "PolygonalMesh", 3 : "PolyhedralMesh"}[ndim]
 
         # Constructors.
         x.add_constructor([])
@@ -332,6 +345,9 @@ class Boundary:
         x.add_method("mapPosition", vector, [refparam(vector, "position"),
                                              refparam(plane, "enterPlane"),
                                              refparam(plane, "exitPlane")], is_const=True)
+        x.add_method("facesOnPlane", "vector_of_unsigned", [constrefparam(mesh, "mesh"),
+                                                            constrefparam(plane, "plane"),
+                                                            param("double", "tol")], is_const=True);
         
         # Virtual methods.
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)

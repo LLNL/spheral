@@ -24,13 +24,15 @@ namespace Spheral {
   }
 
   namespace SVPHSpace {
-    template<typename Dimension>
+    template<typename Dimension, typename BoundaryIterator>
     void
     computeSVPHCorrectionsOnFaces(const MeshSpace::Mesh<Dimension>& mesh,
                                   const KernelSpace::TableKernel<Dimension>& W,
                                   const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume,
                                   const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                                   const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                  const BoundaryIterator& boundaryBegin,
+                                  const BoundaryIterator& boundaryEnd,
                                   std::vector<typename Dimension::Scalar>& A,
                                   std::vector<typename Dimension::Vector>& B);
   }
