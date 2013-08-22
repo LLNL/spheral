@@ -112,10 +112,10 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldList<Dimension, SymTensor>::Copy),
   mDvDx(FieldList<Dimension, Tensor>::Copy),
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
-  mFaceMass(FieldList<Dimension, vector<Scalar> >::Copy),
-  mFaceVelocity(FieldList<Dimension, vector<Vector> >::Copy),
-  mFaceAcceleration(FieldList<Dimension, vector<Vector> >::Copy),
-  mFaceSpecificThermalEnergy0(FieldList<Dimension, vector<Scalar> >::Copy),
+  // mFaceMass(FieldList<Dimension, vector<Scalar> >::Copy),
+  // mFaceVelocity(FieldList<Dimension, vector<Vector> >::Copy),
+  // mFaceAcceleration(FieldList<Dimension, vector<Vector> >::Copy),
+  // mFaceSpecificThermalEnergy0(FieldList<Dimension, vector<Scalar> >::Copy),
   mFaceForce(FieldList<Dimension, vector<Vector> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
@@ -238,58 +238,58 @@ registerState(DataBase<Dimension>& dataBase,
     mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
     mSpecificThermalEnergy0.copyFields();
     dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
-    dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, true);
-    dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, true);
-    dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", true);
+    // dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, true);
+    // dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, true);
+    // dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", true);
 
-    const unsigned numNodeLists = mass.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = mass[nodeListi]->numInternalElements();
+    // const unsigned numNodeLists = mass.numFields();
+    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //   const unsigned n = mass[nodeListi]->numInternalElements();
 
-      // Iterate over the internal nodes in this NodeList.
-      for (unsigned i = 0; i != n; ++i) {
-        const Zone& zonei = mMeshPtr->zone(nodeListi, i);
-        const vector<int>& faceIDs = zonei.faceIDs();
-        const unsigned nfaces = faceIDs.size();
+    //   // Iterate over the internal nodes in this NodeList.
+    //   for (unsigned i = 0; i != n; ++i) {
+    //     const Zone& zonei = mMeshPtr->zone(nodeListi, i);
+    //     const vector<int>& faceIDs = zonei.faceIDs();
+    //     const unsigned nfaces = faceIDs.size();
 
-        // Get the state for node i.
-        vector<Scalar>& faceMassi = mFaceMass(nodeListi, i);
-        vector<Vector>& faceVelocityi = mFaceVelocity(nodeListi, i);
-        vector<Scalar>& faceSpecificThermalEnergy0i = mFaceSpecificThermalEnergy0(nodeListi, i);
+    //     // Get the state for node i.
+    //     vector<Scalar>& faceMassi = mFaceMass(nodeListi, i);
+    //     vector<Vector>& faceVelocityi = mFaceVelocity(nodeListi, i);
+    //     vector<Scalar>& faceSpecificThermalEnergy0i = mFaceSpecificThermalEnergy0(nodeListi, i);
 
-        // Walk the faces.
-        for (unsigned k = 0; k != nfaces; ++k) {
-          const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-          const Face& face = mMeshPtr->face(fid);
+    //     // Walk the faces.
+    //     for (unsigned k = 0; k != nfaces; ++k) {
+    //       const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
+    //       const Face& face = mMeshPtr->face(fid);
 
-          // Find the opposite node.
-          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          unsigned nodeListj = nodeListi, j = i;
-          if (oppZoneID != Mesh<Dimension>::UNSETID) {
-            mMeshPtr->lookupNodeListID(oppZoneID, nodeListj, j);
-          }
+    //       // Find the opposite node.
+    //       const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+    //       unsigned nodeListj = nodeListi, j = i;
+    //       if (oppZoneID != Mesh<Dimension>::UNSETID) {
+    //         mMeshPtr->lookupNodeListID(oppZoneID, nodeListj, j);
+    //       }
 
-          // Record the opposite node properties.
-          faceMassi.push_back(mass(nodeListj, j));
-          faceVelocityi.push_back(velocity(nodeListj, j));
-          faceSpecificThermalEnergy0i.push_back(mSpecificThermalEnergy0(nodeListj, j));
-        }
-        CHECK(faceMassi.size() == nfaces);
-        CHECK(faceVelocityi.size() == nfaces);
-        CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
-      }
-    }
+    //       // Record the opposite node properties.
+    //       faceMassi.push_back(mass(nodeListj, j));
+    //       faceVelocityi.push_back(velocity(nodeListj, j));
+    //       faceSpecificThermalEnergy0i.push_back(mSpecificThermalEnergy0(nodeListj, j));
+    //     }
+    //     CHECK(faceMassi.size() == nfaces);
+    //     CHECK(faceVelocityi.size() == nfaces);
+    //     CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
+    //   }
+    // }
 
-    // Boundaries!
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      for (ConstBoundaryIterator itr = this->boundaryBegin();
-           itr != this->boundaryEnd();
-           ++itr) {
-        (*itr)->swapFaceValues(*mFaceMass[nodeListi], *mMeshPtr);
-        (*itr)->swapFaceValues(*mFaceVelocity[nodeListi], *mMeshPtr);
-        (*itr)->swapFaceValues(*mFaceSpecificThermalEnergy0[nodeListi], *mMeshPtr);
-      }
-    }
+    // // Boundaries!
+    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //   for (ConstBoundaryIterator itr = this->boundaryBegin();
+    //        itr != this->boundaryEnd();
+    //        ++itr) {
+    //     (*itr)->swapFaceValues(*mFaceMass[nodeListi], *mMeshPtr);
+    //     (*itr)->swapFaceValues(*mFaceVelocity[nodeListi], *mMeshPtr);
+    //     (*itr)->swapFaceValues(*mFaceSpecificThermalEnergy0[nodeListi], *mMeshPtr);
+    //   }
+    // }
   }
 
   // Now register away.
@@ -370,9 +370,9 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                                  mLinearConsistent));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
-      state.enroll(*mFaceMass[nodeListi]);
-      state.enroll(*mFaceVelocity[nodeListi]);
-      state.enroll(*mFaceSpecificThermalEnergy0[nodeListi]);
+      // state.enroll(*mFaceMass[nodeListi]);
+      // state.enroll(*mFaceVelocity[nodeListi]);
+      // state.enroll(*mFaceSpecificThermalEnergy0[nodeListi]);
     } else {
       PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
@@ -412,7 +412,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
-  dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
+  // dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
 
   size_t i = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -439,7 +439,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
     derivs.enroll(*mFaceForce[i]);
-    derivs.enroll(*mFaceAcceleration[i]);
+    // derivs.enroll(*mFaceAcceleration[i]);
   }
 }
 
@@ -544,7 +544,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
-  FieldList<Dimension, vector<Vector> > faceAcceleration = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
+  // FieldList<Dimension, vector<Vector> > faceAcceleration = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -559,7 +559,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(faceForce.size() == numNodeLists);
-  CHECK(faceAcceleration.size() == numNodeLists);
+  // CHECK(faceAcceleration.size() == numNodeLists);
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
@@ -646,16 +646,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
-  // Boundaries!
-  for (ConstBoundaryIterator itr = this->boundaryBegin();
-       itr != this->boundaryEnd();
-       ++itr) {
-    (*itr)->enforceBoundary(rhoFace, mesh);
-    (*itr)->enforceBoundary(csFace, mesh);
-    (*itr)->enforceBoundary(Pface, mesh);
-    (*itr)->enforceBoundary(velFace, mesh);
-    (*itr)->enforceBoundary(Hface, mesh);
-  }
+  // // Boundaries!
+  // for (ConstBoundaryIterator itr = this->boundaryBegin();
+  //      itr != this->boundaryEnd();
+  //      ++itr) {
+  //   (*itr)->enforceBoundary(rhoFace, mesh);
+  //   (*itr)->enforceBoundary(csFace, mesh);
+  //   (*itr)->enforceBoundary(Pface, mesh);
+  //   (*itr)->enforceBoundary(velFace, mesh);
+  //   (*itr)->enforceBoundary(Hface, mesh);
+  // }
 
   // Determine the Q (requires correct boundary enforced velocities).
   for (k = 0; k != numFaces; ++k) {
@@ -706,12 +706,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
-  // Boundaries!
-  for (ConstBoundaryIterator itr = this->boundaryBegin();
-       itr != this->boundaryEnd();
-       ++itr) {
-    (*itr)->enforceBoundary(Qface, mesh);
-  }
+  // // Boundaries!
+  // for (ConstBoundaryIterator itr = this->boundaryBegin();
+  //      itr != this->boundaryEnd();
+  //      ++itr) {
+  //   (*itr)->enforceBoundary(Qface, mesh);
+  // }
 
   // Finish the face state.
   for (k = 0; k != numFaces; ++k) {
@@ -815,45 +815,57 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Finally, if we're using the compatible energy discretization we need to
   // fill in the opposite properties across faces.
   if (mCompatibleEnergyEvolution) {
-    for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
+    // for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //   const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
 
-      // Iterate over the internal nodes in this NodeList.
-      const unsigned n = nodeList.numInternalNodes();
-      for (unsigned i = 0; i != n; ++i) {
-        const Zone& zonei = mesh.zone(nodeListi, i);
-        const vector<int>& faceIDs = zonei.faceIDs();
-        const unsigned nfaces = faceIDs.size();
+    //   // Iterate over the internal nodes in this NodeList.
+    //   const unsigned n = nodeList.numInternalNodes();
+    //   for (unsigned i = 0; i != n; ++i) {
+    //     const Zone& zonei = mesh.zone(nodeListi, i);
+    //     const vector<int>& faceIDs = zonei.faceIDs();
+    //     const unsigned nfaces = faceIDs.size();
 
-        // Get the state for node i.
-        vector<Vector>& faceAccelerationi = faceAcceleration(nodeListi, i);
+    //     // Get the state for node i.
+    //     vector<Vector>& faceAccelerationi = faceAcceleration(nodeListi, i);
 
-        // Walk the faces.
-        for (unsigned k = 0; k != nfaces; ++k) {  
-          const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-          const Face& face = mesh.face(fid);
+    //     // Walk the faces.
+    //     for (unsigned k = 0; k != nfaces; ++k) {  
+    //       const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
+    //       const Face& face = mesh.face(fid);
 
-          // Find the opposite node.
-          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          unsigned nodeListj = nodeListi, j = i;
-          if (oppZoneID != Mesh<Dimension>::UNSETID) {
-            mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-          }
+    //       // Find the opposite node.
+    //       const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+    //       unsigned nodeListj = nodeListi, j = i;
+    //       if (oppZoneID != Mesh<Dimension>::UNSETID) {
+    //         mesh.lookupNodeListID(oppZoneID, nodeListj, j);
+    //       }
 
-          // Record the opposite node properties.
-          faceAccelerationi.push_back(DvDt(nodeListj, j));
-        }
-        CHECK(faceAccelerationi.size() == nfaces);
-      }
-    }
+    //       // Record the opposite node properties.
+    //       faceAccelerationi.push_back(DvDt(nodeListj, j));
+    //     }
+    //     CHECK(faceAccelerationi.size() == nfaces);
+    //   }
+    // }
+
+    // // Boundaries!
+    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //   for (ConstBoundaryIterator itr = this->boundaryBegin();
+    //        itr != this->boundaryEnd();
+    //        ++itr) {
+    //     (*itr)->swapFaceValues(*faceAcceleration[nodeListi], *mMeshPtr);
+    //   }
+    // }
 
     // Boundaries!
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      for (ConstBoundaryIterator itr = this->boundaryBegin();
-           itr != this->boundaryEnd();
-           ++itr) {
-        (*itr)->swapFaceValues(*faceAcceleration[nodeListi], *mMeshPtr);
-      }
+    for (ConstBoundaryIterator itr = this->boundaryBegin();
+         itr != this->boundaryEnd();
+         ++itr) {
+      (*itr)->applyFieldListGhostBoundary(DvDt);
+    }
+    for (ConstBoundaryIterator itr = this->boundaryBegin();
+         itr != this->boundaryEnd();
+         ++itr) {
+      (*itr)->finalizeGhostBoundary();
     }
   }
 }
@@ -1093,9 +1105,12 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
+  FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
     CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
+    CHECK(derivs.fieldNameRegistered(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
   }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -1110,6 +1125,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+      (*boundaryItr)->applyFieldListGhostBoundary(DvDt);
     }
   }
 }
@@ -1133,8 +1149,12 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
+  FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
+    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
+    CHECK(derivs.fieldNameRegistered(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity));
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
+    DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
   }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -1149,6 +1169,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+      (*boundaryItr)->enforceFieldListBoundary(DvDt);
     }
   }
 }

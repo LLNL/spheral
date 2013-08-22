@@ -121,14 +121,14 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
     }
   }
 
-  // Apply any boundary action to the sums.
-  for (BoundaryIterator itr = boundaryBegin;
-       itr != boundaryEnd;
-       ++itr) {
-    (*itr)->enforceBoundary(A, mesh);
-    (*itr)->enforceBoundary(m1, mesh);
-    (*itr)->enforceBoundary(m2, mesh);
-  }
+  // // Apply any boundary action to the sums.
+  // for (BoundaryIterator itr = boundaryBegin;
+  //      itr != boundaryEnd;
+  //      ++itr) {
+  //   (*itr)->enforceBoundary(A, mesh);
+  //   (*itr)->enforceBoundary(m1, mesh);
+  //   (*itr)->enforceBoundary(m2, mesh);
+  // }
 
   // Based on the moments we can calculate the SVPH corrections terms and their gradients.
   for (iface = 0; iface != nfaces; ++iface) {

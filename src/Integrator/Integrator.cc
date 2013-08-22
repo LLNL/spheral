@@ -434,33 +434,33 @@ Integrator<Dimension>::setGhostNodes() {
     (*nodeListItr)->neighbor().updateNodes();
   }
 
-  if (mRequireConnectivity) {
+  // Get the complete set of unique boundary conditions.
+  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
 
-    // Get the complete set of unique boundary conditions.
-    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-
-    // Iterate over the boundaries and set their ghost node info.
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) {
-      (*boundaryItr)->setAllGhostNodes(db);
-      (*boundaryItr)->finalizeGhostBoundary();
-      for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-           nodeListItr != db.fluidNodeListEnd(); 
-           ++nodeListItr) {
-        (*nodeListItr)->neighbor().updateNodes();
-      }
+  // Iterate over the boundaries and set their ghost node info.
+  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+       boundaryItr != boundaries.end();
+       ++boundaryItr) {
+    (*boundaryItr)->setAllGhostNodes(db);
+    (*boundaryItr)->finalizeGhostBoundary();
+    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
+         nodeListItr != db.fluidNodeListEnd(); 
+         ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
     }
+  }
 
-    //   // Update the work per node fields.
-    //   double deltaLocal = Timing::difference(start, Timing::currentTime());
-    //   int numLocalNodes = 0;
-    //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-    //        nodeListItr != db.nodeListEnd(); 
-    //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
-    //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
-    //   FieldList<Dimension, Scalar> work = db.globalWork();
-    //   work += workPerNode;
+  //   // Update the work per node fields.
+  //   double deltaLocal = Timing::difference(start, Timing::currentTime());
+  //   int numLocalNodes = 0;
+  //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
+  //        nodeListItr != db.nodeListEnd(); 
+  //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
+  //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
+  //   FieldList<Dimension, Scalar> work = db.globalWork();
+  //   work += workPerNode;
+
+  if (mRequireConnectivity) {
 
     // Update the connectivity.
     db.updateConnectivityMap();
@@ -556,14 +556,14 @@ Integrator<Dimension>::setGhostNodes() {
       ENSURE(db.connectivityMap().valid());
     }
 
-  } else {
+  // } else {
 
-    // We're not connectivity and don't need ghost nodes, so make sure all 
-    // boundaries are empty.
-    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) (*boundaryItr)->reset(db);
+  //   // We're not connectivity and don't need ghost nodes, so make sure all 
+  //   // boundaries are empty.
+  //   const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+  //   for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+  //        boundaryItr != boundaries.end();
+  //        ++boundaryItr) (*boundaryItr)->reset(db);
   }
 }
 
@@ -579,58 +579,55 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
 
-  if (mRequireConnectivity) {
+  // Get that DataBase.
+  DataBase<Dimension>& db = accessDataBase();
 
-    // Get that DataBase.
-    DataBase<Dimension>& db = accessDataBase();
+  // If we're being rigorous about boundaries, we have to reset the ghost nodes.
+  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+  if (mRigorousBoundaries) {
+    setGhostNodes();
 
-    // If we're being rigorous about boundaries, we have to reset the ghost nodes.
-    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-    if (mRigorousBoundaries) {
-      setGhostNodes();
+  } else {
 
-    } else {
-
-      // If we didn't call setGhostNodes, then make each boundary update it's 
-      // ghost node info (position and H).
-      for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-           boundaryItr != boundaries.end();
-           ++boundaryItr) {
-        for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-             nodeListItr != db.nodeListEnd(); 
-             ++nodeListItr) {
-          (*boundaryItr)->updateGhostNodes(**nodeListItr);
-        }
-        (*boundaryItr)->finalizeGhostBoundary();
-      }
-      for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-           nodeListItr != db.fluidNodeListEnd(); 
+    // If we didn't call setGhostNodes, then make each boundary update it's 
+    // ghost node info (position and H).
+    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+         boundaryItr != boundaries.end();
+         ++boundaryItr) {
+      for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
+           nodeListItr != db.nodeListEnd(); 
            ++nodeListItr) {
-        (*nodeListItr)->neighbor().updateNodes();
+        (*boundaryItr)->updateGhostNodes(**nodeListItr);
       }
+      (*boundaryItr)->finalizeGhostBoundary();
     }
-
-    // Iterate over the physics packages, and have them apply ghost boundaries
-    // for their state.
-    for (ConstPackageIterator physicsItr = physicsPackagesBegin();
-         physicsItr != physicsPackagesEnd();
-         ++physicsItr) {
-      (*physicsItr)->applyGhostBoundaries(state, derivs);
+    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
+         nodeListItr != db.fluidNodeListEnd(); 
+         ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
     }
-
-    //   // Update the work per node fields.
-    //   double deltaLocal = Timing::difference(start, Timing::currentTime());
-    //   int numLocalNodes = 0;
-    //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-    //        nodeListItr != db.nodeListEnd(); 
-    //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
-    //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
-    //   FieldList<Dimension, Scalar> work = db.globalWork();
-    //   work += workPerNode;
-
-    // Finalize the boundaries.
-    this->finalizeGhostBoundaries();
   }
+
+  // Iterate over the physics packages, and have them apply ghost boundaries
+  // for their state.
+  for (ConstPackageIterator physicsItr = physicsPackagesBegin();
+       physicsItr != physicsPackagesEnd();
+       ++physicsItr) {
+    (*physicsItr)->applyGhostBoundaries(state, derivs);
+  }
+
+  //   // Update the work per node fields.
+  //   double deltaLocal = Timing::difference(start, Timing::currentTime());
+  //   int numLocalNodes = 0;
+  //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
+  //        nodeListItr != db.nodeListEnd(); 
+  //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
+  //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
+  //   FieldList<Dimension, Scalar> work = db.globalWork();
+  //   work += workPerNode;
+
+  // Finalize the boundaries.
+  this->finalizeGhostBoundaries();
 }
 
 //------------------------------------------------------------------------------
@@ -644,29 +641,26 @@ Integrator<Dimension>::finalizeGhostBoundaries() {
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
 
-  if (mRequireConnectivity) {
+  // Get that DataBase.
+  DataBase<Dimension>& db = accessDataBase();
 
-    // Get that DataBase.
-    DataBase<Dimension>& db = accessDataBase();
-
-    // If we're being rigorous about boundaries, we have to reset the ghost nodes.
-    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) {
-      (*boundaryItr)->finalizeGhostBoundary();
-    }
-
-    //   // Update the work per node fields.
-    //   double deltaLocal = Timing::difference(start, Timing::currentTime());
-    //   int numLocalNodes = 0;
-    //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
-    //        nodeListItr != db.nodeListEnd(); 
-    //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
-    //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
-    //   FieldList<Dimension, Scalar> work = db.globalWork();
-    //   work += workPerNode;
+  // If we're being rigorous about boundaries, we have to reset the ghost nodes.
+  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+       boundaryItr != boundaries.end();
+       ++boundaryItr) {
+    (*boundaryItr)->finalizeGhostBoundary();
   }
+
+  //   // Update the work per node fields.
+  //   double deltaLocal = Timing::difference(start, Timing::currentTime());
+  //   int numLocalNodes = 0;
+  //   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = db.nodeListBegin();
+  //        nodeListItr != db.nodeListEnd(); 
+  //        ++nodeListItr) numLocalNodes += (*nodeListItr)->numInternalNodes();
+  //   const double workPerNode = deltaLocal/(numLocalNodes + 1.0e-30);
+  //   FieldList<Dimension, Scalar> work = db.globalWork();
+  //   work += workPerNode;
 }
 
 //------------------------------------------------------------------------------
@@ -676,27 +670,24 @@ template<typename Dimension>
 void
 Integrator<Dimension>::setViolationNodes() {
 
-  if (mRequireConnectivity) {
+  // Get that DataBase.
+  DataBase<Dimension>& db = accessDataBase();
 
-    // Get that DataBase.
-    DataBase<Dimension>& db = accessDataBase();
+  // Get the complete set of unique boundary conditions.
+  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
 
-    // Get the complete set of unique boundary conditions.
-    const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
+  // Have each boundary identify the set of nodes that violate it.
+  for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
+       boundaryItr != boundaries.end();
+       ++boundaryItr) {
+    (*boundaryItr)->setAllViolationNodes(db);
+  }
 
-    // Have each boundary identify the set of nodes that violate it.
-    for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
-         boundaryItr != boundaries.end();
-         ++boundaryItr) {
-      (*boundaryItr)->setAllViolationNodes(db);
-    }
-
-    // Fix neighbor information.
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-         nodeListItr != db.fluidNodeListEnd(); 
-         ++nodeListItr) {
-      (*nodeListItr)->neighbor().updateNodes();
-    }
+  // Fix neighbor information.
+  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
+       nodeListItr != db.fluidNodeListEnd(); 
+       ++nodeListItr) {
+    (*nodeListItr)->neighbor().updateNodes();
   }
 }
 
@@ -708,18 +699,15 @@ void
 Integrator<Dimension>::enforceBoundaries(State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) {
 
-  if (mRequireConnectivity) {
+  // Have each boundary identify the set of nodes in violation.  This also resets
+  // the positions and H's of the nodes to be in compliance.
+  setViolationNodes();
 
-    // Have each boundary identify the set of nodes in violation.  This also resets
-    // the positions and H's of the nodes to be in compliance.
-    setViolationNodes();
-
-    // Iterate over the physics packages, and have them apply ghost boundaries
-    // for their state.
-    for (ConstPackageIterator physicsItr = physicsPackagesBegin();
-         physicsItr != physicsPackagesEnd();
-         ++physicsItr) (*physicsItr)->enforceBoundaries(state, derivs);
-  }
+  // Iterate over the physics packages, and have them apply ghost boundaries
+  // for their state.
+  for (ConstPackageIterator physicsItr = physicsPackagesBegin();
+       physicsItr != physicsPackagesEnd();
+       ++physicsItr) (*physicsItr)->enforceBoundaries(state, derivs);
 }
 
 //------------------------------------------------------------------------------
