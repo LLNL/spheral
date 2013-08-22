@@ -259,16 +259,16 @@ update(const KeyType& key,
           vj12 = vj + aj*hdt;
           vji12 = vj12 - vi12;
 
-          const Face& face = mesh.face(faceIDs[k]);
-          unsigned nodeListj = nodeListi, j = i;
-          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          if (oppZoneID != Mesh<Dimension>::UNSETID) {
-            mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-          }
-          CHECK(mj == mass(nodeListj, j));
-          CHECK(uj == specificEnergy0(nodeListj, j));
-          CHECK(aj == acceleration(nodeListj, j));
-          CHECK2(vj == velocity(nodeListj, j), "Velocity! " << i << " " << j << " : " << vi << " " << vj << " " << velocity(nodeListj, j));
+          // const Face& face = mesh.face(faceIDs[k]);
+          // unsigned nodeListj = nodeListi, j = i;
+          // const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+          // if (oppZoneID != Mesh<Dimension>::UNSETID) {
+          //   mesh.lookupNodeListID(oppZoneID, nodeListj, j);
+          // }
+          // CHECK(mj == mass(nodeListj, j));
+          // CHECK(uj == specificEnergy0(nodeListj, j));
+          // CHECK(aj == acceleration(nodeListj, j));
+          // CHECK2(vj == velocity(nodeListj, j), "Velocity! " << i << " " << j << " : " << vi << " " << vj << " " << velocity(nodeListj, j));
 
           duij = vji12.dot(fforce[k])/mi;
           const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);

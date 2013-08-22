@@ -149,6 +149,12 @@ public:
   virtual void enforceBoundary(std::vector<Tensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+
+  // Fill in faces on this boundary with effective opposite face values.
+  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Scalar> >& field,
+                              const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
+  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Vector> >& field,
+                              const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
 
   // Provide an optional hook that is to be called when all ghost boundaries are

@@ -55,6 +55,12 @@ public:
   virtual void enforceBoundary(std::vector<SymTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
   virtual void enforceBoundary(std::vector<ThirdRankTensor>& faceField, const MeshSpace::Mesh<Dimension>& mesh) const;
 
+  // Fill in faces on this boundary with effective opposite face values.
+  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Scalar> >& field,
+                              const MeshSpace::Mesh<Dimension>& mesh) const;
+  virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Vector> >& field,
+                              const MeshSpace::Mesh<Dimension>& mesh) const;
+
   // Allow read only access to the reflection operator.
   const Tensor& reflectOperator() const;
 

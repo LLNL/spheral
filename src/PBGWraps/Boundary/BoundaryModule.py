@@ -204,6 +204,7 @@ class Boundary:
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
+        vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
@@ -272,6 +273,9 @@ class Boundary:
         x.add_method("enforceBoundary", None, [refparam(vector_of_Tensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(vector_of_SymTensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
         x.add_method("enforceBoundary", None, [refparam(vector_of_ThirdRankTensor, "faceField"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+
+        x.add_method("swapFaceValues", None, [refparam(vectordoublefield, "field"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
+        x.add_method("swapFaceValues", None, [refparam(vectorvectorfield, "field"), constrefparam(mesh, "mesh")], is_const=True, is_virtual=True)
 
         # Methods.
         x.add_method("haveNodeList", "bool", [constrefparam(nodelist, "nodeList")], is_const=True)
