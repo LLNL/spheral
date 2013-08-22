@@ -170,8 +170,8 @@ if SVPH:
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
                              HUpdate = HEvolution,
-                             xmin = Vector(x0), #Vector(-100.0),
-                             xmax = Vector(x2))  #Vector( 100.0))
+                             xmin = Vector(-100.0),
+                             xmax = Vector( 100.0))
 else:
     hydro = SPHHydro(WT,
                      WTPi,

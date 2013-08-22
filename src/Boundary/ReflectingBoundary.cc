@@ -409,6 +409,48 @@ enforceBoundary(vector<typename Dimension::ThirdRankTensor>& faceField,
 }
 
 //------------------------------------------------------------------------------
+// Fill in faces on this boundary with effective opposite face values.
+//------------------------------------------------------------------------------
+// Specialization for vector<Scalar> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+swapFaceValues(Field<Dimension, vector<Scalar> >& field,
+               const MeshSpace::Mesh<Dimension>& mesh) const {
+}
+
+// Specialization for vector<Vector> fields.
+template<typename Dimension>
+void
+ReflectingBoundary<Dimension>::
+swapFaceValues(Field<Dimension, vector<Vector> >& field,
+               const MeshSpace::Mesh<Dimension>& mesh) const {
+  typedef typename Mesh<Dimension>::Zone Zone;
+  const GeomPlane<Dimension>& plane = this->enterPlane();
+
+  // Flag the faces on this boundary.
+  const vector<unsigned> faceIDs = this->facesOnPlane(mesh, plane, 1.0e-6);
+  vector<unsigned> faceFlags(mesh.numFaces(), 0);
+  for (vector<unsigned>::const_iterator itr = faceIDs.begin();
+       itr != faceIDs.end();
+       ++itr) faceFlags[*itr] = 1;
+
+  // Now walk the field looking for faces on the boundary.
+  const unsigned n = field.numInternalElements();
+  const unsigned offset = mesh.offset(field.nodeList());
+  for (unsigned i = 0; i != n; ++i) {
+    vector<Vector>& vals = field(i);
+    const Zone& zone = mesh.zone(offset + i);
+    const vector<int>& faceIDs = zone.faceIDs();
+    const unsigned nfaces = faceIDs.size();
+    CHECK(vals.size() == nfaces);
+    for (unsigned j = 0; j != nfaces; ++j) {
+      if (faceFlags[Mesh<Dimension>::positiveID(faceIDs[j])] == 1) vals[j] = mReflectOperator*vals[j];
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Dump state.
 //------------------------------------------------------------------------------
 template<typename Dimension>

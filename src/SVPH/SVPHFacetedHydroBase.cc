@@ -279,6 +279,17 @@ registerState(DataBase<Dimension>& dataBase,
         CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
       }
     }
+
+    // Boundaries!
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (ConstBoundaryIterator itr = this->boundaryBegin();
+           itr != this->boundaryEnd();
+           ++itr) {
+        (*itr)->swapFaceValues(*mFaceMass[nodeListi], *mMeshPtr);
+        (*itr)->swapFaceValues(*mFaceVelocity[nodeListi], *mMeshPtr);
+        (*itr)->swapFaceValues(*mFaceSpecificThermalEnergy0[nodeListi], *mMeshPtr);
+      }
+    }
   }
 
   // Now register away.
@@ -636,7 +647,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Boundaries!
-  // cerr << "Before boundaries 1 : " << posFace[0] << " " << rhoFace[0] << " " << csFace[0] << " " << Pface[0] << " " << velFace[0] << " " << Hface[0] << endl;
   for (ConstBoundaryIterator itr = this->boundaryBegin();
        itr != this->boundaryEnd();
        ++itr) {
@@ -646,7 +656,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     (*itr)->enforceBoundary(velFace, mesh);
     (*itr)->enforceBoundary(Hface, mesh);
   }
-  // cerr << "After boundaries 1 : " << posFace[0] << " " << rhoFace[0] << " " << csFace[0] << " " << Pface[0] << " " << velFace[0] << " " << Hface[0] << endl;
 
   // Determine the Q (requires correct boundary enforced velocities).
   for (k = 0; k != numFaces; ++k) {
@@ -698,13 +707,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
 
   // Boundaries!
-  // cerr << "Before boundaries 2 : " << posFace[0] << " " << Qface[0] << endl;
   for (ConstBoundaryIterator itr = this->boundaryBegin();
        itr != this->boundaryEnd();
        ++itr) {
     (*itr)->enforceBoundary(Qface, mesh);
   }
-  // cerr << "After boundaries 2 : " << posFace[0] << " " << Qface[0] << endl;
 
   // Finish the face state.
   for (k = 0; k != numFaces; ++k) {
@@ -837,6 +844,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           faceAccelerationi.push_back(DvDt(nodeListj, j));
         }
         CHECK(faceAccelerationi.size() == nfaces);
+      }
+    }
+
+    // Boundaries!
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (ConstBoundaryIterator itr = this->boundaryBegin();
+           itr != this->boundaryEnd();
+           ++itr) {
+        (*itr)->swapFaceValues(*faceAcceleration[nodeListi], *mMeshPtr);
       }
     }
   }
