@@ -30,8 +30,8 @@ Zone(const Mesh<Dim<1> >& mesh,
 
   // Pre-conditions.
   REQUIRE(faceIDs.size() == 2);
-  REQUIRE(faceIDs[0] >= 0);
-  REQUIRE(faceIDs[1] <  0);
+  REQUIRE(faceIDs[0] <  0);
+  REQUIRE(faceIDs[1] >= 0);
 
   // Iterate over the input faces and build the unique sets of nodes and edges.
   int i;
