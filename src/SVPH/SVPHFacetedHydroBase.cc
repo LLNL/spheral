@@ -1184,9 +1184,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
-  file.write(mVolume, pathName + "/volume");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mHideal, pathName + "/Hideal");
+  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.write(mMassSecondMoment, pathName + "/massSecondMoment");
@@ -1199,7 +1199,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
+
+  file.write(mVolume, pathName + "/volume");
+  file.write(mFaceForce, pathName + "/faceForce");
 }
 
 //------------------------------------------------------------------------------
@@ -1209,13 +1211,12 @@ template<typename Dimension>
 void
 SVPHFacetedHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
- 
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
-  file.read(mVolume, pathName + "/volume");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mHideal, pathName + "/Hideal");
+  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.read(mMassSecondMoment, pathName + "/massSecondMoment");
@@ -1228,7 +1229,9 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
+
+  file.read(mVolume, pathName + "/volume");
+  file.read(mFaceForce, pathName + "/faceForce");
 }
 
 }
