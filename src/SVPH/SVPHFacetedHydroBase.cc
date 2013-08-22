@@ -238,9 +238,9 @@ registerState(DataBase<Dimension>& dataBase,
     mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
     mSpecificThermalEnergy0.copyFields();
     dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
-    dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, false);
-    dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, false);
-    dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", false);
+    dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, true);
+    dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, true);
+    dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", true);
 
     const unsigned numNodeLists = mass.numFields();
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -455,6 +455,14 @@ initialize(const typename Dimension::Scalar time,
                time, 
                dt,
                this->kernel());
+
+  // // Copy the starting specific thermal energy for compatible mode.
+  // if (mCompatibleEnergyEvolution) {
+  //   const FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  //   mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
+  //   mSpecificThermalEnergy0.copyFields();
+  //   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
+  // }
 }
 
 //------------------------------------------------------------------------------
