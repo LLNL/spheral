@@ -355,7 +355,7 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
           z1 < numOldZones + newCells.size() and 
           (z2 == UNSETID or z2 < numOldZones + newCells.size()));
     if (cellX[z1] > mNodePositions[inode].x()) swap(z1, z2);
-    mFaces.push_back(Face(*this, inode, z1, ~z2, vector<unsigned>(1, inode)));
+    mFaces.push_back(Face(*this, inode, ~z1, z2, vector<unsigned>(1, inode)));
   }
 
   // Create the new cells.
@@ -364,11 +364,11 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     const int iface1 = newCells[k][0][0];
     const int iface2 = newCells[k][1][0];
     if (mNodePositions[iface1].x() < cellX[numOldZones + k]) {
-      faces.push_back(iface1);
-      faces.push_back(~iface2);
-    } else {
-      faces.push_back(iface2);
       faces.push_back(~iface1);
+      faces.push_back(iface2);
+    } else {
+      faces.push_back(~iface2);
+      faces.push_back(iface1);
     }
     unsigned izone = mZones.size();
     mZones.push_back(Zone(*this, izone, faces));
