@@ -205,11 +205,11 @@ update(const KeyType& key,
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-    const FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
-    const FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
-    const FieldList<Dimension, vector<Scalar> > faceSpecificEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
+    // const FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
+    // const FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
+    // const FieldList<Dimension, vector<Scalar> > faceSpecificEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
     const FieldList<Dimension, vector<Vector> > faceForce = derivs.fields(HydroFieldNames::faceForce, vector<Vector>());
-    const FieldList<Dimension, vector<Vector> > faceAcceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
+    // const FieldList<Dimension, vector<Vector> > faceAcceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
 
     const double hdt = 0.5*multiplier;
     const size_t numNodeLists = eps.numFields();
@@ -223,6 +223,9 @@ update(const KeyType& key,
     for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       n = eps[nodeListi]->numInternalElements();
       for (i = 0; i != n; ++i) {
+        const Zone& zonei = mesh.zone(nodeListi, i);
+        const vector<int>& faceIDs = zonei.faceIDs();
+        const unsigned nfaces = faceIDs.size();
 
         // State for node i.
         DepsDti = 0.0;
@@ -230,41 +233,41 @@ update(const KeyType& key,
         const Vector& vi = velocity(nodeListi, i);
         const Scalar& ui = specificEnergy0(nodeListi, i);
         const Vector& ai = acceleration(nodeListi, i);
+        const vector<Vector>& fforce = faceForce(nodeListi, i);
+        CHECK2(fforce.size() == nfaces, fforce.size() << " " << nfaces);
         vi12 = vi + ai*hdt;
 
-        // Face state for neighbor nodes.
-        const vector<Scalar>& mface = faceMass(nodeListi, i);
-        const vector<Vector>& vface = faceVelocity(nodeListi, i);
-        const vector<Scalar>& uface = faceSpecificEnergy0(nodeListi, i);
-        const vector<Vector>& aface = faceAcceleration(nodeListi, i);
-        const vector<Vector>& fforce = faceForce(nodeListi, i);
-        const unsigned nfaces = mface.size();
-        CHECK(vface.size() == nfaces);
-        CHECK(uface.size() == nfaces);
-        CHECK(aface.size() == nfaces);
-        CHECK2(fforce.size() == nfaces, fforce.size() << " " << nfaces);
-
-        const Zone& zonei = mesh.zone(nodeListi, i);
-        const vector<int>& faceIDs = zonei.faceIDs();
-        CHECK(faceIDs.size() == nfaces);
+        // // Face state for neighbor nodes.
+        // const vector<Scalar>& mface = faceMass(nodeListi, i);
+        // const vector<Vector>& vface = faceVelocity(nodeListi, i);
+        // const vector<Scalar>& uface = faceSpecificEnergy0(nodeListi, i);
+        // const vector<Vector>& aface = faceAcceleration(nodeListi, i);
+        // const unsigned nfaces = mface.size();
+        // CHECK(vface.size() == nfaces);
+        // CHECK(uface.size() == nfaces);
+        // CHECK(aface.size() == nfaces);
 
         // Walk the faces of this SVPH node.
         for (k = 0; k != nfaces; ++k) {
+          const Face& face = mesh.face(faceIDs[k]);
+          unsigned nodeListj = nodeListi, j = i;
+          const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
+          if (oppZoneID != Mesh<Dimension>::UNSETID) {
+            mesh.lookupNodeListID(oppZoneID, nodeListj, j);
+          }
 
           // State for opposite node.
-          const Scalar& mj = mface[k];
-          const Vector& vj = vface[k];
-          const Scalar& uj = uface[k];
-          const Vector& aj = aface[k];
+          const Scalar& mj = mass(nodeListj, j);
+          const Vector& vj = velocity(nodeListj, j);
+          const Scalar& uj = specificEnergy0(nodeListj, j);
+          const Vector& aj = acceleration(nodeListj, j);
           vj12 = vj + aj*hdt;
           vji12 = vj12 - vi12;
 
-          // const Face& face = mesh.face(faceIDs[k]);
-          // unsigned nodeListj = nodeListi, j = i;
-          // const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-          // if (oppZoneID != Mesh<Dimension>::UNSETID) {
-          //   mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-          // }
+          // const Scalar& mj = mface[k];
+          // const Vector& vj = vface[k];
+          // const Scalar& uj = uface[k];
+          // const Vector& aj = aface[k];
           // CHECK(mj == mass(nodeListj, j));
           // CHECK(uj == specificEnergy0(nodeListj, j));
           // CHECK(aj == acceleration(nodeListj, j));

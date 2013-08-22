@@ -54,7 +54,7 @@ commandLine(nx1 = 400,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 10,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -169,7 +169,7 @@ if SVPH:
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 else:

@@ -206,8 +206,8 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              HUpdate = HEvolution,
-                             xmin = Vector(x0),
-                             xmax = Vector(x1))
+                             xmin = Vector(-100.0),
+                             xmax = Vector( 100.0))
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
