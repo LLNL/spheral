@@ -213,8 +213,8 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
     // Now we can build the zone.
     // We use the fact that there is a one to one mapping of nodes->faces.
     vector<int> faceIDs;
-    faceIDs.push_back(node1);
-    faceIDs.push_back(~node2);
+    faceIDs.push_back(~node1);
+    faceIDs.push_back(node2);
     mZones.push_back(Zone(*this, igen, faceIDs));
   }
 
