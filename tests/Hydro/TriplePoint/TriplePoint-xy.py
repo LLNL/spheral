@@ -107,6 +107,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        densityUpdateLabel[densityUpdate],
+                       "XSPH=%s" % XSPH,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
@@ -259,7 +260,7 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
-                             XSVPH = False,
+                             XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              generateVoid = False,
                              HUpdate = HEvolution,
