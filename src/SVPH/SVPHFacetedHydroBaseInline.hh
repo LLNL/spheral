@@ -91,6 +91,23 @@ SVPHFacetedHydroBase<Dimension>::linearConsistent(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're generating void points.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SVPHFacetedHydroBase<Dimension>::generateVoid() const {
+  return mGenerateVoid;
+}
+
+template<typename Dimension>
+inline
+void
+SVPHFacetedHydroBase<Dimension>::generateVoid(const bool val) {
+  mGenerateVoid = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -59,6 +59,7 @@ public:
                        const bool compatibleEnergyEvolution,
                        const bool XSVPH,
                        const bool linearConsistent,
+                       const bool generateVoid,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const Vector& xmin,
@@ -155,6 +156,10 @@ public:
   bool linearConsistent() const;
   void linearConsistent(const bool val);
 
+  // Flag to select whether or not to generate void points in the tessellation.
+  bool generateVoid() const;
+  void generateVoid(const bool val);
+
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
@@ -210,7 +215,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent;
+  bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent, mGenerateVoid;
 
   // Optional bounding box for generating the mesh.
   Vector mXmin, mXmax;

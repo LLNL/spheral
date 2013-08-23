@@ -244,8 +244,9 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
+                             XSVPH = False,
                              linearConsistent = linearConsistent,
+                             generateVoid = False,
                              HUpdate = HEvolution,
                              xmin = Vector(-1.1, -1.1),
                              xmax = Vector( 1.1,  1.1))
