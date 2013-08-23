@@ -773,7 +773,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Scalar Asum = 0.0;
       for (unsigned k = 0; k != nfaces; ++k) {  
         const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-        const Vector dA = dAface[fid] * sgn(faceIDs[k]);
+        const Vector dA = -(dAface[fid] * sgn(faceIDs[k]));
+        CHECK(dA.dot(posFace[fid] - ri) < 0.0);
         const Vector fforce = Pface[fid]*dA + Qface[fid]*dA;
         const Scalar area = dAface[fid].magnitude();
         DvDti += fforce;

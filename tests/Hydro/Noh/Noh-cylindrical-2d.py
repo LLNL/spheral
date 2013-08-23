@@ -354,7 +354,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)))
 output("control")
 
 # Do some startup stuff (unless we're restarting).
