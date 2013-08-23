@@ -75,7 +75,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     // Call the polytope method for computing the convex hull.
     vector<double> low(2, 0.0);
-    polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-10);
+    polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
     const unsigned numVertices = plc.facets.size();
     CHECK(numVertices >= 3);
 
