@@ -136,9 +136,11 @@ computeSVPHCorrectionsOnFaces(const Mesh<Dimension>& mesh,
     if (A[iface] > 0.0) {
       A[iface] = 1.0/A[iface];
 
-      CHECK2(abs(m2[iface].Determinant()) > 1.0e-30, iface << " " << m2[iface].Determinant());
-      const SymTensor m2inv = m2[iface].Inverse();
-      B[iface] = -(m2inv*m1[iface]);
+      // CHECK2(abs(m2[iface].Determinant()) > 1.0e-30, iface << " " << m2[iface].Determinant());
+      if (abs(m2[iface].Determinant()) > 1.0e-30) {
+        const SymTensor m2inv = m2[iface].Inverse();
+        B[iface] = -(m2inv*m1[iface]);
+      }
     }
   }
 }
