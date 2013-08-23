@@ -166,7 +166,7 @@ if SVPH:
     hydro = SVPHFacetedHydro(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
-                             XSVPH = False,
+                             XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              generateVoid = False,
                              densityUpdate = densityUpdate,

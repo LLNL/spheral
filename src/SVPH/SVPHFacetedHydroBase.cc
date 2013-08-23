@@ -784,6 +784,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         faceForcei.push_back(fforce);
         Asum += area;
         Qavg += area*Qface[fid];
+        DxDti += area*(velFace[fid] - vi);
       }
       CHECK(faceForcei.size() == nfaces);
       CHECK(Asum > 0.0);
@@ -795,7 +796,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
       DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
-      DxDti = vi;
+
+      if (this->XSVPH()) {
+        DxDti = vi + DxDti/Asum;
+      } else {
+        DxDti = vi;
+      }
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
