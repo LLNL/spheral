@@ -77,6 +77,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool compatibleEnergyEvolution,
                      const bool XSVPH,
                      const bool linearConsistent,
+                     const bool generateVoid,
                      const MassDensityType densityUpdate,
                      const HEvolutionType HUpdate,
                      const Vector& xmin,
@@ -88,6 +89,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSVPH(XSVPH),
   mLinearConsistent(linearConsistent),
+  mGenerateVoid(generateVoid),
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
@@ -161,9 +163,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      mXmin,
      mXmax,
      true,              // mesh ghost nodes
-     false,             // generateVoid
+     mGenerateVoid,     // generateVoid
      true,              // generateParallelConnectivity
-     true,              // removeBoundaryZones
+     (not mGenerateVoid),              // removeBoundaryZones
      2.0,               // voidThreshold
      *mMeshPtr,
      voidNodes);
@@ -313,7 +315,7 @@ registerState(DataBase<Dimension>& dataBase,
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true, false, true));
+    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true, mGenerateVoid, (not mGenerateVoid)));
     PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
     state.enroll(HydroFieldNames::mesh, meshPolicy);

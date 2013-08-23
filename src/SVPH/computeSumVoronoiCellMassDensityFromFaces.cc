@@ -49,30 +49,32 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
   const FieldList<Dimension, typename Dimension::Scalar> mass = dataBase.fluidMass();
   const FieldList<Dimension, typename Dimension::SymTensor> H = dataBase.fluidHfield();
 
-  // Prepare the face fields for summing.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> massFace(numFaces, 0.0), volFace(numFaces, 0.0);
-  vector<Vector> posFace(numFaces, Vector::zero);
-
-  // Walk the faces and sum the mass density to faces.
   const SymTensor H0 = 1.0e100*SymTensor::one;
-  for (unsigned iface = 0; iface != numFaces; ++iface) {
-    const Face& face = mesh.face(iface);
-    posFace[iface] = face.position();
+  unsigned nodeListi = 0;
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    const FluidNodeList<Dimension>& nodeList = **itr;
+    Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+    const Scalar rhoMin = nodeList.rhoMin();
+    const Scalar rhoMax = nodeList.rhoMax();
+    const unsigned n = nodeList.numInternalNodes();
 
-    // Set the neighbors for this face.
-    Neighbor<Dimension>::setMasterNeighborGroup(posFace[iface], H0,
-                                                dataBase.fluidNodeListBegin(),
-                                                dataBase.fluidNodeListEnd(),
-                                                W.kernelExtent());
+    // Prepare the face fields for summing.
+    vector<Scalar> massFace(numFaces, 0.0), volFace(numFaces, 0.0);
+    vector<Vector> posFace(numFaces, Vector::zero);
 
-    // Walk the FluidNodeLists.
-    unsigned nodeListj = 0;
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListj) {
-      const FluidNodeList<Dimension>& nodeList = **itr;
-      Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+    // Walk the faces and sum the mass and volume properties to faces for this material.
+    for (unsigned iface = 0; iface != numFaces; ++iface) {
+      const Face& face = mesh.face(iface);
+      posFace[iface] = face.position();
+
+      // Set the neighbors for this face.
+      Neighbor<Dimension>::setMasterNeighborGroup(posFace[iface], H0,
+                                                  dataBase.fluidNodeListBegin(),
+                                                  dataBase.fluidNodeListEnd(),
+                                                  W.kernelExtent());
       neighbor.setRefineNeighborList(posFace[iface], H0);
 
       // Walk the neighbors in this NodeList.
@@ -82,10 +84,10 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
         unsigned j = *neighborItr;
       
         // Get the state for node j
-        const Vector& rj = position(nodeListj, j);
-        const Scalar& mj = mass(nodeListj, j);
-        const SymTensor& Hj = H(nodeListj, j);
-        const Scalar Vj = mesh.zone(nodeListj, j).volume();
+        const Vector& rj = position(nodeListi, j);
+        const Scalar& mj = mass(nodeListi, j);
+        const SymTensor& Hj = H(nodeListi, j);
+        const Scalar Vj = mesh.zone(nodeListi, j).volume();
         const Scalar Hdetj = Hj.Determinant();
         CHECK(Vj > 0.0);
         CHECK(Hdetj > 0.0);
@@ -100,18 +102,8 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
         volFace[iface] += Vj*Wj;
       }
     }
-  }
 
-  // Interpolate from faces to SVPH nodes.
-  unsigned nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr, ++nodeListi) {
-    const FluidNodeList<Dimension>& nodeList = **itr;
-    const Scalar rhoMin = nodeList.rhoMin();
-    const Scalar rhoMax = nodeList.rhoMax();
-    const unsigned n = nodeList.numInternalNodes();
-
+    // Interpolate from faces to SVPH nodes.
     for (unsigned i = 0; i != n; ++i) {
       const Zone& zone = mesh.zone(nodeListi, i);
       const vector<int>& faceIDs = zone.faceIDs();

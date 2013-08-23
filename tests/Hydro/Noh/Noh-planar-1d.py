@@ -205,6 +205,7 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              densityUpdate = densityUpdate,
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
+                             generateVoid = False,
                              HUpdate = HEvolution,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
