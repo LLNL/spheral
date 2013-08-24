@@ -103,7 +103,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                                                                   true);    // Build parallel connectivity
 #else  // not USE_MPI
 #if defined USE_TETGEN && ( USE_TETGEN>0 )
-    polytope::TetgenTessellator tessellator();
+    polytope::TetgenTessellator tessellator ;
 #else
     polytope::VoroPP_3d<double> tessellator ;
 #endif
