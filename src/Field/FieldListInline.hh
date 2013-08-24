@@ -1510,6 +1510,17 @@ FieldList<Dimension, DataType>::numGhostNodes() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the set of NodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+const std::vector<NodeSpace::NodeList<Dimension>*>&
+FieldList<Dimension, DataType>::
+nodeListPtrs() const {
+  return mNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
 // Internal method to build the NodeListIndexMap from scratch.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
