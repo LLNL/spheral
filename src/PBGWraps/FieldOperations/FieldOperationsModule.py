@@ -47,6 +47,7 @@ class FieldOperations:
         vector_of_vector_of_Vector = "vector_of_vector_of_Vector%id" % ndim
         vector_of_vector_of_Tensor = "vector_of_vector_of_Tensor%id" % ndim
         vector_of_vector_of_SymTensor = "vector_of_vector_of_SymTensor%id" % ndim
+        vector_of_Boundary = "vector_of_Boundary%id" % ndim
 
         # smoothFields
         space.add_function("smoothFields", scalarfieldlist, [constrefparam(scalarfieldlist, "fieldList"),
@@ -220,7 +221,8 @@ class FieldOperations:
                                                                      constrefparam(tablekernel, "kernel"),
                                                                      constrefparam(vectorfieldlist, "splatPosition"),
                                                                      constrefparam(scalarfieldlist, "splatWeight"),
-                                                                     constrefparam(symtensorfieldlist, "splatHfield")],
+                                                                     constrefparam(symtensorfieldlist, "splatHfield"),
+                                                                     constrefparam(vector_of_Boundary, "boundaryConditions")],
                            template_parameters = [dim],
                            custom_name = "splatMultipleScalarFieldsMash%id" % ndim)
 
