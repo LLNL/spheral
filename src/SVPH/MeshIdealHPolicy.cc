@@ -109,43 +109,44 @@ update(const KeyType& key,
       }
     }
 
-    // Now go through and filter the H tensor locally.
-    FieldList<Dimension, SymTensor> Havg = state.fields(ReplaceBoundedState<Dimension, SymTensor, Scalar>::prefix() + HydroFieldNames::H, SymTensor::zero);
-    Havg.Zero();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const unsigned n = H[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Zone& zone = mesh.zone(nodeListi, i);
+    // // Now go through and filter the H tensor locally.
+    // FieldList<Dimension, SymTensor> Havg = derivs.fields(ReplaceBoundedState<Dimension, SymTensor, Scalar>::prefix() + HydroFieldNames::H, SymTensor::zero);
+    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    //   const unsigned n = H[nodeListi]->numInternalElements();
+    //   for (unsigned i = 0; i != n; ++i) {
+    //     const Zone& zone = mesh.zone(nodeListi, i);
+    //     Havg(nodeListi, i).Zero();
 
-        // Build the unique set of neighboring zones by nodes.
-        vector<unsigned> otherZones;
-        {
-          const vector<unsigned>& nodeIDs = zone.nodeIDs();
-          for (vector<unsigned>::const_iterator itr = nodeIDs.begin();
-               itr != nodeIDs.end();
-               ++itr) {
-            const vector<unsigned>& nodeZoneIDs = mesh.node(*itr).zoneIDs();
-            copy(nodeZoneIDs.begin(), nodeZoneIDs.end(), back_inserter(otherZones));
-          }
-          sort(otherZones.begin(), otherZones.end());
-          otherZones.erase(unique(otherZones.begin(), otherZones.end()), otherZones.end());
-        }
-        CHECK(otherZones.size() > 0);
+    //     // Build the unique set of neighboring zones by nodes.
+    //     vector<unsigned> otherZones;
+    //     {
+    //       const vector<unsigned>& nodeIDs = zone.nodeIDs();
+    //       for (vector<unsigned>::const_iterator itr = nodeIDs.begin();
+    //            itr != nodeIDs.end();
+    //            ++itr) {
+    //         const vector<unsigned>& nodeZoneIDs = mesh.node(*itr).zoneIDs();
+    //         copy(nodeZoneIDs.begin(), nodeZoneIDs.end(), back_inserter(otherZones));
+    //       }
+    //       sort(otherZones.begin(), otherZones.end());
+    //       otherZones.erase(unique(otherZones.begin(), otherZones.end()), otherZones.end());
+    //     }
+    //     CHECK(otherZones.size() > 0);
 
-        // Build our averaged H tensor.
-        for (vector<unsigned>::const_iterator itr = otherZones.begin();
-             itr != otherZones.end();
-             ++itr) {
-          unsigned nodeListj = nodeListi, j = i;
-          if (*itr != Mesh<Dimension>::UNSETID) {
-            mesh.lookupNodeListID(*itr, nodeListj, j);
-          }
-          Havg(nodeListi, i) += H(nodeListj, j).Inverse();
-        }
-        Havg(nodeListi, i) = (Havg(nodeListi, i)/otherZones.size()).Inverse();
-      }
-    }
-    H.assignFields(Havg);
+    //     // Build our averaged H tensor.
+    //     for (vector<unsigned>::const_iterator itr = otherZones.begin();
+    //          itr != otherZones.end();
+    //          ++itr) {
+    //       unsigned nodeListj = nodeListi, j = i;
+    //       if (*itr != Mesh<Dimension>::UNSETID) {
+    //         mesh.lookupNodeListID(*itr, nodeListj, j);
+    //       }
+    //       Havg(nodeListi, i) += H(nodeListj, j).Inverse();
+    //     }
+    //     Havg(nodeListi, i) = (Havg(nodeListi, i)/otherZones.size()).Inverse();
+    //     cerr << " --> " << i << " " << H(nodeListi,i).Inverse() << " " << Havg(nodeListi, i).Inverse() << endl;
+    //   }
+    // }
+    // H.assignFields(Havg);
 
   }
 }
