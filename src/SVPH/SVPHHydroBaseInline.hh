@@ -91,6 +91,25 @@ SVPHHydroBase<Dimension>::linearConsistent(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// The fraction of centroidal motion to apply.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+SVPHHydroBase<Dimension>::fcentroidal() const {
+  return mfcentroidal;
+}
+
+template<typename Dimension>
+inline
+void
+SVPHHydroBase<Dimension>::fcentroidal(const typename Dimension::Scalar val) {
+  VERIFY2(val >= 0.0 and val <= 1.0,
+          "SVPHHydro range error : fcentroidal should be in the range [0,1].");
+  mfcentroidal = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>

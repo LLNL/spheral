@@ -39,6 +39,7 @@ commandLine(KernelConstructor = BSplineKernel,
             #Qconstructor = MonaghanGingoldViscosity,
             Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
+            fcentroidal = 0.0,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
@@ -207,6 +208,7 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              linearConsistent = linearConsistent,
                              generateVoid = False,
                              HUpdate = HEvolution,
+                             fcentroidal = fcentroidal,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 else:

@@ -166,15 +166,16 @@ class SVPH:
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
                            constrefparam(tablekernel, "W"),
                            refparam(artificialviscosity, "Q"),
-                           param("double", "cfl", default_value="0.5"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "XSVPH", default_value="true"),
-                           param("int", "linearConsistent", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
-                           param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "XSVPH"),
+                           param("int", "linearConsistent"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("double", "fcentroidal"),
+                           param(vector, "xmin"),
+                           param(vector, "xmax")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
@@ -301,16 +302,17 @@ class SVPH:
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
                            constrefparam(tablekernel, "W"),
                            refparam(artificialviscosity, "Q"),
-                           param("double", "cfl", default_value="0.5"),
-                           param("int", "useVelocityMagnitudeForDt", default_value="false"),
-                           param("int", "compatibleEnergyEvolution", default_value="true"),
-                           param("int", "XSVPH", default_value="true"),
-                           param("int", "linearConsistent", default_value="false"),
-                           param("int", "generateVoid", default_value="true"),
-                           param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
-                           param(vector, "xmin", default_value="%s(-1e10, -1e10, -1e10)" % vector),
-                           param(vector, "xmax", default_value="%s( 1e10,  1e10,  1e10)" % vector)])
+                           param("double", "cfl"),
+                           param("int", "useVelocityMagnitudeForDt"),
+                           param("int", "compatibleEnergyEvolution"),
+                           param("int", "XSVPH"),
+                           param("int", "linearConsistent"),
+                           param("int", "generateVoid"),
+                           param("MassDensityType", "densityUpdate"),
+                           param("HEvolutionType", "HUpdate"),
+                           param("double", "fcentroidal"),
+                           param(vector, "xmin"),
+                           param(vector, "xmax")])
 
         # Methods.
         x.add_method("dt", "pair_double_string", [constrefparam(database, "dataBase"),

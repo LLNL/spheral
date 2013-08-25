@@ -62,6 +62,7 @@ public:
                        const bool generateVoid,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
+                       const Scalar fcentroidal,
                        const Vector& xmin,
                        const Vector& xmax);
 
@@ -160,6 +161,10 @@ public:
   bool generateVoid() const;
   void generateVoid(const bool val);
 
+  // Fraction of centroidal motion to apply each step.
+  Scalar fcentroidal() const;
+  void fcentroidal(const Scalar val);
+
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
@@ -216,6 +221,7 @@ protected:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent, mGenerateVoid;
+  Scalar mfcentroidal;
 
   // Optional bounding box for generating the mesh.
   Vector mXmin, mXmax;
