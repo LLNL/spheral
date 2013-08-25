@@ -117,7 +117,8 @@ class SpheralVoronoiSiloDump:
                                                boundaries = self._boundaries,
                                                generateVoid = False,
                                                generateParallelConnectivity = False,
-                                               removeBoundaryZones = True)
+                                               removeBoundaryZones = True,
+                                               voidThreshold = 10.0)
         else:
             assert self.dimension == "3d"
             mesh, void = generatePolyhedralMesh(self._nodeLists,

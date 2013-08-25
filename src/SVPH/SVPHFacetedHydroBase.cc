@@ -30,6 +30,7 @@
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
+#include "SVPH/MeshIdealHPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
@@ -347,7 +348,12 @@ registerState(DataBase<Dimension>& dataBase,
       state.enroll((*itr)->Hfield(), Hpolicy);
     } else {
       CHECK(HEvolution() == PhysicsSpace::IdealH);
-      PolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
+      PolicyPointer Hpolicy(new MeshIdealHPolicy<Dimension>(mSmoothingScaleMethod,
+                                                            (*itr)->hmin(),
+                                                            (*itr)->hmax(),
+                                                            (*itr)->hminratio(),
+                                                            (*itr)->nodesPerSmoothingScale()));
+      // PolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
       state.enroll((*itr)->Hfield(), Hpolicy);
     }
 
@@ -821,6 +827,45 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
+  // // We don't like high-frequency noise in the H field, so do a local filtering.
+  // FieldList<Dimension, SymTensor> Havg = dataBase.newFluidFieldList(SymTensor::zero, "Havg");
+  // for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   const unsigned n = Hideal[nodeListi]->numInternalElements();
+  //   for (i = 0; i != n; ++i) {
+  //     const Zone& zone = mesh.zone(nodeListi, i);
+
+  //     // Build the unique set of neighboring zones by nodes.
+  //     vector<unsigned> otherZones;
+  //     {
+  //       const vector<unsigned>& nodeIDs = zone.nodeIDs();
+  //       for (vector<unsigned>::const_iterator itr = nodeIDs.begin();
+  //            itr != nodeIDs.end();
+  //            ++itr) {
+  //         const vector<unsigned>& nodeZoneIDs = mesh.node(*itr).zoneIDs();
+  //         copy(nodeZoneIDs.begin(), nodeZoneIDs.end(), back_inserter(otherZones));
+  //       }
+  //       sort(otherZones.begin(), otherZones.end());
+  //       otherZones.erase(unique(otherZones.begin(), otherZones.end()), otherZones.end());
+  //     }
+  //     CHECK(otherZones.size() > 0);
+
+  //     // Build our averaged H tensor.
+  //     for (vector<unsigned>::const_iterator itr = otherZones.begin();
+  //          itr != otherZones.end();
+  //          ++itr) {
+  //       if (*itr == Mesh<Dimension>::UNSETID) {
+  //         nodeListj = nodeListi;
+  //         j = i;
+  //       } else {
+  //         mesh.lookupNodeListID(*itr, nodeListj, j);
+  //       }
+  //       Havg(nodeListi, i) += Hideal(nodeListj, j).Inverse();
+  //     }
+  //     Havg(nodeListi, i) = (Havg(nodeListi, i)/otherZones.size()).Inverse();
+  //   }
+  // }
+  // Hideal.assignFields(Havg);
+
   // Finally, if we're using the compatible energy discretization we need to
   // fill in the opposite properties across faces.
   if (mCompatibleEnergyEvolution) {
@@ -931,7 +976,7 @@ dt(const DataBase<Dimension>& dataBase,
         // Get this nodes length scale.  This is the only bit we specialize here from the
         // generic base class method.
         CHECK(vol(nodeListi, i) > 0.0);
-        const Scalar nodeScale = Dimension::rootnu(vol(nodeListi, i));
+        const Scalar nodeScale = 0.5*Dimension::rootnu(vol(nodeListi, i));
 
         // Sound speed limit.
         const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);

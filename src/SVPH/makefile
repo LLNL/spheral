@@ -15,6 +15,7 @@ SRCTARGETS = \
 	SVPHCorrectionsPolicyInst.cc \
 	SVPHMassDensityPolicyInst.cc \
 	CompatibleFaceSpecificThermalEnergyPolicyInst.cc \
+	MeshIdealHPolicyInst.cc \
 	SpecificThermalEnergyVolumePolicyInst.cc
 
 PYTHONTARGETS = \

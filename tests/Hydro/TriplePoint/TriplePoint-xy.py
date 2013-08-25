@@ -107,6 +107,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        densityUpdateLabel[densityUpdate],
+                       "linearConsistent=%s" % linearConsistent,
                        "XSPH=%s" % XSPH,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
