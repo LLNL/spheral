@@ -68,17 +68,18 @@ using PhysicsSpace::HEvolutionType;
 template<typename Dimension>
 SVPHHydroBase<Dimension>::
 SVPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-             const TableKernel<Dimension>& W,
-             ArtificialViscosity<Dimension>& Q,
-             const double cfl,
-             const bool useVelocityMagnitudeForDt,
-             const bool compatibleEnergyEvolution,
-             const bool XSVPH,
-             const bool linearConsistent,
-             const MassDensityType densityUpdate,
-             const HEvolutionType HUpdate,
-             const Vector& xmin,
-             const Vector& xmax):
+              const TableKernel<Dimension>& W,
+              ArtificialViscosity<Dimension>& Q,
+              const double cfl,
+              const bool useVelocityMagnitudeForDt,
+              const bool compatibleEnergyEvolution,
+              const bool XSVPH,
+              const bool linearConsistent,
+              const MassDensityType densityUpdate,
+              const HEvolutionType HUpdate,
+              const Scalar fcentroidal,
+              const Vector& xmin,
+              const Vector& xmax):
   GenericHydro<Dimension>(W, W, Q, cfl, useVelocityMagnitudeForDt),
   mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
@@ -86,6 +87,7 @@ SVPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSVPH(XSVPH),
   mLinearConsistent(linearConsistent),
+  mfcentroidal(fcentroidal),
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
@@ -112,6 +114,8 @@ SVPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
   mPairAccelerations(FieldList<Dimension, vector<Vector> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
+  // Delegate range checking to our assignment methods.
+  this->fcentroidal(mfcentroidal);
 }
 
 //------------------------------------------------------------------------------
@@ -738,6 +742,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       } else {
         DxDti = vi;
       }
+
+      // // Apply any centroidal filtering.
+      // DxDti = (1.0 - mfcentroidal)*DxDti + mfcentroidal*(zonei.position() - ri)/dt;
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,

@@ -59,6 +59,7 @@ commandLine(
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     linearConsistent = False,
+    fcentroidal = 0.0,
     Cl = 1.0, 
     Cq = 0.75,
     Qlimiter = False,
@@ -109,6 +110,8 @@ baseDir = os.path.join(dataDir,
                        densityUpdateLabel[densityUpdate],
                        "linearConsistent=%s" % linearConsistent,
                        "XSPH=%s" % XSPH,
+                       "nPerh=%3.1f" % nPerh,
+                       "fcentroidal=%1.3f" % fcentroidal,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
@@ -265,6 +268,7 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              linearConsistent = linearConsistent,
                              generateVoid = False,
                              HUpdate = HEvolution,
+                             fcentroidal = fcentroidal,
                              xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 else:

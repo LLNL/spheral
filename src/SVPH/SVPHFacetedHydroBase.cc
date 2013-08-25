@@ -81,6 +81,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool generateVoid,
                      const MassDensityType densityUpdate,
                      const HEvolutionType HUpdate,
+                     const Scalar fcentroidal,
                      const Vector& xmin,
                      const Vector& xmax):
   GenericHydro<Dimension>(W, W, Q, cfl, useVelocityMagnitudeForDt),
@@ -91,6 +92,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSVPH(XSVPH),
   mLinearConsistent(linearConsistent),
   mGenerateVoid(generateVoid),
+  mfcentroidal(fcentroidal),
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
@@ -121,6 +123,8 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   // mFaceSpecificThermalEnergy0(FieldList<Dimension, vector<Scalar> >::Copy),
   mFaceForce(FieldList<Dimension, vector<Vector> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
+  // Delegate range checking to our assignment methods.
+  this->fcentroidal(mfcentroidal);
 }
 
 //------------------------------------------------------------------------------
@@ -803,11 +807,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
       DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
 
+      // Position update.
       if (this->XSVPH()) {
         DxDti = vi + DxDti/Asum;
       } else {
         DxDti = vi;
       }
+
+      // Apply any centroidal filtering.
+      const Vector drcent = mfcentroidal*(zonei.position() - ri);
+      const Scalar flimitcent = min(1.0, DxDti.magnitude()*dt*safeInv(drcent.magnitude()));
+      CHECK(flimitcent >= 0.0 and flimitcent <= 1.0);
+      DxDti = (1.0 - mfcentroidal)*DxDti + drcent/dt*flimitcent;
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,

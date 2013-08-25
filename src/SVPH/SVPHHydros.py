@@ -20,6 +20,7 @@ class %(classname)s%(dim)s(%(basename)sBase%(dim)s):
                  generateVoid = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
+                 fcentroidal = 0.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -37,6 +38,7 @@ class %(classname)s%(dim)s(%(basename)sBase%(dim)s):
                                       generateVoid,
                                       densityUpdate,
                                       HUpdate,
+                                      fcentroidal,
                                       xmin,
                                       xmax)
         return
