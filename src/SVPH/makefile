@@ -10,13 +10,13 @@ SRCTARGETS = \
 	computeSumVoronoiCellMassDensityFromFacesInst.cc \
 	sampleFieldListSVPHInst.cc \
 	gradientFieldListSVPHInst.cc \
-	SVPHHydroBaseInst.cc \
 	SVPHFacetedHydroBaseInst.cc \
 	SVPHCorrectionsPolicyInst.cc \
 	SVPHMassDensityPolicyInst.cc \
 	CompatibleFaceSpecificThermalEnergyPolicyInst.cc \
 	MeshIdealHPolicyInst.cc \
-	SpecificThermalEnergyVolumePolicyInst.cc
+	SpecificThermalEnergyVolumePolicyInst.cc \
+	CellPressurePolicyInst.cc
 
 PYTHONTARGETS = \
 	SVPHHydros.py
