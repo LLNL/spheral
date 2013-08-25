@@ -21,11 +21,13 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/CopyState.hh"
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
 #include "SVPH/SpecificThermalEnergyVolumePolicy.hh"
 #include "SVPH/CompatibleFaceSpecificThermalEnergyPolicy.hh"
+#include "SVPH/CellPressurePolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
@@ -43,6 +45,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
+#include "Material/EquationOfState.hh"
 
 namespace Spheral {
 namespace SVPHSpace {
@@ -61,6 +64,7 @@ using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
 using NeighborSpace::Neighbor;
 using MeshSpace::Mesh;
+using Material::EquationOfState;
 
 using PhysicsSpace::MassDensityType;
 using PhysicsSpace::HEvolutionType;
@@ -82,6 +86,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const MassDensityType densityUpdate,
                      const HEvolutionType HUpdate,
                      const Scalar fcentroidal,
+                     const Scalar fcellPressure,
                      const Vector& xmin,
                      const Vector& xmax):
   GenericHydro<Dimension>(W, W, Q, cfl, useVelocityMagnitudeForDt),
@@ -93,6 +98,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mLinearConsistent(linearConsistent),
   mGenerateVoid(generateVoid),
   mfcentroidal(fcentroidal),
+  mfcellPressure(fcellPressure),
   mXmin(xmin),
   mXmax(xmax),
   mMeshPtr(MeshPtr(new Mesh<Dimension>())),
@@ -101,6 +107,7 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   // mGradB(),
   mTimeStepMask(FieldList<Dimension, int>::Copy),
   mPressure(FieldList<Dimension, Scalar>::Copy),
+  mCellPressure(FieldList<Dimension, Scalar>::Copy),
   mSoundSpeed(FieldList<Dimension, Scalar>::Copy),
   mVolume(FieldList<Dimension, Scalar>::Copy),
   mSpecificThermalEnergy0(FieldList<Dimension, Scalar>::Copy),
@@ -117,14 +124,11 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldList<Dimension, SymTensor>::Copy),
   mDvDx(FieldList<Dimension, Tensor>::Copy),
   mInternalDvDx(FieldList<Dimension, Tensor>::Copy),
-  // mFaceMass(FieldList<Dimension, vector<Scalar> >::Copy),
-  // mFaceVelocity(FieldList<Dimension, vector<Vector> >::Copy),
-  // mFaceAcceleration(FieldList<Dimension, vector<Vector> >::Copy),
-  // mFaceSpecificThermalEnergy0(FieldList<Dimension, vector<Scalar> >::Copy),
   mFaceForce(FieldList<Dimension, vector<Vector> >::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
   // Delegate range checking to our assignment methods.
-  this->fcentroidal(mfcentroidal);
+  this->fcentroidal(fcentroidal);
+  this->fcellPressure(fcellPressure);
 }
 
 //------------------------------------------------------------------------------
@@ -212,6 +216,19 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //                                          mVolume, dataBase.fluidPosition(), dataBase.fluidHfield(),
   //                                          mA, mB, mGradB);
 
+  // If needed, initialize the cell pressure.
+  mCellPressure = dataBase.newFluidFieldList(0.0, "Cell" + HydroFieldNames::pressure);
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr) {
+    Field<Dimension, Scalar>& P = **mCellPressure.fieldForNodeList(**itr);
+    const Field<Dimension, Scalar>& vol = **mVolume.fieldForNodeList(**itr);
+    const Field<Dimension, Scalar>& mass = (*itr)->mass();
+    const Field<Dimension, Scalar>& eps = (*itr)->specificThermalEnergy();
+    Field<Dimension, Scalar> rho = mass/vol;
+    const EquationOfState<Dimension>& eos = (*itr)->equationOfState();
+    eos.setPressure(P, rho, eps);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -236,6 +253,12 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
+  // If we're not using the cell by cell regularizing pressure, just make it point
+  // at the normal pressure.
+  if (mfcellPressure == 0.0) {
+    mCellPressure = mPressure;
+  }
+
   // If we're using the compatible energy discretization we need to copy initial state and
   // fill in the opposite node properties across faces.
   if (mCompatibleEnergyEvolution) {
@@ -245,58 +268,6 @@ registerState(DataBase<Dimension>& dataBase,
     mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
     mSpecificThermalEnergy0.copyFields();
     dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
-    // dataBase.resizeFluidFieldList(mFaceMass, vector<Scalar>(), "Face " + HydroFieldNames::mass, true);
-    // dataBase.resizeFluidFieldList(mFaceVelocity, vector<Vector>(), "Face " + HydroFieldNames::velocity, true);
-    // dataBase.resizeFluidFieldList(mFaceSpecificThermalEnergy0, vector<Scalar>(), "Face " + HydroFieldNames::specificThermalEnergy + "0", true);
-
-    // const unsigned numNodeLists = mass.numFields();
-    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   const unsigned n = mass[nodeListi]->numInternalElements();
-
-    //   // Iterate over the internal nodes in this NodeList.
-    //   for (unsigned i = 0; i != n; ++i) {
-    //     const Zone& zonei = mMeshPtr->zone(nodeListi, i);
-    //     const vector<int>& faceIDs = zonei.faceIDs();
-    //     const unsigned nfaces = faceIDs.size();
-
-    //     // Get the state for node i.
-    //     vector<Scalar>& faceMassi = mFaceMass(nodeListi, i);
-    //     vector<Vector>& faceVelocityi = mFaceVelocity(nodeListi, i);
-    //     vector<Scalar>& faceSpecificThermalEnergy0i = mFaceSpecificThermalEnergy0(nodeListi, i);
-
-    //     // Walk the faces.
-    //     for (unsigned k = 0; k != nfaces; ++k) {
-    //       const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-    //       const Face& face = mMeshPtr->face(fid);
-
-    //       // Find the opposite node.
-    //       const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-    //       unsigned nodeListj = nodeListi, j = i;
-    //       if (oppZoneID != Mesh<Dimension>::UNSETID) {
-    //         mMeshPtr->lookupNodeListID(oppZoneID, nodeListj, j);
-    //       }
-
-    //       // Record the opposite node properties.
-    //       faceMassi.push_back(mass(nodeListj, j));
-    //       faceVelocityi.push_back(velocity(nodeListj, j));
-    //       faceSpecificThermalEnergy0i.push_back(mSpecificThermalEnergy0(nodeListj, j));
-    //     }
-    //     CHECK(faceMassi.size() == nfaces);
-    //     CHECK(faceVelocityi.size() == nfaces);
-    //     CHECK(faceSpecificThermalEnergy0i.size() == nfaces);
-    //   }
-    // }
-
-    // // Boundaries!
-    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   for (ConstBoundaryIterator itr = this->boundaryBegin();
-    //        itr != this->boundaryEnd();
-    //        ++itr) {
-    //     (*itr)->swapFaceValues(*mFaceMass[nodeListi], *mMeshPtr);
-    //     (*itr)->swapFaceValues(*mFaceVelocity[nodeListi], *mMeshPtr);
-    //     (*itr)->swapFaceValues(*mFaceSpecificThermalEnergy0[nodeListi], *mMeshPtr);
-    //   }
-    // }
   }
 
   // Now register away.
@@ -371,6 +342,17 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(*mPressure[nodeListi], pressurePolicy);
     state.enroll(*mSoundSpeed[nodeListi], csPolicy);
 
+    // The cell pressure for regularizing.
+    if (mfcellPressure > 0.0) {
+      PolicyPointer cellPressurePolicy(new CellPressurePolicy<Dimension>());
+      state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
+    } else {
+      mCellPressure[nodeListi]->name("Cell" + HydroFieldNames::pressure); // Have to fix from the copy above.
+      PolicyPointer cellPressurePolicy(new CopyState<Dimension, Scalar>(HydroFieldNames::pressure,
+                                                                        "Cell" + HydroFieldNames::pressure));
+      state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
+    }
+
     // Specific thermal energy.
     if (compatibleEnergyEvolution()) {
       meshPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
@@ -382,9 +364,6 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                                  mLinearConsistent));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
-      // state.enroll(*mFaceMass[nodeListi]);
-      // state.enroll(*mFaceVelocity[nodeListi]);
-      // state.enroll(*mFaceSpecificThermalEnergy0[nodeListi]);
     } else {
       PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
@@ -531,6 +510,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
+  const FieldList<Dimension, Scalar> cellPressure = state.fields("Cell" + HydroFieldNames::pressure, 0.0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -540,6 +520,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(volume.size() == numNodeLists);
+  CHECK(cellPressure.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -575,7 +556,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Prepare working arrays of face properties.
   const unsigned numFaces = mesh.numFaces();
-  vector<Scalar> rhoFace(numFaces, 0.0), csFace(numFaces, 0.0), Pface(numFaces, 0.0);
+  vector<Scalar> rhoFace(numFaces, 0.0), csFace(numFaces, 0.0), Pface(numFaces, 0.0), PcellFace(numFaces, 0.0);
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
   vector<SymTensor> Hface(numFaces, SymTensor::zero);
@@ -618,6 +599,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     rhoFace[k] = 0.5*(massDensity(nodeListi, i) + massDensity(nodeListj, j));
     csFace[k] = 0.5*(soundSpeed(nodeListi, i) + soundSpeed(nodeListj, j));
     Hface[k] = 0.5*(H(nodeListi, i) + H(nodeListj, j));
+    PcellFace[k] = 0.5*(cellPressure(nodeListi, i) + cellPressure(nodeListj, j));
 
     // Set the neighbors for this face.
     Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
@@ -731,6 +713,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK2(Ai >= 0.0, i << " " << Ai);
     Pface[k] *= Ai;
     Qface[k] *= Ai;
+
+    Pface[k] = (1.0 - mfcellPressure)*Pface[k] + mfcellPressure*PcellFace[k];
   }
 
   // Start our big loop over all FluidNodeLists.
@@ -1168,6 +1152,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, Scalar> cellPressure = state.fields("Cell" + HydroFieldNames::pressure, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   FieldList<Dimension, Vector> DvDt;
@@ -1188,6 +1173,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
+    (*boundaryItr)->applyFieldListGhostBoundary(cellPressure);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
       (*boundaryItr)->applyFieldListGhostBoundary(DvDt);
@@ -1212,6 +1198,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
+  FieldList<Dimension, Scalar> cellPressure = state.fields("Cell" + HydroFieldNames::pressure, 0.0);
 
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   FieldList<Dimension, Vector> DvDt;
@@ -1232,6 +1219,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
+    (*boundaryItr)->enforceFieldListBoundary(cellPressure);
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
       (*boundaryItr)->enforceFieldListBoundary(DvDt);
@@ -1248,6 +1236,7 @@ SVPHFacetedHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
+  file.write(mCellPressure, pathName + "/cellPressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mHideal, pathName + "/Hideal");
@@ -1278,6 +1267,7 @@ SVPHFacetedHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
+  file.read(mCellPressure, pathName + "/cellPressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mHideal, pathName + "/Hideal");

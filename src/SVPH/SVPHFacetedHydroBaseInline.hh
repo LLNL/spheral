@@ -127,6 +127,25 @@ SVPHFacetedHydroBase<Dimension>::fcentroidal(const typename Dimension::Scalar va
 }
 
 //------------------------------------------------------------------------------
+// The fraction of local cell pressure to use.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+SVPHFacetedHydroBase<Dimension>::fcellPressure() const {
+  return mfcellPressure;
+}
+
+template<typename Dimension>
+inline
+void
+SVPHFacetedHydroBase<Dimension>::fcellPressure(const typename Dimension::Scalar val) {
+  VERIFY2(val >= 0.0 and val <= 1.0,
+          "SVPHFacetedHydro range error : fcellPressure should be in the range [0,1].");
+  mfcellPressure = val;
+}
+
+//------------------------------------------------------------------------------
 // Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -224,6 +243,14 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SVPHFacetedHydroBase<Dimension>::
 pressure() const {
   return mPressure;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SVPHFacetedHydroBase<Dimension>::
+cellPressure() const {
+  return mCellPressure;
 }
 
 template<typename Dimension>

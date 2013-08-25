@@ -21,6 +21,7 @@ class %(classname)s%(dim)s(%(basename)sBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  fcentroidal = 0.0,
+                 fcellPressure = 0.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -39,13 +40,14 @@ class %(classname)s%(dim)s(%(basename)sBase%(dim)s):
                                       densityUpdate,
                                       HUpdate,
                                       fcentroidal,
+                                      fcellPressure,
                                       xmin,
                                       xmax)
         return
 """
 
 for dim in ("1d", "2d", "3d"):
-    for basename in ("SVPHHydro", "SVPHFacetedHydro"):
+    for basename in ("SVPHFacetedHydro",):
         for prefix, smoothingScaleMethod in (("", "SPHSmoothingScale"),
                                              ("A", "ASPHSmoothingScale")):
             exec(FactoryString % {"dim"                  : dim,

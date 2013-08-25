@@ -63,6 +63,7 @@ public:
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
                        const Scalar fcentroidal,
+                       const Scalar fcellPressure,
                        const Vector& xmin,
                        const Vector& xmax);
 
@@ -165,6 +166,10 @@ public:
   Scalar fcentroidal() const;
   void fcentroidal(const Scalar val);
 
+  // Fraction of the pressure to take from local cell.
+  Scalar fcellPressure() const;
+  void fcellPressure(const Scalar val);
+
   // Optionally we can provide a bounding box for use generating the mesh.
   const Vector& xmin() const;
   const Vector& xmax() const;
@@ -183,6 +188,7 @@ public:
   // const FieldSpace::FieldList<Dimension, std::vector<Tensor> >&    gradB() const;
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    cellPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
@@ -221,7 +227,7 @@ protected:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mXSVPH, mLinearConsistent, mGenerateVoid;
-  Scalar mfcentroidal;
+  Scalar mfcentroidal, mfcellPressure;
 
   // Optional bounding box for generating the mesh.
   Vector mXmin, mXmax;
@@ -236,6 +242,7 @@ protected:
   // FieldSpace::FieldList<Dimension, std::vector<Tensor> >&    mGradB;
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
+  FieldSpace::FieldList<Dimension, Scalar>    mCellPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
