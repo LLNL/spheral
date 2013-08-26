@@ -47,8 +47,8 @@ commandLine(
     nx1 = 20,
     ny1 = 60,
 
-    nx2 = 120,
-    ny2 = 30,
+    nx2 = 40,
+    ny2 = 10,
 
     nx3 = 120,
     ny3 = 30,
