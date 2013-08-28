@@ -47,8 +47,8 @@ commandLine(
     nx1 = 20,
     ny1 = 60,
 
-    nx2 = 120,
-    ny2 = 30,
+    nx2 = 40,
+    ny2 = 10,
 
     nx3 = 120,
     ny3 = 30,
@@ -60,6 +60,7 @@ commandLine(
     #Qconstructor = TensorMonaghanGingoldViscosity,
     linearConsistent = False,
     fcentroidal = 0.0,
+    fcellPressure = 0.0,
     Cl = 1.0, 
     Cq = 0.75,
     Qlimiter = False,
@@ -112,6 +113,7 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
+                       "fcellPressure = %1.3f" % fcellPressure,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
@@ -269,8 +271,11 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              generateVoid = False,
                              HUpdate = HEvolution,
                              fcentroidal = fcentroidal,
-                             xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
-                             xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(x0 - (x2 - x0), y0 - (y2 - y0)),
+                             xmax = Vector(x2 + (x2 - x0), y2 + (y2 - y0)))
+                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 else:
     hydro = HydroConstructor(WT,
                              WTPi,
