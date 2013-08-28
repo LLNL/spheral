@@ -489,15 +489,17 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
         f = open(outputFile, "w")
+        f.write((15*"%15s " + "\n") % ("# x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
+                                       "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
         for xi, yi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((7*"%16.12e " + "%i\n") % (xi, yi, rhoi, Pi, vi, epsi, hi, mi))
-            f.write((7*"%i " + "\n") % (unpackElementUL(packElementDouble(xi)),
-                                        unpackElementUL(packElementDouble(yi)),
-                                        unpackElementUL(packElementDouble(rhoi)),
-                                        unpackElementUL(packElementDouble(Pi)),
-                                        unpackElementUL(packElementDouble(vi)),
-                                        unpackElementUL(packElementDouble(epsi)),
-                                        unpackElementUL(packElementDouble(hi))))
+            f.write((7*"%16.12e " + 8*"%i" + "\n") % (xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+                                                      unpackElementUL(packElementDouble(xi)),
+                                                      unpackElementUL(packElementDouble(yi)),
+                                                      unpackElementUL(packElementDouble(rhoi)),
+                                                      unpackElementUL(packElementDouble(Pi)),
+                                                      unpackElementUL(packElementDouble(vi)),
+                                                      unpackElementUL(packElementDouble(epsi)),
+                                                      unpackElementUL(packElementDouble(hi))))
         f.close()
 
         #---------------------------------------------------------------------------
