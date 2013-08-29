@@ -213,6 +213,18 @@ mesh, void = generatePolygonalMesh([nodes1],
 fl = ScalarFieldList()
 fl.appendField(f)
 db.updateConnectivityMap()
+mass = nodes1.mass()
+rho = nodes1.massDensity()
+weight = db.newFluidScalarFieldList(0.0, "weight")
+for i in xrange(nodes1.numNodes):
+    weight[0][i] = mass[i]/rho[i]
+fSPHfl = smoothScalarFields(fl,
+                            db.globalPosition,
+                            weight,
+                            db.globalMass,
+                            db.fluidMassDensity,
+                            db.globalHfield,
+                            WT)
 fSVPHfl = sampleFieldListSVPH(fl,
                               db.globalPosition,
                               db.globalHfield,
@@ -227,6 +239,7 @@ dfSVPHfl = gradientFieldListSVPH(fl,
                                  WT,
                                  mesh,
                                  linearConsistent)
+fSPH = fSPHfl[0]
 fSVPH = fSVPHfl[0]
 dfSVPH = dfSVPHfl[0]
 
@@ -239,12 +252,16 @@ dfans = [dfunc(positions[i]) for i in xrange(nodes1.numInternalNodes)]
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
+errfSPH = [y - z for y, z in zip(fSPH.internalValues(), fans)]
+maxfSPHerror = max([abs(x) for x in errfSPH])
+
 errfSVPH = [y - z for y, z in zip(fSVPH.internalValues(), fans)]
 maxfSVPHerror = max([abs(x) for x in errfSVPH])
 
 errdfSVPH = [y - z for y, z in zip(dfSVPH, dfans)]
 maxdfSVPHerror = max([x.magnitude() for x in errdfSVPH])
 
+print "Maximum errors (interpolation): SPH = %g" % maxfSVPHerror
 print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxfSVPHerror,
                                                                      maxdfSVPHerror)
 
@@ -260,12 +277,25 @@ if graphics:
         dfansField[i] = dfans[i]
     d = SpheralVoronoiSiloDump(baseFileName = vizFileName,
                                baseDirectory = vizDir,
-                               listOfFields = [fSVPH,
+                               listOfFields = [fSPH,
+                                               fSVPH,
                                                dfSVPH,
                                                fansField,
                                                dfansField],
                                boundaries = bounds)
     d.dump(0.0, 0)
+
+    # Write a file while we're at it.
+    outfile = os.path.join(vizDir, "%s_tabular.txt" % vizFileName)
+    f = open(outfile, "w")
+    f.write(("#" + 7*"'%s'   " + "\n") % 
+            ("x", "y", "fans", "fSPH", "fSVPH", "errSPH", "errSVPH"))
+    for i in xrange(nodes1.numInternalNodes):
+        f.write((7*"%16.10g " + "\n") %
+                (positions[i].x, positions[i].y, 
+                 fans[i], fSPH[i], fSVPH[i], 
+                 errfSPH[i], errfSVPH[i]))
+    f.close()
 
 #-------------------------------------------------------------------------------
 # 1D plotting
