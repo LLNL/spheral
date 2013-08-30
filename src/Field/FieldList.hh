@@ -239,17 +239,6 @@ public:
   // Get the NodeLists this FieldList is defined on.
   const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
 
-  // Methods for using the refine elements cache.
-  void cacheRefineElements() const;
-  void useCacheRefineElements();
-  int numRefineCacheElements() const;
-  cache_iterator refineCacheBegin();
-  cache_iterator refineCacheEnd();
-  const_cache_iterator refineCacheBegin() const;
-  const_cache_iterator refineCacheEnd() const;
-  DataType& refineCache(const int i);
-  const DataType& refineCache(const int i) const;
-
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
@@ -264,11 +253,6 @@ private:
   // construct NodeIterators.
   std::vector<NodeSpace::NodeList<Dimension>*> mNodeListPtrs;
   HashMapType mNodeListIndexMap;
-  mutable int mLastFieldID;
-  mutable const NodeSpace::NodeList<Dimension>* mLastNodeListPtr;
-
-  // Stuff for providing fast iterable views of subsets of elements.
-  std::vector<DataType> mRefineCache;
 
   // Internal method to build the NodeListIndexMap from scratch.
   void buildNodeListIndexMap();
