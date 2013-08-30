@@ -412,7 +412,51 @@ epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
 hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
 xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    mof = mortonOrderIndicies(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    if mpi.rank == 0:
+        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        f = open(outputFile, "w")
+        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
+                                               "rhoans", "Pans", "vans", "hans",
+                                               "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
+        for (xi, rhoi, Pi, vi, epsi, hi, mi,
+             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                  rhoans, Pans, vans, hans):
+            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
+                    (xi, rhoi, Pi, vi, epsi, hi, mi,
+                     rhoansi, Pansi, vansi, hansi,
+                     unpackElementUL(packElementDouble(xi)),
+                     unpackElementUL(packElementDouble(rhoi)),
+                     unpackElementUL(packElementDouble(Pi)),
+                     unpackElementUL(packElementDouble(vi)),
+                     unpackElementUL(packElementDouble(epsi)),
+                     unpackElementUL(packElementDouble(hi))))
+        f.close()
+
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)
+#------------------------------------------------------------------------------
 # Compute the error.
+#------------------------------------------------------------------------------
 if checkError:
     if mpi.rank == 0:
         xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
@@ -450,31 +494,3 @@ if checkError:
         if failure:
             raise ValueError, "Error bounds violated."
 
-#-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
-#-------------------------------------------------------------------------------
-if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndicies(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-    if mpi.rank == 0:
-        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-        f = open(outputFile, "w")
-        for xi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((6*"%16.12e " + "%i" + '\n') % (xi, rhoi, Pi, vi, epsi, hi, mi))
-            f.write((6*"%i " + "\n") % (unpackElementUL(packElementDouble(xi)),
-                                        unpackElementUL(packElementDouble(rhoi)),
-                                        unpackElementUL(packElementDouble(Pi)),
-                                        unpackElementUL(packElementDouble(vi)),
-                                        unpackElementUL(packElementDouble(epsi)),
-                                        unpackElementUL(packElementDouble(hi))))
-        f.close()
-
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file.
-        #---------------------------------------------------------------------------
-        if comparisonFile != "None":
-            comparisonFile = os.path.join(dataDir, comparisonFile)
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)

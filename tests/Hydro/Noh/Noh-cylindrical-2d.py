@@ -487,19 +487,25 @@ if outputFile != "None":
     mof = mortonOrderIndicies(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        multiSort(mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
-        f.write((15*"%15s " + "\n") % ("# x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
-                                       "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for xi, yi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((7*"%16.12e " + 8*"%i" + "\n") % (xi, yi, rhoi, Pi, vi, epsi, hi, mi,
-                                                      unpackElementUL(packElementDouble(xi)),
-                                                      unpackElementUL(packElementDouble(yi)),
-                                                      unpackElementUL(packElementDouble(rhoi)),
-                                                      unpackElementUL(packElementDouble(Pi)),
-                                                      unpackElementUL(packElementDouble(vi)),
-                                                      unpackElementUL(packElementDouble(epsi)),
-                                                      unpackElementUL(packElementDouble(hi))))
+        f.write(("# " + 20*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
+                                              "rhoans", "Pans", "vans", "epsans",
+                                              "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, 
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                     rhoans, Pans, vans, epsans):
+            f.write((8*"%16.12e " + "%i " + 4*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+                                                                              rhoansi, Pansi, vansi, epsansi,
+                                                                              unpackElementUL(packElementDouble(xi)),
+                                                                              unpackElementUL(packElementDouble(yi)),
+                                                                              unpackElementUL(packElementDouble(rhoi)),
+                                                                              unpackElementUL(packElementDouble(Pi)),
+                                                                              unpackElementUL(packElementDouble(vi)),
+                                                                              unpackElementUL(packElementDouble(epsi)),
+                                                                              unpackElementUL(packElementDouble(hi))))
         f.close()
 
         #---------------------------------------------------------------------------
