@@ -410,6 +410,10 @@ dt(const DataBase<Dimension>& dataBase,
     reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
                  << mG << " * " << mMaxCellDensity
                  << ")) = " << dt << ends;
+    double mincellsize = mBoxLength/(1U << (mTree.size()-1));
+    double mincellvol = Dimension::pownu(mincellsize);
+    double maxcellmass = mMaxCellDensity*mincellvol;
+    reasonStream << "\nmBoxLength = " << mBoxLength << ", cellsize = " << mincellsize << ", cellmass = " << maxcellmass << ends;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
