@@ -215,12 +215,12 @@ protected:
 #endif
 
   // Protected methods.
-  void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                                 const State<Dimension>& state,
-                                 const StateDerivatives<Dimension>& derivs,
-                                 const KernelSpace::TableKernel<Dimension>& W,
-                                 ConstBoundaryIterator boundaryBegin,
-                                 ConstBoundaryIterator boundaryEnd);
+  virtual void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                         const State<Dimension>& state,
+                                         const StateDerivatives<Dimension>& derivs,
+                                         const KernelSpace::TableKernel<Dimension>& W,
+                                         ConstBoundaryIterator boundaryBegin,
+                                         ConstBoundaryIterator boundaryEnd);
 
 private:
   //--------------------------- Private Interface ---------------------------//
