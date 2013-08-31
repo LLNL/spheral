@@ -191,7 +191,6 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
-q.fslice = 0.5
 output("q")
 output("q.Cl")
 output("q.Cq")
