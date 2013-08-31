@@ -66,7 +66,8 @@ commandLine(
     vizDir = ".",
 )
 
-assert testCase in ("constant", "linear", "quadratic")
+assert testCase in ("constant", "linear", "quadratic", "step")
+vizFileName += "_%s_linearConsistent=%s" % (testCase, linearConsistent)
 
 #-------------------------------------------------------------------------------
 # Which test case function are we doing?
@@ -87,6 +88,15 @@ elif testCase == "quadratic":
     def dfunc(pos):
         return Vector(B + D*pos.y + 2.0*E*pos.x,
                       C + D*pos.x + 2.0*F*pos.y)
+elif testCase == "step":
+    def func(pos):
+        plane = Plane(Vector(0.5, 0.5), Vector(1.0, 0.5).unitVector())
+        if plane.compare(pos) > 0:
+            return 1.0
+        else:
+            return 0.0
+    def dfunc(pos):
+        return Vector.zero
 
 #-------------------------------------------------------------------------------
 # Create a random number generator.
@@ -272,9 +282,13 @@ if graphics:
     from SpheralVoronoiSiloDump import *
     fansField = ScalarField("answer interpolation", nodes1)
     dfansField = VectorField("answer gradient", nodes1)
+    errfSPHfield = ScalarField("SPH interpolation error", nodes1)
+    errfSVPHfield = ScalarField("SVPH interpolation error", nodes1)
     for i in xrange(nodes1.numInternalNodes):
         fansField[i] = fans[i]
         dfansField[i] = dfans[i]
+        errfSPHfield[i] = errfSPH[i]
+        errfSVPHfield[i] = errfSVPH[i]
     d = SpheralVoronoiSiloDump(baseFileName = vizFileName,
                                baseDirectory = vizDir,
                                listOfFields = [fSPH,
@@ -291,7 +305,7 @@ if graphics:
     f.write(("#" + 7*"'%s'   " + "\n") % 
             ("x", "y", "fans", "fSPH", "fSVPH", "errSPH", "errSVPH"))
     for i in xrange(nodes1.numInternalNodes):
-        f.write((7*"%16.10g " + "\n") %
+        f.write((7*"%16.13e " + "\n") %
                 (positions[i].x, positions[i].y, 
                  fans[i], fSPH[i], fSVPH[i], 
                  errfSPH[i], errfSVPH[i]))

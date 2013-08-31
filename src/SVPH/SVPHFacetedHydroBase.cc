@@ -693,7 +693,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
                                                   posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
                                                   rj, etaj, vj, rhoj, cj, Hj);
-        Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
+        //Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
+        Qface[k] += VWRj*rhoj*rhoj*QPiij.second;
         const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
         maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
       }

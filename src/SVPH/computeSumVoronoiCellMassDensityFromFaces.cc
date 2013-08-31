@@ -107,11 +107,16 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
     for (unsigned i = 0; i != n; ++i) {
       const Zone& zone = mesh.zone(nodeListi, i);
       const vector<int>& faceIDs = zone.faceIDs();
+      const Vector rc = position(nodeListi, i); // zone.position();
       Scalar Meff = 0.0, Veff = 0.0;
       for (unsigned k = 0; k != faceIDs.size(); ++k) {
         const unsigned iface = Mesh<Dimension>::positiveID(faceIDs[k]);
-        Meff += massFace[iface];
-        Veff += volFace[iface];
+        const Face& face = mesh.face(iface);
+        const Vector rf = face.position();
+        const Scalar Af = face.area();
+        const Scalar wf = Af*(rf - rc).magnitude();
+        Meff += massFace[iface] * wf;
+        Veff += volFace[iface] * wf;
       }
       CHECK(Meff > 0.0);
       CHECK(Veff > 0.0);
