@@ -61,13 +61,13 @@ namespace FractalSpace
   void high_pairs(Group& group);
   void high_points(Group& group, Fractal& fractal,Misc& misc);
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
+  void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
+  void hypre_eror(ofstream& FH,int level,int ni,int er);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
   void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool& do_over);
   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
-  void hypre_struct_solver(vector <Point*>& p_points_left,vector <Point*>& p_points_right,
-			   Fractal& fractal,Fractal_Memory& mem,const int& level,const bool& buffer_groups);
-  void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
-  void hypre_eror(ofstream& FH,int level,int ni,int er);
+  int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
+  void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH);
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,const int& lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);
   void isolated_solver(Group& group,Fractal_Memory& fractal_memory,Fractal& fractal);
@@ -98,6 +98,7 @@ namespace FractalSpace
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& box);
   template <class T> bool overlap_boxes(vector <T>& xvec,vector <T>& box);
+  template <class T> bool overlap_interval(T Imin,T Imax,T Jmin,T Jmax,T& LOW,T& HIGH);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleft,vector <double>& yright);
   //  bool overlap(vector <double>& xleft,vector <double>& xright,vector <double>& yleftright);
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_ghost,Misc& misc);
