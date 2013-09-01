@@ -179,46 +179,39 @@ namespace FractalSpace
     hypre_eror(FH,level,26,HYPRE_IJVectorGetObject(ij_vector_pot,(void **) &par_vector_pot));
     hypre_eror(FH,level,27,HYPRE_IJVectorGetObject(ij_vector_rho,(void **) &par_vector_rho));
 
+    HYPRE_Solver par_solver;
+    hypre_eror(FH,level,36,HYPRE_ParCSRPCGCreate(HypreComm, &par_solver));
+    hypre_eror(FH,level,37,HYPRE_PCGSetMaxIter(par_solver, frac.get_maxits())); /* max iterations */
+    hypre_eror(FH,level,38,HYPRE_PCGSetTol(par_solver, frac.get_epsilon_sor())); /* conv. tolerance */
+    hypre_eror(FH,level,40,HYPRE_PCGSetPrintLevel(par_solver, 2)); /* print solve info */
+    hypre_eror(FH,level,41,HYPRE_PCGSetLogging(par_solver, 1)); /* needed to get run info later */
+
     // new
     HYPRE_Solver par_precond;
     hypre_eror(FH,level,28,HYPRE_BoomerAMGCreate(&par_precond));
     hypre_eror(FH,level,29,HYPRE_BoomerAMGSetPrintLevel(par_precond, 1));
     hypre_eror(FH,level,30,HYPRE_BoomerAMGSetPrintFileName(par_precond, "amg_pre.log"));
-    hypre_eror(FH,level,31,HYPRE_BoomerAMGSetCoarsenType(par_precond, 6));
+    hypre_eror(FH,level,31,HYPRE_BoomerAMGSetCoarsenType(par_precond,10));
+    hypre_eror(FH,level,31,HYPRE_BoomerAMGSetPMaxElmts(par_precond,4));
+    hypre_eror(FH,level,31,HYPRE_BoomerAMGSetAggNumLevels(par_precond,1));
+    hypre_eror(FH,level,31,HYPRE_BoomerAMGSetInterpType(par_precond,6));
     hypre_eror(FH,level,32,HYPRE_BoomerAMGSetNumSweeps(par_precond, 1));
-    hypre_eror(FH,level,33,HYPRE_BoomerAMGSetRelaxType(par_precond, 6)); /* Sym G.S./Jacobi hybrid */ 
+    hypre_eror(FH,level,33,HYPRE_BoomerAMGSetRelaxType(par_precond, 8)); 
     hypre_eror(FH,level,34,HYPRE_BoomerAMGSetTol(par_precond, 0.0));
     hypre_eror(FH,level,35,HYPRE_BoomerAMGSetMaxIter(par_precond, 1));
-    Hypre_gen_time+=mem.p_mess->Clock();
 
-
-    HYPRE_Solver par_solver;
-    hypre_eror(FH,level,36,HYPRE_ParCSRPCGCreate(HypreComm, &par_solver));
-
-      /* Set some parameters (See Reference Manual for more parameters) */
-    hypre_eror(FH,level,37,HYPRE_PCGSetMaxIter(par_solver, frac.get_maxits())); /* max iterations */
-    hypre_eror(FH,level,38,HYPRE_PCGSetTol(par_solver, frac.get_epsilon_sor())); /* conv. tolerance */
-    hypre_eror(FH,level,39,HYPRE_PCGSetTwoNorm(par_solver, 1)); /* use the two norm as the stopping criteria */
-    hypre_eror(FH,level,40,HYPRE_PCGSetPrintLevel(par_solver, 2)); /* print solve info */
-    hypre_eror(FH,level,41,HYPRE_PCGSetLogging(par_solver, 1)); /* needed to get run info later */
-
-    /* Set the PCG preconditioner */
     hypre_eror(FH,level,42,HYPRE_PCGSetPrecond(par_solver, (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSolve,
 					       (HYPRE_PtrToSolverFcn) HYPRE_BoomerAMGSetup, par_precond));
-    //
+    Hypre_gen_time+=mem.p_mess->Clock();
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_gen_time << "\t" << "Gen Time PCG" << endl;
 
     Hypre_setup_time=-mem.p_mess->Clock();
-    // new
     hypre_eror(FH,level,43,HYPRE_ParCSRPCGSetup(par_solver, par_matrix, par_vector_rho, par_vector_pot));
-    //
     Hypre_setup_time+=mem.p_mess->Clock();
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_setup_time << "\t" << "Setup  Time PCG" << endl;
 
     Hypre_solve_time=-mem.p_mess->Clock();
-    // new
     hypre_eror(FH,level,44,HYPRE_ParCSRPCGSolve(par_solver, par_matrix, par_vector_rho, par_vector_pot));
-    //
     Hypre_solve_time+=mem.p_mess->Clock();
 
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_solve_time << "\t" << "Solve  Time PCG" << endl;
@@ -226,24 +219,16 @@ namespace FractalSpace
     Hypre_dump_time=-mem.p_mess->Clock();
     int its;
     double final_res_norm;
-    // new
     hypre_eror(FH,level,45,HYPRE_PCGGetNumIterations(par_solver, &its));
     hypre_eror(FH,level,46,HYPRE_PCGGetFinalRelativeResidualNorm(par_solver, &final_res_norm));
-    //
     FH << "fini PCG " << level << " " << total << " " << its << " " << final_res_norm << endl;
 
     if(its >= frac.get_maxits())
       {
 	FHT << " convergence problem, PCG " << " " << level << endl;
-	hypre_dump(level,hypre_points,FH);
-	HYPRE_IJMatrixPrint(ij_matrix,"matrix.a");
-	HYPRE_IJVectorPrint(ij_vector_rho,"vector.rho");
-	HYPRE_IJVectorPrint(ij_vector_pot,"vector.pot");
-	assert(its < frac.get_maxits());
       }
     hypre_eror(FH,level,47,HYPRE_IJMatrixDestroy(ij_matrix));
     hypre_eror(FH,level,48,HYPRE_IJVectorDestroy(ij_vector_rho));
-    // new
     hypre_eror(FH,level,49,HYPRE_BoomerAMGDestroy(par_precond));
     hypre_eror(FH,level,50,HYPRE_ParCSRPCGDestroy(par_solver));
     //
