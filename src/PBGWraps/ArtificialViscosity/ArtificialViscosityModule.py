@@ -204,7 +204,7 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
                            param("double", "Cquadratic", default_value="1.0"),
-                           param("double", "fslice", default_value="0.0")])
+                           param("double", "fslice", default_value="0.5")])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, False)
