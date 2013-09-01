@@ -52,6 +52,7 @@ commandLine(seed = "constantDTheta",
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
+            fslice = 0.5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -225,7 +226,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+if Qconstructor is TensorSVPHViscosity:
+    q = Qconstructor(Cl, Cq, fslice)
+else:
+    q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
