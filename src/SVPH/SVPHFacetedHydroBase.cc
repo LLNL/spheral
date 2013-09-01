@@ -798,6 +798,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
       DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
+      maxViscousPressurei = Qavg.diagonalElements().maxAbsElement();
 
       // Position update.
       if (this->XSVPH()) {
