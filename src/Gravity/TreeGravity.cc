@@ -403,19 +403,25 @@ dt(const DataBase<Dimension>& dataBase,
 
   // Check our most restrictive restraint.
   const double dtDyn = sqrt(1.0/(mG*mMaxCellDensity));
-  if (dtDyn < mPairWiseDtMin) {
+  // DEBUG: going to ignore dtDyn temporarily
+  if ((dtDyn < mPairWiseDtMin) && false) {
 
     const double dt = mftimestep * dtDyn;
     stringstream reasonStream;
     reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
                  << mG << " * " << mMaxCellDensity
-                 << ")) = " << dt << ends;
+                 << ")) = " << dt << endl;
     double cellsize = mBoxLength/(1U << (mTree.size()-1));
     double cellvol = Dimension::pownu(cellsize);
     double cellmass = mMaxCellDensity*cellvol;
-    reasonStream << "\nmBoxLength = " << mBoxLength << 
+    reasonStream << "mBoxLength = " << mBoxLength << 
                     ", cellsize = " << cellsize <<
-                    ", cellmass = " << cellmass << ends;
+                    ", cellmass = " << cellmass << endl;
+
+    std::string mDump = dumpTree(false);
+    std::string mM = mDump.substr(mDump.find("M="),36);
+    reasonStream <<  mM << ends;
+    
     return TimeStepType(dt, reasonStream.str());
 
   } else {
