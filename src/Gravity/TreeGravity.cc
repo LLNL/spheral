@@ -427,7 +427,8 @@ dt(const DataBase<Dimension>& dataBase,
   } else {
     const double dt = mftimestep * mPairWiseDtMin;
     stringstream reasonStream;
-    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
+//    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
+    reasonStream << "TreeGravity: min L/a limit = "<< dt << ends;
     return TimeStepType(dt, reasonStream.str());
   }
 }
@@ -813,7 +814,8 @@ applyTreeForces(const Tree& tree,
                     phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
 
                     // Increment our vote for the next timestep.
-                    result = min(result, sqrt(rji2/max(1.0e-20, (vj - vi).magnitude2())));
+                    //DEBUG: let's try r/a instead of r_rel/v_rel
+                    //result = min(result, sqrt(rji2/max(1.0e-20, (vj - vi).magnitude2())));
                   }
                 }
 
@@ -830,6 +832,10 @@ applyTreeForces(const Tree& tree,
           // Update the set of cells to check on the next pass.
           remainingCells = newDaughters;
         }
+
+        // DEBUG: update dt based on L/a
+        double cellsize = mBoxLength/(1U << (mTree.size()-1));
+        result = min(result,sqrt(cellsize/DvDti.magnitude()));
       }
     }
   }
