@@ -403,7 +403,7 @@ dt(const DataBase<Dimension>& dataBase,
 
   // Check our most restrictive restraint.
   const double dtDyn = sqrt(1.0/(mG*mMaxCellDensity));
-  // DEBUG: going to ignore dtDyn temporarily
+  // DEBUG: ignore dtDyn, remove this branch if/when accepted 
   if ((dtDyn < mPairWiseDtMin) && false) {
 
     const double dt = mftimestep * dtDyn;
@@ -428,7 +428,10 @@ dt(const DataBase<Dimension>& dataBase,
     const double dt = mftimestep * mPairWiseDtMin;
     stringstream reasonStream;
 //    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
-    reasonStream << "TreeGravity: min L/a limit = "<< dt << ends;
+    reasonStream << "TreeGravity: f*sqrt(L/a) = "
+                 << mftimestep << " * sqrt(" << mBoxLength << " / "
+                 << mftimestep*mftimestep*mBoxLength/(dt*dt) << ") = "
+                 << dt << ends;
     return TimeStepType(dt, reasonStream.str());
   }
 }
@@ -814,7 +817,7 @@ applyTreeForces(const Tree& tree,
                     phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
 
                     // Increment our vote for the next timestep.
-                    //DEBUG: let's try r/a instead of r_rel/v_rel
+                    //DEBUG: let's try min(r_i/a_i) instead , see next DEBUG
                     //result = min(result, sqrt(rji2/max(1.0e-20, (vj - vi).magnitude2())));
                   }
                 }
@@ -833,9 +836,10 @@ applyTreeForces(const Tree& tree,
           remainingCells = newDaughters;
         }
 
-        // DEBUG: update dt based on L/a
-        double cellsize = mBoxLength/(1U << (mTree.size()-1));
-        result = min(result,sqrt(cellsize/DvDti.magnitude()));
+        // DEBUG: update dt based on L/a, remove this comment if/when accepted
+        // Increment our vote for the next time step
+        result = min(result,
+                     sqrt(mBoxLength / DvDti.magnitude()));
       }
     }
   }
