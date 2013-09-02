@@ -111,6 +111,8 @@ namespace FractalSpace
 	double aFRZ=FRZ;
 	double target=(aFRZ*pztotal)/aFractalNodes2;
 	lowerz[FRZ]=std::lower_bound(sumz.begin(),sumz.end(),target)-sumz.begin();
+	if(FRZ > 0 && lowerz[FRZ] <= lowerz[FRZ-1])
+	  lowerz[FRZ]=lowerz[FRZ-1]+1;
 	FFM << " target " << FRZ << " " << target << " " << pztotal << " " << lowerz[FRZ] << endl;
 	if(FRZ > 0)
 	  upperz[FRZ-1]=lowerz[FRZ];
@@ -153,6 +155,8 @@ namespace FractalSpace
 	    double aFRY=FRY;
 	    double target=(aFRY*pytotal)/aFractalNodes1;
 	    lowery[FRZ][FRY]=std::lower_bound(sumy.begin(),sumy.end(),target)-sumy.begin();
+	    if(FRY > 0 && lowery[FRZ][FRY] <= lowery[FRZ][FRY-1])
+	      lowery[FRZ][FRY]=lowery[FRZ][FRY-1]+1;
 	    if(FRY > 0)
 	      uppery[FRZ][FRY-1]=lowery[FRZ][FRY];
 	  }
@@ -184,6 +188,8 @@ namespace FractalSpace
 		double aFRX=FRX;
 		double target=(aFRX*pxtotal)/aFractalNodes0;
 		lowerx[FRZ][FRY][FRX]=std::lower_bound(sumx.begin(),sumx.end(),target)-sumx.begin();
+		if(FRX > 0 && lowerx[FRZ][FRY][FRX] <= lowerx[FRZ][FRY][FRX-1])
+		  lowerx[FRZ][FRY][FRX]=lowerx[FRZ][FRY][FRX-1]+1;
 		if(FRX > 0)
 		  upperx[FRZ][FRY][FRX-1]=lowerx[FRZ][FRY][FRX];
 	      }
