@@ -112,7 +112,7 @@ ANEOS(const int materialNumber,
   mRhoConv = mconv/(lconv*lconv*lconv);
   mPconv = mconv/(lconv*tconv*tconv);
   mTconv = 1.160564e4;
-  mEconv = mconv*FastMath::square(lconv/tconv);
+  mEconv = FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
 
