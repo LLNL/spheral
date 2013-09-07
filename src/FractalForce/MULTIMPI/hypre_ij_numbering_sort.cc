@@ -9,21 +9,19 @@ namespace FractalSpace
     const int FractalRank=mem.p_mess->FractalRank;
     const int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FH=mem.p_file->FileHypre;
-    //    const int zoom=Misc::pow(2,frac.get_level_max());
-    //    const int spacing=Misc::pow(2,frac.get_level_max()-level);
-    //    const int mult=Misc::pow(2,level);
-    //    int wrap=zoom*frac.get_grid_length();
-    //    bool period=frac.get_periodic();
     vector <int>pos(3);
     vector <int>HBox=mem.HRBoxesLev[FractalRank][level];
     vector <int>HRBox=HBox;
     vector <int>HSBox=mem.HSBoxesLev[FractalRank][level];
     FH << " HBox " << HBox[0] << " "  << HBox[1] << " "  << HBox[2] << " "  << HBox[3] << " "  << HBox[4] << " "  << HBox[5] << endl;
     FH << " HSBox " << HSBox[0] << " "  << HSBox[1] << " "  << HSBox[2] << " "  << HSBox[3] << " "  << HSBox[4] << " "  << HSBox[5] << endl;
+    unsigned int minsize=mem.min_hypre_group_size;
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
       {
 	Group& group=**group_itr;
+	if(group.list_points.size() <= minsize && !group.get_buffer_group())
+	  continue;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  hypre_points.push_back(*point_itr);
       }
@@ -38,20 +36,24 @@ namespace FractalSpace
     mem.p_mess->Full_Stop();
     frac.timing(1,36);
     mem.p_mess->How_Many_On_Nodes(count,mem.ij_counts);
-    mem.ij_offsets.resize(FractalNodes);
-    mem.ij_offsets[0]=0;
-    for(int ni=1;ni<FractalNodes;ni++)
-      mem.ij_offsets[ni]=mem.ij_offsets[ni-1]+mem.ij_counts[ni-1];
-    for(int ni=0;ni<FractalNodes;ni++)
-      FH << " offsets " << ni << " " << level << " " << mem.ij_offsets[ni] << " " << mem.ij_counts[ni] << endl;
-    int totals=mem.ij_offsets[FractalNodes-1]+mem.ij_counts[FractalNodes-1];
+    mem.ij_counts.resize(FractalNodes+1);
+    mem.ij_offsets.assign(FractalNodes+1,0);
+    FH << " offsets numbering " << 0 << " " << level << " " << mem.ij_offsets[0] << " " << mem.ij_counts[0] << endl;
+    for(int FR=1;FR<=FractalNodes;FR++)
+      {
+	mem.ij_offsets[FR]=mem.ij_offsets[FR-1]+mem.ij_counts[FR-1];
+	FH << " offsets numbering " << FR << " " << level << " " << mem.ij_offsets[FR] << " " << mem.ij_counts[FR] << endl;
+      }
+    mem.ij_countsB=mem.ij_counts;
+    mem.ij_offsetsB=mem.ij_offsets;
+    int totals=mem.ij_offsets[FractalNodes];
     assert(totals >= FractalNodes);
     if(totals == FractalNodes)
       {
 	frac.timing(1,32);
 	return false;
       }
-    FH << " total " << totals << " " << level << endl;
+    //    FH << " total points " << totals << " " << involved << " " << nodes_eff << " " << loading << " " << count_max << " " << level << endl;
     count=mem.ij_offsets[FractalRank];
     for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
       {
@@ -145,7 +147,6 @@ namespace FractalSpace
 	    if(number < 0)
 	      FH << "not found OK " << FR << " " << c << " " << dataI_in[ni4] << " " << dataI_in[ni4+1] << " " << dataI_in[ni4+2] << endl;
 	    else
-	    if(number >= 0)
 	      {
 		receive_list[number]->copy_ij_index(dataI_in[ni4+3]);
 		receive_list[number]->set_found_it(true);
@@ -161,8 +162,8 @@ namespace FractalSpace
 	Point* p=*point_itr;
 	if(p->get_found_it())
 	  continue;
-	FH << " not found possibly bad" << " ";
-	p->dumpp(FH);
+	//	FH << " not found possibly bad" << " ";
+	//	p->dumpp(FH);
       }
     frac.timing(1,32);
     return true;

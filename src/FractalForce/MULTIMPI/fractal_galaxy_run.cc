@@ -9,7 +9,7 @@ int main()
   Fractal_Memory* PFM=fractal_memory_create();
 
   int balance=1;
-  int NumberParticles=500000;
+  int NumberParticles=300000;
   int FractalNodes0=4;
   int FractalNodes1=4;
   int FractalNodes2=4;
@@ -19,10 +19,11 @@ int main()
   int GridLength=256;
   int Padding=-1;
   int LevelMax=8;
+  //  int LevelMax=0;
   int MinimumNumber=8;
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
-  string BaseDirectory="/p/lscratchc/jensv/";
+  string BaseDirectory="/p/lscratchc/jensv/galaxy/64/";
   string RunIdentifier="KongenErEnFinke";
   bool TimeTrial=true;
 
@@ -61,9 +62,12 @@ int main()
   vector <double> vely(NumberParticles,0.0);
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
-  PFM->number_steps_total=500;
+  PFM->hypre_load_balance=true;
+  PFM->hypre_max_node_load=200000;
+  PFM->hypre_max_average_load=20000;
+  PFM->number_steps_total=603;
   PFM->number_steps_out=20;
-  PFM->step_length=1.0e-5;
+  PFM->step_length=2.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   ofstream& FFM=PFM->p_file->FileFractalMemory;
