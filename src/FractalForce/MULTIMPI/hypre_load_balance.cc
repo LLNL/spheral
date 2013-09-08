@@ -31,21 +31,24 @@ namespace FractalSpace
     bool OOM = count_max >= mem.hypre_max_node_load;
 
     FH << " Hypre on Nodes " << average << " " << count_max << " " << nodes_eff << " " << involved << endl;
+    FH << " Hypre Load Balance " << spread_even << OOM << endl;
     if(!mem.hypre_load_balance)
       return 0;
     if(!spread_even && !OOM)
       return 0;
-    FH << " Hypre Load Balance " << spread_even << OOM << endl;
     load_balance=true;
     int total=count_sum1+0.01;
     for(int FR=0;FR<FractalNodes;FR++)
       {
-	int sumb=((FR+1)*total)/FractalNodes;
-	int suma=(FR*total)/FractalNodes;
+	long long int Sumb=(FR+1)*total;
+	long long int Suma=FR*total;
+	int sumb=Sumb/FractalNodes;
+	int suma=Suma/FractalNodes;
 	mem.ij_countsB[FR]=sumb-suma;
+	FH << " test load " << FR << " " << suma << " " << sumb << " " << mem.ij_countsB[FR] << endl;
       }
     mem.ij_offsetsB[0]=0;
-    FH << " offsets balance " << 0 << " " << mem.ij_offsets[0] << " " << mem.ij_counts[0] << endl;
+    FH << " offsets balance " << 0 << " " << mem.ij_offsetsB[0] << " " << mem.ij_countsB[0] << endl;
     for(int FR=1;FR<=FractalNodes;FR++)
       {
 	mem.ij_offsetsB[FR]=mem.ij_offsetsB[FR-1]+mem.ij_countsB[FR-1];
