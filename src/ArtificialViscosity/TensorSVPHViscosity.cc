@@ -199,11 +199,17 @@ initialize(const DataBase<Dimension>& dataBase,
       CHECK(mShearCorrection[iface] >= 0.0 and mShearCorrection[iface] <= 1.0);
     }
 
+    // Compute the symmetric, compressing portion of the velocity gradient.
+    SymTensor muface = mDvDx[iface].Symmetric();
+    const typename SymTensor::EigenStructType es = muface.eigenVectors();
+    muface.Zero();
+    for (unsigned j = 0; j != Dimension::nDim; ++j) muface(j,j) = min(0.0, es.eigenValues(j));
+    muface.rotationalTransform(es.eigenVectors);
+    muface *= hface;
+    
     // Now we can compute the Q on this face.
-    const SymTensor muface = hface*mDvDx[iface].Symmetric();
-    if (muface.Trace() < 0.0) {
-      mQface[iface] = mShearCorrection[iface]*rhoFace*(-Cl*csFace*muface + Cq*muface*muface);
-    }
+    CHECK(fuzzyLessThanOrEqual(muface.Trace(), 0.0, 1.0e-8));
+    mQface[iface] = mShearCorrection[iface]*rhoFace*(-Cl*csFace*muface + Cq*muface*muface);
   }
 }
 
