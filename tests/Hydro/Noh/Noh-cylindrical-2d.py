@@ -399,6 +399,10 @@ else:
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
+import NohAnalyticSolution
+answer = NohAnalyticSolution.NohSolution(2,
+                                         h0 = nPerh*rmax/nRadial)
+
 if graphics:
 
     # Plot the node positions.
@@ -428,9 +432,6 @@ if graphics:
     htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_t")
 
     # Overplot the analytic solution.
-    import NohAnalyticSolution
-    answer = NohAnalyticSolution.NohSolution(2,
-                                             h0 = nPerh*rmax/nRadial)
     plotAnswer(answer, control.time(),
                rhoPlot = rhoPlot,
                velPlot = vrPlot,
