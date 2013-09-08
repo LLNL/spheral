@@ -56,37 +56,9 @@ namespace FractalSpace
     hypre_eror(FH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
     HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
     int ij_index,udsize,neighs;
-    /*
-    const int total_rows=hypre_points.size();
-    int* maxcols=new int[total_rows];
-    int countr=0;
-    for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
-      {
-	Point* p=*point_itr;
-	if(p)
-	  {
-	    neighs=p->get_ij_neighbors_size();
-	    if(neighs == 0)
-	      maxcols[countr]=1;
-	    else if(neighs == 1)
-	      maxcols[countr]=2;
-	    else if(neighs == 6)
-	      {
-		assert(p->get_inside());
-		maxcols[countr]=7;
-	      }	      
-	    else
-	      assert(0);
-	  }
-	else
-	  maxcols[countr]=1;
-	countr++;
-      }
-    assert(countr == total_rows);
-    FH << " really enter hypre solver ab " << level << endl;
-    HYPRE_IJMatrixSetRowSizes(ij_matrix,maxcols);
-    delete [] maxcols;
-    */
+    vector <int> maxcols(mem.ij_countsB[FractalRank],7);
+    hypre_eror(FH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
+    maxcols.clear();
     hypre_eror(FH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
     FH << " really enter hypre solver ad " << level << endl;
     HYPRE_IJVector ij_vector_pot;
@@ -98,8 +70,8 @@ namespace FractalSpace
     hypre_eror(FH,level,4,HYPRE_IJVectorCreate(HypreComm,jlower,jupper,&ij_vector_rho));
     hypre_eror(FH,level,5,HYPRE_IJVectorSetObjectType(ij_vector_pot,HYPRE_PARCSR));
     hypre_eror(FH,level,6,HYPRE_IJVectorSetObjectType(ij_vector_rho,HYPRE_PARCSR));
-    HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_pot,off_elements);
-    HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_rho,off_elements);
+    hypre_eror(FH,level,-6,HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_pot,off_elements));
+    hypre_eror(FH,level,-7,HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_rho,off_elements));
     hypre_eror(FH,level,7,HYPRE_IJVectorInitialize(ij_vector_pot));
     hypre_eror(FH,level,8,HYPRE_IJVectorInitialize(ij_vector_rho));
     FH << " really enter hypre solver c " << level << endl;
@@ -222,6 +194,13 @@ namespace FractalSpace
     FH << "fini " << level << " " << total << " " << its << " " << final_res_norm << endl;
 
     do_over=its >= frac.get_maxits();
+    if(do_over)
+      {
+	HYPRE_IJMatrixPrint(ij_matrix,"ij_matrix_dump");
+	HYPRE_IJVectorPrint(ij_vector_rho,"ij_vector_rho_dump");
+	HYPRE_IJVectorPrint(ij_vector_pot,"ij_vector_pot_dump");
+	assert(its < frac.get_maxits());
+      }
     if(do_over)
       FHT << " no convergence, try again " << " " << level << endl;
     hypre_eror(FH,level,39,HYPRE_IJMatrixDestroy(ij_matrix));

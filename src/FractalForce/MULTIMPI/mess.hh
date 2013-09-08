@@ -250,12 +250,17 @@ namespace FractalSpace
     {
       cout << " messya " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << endl;
       FFTRank=FractalRank;
-      int maxFFT=length_1/2;
+      int howlong=length_1;
       if(!periodic)
-	maxFFT*=2;
-      FFTNodes=min(FFTNodes,FractalNodes);
+	howlong*=2;
+      int maxFFT=howlong/2;
+      maxFFT=min(maxFFT,FractalNodes);
       FFTNodes=min(FFTNodes,maxFFT);
-      FFTNodes=(FFTNodes/2)*2;
+      while(howlong % FFTNodes != 0)
+	{
+	  FFTNodes--;
+	  assert(FFTNodes > 1);
+	}
       IAmAnFFTNode=FFTRank < FFTNodes;
       cout << " messyb " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << endl;
       int* ranks=new int[FFTNodes];
