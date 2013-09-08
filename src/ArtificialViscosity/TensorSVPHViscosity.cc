@@ -109,7 +109,7 @@ initialize(const DataBase<Dimension>& dataBase,
   for (unsigned iface = 0; iface != numFaces; ++iface) {
     const Face& face = mesh.face(iface);
     const Vector posFace = face.position();
-    Scalar volSum = 0.0;
+    Scalar volSum = 1.0e-30;
 
     // Look up the SVPH nodes either side of the Face.
     unsigned z1id = Mesh<Dimension>::positiveID(face.zone1ID());
