@@ -396,6 +396,9 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------

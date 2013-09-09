@@ -362,8 +362,8 @@ registerState(DataBase<Dimension>& dataBase,
       velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
       PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
                                                                                                  dataBase,
-                                                                                                 this->artificialViscosity(),
-                                                                                                 mLinearConsistent));
+                                                                                                 this->boundaryBegin(),
+                                                                                                 this->boundaryEnd()));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
@@ -869,63 +869,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   //   }
   // }
   // Hideal.assignFields(Havg);
-
-  // Finally, if we're using the compatible energy discretization we need to
-  // fill in the opposite properties across faces.
-  if (mCompatibleEnergyEvolution) {
-    // for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
-
-    //   // Iterate over the internal nodes in this NodeList.
-    //   const unsigned n = nodeList.numInternalNodes();
-    //   for (unsigned i = 0; i != n; ++i) {
-    //     const Zone& zonei = mesh.zone(nodeListi, i);
-    //     const vector<int>& faceIDs = zonei.faceIDs();
-    //     const unsigned nfaces = faceIDs.size();
-
-    //     // Get the state for node i.
-    //     vector<Vector>& faceAccelerationi = faceAcceleration(nodeListi, i);
-
-    //     // Walk the faces.
-    //     for (unsigned k = 0; k != nfaces; ++k) {  
-    //       const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-    //       const Face& face = mesh.face(fid);
-
-    //       // Find the opposite node.
-    //       const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-    //       unsigned nodeListj = nodeListi, j = i;
-    //       if (oppZoneID != Mesh<Dimension>::UNSETID) {
-    //         mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-    //       }
-
-    //       // Record the opposite node properties.
-    //       faceAccelerationi.push_back(DvDt(nodeListj, j));
-    //     }
-    //     CHECK(faceAccelerationi.size() == nfaces);
-    //   }
-    // }
-
-    // // Boundaries!
-    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   for (ConstBoundaryIterator itr = this->boundaryBegin();
-    //        itr != this->boundaryEnd();
-    //        ++itr) {
-    //     (*itr)->swapFaceValues(*faceAcceleration[nodeListi], *mMeshPtr);
-    //   }
-    // }
-
-    // Boundaries!
-    for (ConstBoundaryIterator itr = this->boundaryBegin();
-         itr != this->boundaryEnd();
-         ++itr) {
-      (*itr)->applyFieldListGhostBoundary(DvDt);
-    }
-    for (ConstBoundaryIterator itr = this->boundaryBegin();
-         itr != this->boundaryEnd();
-         ++itr) {
-      (*itr)->finalizeGhostBoundary();
-    }
-  }
 }
 
 //------------------------------------------------------------------------------

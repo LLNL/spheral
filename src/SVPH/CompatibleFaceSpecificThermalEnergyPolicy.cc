@@ -28,6 +28,10 @@
 namespace Spheral {
 
 using namespace std;
+// using std::min;
+// using std::max;
+using std::abs;
+
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -159,13 +163,13 @@ template<typename Dimension>
 CompatibleFaceSpecificThermalEnergyPolicy<Dimension>::
 CompatibleFaceSpecificThermalEnergyPolicy(const TableKernel<Dimension>& W,
                                           const DataBase<Dimension>& dataBase,
-                                          const ArtificialViscosity<Dimension>& Q,
-                                          const bool linearConsistent):
+                                          ConstBoundaryIterator boundaryBegin,
+                                          ConstBoundaryIterator boundaryEnd):
   IncrementState<Dimension, typename Dimension::Scalar>(),
   mW(W),
   mDataBase(dataBase),
-  mQ(Q),
-  mLinearConsistent(linearConsistent) {
+  mBoundaryBegin(boundaryBegin),
+  mBoundaryEnd(boundaryEnd) {
   mFired = false;
 }
 
@@ -203,13 +207,22 @@ update(const KeyType& key,
     FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-    const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-    // const FieldList<Dimension, vector<Scalar> > faceMass = state.fields("Face " + HydroFieldNames::mass, vector<Scalar>());
-    // const FieldList<Dimension, vector<Vector> > faceVelocity = state.fields("Face " + HydroFieldNames::velocity, vector<Vector>());
-    // const FieldList<Dimension, vector<Scalar> > faceSpecificEnergy0 = state.fields("Face " + HydroFieldNames::specificThermalEnergy + "0", vector<Scalar>());
     const FieldList<Dimension, vector<Vector> > faceForce = derivs.fields(HydroFieldNames::faceForce, vector<Vector>());
-    // const FieldList<Dimension, vector<Vector> > faceAcceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
+
+    // The acceleration is special -- we need the ghost state for this derivative value so we'll force
+    // it to be updated now.
+    FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+    for (ConstBoundaryIterator itr = mBoundaryBegin;
+         itr != mBoundaryEnd;
+         ++itr) {
+      (*itr)->applyFieldListGhostBoundary(acceleration);
+    }
+    for (ConstBoundaryIterator itr = mBoundaryBegin;
+         itr != mBoundaryEnd;
+         ++itr) {
+      (*itr)->finalizeGhostBoundary();
+    }
 
     const double hdt = 0.5*multiplier;
     const size_t numNodeLists = eps.numFields();
@@ -237,16 +250,6 @@ update(const KeyType& key,
         CHECK2(fforce.size() == nfaces, fforce.size() << " " << nfaces);
         vi12 = vi + ai*hdt;
 
-        // // Face state for neighbor nodes.
-        // const vector<Scalar>& mface = faceMass(nodeListi, i);
-        // const vector<Vector>& vface = faceVelocity(nodeListi, i);
-        // const vector<Scalar>& uface = faceSpecificEnergy0(nodeListi, i);
-        // const vector<Vector>& aface = faceAcceleration(nodeListi, i);
-        // const unsigned nfaces = mface.size();
-        // CHECK(vface.size() == nfaces);
-        // CHECK(uface.size() == nfaces);
-        // CHECK(aface.size() == nfaces);
-
         // Walk the faces of this SVPH node.
         for (k = 0; k != nfaces; ++k) {
           const Face& face = mesh.face(faceIDs[k]);
@@ -264,18 +267,13 @@ update(const KeyType& key,
           vj12 = vj + aj*hdt;
           vji12 = vj12 - vi12;
 
-          // const Scalar& mj = mface[k];
-          // const Vector& vj = vface[k];
-          // const Scalar& uj = uface[k];
-          // const Vector& aj = aface[k];
-          // CHECK(mj == mass(nodeListj, j));
-          // CHECK(uj == specificEnergy0(nodeListj, j));
-          // CHECK(aj == acceleration(nodeListj, j));
-          // CHECK2(vj == velocity(nodeListj, j), "Velocity! " << i << " " << j << " : " << vi << " " << vj << " " << velocity(nodeListj, j));
-
           duij = vji12.dot(fforce[k])/mi;
           const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
-
+          // if (abs(duij) > 1.0e-10) {
+          //   cerr << "    " << i << " " << Mesh<Dimension>::positiveID(faceIDs[k]) << " : "
+          //        << duij << " " << wi << " " << wi*duij << " " << (1.0 - wi)*duij << " : "
+          //        << endl;
+          // }
           CHECK(wi >= 0.0 and wi <= 1.0);
           CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
           DepsDti += wi*duij;
