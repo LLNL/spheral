@@ -158,7 +158,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mPotential = 0.0;
 
   // Initialize the pair-wise time step vote.
-  mPairWiseDtMin = numeric_limits<Scalar>::max();
+  mDtMin = numeric_limits<Scalar>::max();
 
   // Prepare the flags to remember which cells have terminated for each node.
   CompletedCellSet cellsCompleted;
@@ -209,8 +209,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         bufItr = buffer.begin();
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
-        mPairWiseDtMin = min(mPairWiseDtMin, 
-                             applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
+        mDtMin = min(mDtMin, 
+                     applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
       }
     }
   }
@@ -218,11 +218,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #endif
 
   // Apply the forces from our local tree.
-  mPairWiseDtMin = min(mPairWiseDtMin,
-                       applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
+  mDtMin = min(mDtMin,
+               applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
 
   // // Complete the pair-wise limit for the next time step.
-  // mPairWiseDtMin = allReduce(mPairWiseDtMin, MPI_MIN, Communicator::communicator());
+  // mDtMin = allReduce(mDtMin, MPI_MIN, Communicator::communicator());
 
 #ifdef USE_MPI
 
@@ -404,7 +404,7 @@ dt(const DataBase<Dimension>& dataBase,
   // Check our most restrictive restraint.
   const double dtDyn = sqrt(1.0/(mG*mMaxCellDensity));
   // DEBUG: ignore dtDyn, remove this branch if/when accepted 
-  if ((dtDyn < mPairWiseDtMin) && false) {
+  if ((dtDyn < mDtMin) && false) {
 
     const double dt = mftimestep * dtDyn;
     stringstream reasonStream;
@@ -425,7 +425,7 @@ dt(const DataBase<Dimension>& dataBase,
     return TimeStepType(dt, reasonStream.str());
 
   } else {
-    const double dt = mftimestep * mPairWiseDtMin;
+    const double dt = mftimestep * mDtMin;
     stringstream reasonStream;
 //    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
     reasonStream << "TreeGravity: f*sqrt(L/a) = "
@@ -701,7 +701,7 @@ TreeGravity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mMaxCellDensity, pathName + "/maxCellDensity");
   file.write(mPotential, pathName + "/potential");
-  file.write(mPairWiseDtMin, pathName + "/pairWiseDtMin");
+  file.write(mDtMin, pathName + "/pairWiseDtMin");
 }
 
 //------------------------------------------------------------------------------
@@ -713,7 +713,7 @@ TreeGravity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mMaxCellDensity, pathName + "/maxCellDensity");
   file.read(mPotential, pathName + "/potential");
-  file.read(mPairWiseDtMin, pathName + "/pairWiseDtMin");
+  file.read(mDtMin, pathName + "/pairWiseDtMin");
 }
 
 //------------------------------------------------------------------------------

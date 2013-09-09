@@ -173,7 +173,7 @@ private:
   // The potential fields filled in during evaluateDerivates.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
   mutable Scalar mExtraEnergy;
-  mutable Scalar mPairWiseDtMin;
+  mutable Scalar mDtMin;
   
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
