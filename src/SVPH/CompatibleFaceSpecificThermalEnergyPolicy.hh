@@ -9,6 +9,8 @@
 #include <string>
 
 #include "DataBase/IncrementState.hh"
+#include "Physics/Physics.hh"
+#include "Boundary/Boundary.hh"
 
 namespace Spheral {
 
@@ -27,9 +29,6 @@ namespace DataBaseSpace {
 namespace KernelSpace {
   template<typename Dimension> class TableKernel;
 }
-namespace ArtificialViscositySpace {
-  template<typename Dimension> class ArtificialViscosity;
-}
 
 template<typename Dimension>
 class CompatibleFaceSpecificThermalEnergyPolicy: 
@@ -42,12 +41,13 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors, destructor.
   CompatibleFaceSpecificThermalEnergyPolicy(const KernelSpace::TableKernel<Dimension>& W,
                                             const DataBaseSpace::DataBase<Dimension>& dataBase,
-                                            const ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                                            const bool linearConsistent);
+                                            ConstBoundaryIterator boundaryBegin,
+                                            ConstBoundaryIterator boundaryEnd);
   virtual ~CompatibleFaceSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -81,8 +81,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   const KernelSpace::TableKernel<Dimension>& mW;
   const DataBaseSpace::DataBase<Dimension>& mDataBase;
-  const ArtificialViscositySpace::ArtificialViscosity<Dimension>& mQ;
-  const bool mLinearConsistent;
+  ConstBoundaryIterator mBoundaryBegin, mBoundaryEnd;
   static bool mFired;
 
   CompatibleFaceSpecificThermalEnergyPolicy(const CompatibleFaceSpecificThermalEnergyPolicy& rhs);
