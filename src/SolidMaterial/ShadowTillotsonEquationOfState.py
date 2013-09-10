@@ -67,9 +67,9 @@ def _TillotsonFactory(*args,
 
     # The arguments that need to be passed to this method.
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
-    optionalKwArgs = {"externalPressure" : None,
-                      "minimumPressure"  : None,
-                      "maximumPressure"  : None}
+    optionalKwArgs = {"externalPressure" : 0.0,
+                      "minimumPressure"  : -1e200,
+                      "maximumPressure"  :  1e200}
 
     # What sort of information did the user pass in?
     if ("materialName" in kwargs or 
@@ -77,21 +77,17 @@ def _TillotsonFactory(*args,
 
         # It looks like the user is trying to use one of the libarary canned values.
         # Evaluate the arguments to the method.
-        if len(args) > 0:
-            if len(args) != len(expectedArgs):
+        if len(args) != len(expectedArgs): # insist on formal mandaory arguments 
+            raise ValueError, expectedUsageString
+        for i in xrange(len(expectedArgs)): # deal with mandatory args
+            exec("%s = args[i]" % expectedArgs[i])
+        for arg in kwargs: # deal with optional args
+            if arg not in (expectedArgs + optionalKwArgs.keys() + ["TillConstructor"]):
                 raise ValueError, expectedUsageString
-            for i in xrange(len(expectedArgs)):
-                exec("%s = args[i]" % expectedArgs[i])
-            for arg in optionalKwArgs:
+            exec("%s = kwargs['%s']" % (arg, arg))
+        for arg in optionalKwArgs: # make sure all optional args have a value
+            if arg not in kwargs:
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
-        else:
-            for arg in kwargs:
-                if arg not in (expectedArgs + optionalKwArgs.keys() + ["TillConstructor"]):
-                    raise ValueError, expectedUsageString
-                exec("%s = kwargs['%s']" % (arg, arg))
-            for arg in optionalKwArgs:
-                if arg not in kwargs:
-                    exec("%s = optionalKwArgs['%s']" % (arg, arg))
 
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
@@ -126,12 +122,9 @@ def _TillotsonFactory(*args,
                     params["epsVapor"] * specificEconv,
                     SpheralMaterialPropertiesLib[mat]["atomicWeight"],
                     units]
-        if externalPressure:
-            passargs.append(externalPressure)
-        if minimumPressure:
-            passargs.append(minimumPressure)
-        if maximumPressure:
-            passargs.append(maximumPressure)
+        passargs.append(externalPressure)
+        passargs.append(minimumPressure)
+        passargs.append(maximumPressure)
         passkwargs = {}
 
     else:
