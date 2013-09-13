@@ -31,14 +31,14 @@ public:
                        const Material::PhysicalConstants& constants,
                        const double minimumPressure = -std::numeric_limits<double>::max(),
                        const double maximumPressure = std::numeric_limits<double>::max());
-  ~SolidEquationOfState();
+  virtual ~SolidEquationOfState();
 
   // Access the member data.
-  double referenceDensity() const;
+  virtual double referenceDensity() const;
   double etamin() const;
   double etamax() const;
   
-  void referenceDensity(const double x);
+  virtual void referenceDensity(const double x);
   void etamin(const double x);
   void etamax(const double x);
   
