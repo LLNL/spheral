@@ -623,8 +623,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
               DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
               if (compatibleEnergy) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back( mj*deltaDvDt);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back(-mi*deltaDvDt);
+                pairAccelerationsi.push_back( mj*deltaDvDt);
+                pairAccelerationsj.push_back(-mi*deltaDvDt);
               }
 
               // Velocity gradient.
@@ -651,7 +651,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
       CHECK(not compatibleEnergy or 
-            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
+            //            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.

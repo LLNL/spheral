@@ -41,49 +41,26 @@ namespace FractalSpace
 
     Hypre_gen_time=-mem.p_mess->Clock();
     FH << " really enter hypre solver a " << level << endl;
+    bool load_balance;
+    int off_elements=hypre_load_balance(mem,hypre_points,load_balance);
     bool inside;
     MPI_Comm HypreComm=mem.p_mess->HypreWorld;
     HYPRE_IJMatrix ij_matrix;
     HYPRE_ParCSRMatrix par_matrix;
-    const int ilower=mem.ij_offsets[FractalRank];
-    const int iupper=ilower+mem.ij_counts[FractalRank]-1;
+    const int ilower=mem.ij_offsetsB[FractalRank];
+    const int iupper=mem.ij_offsetsB[FractalRank+1]-1;
     const int jlower=ilower;
     const int jupper=iupper;
     FH << " limits " << ilower << " " << iupper << endl;
     hypre_eror(FH,level,0,HYPRE_IJMatrixCreate(HypreComm,ilower,iupper,jlower,jupper,&ij_matrix));
     hypre_eror(FH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
-
+    HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
     int ij_index,udsize,neighs;
-    const int total_rows=iupper-ilower+1;
-    int* maxcols=new int[total_rows];
-    int countr=0;
-    for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
-      {
-	Point* p=*point_itr;
-	if(p)
-	  {
-	    neighs=p->get_ij_neighbors_size();
-	    if(neighs == 0)
-	      maxcols[countr]=1;
-	    else if(neighs == 1)
-	      maxcols[countr]=2;
-	    else if(neighs == 6)
-	      {
-		assert(p->get_inside());
-		maxcols[countr]=7;
-	      }	      
-	    else
-	      assert(0);
-	  }
-	else
-	  maxcols[countr]=1;
-	countr++;
-      }
-    assert(countr == total_rows);
-    HYPRE_IJMatrixSetRowSizes(ij_matrix,maxcols);
-    delete [] maxcols;
-    HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,0);
+    vector <int> maxcols(mem.ij_countsB[FractalRank],7);
+    hypre_eror(FH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
+    maxcols.clear();
     hypre_eror(FH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
+    FH << " really enter hypre solver ad " << level << endl;
     HYPRE_IJVector ij_vector_pot;
     HYPRE_IJVector ij_vector_rho;
     HYPRE_ParVector par_vector_pot;
@@ -93,6 +70,8 @@ namespace FractalSpace
     hypre_eror(FH,level,4,HYPRE_IJVectorCreate(HypreComm,jlower,jupper,&ij_vector_rho));
     hypre_eror(FH,level,5,HYPRE_IJVectorSetObjectType(ij_vector_pot,HYPRE_PARCSR));
     hypre_eror(FH,level,6,HYPRE_IJVectorSetObjectType(ij_vector_rho,HYPRE_PARCSR));
+    hypre_eror(FH,level,-6,HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_pot,off_elements));
+    hypre_eror(FH,level,-7,HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_rho,off_elements));
     hypre_eror(FH,level,7,HYPRE_IJVectorInitialize(ij_vector_pot));
     hypre_eror(FH,level,8,HYPRE_IJVectorInitialize(ij_vector_rho));
     FH << " really enter hypre solver c " << level << endl;
@@ -110,21 +89,23 @@ namespace FractalSpace
     double rhov[1];
     double potv[1];
     double rho,pot;
-    const int total=mem.ij_counts[FractalRank];
+    const int total=hypre_points.size();
     for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
       {
 	Point* p=*point_itr;
 	if(p==0)
 	  {
-	    rows[0]=ilower;
+	    //	    rows[0]=ilower;
+	    rows[0]=mem.ij_offsets[FractalRank];
 	    ncols[0]=1;
-	    cols[0]=ilower;
+	    //	    cols[0]=ilower;
+	    cols[0]=mem.ij_offsets[FractalRank];
 	    potv[0]=1.0;
 	    rhov[0]=1.0;
 	    udsize=0;
-	    hypre_eror(FH,level,9,HYPRE_IJMatrixSetValues(ij_matrix,nrows,ncols,rows,cols,coef1));
-	    hypre_eror(FH,level,10,HYPRE_IJVectorSetValues(ij_vector_pot,1,rows,potv));
-	    hypre_eror(FH,level,11,HYPRE_IJVectorSetValues(ij_vector_rho,1,rows,rhov));
+	    hypre_eror(FH,level,9,HYPRE_IJMatrixAddToValues(ij_matrix,nrows,ncols,rows,cols,coef1));
+	    hypre_eror(FH,level,10,HYPRE_IJVectorAddToValues(ij_vector_pot,1,rows,potv));
+	    hypre_eror(FH,level,11,HYPRE_IJVectorAddToValues(ij_vector_rho,1,rows,rhov));
 	    FH << " null point " << endl;
 	    continue;
 	  }
@@ -140,9 +121,9 @@ namespace FractalSpace
 	    cols[0]=ij_index;
 	    potv[0]=pot;
 	    rhov[0]=pot;
-	    hypre_eror(FH,level,12,HYPRE_IJMatrixSetValues(ij_matrix,nrows,ncols,rows,cols,coef1));
-	    hypre_eror(FH,level,13,HYPRE_IJVectorSetValues(ij_vector_pot,1,rows,potv));
-	    hypre_eror(FH,level,14,HYPRE_IJVectorSetValues(ij_vector_rho,1,rows,rhov));
+	    hypre_eror(FH,level,12,HYPRE_IJMatrixAddToValues(ij_matrix,nrows,ncols,rows,cols,coef1));
+	    hypre_eror(FH,level,13,HYPRE_IJVectorAddToValues(ij_vector_pot,1,rows,potv));
+	    hypre_eror(FH,level,14,HYPRE_IJVectorAddToValues(ij_vector_rho,1,rows,rhov));
 	  }
 	else if(udsize == 1)
 	  {
@@ -152,9 +133,9 @@ namespace FractalSpace
 	    cols[1]=ij_ud[0];
 	    potv[0]=pot;
 	    rhov[0]=0.0;
-	    hypre_eror(FH,level,15,HYPRE_IJMatrixSetValues(ij_matrix,nrows,ncols,rows,cols,coef2));
-	    hypre_eror(FH,level,16,HYPRE_IJVectorSetValues(ij_vector_pot,1,rows,potv));
-	    hypre_eror(FH,level,17,HYPRE_IJVectorSetValues(ij_vector_rho,1,rows,rhov));
+	    hypre_eror(FH,level,15,HYPRE_IJMatrixAddToValues(ij_matrix,nrows,ncols,rows,cols,coef2));
+	    hypre_eror(FH,level,16,HYPRE_IJVectorAddToValues(ij_vector_pot,1,rows,potv));
+	    hypre_eror(FH,level,17,HYPRE_IJVectorAddToValues(ij_vector_rho,1,rows,rhov));
 	  }
 	else if(udsize == 6)
 	  {
@@ -167,9 +148,9 @@ namespace FractalSpace
 	    for(int ni=0;ni<6;ni++)
 	      cols[ni+1]=ij_ud[ni];
 	    rhov[0]=rho*g_c;
-	    hypre_eror(FH,level,18,HYPRE_IJMatrixSetValues(ij_matrix,nrows,ncols,rows,cols,coef7));
-	    hypre_eror(FH,level,20,HYPRE_IJVectorSetValues(ij_vector_pot,1,rows,potv));
-	    hypre_eror(FH,level,21,HYPRE_IJVectorSetValues(ij_vector_rho,1,rows,rhov));
+	    hypre_eror(FH,level,18,HYPRE_IJMatrixAddToValues(ij_matrix,nrows,ncols,rows,cols,coef7));
+	    hypre_eror(FH,level,20,HYPRE_IJVectorAddToValues(ij_vector_pot,1,rows,potv));
+	    hypre_eror(FH,level,21,HYPRE_IJVectorAddToValues(ij_vector_rho,1,rows,rhov));
 	  }
 	else
 	  assert(0);
@@ -214,6 +195,13 @@ namespace FractalSpace
 
     do_over=its >= frac.get_maxits();
     if(do_over)
+      {
+	HYPRE_IJMatrixPrint(ij_matrix,"ij_matrix_dump");
+	HYPRE_IJVectorPrint(ij_vector_rho,"ij_vector_rho_dump");
+	HYPRE_IJVectorPrint(ij_vector_pot,"ij_vector_pot_dump");
+	assert(its < frac.get_maxits());
+      }
+    if(do_over)
       FHT << " no convergence, try again " << " " << level << endl;
     hypre_eror(FH,level,39,HYPRE_IJMatrixDestroy(ij_matrix));
     hypre_eror(FH,level,40,HYPRE_IJVectorDestroy(ij_vector_rho));
@@ -221,20 +209,34 @@ namespace FractalSpace
 
     if(!do_over)
       {
-	int ni=mem.ij_offsets[FractalRank];
-	for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
+	vector <double>potH(mem.ij_countsB[FractalRank]);
+	vector <int>rowsH(mem.ij_countsB[FractalRank]);
+	int holy_grail=mem.ij_offsetsB[FractalRank];
+	for(int ni=0;ni<mem.ij_countsB[FractalRank];ni++)
+	  rowsH[ni]=ni+holy_grail;
+	hypre_eror(FH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,mem.ij_countsB[FractalRank],&(*rowsH.begin()),&(*potH.begin())));
+	rowsH.clear();
+	if(load_balance)
+	  hypre_send_pots(mem,hypre_points,potH);
+	else
 	  {
-	    Point* p=*point_itr;
-	    if(p)
+	    int Mr_smokes_too_much=0;
+	    for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
 	      {
-		rows[0]=ni;
-		hypre_eror(FH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,1,rows,potv));
-		p->set_potential_point(potv[0]);
+		Point* p=*point_itr;
+		if(p)
+		  {
+		    rows[0]=p->get_ij_number();
+		    hypre_eror(FH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,1,rows,potv));
+		    //		    p->set_potential_point(potv[0]);
+		    p->set_potential_point(potH[Mr_smokes_too_much]);
+		  }
+		else
+		  FH << " OUT0" << endl;
+		Mr_smokes_too_much++;
 	      }
-	    else
-	      FH << " OUT0" << endl;
-	    ni++;
 	  }
+	potH.clear();
       }
     hypre_eror(FH,level,43,HYPRE_IJVectorDestroy(ij_vector_pot));
     Hypre_dump_time+=mem.p_mess->Clock();

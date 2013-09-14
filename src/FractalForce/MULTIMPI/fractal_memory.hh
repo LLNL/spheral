@@ -19,6 +19,9 @@ namespace FractalSpace
     int FFTNodes;
     bool time_trial;
     int min_hypre_group_size;
+    bool hypre_load_balance;
+    int hypre_max_node_load;
+    int hypre_max_average_load;
     vector < vector <int> > Boxes;
     vector < vector <int> > BBoxes;
     vector < vector <int> > PBoxes;
@@ -33,6 +36,8 @@ namespace FractalSpace
     vector < vector <double> > RealPBoxes;
     vector <int>ij_offsets;
     vector <int>ij_counts;
+    vector <int>ij_offsetsB;
+    vector <int>ij_countsB;
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
@@ -139,6 +144,8 @@ namespace FractalSpace
     vector <int> masks_level_init;
     //
     vector < vector<Group*> > all_groups;
+    vector < vector<Group*> > all_buffer_groups;
+    vector < vector<Group*> > all_inside_groups;
     Misc* p_misc; 
     Fractal* p_fractal;
     Mess* p_mess;
@@ -161,7 +168,10 @@ namespace FractalSpace
       FractalNodes2(1),
       FFTNodes(1234567),
       time_trial(true),
-      min_hypre_group_size(1),
+      min_hypre_group_size(45),
+      hypre_load_balance(false),
+      hypre_max_node_load(200000),
+      hypre_max_average_load(20000),
       amnesia(true),
       mind_wipe(false),
       fixed_potential(false),

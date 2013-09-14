@@ -35,6 +35,7 @@
 #include "SVPH/MeshIdealHPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
+#include "ArtificialViscosity/TensorSVPHViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -57,6 +58,7 @@ using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
+using ArtificialViscositySpace::TensorSVPHViscosity;
 using KernelSpace::TableKernel;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
@@ -360,8 +362,8 @@ registerState(DataBase<Dimension>& dataBase,
       velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
       PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
                                                                                                  dataBase,
-                                                                                                 this->artificialViscosity(),
-                                                                                                 mLinearConsistent));
+                                                                                                 this->boundaryBegin(),
+                                                                                                 this->boundaryEnd()));
       state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
@@ -484,6 +486,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Get the ArtificialViscosity.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  TensorSVPHViscosity<Dimension>* Qptr = dynamic_cast<TensorSVPHViscosity<Dimension>*>(&Q);
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
@@ -560,6 +563,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   vector<Vector> dAface(numFaces, Vector::zero), posFace(numFaces, Vector::zero), velFace(numFaces, Vector::zero);
   vector<Tensor> Qface(numFaces, Tensor::zero);
   vector<SymTensor> Hface(numFaces, SymTensor::zero);
+
+  if (Qptr != 0) Qface = Qptr->Qface();
 
   // Compute the SVPH corrections.
   vector<Scalar> A;
@@ -652,50 +657,53 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // }
 
   // Determine the Q (requires correct boundary enforced velocities).
-  for (k = 0; k != numFaces; ++k) {
-    const Vector& Bi = B[k];
+  if (Qptr == 0) {
+    for (k = 0; k != numFaces; ++k) {
+      const Vector& Bi = B[k];
 
-    // Set the neighbors for this face.
-    Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
-                                                nodeLists.begin(), nodeLists.end(),
-                                                W.kernelExtent());
+      // Set the neighbors for this face.
+      Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
+                                                  nodeLists.begin(), nodeLists.end(),
+                                                  W.kernelExtent());
 
-    // Iterate over the NodeLists.
-    for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-      const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-      Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-      neighbor.setRefineNeighborList(posFace[k], H0);
-      for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
-           neighborItr != neighbor.refineNeighborEnd();
-           ++neighborItr) {
-        j = *neighborItr;
+      // Iterate over the NodeLists.
+      for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+        Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+        neighbor.setRefineNeighborList(posFace[k], H0);
+        for (typename Neighbor<Dimension>::const_iterator neighborItr = neighbor.refineNeighborBegin();
+             neighborItr != neighbor.refineNeighborEnd();
+             ++neighborItr) {
+          j = *neighborItr;
       
-        // Get the state for node j
-        const Vector& rj = position(nodeListj, j);
-        const Vector& vj = velocity(nodeListj, j);
-        const Scalar& rhoj = massDensity(nodeListj, j);
-        const Scalar& Pj = pressure(nodeListj, j);
-        const Scalar& cj = soundSpeed(nodeListj, j);
-        const SymTensor& Hj = H(nodeListj, j);
-        const Scalar& Vj = volume(nodeListj, j);
-        Hdetj = Hj.Determinant();
-        CHECK(Vj > 0.0);
-        CHECK(Hdetj > 0.0);
+          // Get the state for node j
+          const Vector& rj = position(nodeListj, j);
+          const Vector& vj = velocity(nodeListj, j);
+          const Scalar& rhoj = massDensity(nodeListj, j);
+          const Scalar& Pj = pressure(nodeListj, j);
+          const Scalar& cj = soundSpeed(nodeListj, j);
+          const SymTensor& Hj = H(nodeListj, j);
+          const Scalar& Vj = volume(nodeListj, j);
+          Hdetj = Hj.Determinant();
+          CHECK(Vj > 0.0);
+          CHECK(Hdetj > 0.0);
 
-        // Pair-wise kernel type stuff.
-        const Vector rij = posFace[k] - rj;
-        const Vector etai = Hface[k]*rij;
-        const Vector etaj = Hj*rij;
-        const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-        const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
+          // Pair-wise kernel type stuff.
+          const Vector rij = posFace[k] - rj;
+          const Vector etai = Hface[k]*rij;
+          const Vector etaj = Hj*rij;
+          const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+          const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
-        // Get the face Q values (in this case P/rho^2).
-        const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
-                                                  posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
-                                                  rj, etaj, vj, rhoj, cj, Hj);
-        Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
-        const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-        maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+          // Get the face Q values (in this case P/rho^2).
+          const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
+                                                    posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
+                                                    rj, etaj, vj, rhoj, cj, Hj);
+          //Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
+          Qface[k] += VWRj*rhoj*rhoj*QPiij.second;
+          const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+          maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+        }
       }
     }
   }
@@ -712,7 +720,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar& Ai = A[k];
     CHECK2(Ai >= 0.0, i << " " << Ai);
     Pface[k] *= Ai;
-    Qface[k] *= Ai;
+    if (Qptr == 0) Qface[k] *= Ai;
 
     Pface[k] = (1.0 - mfcellPressure)*Pface[k] + mfcellPressure*PcellFace[k];
   }
@@ -790,6 +798,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       localDvDxi = DvDxi;
       DrhoDti = -rhoi*DvDxi.Trace();
       DepsDti = -(Pi + Qavg.Trace()/Dimension::nDim)/rhoi*DvDxi.Trace();
+      maxViscousPressurei = Qavg.diagonalElements().maxAbsElement();
 
       // Position update.
       if (this->XSVPH()) {
@@ -860,63 +869,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   //   }
   // }
   // Hideal.assignFields(Havg);
-
-  // Finally, if we're using the compatible energy discretization we need to
-  // fill in the opposite properties across faces.
-  if (mCompatibleEnergyEvolution) {
-    // for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
-
-    //   // Iterate over the internal nodes in this NodeList.
-    //   const unsigned n = nodeList.numInternalNodes();
-    //   for (unsigned i = 0; i != n; ++i) {
-    //     const Zone& zonei = mesh.zone(nodeListi, i);
-    //     const vector<int>& faceIDs = zonei.faceIDs();
-    //     const unsigned nfaces = faceIDs.size();
-
-    //     // Get the state for node i.
-    //     vector<Vector>& faceAccelerationi = faceAcceleration(nodeListi, i);
-
-    //     // Walk the faces.
-    //     for (unsigned k = 0; k != nfaces; ++k) {  
-    //       const unsigned fid = Mesh<Dimension>::positiveID(faceIDs[k]);
-    //       const Face& face = mesh.face(fid);
-
-    //       // Find the opposite node.
-    //       const unsigned oppZoneID = Mesh<Dimension>::positiveID(face.oppositeZoneID(zonei.ID()));
-    //       unsigned nodeListj = nodeListi, j = i;
-    //       if (oppZoneID != Mesh<Dimension>::UNSETID) {
-    //         mesh.lookupNodeListID(oppZoneID, nodeListj, j);
-    //       }
-
-    //       // Record the opposite node properties.
-    //       faceAccelerationi.push_back(DvDt(nodeListj, j));
-    //     }
-    //     CHECK(faceAccelerationi.size() == nfaces);
-    //   }
-    // }
-
-    // // Boundaries!
-    // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    //   for (ConstBoundaryIterator itr = this->boundaryBegin();
-    //        itr != this->boundaryEnd();
-    //        ++itr) {
-    //     (*itr)->swapFaceValues(*faceAcceleration[nodeListi], *mMeshPtr);
-    //   }
-    // }
-
-    // Boundaries!
-    for (ConstBoundaryIterator itr = this->boundaryBegin();
-         itr != this->boundaryEnd();
-         ++itr) {
-      (*itr)->applyFieldListGhostBoundary(DvDt);
-    }
-    for (ConstBoundaryIterator itr = this->boundaryBegin();
-         itr != this->boundaryEnd();
-         ++itr) {
-      (*itr)->finalizeGhostBoundary();
-    }
-  }
 }
 
 //------------------------------------------------------------------------------

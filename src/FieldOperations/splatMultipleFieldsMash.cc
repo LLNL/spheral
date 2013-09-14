@@ -13,6 +13,7 @@
 #include "Neighbor/Neighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "Geometry/MathTraits.hh"
+#include "Boundary/Boundary.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -23,6 +24,7 @@ using namespace std;
 using NodeSpace::NodeList;
 using NeighborSpace::Neighbor;
 using KernelSpace::TableKernel;
+using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
 // Return a MASH donated version of the given FieldList at the new positions.
@@ -41,7 +43,8 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
                         const TableKernel<Dimension>& kernel,
                         const FieldList<Dimension, typename Dimension::Vector>& samplePositions,
                         const FieldList<Dimension, typename Dimension::Scalar>& sampleWeight,
-                        const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield) {
+                        const FieldList<Dimension, typename Dimension::SymTensor>& sampleHfield,
+                        const vector<Boundary<Dimension>*>& boundaryConditions) {
 
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
@@ -159,11 +162,12 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
          ++resultItr) 
       resultItr->appendField(Field<Dimension, SymTensor>("splat" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
-  vector< vector<bool> > flagNodeDone(position.numFields());
+  
+  FieldList<Dimension, int> flagNodeDone(FieldList<Dimension, int>::Copy);
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {
-    flagNodeDone[fieldItr - position.begin()].resize((*fieldItr)->nodeListPtr()->numInternalNodes(), false);
+    flagNodeDone.appendNewField("flag nodes done", (*fieldItr)->nodeList(), 0);
   }
 
   // Loop over all the positions in the donor fieldList.
@@ -172,7 +176,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
        ++nodeItr) {
 
     // Check if this node has been done yet.
-    if (!flagNodeDone[nodeItr.fieldID()][nodeItr.nodeID()]) {
+    if (flagNodeDone(nodeItr) == 0) {
 
       // Set the neighbor info over the positions we're sampling to.
       position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
@@ -182,7 +186,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin();
            masterItr < position.masterNodeEnd();
            ++masterItr) {
-        CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
+        CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == 0);
    
         // Sample node (i) state.
         const Vector& ri = position(masterItr);
@@ -309,22 +313,13 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         }
    
         // Flag this master node as done.
-        flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = true;
+        flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = 1;
       }
     }
   }
 
   // After we're done, all nodes in all NodeLists should be flagged as done.
-  for (typename vector< vector<bool> >::const_iterator flagNodeItr = flagNodeDone.begin();
-       flagNodeItr < flagNodeDone.end();
-       ++flagNodeItr) {
-    int checkcount = count(flagNodeItr->begin(), flagNodeItr->end(), false);
-    if (checkcount > 0) {
-      cerr << "Error in FieldList::splatFieldsMash: Not all values determined on exit "
-           << checkcount << endl;
-    }
-    CHECK(checkcount == 0);
-  }
+  ENSURE(flagNodeDone.min() == 1);
 
   return resultSet;
 }
