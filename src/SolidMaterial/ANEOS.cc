@@ -2,7 +2,7 @@
 // ANEOS -- An interface to the ANEOS equation of state from 
 // Melosh amony others.  This is a C++ wrapper around calls to the underlying
 // ANEOS fortran library.  The user must provide the ancillary file containing
-// parameters for ANEOS in it's expected format.  Also make sure to keep units
+// parameters for ANEOS in its expected format.  Also make sure to keep units
 // consistent in this separate input file with what you give the C++ EOS here!
 //
 // Created by JMO, Tue Apr 23 14:55:28 PDT 2013
@@ -111,8 +111,8 @@ ANEOS(const int materialNumber,
                tconv = mANEOSunits.unitTimeSec() / constants.unitTimeSec();
   mRhoConv = mconv/(lconv*lconv*lconv);
   mPconv = mconv/(lconv*tconv*tconv);
-  mTconv = 1.0/1.160564e4;
-  mEconv = mconv*FastMath::square(lconv/tconv);
+  mTconv = 1.160564e4;
+  mEconv = FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
 

@@ -30,6 +30,7 @@ self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
         return
 
@@ -43,6 +44,7 @@ self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
+self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
         return
 
@@ -188,6 +190,30 @@ self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i
         # Attributes
         x.add_instance_attribute("scalar", "bool", getter="scalar", is_const=True)
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Add methods to the TensorSVPHViscosity.
+    #---------------------------------------------------------------------------
+    def addTensorSVPHViscosityMethods(self, x, ndim):
+
+        me = "Spheral::ArtificialViscositySpace::TensorSVPHViscosity%id" % ndim
+        vector_of_tensor = "vector_of_Tensor%id" % ndim
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("double", "fslice", default_value="0.5")])
+
+        # Add the abstract methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        # Attributes.
+        x.add_instance_attribute("fslice", "double", getter="fslice", setter="fslice")
+        const_ref_return_value(x, me, "%s::DvDx" % me, vector_of_tensor, [], "DvDx")
+        const_ref_return_value(x, me, "%s::shearCorrection" % me, "vector_of_double", [], "shearCorrection")
+        const_ref_return_value(x, me, "%s::Qface" % me, vector_of_tensor, [], "Qface")
 
         return
 

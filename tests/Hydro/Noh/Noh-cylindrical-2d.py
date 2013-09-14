@@ -52,6 +52,7 @@ commandLine(seed = "constantDTheta",
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
+            fslice = 0.5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -225,7 +226,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+if Qconstructor is TensorSVPHViscosity:
+    q = Qconstructor(Cl, Cq, fslice)
+else:
+    q = Qconstructor(Cl, Cq)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -392,9 +396,16 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
+import NohAnalyticSolution
+answer = NohAnalyticSolution.NohSolution(2,
+                                         h0 = nPerh*rmax/nRadial)
+
 if graphics:
 
     # Plot the node positions.
@@ -424,9 +435,6 @@ if graphics:
     htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_t")
 
     # Overplot the analytic solution.
-    import NohAnalyticSolution
-    answer = NohAnalyticSolution.NohSolution(2,
-                                             h0 = nPerh*rmax/nRadial)
     plotAnswer(answer, control.time(),
                rhoPlot = rhoPlot,
                velPlot = vrPlot,
@@ -487,17 +495,25 @@ if outputFile != "None":
     mof = mortonOrderIndicies(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        multiSort(mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
-        for xi, yi, rhoi, Pi, vi, epsi, hi, mi in zip(xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((7*"%16.12e " + "%i\n") % (xi, yi, rhoi, Pi, vi, epsi, hi, mi))
-            f.write((7*"%i " + "\n") % (unpackElementUL(packElementDouble(xi)),
-                                        unpackElementUL(packElementDouble(yi)),
-                                        unpackElementUL(packElementDouble(rhoi)),
-                                        unpackElementUL(packElementDouble(Pi)),
-                                        unpackElementUL(packElementDouble(vi)),
-                                        unpackElementUL(packElementDouble(epsi)),
-                                        unpackElementUL(packElementDouble(hi))))
+        f.write(("# " + 20*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
+                                              "rhoans", "Pans", "vans", "epsans",
+                                              "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, 
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                     rhoans, Pans, vans, epsans):
+            f.write((8*"%16.12e " + "%i " + 4*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+                                                                              rhoansi, Pansi, vansi, epsansi,
+                                                                              unpackElementUL(packElementDouble(xi)),
+                                                                              unpackElementUL(packElementDouble(yi)),
+                                                                              unpackElementUL(packElementDouble(rhoi)),
+                                                                              unpackElementUL(packElementDouble(Pi)),
+                                                                              unpackElementUL(packElementDouble(vi)),
+                                                                              unpackElementUL(packElementDouble(epsi)),
+                                                                              unpackElementUL(packElementDouble(hi))))
         f.close()
 
         #---------------------------------------------------------------------------
