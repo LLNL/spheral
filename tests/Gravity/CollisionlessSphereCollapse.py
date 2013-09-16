@@ -32,6 +32,7 @@ commandLine(
 
     # Which N-body method should we use?
     nbody = OctTreeGravity,
+    timeStepChoice = AccelerationRatio,
 
     # Output
     dataDir = "Collisionless_Sphere_Collapse",
@@ -146,7 +147,8 @@ elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
                              softeningLength = plummerLength,
                              opening = opening,
-                             ftimestep = fdt)
+                             ftimestep = fdt,
+                             timeStepChoice = timeStepChoice)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
