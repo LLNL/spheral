@@ -161,6 +161,15 @@ struct DataTypeTraits<boost::tuple<Value, Value, Value, Value, Value> > {
 };
 
 //------------------------------------------------------------------------------
+template<typename Value1, typename Value2>
+struct DataTypeTraits<std::pair<Value1, Value2> > {
+  typedef std::pair<Value1, Value2> ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const std::pair<Value1, Value2>& x) { return 2; }
+  static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+};
+
+//------------------------------------------------------------------------------
 template<>
 struct DataTypeTraits<Dim<1>::Vector> {
   typedef double ElementType;

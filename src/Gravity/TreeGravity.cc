@@ -20,6 +20,7 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/PairComparisons.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
@@ -31,6 +32,10 @@ namespace Spheral {
 namespace GravitySpace {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
+
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
@@ -93,19 +98,24 @@ TreeGravity<Dimension>::
 TreeGravity(const double G,
             const double softeningLength,
             const double opening,
-            const double ftimestep):
+            const double ftimestep,
+            const GravityTimeStepType timeStepChoice):
   PhysicsSpace::GenericBodyForce<Dimension >(),
   mG(G),
-  mSofteningLength2(softeningLength*softeningLength),
+  mSofteningLength(softeningLength),
   mOpening2(opening*opening),
   mftimestep(ftimestep),
   mBoxLength(0.0),
-  mMaxCellDensity(0.0),
+  mTimeStepChoice(timeStepChoice),
   mXmin(),
   mXmax(),
   mTree(),
   mPotential(FieldList<Dimension, Scalar>::Copy),
   mExtraEnergy(0.0),
+  mInteractionMasses(FieldList<Dimension, vector<Scalar> >::Copy),
+  mInteractionPositions(FieldList<Dimension, vector<Vector> >::Copy),
+  mHomeBuckets(FieldList<Dimension, pair<LevelKey, CellKey> >::Copy),
+  mDtMin(0.0),
   mRestart(DataOutput::registerWithRestart(*this)) {
   VERIFY(G > 0.0);
   VERIFY(opening > 0.0);
@@ -157,7 +167,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Zero out the total gravitational potential energy.
   mPotential = 0.0;
 
-  // Initialize the pair-wise time step vote.
+  // Initialize the time-step voting data.
+  mInteractionMasses = vector<Scalar>();
+  mInteractionPositions = vector<Vector>();
   mDtMin = numeric_limits<Scalar>::max();
 
   // Prepare the flags to remember which cells have terminated for each node.
@@ -210,7 +222,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
         mDtMin = min(mDtMin, 
-                     applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
+                     applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, mInteractionMasses, mInteractionPositions, mHomeBuckets, cellsCompleted));
       }
     }
   }
@@ -219,10 +231,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Apply the forces from our local tree.
   mDtMin = min(mDtMin,
-               applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, cellsCompleted));
-
-  // // Complete the pair-wise limit for the next time step.
-  // mDtMin = allReduce(mDtMin, MPI_MIN, Communicator::communicator());
+               applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, mInteractionMasses, mInteractionPositions, mHomeBuckets, cellsCompleted));
 
 #ifdef USE_MPI
 
@@ -249,7 +258,17 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
+  mInteractionMasses = db.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
+  mInteractionPositions = db.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
+  mHomeBuckets = db.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
 
+  // We need to initialize stuff like the interactionMass and positions.  
+  // Easiest done by a dry run through evaluateDerivatives.
+  vector<PhysicsSpace::Physics<Dimension>*> packages(1, this);
+  State<Dimension> state(db, packages);
+  StateDerivatives<Dimension> derivs(db, packages);
+  this->initialize(0.0, 1.0, db, state, derivs);
+  this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
 }
 
 //------------------------------------------------------------------------------
@@ -351,11 +370,8 @@ initialize(const Scalar time,
 
   // Make a final pass over the cells and fill in the distance between the 
   // center of mass and the geometric center.
-  // We also squirrel away the maximum effective cell density for our timestep
-  // determination.
   CellKey ckey, ix, iy, iz;
   double cellsize, cellvol;
-  mMaxCellDensity = 0.0;
   for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
     cellsize = mBoxLength/(1U << ilevel);
     cellvol = Dimension::pownu(cellsize);
@@ -369,24 +385,8 @@ initialize(const Scalar time,
       // Update the distance between the cell's center of mass and geometric center.
       cell.rcm2cc2 = (cell.xcm - TreeDimensionTraits<Dimension>::cellCenter(mXmin, ix, iy, iz, cellsize)).magnitude2();
       CHECK(cell.rcm2cc2 < Dimension::nDim*cellsize*cellsize);
-
-      // Update the maximum effective cell density.
-      mMaxCellDensity = max(mMaxCellDensity, cell.Mglobal/cellvol);
     }
   }
-
-  // Get the global max cell density.
-  mMaxCellDensity = allReduce(mMaxCellDensity, MPI_MAX, Communicator::communicator());
-}
-
-//------------------------------------------------------------------------------
-// We don't need the connectivity.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-TreeGravity<Dimension>::
-requireConnectivity() const {
-  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -399,39 +399,95 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
-  REQUIRE(mMaxCellDensity > 0.0);
+  const double softLength2 = mSofteningLength*mSofteningLength;
 
-  // Check our most restrictive restraint.
-  const double dtDyn = sqrt(1.0/(mG*mMaxCellDensity));
-  // DEBUG: ignore dtDyn, remove this branch if/when accepted 
-  if ((dtDyn < mDtMin) && false) {
-
-    const double dt = mftimestep * dtDyn;
+  // A standard N-body approach -- just take the ratio of softening length/acceleration.
+  if (mTimeStepChoice == AccelerationRatio) {
+    const double dt = mftimestep * mDtMin;
     stringstream reasonStream;
-    reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
-                 << mG << " * " << mMaxCellDensity
-                 << ")) = " << dt << endl;
-    double cellsize = mBoxLength/(1U << (mTree.size()-1));
-    double cellvol = Dimension::pownu(cellsize);
-    double cellmass = mMaxCellDensity*cellvol;
-    reasonStream << "mBoxLength = " << mBoxLength << 
-                    ", cellsize = " << cellsize <<
-                    ", cellmass = " << cellmass << endl;
-
-    std::string mDump = dumpTree(false);
-    std::string mM = mDump.substr(mDump.find("M="),36);
-    reasonStream <<  mM << ends;
-    
+    reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << ends;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
-    const double dt = mftimestep * mDtMin;
+    // The following is an implementation (perhaps not exact) of the algorithm 
+    // described in Zemp et al., MNRAS, 376, 273-286 (2007).
+    // The idea is to come up with the most restrictive dynamical time per particle
+    // by find the dominant potentials for each point.
+    CHECK(mTimeStepChoice == DynamicalTime);
+
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const size_t numNodeLists = position.numFields();
+    double dtmin = numeric_limits<double>::max();
+    double rhomax = 0.0;
+    int nodeListMax = -1;
+    int imax = -1;
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const size_t n = position[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        const Vector& xi = position(nodeListi, i);
+        const vector<Scalar>& mbucketsi = mInteractionMasses(nodeListi, i);
+        const vector<Vector>& xbucketsi = mInteractionPositions(nodeListi, i);
+        const unsigned nbuckets = mbucketsi.size();
+        CHECK(nbuckets > 0);
+        CHECK(xbucketsi.size() == nbuckets);
+
+        // First compute the full set of effective densities for this point, and sort them
+        // in decreasing order to pick out the top 0.5%.
+        vector<pair<double, unsigned> > rhoenc;
+        for (unsigned j = 0; j != nbuckets; ++j) {
+          rhoenc.push_back(make_pair(mbucketsi[j]/Dimension::pownu(sqrt((xbucketsi[j] - xi).magnitude2() + softLength2)), j));
+        }
+        const unsigned ntop = max(1U, unsigned(0.05*nbuckets));
+        std::partial_sort(rhoenc.begin(), rhoenc.begin() + ntop, rhoenc.end(), 
+                          ComparePairsByFirstElementInDecreasingOrder<pair<double, unsigned> >());
+
+        // For the ntop maxima, sum the contributions from the other centers.  We keep the
+        // maximum one.
+        for (unsigned k = 0; k != ntop; ++k) {
+          const unsigned jmax = rhoenc[k].second;
+          const Vector xpcmax = xbucketsi[jmax] - xi;
+          const double rpcmax2 = xpcmax.magnitude2();
+          double rholocal = 0.0;
+          for (unsigned j = 0; j != nbuckets; ++j) {
+            const Vector xpc = xbucketsi[j] - xi;
+            const double rpc2 = xpc.magnitude2();
+            if (rpc2 <= 4.0*rpcmax2 and
+                0.75*sqrt(rpcmax2*rpc2) <= xpcmax.dot(xpc)) rholocal += rhoenc[j].first;
+          }
+
+          // // Add this nodes local bucket.
+          // const LevelKey levelKey = mHomeBuckets(nodeListi, i).first;
+          // const CellKey cellKey = mHomeBuckets(nodeListi, i).second;
+          // CHECK(levelKey <= mTree.size());
+          // typename TreeLevel::const_iterator itr = mTree[levelKey].find(cellKey);
+          // CHECK(itr != mTree[levelKey].end());
+          // const Cell& localCell = itr->second; // mTree[levelKey][cellKey];
+          // rholocal += localCell.Mglobal/Dimension::pownu(sqrt((localCell.xcm - xi).magnitude2() + softLength2));
+
+          // Now check for the global max.
+          if (rhomax < rholocal) {
+            rhomax = rholocal;
+            nodeListMax = nodeListi;
+            imax = i;
+          }
+        }
+      }
+    }
+    CHECK(rhomax > 0.0);
+    CHECK(nodeListMax >= 0);
+    CHECK(imax >= 0);
+
+    // We now have the local maximum effective density for any point.  That's enough
+    // to compute the gravitational dynamical time scale.
+    const double dtDyn = sqrt(1.0/(mG*rhomax));
+    const double dt = mftimestep * dtDyn;
     stringstream reasonStream;
-//    reasonStream << "TreeGravity: pair-wise r/v limit = "<< dt << ends;
-    reasonStream << "TreeGravity: f*sqrt(L/a) = "
-                 << mftimestep << " * sqrt(" << mBoxLength << " / "
-                 << mftimestep*mftimestep*mBoxLength/(dt*dt) << ") = "
-                 << dt << ends;
+    reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
+                 << mG << " * " << rhomax
+                 << ")) = " << dt 
+                 << " selected for node " << imax 
+                 << " in NodeList " << position[nodeListMax]->nodeList().name()
+                 << ends;
     return TimeStepType(dt, reasonStream.str());
   }
 }
@@ -454,6 +510,26 @@ const FieldList<Dimension, typename TreeGravity<Dimension>::Scalar>&
 TreeGravity<Dimension>::
 potential() const {
   return mPotential;
+}
+
+//------------------------------------------------------------------------------
+// interactionMasses
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const FieldList<Dimension, vector<typename Dimension::Scalar> >&
+TreeGravity<Dimension>::
+interactionMasses() const {
+  return mInteractionMasses;
+}
+
+//------------------------------------------------------------------------------
+// interactionPositions
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const FieldList<Dimension, vector<typename Dimension::Vector> >&
+TreeGravity<Dimension>::
+interactionPositions() const {
+  return mInteractionPositions;
 }
 
 //------------------------------------------------------------------------------
@@ -633,7 +709,7 @@ template<typename Dimension>
 double
 TreeGravity<Dimension>::
 softeningLength() const {
-  return sqrt(mSofteningLength2);
+  return mSofteningLength;
 }
 
 template<typename Dimension>
@@ -641,7 +717,7 @@ void
 TreeGravity<Dimension>::
 softeningLength(const double x) {
   VERIFY(x > 0.0);
-  mSofteningLength2 = x*x;
+  mSofteningLength = x;
 }
 
 //------------------------------------------------------------------------------
@@ -660,6 +736,23 @@ TreeGravity<Dimension>::
 ftimestep(const double x) {
   VERIFY(x > 0.0);
   mftimestep = x;
+}
+
+//------------------------------------------------------------------------------
+// timeStepChoice
+//------------------------------------------------------------------------------
+template<typename Dimension>
+GravityTimeStepType
+TreeGravity<Dimension>::
+timeStepChoice() const {
+  return mTimeStepChoice;
+}
+
+template<typename Dimension>
+void
+TreeGravity<Dimension>::
+timeStepChoice(const GravityTimeStepType x) {
+  mTimeStepChoice = x;
 }
 
 //------------------------------------------------------------------------------
@@ -683,24 +776,15 @@ xmax() const {
 }
 
 //------------------------------------------------------------------------------
-// maxCellDensity
-//------------------------------------------------------------------------------
-template<typename Dimension>
-double
-TreeGravity<Dimension>::
-maxCellDensity() const {
-  return mMaxCellDensity;
-}
-
-//------------------------------------------------------------------------------
 // Dump the current state to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 TreeGravity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mMaxCellDensity, pathName + "/maxCellDensity");
   file.write(mPotential, pathName + "/potential");
+  file.write(mInteractionMasses, pathName + "/interactionMasses");
+  file.write(mInteractionPositions, pathName + "/interactionPositions");
   file.write(mDtMin, pathName + "/pairWiseDtMin");
 }
 
@@ -711,8 +795,9 @@ template<typename Dimension>
 void
 TreeGravity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-  file.read(mMaxCellDensity, pathName + "/maxCellDensity");
   file.read(mPotential, pathName + "/potential");
+  file.read(mInteractionMasses, pathName + "/interactionMasses");
+  file.read(mInteractionPositions, pathName + "/interactionPositions");
   file.read(mDtMin, pathName + "/pairWiseDtMin");
 }
 
@@ -728,11 +813,15 @@ applyTreeForces(const Tree& tree,
                 FieldSpace::FieldList<Dimension, Vector>& DxDt,
                 FieldSpace::FieldList<Dimension, Vector>& DvDt,
                 FieldSpace::FieldList<Dimension, Scalar>& potential,
+                FieldSpace::FieldList<Dimension, vector<Scalar> >& interactionMasses,
+                FieldSpace::FieldList<Dimension, vector<Vector> >& interactionPositions,
+                FieldSpace::FieldList<Dimension, pair<LevelKey, CellKey> >& homeBuckets,
                 TreeGravity<Dimension>::CompletedCellSet& cellsCompleted) const {
 
   const unsigned numNodeLists = mass.numFields();
   const unsigned numNodes = mass.numInternalNodes();
   const double boxLength2 = mBoxLength*mBoxLength;
+  const double softLength2 = mSofteningLength*mSofteningLength;
 
   // Prepare the result for the shortest timestep.
   double result = numeric_limits<double>::max();
@@ -785,13 +874,18 @@ applyTreeForces(const Tree& tree,
 
                 // Yep, treat this cells and all of its daughters as a single point.
                 nhat = xji.unitVector();
-                rji2 += mSofteningLength2;
+                rji2 += softLength2;
                 CHECK(rji2 > 0.0);
 
                 // Increment the acceleration and potential.
                 DvDti += mG*cell.Mglobal*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
                 phii += mG*mi*cell.Mglobal*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
                 cellsCompleted[inode][ilevel].insert(cell.key);
+
+                // Add to the set of "interaction" buckets for this point, which are used for
+                // choosing the timestep.
+                interactionMasses(nodeListi, i).push_back(cell.Mglobal);
+                interactionPositions(nodeListi, i).push_back(cell.xcm);
 
               } else if (cell.daughterPtrs.size() == 0) {
 
@@ -807,20 +901,22 @@ applyTreeForces(const Tree& tree,
                   xji = xj - xi;
                   rji2 = xji.magnitude2();
 
-                  if (rji2/mSofteningLength2 > 1.0e-10) {           // Screen out self-interaction.
+                  if (rji2/softLength2 > 1.0e-10) {           // Screen out self-interaction.
                     nhat = xji.unitVector();
-                    rji2 += mSofteningLength2;
+                    rji2 += softLength2;
                     CHECK(rji2 > 0.0);
 
                     // Increment the acceleration and potential.
                     DvDti += mG*mj*TreeDimensionTraits<Dimension>::forceLaw(rji2) * nhat;
                     phii += mG*mi*mj*TreeDimensionTraits<Dimension>::potentialLaw(rji2);
-
-                    // Increment our vote for the next timestep.
-                    //DEBUG: let's try min(r_i/a_i) instead , see next DEBUG
-                    //result = min(result, sqrt(rji2/max(1.0e-20, (vj - vi).magnitude2())));
+                  } else {
+                    homeBuckets(nodeListi, i) = make_pair(ilevel, cell.key);
                   }
                 }
+
+                // Add this cells contribution to the interaction buckets.
+                interactionMasses(nodeListi, i).push_back(cell.Mglobal);
+                interactionPositions(nodeListi, i).push_back(cell.xcm);
 
               } else {
 
@@ -836,10 +932,9 @@ applyTreeForces(const Tree& tree,
           remainingCells = newDaughters;
         }
 
-        // DEBUG: update dt based on L/a, remove this comment if/when accepted
-        // Increment our vote for the next time step
-        result = min(result,
-                     sqrt(mBoxLength / DvDti.magnitude()));
+        // Update the total acceleration based constraint for the time-step.
+        const double amag = DvDti.magnitude();
+        if (amag > 0.0) result = min(result, sqrt(mSofteningLength / amag));
       }
     }
   }
