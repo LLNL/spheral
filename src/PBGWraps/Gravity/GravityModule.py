@@ -37,6 +37,8 @@ class Gravity:
         self.QuadTreeGravity = addObject(space, "QuadTreeGravity", allow_subclassing=True, parent=genericbodyforce2d)
         self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
+        self.GravityTimeStepType = space.add_enum("GravityTimeStepType", ["AccelerationRatio", "DynamicalTime"])
+
         return
 
     #---------------------------------------------------------------------------
@@ -158,7 +160,8 @@ class Gravity:
         x.add_constructor([param("double", "G"),
                            param("double", "softeningLength"),
                            param("double", "opening", default_value="0.5"),
-                           param("double", "ftimestep", default_value="0.1")])
+                           param("double", "ftimestep", default_value="0.1"),
+                           param("GravityTimeStepType", "timeStepChoice", default_value="Spheral::GravitySpace::AccelerationRatio")])
 
         # Wrap the generic physics methods.
         generatePhysicsVirtualBindings(x, ndim, False)
@@ -173,8 +176,8 @@ class Gravity:
         x.add_instance_attribute("opening", "double", getter="opening", setter="opening")
         x.add_instance_attribute("softeningLength", "double", getter="softeningLength", setter="softeningLength")
         x.add_instance_attribute("ftimestep", "double", getter="ftimestep", setter="ftimestep")
+        x.add_instance_attribute("timeStepChoice", "GravityTimeStepType", getter="timeStepChoice", setter="timeStepChoice")
         x.add_instance_attribute("xmin", vector, getter="xmin", is_const=True)
         x.add_instance_attribute("xmax", vector, getter="xmax", is_const=True)
-        x.add_instance_attribute("maxCellDensity", "double", getter="maxCellDensity", is_const=True)
 
         return

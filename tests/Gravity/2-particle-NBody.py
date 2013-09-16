@@ -29,6 +29,7 @@ commandLine(
 
     # Which N-body method should we use?
     nbody = OctTreeGravity,
+    timeStepChoice = AccelerationRatio,
 
     # Output
     dataDir = "Two-Earth-Nbody",
@@ -36,6 +37,7 @@ commandLine(
     restoreCycle = None,
     restartStep = 100,
     numViz = 100,
+    dtverbose = False,
     )
 
 # Convert to MKS units.
@@ -131,7 +133,8 @@ elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,
                              softeningLength = plummerLength,
                              opening = opening,
-                             ftimestep = fdt)
+                             ftimestep = fdt,
+                             timeStepChoice = timeStepChoice)
 elif nbody is FractalGravity:
     gravity = FractalGravity(G = G,
                              xmin = Vector(-1.5*r0, -1.5*r0, -1.5*r0),
@@ -154,6 +157,7 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.verbose = dtverbose
 
 #-------------------------------------------------------------------------------
 # Build the problem controller to follow the problem evolution.

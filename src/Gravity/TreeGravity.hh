@@ -25,6 +25,11 @@ namespace FileIOSpace {
 
 namespace GravitySpace {
 
+enum GravityTimeStepType {
+  AccelerationRatio = 0,
+  DynamicalTime = 1,
+};
+
 template<typename Dimension>
 class TreeGravity: public PhysicsSpace::GenericBodyForce<Dimension> {
 public:
@@ -40,11 +45,13 @@ public:
   //! \param G -- the gravitational constant.
   //! \param opening -- the opening ratio for approximating forces.
   //! \param softeningLength -- The Plummer softening length for the model.
-  //! \param ftimestep -- safety factor to apply to pmom_i/F_i in setting time steps.
+  //! \param ftimestep -- safety factor in [0,1] in setting time steps.
+  //! \param timeStepChoice -- algorithm to use choosing time steps.
   TreeGravity(const double G,
               const double softeningLength,
               const double opening,
-              const double ftimestep);
+              const double ftimestep,
+              const GravityTimeStepType timeStepChoice);
 
   //! Destructor.
   virtual ~TreeGravity();
@@ -78,13 +85,17 @@ public:
                           StateDerivatives<Dimension>& derivs);
                        
   //! This package opts out of building connectivity.
-  virtual bool requireConnectivity() const;
+  virtual bool requireConnectivity() const { return false; }
 
   //! Return the total energy contribution due to the gravitational potential.
   virtual Scalar extraEnergy() const;
 
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
+
+  //! The per point state necessary for determining time steps.
+  const FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& interactionPositions() const;
 
   //! Return a dump of the tree structure as a string.
   std::string dumpTree(const bool globalTree) const;
@@ -107,14 +118,15 @@ public:
   double ftimestep() const;
   void ftimestep(const double x);
 
+  //! The algorithmic choice for setting the time step.
+  GravityTimeStepType timeStepChoice() const;
+  void timeStepChoice(const GravityTimeStepType x);
+
   //! The lower left corner of the computational cube that was last used.
   Vector xmin() const;
 
   //! The upper right corner of the computational cube that was last used.
   Vector xmax() const;
-
-  //! The last computed maximum tree cell density.
-  double maxCellDensity() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -166,13 +178,19 @@ private:
   typedef std::vector<TreeLevel> Tree;
 
   // Private data.
-  double mG, mSofteningLength2, mOpening2, mftimestep, mBoxLength, mMaxCellDensity;
+  double mG, mSofteningLength, mOpening2, mftimestep, mBoxLength;
+  GravityTimeStepType mTimeStepChoice;
   Vector mXmin, mXmax;
   Tree mTree;
 
   // The potential fields filled in during evaluateDerivates.
   mutable FieldSpace::FieldList<Dimension, Scalar> mPotential;
   mutable Scalar mExtraEnergy;
+
+  // Data we need for computing time steps.
+  mutable FieldSpace::FieldList<Dimension, std::vector<Scalar> > mInteractionMasses;
+  mutable FieldSpace::FieldList<Dimension, std::vector<Vector> > mInteractionPositions;
+  mutable FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> > mHomeBuckets;
   mutable Scalar mDtMin;
   
   // The restart registration.
@@ -219,6 +237,9 @@ private:
                          FieldSpace::FieldList<Dimension, Vector>& DxDt,
                          FieldSpace::FieldList<Dimension, Vector>& DvDt,
                          FieldSpace::FieldList<Dimension, Scalar>& potential,
+                         FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses,
+                         FieldSpace::FieldList<Dimension, std::vector<Vector> >& interactionPositions,
+                         FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> >& homeBuckets,
                          CompletedCellSet& cellsCompleted) const;
 
   // Methods to help serializing/deserializing Trees to buffers of char.
