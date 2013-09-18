@@ -83,7 +83,7 @@ hashPosition(const Dim<2>::Vector& position,
 
   // Determine the integer position on the finest level.
   const Vector deltar = position - boxmin;
-  CHECK(deltar > 0.0);
+  CHECK(deltar >= 0.0);
   const Key ncells = KeyTraits::one << KeyTraits::numbits1d;
   const Vector cellsize = boxsize/ncells;
   const int xfine = int(deltar.x()/cellsize.x());
@@ -189,7 +189,7 @@ hashPosition(const Dim<3>::Vector& position,
 
   // Determine the integer position on the finest level.
   const Vector deltar = position - boxmin;
-  CHECK(deltar > 0.0);
+  CHECK(deltar >= 0.0);
   const Key ncells = KeyTraits::one << KeyTraits::numbits1d;
   const Vector cellsize = boxsize/ncells;
   const int xfine = int(deltar.x()/cellsize.x());
