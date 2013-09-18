@@ -625,6 +625,8 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, dprof)
         f = open(outputFile, "w")
+        f.write(("#" + 17*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "D", "m", 
+                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(D)"))
         for (xi, rhoi, Pi, vi, epsi, hi, si, di, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, dprof, mo):
             f.write((8*"%16.12e " + 9*"%i " + "\n") %
                     (xi, rhoi, Pi, vi, epsi, hi, si, di, mi,
@@ -642,7 +644,7 @@ if outputFile != "None":
         # Check the floating values for the state against reference data.
         #---------------------------------------------------------------------------
         f = open(referenceFile, "r")
-        reflines = f.readlines()
+        reflines = f.readlines()[1:]
         f.close()
         xref =   [float(line.split()[0]) for line in reflines]
         rhoref = [float(line.split()[1]) for line in reflines]
