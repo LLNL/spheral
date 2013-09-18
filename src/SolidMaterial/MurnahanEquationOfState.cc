@@ -44,7 +44,7 @@ MurnahanEquationOfState(const double referenceDensity,
   mK(K),
   mAtomicWeight(atomicWeight),
   mExternalPressure(externalPressure),
-  mCv(3.0 * referenceDensity * constants.molarGasConstant() / atomicWeight),
+  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
   mnKi(1.0/(n*K)) {
   REQUIRE(distinctlyGreaterThan(n, 0.0));
   REQUIRE(distinctlyGreaterThan(K, 0.0));
@@ -188,7 +188,7 @@ MurnahanEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
-  return mCv*specificThermalEnergy + 300;
+  return specificThermalEnergy/mCv + 300;
 }
 
 //------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ MurnahanEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   REQUIRE(valid());
-  return (temperature - 300.0)/mCv;
+  return (temperature - 300.0)*mCv;
 }
 
 //------------------------------------------------------------------------------
