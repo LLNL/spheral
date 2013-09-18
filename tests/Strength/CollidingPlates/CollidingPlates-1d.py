@@ -1,10 +1,10 @@
 # Non-compatible tests
-#ATS:t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --compatibleEnergyEvolution False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20120920.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
-#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergyEvolution False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20120920.txt' --comparisonFile 'dumps-CollidingPlates-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
+#ATS:t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --compatibleEnergyEvolution False --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20130918.txt'", np=1, label="Colliding plates domain independence test SERIAL Non-compatible RUN")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --compatibleEnergyEvolution False --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-noncompatible-20130918.txt' --comparisonFile 'dumps-CollidingPlates-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Non-compatible RUN")
 #
 # Compatible tests
-#ATS:t50 = test(SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergyEvolution True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20120920.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
-#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergyEvolution True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20120920.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
+#ATS:t50 = test(SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories True --domainIndependent True --compatibleEnergyEvolution True --outputFile 'CollidingPlates-1d-1proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20130918.txt'", np=1, label="Colliding plates domain independence test SERIAL Compatible RUN")
+#ATS:t51 = testif(t50, SELF, "--graphics False --dataDirBase 'dumps-CollidingPlates-compatible-1d' --clearDirectories False --domainIndependent True --compatibleEnergyEvolution True --outputFile 'CollidingPlates-1d-4proc-reproducing.txt' --referenceFile 'Reference/CollidingPlates-1d-reference-compatible-20130918.txt' --comparisonFile 'dumps-CollidingPlates-compatible-1d/100/CollidingPlates-1d-1proc-reproducing.txt'", np=4, label="Colliding plates domain independence test 4 DOMAIN Compatible RUN")
 
 #-------------------------------------------------------------------------------
 # A pair of steel plates colliding at the origin.  This is a useful test of
@@ -84,7 +84,7 @@ commandLine(# Geometry
             graphics = True,
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20120920.txt",
+            referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20130918.txt",
             dataDirBase = "dumps-CollidingPlates-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -386,6 +386,8 @@ if outputFile != "None":
         thpt.sort()
         mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof = zip(*thpt)
         f = open(outputFile, "w")
+        f.write(("#" + 15*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "m", 
+                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)"))
         for (xi, rhoi, Pi, vi, epsi, hi, si, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
             f.write((7*"%16.12e " + 8*"%i " + "\n") %
                     (xi, rhoi, Pi, vi, epsi, hi, si, mi,
@@ -404,7 +406,7 @@ if outputFile != "None":
         if referenceFile != "None":
             print "Comparing to reference file: %s" % referenceFile
             f = open(referenceFile, "r")
-            reflines = f.readlines()
+            reflines = f.readlines()[1:]
             f.close()
             xref =   [float(line.split()[0]) for line in reflines]
             rhoref = [float(line.split()[1]) for line in reflines]
