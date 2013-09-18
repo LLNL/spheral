@@ -55,7 +55,7 @@ GruneisenEquationOfState(const double referenceDensity,
   mExternalPressure(externalPressure) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
 //   mCv = 3.0 * 1000.0*Constants::ElectronCharge*Constants::NAvogadro / mAtomicWeight;
-  mCv = 3.0 * this->referenceDensity() * constants.molarGasConstant() / mAtomicWeight;
+  mCv = 3.0 * constants.molarGasConstant() / mAtomicWeight;
   ENSURE(valid());
 }
 

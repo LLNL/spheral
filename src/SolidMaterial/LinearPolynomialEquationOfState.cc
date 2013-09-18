@@ -58,7 +58,7 @@ LinearPolynomialEquationOfState(const double referenceDensity,
   mB1(b1),
   mB2(b2),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * referenceDensity * constants.molarGasConstant() / atomicWeight),
+  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
   mGamma(mB0 + 1.0),
   mExternalPressure(externalPressure) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
@@ -203,7 +203,7 @@ LinearPolynomialEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
-  return mCv*specificThermalEnergy + 300;
+  return specificThermalEnergy/mCv + 300;
 }
 
 //------------------------------------------------------------------------------
@@ -215,7 +215,7 @@ LinearPolynomialEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
   REQUIRE(valid());
-  return (temperature - 300.0)/mCv;
+  return (temperature - 300.0)*mCv;
 }
 
 //------------------------------------------------------------------------------

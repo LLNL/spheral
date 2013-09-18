@@ -35,15 +35,15 @@ PhysicalConstants(const double unitLm,
 // Define the base quantities -- we'll use the MKS SI standard.
 // Source -- CRC
 //------------------------------------------------------------------------------
-const double PhysicalConstants::mpMKS =    1.672648586e-27;  // kg
-const double PhysicalConstants::meMKS =     0.910953447e-30; // kg
+const double PhysicalConstants::mpMKS =    1.672621777e-27;  // kg
+const double PhysicalConstants::meMKS =     9.10938291e-31;  // kg
 const double PhysicalConstants::qeMKS =     1.602176565e-19; // Coulombs
 const double PhysicalConstants::qeCGS =     4.80320425e-10;  // stat-Coulombs
-const double PhysicalConstants::GMKS =      6.672041e-11;    // N*m^2/kg^2
+const double PhysicalConstants::GMKS =      6.67384e-11;     // N*m^2/kg^2
 const double PhysicalConstants::cMKS =      2.99792458e8;    // m/s
-const double PhysicalConstants::kBMKS =     1.38066244e-32;  // J/K
-const double PhysicalConstants::RgasMKS =   8.31441;         // J/mole/K
-const double PhysicalConstants::NAvogadro = 6.0221367e23;    // dimensionless
+const double PhysicalConstants::kBMKS =     1.3806488e-23;   // J/K
+const double PhysicalConstants::RgasMKS =   8.3144621;       // J/mole/K
+const double PhysicalConstants::NAvogadro = 6.02214129e23;   // mol^-1
 
 }
 }

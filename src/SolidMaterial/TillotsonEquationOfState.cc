@@ -63,7 +63,7 @@ TillotsonEquationOfState(const double referenceDensity,
   mepsLiquid(epsLiquid),
   mepsVapor(epsVapor),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * referenceDensity * constants.molarGasConstant() / atomicWeight),
+  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
   mExternalPressure(externalPressure) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight, 0.0));
 }
@@ -241,7 +241,7 @@ TillotsonEquationOfState<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
-  return mCv*eps + 300;
+  return eps/mCv + 300;
 }
 
 //------------------------------------------------------------------------------
@@ -252,7 +252,7 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  return (temperature - 300.0)/mCv;
+  return (temperature - 300.0)*mCv;
 }
 
 //------------------------------------------------------------------------------

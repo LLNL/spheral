@@ -120,7 +120,7 @@ def _TillotsonFactory(*args,
                     params["eps0"] * specificEconv,
                     params["epsLiquid"] * specificEconv,
                     params["epsVapor"] * specificEconv,
-                    SpheralMaterialPropertiesLib[mat]["atomicWeight"],
+                    SpheralMaterialPropertiesLib[mat]["atomicWeight"] * mconv,
                     units]
         passargs.append(externalPressure)
         passargs.append(minimumPressure)
