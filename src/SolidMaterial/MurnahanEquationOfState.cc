@@ -101,7 +101,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& temperature) const {
   REQUIRE(valid());
   for (int i = 0; i != specificThermalEnergy.size(); ++i) {
-    specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), specificThermalEnergy(i));
+    specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
 

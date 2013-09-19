@@ -111,7 +111,7 @@ ANEOS(const int materialNumber,
                tconv = mANEOSunits.unitTimeSec() / constants.unitTimeSec();
   mRhoConv = mconv/(lconv*lconv*lconv);
   mPconv = mconv/(lconv*tconv*tconv);
-  mTconv = 1.160564e4;
+  mTconv = 1.160452e4; // eV/kB (CRC 2013)
   mEconv = FastMath::square(lconv/tconv);
   mCVconv = mEconv/mTconv;
   mVelConv = lconv/tconv;
@@ -180,7 +180,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   for (int i = 0; i != specificThermalEnergy.size(); ++i) {
-    specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), specificThermalEnergy(i));
+    specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
 
