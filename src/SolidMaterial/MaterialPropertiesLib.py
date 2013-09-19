@@ -6,7 +6,7 @@ SpheralMaterialPropertiesLib = {
 #-------------------------------------------------------------------------------
     "pumice" : {
         "rho0" : 2.327,         # gm/cm^3
-        "atomicWeight" : 24.82, # dimensionless
+        "atomicWeight" : 24.82, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
@@ -23,7 +23,7 @@ SpheralMaterialPropertiesLib = {
 #-------------------------------------------------------------------------------
     "nylon" : {
         "rho0" : 1.185,         # gm/cm^3
-        "atomicWeight" : 226.32,# dimensionless
+        "atomicWeight" : 226.32,# gm/mol
         "Tillotson" : {
             "a"    : 0.6,           # dimensionless
             "b"    : 2.0,           # dimensionless
@@ -40,7 +40,7 @@ SpheralMaterialPropertiesLib = {
 #-------------------------------------------------------------------------------
     "glass" : {
         "rho0" : 2.560,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.6,           # dimensionless
             "b"    : 2.0,           # dimensionless
@@ -57,7 +57,7 @@ SpheralMaterialPropertiesLib = {
 # 1 ----------------------------------------------------------------------------
     "granite" : {
         "rho0" : 2.680,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.3,           # dimensionless
@@ -78,7 +78,7 @@ SpheralMaterialPropertiesLib = {
 # 2 ----------------------------------------------------------------------------
     "basalt" : {
         "rho0" : 2.700,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
@@ -99,7 +99,7 @@ SpheralMaterialPropertiesLib = {
 # 3 ----------------------------------------------------------------------------
     "aluminum" : {
         "rho0" : 2.700,         # gm/cm^3
-        "atomicWeight" : 24.032,# dimensionless
+        "atomicWeight" : 24.032,# gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.63,          # dimensionless
@@ -118,7 +118,7 @@ SpheralMaterialPropertiesLib = {
 # 4 ----------------------------------------------------------------------------
     "copper" : {
         "rho0" : 8.900,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
@@ -137,7 +137,7 @@ SpheralMaterialPropertiesLib = {
 # 5 ----------------------------------------------------------------------------
     "iron 130pt" : {
         "rho0" : 7.860,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
@@ -156,7 +156,7 @@ SpheralMaterialPropertiesLib = {
 # 6 ----------------------------------------------------------------------------
     "lucite" : {
         "rho0" : 1.180,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.6,           # dimensionless
             "b"    : 2.0,           # dimensionless
@@ -175,7 +175,7 @@ SpheralMaterialPropertiesLib = {
 # 7 ----------------------------------------------------------------------------
     "limestone" : {
         "rho0" : 2.700,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 0.6,           # dimensionless
@@ -196,7 +196,7 @@ SpheralMaterialPropertiesLib = {
 # 8 ----------------------------------------------------------------------------
     "halite" : {
         "rho0" : 2.160,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 0.6,           # dimensionless
@@ -217,7 +217,7 @@ SpheralMaterialPropertiesLib = {
 # 9 ----------------------------------------------------------------------------
     "oil shale" : {
         "rho0" : 2.300,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.0,           # dimensionless
@@ -238,7 +238,7 @@ SpheralMaterialPropertiesLib = {
 #10 ----------------------------------------------------------------------------
     "wet tuff" : {
         "rho0" : 1.970,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.3,           # dimensionless
@@ -257,7 +257,7 @@ SpheralMaterialPropertiesLib = {
 #11 ----------------------------------------------------------------------------
     "dry tuff" : {
         "rho0" : 1.700,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.3,           # dimensionless
@@ -276,7 +276,7 @@ SpheralMaterialPropertiesLib = {
 #12 ----------------------------------------------------------------------------
     "alluvium" : {
         "rho0" : 2.700,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 0.8,           # dimensionless
@@ -295,7 +295,7 @@ SpheralMaterialPropertiesLib = {
 #13 ----------------------------------------------------------------------------
     "anorthosite 1pp" : {
         "rho0" : 2.867,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
@@ -316,7 +316,7 @@ SpheralMaterialPropertiesLib = {
 #14 ----------------------------------------------------------------------------
     "anorthosite hpp" : {
         "rho0" : 3.970,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.3,           # dimensionless
@@ -337,7 +337,7 @@ SpheralMaterialPropertiesLib = {
 #15 ----------------------------------------------------------------------------
     "andesite" : {
         "rho0" : 2.700,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.3,           # dimensionless
@@ -358,7 +358,7 @@ SpheralMaterialPropertiesLib = {
 #16 ----------------------------------------------------------------------------
     "water" : {
         "rho0" : 0.998,         # gm/cm^3
-        "atomicWeight" : 18.015,# dimensionless
+        "atomicWeight" : 18.015,# gm/mol
         "Tillotson" : {
             "a"    : 0.7,           # dimensionless
             "b"    : 0.15,          # dimensionless
@@ -377,7 +377,7 @@ SpheralMaterialPropertiesLib = {
 #17 ----------------------------------------------------------------------------
     "pure ice" : {
         "rho0" : 0.917,         # gm/cm^3
-        "atomicWeight" : 18.015,# dimensionless
+        "atomicWeight" : 18.015,# gm/mol
         "Tillotson" : {
             "a"    : 0.3,           # dimensionless
             "b"    : 0.1,           # dimensionless
@@ -398,7 +398,7 @@ SpheralMaterialPropertiesLib = {
 #18 ----------------------------------------------------------------------------
     "5% silicate ice" : {
         "rho0" : 0.948,         # gm/cm^3
-        "atomicWeight" : 18.015,# dimensionless
+        "atomicWeight" : 18.015,# gm/mol
         "Tillotson" : {
             "a"    : 0.3,           # dimensionless
             "b"    : 0.1,           # dimensionless
@@ -419,7 +419,7 @@ SpheralMaterialPropertiesLib = {
 #19 ----------------------------------------------------------------------------
     "30% silicate ice"  : {
         "rho0" : 1.141,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.3,           # dimensionless
             "b"    : 0.1,           # dimensionless
@@ -440,7 +440,7 @@ SpheralMaterialPropertiesLib = {
 #20 ----------------------------------------------------------------------------
     "special" : {
         "rho0" : 1.130,         # gm/cm^3
-        "atomicWeight" : 60.08, # dimensionless
+        "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.5,           # dimensionless
