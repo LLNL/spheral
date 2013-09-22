@@ -15,6 +15,9 @@ namespace FractalSpace
   void check_for_edge_trouble(Fractal& fractal);
   bool check_high(Point& point,Fractal& fractal);
   void clean_up(Fractal_Memory& mem,Misc& misc,Fractal& fractal);
+  bool compare_vectorsX(vector <int> veca,vector <int> vecb);
+  bool compare_vectorsY(vector <int> veca,vector <int> vecb);
+  bool compare_vectorsZ(vector <int> veca,vector <int> vecb);
   double cosmos_power(const double& k,Fractal_Memory& fractal_memory);
   void daughter_group_nina(Group& new_group,Group& high_group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
   void density_edge(Group& group, Misc& misc);
@@ -47,6 +50,7 @@ namespace FractalSpace
   void fractal_force_init(Fractal_Memory* p_mem);
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal);
   template <class M> void fractal_memory_parameters(M& mem);
+  void Full_Stop(Fractal_Memory& mem,int number);
   void gather_particles(Fractal_Memory& mem,Fractal& frac);
   void go_ahead_points(vector <Point*>& adj,vector <bool>& ins,vector <bool>& go_ahead);
   void groups_level(Fractal& fractal,vector < vector<Group*> >& all_groups);

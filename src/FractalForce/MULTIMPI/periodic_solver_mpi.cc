@@ -21,6 +21,7 @@ namespace FractalSpace
 	green_1[k]=1.0e-30+pow(2.0*sin(aa),2);
       }
     mem.p_mess->zeroR();
+    Full_Stop(mem,34);
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
     frac.timing(1,24);
@@ -54,6 +55,7 @@ namespace FractalSpace
 	  }
       }
     mem.p_mess->fftw_complex_to_real();
+    Full_Stop(mem,35);
     frac.timing(-1,24);
     slices_to_potf(group,mem,frac);
     frac.timing(1,24);
