@@ -158,6 +158,7 @@ namespace FractalSpace
 	      }
 	  }
 	mem.p_mess->fftw_complex_to_real();
+	Full_Stop(mem,39);
 	info_to_slices(mem,frac,lev);
 	if(!lev==0)
 	  {
@@ -168,6 +169,7 @@ namespace FractalSpace
 		potential_start(group);
 	      }
 	  }
+	Full_Stop(mem,40);
 	slices_to_pot_init(mem,frac,lev);
 	//
 	for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();

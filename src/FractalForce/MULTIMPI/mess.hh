@@ -13,6 +13,7 @@ namespace FractalSpace
     int HypreNodes;
     int number_particles_total;
     Particle* parts_tmp;
+    Particle* parts_tmpp;
     Particle* Parts_in;
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
@@ -370,7 +371,8 @@ namespace FractalSpace
 	  BoxSL[FR][0]=length_x;
 	  BoxSL[FR][1]=length_1;
 	  BoxSL[FR][2]=length_1;
-	  cout << " slices " << FFTRank << " " << Slices[FR][0] << " " << Slices[FR][1] << " " << FR << " " << FractalRank << endl;
+	  if(FFTRank == 0)
+	    cout << " slices " << FFTRank << " " << Slices[FR][0] << " " << Slices[FR][1] << " " << FR << " " << FractalRank << endl;
 	}
       delete [] paramrecv;
       //      free(paramrecv);
@@ -392,11 +394,11 @@ namespace FractalSpace
 	    {
 	      allok=false;
 	      for(int nx=0;nx<length_1;nx++)
-		cout << " success " << FractalRank << " " << FFTRank << " " << nx << " " << WhichSlice[nx] << endl;
+		if(FFTRank == 0) cout << " success " << FractalRank << " " << FFTRank << " " << nx << " " << WhichSlice[nx] << endl;
 	    }
 	}
       for(int ni=0;ni<length_1;ni++)
-	cout << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << endl;
+	if(FFTRank == 0) cout << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << endl;
       assert(allok);
     }
     void How_Many_On_Nodes(const int& count,vector <int>& counts)

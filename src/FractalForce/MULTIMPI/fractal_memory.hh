@@ -22,6 +22,7 @@ namespace FractalSpace
     bool hypre_load_balance;
     int hypre_max_node_load;
     int hypre_max_average_load;
+    vector <int> TouchWhichBoxes;
     vector < vector <int> > Boxes;
     vector < vector <int> > BBoxes;
     vector < vector <int> > PBoxes;
@@ -34,6 +35,10 @@ namespace FractalSpace
     vector < vector <int> > PBoxesLength;
     vector < vector <double> > RealBoxes;
     vector < vector <double> > RealPBoxes;
+    vector < vector <double> > RealBBoxes;
+    vector < vector <double> > RealIBoxes;
+    vector <vector <int> > LeftCorners;
+    vector <double> BigBox;
     vector <int>ij_offsets;
     vector <int>ij_counts;
     vector <int>ij_offsetsB;
@@ -41,6 +46,7 @@ namespace FractalSpace
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
+    int N8;
     //    vector <double>total_time;
     //
     bool split_particles;
@@ -172,6 +178,7 @@ namespace FractalSpace
       hypre_load_balance(false),
       hypre_max_node_load(200000),
       hypre_max_average_load(20000),
+      N8(8),
       amnesia(true),
       mind_wipe(false),
       fixed_potential(false),
@@ -381,31 +388,59 @@ namespace FractalSpace
       cout << "real " << FractalNodes << " " << grid_length << endl;
       RealBoxes.resize(FractalNodes);
       RealPBoxes.resize(FractalNodes);
+      RealIBoxes.resize(FractalNodes);
+      LeftCorners.resize(FractalNodes);
       double glinv=1.0/static_cast<double>(grid_length);
+      double DB=glinv;
+      if(periodic)
+	DB=-glinv;
+      BigBox.resize(6);
+      BigBox[0]=DB;
+      BigBox[2]=DB;
+      BigBox[4]=DB;
+      BigBox[1]=1.0-DB;
+      BigBox[3]=1.0-DB;
+      BigBox[5]=1.0-DB;
       for(int b=0;b<FractalNodes;b++)
 	{
 	  RealBoxes[b].resize(6);
 	  RealPBoxes[b].resize(6);
+	  RealIBoxes[b].resize(6);
+	  LeftCorners[b].resize(3);
 	  for(int ni=0;ni<6;ni+=2)
 	    {
-	      cout << " b ni " << b << " " << ni << endl;
+	      //	      cout << " b ni " << b << " " << ni << endl;
 	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
 	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
 	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
 	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
+	      LeftCorners[b][ni/2]=Boxes[b][ni];
 	      if(periodic)
-		continue;
+		{
+		  if(Boxes[b][ni] == 0)
+		    {
+		      LeftCorners[b][ni/2]=-1;
+		      RealIBoxes[b][ni]=RealPBoxes[b][ni];
+		    }
+		  if(Boxes[b][ni+1]=grid_length-1)
+		    RealIBoxes[b][ni+1]=RealPBoxes[b][ni+1];
+		  continue;
+		}
 	      RealBoxes[b][ni]=max(RealBoxes[b][ni],glinv);
 	      RealBoxes[b][ni+1]=min(RealBoxes[b][ni+1],1.0-glinv);
 	      RealPBoxes[b][ni]=max(RealPBoxes[b][ni],glinv);
 	      RealPBoxes[b][ni+1]=min(RealPBoxes[b][ni+1],1.0-glinv);
 	    }
 	}
-    cout << " real b " << endl;
+      cout << " real b " << endl;
     }
     int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc)
     {
       return k+(j+(i-p_mess->start_x)*lb)*lc;
+    }
+    void Full_Stop()
+    {
+      p_mess->Full_Stop();
     }
     void make_scaling()
     {
@@ -451,13 +486,10 @@ namespace FractalSpace
       return sqrt(omega_0/pow(arad,3)+(1.0-omega_0-omega_lambda)/pow(arad,2)+omega_lambda);
     }
     static double omega (const double& arad,const double& omega_0, const double& omega_lambda)
-    //
     {
       return omega_0/(pow(arad,3)*pow(hubble(arad,omega_0,omega_lambda),2));  
     }
-    //
     static double lambda(const double& arad,const double& omega_0, const double& omega_lambda)
-    //
     {
       return omega_lambda/pow(hubble(arad,omega_0,omega_lambda),2);  
     }

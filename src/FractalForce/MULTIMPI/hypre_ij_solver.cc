@@ -34,6 +34,7 @@ namespace FractalSpace
 	return;
       }
     Hypre_search_time+=mem.p_mess->Clock();
+    Full_Stop(mem,37);
 
     FHT << endl;
     FHT << scientific;

@@ -11,9 +11,9 @@ namespace FractalSpace
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     cout << " enter parameters " << endl;
-    mem.BaseDirectory="/p/lscratchc/jensv/";
+    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/64/";
     //base directory
-    mem.RUN="test";
+    mem.RUN="svendborg";
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
@@ -44,7 +44,7 @@ namespace FractalSpace
     mem.highest_level_init=min(mem.highest_level_init,mem.level_max);
     // highest level, nothing magical about this
     // total resolution = grid_length*2**level_max
-    mem.min_hypre_group_size=100;
+    mem.min_hypre_group_size=45;
     //    mem.min_hypre_group_size=-1;
     // minum group size to use hypre
     mem.minimum_number = 8 ; 
@@ -68,6 +68,7 @@ namespace FractalSpace
     // Total number of steps
     mem.number_steps_out=100;
     // Output how often
+    mem.time_trial=true;
     mem.redshift_start=99.0;
     // step length
     mem.step_length=0.025;
@@ -82,6 +83,7 @@ namespace FractalSpace
     // Initial seed for std:rand
     // sets your values for parameters
     mem.steps=-1;
+    mem.min_hypre_group_size=45;
     mem.momentum_conserve=false;
     mem.amnesia=true; // (true) forget everything after you are done. (false) remember everything.
     mem.mind_wipe=false; // (true) delete everything and then come back without calculating anything.

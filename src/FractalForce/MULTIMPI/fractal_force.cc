@@ -31,7 +31,10 @@
 ***  If I knew what I was doing, it would not be science,
 ***   it would be engineering.
 ***  In college I brought the computer system for Western Denmark to it's knees,
-***   with a FORTRAN program
+***   with a FORTRAN program.
+***  For my PhD thesis I used 1200 particles on a single node. PDP 11/60.
+***   Now I run 1000000 particles per node on 100000 nodes. Vulcan@LLNL.
+***   Eight orders of magnitude.
 ***  On an observing trip in Chile I was interrogated at gun-point, in Spanish, about my suspected involvement
 ***   in an armed bank robbery.
 ***  On my honeymoon our delicious meal was interrupted by a shooting in the restaurant.
@@ -162,12 +165,13 @@ namespace FractalSpace
   bool Fractal::first_time_solver=true;
   void fractal_force(Fractal& fractal,Fractal_Memory& fractal_memory)
   {
-    fractal_memory.p_mess->Full_Stop();
+    Full_Stop(fractal_memory,-1);
     ofstream& FileFractal=fractal.p_file->FileFractal;
     FileFractal << "here in fractal_force " << endl;
     FileFractal << "number of everything entering fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
     FileFractal << " Total number of particles entering Fractal " << Particle::number_particles << endl;
     //    write_rv(-16,fractal);
+    Full_Stop(fractal_memory,33);
     fractal.timing_lev(-1,0);
     fractal.timing(-1,27);
     scatter_particles(fractal_memory,fractal);
@@ -389,12 +393,12 @@ namespace FractalSpace
     FileFractal << " not baddd " << badd << endl;
     fractal.timing(1,18);
     fractal.timing(1,46);
-    //    fractal_memory.p_mess->TreeTime=fractal.delta_time[46];
+    //    fractal_memory.p_mess->TreeTime=fractal.get_delta_time(46);
     FileFractal << "start up " << fractal_memory.start_up << endl;
     if(!fractal_memory.start_up)
       {
 	fractal.timing(-1,47);
-	// solve level zero by first assigning density the use either periodic or isolated FFTW
+	// solve level zero by first assigning density then use either periodic or isolated FFTW
 	// to find potential at the points. Find forces at points and then at particles.
 	fractal.timing_lev(-1,0);
 	Group& group=*misc.p_group_0;
@@ -427,6 +431,7 @@ namespace FractalSpace
 	    isolated_solver(group,fractal_memory,fractal); 
 	    fractal.timing(1,5);
 	  }
+	Full_Stop(fractal_memory,41);
 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
 	//--------------------------------------------------------------------------
 	// For inside points diff potential to get forces at points. For all other points
@@ -474,6 +479,7 @@ namespace FractalSpace
 	    //--------------------------------------------------------------------------
 	    // Use SOR or some other Poisson solver for the potential
 	    //--------------------------------------------------------------------------
+	    Full_Stop(fractal_memory,36);
 	    fractal.timing(-1,31);
 	    poisson_solver(fractal,fractal_memory,level); 		
 	    fractal.timing(1,31);
@@ -543,6 +549,7 @@ namespace FractalSpace
     clean_up(fractal_memory,misc,fractal_ghost);
     fractal.timing(1,26);
     //    write_rv(-14,fractal);
+    Full_Stop(fractal_memory,38);
     fractal.timing_lev(-1,0);
     fractal.timing(-1,28);
     gather_particles(fractal_memory,fractal);
@@ -558,9 +565,18 @@ namespace FractalSpace
     //    if(!fractal.get_periodic() && debug)
     //          test_gal(fractal_memory,fractal);
     //    assert(0);
-    fractal_memory.p_mess->Full_Stop();
+    Full_Stop(fractal_memory,-1);
     FileFractal << "number of everything exiting Fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
     FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << endl;
     FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << endl;
   }
+  void Full_Stop(Fractal_Memory& mem,int number)
+    {
+      Fractal* pf=mem.p_fractal;
+      if(number >= 0)
+      	pf->timing(-1,number);
+      mem.p_mess->Full_Stop();
+      if(number >= 0)
+      	pf->timing(1,number);
+    }
 }
