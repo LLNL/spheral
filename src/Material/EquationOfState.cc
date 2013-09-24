@@ -16,10 +16,12 @@ namespace Material {
 template<typename Dimension>
 EquationOfState<Dimension>::EquationOfState(const PhysicalConstants& constants,
                                             const double minimumPressure,
-                                            const double maximumPressure):
+                                            const double maximumPressure,
+                                            const MaterialPressureMinType minPressureType):
   mConstants(constants),
   mMinimumPressure(minimumPressure),
-  mMaximumPressure(maximumPressure) {
+  mMaximumPressure(maximumPressure),
+  mMinPressureType(minPressureType) {
   REQUIRE(mMinimumPressure <= mMaximumPressure);
 }
 

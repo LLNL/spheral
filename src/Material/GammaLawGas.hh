@@ -26,8 +26,9 @@ public:
   GammaLawGas(const double gamma,
               const double mu,
               const PhysicalConstants& constants,
-              const double minimumPressure = -std::numeric_limits<double>::max(),
-              const double maximumPressure = std::numeric_limits<double>::max());
+              const double minimumPressure,
+              const double maximumPressure,
+              const MaterialPressureMinType minPressureType);
   ~GammaLawGas();
 
   // We require any equation of state to define the following properties.

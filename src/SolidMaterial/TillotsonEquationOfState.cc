@@ -46,13 +46,15 @@ TillotsonEquationOfState(const double referenceDensity,
                          const Material::PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
-                         const double maximumPressure):
+                         const double maximumPressure,
+                         const Material::MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
                                   constants,
                                   minimumPressure,
-                                  maximumPressure),
+                                  maximumPressure,
+                                  minPressureType),
   ma(a),
   mb(b),
   mA(A),
@@ -227,7 +229,7 @@ pressure(const Scalar massDensity,
   }
 
   // That's it.
-  return max(this->minimumPressure(), min(this->maximumPressure(), P - mExternalPressure));
+  return this->applyPressureLimits(P - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------

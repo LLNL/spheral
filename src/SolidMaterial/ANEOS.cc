@@ -67,10 +67,12 @@ ANEOS(const int materialNumber,
       const Material::PhysicalConstants& constants,
       const double externalPressure,
       const double minimumPressure,
-      const double maximumPressure):
+      const double maximumPressure,
+      const Material::MaterialPressureMinType minPressureType):
   Material::EquationOfState<Dimension>(constants,
                                        minimumPressure,
-                                       maximumPressure),
+                                       maximumPressure,
+                                       minPressureType),
   mMaterialNumber(materialNumber),
   mNumRhoVals(numRhoVals),
   mNumTvals(numTvals),
@@ -255,7 +257,7 @@ pressure(const Scalar massDensity,
 
   // That's it.
   Pi *= mPconv;
-  return max(this->minimumPressure(), min(this->maximumPressure(), Pi - mExternalPressure));
+  return this->applyPressureLimits(Pi - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------

@@ -24,6 +24,7 @@ class Material:
         self.dimSet = (1, 2, 3)
 
         # Expose types.
+        self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", ["PressureFloor", "ZeroPressure"])
         self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
         for dim in self.dimSet:
             exec('''
@@ -90,12 +91,17 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         # Constructors.
         x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+
+        # Methods.
+        x.add_method("applyPressureLimits", "double", [param("double", "P")], is_const=True)
 
         # Attributes.
         x.add_instance_attribute("constants", "PhysicalConstants", getter="constants", is_const=True)
         x.add_instance_attribute("minimumPressure", "double", getter="minimumPressure", setter="minimumPressure")
         x.add_instance_attribute("maximumPressure", "double", getter="maximumPressure", setter="maximumPressure")
+        x.add_instance_attribute("minimumPressureType", "MaterialPressureMinType", getter="minimumPressureType", setter="minimumPressureType")
 
         generateEquationOfStateVirtualBindings(x, ndim, True)
 
@@ -109,7 +115,8 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            param("double", "mu"),
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("gamma", "double", getter="getGamma", setter="setGamma")
@@ -130,7 +137,8 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            param("double", "mu"),
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("polytropicConstant", "double", getter="polytropicConstant", is_const=True)
@@ -153,7 +161,8 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
                            param("double", "mu"),
                            constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+                           param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                           param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
 
         # Attributes.
         x.add_instance_attribute("K", "double", getter="K", is_const=True)

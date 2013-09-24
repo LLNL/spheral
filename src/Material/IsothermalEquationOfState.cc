@@ -21,8 +21,9 @@ IsothermalEquationOfState(const double K,
                           const double mu,
                           const PhysicalConstants& constants,
                           const double minimumPressure,
-                          const double maximumPressure):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
+                          const double maximumPressure,
+                          const MaterialPressureMinType minPressureType):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mK(K),
   mCs(sqrt(K)),
   mMolecularWeight(mu),
@@ -144,9 +145,7 @@ IsothermalEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
-  return max(this->minimumPressure(), 
-             min(this->maximumPressure(), 
-                 mK*massDensity - mExternalPressure));
+  return this->applyPressureLimits(mK*massDensity - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------

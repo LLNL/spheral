@@ -74,7 +74,8 @@ def generateANEOSBindings(x, ndim):
                        constrefparam("PhysicalConstants", "constants"),
                        param("double", "externalPressure", default_value="0.0"),
                        param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
-                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()")])
+                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
 
     # Generic EOS interface.
     generateEquationOfStateVirtualBindings(x, ndim, False)

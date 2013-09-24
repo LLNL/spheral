@@ -29,8 +29,9 @@ public:
                        const double etamin,
                        const double etamax,
                        const Material::PhysicalConstants& constants,
-                       const double minimumPressure = -std::numeric_limits<double>::max(),
-                       const double maximumPressure = std::numeric_limits<double>::max());
+                       const double minimumPressure,
+                       const double maximumPressure,
+                       const Material::MaterialPressureMinType minPressureType);
   virtual ~SolidEquationOfState();
 
   // Access the member data.
