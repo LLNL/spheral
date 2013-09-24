@@ -43,13 +43,15 @@ LinearPolynomialEquationOfState(const double referenceDensity,
                                 const Material::PhysicalConstants& constants,
                                 const double externalPressure,
                                 const double minimumPressure,
-                                const double maximumPressure):
+                                const double maximumPressure,
+                                const Material::MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
                                   constants,
                                   minimumPressure,
-                                  maximumPressure),
+                                  maximumPressure,
+                                  minPressureType),
   mA0(a0),
   mA1(a1),
   mA2(a2),
@@ -186,10 +188,8 @@ pressure(const Scalar massDensity,
   REQUIRE(valid());
   const double eta = this->boundedEta(massDensity);
   const double mu = eta - 1.0;
-  return max(this->minimumPressure(),
-             min(this->maximumPressure(),
-                 mA0 + mA1*mu + mA2*mu*mu + mA3*mu*mu*mu +
-                 (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy - mExternalPressure));
+  return this->applyPressureLimits(mA0 + mA1*mu + mA2*mu*mu + mA3*mu*mu*mu +
+                                   (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------

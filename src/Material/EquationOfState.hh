@@ -19,6 +19,11 @@ namespace Spheral {
 namespace Spheral {
 namespace Material {
 
+enum MaterialPressureMinType {
+  PressureFloor = 0,
+  ZeroPressure = 1,
+};
+
 template<typename Dimension>
 class EquationOfState {
 
@@ -31,8 +36,9 @@ public:
 
   // Constructors, destructors.
   EquationOfState(const PhysicalConstants& constants,
-                  const double minimumPressure = -std::numeric_limits<double>::max(),
-                  const double maximumPressure = std::numeric_limits<double>::max());
+                  const double minimumPressure,
+                  const double maximumPressure,
+                  const MaterialPressureMinType minPressureType);
 
   virtual ~EquationOfState();
 
@@ -97,15 +103,23 @@ public:
   double maximumPressure() const;
   void minimumPressure(const double x);
   void maximumPressure(const double x);
+  
+  // The algorithm for applying the minimum pressure.
+  MaterialPressureMinType minimumPressureType() const;
+  void minimumPressureType(const MaterialPressureMinType x);
 
   // Equations of state should have a valid test.
   virtual bool valid() const = 0;
+
+  // Apply limits to a pressure value.
+  Scalar applyPressureLimits(const Scalar P) const;
 
 protected:
   PhysicalConstants mConstants;
 
 private:
   double mMinimumPressure, mMaximumPressure;
+  MaterialPressureMinType mMinPressureType;
 
   // No default constructor.
   EquationOfState();

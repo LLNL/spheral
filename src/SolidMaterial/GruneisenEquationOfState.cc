@@ -37,13 +37,15 @@ GruneisenEquationOfState(const double referenceDensity,
                          const Material::PhysicalConstants& constants,
                          const double externalPressure,
                          const double minimumPressure,
-                         const double maximumPressure):
+                         const double maximumPressure,
+                         const Material::MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
                                   constants,
                                   minimumPressure,
-                                  maximumPressure),
+                                  maximumPressure,
+                                  minPressureType),
   mC0(C0),
   mS1(S1),
   mS2(S2),
@@ -186,9 +188,7 @@ pressure(const Scalar massDensity,
   const double eps = std::max(0.0, specificThermalEnergy);
 
   if (mu <= 0.0 or specificThermalEnergy < 0.0) {
-    return max(this->minimumPressure(), 
-               min(this->maximumPressure(),
-                   K0*mu + mgamma0*rho0*eps - mExternalPressure));
+    return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps - mExternalPressure);
 
   } else {
     const double mu1 = mu + 1.0;
@@ -198,10 +198,8 @@ pressure(const Scalar massDensity,
     const double thpt2 = thpt1*mu*ack;
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
     const double Dinv = D/(D*D + tiny);
-    return max(this->minimumPressure(),
-               min(this->maximumPressure(),
-                   (K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu)*Dinv*Dinv + 
-                    (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure));
+    return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu)*Dinv*Dinv + 
+                                      (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
   }
 
 }

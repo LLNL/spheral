@@ -26,8 +26,9 @@ PolytropicEquationOfState(const double K,
                           const double mu,
                           const PhysicalConstants& constants,
                           const double minimumPressure,
-                          const double maximumPressure):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
+                          const double maximumPressure,
+                          const MaterialPressureMinType minPressureType):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mPolytropicConstant(K),
   mPolytropicIndex(index),
   mGamma(0.0),
@@ -160,9 +161,7 @@ PolytropicEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return max(this->minimumPressure(), 
-             min(this->maximumPressure(), 
-                 mPolytropicConstant*pow(massDensity, mGamma) - mExternalPressure));
+  return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma) - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------

@@ -45,5 +45,37 @@ EquationOfState<Dimension>::maximumPressure(const double val) {
   mMaximumPressure = val;
 }
 
+//------------------------------------------------------------------------------
+// Min pressure algorithm choice.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+MaterialPressureMinType
+EquationOfState<Dimension>::minimumPressureType() const {
+  return mMinPressureType;
+}
+
+template<typename Dimension>
+inline
+void
+EquationOfState<Dimension>::minimumPressureType(const MaterialPressureMinType x) {
+  mMinPressureType = x;
+}
+
+//------------------------------------------------------------------------------
+// Apply pressure limits to a candidate value.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+EquationOfState<Dimension>::applyPressureLimits(const Scalar P) const {
+  return (P < mMinimumPressure ? (mMinPressureType == PressureFloor ? 
+                                  mMinimumPressure :
+                                  0.0) :
+          P > mMaximumPressure ? 
+          mMaximumPressure :
+          P);
+}
+
 }
 }

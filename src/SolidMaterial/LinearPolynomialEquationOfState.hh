@@ -47,9 +47,10 @@ public:
                                   const double b2,
                                   const double atomicWeight,
                                   const Material::PhysicalConstants& constants,
-                                  const double externalPressure = 0.0,
-                                  const double minimumPressure = -std::numeric_limits<double>::max(),
-                                  const double maximumPressure = std::numeric_limits<double>::max());
+                                  const double externalPressure,
+                                  const double minimumPressure,
+                                  const double maximumPressure,
+                                  const Material::MaterialPressureMinType minPressureType);
   ~LinearPolynomialEquationOfState();
 
   // We require any equation of state to define the following properties.

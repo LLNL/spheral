@@ -33,13 +33,15 @@ MurnahanEquationOfState(const double referenceDensity,
                         const Material::PhysicalConstants& constants,
                         const double externalPressure,
                         const double minimumPressure,
-                        const double maximumPressure):
+                        const double maximumPressure,
+                        const Material::MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
                                   etamax,
                                   constants,
                                   minimumPressure,
-                                  maximumPressure),
+                                  maximumPressure,
+                                  minPressureType),
   mn(n),
   mK(K),
   mAtomicWeight(atomicWeight),
@@ -172,9 +174,7 @@ pressure(const Scalar massDensity,
   REQUIRE(valid());
   const double eta = this->boundedEta(massDensity);
   CHECK(distinctlyGreaterThan(eta, 0.0));
-  return max(this->minimumPressure(),
-             min(this->maximumPressure(),
-                 mnKi*(pow(eta, mn) - 1.0)));
+  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0));
 }
 
 //------------------------------------------------------------------------------

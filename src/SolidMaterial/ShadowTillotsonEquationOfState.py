@@ -8,7 +8,7 @@ from SpheralModules.Spheral.SolidMaterial import \
     TillotsonEquationOfState1d as RealTillotsonEquationOfState1d, \
     TillotsonEquationOfState2d as RealTillotsonEquationOfState2d, \
     TillotsonEquationOfState3d as RealTillotsonEquationOfState3d
-from SpheralModules.Spheral.Material import PhysicalConstants
+from SpheralModules.Spheral.Material import PhysicalConstants, PressureFloor, ZeroPressure
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ TillotsonEquationOfState can be constructed one of two ways:
         externalPressure    : Optional external pressure                         
         minimumPressure     : Optional minimum pressure                          
         maximumPressure     : Optional maximum pressure                          
+        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 
 2.  You can directly set all the Tillotson parameters explicitly, as
         referenceDensity    : reference material mass density
@@ -44,6 +45,7 @@ TillotsonEquationOfState can be constructed one of two ways:
         externalPressure    : Optional external pressure                         
         minimumPressure     : Optional minimum pressure                          
         maximumPressure     : Optional maximum pressure                          
+        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 """
 
 #-------------------------------------------------------------------------------
@@ -69,7 +71,8 @@ def _TillotsonFactory(*args,
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
     optionalKwArgs = {"externalPressure" : 0.0,
                       "minimumPressure"  : -1e200,
-                      "maximumPressure"  :  1e200}
+                      "maximumPressure"  :  1e200,
+                      "minPressureType"  : PressureFloor}
 
     # What sort of information did the user pass in?
     if ("materialName" in kwargs or 
@@ -125,6 +128,7 @@ def _TillotsonFactory(*args,
         passargs.append(externalPressure)
         passargs.append(minimumPressure)
         passargs.append(maximumPressure)
+        passargs.append(minPressureType)
         passkwargs = {}
 
     else:

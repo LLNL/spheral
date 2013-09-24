@@ -25,7 +25,8 @@ PorousEquationOfState<Dimension>::
 PorousEquationOfState(const Material::EquationOfState<Dimension>& solidEOS):
   Material::EquationOfState<Dimension>(solidEOS.constants(),
                                        solidEOS.minimumPressure(),
-                                       solidEOS.maximumPressure()),
+                                       solidEOS.maximumPressure(),
+                                       solidEOS.minimumPressureType()),
   mSolidEOS(solidEOS),
   mAlphaPtr(0) {
 }

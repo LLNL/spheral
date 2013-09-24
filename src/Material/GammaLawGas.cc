@@ -23,8 +23,9 @@ GammaLawGas(const double gamma,
             const double mu,
             const PhysicalConstants& constants,
             const double minimumPressure,
-            const double maximumPressure):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure),
+            const double maximumPressure,
+            const MaterialPressureMinType minPressureType):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mGamma(gamma),
   mMolecularWeight(mu) {
   mGamma1 = mGamma - 1.0;
@@ -150,8 +151,7 @@ GammaLawGas<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return max(this->minimumPressure(), min(this->maximumPressure(), 
-                                          mGamma1*massDensity*specificThermalEnergy));
+  return this->applyPressureLimits(mGamma1*massDensity*specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
