@@ -182,6 +182,7 @@ pressure(const Scalar massDensity,
   CHECK(valid());
   const double tiny = 1.0e-10;
   const double eta = this->boundedEta(massDensity);
+  if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;

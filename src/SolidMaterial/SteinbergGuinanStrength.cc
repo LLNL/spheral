@@ -112,6 +112,7 @@ yieldStrength(const double density,
 
   } else {
     const double eta = mEOSPtr->boundedEta(density);
+    if (fuzzyEqual(eta, mEOSPtr->etamin())) return 0.0;
     CHECK(distinctlyGreaterThan(eta, 0.0));
     const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain + mgamma0), mnhard));
     const double result = Yhard*shearModulus(density, specificThermalEnergy, pressure)/mG0;

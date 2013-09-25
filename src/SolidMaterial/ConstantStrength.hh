@@ -8,6 +8,7 @@
 #define __Spheral_ConstantStrength_hh__
 
 #include "StrengthModel.hh"
+#include "SolidEquationOfState.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -19,6 +20,9 @@ public:
   // Constructors, destructor.
   ConstantStrength(const double mu0,
                    const double Y0);
+  ConstantStrength(const double mu0,
+                   const double Y0,
+                   const SolidEquationOfState<Dimension>& eos);
   virtual ~ConstantStrength() {};
 
   // The generic interface we require all strength models to provide.
@@ -47,6 +51,7 @@ private:
   // The values for shear modulus and yield strength.
   double mShearModulus0;
   double mYieldStrength0;
+  const SolidEquationOfState<Dimension>* mEOSptr;
 
   // No copying or assignment.
   ConstantStrength(const ConstantStrength&);
@@ -65,7 +70,23 @@ ConstantStrength(const double mu0,
                  const double Y0):
   StrengthModel<Dimension>(),
   mShearModulus0(mu0),
-  mYieldStrength0(Y0) {
+  mYieldStrength0(Y0),
+  mEOSptr(0) {
+}
+
+//------------------------------------------------------------------------------
+// Constructor with SolidEquationOfState.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+ConstantStrength<Dimension>::
+ConstantStrength(const double mu0,
+                 const double Y0,
+                 const SolidEquationOfState<Dimension>& eos):
+  StrengthModel<Dimension>(),
+  mShearModulus0(mu0),
+  mYieldStrength0(Y0),
+  mEOSptr(&eos) {
 }
 
 //------------------------------------------------------------------------------
@@ -93,6 +114,8 @@ yieldStrength(const double density,
               const double pressure,
               const double plasticStrain,
               const double plasticStrainRate) const {
+  if (mEOSptr != 0 and
+      density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) return 0.0;
   return mYieldStrength0;
 }
 
