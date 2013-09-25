@@ -173,6 +173,7 @@ pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
   const double eta = this->boundedEta(massDensity);
+  if (fuzzyEqual(eta, this->etamin())) return 0.0;
   CHECK(distinctlyGreaterThan(eta, 0.0));
   return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0));
 }

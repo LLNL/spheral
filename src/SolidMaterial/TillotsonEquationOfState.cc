@@ -182,6 +182,7 @@ TillotsonEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity);
+  if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;

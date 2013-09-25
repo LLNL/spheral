@@ -382,9 +382,14 @@ def generateStrengthModelBindings(x, ndim):
 #---------------------------------------------------------------------------
 def generateConstantStrengthBindings(x, ndim):
 
+    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
+
     # Constructors.
     x.add_constructor([param("double", "mu0"),
                        param("double", "Y0")])
+    x.add_constructor([param("double", "mu0"),
+                       param("double", "Y0"),
+                       constrefparam(solidequationofstate, "eos")])
 
     # Add the abstract interface.
     generateStrengthModelVirtualBindings(x, ndim, False)
