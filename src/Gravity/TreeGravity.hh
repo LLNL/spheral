@@ -93,10 +93,6 @@ public:
   //! Return the gravitational potential created by the particle distribution.
   const FieldSpace::FieldList<Dimension, Scalar>& potential() const;
 
-  //! The per point state necessary for determining time steps.
-  const FieldSpace::FieldList<Dimension, std::vector<Scalar> >& interactionMasses() const;
-  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& interactionPositions() const;
-
   //! Return a dump of the tree structure as a string.
   std::string dumpTree(const bool globalTree) const;
 
@@ -188,10 +184,8 @@ private:
   mutable Scalar mExtraEnergy;
 
   // Data we need for computing time steps.
-  mutable FieldSpace::FieldList<Dimension, std::vector<Scalar> > mInteractionMasses;
-  mutable FieldSpace::FieldList<Dimension, std::vector<Vector> > mInteractionPositions;
-  mutable FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> > mHomeBuckets;
-  mutable Scalar mDtMin;
+  mutable int mNodeListMax, mimax;
+  mutable Scalar mDtMinAcc, mRhoMax;
   
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

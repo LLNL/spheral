@@ -112,10 +112,10 @@ TreeGravity(const double G,
   mTree(),
   mPotential(FieldList<Dimension, Scalar>::Copy),
   mExtraEnergy(0.0),
-  mInteractionMasses(FieldList<Dimension, vector<Scalar> >::Copy),
-  mInteractionPositions(FieldList<Dimension, vector<Vector> >::Copy),
-  mHomeBuckets(FieldList<Dimension, pair<LevelKey, CellKey> >::Copy),
-  mDtMin(0.0),
+  mNodeListMax(0),
+  mimax(0),
+  mDtMinAcc(0.0),
+  mRhoMax(0.0),
   mRestart(DataOutput::registerWithRestart(*this)) {
   VERIFY(G > 0.0);
   VERIFY(opening > 0.0);
@@ -154,6 +154,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension >& state,
                     StateDerivatives<Dimension >& derivs) const {
+  const double softLength2 = mSofteningLength*mSofteningLength;
 
   // Access the pertinent fields in the database.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -168,9 +169,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mPotential = 0.0;
 
   // Initialize the time-step voting data.
-  mInteractionMasses = vector<Scalar>();
-  mInteractionPositions = vector<Vector>();
-  mDtMin = numeric_limits<Scalar>::max();
+  FieldSpace::FieldList<Dimension, std::vector<Scalar> > interactionMasses = dataBase.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
+  FieldSpace::FieldList<Dimension, std::vector<Vector> > interactionPositions = dataBase.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
+  FieldSpace::FieldList<Dimension, std::pair<LevelKey, CellKey> > homeBuckets = dataBase.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
+  mDtMinAcc = numeric_limits<Scalar>::max();
 
   // Prepare the flags to remember which cells have terminated for each node.
   CompletedCellSet cellsCompleted;
@@ -221,8 +223,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         bufItr = buffer.begin();
         this->deserialize(tree, bufItr, buffer.end());
         CHECK(bufItr == buffer.end());
-        mDtMin = min(mDtMin, 
-                     applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, mInteractionMasses, mInteractionPositions, mHomeBuckets, cellsCompleted));
+        mDtMinAcc = min(mDtMinAcc, 
+                        applyTreeForces(tree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
       }
     }
   }
@@ -230,19 +232,88 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #endif
 
   // Apply the forces from our local tree.
-  mDtMin = min(mDtMin,
-               applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, mInteractionMasses, mInteractionPositions, mHomeBuckets, cellsCompleted));
-
-#ifdef USE_MPI
-
-  // Wait until all our sends are complete.
-  vector<MPI_Status> sendStatus(sendRequests.size());
-  MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
-
-#endif
+  mDtMinAcc = min(mDtMinAcc,
+                  applyTreeForces(mTree, mass, position, DxDt, DvDt, mPotential, interactionMasses, interactionPositions, homeBuckets, cellsCompleted));
 
   // Set the motion to be Lagrangian.
   DxDt.assignFields(velocity);
+
+  // If we're using the dynamical time step choice, make the calculations for the next
+  // time step now.
+  // The following is an implementation (perhaps not exact) of the algorithm 
+  // described in Zemp et al., MNRAS, 376, 273-286 (2007).
+  // The idea is to come up with the most restrictive dynamical time per particle
+  // by find the dominant potentials for each point.
+  if (mTimeStepChoice == DynamicalTime) {
+    const size_t numNodeLists = position.numFields();
+    double mRhomax = 0.0;
+    int mNodeListMax = -1;
+    int mimax = -1;
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const size_t n = position[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        const Vector& xi = position(nodeListi, i);
+        const vector<Scalar>& mbucketsi = interactionMasses(nodeListi, i);
+        const vector<Vector>& xbucketsi = interactionPositions(nodeListi, i);
+        const unsigned nbuckets = mbucketsi.size();
+        CHECK(nbuckets > 0);
+        CHECK(xbucketsi.size() == nbuckets);
+
+        // First compute the full set of effective densities for this point, and sort them
+        // in decreasing order to pick out the top 0.5%.
+        vector<pair<double, unsigned> > rhoenc;
+        for (unsigned j = 0; j != nbuckets; ++j) {
+          rhoenc.push_back(make_pair(mbucketsi[j]/Dimension::pownu(sqrt((xbucketsi[j] - xi).magnitude2() + softLength2)), j));
+        }
+        const unsigned ntop = max(1U, unsigned(0.05*nbuckets));
+        std::partial_sort(rhoenc.begin(), rhoenc.begin() + ntop, rhoenc.end(), 
+                          ComparePairsByFirstElementInDecreasingOrder<pair<double, unsigned> >());
+
+        // For the ntop maxima, sum the contributions from the other centers.  We keep the
+        // maximum one.
+        for (unsigned k = 0; k != ntop; ++k) {
+          const unsigned jmax = rhoenc[k].second;
+          const Vector xpcmax = xbucketsi[jmax] - xi;
+          const double rpcmax2 = xpcmax.magnitude2();
+          double rholocal = 0.0;
+          for (unsigned j = 0; j != nbuckets; ++j) {
+            const Vector xpc = xbucketsi[j] - xi;
+            const double rpc2 = xpc.magnitude2();
+            if (rpc2 <= 4.0*rpcmax2 and
+                0.75*sqrt(rpcmax2*rpc2) <= xpcmax.dot(xpc)) rholocal += rhoenc[j].first;
+          }
+
+          // // Add this nodes local bucket.
+          // const LevelKey levelKey = mHomeBuckets(nodeListi, i).first;
+          // const CellKey cellKey = mHomeBuckets(nodeListi, i).second;
+          // CHECK(levelKey <= mTree.size());
+          // typename TreeLevel::const_iterator itr = mTree[levelKey].find(cellKey);
+          // CHECK(itr != mTree[levelKey].end());
+          // const Cell& localCell = itr->second; // mTree[levelKey][cellKey];
+          // rholocal += localCell.Mglobal/Dimension::pownu(sqrt((localCell.xcm - xi).magnitude2() + softLength2));
+
+          // Now check for the global max.
+          if (mRhomax < rholocal) {
+            mRhomax = rholocal;
+            mNodeListMax = nodeListi;
+            mimax = i;
+          }
+        }
+      }
+    }
+    CHECK(mRhomax > 0.0);
+    CHECK(mNodeListMax >= 0);
+    CHECK(mimax >= 0);
+
+    // We now have the local maximum effective density for any point.  That's enough
+    // to compute the gravitational dynamical time scale.
+  }
+
+#ifdef USE_MPI
+  // Wait until all our sends are complete.
+  vector<MPI_Status> sendStatus(sendRequests.size());
+  MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
+#endif
 
   // Sum up the potential for the extra energy term.
   mExtraEnergy = mPotential.sumElements();
@@ -258,12 +329,9 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
-  mInteractionMasses = db.newGlobalFieldList(vector<Scalar>(), "gravity dt interaction masses");
-  mInteractionPositions = db.newGlobalFieldList(vector<Vector>(), "gravity dt interaction positions");
-  mHomeBuckets = db.newGlobalFieldList(pair<LevelKey, CellKey>(), "gravity dt home buckets");
 
-  // We need to initialize stuff like the interactionMass and positions.  
-  // Easiest done by a dry run through evaluateDerivatives.
+  // We need to make a dry run through setting derivatives and such
+  // to set our initial vote on the time step.
   vector<PhysicsSpace::Physics<Dimension>*> packages(1, this);
   State<Dimension> state(db, packages);
   StateDerivatives<Dimension> derivs(db, packages);
@@ -399,94 +467,30 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
-  const double softLength2 = mSofteningLength*mSofteningLength;
 
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
   if (mTimeStepChoice == AccelerationRatio) {
-    const double dt = mftimestep * mDtMin;
+    const double dt = mftimestep * mDtMinAcc;
     stringstream reasonStream;
     reasonStream << "TreeGravity: f*sqrt(L/a) = " << dt << ends;
     return TimeStepType(dt, reasonStream.str());
 
   } else {
+
     // The following is an implementation (perhaps not exact) of the algorithm 
     // described in Zemp et al., MNRAS, 376, 273-286 (2007).
     // The idea is to come up with the most restrictive dynamical time per particle
     // by find the dominant potentials for each point.
-    CHECK(mTimeStepChoice == DynamicalTime);
-
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const size_t numNodeLists = position.numFields();
-    double dtmin = numeric_limits<double>::max();
-    double rhomax = 0.0;
-    int nodeListMax = -1;
-    int imax = -1;
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      const size_t n = position[nodeListi]->numInternalElements();
-      for (unsigned i = 0; i != n; ++i) {
-        const Vector& xi = position(nodeListi, i);
-        const vector<Scalar>& mbucketsi = mInteractionMasses(nodeListi, i);
-        const vector<Vector>& xbucketsi = mInteractionPositions(nodeListi, i);
-        const unsigned nbuckets = mbucketsi.size();
-        CHECK(nbuckets > 0);
-        CHECK(xbucketsi.size() == nbuckets);
-
-        // First compute the full set of effective densities for this point, and sort them
-        // in decreasing order to pick out the top 0.5%.
-        vector<pair<double, unsigned> > rhoenc;
-        for (unsigned j = 0; j != nbuckets; ++j) {
-          rhoenc.push_back(make_pair(mbucketsi[j]/Dimension::pownu(sqrt((xbucketsi[j] - xi).magnitude2() + softLength2)), j));
-        }
-        const unsigned ntop = max(1U, unsigned(0.05*nbuckets));
-        std::partial_sort(rhoenc.begin(), rhoenc.begin() + ntop, rhoenc.end(), 
-                          ComparePairsByFirstElementInDecreasingOrder<pair<double, unsigned> >());
-
-        // For the ntop maxima, sum the contributions from the other centers.  We keep the
-        // maximum one.
-        for (unsigned k = 0; k != ntop; ++k) {
-          const unsigned jmax = rhoenc[k].second;
-          const Vector xpcmax = xbucketsi[jmax] - xi;
-          const double rpcmax2 = xpcmax.magnitude2();
-          double rholocal = 0.0;
-          for (unsigned j = 0; j != nbuckets; ++j) {
-            const Vector xpc = xbucketsi[j] - xi;
-            const double rpc2 = xpc.magnitude2();
-            if (rpc2 <= 4.0*rpcmax2 and
-                0.75*sqrt(rpcmax2*rpc2) <= xpcmax.dot(xpc)) rholocal += rhoenc[j].first;
-          }
-
-          // // Add this nodes local bucket.
-          // const LevelKey levelKey = mHomeBuckets(nodeListi, i).first;
-          // const CellKey cellKey = mHomeBuckets(nodeListi, i).second;
-          // CHECK(levelKey <= mTree.size());
-          // typename TreeLevel::const_iterator itr = mTree[levelKey].find(cellKey);
-          // CHECK(itr != mTree[levelKey].end());
-          // const Cell& localCell = itr->second; // mTree[levelKey][cellKey];
-          // rholocal += localCell.Mglobal/Dimension::pownu(sqrt((localCell.xcm - xi).magnitude2() + softLength2));
-
-          // Now check for the global max.
-          if (rhomax < rholocal) {
-            rhomax = rholocal;
-            nodeListMax = nodeListi;
-            imax = i;
-          }
-        }
-      }
-    }
-    CHECK(rhomax > 0.0);
-    CHECK(nodeListMax >= 0);
-    CHECK(imax >= 0);
-
-    // We now have the local maximum effective density for any point.  That's enough
-    // to compute the gravitational dynamical time scale.
-    const double dtDyn = sqrt(1.0/(mG*rhomax));
+    // Note the computation of rhomax and such is done in evaluateDerivatives.
+    const double dtDyn = sqrt(1.0/(mG*mRhoMax));
     const double dt = mftimestep * dtDyn;
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     stringstream reasonStream;
     reasonStream << "TreeGravity: sqrt(1/(G rho)) = sqrt(1/("
-                 << mG << " * " << rhomax
+                 << mG << " * " << mRhoMax
                  << ")) = " << dt 
-                 << " selected for node " << imax 
-                 << " in NodeList " << position[nodeListMax]->nodeList().name()
+                 << " selected for node " << mimax 
+                 << " in NodeList " << position[mNodeListMax]->nodeList().name()
                  << ends;
     return TimeStepType(dt, reasonStream.str());
   }
@@ -510,26 +514,6 @@ const FieldList<Dimension, typename TreeGravity<Dimension>::Scalar>&
 TreeGravity<Dimension>::
 potential() const {
   return mPotential;
-}
-
-//------------------------------------------------------------------------------
-// interactionMasses
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const FieldList<Dimension, vector<typename Dimension::Scalar> >&
-TreeGravity<Dimension>::
-interactionMasses() const {
-  return mInteractionMasses;
-}
-
-//------------------------------------------------------------------------------
-// interactionPositions
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const FieldList<Dimension, vector<typename Dimension::Vector> >&
-TreeGravity<Dimension>::
-interactionPositions() const {
-  return mInteractionPositions;
 }
 
 //------------------------------------------------------------------------------
@@ -783,9 +767,10 @@ void
 TreeGravity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mPotential, pathName + "/potential");
-  file.write(mInteractionMasses, pathName + "/interactionMasses");
-  file.write(mInteractionPositions, pathName + "/interactionPositions");
-  file.write(mDtMin, pathName + "/pairWiseDtMin");
+  file.write(mDtMinAcc, pathName + "/pairWiseDtMin");
+  file.write(mNodeListMax, pathName + "/nodeListMax");
+  file.write(mimax, pathName + "/imax");
+  file.write(mRhoMax, pathName + "/rhoMax");
 }
 
 //------------------------------------------------------------------------------
@@ -796,9 +781,10 @@ void
 TreeGravity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mPotential, pathName + "/potential");
-  file.read(mInteractionMasses, pathName + "/interactionMasses");
-  file.read(mInteractionPositions, pathName + "/interactionPositions");
-  file.read(mDtMin, pathName + "/pairWiseDtMin");
+  file.read(mDtMinAcc, pathName + "/pairWiseDtMin");
+  file.read(mNodeListMax, pathName + "/nodeListMax");
+  file.read(mimax, pathName + "/imax");
+  file.read(mRhoMax, pathName + "/rhoMax");
 }
 
 //------------------------------------------------------------------------------
