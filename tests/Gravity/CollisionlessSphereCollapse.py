@@ -1,7 +1,13 @@
+#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_09282013.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_AccelerationRatio_data_09282013.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps=40 --restartStep 20  --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_09282013.txt'", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
+#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --timeStepChoice DynamicalTime --steps 20 --restartStep 100 --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.txt' --comparisonFile 'Reference/Collisionless_sphere_collapse_DynamicalTime_data_09282013.txt' --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
+
 #-------------------------------------------------------------------------------
 # Create a spherical distribution of collisionless points, which will of course 
 # promptly collapse under their own self-gravity.
 #-------------------------------------------------------------------------------
+import shutil
 from Spheral3d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
@@ -35,12 +41,18 @@ commandLine(
     timeStepChoice = AccelerationRatio,
 
     # Output
+    clearDirectories = False,
     dataDir = "Collisionless_Sphere_Collapse",
     baseNameRoot = "sphere_collapse_%i",
     restoreCycle = None,
     restartStep = 100,
     numViz = 200,
     verbosedt = False,
+
+    # Parameters purely for test checking
+    checkRestart = False,
+    outputFile = "None",
+    comparisonFile = "None",
     )
 
 # Convert to MKS units.
@@ -64,7 +76,10 @@ dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
 smoothIters = 0
-vizTime = goalTime / numViz
+if numViz > 0:
+    vizTime = goalTime / numViz
+else:
+    vizTime = goalTime
 
 baseName = baseNameRoot % nr
 restartDir = os.path.join(dataDir, "restarts")
@@ -76,6 +91,8 @@ restartBaseName = os.path.join(restartDir, baseName + "_restart")
 #-------------------------------------------------------------------------------
 import os, sys
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
     if not os.path.exists(visitDir):
@@ -187,3 +204,48 @@ if not steps is None:
 else:
     print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
     control.advance(goalTime)
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    xprof = mpi.reduce(nodes.positions().internalValues(), mpi.SUM)
+    vprof = mpi.reduce(nodes.velocity().internalValues(), mpi.SUM)
+    Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
+    phi = gravity.potential()
+    phiprof = mpi.reduce(phi[0].internalValues(), mpi.SUM)
+    mof = mortonOrderIndicies(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    if mpi.rank == 0:
+        from SpheralGnuPlotUtilities import multiSort
+        multiSort(mo, xprof, vprof, Hprof, phiprof)
+        f = open(outputFile, "w")
+        f.write(("# " + 27*"%15s " + "\n") % ("x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi", "mortonOrder",
+                                              "x_uu", "y_uu", "z_uu", "vx_uu", "vy_uu", "vz_uu", 
+                                              "Hxx_uu", "Hxy_uu", "Hxz_uu", "Hyy_uu", "Hyz_uu", "Hzz_uu", "phi_uu"))
+        for (xi, vi, Hi, phii, moi) in zip(xprof, vprof, Hprof, phiprof, mo):
+            f.write((13*" %16.12e" + 14*" %i" + "\n") % (xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
+                                                         Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii, moi,
+                                                         unpackElementUL(packElementDouble(xi.x)),
+                                                         unpackElementUL(packElementDouble(xi.y)),
+                                                         unpackElementUL(packElementDouble(xi.z)),
+                                                         unpackElementUL(packElementDouble(vi.x)),
+                                                         unpackElementUL(packElementDouble(vi.y)),
+                                                         unpackElementUL(packElementDouble(vi.z)),
+                                                         unpackElementUL(packElementDouble(Hi.xx)),
+                                                         unpackElementUL(packElementDouble(Hi.xy)),
+                                                         unpackElementUL(packElementDouble(Hi.xz)),
+                                                         unpackElementUL(packElementDouble(Hi.yy)),
+                                                         unpackElementUL(packElementDouble(Hi.yz)),
+                                                         unpackElementUL(packElementDouble(Hi.zz)),
+                                                         unpackElementUL(packElementDouble(phii))))
+        f.close()
+
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)
