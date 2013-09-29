@@ -52,6 +52,9 @@ source("../src/Mesh/tests/testPolyhedralMesh.py")
 # Hydro tests
 source("Hydro/HydroTests.ats")
 
+# Gravity tests
+source("Gravity/CollisionlessSphereCollapse.py")
+
 # Strength tests.
 #source("Strength/PlateImpact/PlateImpact-1d.py")
 source("Strength/CollidingPlates/CollidingPlates-1d.py")
