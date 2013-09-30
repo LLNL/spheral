@@ -477,7 +477,6 @@ $(PSYCOBUILDDATE):	$(PYTHONBUILDDATE) $(PSYCODIST)
 #-------------------------------------------------------------------------------
 # Boost
 #-------------------------------------------------------------------------------
-#	./bootstrap.sh --without-libraries=chrono,context,date_time,exception,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,signals,system,test,thread,timer,wave --prefix=$(SPHERALDIR); \
 $(BOOSTDIST):
 	$(CURL) "$(BOOSTURL)" > $(BOOSTDIST)
 
