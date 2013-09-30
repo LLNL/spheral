@@ -26,7 +26,8 @@ PYTHONTARGETS = \
 	CubicNodeGenerator.py \
 	GenerateSphericalShellSection.py \
 	AbaqusNodeGenerator.py \
-	CentroidalVoronoiRelaxation.py
+	CentroidalVoronoiRelaxation.py \
+	InteriorGenerator.py
 
 SPHERALTOP = ..
 

@@ -150,12 +150,24 @@ class NodeGeneratorBase:
 #-------------------------------------------------------------------------------
 class ConstantRho:
     def __init__(self, rho0):
+        assert type(rho0) is float
         self.rho0 = rho0
         return
     def rho(self, r):
         return self.rho0
     def __call__(self, r):
         return self.rho(r)
+
+#-------------------------------------------------------------------------------
+# Helper class for providing default list of densities behaviour.
+#-------------------------------------------------------------------------------
+class ListRho:
+    def __init__(self, rho0):
+        assert type(rho0) is list
+        self.rho0 = rho0
+        return
+    def __call__(self, i):
+        return self.rho[i]
 
 #-------------------------------------------------------------------------------
 # A simple minded node refinement algorithm for a NodeGenerator in 2-D.
