@@ -43,7 +43,7 @@ generator = InteriorGenerator2d(boundary = starBoundary,
                                 dx = 0.05,
                                 rho = 10.0,
                                 nNodePerh = 2.01,
-                                jitter = 0.0,
+                                jitter = 0.4,
                                 SPH = False)
 
 distributeNodes2d((nodes, generator))

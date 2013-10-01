@@ -7,7 +7,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 SRCTARGETS = \
 	generateCylDistributionFromRZ.cc \
-	fillFacetedVolume.cc
+	fillFacetedVolume.cc \
+	relaxNodeDistributionInst.cc
 
 PYTHONTARGETS = \
 	NodeGeneratorBase.py \
