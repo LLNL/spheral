@@ -188,6 +188,7 @@ pressure(const Scalar massDensity,
   const double K0 = rho0*mC0*mC0;
   const double eps = std::max(0.0, specificThermalEnergy);
 
+  //TODO double check branching and apply eta convention in appropriate branch
   if (mu <= 0.0 or specificThermalEnergy < 0.0) {
     return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps - mExternalPressure);
 
