@@ -672,6 +672,8 @@ class Geometry:
         # Constructors.
         x.add_constructor([])
         x.add_constructor([constrefparam("vector_of_Vector2d", "points")])
+        x.add_constructor([constrefparam("vector_of_Vector2d", "points"),
+                           constrefparam("vector_of_vector_of_unsigned", "facets")])
         x.add_constructor([constrefparam(me, "rhs")])
     
         # Methods.

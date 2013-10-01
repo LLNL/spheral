@@ -7,7 +7,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
 SRCTARGETS = \
 	generateCylDistributionFromRZ.cc \
-	fillFacetedVolume.cc
+	fillFacetedVolume.cc \
+	relaxNodeDistributionInst.cc
 
 PYTHONTARGETS = \
 	NodeGeneratorBase.py \
@@ -26,7 +27,8 @@ PYTHONTARGETS = \
 	CubicNodeGenerator.py \
 	GenerateSphericalShellSection.py \
 	AbaqusNodeGenerator.py \
-	CentroidalVoronoiRelaxation.py
+	CentroidalVoronoiRelaxation.py \
+	InteriorGenerator.py
 
 SPHERALTOP = ..
 
