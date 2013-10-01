@@ -37,7 +37,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
                       const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      const WeightingFunctor& weighting,
+                      const WeightingFunctor<Dimension>& weighting,
                       const int maxIterations = 100,
                       const double tolerance = 1.0e-10);
 }
