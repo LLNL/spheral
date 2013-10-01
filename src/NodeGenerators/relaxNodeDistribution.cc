@@ -15,9 +15,6 @@
 namespace Spheral {
 
 using namespace std;
-using std::min;
-using std::max;
-using std::abs;
 
 using DataBaseSpace::DataBase;
 using BoundarySpace::Boundary;
@@ -34,7 +31,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
                       const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      const WeightingFunctor<Dimension>& weighting,
+                      const WeightingFunctor<Dimension> weighting,
                       const int maxIterations,
                       const double tolerance) {
 
@@ -47,7 +44,6 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
   // Grab the state.
   FieldList<Dimension, Vector> position = dataBase.globalPosition();
   FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
-  FieldList<Dimension, Scalar> weight = dataBase.newGlobalFieldList(0.0, "weight");
   FieldList<Dimension, Scalar> weightSum = dataBase.newGlobalFieldList(0.0, "weightSum");
   FieldList<Dimension, Vector> delta = dataBase.newGlobalFieldList(Vector::zero, "delta");
   const Vector& xmin = boundary.xmin();
@@ -59,12 +55,18 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
   // tolerance.
   double maxDelta = 2.0*stopTol;
   int iter = 0;
+  Vector rImage;
+  Scalar wj, wjimage;
   while (iter < maxIterations and maxDelta > stopTol) {
     ++iter;
+    weightSum = 0.0;
     delta = Vector::zero;
     maxDelta = 0.0;
 
     // Update the connectivity.
+    for (typename DataBase<Dimension>::ConstNodeListIterator itr = dataBase.nodeListBegin();
+         itr != dataBase.nodeListEnd();
+         ++itr) (*itr)->neighbor().updateNodes();
     dataBase.updateConnectivityMap();
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
 
@@ -80,22 +82,20 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
         const int i = *iItr;
         const Vector& ri = position(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
-        const Scalar Hdeti = Hi.Determinant();
-        const Scalar wi = weighting(ri);
         const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        CHECK(Hdeti > 0.0);
 
-        // Self-contribution.
-        weightSum(nodeListi, i) = wi*W.kernelValue(0.0, Hdeti);
+        // // Self-contribution.
+        // weightSum(nodeListi, i) = wi*W.kernelValue(0.0, Hdeti);
+        // delta(nodeListi, i) = Vector::zero;
 
-        // Check for any contribution from the boundary.
-        const Vector rj = boundary.closestPoint(ri);
-        const Scalar wj = weighting(rj);
-        const Vector rji = rj - ri;
-        const Scalar etaMagi = (Hi*rji).magnitude();
-        const Scalar Wi = W.kernelValue(etaMagi, Hdeti);
-        delta(nodeListi, i) += wj*Wi * rji;
-        weightSum(nodeListi, i) += wj*Wi;
+        // // Check for any contribution from the boundary.
+        // const Vector rj = boundary.closestPoint(ri);
+        // const Scalar wj = weighting(rj, boundary);
+        // const Vector rji = rj - ri;
+        // const Scalar etai = (Hi*rji).magnitude();
+        // const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
+        // delta(nodeListi, i) += wj*Wi * rji;
+        // weightSum(nodeListi, i) += wj*Wi;
 
         // Walk the neighbors.
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -110,15 +110,28 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
 
               // State for node j.
               const int j = *jItr;
-              const Vector& rj = position(nodeListi, i);
-              const Scalar wj = weight(nodeListj, j);
+              const Vector& rj = position(nodeListj, j);
+              weighting(rj, boundary, rImage, wj, wjimage);
 
-              // Sum the contribution to this point.
-              const Vector rji = rj - ri;
-              const Scalar etaMagi = (Hi*rji).magnitude();
-              const Scalar Wi = W.kernelValue(etaMagi, Hdeti);
-              delta(nodeListi, i) += wj*Wi * rji;
-              weightSum(nodeListi, i) += wj*Wi;
+              // Sum the contribution from this point.
+              {
+                const Vector rji = rj - ri;
+                const Scalar etaMagi = (Hi*rji).magnitude();
+                const Scalar etai = (Hi*rji).magnitude();
+                const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
+                delta(nodeListi, i) += wj*Wi * rji;
+                weightSum(nodeListi, i) += wj*Wi;
+              }
+
+              // Sum the contribution from the image.
+              {
+                const Vector rji = rImage - ri;
+                const Scalar etaMagi = (Hi*rji).magnitude();
+                const Scalar etai = (Hi*rji).magnitude();
+                const Scalar Wi = std::abs(W.gradValue(etai, 1.0));
+                delta(nodeListi, i) += wjimage*Wi * rji;
+                weightSum(nodeListi, i) += wjimage*Wi;
+              }
             }
           }
         }
@@ -129,7 +142,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
 
         // If we moved outside the boundary, go back!
         if (not boundary.contains(ri + delta(nodeListi, i))) {
-          const Vector p = boundary.closestPoint(ri + delta(nodeListi, i));
+          const Vector p = boundary.closestPoint(ri);
           delta(nodeListi, i) = 0.5*(ri + p) - ri;
         }
 
@@ -137,6 +150,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
         maxDelta = std::max(maxDelta, delta(nodeListi, i).magnitude());
       }
     }
+    if (Process::getRank() == 0) cerr << "relaxNodeDistribution iteration " << iter << " maxDelta=" << maxDelta << endl;
 
     // Apply the change.
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

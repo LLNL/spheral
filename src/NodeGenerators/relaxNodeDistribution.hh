@@ -11,6 +11,7 @@
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/SmoothingScaleBase.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -23,11 +24,25 @@ struct WeightingFunctor {
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
-  FacetedVolume& boundary;
-
-  WeightingFunctor(const FacetedVolume& b): boundary(b) {}
+  WeightingFunctor() {}
   virtual ~WeightingFunctor() {}
-  virtual Scalar operator()(const Vector& position) const { return 1.0; }
+  virtual void operator()(const Vector& pos,
+                          const FacetedVolume& boundary,
+                          Vector& posImage,
+                          Scalar& weight,
+                          Scalar& weightImage) const { 
+    this->__call__(pos, boundary, posImage, weight, weightImage);
+  }
+  virtual void __call__(const Vector& pos,
+                        const FacetedVolume& boundary,
+                        Vector& posImage,
+                        Scalar& weight,
+                        Scalar& weightImage) const { 
+    const Vector& posb = boundary.closestPoint(pos);
+    posImage = posb + (posb - pos);
+    weight = 1.0;
+    weightImage = 1.0;
+  }
 };
 
 template<typename Dimension>
@@ -37,9 +52,9 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
                       const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      const WeightingFunctor<Dimension>& weighting,
-                      const int maxIterations = 100,
-                      const double tolerance = 1.0e-10);
+                      const WeightingFunctor<Dimension> weighting,
+                      const int maxIterations,
+                      const double tolerance);
 }
 
 #endif

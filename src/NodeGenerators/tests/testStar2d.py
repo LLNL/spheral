@@ -34,9 +34,11 @@ eos = GammaLawGasMKS(1.4, 1.0)
 WT = TableKernel(BSplineKernel(), 1000)
 nodes = makeFluidNodeList("nodes", eos,
                           hmin = 1e-5,
-                          hmax = 10.0,
+                          hmax = 100.0,
                           hminratio = 0.1,
-                          nPerh = 2.01)
+                          nPerh = 2.01,
+                          xmin = Vector(-100, -100),
+                          xmax = Vector(100, 100))
 
 # Make those nodes!
 generator = InteriorGenerator2d(boundary = starBoundary, 
@@ -50,5 +52,22 @@ distributeNodes2d((nodes, generator))
 
 # Write out a Visit file to see what happened.
 dumper = SpheralVisitDump("star_generator_test",
-                          listOfFields = [nodes.massDensity()])
+                          listOfFields = [nodes.massDensity(),
+                                          nodes.Hfield()])
 dumper.dump(0.0, 0)
+
+# Do some relaxation of the points.
+db = DataBase()
+db.appendNodeList(nodes)
+relaxer = relaxNodeDistribution(db,
+                                starBoundary,
+                                vector_of_Boundary(),
+                                WT,
+                                SPHSmoothingScale(),
+                                WeightingFunctor(),
+                                5,
+                                1.0e-3)
+
+# Dump the new result.
+dumper.dump(1.0, 1)
+
