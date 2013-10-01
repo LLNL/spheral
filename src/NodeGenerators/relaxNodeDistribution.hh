@@ -27,7 +27,7 @@ struct WeightingFunctor {
 
   WeightingFunctor(const FacetedVolume& b): boundary(b) {}
   virtual ~WeightingFunctor() {}
-  virtual double operator()(const Vector& position) { return 1.0; }
+  virtual Scalar operator()(const Vector& position) const { return 1.0; }
 };
 
 template<typename Dimension>
