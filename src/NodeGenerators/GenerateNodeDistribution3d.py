@@ -40,7 +40,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         assert n1 > 0
         assert n2 > 0
         assert n3 > 0 or distributionType == "cylindrical"
-        assert rho > 0.0
+        assert isinstance(rho,(float,int)) and  (rho>0.0)
         assert ((distributionType == 'lattice' and
                  xmin is not None and
                  xmax is not None) or
@@ -185,6 +185,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                               self.m,
                                                               self.H)
 
+        # Make rho a list
+        self.rho = [self.rho] * len(self.m)
+
         # Have the base class break up the serial node distribution
         # for parallel cases.
         NodeGeneratorBase.__init__(self, True,
@@ -215,8 +218,8 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #-------------------------------------------------------------------------------
     def localMassDensity(self, i):
-        assert i >= 0 and i < len(self.x)
-        return self.rho
+        assert i >= 0 and i < len(self.rho)
+        return self.rho[i]
 
     #-------------------------------------------------------------------------------
     # Get the H tensor for the given node index.
