@@ -182,7 +182,6 @@ TillotsonEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity);
-  if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
@@ -193,7 +192,7 @@ pressure(const Scalar massDensity,
   //   P2 - solid, expansion.
   //   P4 - gaseous, expansion.
   // A third category (P3) is interpreted as a mixture of gaseous and solid
-  // phases, and is interpolated between P2 and P3.
+  // phases, and is interpolated between P2 and P4.
 
   // There are four regimes:
   double P;
@@ -207,6 +206,7 @@ pressure(const Scalar massDensity,
 
     // Option 2: expansion, solid : same as 1, but setting B=0.
     const double phi = computePhi(eta, eps);
+    if (fuzzyEqual(eta, this->etamin())) return 0.0;
     P = computeP2(phi, mu, rho, eps);
 
   } else if (eps <= mepsVapor) {
@@ -218,6 +218,7 @@ pressure(const Scalar massDensity,
     const double phi2 = computePhi(eta, mepsLiquid);
     const double phi4 = computePhi(eta, mepsVapor);
     const double P2 = computeP2(phi2, mu, rho, mepsLiquid);
+    if (fuzzyEqual(eta, this->etamin())) P2 = 0.0;
     const double P4 = computeP4(phi4, mu, eta, rho, mepsVapor);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
