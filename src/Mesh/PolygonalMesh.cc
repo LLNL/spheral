@@ -22,6 +22,131 @@ namespace MeshSpace {
 using namespace std;
 using namespace boost;
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Internal worker method with common code for building from a 2D polytope
+// tessellation.
+//------------------------------------------------------------------------------
+void buildFromPolytope(const polytope::Tessellation<2, double>& tessellation,
+                       const Dim<2>::Vector& xmin,
+                       const Dim<2>::Vector& xmax,
+                       const std::vector<Dim<2>::Vector>& generators,
+                       Mesh<Dim<2> >& mesh,
+                       std::vector<Dim<2>::Vector>& mNodePositions,
+                       Mesh<Dim<2> >::NodeContainer& mNodes,
+                       Mesh<Dim<2> >::EdgeContainer& mEdges,
+                       Mesh<Dim<2> >::FaceContainer& mFaces,
+                       Mesh<Dim<2> >::ZoneContainer& mZones,
+                       std::vector<unsigned>& mNeighborDomains,
+                       std::vector<std::vector<unsigned> > mSharedNodes,
+                       std::vector<std::vector<unsigned> > mSharedFaces) {
+
+  typedef Dim<2>::Vector Vector;
+  typedef Mesh<Dim<2> > MeshType;
+  typedef MeshType::Node Node;
+  typedef MeshType::Edge Edge;
+  typedef MeshType::Face Face;
+  typedef MeshType::Zone Zone;
+  const unsigned UNSETID = MeshType::UNSETID;
+
+  // Read out and construct the Mesh node positions.
+  Timing::Time t0 = Timing::currentTime();
+  int i, j, k, igen, jgen;
+  const unsigned numGens = generators.size();
+  const unsigned numNodes = tessellation.nodes.size()/2;
+  mNodePositions.reserve(numNodes);
+  for (i = 0; i != numNodes; ++i) {
+    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), tessellation.nodes[2*i])),
+                                    max(xmin.y(), min(xmax.y(), tessellation.nodes[2*i+1]))));
+  }
+
+  // Build the edges and faces, which are degnerate in 2D.
+  // Simultaneously build up the node->zone connectivity.
+  const unsigned numEdges = tessellation.faces.size();
+  unsigned inode, jnode;
+  map<unsigned, set<unsigned> > nodeZones;
+  for (i = 0; i != numEdges; ++i) {
+    CHECK(tessellation.faces[i].size() == 2);
+    CHECK(tessellation.faceCells[i].size() == 1 or
+          tessellation.faceCells[i].size() == 2);
+    inode = tessellation.faces[i][0];
+    jnode = tessellation.faces[i][1];
+    igen = tessellation.faceCells[i][0];
+    jgen = (tessellation.faceCells[i].size() == 2 ? 
+            tessellation.faceCells[i][1] :
+            igen < 0 ?
+            UNSETID:
+            ~UNSETID);
+
+    // Do we need to flip this face?
+    CHECK(!(igen < 0 and jgen == UNSETID));
+    // if (igen < 0 and jgen == UNSETID) {
+    //   igen = ~igen;
+    //   jgen = ~jgen;
+    //   swap(inode, jnode);
+    //   vector<int>::iterator itr = find(tessellation.cells[igen].begin(), tessellation.cells[igen].end(), ~i);
+    //   CHECK(itr != tessellation.cells[igen].end());
+    //   *itr = i;
+    // }
+
+    mEdges.push_back(Edge(mesh, i, inode, jnode));
+    mFaces.push_back(Face(mesh, i, igen, jgen, vector<unsigned>(1, i)));
+
+    BOOST_FOREACH(j, tessellation.faceCells[i]) {
+      nodeZones[inode].insert(MeshType::positiveID(j));
+      nodeZones[jnode].insert(MeshType::positiveID(j));
+    }
+  }
+  CHECK(mEdges.size() == numEdges);
+  CHECK(mFaces.size() == numEdges);
+  CHECK(nodeZones.size() == numNodes);
+
+  // Construct the nodes.
+  mNodes.reserve(numNodes);
+  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(mesh, i, vector<unsigned>(nodeZones[i].begin(),
+                                                                                  nodeZones[i].end())));
+  CHECK(mNodes.size() == numNodes);
+
+  // Construct the zones.
+  mZones.reserve(numGens);
+  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(mesh, i, tessellation.cells[i]));
+  CHECK(mZones.size() == numGens);
+
+  // Copy the parallel info.
+  mNeighborDomains = tessellation.neighborDomains;
+  mSharedNodes = tessellation.sharedNodes;
+  mSharedFaces = tessellation.sharedFaces;
+  // cerr << "Assigned neighbor domain info : " << mNeighborDomains.size() << " " << mSharedNodes.size() << " " << mSharedFaces.size() << endl;
+
+  // Post-conditions.
+  BEGIN_CONTRACT_SCOPE
+  {
+    // Make sure any faces on the surface are pointing out of the mesh.
+    BOOST_FOREACH(const Face& face, mFaces) {
+      ENSURE(face.zone1ID() != UNSETID);
+      ENSURE(face.zone2ID() != UNSETID);
+      ENSURE(MeshType::positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
+      // ENSURE2(MeshType::positiveID(face.zone2ID()) != UNSETID or
+      //         face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
+      //         "Something amiss at the surface of the mesh : "
+      //         << face.zone1ID() << " " << face.zone2ID() << " : " 
+      //         << face.unitNormal() << " dot (" << mZones[face.zone1ID()].position() << " - " << face.position() << ") = "
+      //         << face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()));
+    }
+    ENSURE2(mesh.valid() == "", mesh.valid());
+    ENSURE2(mesh.validDomainInfo(xmin, xmax, false) == "", mesh.validDomainInfo(xmin, xmax, false));
+  }
+  END_CONTRACT_SCOPE
+
+  // Report our final timing and we're done.
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to construct mesh elements." << endl;
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
@@ -32,7 +157,7 @@ template<> const unsigned Mesh<Dim<2> >::minEdgesPerFace = 1;
 template<> const unsigned Mesh<Dim<2> >::minNodesPerFace = 2;
 
 //------------------------------------------------------------------------------
-// Mesh::reconstructInternal
+// Mesh::reconstructInternal (xmin, xmax)
 //------------------------------------------------------------------------------
 template<>
 void
@@ -52,7 +177,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   const double xtol2 = xtol*xtol;
 
   // Pre-conditions.
-  int i, j, k, igen, jgen, numGens = generators.size();
+  int i, j, k, igen, numGens = generators.size();
   BEGIN_CONTRACT_SCOPE;
   {
     REQUIRE(xmin.x() < xmax.x() and
@@ -69,7 +194,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   }
   END_CONTRACT_SCOPE;
 
-  // Build the normalized generator positions.
+  // Copy the generator positions to a polytope style flat array.
   vector<double> gens;
   gens.reserve(2*generators.size());
   for (igen = 0; igen != numGens; ++igen) {
@@ -78,7 +203,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   }
   CHECK(gens.size() == 2*numGens);
 
-  // Do the polytope tessellation.  We use the Triangle based tessellator for now.
+  // Do the polytope tessellation.
   Timing::Time t0 = Timing::currentTime();
   polytope::Tessellation<2, double> tessellation;
   {
@@ -106,96 +231,112 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   // }
   // // Blago!
 
-  // Read out and construct the Mesh node positions.
-  t0 = Timing::currentTime();
-  const unsigned numNodes = tessellation.nodes.size()/2;
-  mNodePositions.reserve(numNodes);
-  for (i = 0; i != numNodes; ++i) {
-    mNodePositions.push_back(Vector(max(xmin.x(), min(xmax.x(), tessellation.nodes[2*i])),
-                                    max(xmin.y(), min(xmax.y(), tessellation.nodes[2*i+1]))));
-  }
+  // Dispatch the work to our common 2D coding.
+  buildFromPolytope(tessellation,
+                    xmin,
+                    xmax,
+                    generators,
+                    *this, 
+                    mNodePositions,
+                    mNodes,
+                    mEdges,
+                    mFaces,
+                    mZones,
+                    mNeighborDomains,
+                    mSharedNodes,
+                    mSharedFaces);
+}
 
-  // Build the edges and faces, which are degnerate in 2D.
-  // Simultaneously build up the node->zone connectivity.
-  const unsigned numEdges = tessellation.faces.size();
-  unsigned inode, jnode;
-  map<unsigned, set<unsigned> > nodeZones;
-  for (i = 0; i != numEdges; ++i) {
-    CHECK(tessellation.faces[i].size() == 2);
-    CHECK(tessellation.faceCells[i].size() == 1 or
-          tessellation.faceCells[i].size() == 2);
-    inode = tessellation.faces[i][0];
-    jnode = tessellation.faces[i][1];
-    igen = tessellation.faceCells[i][0];
-    jgen = (tessellation.faceCells[i].size() == 2 ? 
-            tessellation.faceCells[i][1] :
-            igen < 0 ?
-            UNSETID:
-            ~UNSETID);
+//------------------------------------------------------------------------------
+// Mesh::reconstructInternal (FacetedVolume)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<2> >::
+reconstructInternal(const vector<Dim<2>::Vector>& generators,
+                    const Dim<2>::FacetedVolume& boundary) {
 
-    // Do we need to flip this face?
-    if (igen < 0 and jgen == UNSETID) {
-      igen = ~igen;
-      jgen = ~jgen;
-      swap(inode, jnode);
-      vector<int>::iterator itr = find(tessellation.cells[igen].begin(), tessellation.cells[igen].end(), ~i);
-      CHECK(itr != tessellation.cells[igen].end());
-      *itr = i;
-    }
+  // Some useful typedefs.
+  typedef Dim<2> Dimension;
 
-    mEdges.push_back(Edge(*this, i, inode, jnode));
-    mFaces.push_back(Face(*this, i, igen, jgen, vector<unsigned>(1, i)));
+  // Is there anything to do?
+  if (generators.size() == 0) return;
 
-    BOOST_FOREACH(j, tessellation.faceCells[i]) {
-      nodeZones[inode].insert(positiveID(j));
-      nodeZones[jnode].insert(positiveID(j));
-    }
-  }
-  CHECK(mEdges.size() == numEdges);
-  CHECK(mFaces.size() == numEdges);
-  CHECK(nodeZones.size() == numNodes);
+  // The tolerance on which we consider positions to be degenerate.
+  const double xtol = 1.0e-12*(xmax - xmin).maxElement();
+  const double xtol2 = xtol*xtol;
 
-  // Construct the nodes.
-  mNodes.reserve(numNodes);
-  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(*this, i, vector<unsigned>(nodeZones[i].begin(),
-                                                                                   nodeZones[i].end())));
-  CHECK(mNodes.size() == numNodes);
-
-  // Construct the zones.
-  mZones.reserve(numGens);
-  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(*this, i, tessellation.cells[i]));
-  CHECK(mZones.size() == numGens);
-
-  // Copy the parallel info.
-  mNeighborDomains = tessellation.neighborDomains;
-  mSharedNodes = tessellation.sharedNodes;
-  mSharedFaces = tessellation.sharedFaces;
-  // cerr << "Assigned neighbor domain info : " << mNeighborDomains.size() << " " << mSharedNodes.size() << " " << mSharedFaces.size() << endl;
-
-  // Post-conditions.
-  BEGIN_CONTRACT_SCOPE
+  // Pre-conditions.
+  int i, j, k, igen, numGens = generators.size();
+  BEGIN_CONTRACT_SCOPE;
   {
-    // Make sure any faces on the surface are pointing out of the mesh.
-    BOOST_FOREACH(const Face& face, mFaces) {
-      ENSURE(face.zone1ID() != UNSETID);
-      ENSURE(face.zone2ID() != UNSETID);
-      ENSURE(positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
-      // ENSURE2(positiveID(face.zone2ID()) != UNSETID or
-      //         face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
-      //         "Something amiss at the surface of the mesh : "
-      //         << face.zone1ID() << " " << face.zone2ID() << " : " 
-      //         << face.unitNormal() << " dot (" << mZones[face.zone1ID()].position() << " - " << face.position() << ") = "
-      //         << face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()));
+    REQUIRE(xmin.x() < xmax.x() and
+            xmin.y() < xmax.y());
+    for (igen = 0; igen != numGens; ++igen)
+      REQUIRE2(testPointInBox(generators[igen], xmin, xmax), 
+               "Generator out of bounds:  " << generators[igen] << " not in [" << xmin << " " << xmax << "]");
+    for (i = 0; i < numGens - 1; ++i) {
+      for (j = i + 1; j < numGens; ++j) {
+        REQUIRE2((generators[i] - generators[j]).magnitude2() > xtol2, 
+                 "Degenerate generator positions:  " << i << " " << j << " " << generators[i] << " " << generators[j]);
+      }
     }
-    ENSURE2(this->valid() == "", this->valid());
-    ENSURE2(this->validDomainInfo(xmin, xmax, false) == "", this->validDomainInfo(xmin, xmax, false));
   }
-  END_CONTRACT_SCOPE
+  END_CONTRACT_SCOPE;
 
-  // Report our final timing and we're done.
+  // Copy the generator positions to a polytope style flat array.
+  vector<double> gens;
+  gens.reserve(2*generators.size());
+  for (igen = 0; igen != numGens; ++igen) {
+    gens.push_back(generators[igen].x());
+    gens.push_back(generators[igen].y());
+  }
+  CHECK(gens.size() == 2*numGens);
+
+  // Create a polytope PLC from our faceted boundary.
+
+  // Do the polytope tessellation.
+  Timing::Time t0 = Timing::currentTime();
+  polytope::Tessellation<2, double> tessellation;
+  {
+#ifdef USE_MPI
+    polytope::DistributedTessellator<2, double> tessellator(new polytope::BoostTessellator<double>(),
+                                                            true,     // Manage memory for serial tessellator
+                                                            true);    // Build parallel connectivity
+#else
+    polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+  }
+  CHECK(tessellation.cells.size() == numGens);
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
-                                    << " seconds to construct mesh elements." << endl;
+                                    << " seconds to construct polytope tessellation." << endl;
+
+  // // Blago!
+  // {
+  //   vector<double> index(tessellation.cells.size());
+  //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
+  //   map<string, double*> fields;
+  //   fields["cell_index"] = &index[0];
+  //   polytope::SiloWriter<2, double>::write(tessellation, fields, "polygonal_blago");
+  // }
+  // // Blago!
+
+  // Dispatch the work to our common 2D coding.
+  buildFromPolytope(tessellation,
+                    xmin,
+                    xmax,
+                    generators,
+                    *this, 
+                    mNodePositions,
+                    mNodes,
+                    mEdges,
+                    mFaces,
+                    mZones,
+                    mNeighborDomains,
+                    mSharedNodes,
+                    mSharedFaces);
 }
 
 //------------------------------------------------------------------------------
