@@ -217,7 +217,7 @@ pressure(const Scalar massDensity,
     // specific energies.
     const double phi2 = computePhi(eta, mepsLiquid);
     const double phi4 = computePhi(eta, mepsVapor);
-    const double P2 = computeP2(phi2, mu, rho, mepsLiquid);
+    double P2 = computeP2(phi2, mu, rho, mepsLiquid);
     if (fuzzyEqual(eta, this->etamin())) P2 = 0.0;
     const double P4 = computeP4(phi4, mu, eta, rho, mepsVapor);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
