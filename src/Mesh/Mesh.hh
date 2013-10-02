@@ -231,11 +231,13 @@ private:
   void removeUNSETIDs(std::vector<unsigned>& ids) const;
   void removeUNSETIDs(std::vector<int>& ids) const;
 
-  // Internal method to handle reconstructing the mesh after boundary
+  // Internal methods to handle reconstructing the mesh after boundary
   // conditions and such have all been provided.
   void reconstructInternal(const std::vector<Vector>& generators,
                            const Vector& xmin, 
                            const Vector& xmax);
+  void reconstructInternal(const std::vector<Vector>& generators,
+                           const FacetedVolume& boundary);
 
   // Internal method used to add on new mesh elements based on sets of 
   // nodes arranged into Face arrays.

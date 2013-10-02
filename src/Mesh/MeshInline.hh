@@ -61,7 +61,7 @@ reconstruct(const std::vector<typename Dimension::Vector>& generators,
   this->clear();
 
   // Dispatch the build.
-  this->reconstructInternal(generators, boundary.xmin(), boundary.xmax());
+  this->reconstructInternal(generators, boundary);
 }
 
 //------------------------------------------------------------------------------
