@@ -98,11 +98,8 @@ class NodeGenerators:
         vector = "Vector%id" % ndim
 
         x.add_constructor([])
-        x.add_method("__call__", None, [constrefparam(vector, "position"),
-                                        constrefparam(poly, "boundary"),
-                                        refparam(vector, "posImage"),
-                                        refparam("double", "weight"),
-                                        refparam("double", "weightImage")],
+        x.add_method("__call__", "double", [constrefparam(vector, "position"),
+                                            constrefparam(poly, "boundary")],
                      is_const=True, is_virtual=True)
 
         return

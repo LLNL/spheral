@@ -26,23 +26,10 @@ struct WeightingFunctor {
 
   WeightingFunctor() {}
   virtual ~WeightingFunctor() {}
-  virtual void operator()(const Vector& pos,
-                          const FacetedVolume& boundary,
-                          Vector& posImage,
-                          Scalar& weight,
-                          Scalar& weightImage) const { 
-    this->__call__(pos, boundary, posImage, weight, weightImage);
+  virtual double operator()(const Vector& pos, const FacetedVolume& boundary) const {
+    return this->__call__(pos, boundary);
   }
-  virtual void __call__(const Vector& pos,
-                        const FacetedVolume& boundary,
-                        Vector& posImage,
-                        Scalar& weight,
-                        Scalar& weightImage) const { 
-    const Vector& posb = boundary.closestPoint(pos);
-    posImage = posb + (posb - pos);
-    weight = 1.0;
-    weightImage = 1.0;
-  }
+  virtual double __call__(const Vector& pos, const FacetedVolume& boundary) const { return 1.0; }
 };
 
 template<typename Dimension>

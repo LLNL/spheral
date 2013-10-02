@@ -28,7 +28,7 @@ namespace {
 // Internal worker method with common code for building from a 2D polytope
 // tessellation.
 //------------------------------------------------------------------------------
-void buildFromPolytope(const polytope::Tessellation<2, double>& tessellation,
+void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
                        const Dim<2>::Vector& xmin,
                        const Dim<2>::Vector& xmax,
                        const std::vector<Dim<2>::Vector>& generators,
@@ -80,15 +80,14 @@ void buildFromPolytope(const polytope::Tessellation<2, double>& tessellation,
             ~UNSETID);
 
     // Do we need to flip this face?
-    CHECK(!(igen < 0 and jgen == UNSETID));
-    // if (igen < 0 and jgen == UNSETID) {
-    //   igen = ~igen;
-    //   jgen = ~jgen;
-    //   swap(inode, jnode);
-    //   vector<int>::iterator itr = find(tessellation.cells[igen].begin(), tessellation.cells[igen].end(), ~i);
-    //   CHECK(itr != tessellation.cells[igen].end());
-    //   *itr = i;
-    // }
+    if (igen < 0 and jgen == UNSETID) {
+      igen = ~igen;
+      jgen = ~jgen;
+      swap(inode, jnode);
+      vector<int>::iterator itr = find(tessellation.cells[igen].begin(), tessellation.cells[igen].end(), ~i);
+      CHECK(itr != tessellation.cells[igen].end());
+      *itr = i;
+    }
 
     mEdges.push_back(Edge(mesh, i, inode, jnode));
     mFaces.push_back(Face(mesh, i, igen, jgen, vector<unsigned>(1, i)));
@@ -263,6 +262,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   if (generators.size() == 0) return;
 
   // The tolerance on which we consider positions to be degenerate.
+  const Vector xmin = boundary.xmin(), xmax = boundary.xmax();
   const double xtol = 1.0e-12*(xmax - xmin).maxElement();
   const double xtol2 = xtol*xtol;
 
@@ -273,8 +273,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     REQUIRE(xmin.x() < xmax.x() and
             xmin.y() < xmax.y());
     for (igen = 0; igen != numGens; ++igen)
-      REQUIRE2(testPointInBox(generators[igen], xmin, xmax), 
-               "Generator out of bounds:  " << generators[igen] << " not in [" << xmin << " " << xmax << "]");
+      REQUIRE2(boundary.contains(generators[igen]), "Generator out of bounds " << generators[igen]);
     for (i = 0; i < numGens - 1; ++i) {
       for (j = i + 1; j < numGens; ++j) {
         REQUIRE2((generators[i] - generators[j]).magnitude2() > xtol2, 
@@ -294,6 +293,25 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   CHECK(gens.size() == 2*numGens);
 
   // Create a polytope PLC from our faceted boundary.
+  polytope::ReducedPLC<2, double> plcBoundary;
+  {
+    const vector<Vector>& vertices = boundary.vertices();
+    plcBoundary.points.reserve(2*vertices.size());
+    for (vector<Vector>::const_iterator itr = vertices.begin();
+         itr != vertices.end();
+         ++itr) {
+      plcBoundary.points.push_back(itr->x());
+      plcBoundary.points.push_back(itr->y());
+    }
+    const vector<vector<unsigned> > facetVertices = boundary.facetVertices();
+    plcBoundary.facets = vector<vector<int> >(facetVertices.size());
+    for (i = 0; i != facetVertices.size(); ++i) {
+      CHECK(facetVertices[i].size() == 2);
+      for (j = 0; j != 2; ++j) {
+        plcBoundary.facets[i].push_back(facetVertices[i][j]);
+      }
+    }
+  }
 
   // Do the polytope tessellation.
   Timing::Time t0 = Timing::currentTime();
@@ -306,7 +324,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 #else
     polytope::BoostTessellator<double> tessellator;
 #endif
-    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+    tessellator.tessellate(gens, plcBoundary.points, plcBoundary, tessellation);
   }
   CHECK(tessellation.cells.size() == numGens);
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
@@ -315,11 +333,14 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // // Blago!
   // {
+  //   cerr << "Writing crap out..." << endl;
   //   vector<double> index(tessellation.cells.size());
   //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
-  //   map<string, double*> fields;
+  //   map<string, double*> fields, nullfields;
   //   fields["cell_index"] = &index[0];
-  //   polytope::SiloWriter<2, double>::write(tessellation, fields, "polygonal_blago");
+  //   polytope::SiloWriter<2, double>::write(tessellation, 
+  //                                          nullfields, nullfields, nullfields, 
+  //                                          fields, "polygonal_blago");
   // }
   // // Blago!
 

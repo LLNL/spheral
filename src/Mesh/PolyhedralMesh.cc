@@ -192,6 +192,17 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 }
 
 //------------------------------------------------------------------------------
+// Mesh::reconstructInternal (FacetedVolume)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<3> >::
+reconstructInternal(const vector<Dim<3>::Vector>& generators,
+                    const Dim<3>::FacetedVolume& boundary) {
+  VERIFY2(false, "PolyhedralMesh ERROR: tessellations with arbitrary polyhedral boundaries not supported.");
+}
+
+//------------------------------------------------------------------------------
 // Compute the bounding surface of the mesh.
 //------------------------------------------------------------------------------
 template<>
