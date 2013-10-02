@@ -296,7 +296,7 @@ Mesh<Dimension>::
 reconstruct(const vector<typename Dimension::Vector>& generators,
             const typename Dimension::FacetedVolume& boundary) {
   this->clear();
-  this->reconstructInternal(generators, boundary.xmin(), boundary.xmax());
+  this->reconstructInternal(generators, boundary);
 }
 
 //------------------------------------------------------------------------------

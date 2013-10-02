@@ -24,9 +24,10 @@ for p in xrange(5):
     points.push_back(center + Vector(innerRadius*cos(theta),
                                      innerRadius*sin(theta)))
 
+for f in xrange(10):
     facets.push_back(vector_of_unsigned(2))
-    facets[-1][0] = points.size() - 2
-    facets[-1][1] = points.size() - 1
+    facets[-1][0] = f
+    facets[-1][1] = (f + 1) % 10
 starBoundary = Polygon(points, facets)
 
 # Generate a NodeList for us to fill in.
@@ -65,7 +66,7 @@ relaxer = relaxNodeDistribution(db,
                                 WT,
                                 SPHSmoothingScale(),
                                 WeightingFunctor(),
-                                5,
+                                10,
                                 1.0e-3)
 
 # Dump the new result.
