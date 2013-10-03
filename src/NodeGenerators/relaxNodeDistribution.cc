@@ -45,10 +45,11 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Grab the state.
-  FieldList<Dimension, Vector> position = dataBase.globalPosition();
-  FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
-  FieldList<Dimension, Scalar> weightSum = dataBase.newGlobalFieldList(0.0, "weightSum");
-  FieldList<Dimension, Vector> delta = dataBase.newGlobalFieldList(Vector::zero, "delta");
+  FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  FieldList<Dimension, Vector> rho = dataBase.fluidMassDensity();
+  FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  FieldList<Dimension, Vector> delta = dataBase.newFluidFieldList(Vector::zero, "delta");
   const Vector& xmin = boundary.xmin();
   const Vector& xmax = boundary.xmax();
   const double stopTol = tolerance*((xmax - xmin).maxAbsElement());
@@ -56,11 +57,11 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
 
   // Iterate until we either hit the maximum number of iterations or hit the convergence
   // tolerance.
+  MeshType mesh;
   double maxDelta = 2.0*stopTol;
   int iter = 0;
   while (iter < maxIterations and maxDelta > stopTol) {
     ++iter;
-    weightSum = 0.0;
     delta = Vector::zero;
     maxDelta = 0.0;
 
@@ -74,7 +75,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
     }
 
     // Generate the tessellation.
-    MeshType mesh(generators, boundary);
+    mesh.reconstruct(generators, boundary);
 
     // Apply centroidal filtering.
     unsigned k = 0;
