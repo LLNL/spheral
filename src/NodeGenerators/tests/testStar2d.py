@@ -51,10 +51,46 @@ generator = InteriorGenerator2d(boundary = starBoundary,
 
 distributeNodes2d((nodes, generator))
 
+# Define a position weighting function.
+class PositionWeightingFunctor(WeightingFunctor):
+    def __init__(self, A, B, C):
+        WeightingFunctor.__init__(self)
+        self.A = A
+        self.B = B
+        self.C = C
+        return
+    def __call__(self, pos, boundary):
+        r = boundary.distance(pos)
+        return (self.A/(r + self.B))**self.C
+
+# Define a density function.
+class RadialMassDensityFunctor(WeightingFunctor):
+    def __init__(self, origin, rho0, slope):
+        WeightingFunctor.__init__(self)
+        self.origin = origin
+        self.rho0 = rho0
+        self.slope = slope
+        return
+    def __call__(self, pos, boundary):
+        return self.rho0 + self.slope*(pos - self.origin).magnitude()
+
+boundaryDistance = ScalarField("boundary distance", nodes)
+boundaryWeight = ScalarField("boundary weight", nodes)
+func1 = PositionWeightingFunctor(1.0, 1.0e-1, 2)
+def updateFields():
+    pos = nodes.positions()
+    for i in xrange(nodes.numInternalNodes):
+        boundaryDistance[i] = starBoundary.distance(pos[i])
+        boundaryWeight[i] = func1(pos[i], starBoundary)
+
 # Write out a Visit file to see what happened.
 dumper = SpheralVisitDump("star_generator_test",
-                          listOfFields = [nodes.massDensity(),
-                                          nodes.Hfield()])
+                          listOfFields = [nodes.mass(),
+                                          nodes.massDensity(),
+                                          nodes.Hfield(),
+                                          boundaryDistance,
+                                          boundaryWeight])
+updateFields()
 dumper.dump(0.0, 0)
 
 # Do some relaxation of the points.
@@ -65,10 +101,13 @@ relaxer = relaxNodeDistribution(db,
                                 vector_of_Boundary(),
                                 WT,
                                 SPHSmoothingScale(),
-                                WeightingFunctor(),
-                                10,
-                                1.0e-3)
+                                PositionWeightingFunctor(1.0, 1.0e-1, 2),
+                                RadialMassDensityFunctor(Vector(1,1), 1.0, 0.0),
+                                0.0,
+                                100,
+                                1.0e-4)
 
 # Dump the new result.
+updateFields()
 dumper.dump(1.0, 1)
 

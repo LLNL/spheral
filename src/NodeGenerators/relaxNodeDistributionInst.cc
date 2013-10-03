@@ -10,7 +10,9 @@ namespace Spheral {
                                       const std::vector<BoundarySpace::Boundary<Dim<2> >*>& boundaries,
                                       const KernelSpace::TableKernel<Dim<2> >& W,
                                       const NodeSpace::SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
-                                      const WeightingFunctor<Dim<2> > weighting,
+                                      const WeightingFunctor<Dim<2> >& weightingFunctor,
+                                      const WeightingFunctor<Dim<2> >& massDensityFunctor,
+                                      const double targetMass,
                                       const int maxIterations,
                                       const double tolerance);
   template void relaxNodeDistribution(DataBaseSpace::DataBase<Dim<3> >& dataBase,
@@ -18,7 +20,9 @@ namespace Spheral {
                                       const std::vector<BoundarySpace::Boundary<Dim<3> >*>& boundaries,
                                       const KernelSpace::TableKernel<Dim<3> >& W,
                                       const NodeSpace::SmoothingScaleBase<Dim<3> >& smoothingScaleMethod,
-                                      const WeightingFunctor<Dim<3> > weighting,
+                                      const WeightingFunctor<Dim<3> >& weightingFunctor,
+                                      const WeightingFunctor<Dim<3> >& massDensityFunctor,
+                                      const double targetMass,
                                       const int maxIterations,
                                       const double tolerance);
 }

@@ -182,8 +182,8 @@ volume() const {
     const Vector x1 = mMeshPtr->mNodePositions[mNodeIDs[i]];
     const Vector x2 = mMeshPtr->mNodePositions[mNodeIDs[j]];
     const double dv = (x1 - centroid).cross(x2 - centroid).z();
-    CHECK2(fuzzyGreaterThanOrEqual(dv, 0.0, 1.0e-8),
-           "Negative triangle!  " << dv << " " << centroid << " " << this->convexHull().contains(centroid) << " " << this->convexHull().distance(centroid));
+    // CHECK2(fuzzyGreaterThanOrEqual(dv, 0.0, 1.0e-8),
+    //        "Negative triangle!  " << dv << " " << centroid << " " << this->convexHull().contains(centroid) << " " << this->convexHull().distance(centroid));
     result += dv;
   }
   result *= 0.5;
