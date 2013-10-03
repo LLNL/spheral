@@ -6,6 +6,7 @@
 #include "relaxNodeDistribution.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
+#include "Utilities/allReduce.hh"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -32,7 +33,9 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
                       const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      const WeightingFunctor<Dimension> weighting,
+                      const WeightingFunctor<Dimension>& weightingFunctor,
+                      const WeightingFunctor<Dimension>& massDensityFunctor,
+                      const double targetMass,
                       const int maxIterations,
                       const double tolerance) {
 
@@ -47,7 +50,7 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
   // Grab the state.
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  FieldList<Dimension, Vector> rho = dataBase.fluidMassDensity();
+  FieldList<Dimension, Scalar> rho = dataBase.fluidMassDensity();
   FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   FieldList<Dimension, Vector> delta = dataBase.newFluidFieldList(Vector::zero, "delta");
   const Vector& xmin = boundary.xmin();
@@ -89,17 +92,18 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
         // Compute a weighted centroid.
         double Wsum = 0.0;
         Vector centroid;
-        for (vector<unsigned>::const_iterator itr = nodes.begin();
-             itr != nodes.end();
-             ++itr) {
-          const Vector rj = mesh.node(*itr).position();
-          const double Wj = weighting(rj, boundary);
+        const unsigned nnodes = nodes.size();
+        for (unsigned e1 = 0; e1 != nnodes; ++e1) {
+          const unsigned e2 = (e1 + 1) % nnodes;
+          const Vector n1 = mesh.node(nodes[e1]).position();
+          const Vector n2 = mesh.node(nodes[e2]).position();
+          const Vector n12 = 0.5*(n1 + n2);
+          const double Wj = weightingFunctor(n12, boundary)*(n2 - n1).magnitude();
           Wsum += Wj;
-          centroid += Wj*rj;
+          centroid += Wj*n12;
         }
         CHECK(Wsum > 0.0);
         centroid /= Wsum;
-        centroid = zonei.position();
 
         // Compute the delta to move toward the centroid.
         const Vector& ri = position(nodeListi, i);
@@ -123,6 +127,34 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
         CHECK(boundary.contains(position(nodeListi, i)));
       }
     }
+  }
+
+  // Update the mass and mass density.  We use the last iteration of the mesh 
+  // here -- hopefully not too far off.
+  unsigned k = 0;
+  double Msum = 0.0;
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = position[nodeListi]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const Zone& zonei = mesh.zone(k);
+      const Vector& ri = position(nodeListi, i);
+      const double voli = zonei.volume();
+      rho(nodeListi, i) = massDensityFunctor(ri, boundary);
+      mass(nodeListi, i) = voli*rho(nodeListi, i);
+      Msum += mass(nodeListi, i);
+      ++k;
+    }
+  }
+#ifdef USE_MPI
+  Msum = allReduce(Msum, MPI_SUM, Communicator::communicator());
+#endif
+
+  // If needed, rescale the masses.
+  if (targetMass > 0.0) {
+    CHECK(Msum > 0.0);
+    const double f = targetMass/Msum;
+    rho *= f;
+    mass *= f;
   }
 }
 

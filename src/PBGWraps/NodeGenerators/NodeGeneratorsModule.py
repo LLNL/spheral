@@ -81,7 +81,9 @@ class NodeGenerators:
                                   constrefparam(vector_of_boundary, "boundaries"),
                                   constrefparam(tablekernel, "W"),
                                   constrefparam(smoothingscalebase, "smoothingScaleMethod"),
-                                  param(weightingfunctor, "weighting", default_value=weightingfunctor+"()"),
+                                  constrefparam(weightingfunctor, "weightingFunctor"),# default_value=weightingfunctor+"()"),
+                                  constrefparam(weightingfunctor, "massDensityFunctor"),# default_value=weightingfunctor+"()"),
+                                  param("double", "targetMass", default_value="0.0"),
                                   param("int", "maxIterations", default_value="100"),
                                   param("double", "tolerance", default_value="1.0e-4")],
                                  docstring = "Iteratively relax a set of nodes within a boundary.")

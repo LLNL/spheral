@@ -15,7 +15,9 @@
 
 namespace Spheral {
 
+//------------------------------------------------------------------------------
 // Base class for weighting the nodes.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 struct WeightingFunctor {
   typedef typename Dimension::Scalar Scalar;
@@ -32,6 +34,9 @@ struct WeightingFunctor {
   virtual double __call__(const Vector& pos, const FacetedVolume& boundary) const { return 1.0; }
 };
 
+//------------------------------------------------------------------------------
+// The main method.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
@@ -39,7 +44,9 @@ relaxNodeDistribution(DataBaseSpace::DataBase<Dimension>& dataBase,
                       const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      const WeightingFunctor<Dimension> weighting,
+                      const WeightingFunctor<Dimension>& weightingFunctor,
+                      const WeightingFunctor<Dimension>& massDensityFunctor,
+                      const double targetMass,
                       const int maxIterations,
                       const double tolerance);
 }
