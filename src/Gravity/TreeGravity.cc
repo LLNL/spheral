@@ -301,9 +301,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
     }
-    CHECK(mRhomax > 0.0);
-    CHECK(mNodeListMax >= 0);
-    CHECK(mimax >= 0);
 
     // We now have the local maximum effective density for any point.  That's enough
     // to compute the gravitational dynamical time scale.
@@ -484,6 +481,9 @@ dt(const DataBase<Dimension>& dataBase,
     // The idea is to come up with the most restrictive dynamical time per particle
     // by find the dominant potentials for each point.
     // Note the computation of rhomax and such is done in evaluateDerivatives.
+    CHECK(mRhoMax > 0.0);
+    CHECK(mNodeListMax >= 0);
+    CHECK(mimax >= 0);
     const double dtDyn = sqrt(1.0/(mG*mRhoMax));
     const double dt = mftimestep * dtDyn;
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
