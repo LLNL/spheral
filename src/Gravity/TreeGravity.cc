@@ -246,9 +246,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // by find the dominant potentials for each point.
   if (mTimeStepChoice == DynamicalTime) {
     const size_t numNodeLists = position.numFields();
-    double mRhomax = 0.0;
-    int mNodeListMax = -1;
-    int mimax = -1;
+    mRhoMax = 0.0;
+    mNodeListMax = -1;
+    mimax = -1;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const size_t n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
@@ -293,8 +293,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           // rholocal += localCell.Mglobal/Dimension::pownu(sqrt((localCell.xcm - xi).magnitude2() + softLength2));
 
           // Now check for the global max.
-          if (mRhomax < rholocal) {
-            mRhomax = rholocal;
+          if (mRhoMax < rholocal) {
+            mRhoMax = rholocal;
             mNodeListMax = nodeListi;
             mimax = i;
           }
