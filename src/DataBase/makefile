@@ -13,7 +13,12 @@ SRCTARGETS = \
 	IncrementBoundedStateInst.cc \
 	ReplaceStateInst.cc \
 	ReplaceBoundedStateInst.cc \
-	CopyStateInst.cc
+	CopyStateInst.cc \
+	IncrementFieldListInst.cc \
+	IncrementBoundedFieldListInst.cc \
+	ReplaceFieldListInst.cc \
+	ReplaceBoundedFieldListInst.cc \
+	CopyFieldListInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
