@@ -23,6 +23,7 @@ commandLine(seed = "lattice",
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 2.01,
+            nxparts = 1,   # Optionally split the cube into (nxparts**3 NodeLists)
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -64,7 +65,7 @@ commandLine(seed = "lattice",
             restartStep = 1000,
 
             clearDirectories = False,
-            dataRoot = "dump-spherical-Sedov",
+            dataRoot = "dumps-spherical-Sedov",
             graphics = True,
 
             )
@@ -95,6 +96,7 @@ dataDir = os.path.join(dataRoot,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "gradhCorrection=%s" % gradhCorrection,
                        "seed=%s" % seed,
+                       "nxparts=%s" % nxparts,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -134,69 +136,79 @@ output("WT")
 output("WTPi")
 
 #-------------------------------------------------------------------------------
-# Create a NodeList and associated Neighbor object.
+# Create the NodeLists and generators.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           rhoMin = rhomin)
-
-#-------------------------------------------------------------------------------
-# Set the node properties.
-#-------------------------------------------------------------------------------
-pos = nodes1.positions()
-vel = nodes1.velocity()
-mass = nodes1.mass()
-eps = nodes1.specificThermalEnergy()
+nodeSet, gens = [], []
 if restoreCycle is None:
-    generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
-                                           rmin = rmin,
-                                           rmax = rmax,
-                                           xmin = (0.0, 0.0, 0.0),
-                                           xmax = (1.0, 1.0, 1.0),
-                                           nNodePerh = nPerh,
-                                           SPH = (HydroConstructor == SPHHydro))
+    for iz in xrange(nxparts):
+        zmin = float(iz    )/nxparts
+        zmax = float(iz + 1)/nxparts
+        for iy in xrange(nxparts):
+            ymin = float(iy    )/nxparts
+            ymax = float(iy + 1)/nxparts
+            for ix in xrange(nxparts):
+                xmin = float(ix    )/nxparts
+                xmax = float(ix + 1)/nxparts
+                nodeSet.append(makeFluidNodeList("nodes%i" % (ix + nxparts*(iy + nxparts*iz)),
+                                                 eos, 
+                                                 hmin = hmin,
+                                                 hmax = hmax,
+                                                 nPerh = nPerh,
+                                                 rhoMin = rhomin))
+                gens.append(GenerateNodeDistribution3d(nx/nxparts, ny/nxparts, nz/nxparts,
+                                                       rho0, seed,
+                                                       xmin = (xmin, ymin, zmin),
+                                                       xmax = (xmax, ymax, zmax),
+                                                       nNodePerh = nPerh,
+                                                       SPH = (HydroConstructor == SPHHydro)))
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes3d
         #from PeanoHilbertDistributeNodes import distributeNodes3d
     else:
         from DistributeNodes import distributeNodes3d
-
-    distributeNodes3d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+    distributeNodes3d(*zip(nodeSet, gens))
 
     # Set the point source of energy.
     Esum = 0.0
     if smoothSpike:
         Wsum = 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            Hi = H[nodeID]
-            etaij = (Hi*pos[nodeID]).magnitude()
-            Wi = WT.kernelValue(etaij, Hi.Determinant())
-            Ei = Wi*Espike
-            epsi = Ei/mass[nodeID]
-            eps[nodeID] = epsi
-            Wsum += Wi
+        for nodes in nodeSet:
+            pos = nodes.positions()
+            vel = nodes.velocity()
+            mass = nodes.mass()
+            eps = nodes.specificThermalEnergy()
+            for nodeID in xrange(nodes.numInternalNodes):
+                Hi = H[nodeID]
+                etaij = (Hi*pos[nodeID]).magnitude()
+                Wi = WT.kernelValue(etaij, Hi.Determinant())
+                Ei = Wi*Espike
+                epsi = Ei/mass[nodeID]
+                eps[nodeID] = epsi
+                Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
         assert Wsum > 0.0
-        for nodeID in xrange(nodes1.numInternalNodes):
-            eps[nodeID] /= Wsum
-            Esum += eps[nodeID]*mass[nodeID]
+        for nodes in nodeSet:
+            eps = nodes.specificThermalEnergy()
+            for nodeID in xrange(nodes.numInternalNodes):
+                eps[nodeID] /= Wsum
+                Esum += eps[nodeID]*mass[nodeID]
     else:
         i = -1
         rmin = 1e50
-        for nodeID in xrange(nodes1.numInternalNodes):
-            rij = pos[nodeID].magnitude()
-            if rij < rmin:
-                i = nodeID
-                rmin = rij
+        for nodes in nodeSet:
+            pos = nodes.positions()
+            for nodeID in xrange(nodes.numInternalNodes):
+                rij = pos[nodeID].magnitude()
+                if rij < rmin:
+                    i = nodeID
+                    nodesmin = nodes
+                    rmin = rij
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
-            assert i >= 0 and i < nodes1.numInternalNodes
+            mass = nodesmin.mass()
+            eps = nodesmin.specificThermalEnergy()
+            assert i >= 0 and i < nodesmin.numInternalNodes
             eps[i] = Espike/mass[i]
             Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
@@ -208,7 +220,8 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 db = DataBase()
 output("db")
-output("db.appendNodeList(nodes1)")
+for nodes in nodeSet:
+    db.appendNodeList(nodes)
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
@@ -282,6 +295,7 @@ output("integrator.dtMax")
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
+                            restoreCycle = restoreCycle,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
@@ -293,29 +307,10 @@ output("control")
 #-------------------------------------------------------------------------------
 # Restart if we're doing it.
 #-------------------------------------------------------------------------------
-if not restoreCycle is None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
+if restoreCycle is None:
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
         print "Reinitializing node masses."
         control.voronoiInitializeMass()
-##     db.updateFluidMassDensity()
-
-##     # This bit of craziness is needed to try and get the intial mass density
-##     # as exactly as possible.
-##     for i in xrange(10):
-##         thpt = mpi.allreduce(max(nodes1.massDensity().internalValues()), mpi.MAX)
-##         print i, thpt
-##         for j in xrange(nodes1.numInternalNodes):
-##             nodes1.mass()[j] *= rho1/thpt
-##         state = State(db, integrator.physicsPackages())
-##         derivs = StateDerivatives(db, integrator.physicsPackages())
-##         integrator.initialize(state, derivs)
-##         db.updateFluidMassDensity()
-    control.smoothState(smoothIters)
-    control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
-    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Finally run the problem and plot the results.
@@ -337,13 +332,21 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
 #-------------------------------------------------------------------------------
 # Report the error norms.
 rmin, rmax = 0.0, 0.95
-r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
-v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
-eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
-Pf = ScalarField("pressure", nodes1)
-nodes1.pressure(Pf)
-P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+pos_local, rho_local, vel_local, eps_local, P_local = [], [], [], [], []
+for nodes in nodeSet:
+    pos_local += list(nodes.positions().internalValues())
+    rho_local += list(nodes.massDensity().internalValues())
+    vel_local += list(nodes.velocity().internalValues())
+    eps_local += list(nodes.specificThermalEnergy().internalValues())
+    Pf = ScalarField("pressure", nodes)
+    nodes.pressure(Pf)
+    P_local += list(Pf.internalValues())
+
+r = mpi.allreduce([x.magnitude() for x in pos_local], mpi.SUM)
+rho = mpi.allreduce(rho_local, mpi.SUM)
+v = mpi.allreduce([x.magnitude() for x in vel_local], mpi.SUM)
+eps = mpi.allreduce(eps_local, mpi.SUM)
+P = mpi.allreduce(P_local, mpi.SUM)
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
@@ -392,15 +395,10 @@ if graphics:
                HPlot = hrPlot)
 
     # Compute the simulated specific entropy.
-    rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
-    Pf = ScalarField("pressure", nodes1)
-    nodes1.pressure(Pf)
-    P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
     A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
     # The analytic solution for the simulated entropy.
-    xprof = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), r)
     Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
     # Plot the specific entropy.
