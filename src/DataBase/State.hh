@@ -73,8 +73,7 @@ public:
   void enroll(const KeyType& key, PolicyPointer policy);
 
   // Enroll the given Field and associated update policy
-  template<typename Value>
-  void enroll(FieldSpace::Field<Dimension, Value>& field, PolicyPointer policy);
+  void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
 
   // The base class method for just registering a field.
   virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
