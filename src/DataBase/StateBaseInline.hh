@@ -77,13 +77,12 @@ enroll(FieldSpace::FieldBase<Dimension>& field) {
 // Add the fields from a FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename Value>
 inline
 void
 StateBase<Dimension>::
-enrollFieldList(FieldSpace::FieldList<Dimension, Value>& fieldList) {
-  for (typename FieldSpace::FieldList<Dimension, Value>::const_iterator itr = fieldList.begin();
-       itr != fieldList.end();
+enroll(FieldSpace::FieldListBase<Dimension>& fieldList) {
+  for (typename FieldSpace::FieldListBase<Dimension>::const_iterator itr = fieldList.begin_base();
+       itr != fieldList.end_base();
        ++itr) {
     this->enroll(**itr);
   }

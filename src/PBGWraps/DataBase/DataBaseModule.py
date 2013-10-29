@@ -80,6 +80,7 @@ class DataBase:
         symtensor = "SymTensor%id" % ndim
         thirdranktensor = "ThirdRankTensor%id" % ndim
         fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
+        fieldlistbase = "Spheral::FieldSpace::FieldListBase%id" % ndim
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
@@ -121,24 +122,8 @@ class DataBase:
         x.add_method("registered", "bool", [constrefparam("std::string", "key")], is_const=True)
         x.add_method("registered", "bool", [constrefparam(fieldbase, "field")], is_const=True)
         x.add_method("fieldNameRegistered", "bool", [constrefparam("std::string", "fieldName")], is_const=True)
-
         x.add_method("enroll", None, [refparam(fieldbase, "field")], is_virtual=True)
-
-        x.add_method("enrollFieldList", None, [refparam(intfieldlist, "fieldList")],
-                     template_parameters = ["int"],
-                     custom_name="enrollFieldList")
-        x.add_method("enrollFieldList", None, [refparam(scalarfieldlist, "fieldList")],
-                     template_parameters = ["double"],
-                     custom_name="enrollFieldList")
-        x.add_method("enrollFieldList", None, [refparam(vectorfieldlist, "fieldList")],
-                     template_parameters = [vector],
-                     custom_name="enrollFieldList")
-        x.add_method("enrollFieldList", None, [refparam(tensorfieldlist, "fieldList")],
-                     template_parameters = [tensor],
-                     custom_name="enrollFieldList")
-        x.add_method("enrollFieldList", None, [refparam(symtensorfieldlist, "fieldList")],
-                     template_parameters = [symtensor],
-                     custom_name="enrollFieldList")
+        x.add_method("enroll", None, [refparam(fieldlistbase, "fieldList")], is_virtual=True)
 
         # Extract Fields.
         for result, value, customname in [(intfield, "int", "intField"),

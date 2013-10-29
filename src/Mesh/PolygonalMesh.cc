@@ -22,92 +22,38 @@ namespace MeshSpace {
 using namespace std;
 using namespace boost;
 
-//------------------------------------------------------------------------------
-// Static initializations.
-//------------------------------------------------------------------------------
-template<> const unsigned Mesh<Dim<2> >::minFacesPerZone = 3;
-template<> const unsigned Mesh<Dim<2> >::minEdgesPerZone = 3;
-template<> const unsigned Mesh<Dim<2> >::minNodesPerZone = 3;
-template<> const unsigned Mesh<Dim<2> >::minEdgesPerFace = 1;
-template<> const unsigned Mesh<Dim<2> >::minNodesPerFace = 2;
+namespace {
 
 //------------------------------------------------------------------------------
-// Mesh::reconstructInternal
+// Internal worker method with common code for building from a 2D polytope
+// tessellation.
 //------------------------------------------------------------------------------
-template<>
-void
-Mesh<Dim<2> >::
-reconstructInternal(const vector<Dim<2>::Vector>& generators,
-                    const Dim<2>::Vector& xmin,
-                    const Dim<2>::Vector& xmax) {
+void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
+                       const Dim<2>::Vector& xmin,
+                       const Dim<2>::Vector& xmax,
+                       const std::vector<Dim<2>::Vector>& generators,
+                       Mesh<Dim<2> >& mesh,
+                       std::vector<Dim<2>::Vector>& mNodePositions,
+                       Mesh<Dim<2> >::NodeContainer& mNodes,
+                       Mesh<Dim<2> >::EdgeContainer& mEdges,
+                       Mesh<Dim<2> >::FaceContainer& mFaces,
+                       Mesh<Dim<2> >::ZoneContainer& mZones,
+                       std::vector<unsigned>& mNeighborDomains,
+                       std::vector<std::vector<unsigned> > mSharedNodes,
+                       std::vector<std::vector<unsigned> > mSharedFaces) {
 
-  // Some useful typedefs.
-  typedef Dim<2> Dimension;
-
-  // Is there anything to do?
-  if (generators.size() == 0) return;
-
-  // The tolerance on which we consider positions to be degenerate.
-  const double xtol = 1.0e-12*(xmax - xmin).maxElement();
-  const double xtol2 = xtol*xtol;
-
-  // Pre-conditions.
-  int i, j, k, igen, jgen, numGens = generators.size();
-  BEGIN_CONTRACT_SCOPE;
-  {
-    REQUIRE(xmin.x() < xmax.x() and
-            xmin.y() < xmax.y());
-    for (igen = 0; igen != numGens; ++igen)
-      REQUIRE2(testPointInBox(generators[igen], xmin, xmax), 
-               "Generator out of bounds:  " << generators[igen] << " not in [" << xmin << " " << xmax << "]");
-    for (i = 0; i < numGens - 1; ++i) {
-      for (j = i + 1; j < numGens; ++j) {
-        REQUIRE2((generators[i] - generators[j]).magnitude2() > xtol2, 
-                 "Degenerate generator positions:  " << i << " " << j << " " << generators[i] << " " << generators[j]);
-      }
-    }
-  }
-  END_CONTRACT_SCOPE;
-
-  // Build the normalized generator positions.
-  vector<double> gens;
-  gens.reserve(2*generators.size());
-  for (igen = 0; igen != numGens; ++igen) {
-    gens.push_back(generators[igen].x());
-    gens.push_back(generators[igen].y());
-  }
-  CHECK(gens.size() == 2*numGens);
-
-  // Do the polytope tessellation.  We use the Triangle based tessellator for now.
-  Timing::Time t0 = Timing::currentTime();
-  polytope::Tessellation<2, double> tessellation;
-  {
-#ifdef USE_MPI
-    polytope::DistributedTessellator<2, double> tessellator(new polytope::BoostTessellator<double>(),
-                                                            true,     // Manage memory for serial tessellator
-                                                            true);    // Build parallel connectivity
-#else
-    polytope::BoostTessellator<double> tessellator;
-#endif
-    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
-  }
-  CHECK(tessellation.cells.size() == numGens);
-  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
-                                    << Timing::difference(t0, Timing::currentTime())
-                                    << " seconds to construct polytope tessellation." << endl;
-
-  // // Blago!
-  // {
-  //   vector<double> index(tessellation.cells.size());
-  //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
-  //   map<string, double*> fields;
-  //   fields["cell_index"] = &index[0];
-  //   polytope::SiloWriter<2, double>::write(tessellation, fields, "polygonal_blago");
-  // }
-  // // Blago!
+  typedef Dim<2>::Vector Vector;
+  typedef Mesh<Dim<2> > MeshType;
+  typedef MeshType::Node Node;
+  typedef MeshType::Edge Edge;
+  typedef MeshType::Face Face;
+  typedef MeshType::Zone Zone;
+  const unsigned UNSETID = MeshType::UNSETID;
 
   // Read out and construct the Mesh node positions.
-  t0 = Timing::currentTime();
+  Timing::Time t0 = Timing::currentTime();
+  int i, j, k, igen, jgen;
+  const unsigned numGens = generators.size();
   const unsigned numNodes = tessellation.nodes.size()/2;
   mNodePositions.reserve(numNodes);
   for (i = 0; i != numNodes; ++i) {
@@ -143,12 +89,12 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
       *itr = i;
     }
 
-    mEdges.push_back(Edge(*this, i, inode, jnode));
-    mFaces.push_back(Face(*this, i, igen, jgen, vector<unsigned>(1, i)));
+    mEdges.push_back(Edge(mesh, i, inode, jnode));
+    mFaces.push_back(Face(mesh, i, igen, jgen, vector<unsigned>(1, i)));
 
     BOOST_FOREACH(j, tessellation.faceCells[i]) {
-      nodeZones[inode].insert(positiveID(j));
-      nodeZones[jnode].insert(positiveID(j));
+      nodeZones[inode].insert(MeshType::positiveID(j));
+      nodeZones[jnode].insert(MeshType::positiveID(j));
     }
   }
   CHECK(mEdges.size() == numEdges);
@@ -157,13 +103,13 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
 
   // Construct the nodes.
   mNodes.reserve(numNodes);
-  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(*this, i, vector<unsigned>(nodeZones[i].begin(),
-                                                                                   nodeZones[i].end())));
+  for (i = 0; i != numNodes; ++i) mNodes.push_back(Node(mesh, i, vector<unsigned>(nodeZones[i].begin(),
+                                                                                  nodeZones[i].end())));
   CHECK(mNodes.size() == numNodes);
 
   // Construct the zones.
   mZones.reserve(numGens);
-  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(*this, i, tessellation.cells[i]));
+  for (i = 0; i != numGens; ++i) mZones.push_back(Zone(mesh, i, tessellation.cells[i]));
   CHECK(mZones.size() == numGens);
 
   // Copy the parallel info.
@@ -179,16 +125,16 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
     BOOST_FOREACH(const Face& face, mFaces) {
       ENSURE(face.zone1ID() != UNSETID);
       ENSURE(face.zone2ID() != UNSETID);
-      ENSURE(positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
-      // ENSURE2(positiveID(face.zone2ID()) != UNSETID or
+      ENSURE(MeshType::positiveID(face.zone2ID()) != UNSETID or face.zone1ID() >= 0);
+      // ENSURE2(MeshType::positiveID(face.zone2ID()) != UNSETID or
       //         face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()) < 0.0,
       //         "Something amiss at the surface of the mesh : "
       //         << face.zone1ID() << " " << face.zone2ID() << " : " 
       //         << face.unitNormal() << " dot (" << mZones[face.zone1ID()].position() << " - " << face.position() << ") = "
       //         << face.unitNormal().dot(mZones[face.zone1ID()].position() - face.position()));
     }
-    ENSURE2(this->valid() == "", this->valid());
-    ENSURE2(this->validDomainInfo(xmin, xmax, false) == "", this->validDomainInfo(xmin, xmax, false));
+    ENSURE2(mesh.valid() == "", mesh.valid());
+    ENSURE2(mesh.validDomainInfo(xmin, xmax, false) == "", mesh.validDomainInfo(xmin, xmax, false));
   }
   END_CONTRACT_SCOPE
 
@@ -196,6 +142,231 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
   if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
+}
+
+}
+
+//------------------------------------------------------------------------------
+// Static initializations.
+//------------------------------------------------------------------------------
+template<> const unsigned Mesh<Dim<2> >::minFacesPerZone = 3;
+template<> const unsigned Mesh<Dim<2> >::minEdgesPerZone = 3;
+template<> const unsigned Mesh<Dim<2> >::minNodesPerZone = 3;
+template<> const unsigned Mesh<Dim<2> >::minEdgesPerFace = 1;
+template<> const unsigned Mesh<Dim<2> >::minNodesPerFace = 2;
+
+//------------------------------------------------------------------------------
+// Mesh::reconstructInternal (xmin, xmax)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<2> >::
+reconstructInternal(const vector<Dim<2>::Vector>& generators,
+                    const Dim<2>::Vector& xmin,
+                    const Dim<2>::Vector& xmax) {
+
+  // Some useful typedefs.
+  typedef Dim<2> Dimension;
+
+  // Is there anything to do?
+  if (generators.size() == 0) return;
+
+  // The tolerance on which we consider positions to be degenerate.
+  const double xtol = 1.0e-12*(xmax - xmin).maxElement();
+  const double xtol2 = xtol*xtol;
+
+  // Pre-conditions.
+  int i, j, k, igen, numGens = generators.size();
+  BEGIN_CONTRACT_SCOPE;
+  {
+    REQUIRE(xmin.x() < xmax.x() and
+            xmin.y() < xmax.y());
+    for (igen = 0; igen != numGens; ++igen)
+      REQUIRE2(testPointInBox(generators[igen], xmin, xmax), 
+               "Generator out of bounds:  " << generators[igen] << " not in [" << xmin << " " << xmax << "]");
+    for (i = 0; i < numGens - 1; ++i) {
+      for (j = i + 1; j < numGens; ++j) {
+        REQUIRE2((generators[i] - generators[j]).magnitude2() > xtol2, 
+                 "Degenerate generator positions:  " << i << " " << j << " " << generators[i] << " " << generators[j]);
+      }
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  // Copy the generator positions to a polytope style flat array.
+  vector<double> gens;
+  gens.reserve(2*generators.size());
+  for (igen = 0; igen != numGens; ++igen) {
+    gens.push_back(generators[igen].x());
+    gens.push_back(generators[igen].y());
+  }
+  CHECK(gens.size() == 2*numGens);
+
+  // Do the polytope tessellation.
+  Timing::Time t0 = Timing::currentTime();
+  polytope::Tessellation<2, double> tessellation;
+  {
+#ifdef USE_MPI
+    polytope::DistributedTessellator<2, double> tessellator
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+      (new polytope::TriangleTessellator<double>(),
+#else
+      (new polytope::BoostTessellator<double>(),
+#endif
+       true,     // Manage memory for serial tessellator
+       true);    // Build parallel connectivity
+#else
+#if defined USE_TRIANGLE && ( USE_TRIANGLE>0 )
+    polytope::TriangleTessellator<double> tessellator;
+#else
+    polytope::BoostTessellator<double> tessellator;
+#endif
+#endif
+    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
+  }
+  CHECK(tessellation.cells.size() == numGens);
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to construct polytope tessellation." << endl;
+
+  // // Blago!
+  // {
+  //   vector<double> index(tessellation.cells.size());
+  //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
+  //   map<string, double*> fields;
+  //   fields["cell_index"] = &index[0];
+  //   polytope::SiloWriter<2, double>::write(tessellation, fields, "polygonal_blago");
+  // }
+  // // Blago!
+
+  // Dispatch the work to our common 2D coding.
+  buildFromPolytope(tessellation,
+                    xmin,
+                    xmax,
+                    generators,
+                    *this, 
+                    mNodePositions,
+                    mNodes,
+                    mEdges,
+                    mFaces,
+                    mZones,
+                    mNeighborDomains,
+                    mSharedNodes,
+                    mSharedFaces);
+}
+
+//------------------------------------------------------------------------------
+// Mesh::reconstructInternal (FacetedVolume)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<2> >::
+reconstructInternal(const vector<Dim<2>::Vector>& generators,
+                    const Dim<2>::FacetedVolume& boundary) {
+
+  // Some useful typedefs.
+  typedef Dim<2> Dimension;
+
+  // Is there anything to do?
+  if (generators.size() == 0) return;
+
+  // The tolerance on which we consider positions to be degenerate.
+  const Vector xmin = boundary.xmin(), xmax = boundary.xmax();
+  const double xtol = 1.0e-12*(xmax - xmin).maxElement();
+  const double xtol2 = xtol*xtol;
+
+  // Pre-conditions.
+  int i, j, k, igen, numGens = generators.size();
+  BEGIN_CONTRACT_SCOPE;
+  {
+    REQUIRE(xmin.x() < xmax.x() and
+            xmin.y() < xmax.y());
+    for (igen = 0; igen != numGens; ++igen)
+      REQUIRE2(boundary.contains(generators[igen]), "Generator out of bounds " << generators[igen]);
+    for (i = 0; i < numGens - 1; ++i) {
+      for (j = i + 1; j < numGens; ++j) {
+        REQUIRE2((generators[i] - generators[j]).magnitude2() > xtol2, 
+                 "Degenerate generator positions:  " << i << " " << j << " " << generators[i] << " " << generators[j]);
+      }
+    }
+  }
+  END_CONTRACT_SCOPE;
+
+  // Copy the generator positions to a polytope style flat array.
+  vector<double> gens;
+  gens.reserve(2*generators.size());
+  for (igen = 0; igen != numGens; ++igen) {
+    gens.push_back(generators[igen].x());
+    gens.push_back(generators[igen].y());
+  }
+  CHECK(gens.size() == 2*numGens);
+
+  // Create a polytope PLC from our faceted boundary.
+  polytope::ReducedPLC<2, double> plcBoundary;
+  {
+    const vector<Vector>& vertices = boundary.vertices();
+    plcBoundary.points.reserve(2*vertices.size());
+    for (vector<Vector>::const_iterator itr = vertices.begin();
+         itr != vertices.end();
+         ++itr) {
+      plcBoundary.points.push_back(itr->x());
+      plcBoundary.points.push_back(itr->y());
+    }
+    const vector<vector<unsigned> > facetVertices = boundary.facetVertices();
+    plcBoundary.facets = vector<vector<int> >(facetVertices.size());
+    for (i = 0; i != facetVertices.size(); ++i) {
+      CHECK(facetVertices[i].size() == 2);
+      for (j = 0; j != 2; ++j) {
+        plcBoundary.facets[i].push_back(facetVertices[i][j]);
+      }
+    }
+  }
+
+  // Do the polytope tessellation.
+  Timing::Time t0 = Timing::currentTime();
+  polytope::Tessellation<2, double> tessellation;
+  {
+#ifdef USE_MPI
+    polytope::DistributedTessellator<2, double> tessellator(new polytope::BoostTessellator<double>(),
+                                                            true,     // Manage memory for serial tessellator
+                                                            true);    // Build parallel connectivity
+#else
+    polytope::BoostTessellator<double> tessellator;
+#endif
+    tessellator.tessellate(gens, plcBoundary.points, plcBoundary, tessellation);
+  }
+  CHECK(tessellation.cells.size() == numGens);
+  if (Process::getRank() == 0) cerr << "PolygonalMesh:: required " 
+                                    << Timing::difference(t0, Timing::currentTime())
+                                    << " seconds to construct polytope tessellation." << endl;
+
+  // // Blago!
+  // {
+  //   cerr << "Writing crap out..." << endl;
+  //   vector<double> index(tessellation.cells.size());
+  //   for (int i = 0; i < tessellation.cells.size(); ++i) index[i] = double(i);
+  //   map<string, double*> fields, nullfields;
+  //   fields["cell_index"] = &index[0];
+  //   polytope::SiloWriter<2, double>::write(tessellation, 
+  //                                          nullfields, nullfields, nullfields, 
+  //                                          fields, "polygonal_blago");
+  // }
+  // // Blago!
+
+  // Dispatch the work to our common 2D coding.
+  buildFromPolytope(tessellation,
+                    xmin,
+                    xmax,
+                    generators,
+                    *this, 
+                    mNodePositions,
+                    mNodes,
+                    mEdges,
+                    mFaces,
+                    mZones,
+                    mNeighborDomains,
+                    mSharedNodes,
+                    mSharedFaces);
 }
 
 //------------------------------------------------------------------------------

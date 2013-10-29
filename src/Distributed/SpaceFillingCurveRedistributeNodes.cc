@@ -101,7 +101,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const FieldList<Dimension, int> globalIDs = NodeSpace::globalNodeIDs(dataBase);
 
   // Compute the work per node.
-  FieldList<Dimension, Scalar> workField(FieldList<Dimension, Scalar>::Copy);
+  FieldList<Dimension, Scalar> workField(FieldSpace::Copy);
   if (this->workBalance()) {
 
     // Enforce boundary conditions for the work computation.

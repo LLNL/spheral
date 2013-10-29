@@ -163,7 +163,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       resultItr->appendField(Field<Dimension, SymTensor>("splat" + (*fieldItr)->name(), (*fieldItr)->nodeList()));
   }
   
-  FieldList<Dimension, int> flagNodeDone(FieldList<Dimension, int>::Copy);
+  FieldList<Dimension, int> flagNodeDone(FieldSpace::Copy);
   for (typename FieldList<Dimension, Vector>::const_iterator fieldItr = position.begin();
        fieldItr < position.end(); 
        ++fieldItr) {

@@ -23,7 +23,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity():
   ArtificialViscosity<Dimension>(),
   mKernelPtr(0),
-  mWeight(FieldList<Dimension, typename Dimension::Scalar>::Reference) {
+  mWeight(FieldSpace::Reference) {
 }
 
 //------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ GradPressureViscosity<Dimension>::
 GradPressureViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mKernelPtr(0),
-  mWeight(FieldList<Dimension, typename Dimension::Scalar>::Reference) {
+  mWeight(FieldSpace::Reference) {
 }
 
 //------------------------------------------------------------------------------

@@ -4,7 +4,6 @@
 //
 // Created by JMO, Thu Aug 26 16:30:02 2004
 //----------------------------------------------------------------------------//
-
 #include "ReplaceState.hh"
 #include "IncrementState.hh"
 #include "FieldUpdatePolicyBase.hh"
@@ -98,7 +97,7 @@ update(const KeyType& key,
        const double t,
        const double dt) {
 
-  // Find the matching derivative field from the StateDerivatives.
+  // Find the matching replacement field from the StateDerivatives.
   KeyType replaceKey = prefix() + key;
   Field<Dimension, ValueType>& f = state.field(key, ValueType());
   const Field<Dimension, ValueType>& df = derivs.field(replaceKey, ValueType());

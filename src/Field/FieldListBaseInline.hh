@@ -6,8 +6,9 @@ namespace FieldSpace {
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
-FieldListBase::
+FieldListBase<Dimension>::
 FieldListBase():
   mNewCoarseNodes(true),
   mNewRefineNodes(true) {
@@ -16,9 +17,10 @@ FieldListBase():
 //------------------------------------------------------------------------------
 // Copy constructor.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
-FieldListBase::
-FieldListBase(const FieldListBase& fieldListBase):
+FieldListBase<Dimension>::
+FieldListBase(const FieldListBase<Dimension>& fieldListBase):
   mNewCoarseNodes(true),
   mNewRefineNodes(true) {
 }
@@ -26,18 +28,20 @@ FieldListBase(const FieldListBase& fieldListBase):
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
-FieldListBase::
+FieldListBase<Dimension>::
 ~FieldListBase() {
 }
 
 //------------------------------------------------------------------------------
 // Assignment operator.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
-FieldListBase&
-FieldListBase::
-operator=(const FieldListBase& rhs) {
+FieldListBase<Dimension>&
+FieldListBase<Dimension>::
+operator=(const FieldListBase<Dimension>& rhs) {
   if (this != &rhs) {
     mNewCoarseNodes = true;
     mNewRefineNodes = true;
@@ -51,7 +55,7 @@ operator=(const FieldListBase& rhs) {
 template<typename Dimension>
 inline
 void
-FieldListBase::
+FieldListBase<Dimension>::
 registerWithField(const FieldBase<Dimension>& fieldBase) const {
   fieldBase.registerFieldList(*this);
 }
@@ -62,7 +66,7 @@ registerWithField(const FieldBase<Dimension>& fieldBase) const {
 template<typename Dimension>
 inline
 void
-FieldListBase::
+FieldListBase<Dimension>::
 unregisterFromField(const FieldBase<Dimension>& fieldBase) const {
   fieldBase.unregisterFieldList(*this);
 }

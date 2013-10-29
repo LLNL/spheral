@@ -74,9 +74,9 @@ nthNodalMoment(const NodeListIterator nodeListBegin,
 
   // Build up the FieldLists of positions, H's, and the first moment that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldListBase::Reference);
-  FieldList<Dimension, SymTensor> H(FieldListBase::Reference);
-  FieldList<Dimension, Moment> result(FieldListBase::Copy);
+  FieldList<Dimension, Vector> pos(FieldSpace::Reference);
+  FieldList<Dimension, SymTensor> H(FieldSpace::Reference);
+  FieldList<Dimension, Moment> result(FieldSpace::Copy);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());
@@ -145,8 +145,8 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
 
   // Build up the FieldLists of positions, H's, and the moments that we're going
   // to build.
-  FieldList<Dimension, Vector> pos(FieldListBase::Reference);
-  FieldList<Dimension, SymTensor> H(FieldListBase::Reference);
+  FieldList<Dimension, Vector> pos(FieldSpace::Reference);
+  FieldList<Dimension, SymTensor> H(FieldSpace::Reference);
   for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd; ++itr) {
     const NodeList<Dimension>& nodes = **itr;
     pos.appendField(nodes.positions());

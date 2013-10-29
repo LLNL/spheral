@@ -23,7 +23,7 @@ template<typename Dimension>
 MonaghanGingoldSumViscosity<Dimension>::
 MonaghanGingoldSumViscosity():
   MonaghanGingoldViscosity<Dimension>(),
-  mViscousEnergy(FieldList<Dimension, Scalar>::Copy) {
+  mViscousEnergy(FieldSpace::Copy) {
 #ifdef DEBUG
   cerr << "MonaghanGingoldSumViscosity::MonaghanGingoldSumViscosity()" << endl;
 #endif
@@ -36,7 +36,7 @@ template<typename Dimension>
 MonaghanGingoldSumViscosity<Dimension>::
 MonaghanGingoldSumViscosity(Scalar Clinear, Scalar Cquadratic):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic),
-  mViscousEnergy(FieldList<Dimension, Scalar>::Copy) {
+  mViscousEnergy(FieldSpace::Copy) {
 #ifdef DEBUG
   cerr << "MonaghanGingoldSumViscosity::MonaghanGingoldSumViscosity(Cl, Cq)" << endl;
 #endif
@@ -75,7 +75,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // Verify that the internal pressure field is properly initialized for this
   // set of fluid node lists.
   if (mViscousEnergy.numFields() != dataBase.numFluidNodeLists()) {
-    FieldList<Dimension, Scalar> thpt(FieldList<Dimension, Scalar>::Copy);
+    FieldList<Dimension, Scalar> thpt(FieldSpace::Copy);
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator fluidNodeListItr = 
            dataBase.fluidNodeListBegin();
          fluidNodeListItr < dataBase.fluidNodeListEnd();

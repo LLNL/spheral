@@ -30,8 +30,9 @@ namespace FieldSpace {
 template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::FieldList():
-  FieldListBase(),
+  FieldListBase<Dimension>(),
   mFieldPtrs(0),
+  mFieldBasePtrs(0),
   mFieldCache(0),
   mStorageType(Reference),
   mNodeListPtrs(0),
@@ -44,8 +45,9 @@ FieldList<Dimension, DataType>::FieldList():
 template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::FieldList(FieldStorageType aStorageType):
-  FieldListBase(),
+  FieldListBase<Dimension>(),
   mFieldPtrs(0),
+  mFieldBasePtrs(0),
   mFieldCache(0),
   mStorageType(aStorageType),
   mNodeListPtrs(0),
@@ -60,8 +62,9 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::
 FieldList(const FieldList<Dimension, DataType>& rhs):
-  FieldListBase(rhs),
+  FieldListBase<Dimension>(rhs),
   mFieldPtrs(rhs.mFieldPtrs),
+  mFieldBasePtrs(rhs.mFieldBasePtrs),
   mFieldCache(),
   mStorageType(rhs.storageType()),
   mNodeListPtrs(rhs.mNodeListPtrs),
@@ -79,13 +82,16 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
 
     CHECK(this->size() == mFieldCache.size());
     iterator fieldPtrItr = this->begin();
+    typename FieldListBase<Dimension>::iterator fieldBasePtrItr = this->begin_base();
     typename FieldCacheType::iterator fieldCacheItr = mFieldCache.begin();
-    for(; fieldPtrItr != this->end(); ++fieldPtrItr, ++fieldCacheItr) {
+    for(; fieldPtrItr != this->end(); ++fieldPtrItr, ++fieldBasePtrItr, ++fieldCacheItr) {
       CHECK(fieldCacheItr != mFieldCache.end());
       (*fieldPtrItr) = fieldCacheItr->get();
+      (*fieldBasePtrItr) = fieldCacheItr->get();
     }
 
     CHECK(fieldPtrItr == this->end() &&
+          fieldBasePtrItr == this->end_base() &&
           fieldCacheItr == mFieldCache.end());
   }
 
@@ -125,7 +131,9 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
     mFieldCache = FieldCacheType();
     mNodeListIndexMap = rhs.mNodeListIndexMap;
     mFieldPtrs = std::vector<ElementType>();
+    mFieldBasePtrs = std::vector<BaseElementType>();
     mFieldPtrs.reserve(rhs.size());
+    mFieldBasePtrs.reserve(rhs.size());
 
 //     // Unregister from our current set of Fields.
 //     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
@@ -138,6 +146,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
            fieldPtrItr != rhs.end();
            ++fieldPtrItr) {
         mFieldPtrs.push_back(*fieldPtrItr);
+        mFieldBasePtrs.push_back(*fieldPtrItr);
       }
       break;
 
@@ -153,8 +162,10 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
            fieldCacheItr != mFieldCache.end();
            ++fieldCacheItr) {
         mFieldPtrs.push_back(fieldCacheItr->get());
+        mFieldBasePtrs.push_back(fieldCacheItr->get());
       }
       CHECK(this->size() == mFieldCache.size());
+      CHECK(mFieldBasePtrs.size() == mFieldCache.size());
       break;
     }
 
@@ -186,7 +197,7 @@ operator=(const DataType& rhs) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-typename FieldList<Dimension, DataType>::FieldStorageType
+FieldStorageType
 FieldList<Dimension, DataType>::storageType() const {
   return mStorageType;
 }
@@ -207,10 +218,13 @@ FieldList<Dimension, DataType>::copyFields() {
 
     // Store local copies of the fields we're pointing at.
     mFieldCache = FieldCacheType();
-    for (iterator itr = begin(); itr != end(); ++itr) {
+    iterator itr = begin();
+    typename FieldListBase<Dimension>::iterator baseItr = begin_base();
+    for (; itr != end(); ++itr, ++baseItr) {
       boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(**itr));
       mFieldCache.push_back(newField);
       *itr = mFieldCache.back().get();
+      *baseItr = mFieldCache.back().get();
     }
 
 //     for (int i = 0; i < this->size(); ++i) {
@@ -285,12 +299,14 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   switch(storageType()) {
   case Reference:
     mFieldPtrs.insert(orderItr, const_cast<Field<Dimension, DataType>*>(&field));
+    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, const_cast<FieldBase<Dimension>*>(dynamic_cast<const FieldBase<Dimension>*>(&field)));
     break;
 
   case Copy:
     boost::shared_ptr<Field<Dimension, DataType> > newField(new Field<Dimension, DataType>(field));
     mFieldCache.push_back(newField);
     mFieldPtrs.insert(orderItr, newField.get());
+    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
   }
 
 //   registerWithField(*mFieldPtrs.back());
@@ -323,25 +339,21 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     return;
   }
 
-  iterator fieldPtrItr;
+  const iterator fieldPtrItr = std::find(this->begin(), this->end(), &field);
+  CHECK(fieldPtrItr != this->end());
+  const size_t delta = std::distance(this->begin(), fieldPtrItr);
+  typename FieldCacheType::iterator fieldItr = mFieldCache.begin();
   switch(storageType()) {
-  case Reference:
-    fieldPtrItr = std::find(this->begin(), this->end(), &field);
-    CHECK(fieldPtrItr != this->end());
-//     unregisterFromField(**fieldPtrItr);
-    mFieldPtrs.erase(fieldPtrItr);
-    break;
-
   case Copy:
-    fieldPtrItr = std::find(this->begin(), this->end(), &field);
-    typename FieldCacheType::iterator fieldItr = mFieldCache.begin();
     while (fieldItr != mFieldCache.end() && fieldItr->get() != &field) {
       ++fieldItr;
     }
     CHECK(fieldItr != mFieldCache.end());
-//     unregisterFromField(**fieldPtrItr);
     mFieldCache.erase(fieldItr);
+
+  case Reference:
     mFieldPtrs.erase(fieldPtrItr);
+    mFieldBasePtrs.erase(mFieldBasePtrs.begin() + delta);
     break;
   }
 
@@ -377,6 +389,7 @@ appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName 
 
   // Insert the field.
   mFieldPtrs.insert(orderItr, fieldPtr);
+  mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, fieldPtr);
 
   // We also update the set of NodeListPtrs in proper order.
   mNodeListPtrs.insert(mNodeListPtrs.begin() + delta, const_cast<NodeSpace::NodeList<Dimension>*>(&nodeList));
@@ -387,6 +400,7 @@ appendNewField(const typename FieldSpace::Field<Dimension, DataType>::FieldName 
   BEGIN_CONTRACT_SCOPE;
   ENSURE(mFieldPtrs[mNodeListIndexMap[fieldPtr->nodeListPtr()]] == *(fieldForNodeList(*(fieldPtr->nodeListPtr()))));
   ENSURE(this->size() == mNodeListPtrs.size());
+  ENSURE(mFieldBasePtrs.size() == mFieldPtrs.size());
   END_CONTRACT_SCOPE;
 
 }
@@ -456,6 +470,73 @@ typename FieldList<Dimension, DataType>::const_reverse_iterator
 FieldList<Dimension, DataType>::
 rend() const {
   return mFieldPtrs.rend();
+}
+
+//------------------------------------------------------------------------------
+// Standard iterators for FieldListBase.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::iterator
+FieldList<Dimension, DataType>::
+begin_base() {
+  return mFieldBasePtrs.begin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::iterator
+FieldList<Dimension, DataType>::
+end_base() {
+  return mFieldBasePtrs.end();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::reverse_iterator
+FieldList<Dimension, DataType>::
+rbegin_base() {
+  return mFieldBasePtrs.rbegin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::reverse_iterator
+FieldList<Dimension, DataType>::
+rend_base() {
+  return mFieldBasePtrs.rend();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::const_iterator
+FieldList<Dimension, DataType>::
+begin_base() const {
+  return mFieldBasePtrs.begin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::const_iterator
+FieldList<Dimension, DataType>::
+end_base() const {
+  return mFieldBasePtrs.end();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::const_reverse_iterator
+FieldList<Dimension, DataType>::
+rbegin_base() const {
+  return mFieldBasePtrs.rbegin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldListBase<Dimension>::const_reverse_iterator
+FieldList<Dimension, DataType>::
+rend_base() const {
+  return mFieldBasePtrs.rend();
 }
 
 //------------------------------------------------------------------------------

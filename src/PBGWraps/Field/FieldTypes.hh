@@ -23,6 +23,10 @@ typedef FieldBase<Dim<1> > FieldBase1d;
 typedef FieldBase<Dim<2> > FieldBase2d;
 typedef FieldBase<Dim<3> > FieldBase3d;
 
+typedef FieldListBase<Dim<1> > FieldListBase1d;
+typedef FieldListBase<Dim<2> > FieldListBase2d;
+typedef FieldListBase<Dim<3> > FieldListBase3d;
+
 typedef Field<Dim<1>, int> IntField1d;
 typedef Field<Dim<1>, uint64_t> ULLField1d;
 typedef Field<Dim<1>, Dim<1>::Scalar > ScalarField1d;

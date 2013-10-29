@@ -379,6 +379,17 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
 }
 
 //------------------------------------------------------------------------------
+// Mesh::reconstruct(generators, boundary)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<1> >::
+reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
+                    const Dim<1>::FacetedVolume& boundary) {
+  return this->reconstructInternal(localGenerators, boundary.xmin(), boundary.xmax());
+}
+
+//------------------------------------------------------------------------------
 // Static initializations.
 //------------------------------------------------------------------------------
 template<> const unsigned Mesh<Dim<1> >::minFacesPerZone = 2;

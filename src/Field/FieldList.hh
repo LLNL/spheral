@@ -44,8 +44,14 @@ namespace Spheral {
 namespace Spheral {
 namespace FieldSpace {
 
+// An enum for selecting how Fields are stored in FieldLists.
+enum FieldStorageType {
+  Reference = 0,
+  Copy = 1
+};
+
 template<typename Dimension, typename DataType>
-class FieldList: public FieldListBase {
+class FieldList: public FieldListBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -55,6 +61,7 @@ public:
   
   typedef DataType FieldDataType;
 
+  typedef FieldBase<Dimension>* BaseElementType;
   typedef Field<Dimension, DataType>* ElementType;
   typedef Field<Dimension, DataType>* value_type;    // STL compatibility
   typedef std::vector<ElementType> StorageType;
@@ -114,6 +121,17 @@ public:
   const_iterator end() const;
   const_reverse_iterator rbegin() const;
   const_reverse_iterator rend() const;
+
+  // Iterators over FieldBase* required by base class.
+  virtual typename FieldListBase<Dimension>::iterator begin_base();
+  virtual typename FieldListBase<Dimension>::iterator end_base();
+  virtual typename FieldListBase<Dimension>::reverse_iterator rbegin_base();
+  virtual typename FieldListBase<Dimension>::reverse_iterator rend_base();
+
+  virtual typename FieldListBase<Dimension>::const_iterator begin_base() const;
+  virtual typename FieldListBase<Dimension>::const_iterator end_base() const;
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rbegin_base() const;
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rend_base() const;
 
   // Index operator.
   ElementType operator[](const unsigned index);
@@ -246,6 +264,7 @@ private:
   typedef std::map<const NodeSpace::NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;
+  std::vector<BaseElementType> mFieldBasePtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
 

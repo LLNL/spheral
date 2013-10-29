@@ -78,7 +78,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
                       safeInv(box.y()),
                       safeInv(box.z()));
 
-  // Build the normalized generator positions.
+  // Build the polytope style generator positions as a single flat vector.
   vector<double> gens;
   gens.reserve(3*generators.size());
   for (igen = 0; igen != numGens; ++igen) {
@@ -88,7 +88,7 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   }
   CHECK(gens.size() == 3*numGens);
 
-  // Do the polytope tessellation.  We use the TetGen based tessellator for now.
+  // Do the polytope tessellation.  We use the TetGen based tessellator.
   Timing::Time t0 = Timing::currentTime();
   polytope::Tessellation<3, double> tessellation;
   {
@@ -99,8 +99,8 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 #else
         (new polytope::VoroPP_3d<double>(),
 #endif
-                                                                  true,     // Manage memory for serial tessellator
-                                                                  true);    // Build parallel connectivity
+         true,     // Manage memory for serial tessellator
+         true);    // Build parallel connectivity
 #else  // not USE_MPI
 #if defined USE_TETGEN && ( USE_TETGEN>0 )
     polytope::TetgenTessellator tessellator ;
@@ -109,13 +109,11 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
 #endif
 #endif  // USE_MPI
 
-#if defined USE_TETGEN && ( USE_TETGEN>0 )
-    tessellator.tessellate(gens, tessellation);  // unbound (Tetgen)
-#else
     // Bounded Voronoi tessellation
-    tessellator.tessellate(gens, const_cast<double*>(xmin.begin()), const_cast<double*>(xmax.begin()), tessellation);
-#endif
-
+    tessellator.tessellate(gens, 
+                           const_cast<double*>(xmin.begin()), 
+                           const_cast<double*>(xmax.begin()),
+                           tessellation);
   }
   CHECK(tessellation.cells.size() == numGens);
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
@@ -191,6 +189,17 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
+}
+
+//------------------------------------------------------------------------------
+// Mesh::reconstructInternal (FacetedVolume)
+//------------------------------------------------------------------------------
+template<>
+void
+Mesh<Dim<3> >::
+reconstructInternal(const vector<Dim<3>::Vector>& generators,
+                    const Dim<3>::FacetedVolume& boundary) {
+  VERIFY2(false, "PolyhedralMesh ERROR: tessellations with arbitrary polyhedral boundaries not supported.");
 }
 
 //------------------------------------------------------------------------------

@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldList<Dimension, Scalar>::Copy),
+  mPotential(FieldSpace::Copy),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),
@@ -140,7 +140,7 @@ TreeGravity<Dimension>::
 registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
   PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
-  state.enrollFieldList(mPotential);
+  state.enroll(mPotential);
 }
 
 //------------------------------------------------------------------------------
@@ -246,9 +246,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // by find the dominant potentials for each point.
   if (mTimeStepChoice == DynamicalTime) {
     const size_t numNodeLists = position.numFields();
-    double mRhomax = 0.0;
-    int mNodeListMax = -1;
-    int mimax = -1;
+    mRhoMax = 0.0;
+    mNodeListMax = -1;
+    mimax = -1;
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const size_t n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
@@ -293,17 +293,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           // rholocal += localCell.Mglobal/Dimension::pownu(sqrt((localCell.xcm - xi).magnitude2() + softLength2));
 
           // Now check for the global max.
-          if (mRhomax < rholocal) {
-            mRhomax = rholocal;
+          if (mRhoMax < rholocal) {
+            mRhoMax = rholocal;
             mNodeListMax = nodeListi;
             mimax = i;
           }
         }
       }
     }
-    CHECK(mRhomax > 0.0);
-    CHECK(mNodeListMax >= 0);
-    CHECK(mimax >= 0);
 
     // We now have the local maximum effective density for any point.  That's enough
     // to compute the gravitational dynamical time scale.
@@ -357,102 +354,104 @@ initialize(const Scalar time,
   mTree = Tree();
 
   // Access to pertinent fields in the database.
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const size_t numNodeLists = mass.numFields();
+  if (db.numInternalNodes() > 0) {
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const size_t numNodeLists = mass.numFields();
 
-  // Determine the box size.
-  globalBoundingBox(position, mXmin, mXmax, false);
-  CHECK(mXmin.x() <= mXmax.x());
-  CHECK(mXmin.y() <= mXmax.y());
-  CHECK(mXmin.z() <= mXmax.z());
-  mBoxLength = (mXmax - mXmin).maxAbsElement();
-  CHECK(mBoxLength > 0.0);
+    // Determine the box size.
+    globalBoundingBox(position, mXmin, mXmax, false);
+    CHECK(mXmin.x() <= mXmax.x());
+    CHECK(mXmin.y() <= mXmax.y());
+    CHECK(mXmin.z() <= mXmax.z());
+    mBoxLength = (mXmax - mXmin).maxAbsElement();
+    CHECK(mBoxLength >= 0.0);
 
-  // Walk all the internal nodes and add them to the tree.
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const size_t n = mass[nodeListi]->numInternalElements();
-    for (size_t i = 0; i != n; ++i) {
-      this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i), velocity(nodeListi, i));
+    // Walk all the internal nodes and add them to the tree.
+    for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const size_t n = mass[nodeListi]->numInternalElements();
+      for (size_t i = 0; i != n; ++i) {
+        this->addNodeToTree(mass(nodeListi, i), position(nodeListi, i), velocity(nodeListi, i));
+      }
     }
-  }
 
 #ifdef USE_MPI
 
-  // We require the true global center of mass for each cell, which means
-  // in parallel we need to exchange the local trees and build up this information.
-  // We also build the global total mass in each cell at the same time.
-  // Get the processor information.
-  const unsigned rank = Process::getRank();
-  const unsigned numProcs = Process::getTotalNumberOfProcesses();
+    // We require the true global center of mass for each cell, which means
+    // in parallel we need to exchange the local trees and build up this information.
+    // We also build the global total mass in each cell at the same time.
+    // Get the processor information.
+    const unsigned rank = Process::getRank();
+    const unsigned numProcs = Process::getTotalNumberOfProcesses();
 
-  // Pack up the local tree.
-  vector<char> localBuffer, buffer;
-  this->serialize(mTree, localBuffer);
+    // Pack up the local tree.
+    vector<char> localBuffer, buffer;
+    this->serialize(mTree, localBuffer);
 
-  // Walk each process, and have them send their local tree info to all other
-  // domains.
-  unsigned bufSize;
-  vector<char>::const_iterator bufItr;
-  Tree tree;
-  for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
+    // Walk each process, and have them send their local tree info to all other
+    // domains.
+    unsigned bufSize;
+    vector<char>::const_iterator bufItr;
+    Tree tree;
+    for (unsigned sendProc = 0; sendProc != numProcs; ++sendProc) {
 
-    // Broadcast the send processor's tree.
-    buffer = localBuffer;
-    bufSize = buffer.size();
-    MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
-    buffer.resize(bufSize);
-    MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
-    tree = Tree();
-    bufItr = buffer.begin();
-    this->deserialize(tree, bufItr, buffer.end());
-    CHECK(bufItr == buffer.end());
+      // Broadcast the send processor's tree.
+      buffer = localBuffer;
+      bufSize = buffer.size();
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
+      buffer.resize(bufSize);
+      MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, sendProc, Communicator::communicator());
+      tree = Tree();
+      bufItr = buffer.begin();
+      this->deserialize(tree, bufItr, buffer.end());
+      CHECK(bufItr == buffer.end());
 
-    // Augment any of our local cell calculations for mass and center of mass.
-    if (sendProc != rank) {
-      const unsigned nlevels = min(mTree.size(), tree.size());
-      for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
-        for (typename TreeLevel::iterator myItr = mTree[ilevel].begin();
-             myItr != mTree[ilevel].end();
-             ++myItr) {
-          const CellKey key = myItr->first;
-          Cell& cell = myItr->second;
-          CHECK(cell.key == key);
-          const typename TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
-          if (otherItr != tree[ilevel].end()) {
-            const Cell& otherCell = otherItr->second;
-            cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
-            cell.vcm = (cell.Mglobal*cell.vcm + otherCell.M*otherCell.vcm)/(cell.Mglobal + otherCell.M);
-            cell.Mglobal += otherCell.M;
+      // Augment any of our local cell calculations for mass and center of mass.
+      if (sendProc != rank) {
+        const unsigned nlevels = min(mTree.size(), tree.size());
+        for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
+          for (typename TreeLevel::iterator myItr = mTree[ilevel].begin();
+               myItr != mTree[ilevel].end();
+               ++myItr) {
+            const CellKey key = myItr->first;
+            Cell& cell = myItr->second;
+            CHECK(cell.key == key);
+            const typename TreeLevel::const_iterator otherItr = tree[ilevel].find(key);
+            if (otherItr != tree[ilevel].end()) {
+              const Cell& otherCell = otherItr->second;
+              cell.xcm = (cell.Mglobal*cell.xcm + otherCell.M*otherCell.xcm)/(cell.Mglobal + otherCell.M);
+              cell.vcm = (cell.Mglobal*cell.vcm + otherCell.M*otherCell.vcm)/(cell.Mglobal + otherCell.M);
+              cell.Mglobal += otherCell.M;
+            }
           }
         }
       }
     }
-  }
 
 #endif
 
-  // Set the daughter pointers.
-  constructDaughterPtrs(mTree);
+    // Set the daughter pointers.
+    constructDaughterPtrs(mTree);
 
-  // Make a final pass over the cells and fill in the distance between the 
-  // center of mass and the geometric center.
-  CellKey ckey, ix, iy, iz;
-  double cellsize, cellvol;
-  for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
-    cellsize = mBoxLength/(1U << ilevel);
-    cellvol = Dimension::pownu(cellsize);
-    for (typename TreeLevel::iterator itr = mTree[ilevel].begin();
-         itr != mTree[ilevel].end();
-         ++itr) {
-      ckey = itr->first;
-      Cell& cell = itr->second;
-      extractCellIndices(ckey, ix, iy, iz);
+    // Make a final pass over the cells and fill in the distance between the 
+    // center of mass and the geometric center.
+    CellKey ckey, ix, iy, iz;
+    double cellsize, cellvol;
+    for (unsigned ilevel = 0; ilevel != mTree.size(); ++ilevel) {
+      cellsize = mBoxLength/(1U << ilevel);
+      cellvol = Dimension::pownu(cellsize);
+      for (typename TreeLevel::iterator itr = mTree[ilevel].begin();
+           itr != mTree[ilevel].end();
+           ++itr) {
+        ckey = itr->first;
+        Cell& cell = itr->second;
+        extractCellIndices(ckey, ix, iy, iz);
 
-      // Update the distance between the cell's center of mass and geometric center.
-      cell.rcm2cc2 = (cell.xcm - TreeDimensionTraits<Dimension>::cellCenter(mXmin, ix, iy, iz, cellsize)).magnitude2();
-      CHECK(cell.rcm2cc2 < Dimension::nDim*cellsize*cellsize);
+        // Update the distance between the cell's center of mass and geometric center.
+        cell.rcm2cc2 = (cell.xcm - TreeDimensionTraits<Dimension>::cellCenter(mXmin, ix, iy, iz, cellsize)).magnitude2();
+        CHECK(cell.rcm2cc2 < Dimension::nDim*cellsize*cellsize);
+      }
     }
   }
 }
@@ -482,6 +481,9 @@ dt(const DataBase<Dimension>& dataBase,
     // The idea is to come up with the most restrictive dynamical time per particle
     // by find the dominant potentials for each point.
     // Note the computation of rhomax and such is done in evaluateDerivatives.
+    CHECK(mRhoMax > 0.0);
+    CHECK(mNodeListMax >= 0);
+    CHECK(mimax >= 0);
     const double dtDyn = sqrt(1.0/(mG*mRhoMax));
     const double dt = mftimestep * dtDyn;
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
