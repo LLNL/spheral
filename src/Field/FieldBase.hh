@@ -21,7 +21,7 @@ namespace Spheral {
 namespace FieldSpace {
 
 // Forward declare the FieldListBase for the registration.
-class FieldListBase;
+template<typename Dimension> class FieldListBase;
 
 template<typename Dimension>
 class FieldBase {
@@ -80,10 +80,10 @@ protected:
 
   // Make the FieldListBase a friend, so that it can use the registration
   // methods.
-  friend class FieldListBase;
-  void registerFieldList(const FieldListBase& fieldList) const;
-  void unregisterFieldList(const FieldListBase& fieldList) const;
-  bool haveFieldList(const FieldListBase& fieldList) const;
+  friend class FieldListBase<Dimension>;
+  void registerFieldList(const FieldListBase<Dimension>& fieldList) const;
+  void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
+  bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -91,7 +91,7 @@ private:
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
 
   // The set of FieldLists currently referencing this Field.
-  mutable std::vector<const FieldListBase*> mFieldListBaseList;
+  mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
 
   // Disallow the default constructor.
   FieldBase();

@@ -79,6 +79,9 @@ public:
   // The base class method for just registering a field.
   virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
 
+  // The base class method for just registering a field list.
+  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);
+
   // The full set of keys for all policies.
   std::vector<KeyType> policyKeys() const;
 

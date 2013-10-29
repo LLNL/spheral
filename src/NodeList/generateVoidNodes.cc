@@ -33,7 +33,6 @@ using std::max;
 using NodeSpace::NodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
-using FieldSpace::FieldListBase;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 using KernelSpace::BSplineKernel;

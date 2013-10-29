@@ -49,7 +49,7 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
-  FieldList<Dimension, Scalar> Veff(FieldList<Dimension, Scalar>::Copy);
+  FieldList<Dimension, Scalar> Veff(FieldSpace::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     Veff.appendNewField("effective volume", nodeList, 0.0);

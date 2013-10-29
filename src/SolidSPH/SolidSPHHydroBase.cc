@@ -146,11 +146,11 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           nTensile,
                           xmin,
                           xmax),
-  mDdeviatoricStressDt(FieldList<Dimension, SymTensor>::Copy),
-  mBulkModulus(FieldList<Dimension, Scalar>::Copy),
-  mShearModulus(FieldList<Dimension, Scalar>::Copy),
-  mYieldStrength(FieldList<Dimension, Scalar>::Copy),
-  mPlasticStrain0(FieldList<Dimension, Scalar>::Copy),
+  mDdeviatoricStressDt(FieldSpace::Copy),
+  mBulkModulus(FieldSpace::Copy),
+  mShearModulus(FieldSpace::Copy),
+  mYieldStrength(FieldSpace::Copy),
+  mPlasticStrain0(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 

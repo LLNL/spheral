@@ -43,15 +43,15 @@ ArtificialViscosity():
   mClinear(1.0),
   mCquadratic(1.0),
   mBalsaraShearCorrection(false),
-  mShearMultiplier(FieldList<Dimension, Scalar>::Copy),
+  mShearMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldList<Dimension, typename Dimension::Tensor>::Copy),
-  mGradDivVelocity(FieldList<Dimension, typename Dimension::Vector>::Copy),
+  mSigma(FieldSpace::Copy),
+  mGradDivVelocity(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -64,15 +64,15 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic):
   mClinear(Clinear),
   mCquadratic(Cquadratic),
   mBalsaraShearCorrection(false),
-  mShearMultiplier(FieldList<Dimension, Scalar>::Copy),
+  mShearMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-4),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
-  mSigma(FieldList<Dimension, typename Dimension::Tensor>::Copy),
-  mGradDivVelocity(FieldList<Dimension, typename Dimension::Vector>::Copy),
+  mSigma(FieldSpace::Copy),
+  mGradDivVelocity(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 

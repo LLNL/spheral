@@ -127,6 +127,7 @@ centerOfMass(const Dim<3>::Vector& xi,
              const Dim<3>::Vector& gradRhoi,
              const Mesh<Dim<3> >& mesh,
              const unsigned zoneID) {
+  VERIFY(false);
 }
 
 //------------------------------------------------------------------------------
@@ -145,14 +146,14 @@ VoronoiHourglassControl(const TableKernel<Dimension>& W,
   mLimiter(limiter),
   mFraction(fraction),
   mMask(mask),
-  mA(FieldList<Dimension, Scalar>::Copy),
-  mWeight(FieldList<Dimension, Scalar>::Copy),
-  mGradRho(FieldList<Dimension, Vector>::Copy),
-  mB(FieldList<Dimension, Vector>::Copy),
-  mC(FieldList<Dimension, Vector>::Copy),
-  mGradA(FieldList<Dimension, Vector>::Copy),
-  mD(FieldList<Dimension, Tensor>::Copy),
-  mGradB(FieldList<Dimension, Tensor>::Copy) {
+  mA(FieldSpace::Copy),
+  mWeight(FieldSpace::Copy),
+  mGradRho(FieldSpace::Copy),
+  mB(FieldSpace::Copy),
+  mC(FieldSpace::Copy),
+  mGradA(FieldSpace::Copy),
+  mD(FieldSpace::Copy),
+  mGradB(FieldSpace::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -206,8 +207,8 @@ registerState(DataBase<Dimension>& dataBase,
   // These are nice to register for analysis.
   dataBase.resizeFluidFieldList(mMask, 1, HydroFieldNames::hourglassMask, false);
   dataBase.resizeFluidFieldList(mGradRho, Vector::zero, "grad " + HydroFieldNames::massDensity);
-  state.enrollFieldList(mMask);
-  state.enrollFieldList(mGradRho);
+  state.enroll(mMask);
+  state.enroll(mGradRho);
 }
 
 //------------------------------------------------------------------------------
