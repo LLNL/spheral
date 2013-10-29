@@ -59,7 +59,7 @@ FieldBase<Dimension>&
 FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
   if (this != &rhs) {
     mNodeListPtr = rhs.mNodeListPtr;
-    mFieldListBaseList = std::vector<const FieldListBase*>();
+    mFieldListBaseList = std::vector<const FieldListBase<Dimension>*>();
   }
   return *this;
 }
@@ -136,7 +136,7 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::
-registerFieldList(const FieldListBase& fieldListBase) const {
+registerFieldList(const FieldListBase<Dimension>& fieldListBase) const {
   REQUIRE(!haveFieldList(fieldListBase));
   mFieldListBaseList.push_back(&fieldListBase);
 }
@@ -148,10 +148,10 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::
-unregisterFieldList(const FieldListBase& fieldListBase) const {
-  std::vector<const FieldListBase*>::iterator itr = std::find(mFieldListBaseList.begin(),
-                                                              mFieldListBaseList.end(),
-                                                              &fieldListBase);
+unregisterFieldList(const FieldListBase<Dimension>& fieldListBase) const {
+  typename std::vector<const FieldListBase<Dimension>*>::iterator itr = std::find(mFieldListBaseList.begin(),
+                                                                                  mFieldListBaseList.end(),
+                                                                                  &fieldListBase);
   REQUIRE(itr != mFieldListBaseList.end());
   mFieldListBaseList.erase(itr);
   ENSURE(!haveFieldList(fieldListBase));
@@ -164,7 +164,7 @@ template<typename Dimension>
 inline
 bool
 FieldBase<Dimension>::
-haveFieldList(const FieldListBase& fieldListBase) const {
+haveFieldList(const FieldListBase<Dimension>& fieldListBase) const {
   return std::find(mFieldListBaseList.begin(),
                    mFieldListBaseList.end(),
                    &fieldListBase) != mFieldListBaseList.end();

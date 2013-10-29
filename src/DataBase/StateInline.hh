@@ -38,6 +38,17 @@ enroll(FieldSpace::FieldBase<Dimension>& field) {
 }
 
 //------------------------------------------------------------------------------
+// Enroll the given field list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+State<Dimension>::
+enroll(FieldSpace::FieldListBase<Dimension>& fieldList) {
+  StateBase<Dimension>::enroll(fieldList);
+}
+
+//------------------------------------------------------------------------------
 // Optionally trip a flag indicating policies should time advance only -- no replacing state!
 // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
 //------------------------------------------------------------------------------

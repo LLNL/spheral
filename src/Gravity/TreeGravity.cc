@@ -110,7 +110,7 @@ TreeGravity(const double G,
   mXmin(),
   mXmax(),
   mTree(),
-  mPotential(FieldList<Dimension, Scalar>::Copy),
+  mPotential(FieldSpace::Copy),
   mExtraEnergy(0.0),
   mNodeListMax(0),
   mimax(0),
@@ -140,7 +140,7 @@ TreeGravity<Dimension>::
 registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
   PhysicsSpace::GenericBodyForce<Dimension >::registerState(dataBase, state);
-  state.enrollFieldList(mPotential);
+  state.enroll(mPotential);
 }
 
 //------------------------------------------------------------------------------

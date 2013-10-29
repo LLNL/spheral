@@ -33,6 +33,7 @@ namespace NodeSpace {
 }
 namespace FieldSpace {
   template<typename Dimension> class FieldBase;
+  template<typename Dimension> class FieldListBase;
   template<typename Dimension, typename DataType> class Field;
   template<typename Dimension, typename DataType> class FieldList;
 }
@@ -84,8 +85,7 @@ public:
   virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
 
   // Enroll a FieldList.
-  template<typename Value>
-  void enrollFieldList(FieldSpace::FieldList<Dimension, Value>& fieldList);
+  virtual void enroll(FieldSpace::FieldListBase<Dimension>& fieldList);
 
   // Enroll an externally held Mesh.
   void enrollMesh(MeshPtr meshPtr);

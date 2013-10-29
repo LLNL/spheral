@@ -21,7 +21,7 @@ ConnectivityMap(const NodeListIterator& begin,
   mConnectivity(),
   mNodeTraversalIndicies(),
   mDomainDecompIndependent(false),
-  mKeys(FieldList<Dimension, Key>::Copy) {
+  mKeys(FieldSpace::Copy) {
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();

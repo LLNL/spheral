@@ -49,7 +49,7 @@ FiniteVolumeViscosity(const Scalar Clinear,
                       const bool scalar):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
   mScalar(scalar),
-  mDvDx(FieldList<Dimension, Tensor>::Copy) {
+  mDvDx(FieldSpace::Copy) {
 }
 
 //------------------------------------------------------------------------------

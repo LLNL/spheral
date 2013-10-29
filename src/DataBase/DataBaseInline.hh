@@ -185,7 +185,7 @@ FieldSpace::FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newGlobalFieldList(const DataType value,
                    const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldList<Dimension, DataType>::Copy);
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) {
@@ -208,7 +208,7 @@ FieldSpace::FieldList<Dimension, DataType>
 DataBase<Dimension>::
 newFluidFieldList(const DataType value,
                   const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
-  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::FieldList<Dimension, DataType>::Copy);
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr) {
@@ -233,7 +233,7 @@ resizeGlobalFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                       const DataType value,
                       const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
                       const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::FieldList<Dimension, DataType>::Copy));
+  VERIFY((fieldList.storageType() == FieldSpace::Copy));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numNodeLists();
@@ -272,7 +272,7 @@ resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                      const DataType value,
                      const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
                      const bool resetValues) const {
-  VERIFY((fieldList.storageType() == FieldSpace::FieldList<Dimension, DataType>::Copy));
+  VERIFY((fieldList.storageType() == FieldSpace::Copy));
 
   // First check if it's necessary to resize the FieldList.
   bool reinitialize = fieldList.numFields() != numFluidNodeLists();

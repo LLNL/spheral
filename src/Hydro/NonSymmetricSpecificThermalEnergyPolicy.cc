@@ -207,8 +207,8 @@ update(const KeyType& key,
     const size_t numNodeLists = nodeLists.size();
 
     // Prepare a counter to keep track of how we go through the pair-accelerations.
-    FieldList<Dimension, Scalar> DepsDt(FieldList<Dimension, Scalar>::Copy);
-    FieldList<Dimension, int> offset(FieldList<Dimension, int>::Copy);
+    FieldList<Dimension, Scalar> DepsDt(FieldSpace::Copy);
+    FieldList<Dimension, int> offset(FieldSpace::Copy);
     for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
       offset.appendNewField("offset", *nodeLists[nodeListi], 0);
