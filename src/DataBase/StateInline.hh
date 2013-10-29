@@ -16,11 +16,10 @@ enroll(const typename State<Dimension>::KeyType& key,
 // Enroll the given field and policy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename Value>
 inline
 void
 State<Dimension>::
-enroll(FieldSpace::Field<Dimension, Value>& field,
+enroll(FieldSpace::FieldBase<Dimension>& field,
        typename State<Dimension>::PolicyPointer polptr) {
   this->enroll(field);
   this->enroll(this->key(field), polptr);
