@@ -22,35 +22,50 @@ using namespace std;
 using namespace FieldSpace;
 using PhysicsSpace::Physics;
 
+namespace {
 //------------------------------------------------------------------------------
 // Helper to compare a set of state to a key.
 // We assume that wildcards are only applied at the end of a Key!
 //------------------------------------------------------------------------------
-template<typename Key, typename Iterator>
-bool keyPresent(const Key& key,
-                const Key& wildcard,
-                const Iterator setBegin,
-                const Iterator setEnd) {
-  const size_t pos = key.find(wildcard);
-  if (pos == string::npos) {
-    Key fieldKey, nodeListKey;
-    Iterator itr = setBegin;
-    while (itr != setEnd) {
-      StateBase<Dim<1> >::splitFieldKey(*itr, fieldKey, nodeListKey);
-      if (fieldKey == key) return true;
-      ++itr;
-    }
-    return false;
-    //return (find(setBegin, setEnd, key) != setEnd);
-  } else {
-    const Key testKey = key.substr(0, pos);
-    Iterator itr = setBegin;
-    while (itr != setEnd) {
-      if (testKey == itr->substr(0, pos)) return true;
-      ++itr;
-    }
-    return false;
-  }
+// template<typename Key, typename Iterator>
+// bool keyPresent(const Key& key,
+//                 const Key& wildcard,
+//                 const Iterator setBegin,
+//                 const Iterator setEnd) {
+//   const size_t pos = key.find(wildcard);
+//   if (pos == string::npos) {
+//     Key fieldKey, nodeListKey;
+//     Iterator itr = setBegin;
+//     while (itr != setEnd) {
+//       StateBase<Dim<1> >::splitFieldKey(*itr, fieldKey, nodeListKey);
+//       if (fieldKey == key) return true;
+//       ++itr;
+//     }
+//     return false;
+//     //return (find(setBegin, setEnd, key) != setEnd);
+//   } else {
+//     const Key testKey = key.substr(0, pos);
+//     Iterator itr = setBegin;
+//     while (itr != setEnd) {
+//       if (testKey == itr->substr(0, pos)) return true;
+//       ++itr;
+//     }
+//     return false;
+//   }
+// }
+
+//------------------------------------------------------------------------------
+// Helper to compare a set of state to a key.
+// We assume that wildcards are only applied at the end of a Key!
+//------------------------------------------------------------------------------
+bool compareKeysByField(const std::string& a,
+                        const std::string& b) {
+  std::string af, bf, an, bn;
+  StateBase<Dim<1> >::splitFieldKey(a, af, an);
+  StateBase<Dim<1> >::splitFieldKey(b, bf, bn);
+  return af < bf;
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -156,65 +171,44 @@ update(StateDerivatives<Dimension>& derivs,
   // Prepare lists of the keys to be completed, and the keys which have been
   // completed.
   vector<KeyType> stateToBeCompleted = this->policyKeys();
-  vector<KeyType> completedState;
+  sort(stateToBeCompleted.begin(), stateToBeCompleted.end(), compareKeysByField);
   const int numState = stateToBeCompleted.size();
 
   // Iterate until all state has been updated.
-  int lastNumStateToBeCompleted = numState;
-  while ((stateToBeCompleted.size()) > 0) {
-    CHECK(stateToBeCompleted.size() + completedState.size() == numState);
+  while (not stateToBeCompleted.empty()) {
 
-    // Iterate over the policies.
-    for (typename PolicyMapType::iterator itr = mPolicyMap.begin();
-         itr != mPolicyMap.end();
+    // Iterate over the remaining state to be completed.
+    vector<KeyType> stateToRemove;
+    for (typename vector<KeyType>::iterator itr = stateToBeCompleted.begin();
+         itr != stateToBeCompleted.end();
          ++itr) {
-      const KeyType key = itr->first;
-      const PolicyPointer policyPtr = itr->second;
+      const KeyType key = *itr;
+      const PolicyPointer policyPtr = mPolicyMap.find(key)->second;
 
-      // Has this state been updated yet?
-      if (find(stateToBeCompleted.begin(), stateToBeCompleted.end(), key) != stateToBeCompleted.end()) {
-        CHECK(find(completedState.begin(), completedState.end(), key) == completedState.end());
-
-        // Check if all the dependencies for this state have been satisfied yet.
-        bool readyToUpdate = true;
-        const vector<KeyType>& dependencies = policyPtr->dependencies();
-        typename vector<KeyType>::const_iterator dependencyItr = dependencies.begin();
-        while (readyToUpdate and dependencyItr != dependencies.end()) {
-          readyToUpdate = not keyPresent(*dependencyItr, UpdatePolicyBase<Dimension>::wildcard(),
-                                         stateToBeCompleted.begin(), stateToBeCompleted.end());
-          ++dependencyItr;
+      // Check if all the dependencies for this state have been satisfied yet.
+      bool readyToUpdate = true;
+      vector<KeyType> unmetDependencies;
+      set_intersection(stateToBeCompleted.begin(), stateToBeCompleted.end(),
+                       policyPtr->dependencies().begin(), policyPtr->dependencies().end(),
+                       back_inserter(unmetDependencies), compareKeysByField);
+      if (unmetDependencies.empty()) {
+        if (mTimeAdvanceOnly) {
+          policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
+        } else {
+          policyPtr->update(key, *this, derivs, multiplier, t, dt);
         }
 
-        // If the dependencies are met, then go ahead and update this state.
-        if (readyToUpdate) {
-          if (mTimeAdvanceOnly) {
-            policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
-          } else {
-            policyPtr->update(key, *this, derivs, multiplier, t, dt);
-          }
-
-          // List this field as completed.
-          completedState.push_back(key);
-          typename vector<KeyType>::iterator itr = find(stateToBeCompleted.begin(),
-                                                        stateToBeCompleted.end(),
-                                                        key);
-          CHECK(itr != stateToBeCompleted.end());
-          stateToBeCompleted.erase(itr);
-          CHECK(find(stateToBeCompleted.begin(), stateToBeCompleted.end(), key) == stateToBeCompleted.end());
-        }
+        // List this field as completed.
+        stateToRemove.push_back(key);
       }
     }
 
     // Check that the some state has been updated on this iteration.  If not, then *somebody*
     // has specified a circular dependency tree!
-    if ((stateToBeCompleted.size()) == lastNumStateToBeCompleted) {
+    if (stateToRemove.empty()) {
       stringstream message;
       message << "State::update ERROR: someone has specified a circular state dependency.\n"
-              << "Completed State:\n";
-      for (typename vector<KeyType>::const_iterator itr = completedState.begin();
-           itr != completedState.end();
-           ++itr) message << "   " << *itr << "\n";
-      message << "Remaining State:\n";
+              << "Remaining State:\n";
       for (typename vector<KeyType>::const_iterator itr = stateToBeCompleted.begin();
            itr != stateToBeCompleted.end();
            ++itr) message << "   " << *itr << "\n";
@@ -229,10 +223,16 @@ update(StateDerivatives<Dimension>& derivs,
              depItr != policyPtr->dependencies().end();
              ++depItr) message << *depItr << " ";
         message << "\n";
-        VERIFY2(stateToBeCompleted.size() < lastNumStateToBeCompleted, message.str());
+        VERIFY2(not stateToRemove.empty(), message.str());
       }
     }
-    lastNumStateToBeCompleted = stateToBeCompleted.size();
+    
+    // Remove the completed state.
+    vector<KeyType> newKeys;
+    set_difference(stateToBeCompleted.begin(), stateToBeCompleted.end(),
+                   stateToRemove.begin(), stateToRemove.end(),
+                   back_inserter(newKeys));
+    stateToBeCompleted = newKeys;
   }
 }
 
