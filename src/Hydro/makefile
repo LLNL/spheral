@@ -26,21 +26,3 @@ ARCH = $(SPHERALARCH)
 ##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master
-
-##-------------------------------------------------------------------------------
-#CXXPKGS = \
-#	Geometry \
-#	NodeList \
-#	Field \
-#	Kernel \
-#	Material \
-#	Neighbor \
-#	DataBase \
-#	Boundary \
-#	ArtificialViscosity \
-#	Physics \
-#	Hydro \
-#	Integrator
-#PKGLIBS := $(patsubst %, -l%, $(CXXPKGS))
-#TestSod:
-#	$(CXX) $(PURIFY) $(CXXFLAGS) $(EXTRAFLAGS) -Bstatic -o tests/TestSod tests/TestSodInst.cc -L$(SRCTOP)/lib $(PKGLIBS) $(PKGLIBS) $(PKGLIBS) -lm

@@ -9,17 +9,17 @@
 
 #include <string>
 
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceFieldList.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class VolumePolicy: public ReplaceState<Dimension, typename Dimension::Scalar> {
+class VolumePolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
   VolumePolicy();
