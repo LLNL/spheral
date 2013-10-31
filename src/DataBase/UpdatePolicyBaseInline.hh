@@ -1,3 +1,5 @@
+#include <algorithm>
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -26,6 +28,7 @@ UpdatePolicyBase(const std::string& depend0,
   mDependencies() {
     mDependencies.push_back(depend0);
     mDependencies.push_back(depend1);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 template<typename Dimension>
@@ -38,6 +41,7 @@ UpdatePolicyBase(const std::string& depend0,
     mDependencies.push_back(depend0);
     mDependencies.push_back(depend1);
     mDependencies.push_back(depend2);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 template<typename Dimension>
@@ -52,6 +56,7 @@ UpdatePolicyBase(const std::string& depend0,
     mDependencies.push_back(depend1);
     mDependencies.push_back(depend2);
     mDependencies.push_back(depend3);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 template<typename Dimension>
@@ -68,6 +73,7 @@ UpdatePolicyBase(const std::string& depend0,
     mDependencies.push_back(depend2);
     mDependencies.push_back(depend3);
     mDependencies.push_back(depend4);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 template<typename Dimension>
@@ -86,6 +92,7 @@ UpdatePolicyBase(const std::string& depend0,
     mDependencies.push_back(depend3);
     mDependencies.push_back(depend4);
     mDependencies.push_back(depend5);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 template<typename Dimension>
@@ -106,6 +113,7 @@ UpdatePolicyBase(const std::string& depend0,
     mDependencies.push_back(depend4);
     mDependencies.push_back(depend5);
     mDependencies.push_back(depend6);
+    std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 //------------------------------------------------------------------------------
@@ -158,6 +166,7 @@ void
 UpdatePolicyBase<Dimension>::
 addDependency(const std::string& depend) {
   mDependencies.push_back(depend);
+  std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 }
