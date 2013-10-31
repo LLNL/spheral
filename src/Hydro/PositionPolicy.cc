@@ -8,22 +8,22 @@
 //
 // Created by JMO, Mon Jun 19 22:06:07 PDT 2006
 //----------------------------------------------------------------------------//
-
 #include "PositionPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
 using namespace std;
-using FieldSpace::Field;
+using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 
@@ -33,7 +33,7 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 PositionPolicy<Dimension>::
 PositionPolicy():
-  IncrementState<Dimension, typename Dimension::Vector>() {
+  IncrementFieldList<Dimension, typename Dimension::Vector>() {
 }
 
 //------------------------------------------------------------------------------
@@ -58,35 +58,33 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::position);
-
-  // Grab the state field.
-  Field<Dimension, Vector>& r = state.field(key, Vector::zero);
-
-  // Get the FluidNodeList and check if we're enforcing compatible energy 
-  // evolution or not.
-  const FluidNodeList<Dimension>* nodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(r.nodeListPtr());
-  CHECK(nodeListPtr != 0);
+  REQUIRE(fieldKey == HydroFieldNames::position and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Vector> r = state.fields(fieldKey, Vector::zero);
+  const unsigned numFields = r.numFields();
 
   // Get the velocity and acceleration fields.
-  const KeyType velKey = State<Dimension>::buildFieldKey(HydroFieldNames::velocity, nodeListKey);
-  const KeyType dvelKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, nodeListKey);
-  CHECK(state.registered(velKey));
-  CHECK(derivs.registered(dvelKey));
-  const Field<Dimension, Vector>& vel = state.field(velKey, Vector::zero);
-  const Field<Dimension, Vector>& dvel = derivs.field(dvelKey, Vector::zero);
+  const FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Vector> dvel = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
 
-  // Iterate over the internal values.
-  for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
+  // Walk the fields.
+  for (unsigned i = 0; i != numFields; ++i) {
 
-    // Compute time centered value for the velocity.
-    const Vector vi = vel(i) + 0.5*multiplier*dvel(i);
+    // Get the FluidNodeList and check if we're enforcing compatible energy 
+    // evolution or not.
+    const FluidNodeList<Dimension>* nodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(r[i]->nodeListPtr());
+    CHECK(nodeListPtr != 0);
 
-    // Now compute the new position.
-    r(i) += multiplier*vi;
-   
+    // Iterate over the internal values.
+    for (unsigned j = 0; j != r[i]->numInternalElements(); ++j) {
+
+      // Compute time centered value for the velocity.
+      const Vector vi = vel(i,j) + 0.5*multiplier*dvel(i,j);
+
+      // Now compute the new position.
+      r(i,j) += multiplier*vi;
+    }
   }
-
 }
 
 //------------------------------------------------------------------------------

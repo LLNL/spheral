@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementFieldList.hh"
 
 namespace Spheral {
 
@@ -24,7 +24,7 @@ namespace NodeSpace {
   template<typename Dimension> class FluidNodeList;
 }
 namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
 }
 namespace DataBaseSpace {
   template<typename Dimension> class DataBase;
@@ -32,13 +32,13 @@ namespace DataBaseSpace {
 
 template<typename Dimension>
 class SpecificThermalEnergyPolicy: 
-    public IncrementState<Dimension, typename Dimension::Scalar> {
+    public IncrementFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
   SpecificThermalEnergyPolicy(const DataBaseSpace::DataBase<Dimension>& db);
@@ -60,12 +60,12 @@ public:
                                  const double multiplier,
                                  const double t,
                                  const double dt) {
-    IncrementState<Dimension, Scalar>::update(key,
-                                              state,
-                                              derivs,
-                                              multiplier,
-                                              t,
-                                              dt);
+    IncrementFieldList<Dimension, Scalar>::update(key,
+                                                  state,
+                                                  derivs,
+                                                  multiplier,
+                                                  t,
+                                                  dt);
   }
 
   // Equivalence.
@@ -74,7 +74,6 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   const DataBaseSpace::DataBase<Dimension>* mDataBasePtr;
-  static bool mFired;
 
   SpecificThermalEnergyPolicy(const SpecificThermalEnergyPolicy& rhs);
   SpecificThermalEnergyPolicy& operator=(const SpecificThermalEnergyPolicy& rhs);
