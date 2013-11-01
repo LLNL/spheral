@@ -10,10 +10,10 @@
 #include "SumVoronoiMassDensityPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Boundary/Boundary.hh"
@@ -25,6 +25,7 @@ namespace Spheral {
 using namespace std;
 using NodeSpace::NodeList;
 using FieldSpace::Field;
+using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 using PhysicsSpace::Physics;
@@ -38,8 +39,8 @@ SumVoronoiMassDensityPolicy<Dimension>::
 SumVoronoiMassDensityPolicy(const TableKernel<Dimension>& W, 
                             const Physics<Dimension>& package,
                             const double rhoMin, const double rhoMax):
-  ReplaceState<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
-                                                      HydroFieldNames::volume),
+  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
+                                                          HydroFieldNames::volume),
   mW(W),
   mPackage(package),
   mRhoMin(rhoMin),
@@ -69,29 +70,19 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::massDensity);
-  Field<Dimension, Scalar>& massDensity = state.field(key, 0.0);
+  REQUIRE(fieldKey == HydroFieldNames::massDensity and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> massDensity = state.fields(fieldKey, Scalar());
+  const unsigned numFields = massDensity.numFields();
 
   // Intitialize the mass density.
   massDensity = 0.0;
 
-  // We'll also need a place to keep the volume as we accumulate it.
-  const NodeList<Dimension>& nodeList = massDensity.nodeList();
-  Field<Dimension, Scalar> volEff("effective volume", nodeList);
-
   // Grab the state we need to do our job.
-  const KeyType massKey = State<Dimension>::buildFieldKey(HydroFieldNames::mass, nodeListKey);
-  const KeyType volKey = State<Dimension>::buildFieldKey(HydroFieldNames::volume, nodeListKey);
-  const KeyType posKey = State<Dimension>::buildFieldKey(HydroFieldNames::position, nodeListKey);
-  const KeyType HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, nodeListKey);
-  CHECK(state.registered(massKey));
-  CHECK(state.registered(volKey));
-  CHECK(state.registered(posKey));
-  CHECK(state.registered(HKey));
-  const Field<Dimension, Scalar>& mass = state.field(massKey, 0.0);
-  const Field<Dimension, Scalar>& volume = state.field(volKey, 0.0);
-  const Field<Dimension, Vector>& pos = state.field(posKey, Vector::zero);
-  const Field<Dimension, SymTensor>& H = state.field(HKey, SymTensor::zero);
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
+  const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const ConnectivityMap<Dimension>& cm = state.connectivityMap();
 
   // // The volume still needs to have boundary conditions enforced.
@@ -106,58 +97,63 @@ update(const KeyType& key,
   //      boundaryItr != mPackage.boundaryEnd();
   //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-  // Which NodeList are we doing in the ConnectivityMap?
-  const unsigned nodeListi = cm.nodeListIndex(&nodeList);
+  // Walk the fields.
+  for (unsigned nodeListi = 0; nodeListi != numFields; ++nodeListi) {
 
-  // Walk the local nodes.
-  typename ConnectivityMap<Dimension>::const_iterator iItr;
-  typename vector<int>::const_iterator jItr;
-  unsigned i, j;
-  Scalar Hdeti, Hdetj, etai, etaj, Wi, Wj, W0;
-  Vector xij;
-  const unsigned firstGhostNodei = nodeList.firstGhostNode();
-  for (iItr = cm.begin(nodeListi); iItr != cm.end(nodeListi); ++iItr) {
-    i = *iItr;
-    const Scalar& Vi = volume(i);
-    const Scalar& mi = mass(i);
-    const Vector& xi = pos(i);
-    const SymTensor& Hi = H(i);
-    Hdeti = Hi.Determinant();
-    Scalar& rhoi = massDensity(i);
-    Scalar& Veffi = volEff(i);
+    // We need a place to keep the volume as we accumulate it.
+    const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
+    Field<Dimension, Scalar> volEff("effective volume", nodeList);
 
-    // Walk the neighbors of this node.
-    const vector<int>& connectivity = cm.connectivityForNode(nodeListi, i)[nodeListi];
-    for (jItr = connectivity.begin(); jItr != connectivity.end(); ++jItr) {
-      j = *jItr;
-      if (cm.calculatePairInteraction(nodeListi, i, 
-                                      nodeListi, j,
-                                      firstGhostNodei)) {
-        const Scalar& Vj = volume(j);
-        const Scalar& mj = mass(j);
-        const Vector& xj = pos(j);
-        const SymTensor& Hj = H(j);
-        Hdetj = Hj.Determinant();
-        Scalar& rhoj = massDensity(j);
-        Scalar& Veffj = volEff(j);
+    // Walk the local nodes.
+    typename ConnectivityMap<Dimension>::const_iterator iItr;
+    typename vector<int>::const_iterator jItr;
+    unsigned i, j;
+    Scalar Hdeti, Hdetj, etai, etaj, Wi, Wj, W0;
+    Vector xij;
+    const unsigned firstGhostNodei = nodeList.firstGhostNode();
+    for (iItr = cm.begin(nodeListi); iItr != cm.end(nodeListi); ++iItr) {
+      i = *iItr;
+      const Scalar& Vi = volume(nodeListi, i);
+      const Scalar& mi = mass(nodeListi, i);
+      const Vector& xi = pos(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      Hdeti = Hi.Determinant();
+      Scalar& rhoi = massDensity(nodeListi, i);
+      Scalar& Veffi = volEff(i);
 
-        xij = xi - xj;
-        etai = (Hi*xij).magnitude();
-        etaj = (Hj*xij).magnitude();
-        Wi = mW.kernelValue(etai, Hdeti);
-        Wj = mW.kernelValue(etaj, Hdetj);
+      // Walk the neighbors of this node.
+      const vector<int>& connectivity = cm.connectivityForNode(nodeListi, i)[nodeListi];
+      for (jItr = connectivity.begin(); jItr != connectivity.end(); ++jItr) {
+        j = *jItr;
+        if (cm.calculatePairInteraction(nodeListi, i, 
+                                        nodeListi, j,
+                                        firstGhostNodei)) {
+          const Scalar& Vj = volume(nodeListi, j);
+          const Scalar& mj = mass(nodeListi, j);
+          const Vector& xj = pos(nodeListi, j);
+          const SymTensor& Hj = H(nodeListi, j);
+          Hdetj = Hj.Determinant();
+          Scalar& rhoj = massDensity(nodeListi, j);
+          Scalar& Veffj = volEff(j);
 
-        Veffi += Vj*Wi;
-        rhoi +=  mj*Wi;
+          xij = xi - xj;
+          etai = (Hi*xij).magnitude();
+          etaj = (Hj*xij).magnitude();
+          Wi = mW.kernelValue(etai, Hdeti);
+          Wj = mW.kernelValue(etaj, Hdetj);
 
-        Veffj += Vi*Wj;
-        rhoj +=  mi*Wj;
+          Veffi += Vj*Wi;
+          rhoi +=  mj*Wi;
+
+          Veffj += Vi*Wj;
+          rhoj +=  mi*Wj;
+        }
       }
-    }
 
-    // Finalize the density for node i.
-    W0 = mW.kernelValue(0.0, Hdeti);
-    rhoi = max(mRhoMin, min(mRhoMax, (rhoi + mi*W0) * safeInv(Veffi + Vi*W0)));
+      // Finalize the density for node i.
+      W0 = mW.kernelValue(0.0, Hdeti);
+      rhoi = max(mRhoMin, min(mRhoMax, (rhoi + mi*W0) * safeInv(Veffi + Vi*W0)));
+    }
   }
 }
 
@@ -174,14 +170,22 @@ updateAsIncrement(const KeyType& key,
                   const double t,
                   const double dt) {
 
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == HydroFieldNames::massDensity and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+
   // Find the matching derivative field from the StateDerivatives.
-  KeyType incrementKey = IncrementState<Dimension, Scalar>::prefix() + key;
-  FieldSpace::Field<Dimension, Scalar>& f = state.field(key, 0.0);
-  const FieldSpace::Field<Dimension, Scalar>& df = derivs.field(incrementKey, 0.0);
+  KeyType incrementKey = IncrementFieldList<Dimension, Scalar>::prefix() + fieldKey;
+  FieldSpace::FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
+  const FieldSpace::FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
 
   // Loop over the internal values of the field.
-  for (unsigned i = 0; i != f.nodeList().numInternalNodes(); ++i) {
-    f(i) = max(mRhoMin, min(mRhoMax, f(i) + multiplier*(df(i))));
+  const unsigned numFields = f.numFields();
+  for (unsigned i = 0; i != numFields; ++i) {
+    for (unsigned j = 0; j != f[i]->numInternalElements(); ++j) {
+      f(i,j) = max(mRhoMin, min(mRhoMax, f(i,j) + multiplier*(df(i,j))));
+    }
   }
 }
 

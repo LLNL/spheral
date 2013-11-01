@@ -12,7 +12,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
 #include "Utilities/DBC.hh"
@@ -23,6 +23,7 @@ using namespace std;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using FieldSpace::Field;
+using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -30,8 +31,8 @@ using FieldSpace::Field;
 template<typename Dimension>
 SoundSpeedPolicy<Dimension>::
 SoundSpeedPolicy():
-  FieldUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                               HydroFieldNames::specificThermalEnergy) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
+                                                                   HydroFieldNames::specificThermalEnergy) {
 }
 
 //------------------------------------------------------------------------------
@@ -56,24 +57,28 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::soundSpeed);
+  REQUIRE(fieldKey == HydroFieldNames::soundSpeed and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> soundSpeed = state.fields(fieldKey, Scalar());
+  const unsigned numFields = soundSpeed.numFields();
 
   // Get the mass density and specific thermal energy fields from the state.
-  const KeyType massDensityKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType energyKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  CHECK(state.registered(massDensityKey));
-  CHECK(state.registered(energyKey));
-  Field<Dimension, Scalar>& soundSpeed = state.field(key, 0.0);
-  const Field<Dimension, Scalar>& massDensity = state.field(massDensityKey, 0.0);
-  const Field<Dimension, Scalar>& energy = state.field(energyKey, 0.0);
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, Scalar());
+  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
+  CHECK(massDensity.numFields() == numFields);
+  CHECK(energy.numFields() == numFields);
 
-  // Get the eos.  This cast is ugly, but is a work-around for now.
-  const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(soundSpeed.nodeListPtr());
-  CHECK(fluidNodeListPtr != 0);
-  const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+  // Walk the fields.
+  for (unsigned i = 0; i != numFields; ++i) {
 
-  // Now set the sound speed.
-  eos.setSoundSpeed(soundSpeed, massDensity, energy);
+    // Get the eos.  This cast is ugly, but is a work-around for now.
+    const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(soundSpeed[i]->nodeListPtr());
+    CHECK(fluidNodeListPtr != 0);
+    const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+
+    // Now set the soundSpeed for this field.
+    eos.setSoundSpeed(*soundSpeed[i], *massDensity[i], *energy[i]);
+  }
 }
 
 //------------------------------------------------------------------------------
