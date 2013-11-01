@@ -26,6 +26,19 @@ enroll(FieldSpace::FieldBase<Dimension>& field,
 }
 
 //------------------------------------------------------------------------------
+// Enroll the given FieldList and policy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+State<Dimension>::
+enroll(FieldSpace::FieldListBase<Dimension>& fieldList,
+       typename State<Dimension>::PolicyPointer polptr) {
+  this->enroll(fieldList);
+  this->enroll(this->key(fieldList), polptr);
+}
+
+//------------------------------------------------------------------------------
 // Enroll the given field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
