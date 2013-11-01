@@ -78,7 +78,6 @@ public:
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldSpace::FieldBase<Dimension>& field) const;
-  bool registered(const std::vector<Scalar>& vec) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
   // Enroll a Field.
@@ -134,6 +133,9 @@ public:
 
   // Construct the lookup key for the given field.
   static KeyType key(const FieldSpace::FieldBase<Dimension>& field);
+
+  // Construct the lookup key for the given FieldList.
+  static KeyType key(const FieldSpace::FieldListBase<Dimension>& fieldList);
 
   // Encode our underlying convention for combining Field and NodeList names into a 
   // single Key.

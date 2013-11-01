@@ -75,6 +75,9 @@ public:
   // Enroll the given Field and associated update policy
   void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
 
+  // Enroll the given FieldList and associated update policy
+  void enroll(FieldSpace::FieldListBase<Dimension>& fieldList, PolicyPointer policy);
+
   // The base class method for just registering a field.
   virtual void enroll(FieldSpace::FieldBase<Dimension>& field);
 
