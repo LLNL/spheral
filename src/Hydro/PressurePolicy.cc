@@ -12,7 +12,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
 #include "Utilities/DBC.hh"
@@ -22,6 +22,7 @@ namespace Spheral {
 using namespace std;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
+using FieldSpace::FieldList;
 using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
@@ -30,8 +31,8 @@ using FieldSpace::Field;
 template<typename Dimension>
 PressurePolicy<Dimension>::
 PressurePolicy():
-  FieldUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                               HydroFieldNames::specificThermalEnergy) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
+                                                                   HydroFieldNames::specificThermalEnergy) {
 }
 
 //------------------------------------------------------------------------------
@@ -56,24 +57,28 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::pressure);
+  REQUIRE(fieldKey == HydroFieldNames::pressure and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> pressure = state.fields(fieldKey, Scalar());
+  const unsigned numFields = pressure.numFields();
 
   // Get the mass density and specific thermal energy fields from the state.
-  const KeyType massDensityKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType energyKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  CHECK(state.registered(massDensityKey));
-  CHECK(state.registered(energyKey));
-  Field<Dimension, Scalar>& pressure = state.field(key, Scalar());
-  const Field<Dimension, Scalar>& massDensity = state.field(massDensityKey, Scalar());
-  const Field<Dimension, Scalar>& energy = state.field(energyKey, Scalar());
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, Scalar());
+  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
+  CHECK(massDensity.numFields() == numFields);
+  CHECK(energy.numFields() == numFields);
 
-  // Get the eos.  This cast is ugly, but is a work-around for now.
-  const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(pressure.nodeListPtr());
-  CHECK(fluidNodeListPtr != 0);
-  const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+  // Walk the fields.
+  for (unsigned i = 0; i != numFields; ++i) {
 
-  // Now set the pressure.
-  eos.setPressure(pressure, massDensity, energy);
+    // Get the eos.  This cast is ugly, but is a work-around for now.
+    const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(pressure[i]->nodeListPtr());
+    CHECK(fluidNodeListPtr != 0);
+    const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+
+    // Now set the pressure for this field.
+    eos.setPressure(*pressure[i], *massDensity[i], *energy[i]);
+  }
 }
 
 //------------------------------------------------------------------------------

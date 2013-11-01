@@ -11,21 +11,21 @@
 
 #include <string>
 
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceFieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Physics/Physics.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class SumVoronoiMassDensityPolicy: public ReplaceState<Dimension, typename Dimension::Scalar> {
+class SumVoronoiMassDensityPolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename ReplaceState<Dimension, Scalar>::KeyType KeyType;
+  typedef typename ReplaceFieldList<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
   SumVoronoiMassDensityPolicy(const KernelSpace::TableKernel<Dimension>& W,

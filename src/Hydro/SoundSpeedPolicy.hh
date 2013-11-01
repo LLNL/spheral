@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "DataBase/FieldUpdatePolicyBase.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -24,12 +24,12 @@ namespace FieldSpace {
 }
 
 template<typename Dimension>
-class SoundSpeedPolicy: public FieldUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class SoundSpeedPolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
   SoundSpeedPolicy();
