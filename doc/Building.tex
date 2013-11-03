@@ -251,6 +251,33 @@ by building 10 way (\verb+gmake -j 10+), the full compile can be completed in
 less than half an hour.
 
 %-------------------------------------------------------------------------------
+\section{C++ only builds}
+
+It is also possible to build \Spheral\ as a C++ only target.  In this mode
+\Spheral\ skips building the third party libraries and python interface, and
+instead builds only the C++ source code libraries.  The libraries and headers
+are installed under the \verb.prefix. selected during the configuration process.
+Additionally, it is up to the user to provide where the necessary third party
+libraries are installed via the \verb.EXTRAINCLUDES. and
+\verb.EXTRALIBS. compile arguments.
+
+Consider the following example.  We want to install a C++ only optimized build under
+\verb./usr/local/Spheral/cxx..  We have previously installed the necessary
+third party libraries (with their headers) under some place we'll refer to as
+\verb.TPL_TOP..  We can configure and build as
+
+\begin{verbatim}
+./configure --with-opt=3 --with-dbc=none --prefix=/usr/local/Spheral/cxx
+make cxxonly \
+     EXTRAINCLUDES='-I TPL_TOP/include -I TPL/WildMagic5/Include \
+     EXTRALIBS='-L TPL_TOP/lib -L TPL_TOP/WildMagic5/Library/ReleaseDynamic'
+\end{verbatim}
+
+This will resulting \Spheral\ headers will be installed under
+\verb./usr/local/Spheral/cxx/include. and the corresponding libraries in
+\verb./usr/local/Spheral/cxx/lib..
+
+%-------------------------------------------------------------------------------
 \section{Running \Spheral}
 \Spheral\ is just a set of extensions to the Python language, so running
 \Spheral\ is simply a matter of producing a Python script appropriate for your
