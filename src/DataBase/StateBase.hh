@@ -78,6 +78,7 @@ public:
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldSpace::FieldBase<Dimension>& field) const;
+  bool registered(const FieldSpace::FieldListBase<Dimension>& fieldList) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
   // Enroll a Field.

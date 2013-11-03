@@ -298,10 +298,6 @@ SPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  typedef typename StateDerivatives<Dimension>::KeyType Key;
-  const string DxDtName = IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position;
-  const string DvDtName = IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity;
-
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
@@ -333,8 +329,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // These two (the position and velocity updates) may be registered
   // by other physics packages as well, so we need to be careful
   // not to duplicate if so.
-  if (not derivs.fieldNameRegistered(DxDtName)) derivs.enroll(mDxDt);
-  if (not derivs.registered(DvDtName)) derivs.enroll(mDvDt);
+  if (not derivs.registered(mDxDt)) derivs.enroll(mDxDt);
+  if (not derivs.registered(mDvDt)) derivs.enroll(mDvDt);
 
   derivs.enroll(mDmassDensityDt);
   derivs.enroll(mDspecificThermalEnergyDt);
