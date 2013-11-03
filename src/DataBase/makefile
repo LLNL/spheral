@@ -18,7 +18,8 @@ SRCTARGETS = \
 	IncrementBoundedFieldListInst.cc \
 	ReplaceFieldListInst.cc \
 	ReplaceBoundedFieldListInst.cc \
-	CopyFieldListInst.cc
+	CopyFieldListInst.cc \
+	CompositeFieldListPolicyInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
