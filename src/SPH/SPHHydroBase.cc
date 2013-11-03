@@ -23,6 +23,7 @@
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/CompositeFieldListPolicy.hh"
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
@@ -219,29 +220,29 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   state.enroll(mass);
 
-  // Some state needs to be registered by NodeList in order to enforce per NodeList limits.
+  // We need to build up CompositeFieldListPolicies for the mass density and H fields
+  // in order to enforce NodeList dependent limits.
+  FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  FieldList<Dimension, SymTensor> Hfield = dataBase.fluidHfield();
+  boost::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  boost::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
-
-    // Mass density.
-    PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
-                                                                         (*itr)->rhoMax()));
-    state.enroll((*itr)->massDensity(), rhoPolicy);
-
-    // Register the H tensor.
+    rhoPolicy->push_back(PolicyPointer(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
+                                                                                    (*itr)->rhoMax())));
     const Scalar hmaxInv = 1.0/(*itr)->hmax();
     const Scalar hminInv = 1.0/(*itr)->hmin();
     if (HEvolution() == PhysicsSpace::IntegrateH) {
-      PolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
-      state.enroll((*itr)->Hfield(), Hpolicy);
+      Hpolicy->push_back(PolicyPointer(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv)));
     } else {
       CHECK(HEvolution() == PhysicsSpace::IdealH);
-      PolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
-      state.enroll((*itr)->Hfield(), Hpolicy);
+      Hpolicy->push_back(PolicyPointer(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv)));
     }
   }
+  state.enroll(massDensity, rhoPolicy);
+  state.enroll(Hfield, Hpolicy);
 
   // Volume.
   if (updateVolume) state.enroll(mVolume);
