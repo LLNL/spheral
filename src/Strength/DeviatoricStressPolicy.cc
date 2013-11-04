@@ -12,11 +12,13 @@
 #include "Kernel/TableKernel.hh"
 #include "Material/EquationOfState.hh"
 #include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
 
 using FieldSpace::Field;
+using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using KernelSpace::TableKernel;
 
@@ -26,7 +28,7 @@ using KernelSpace::TableKernel;
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
 DeviatoricStressPolicy():
-  IncrementState<Dimension, typename Dimension::SymTensor>() {
+  IncrementFieldList<Dimension, typename Dimension::SymTensor>() {
 }
 
 //------------------------------------------------------------------------------
@@ -38,7 +40,7 @@ DeviatoricStressPolicy<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// Update the field.
+// Update the FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -51,23 +53,26 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::deviatoricStress);
+  REQUIRE(fieldKey == SolidFieldNames::deviatoricStress and
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, SymTensor> S = state.fields(fieldKey, SymTensor::zero);
+  const unsigned numFields = S.numFields();
 
-  // Get the state.
-  KeyType dSKey = State<Dimension>::buildFieldKey(this->prefix() + fieldKey, nodeListKey);
-  CHECK(derivs.registered(dSKey));
-  Field<Dimension, SymTensor>& S = state.field(key, SymTensor::zero);
-  const Field<Dimension, SymTensor>& dS = derivs.field(dSKey, SymTensor::zero);
+  // Get the derivative.
+  KeyType incrementKey = this->prefix() + fieldKey;
+  const FieldSpace::FieldList<Dimension, SymTensor> dS = derivs.fields(incrementKey, SymTensor::zero);
+  CHECK(dS.size() == numFields);
 
   // Loop over the internal values of the field.
-  for (int i = 0; i != S.numInternalElements(); ++i) {
-
-    // Incement the stress.
-    S(i) += multiplier*(dS(i));
+  for (unsigned k = 0; k != numFields; ++k) {
+    const unsigned n = S[k]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+      S(k,i) += multiplier*(dS(k,i));
+    }
+  }
 
 //     // Finally apply the pressure limits to the allowed deviatoric stress.
 //     S(i) = max(Pmin, min(Pmax, S(i)));
-  }
 }
 
 //------------------------------------------------------------------------------

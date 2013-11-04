@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "DataBase/UpdatePolicyBase.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -25,7 +25,7 @@ namespace FieldSpace {
 
 template<typename Dimension>
 class PlasticStrainPolicy: 
-    public UpdatePolicyBase<Dimension> {
+    public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
