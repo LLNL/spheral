@@ -38,6 +38,17 @@ public:
                       const double t,
                       const double dt);
 
+  // An alternate method to be called when you want to specify that the derivative information
+  // should be assumed to not necessarily be properly time-centered, and therefore you should 
+  // only use time advancement ideas, no "replace" or more sophisticated approaches.
+  // Default to just calling the generic method.
+  virtual void updateAsIncrement(const KeyType& key,
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs,
+                                 const double multiplier,
+                                 const double t,
+                                 const double dt);
+
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
