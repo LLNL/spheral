@@ -66,6 +66,36 @@ update(const KeyType& key,
 }
 
 //------------------------------------------------------------------------------
+// Update the FieldList as increment.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename ValueType>
+void
+CompositeFieldListPolicy<Dimension, ValueType>::
+updateAsIncrement(const KeyType& key,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs,
+                  const double multiplier,
+                  const double t,
+                  const double dt) {
+
+  // Get the field name portion of the key.
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+
+  // Find the FieldList for this key.
+  FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
+
+  // Walk the paired Fields and policies.
+  const unsigned numFields = f.numFields();
+  CHECK(mPolicyPtrs.size() == numFields);
+  for (unsigned i = 0; i != numFields; ++i) {
+    KeyType fkey = StateBase<Dimension>::buildFieldKey(fieldKey, f[i]->nodeListPtr()->name());
+    mPolicyPtrs[i].updateAsIncrement(fkey, state, derivs, multiplier, t, dt);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
