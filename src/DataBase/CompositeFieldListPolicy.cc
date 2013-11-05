@@ -14,6 +14,7 @@
 
 namespace Spheral {
 
+using namespace std;
 using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
@@ -86,6 +87,13 @@ void
 CompositeFieldListPolicy<Dimension, ValueType>::
 push_back(const typename CompositeFieldListPolicy<Dimension, ValueType>::PolicyPointer policyPtr) {
   mPolicyPtrs.push_back(policyPtr);
+  const vector<string> newdeps = policyPtr->dependencies();
+  if (mPolicyPtrs.size() == 1) {
+    for (vector<string>::const_iterator itr = newdeps.begin();
+         itr != newdeps.end();
+         ++itr) this->addDependency(*itr);
+  }
+  ENSURE(newdeps == this->dependencies());
 }
 
 }
