@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "boost/shared_ptr.hpp"
+#include "boost/ptr_container/ptr_vector.hpp"
 #include "FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
@@ -41,11 +42,11 @@ public:
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
   // Add new UpdatePolicies to this thing.
-  void push_back(PolicyPointer policyPtr);
+  void push_back(UpdatePolicyBase<Dimension>* policyPtr);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  std::vector<PolicyPointer> mPolicyPtrs;
+  boost::ptr_vector<UpdatePolicyBase<Dimension> > mPolicyPtrs;
 
   CompositeFieldListPolicy(const CompositeFieldListPolicy& rhs);
   CompositeFieldListPolicy& operator=(const CompositeFieldListPolicy& rhs);

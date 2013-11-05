@@ -61,7 +61,7 @@ update(const KeyType& key,
   CHECK(mPolicyPtrs.size() == numFields);
   for (unsigned i = 0; i != numFields; ++i) {
     KeyType fkey = StateBase<Dimension>::buildFieldKey(fieldKey, f[i]->nodeListPtr()->name());
-    mPolicyPtrs[i]->update(fkey, state, derivs, multiplier, t, dt);
+    mPolicyPtrs[i].update(fkey, state, derivs, multiplier, t, dt);
   }
 }
 
@@ -85,7 +85,7 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 template<typename Dimension, typename ValueType>
 void
 CompositeFieldListPolicy<Dimension, ValueType>::
-push_back(const typename CompositeFieldListPolicy<Dimension, ValueType>::PolicyPointer policyPtr) {
+push_back(UpdatePolicyBase<Dimension>* policyPtr) {
   mPolicyPtrs.push_back(policyPtr);
   const vector<string> newdeps = policyPtr->dependencies();
   if (mPolicyPtrs.size() == 1) {
