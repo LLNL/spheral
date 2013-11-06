@@ -216,10 +216,10 @@ update(StateDerivatives<Dimension>& derivs,
           // We also require that any FieldList policies fire before NodeList specific 
           // versions of the same Field names.
           KeyType fieldKey, nodeListKey;
-          splitFieldKey(key, fieldKey, nodeListKey);
+          this->splitFieldKey(key, fieldKey, nodeListKey);
           bool fire = (nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
           if (not fire) {
-            const KeyType wildKey = buildFieldKey(fieldKey, UpdatePolicyBase<Dimension>::wildcard());
+            const KeyType wildKey = this->buildFieldKey(fieldKey, UpdatePolicyBase<Dimension>::wildcard());
             fire = (find(remainingKeys.begin(), remainingKeys.end(), wildKey) == remainingKeys.end());
           }
 
@@ -273,7 +273,7 @@ update(StateDerivatives<Dimension>& derivs,
          keyItr != stateToRemove.end();
          ++keyItr) {
       KeyType fieldKey, nodeListKey;
-      splitFieldKey(*keyItr, fieldKey, nodeListKey);
+      this->splitFieldKey(*keyItr, fieldKey, nodeListKey);
       CHECK(stateToBeCompleted.find(fieldKey) != stateToBeCompleted.end());
       stateToBeCompleted[fieldKey].erase(*keyItr);
       if (stateToBeCompleted[fieldKey].empty()) stateToBeCompleted.erase(fieldKey);
