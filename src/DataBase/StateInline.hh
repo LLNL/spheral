@@ -9,7 +9,9 @@ void
 State<Dimension>::
 enroll(const typename State<Dimension>::KeyType& key,
        typename State<Dimension>::PolicyPointer polptr) {
-  mPolicyMap[key] = polptr;
+  KeyType fieldKey, nodeKey;
+  splitFieldKey(key, fieldKey, nodeKey);
+  mPolicyMap[fieldKey][key] = polptr;
 }
 
 //------------------------------------------------------------------------------
