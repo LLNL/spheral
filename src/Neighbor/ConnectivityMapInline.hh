@@ -18,20 +18,18 @@ ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
                 const NodeListIterator& end):
   mNodeLists(),
-  mConnectivity(),
-  mNodeTraversalIndicies(),
+  mConnectivity(FieldSpace::Copy),
+  mNodeTraversalIndices(),
   mDomainDecompIndependent(false),
   mKeys(FieldSpace::Copy) {
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
   for (NodeListIterator itr = begin; itr != end; ++itr) {
-//     if (dynamic_cast<const NodeSpace::FluidNodeList<Dimension>*>(*itr) != 0) {
-      typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = registrar.findInsertionPoint(*itr,
-                                                                                                                  mNodeLists.begin(),
-                                                                                                                  mNodeLists.end());
-      mNodeLists.insert(posItr, *itr);
-//     }
+    typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = registrar.findInsertionPoint(*itr,
+                                                                                                                mNodeLists.begin(),
+                                                                                                                mNodeLists.end());
+    mNodeLists.insert(posItr, *itr);
   }
 
   // Copy the flag about domain decomposition independence.
@@ -71,7 +69,7 @@ connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
   REQUIRE(nodeListID < mNodeLists.size());
-  return *(*mConnectivity[nodeListID])[nodeID];
+  return mConnectivity(nodeListID, nodeID);
 }
 
 //------------------------------------------------------------------------------
@@ -87,7 +85,7 @@ connectivityForNode(const int nodeListID,
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
           (mDomainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
-  return *(*mConnectivity[nodeListID])[nodeID];
+  return mConnectivity(nodeListID, nodeID);
 }
 
 //------------------------------------------------------------------------------
@@ -138,8 +136,8 @@ inline
 typename ConnectivityMap<Dimension>::const_iterator
 ConnectivityMap<Dimension>::
 begin(const int nodeList) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndicies.size());
-  return mNodeTraversalIndicies[nodeList].begin();
+  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndices.size());
+  return mNodeTraversalIndices[nodeList].begin();
 }
 
 template<typename Dimension>
@@ -147,8 +145,8 @@ inline
 typename ConnectivityMap<Dimension>::const_iterator
 ConnectivityMap<Dimension>::
 end(const int nodeList) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndicies.size());
-  return mNodeTraversalIndicies[nodeList].end();
+  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndices.size());
+  return mNodeTraversalIndices[nodeList].end();
 }
 
 //------------------------------------------------------------------------------
