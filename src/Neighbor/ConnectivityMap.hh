@@ -102,11 +102,11 @@ private:
 
   // The full connectivity map.  This might be quite large!
   // [NodeList] [nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector< boost::shared_ptr< std::vector< boost::shared_ptr<std::vector< std::vector<int> > > > > > ConnectivityStorageType;
+  typedef FieldSpace::FieldList<Dimension, std::vector<std::vector<int> > > ConnectivityStorageType;
   ConnectivityStorageType mConnectivity;
 
   // The set of node indicies per Nodelistin order for traversal.
-  std::vector< std::vector<int> > mNodeTraversalIndicies;
+  std::vector< std::vector<int> > mNodeTraversalIndices;
 
   // Locally cached copy of the flag from NodeListRegistrar as to whether we're
   // running in domain decomposition independent mode or not.
