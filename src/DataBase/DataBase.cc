@@ -425,9 +425,8 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 updateConnectivityMap() const {
-  mConnectivityMapPtr = shared_ptr<ConnectivityMap<Dimension> >
-    (new ConnectivityMap<Dimension>(fluidNodeListBegin(),
-                                    fluidNodeListEnd()));
+  mConnectivityMapPtr = shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>(fluidNodeListBegin(),
+                                                                                               fluidNodeListEnd()));
 }
 
 //------------------------------------------------------------------------------
