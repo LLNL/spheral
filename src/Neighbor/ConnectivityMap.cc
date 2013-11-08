@@ -444,7 +444,11 @@ computeConnectivity() {
 
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists();
-  mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+  if (mConnectivity.size() != numNodeLists) {
+    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+  } else {
+    mConnectivity.Zero();
+  }
   mNodeTraversalIndices = vector< vector<int> >();
 
   // If we're trying to be domain decomposition independent, we need a key to sort
