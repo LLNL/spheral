@@ -189,8 +189,7 @@ newGlobalFieldList(const DataType value,
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) {
-    FieldSpace::Field<Dimension, DataType> newField(name, **nodeListItr, value);
-    result.appendField(newField);
+    result.appendNewField(name, **nodeListItr, value);
   }
 
   ENSURE(result.numFields() == numNodeLists());
@@ -212,8 +211,7 @@ newFluidFieldList(const DataType value,
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd();
        ++nodeListItr) {
-    FieldSpace::Field<Dimension, DataType> newField(name, **nodeListItr, value);
-    result.appendField(newField);
+    result.appendNewField(name, **nodeListItr, value);
   }
 
   ENSURE(result.numFields() == numFluidNodeLists());
