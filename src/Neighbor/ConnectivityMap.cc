@@ -467,7 +467,15 @@ computeConnectivity() {
     }
   }
   if (ok) {
-    mConnectivity = vector<vector<int> >(numNodeLists);
+    for (unsigned i = 0; i != numNodeLists; ++i) {
+      const unsigned n = mConnectivity[i]->numInternalElements();
+      for (unsigned j = 0; j != n; ++j) {
+        for (unsigned k = 0; k != numNodeLists; ++k) {
+          mConnectivity(i, j)[k].clear();
+        }
+      }
+    }
+    // mConnectivity = vector<vector<int> >(numNodeLists);
   } else {
     mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
   }
