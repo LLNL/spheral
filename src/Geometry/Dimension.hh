@@ -25,9 +25,9 @@
 #include "GeomPolyhedron.hh"
 #include "Utilities/FastMath.hh"
 
-// These may be going away.
-#include "Wm5Box2.h"
-#include "Wm5Box3.h"
+// // These may be going away.
+// #include "Wm5Box2.h"
+// #include "Wm5Box3.h"
 
 namespace Spheral {
 
@@ -65,8 +65,8 @@ public:
   typedef GeomTensor<2> Tensor;
   typedef GeomSymmetricTensor<2> SymTensor;
   typedef GeomThirdRankTensor<2> ThirdRankTensor;
-  typedef Wm5::Vector2<double> WMVector;
-  typedef Wm5::Box2<double> Box;
+  // typedef Wm5::Vector2<double> WMVector;
+  // typedef Wm5::Box2<double> Box;
   typedef GeomPolygon ConvexHull;
   typedef GeomPolygon FacetedVolume;
   static const int nDim;
@@ -86,8 +86,8 @@ public:
   typedef GeomTensor<3> Tensor;
   typedef GeomSymmetricTensor<3> SymTensor;
   typedef GeomThirdRankTensor<3> ThirdRankTensor;
-  typedef Wm5::Vector3<double> WMVector;
-  typedef Wm5::Box3<double> Box;
+  // typedef Wm5::Vector3<double> WMVector;
+  // typedef Wm5::Box3<double> Box;
   typedef GeomPolyhedron ConvexHull;
   typedef GeomPolyhedron FacetedVolume;
   static const int nDim;

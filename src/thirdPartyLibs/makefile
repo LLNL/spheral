@@ -309,7 +309,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(ZLIBBUILDDATE) \
 	$(JPEGBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
-	$(WILDMAGICBUILDDATE) \
 	$(QHULLDATE) \
 	$(HDF5BUILDDATE) \
 	$(SILOBUILDDATE) \
@@ -345,7 +344,6 @@ clean:
 	       $(ZLIBDIR) $(ZLIBBUILDDATE) \
 	       $(JPEGDIR) $(JPEGBUILDDATE) \
 	       $(PYBINDGENDIR) $(PYBINDGENBUILDDATE) \
-	       $(WILDMAGICDIR) $(WILDMAGICBUILDDATE) \
 	       $(QHULLDIR) $(QHULLDATE) \
 	       $(HDF5DIR) $(HDF5BUILDDATE) \
 	       $(SILODIR) $(SILOBUILDDATE) \
@@ -836,7 +834,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 $(VISITWRITERDIST):
 	$(CURL) "$(VISITWRITERURL)" > $(VISITWRITERDIST)
 
-$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(WILDMAGICBUILDDATE) $(POLYTOPEBUILDDATE)
+$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"
@@ -1127,7 +1125,7 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 $(MPI4PYDIST):
 	$(CURL) "$(MPI4PYURL)" > $(MPI4PYDIST)
 
-$(MPI4PYBUILDDATE):  $(PYTHONBUILDDATE) $(WILDMAGICBUILDDATE) $(MPI4PYDIST)
+$(MPI4PYBUILDDATE):  $(PYTHONBUILDDATE) $(MPI4PYDIST)
 	@echo "################################################################################"
 	@echo "# Building $(MPI4PYDIST)"
 	@echo "################################################################################"

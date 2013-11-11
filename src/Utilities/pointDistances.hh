@@ -57,24 +57,24 @@ closestPointOnPlane(const Dim<3>::Vector& p,
   return p + (origin - p).dot(unitNormal)*unitNormal;
 }
 
-//------------------------------------------------------------------------------
-// Compute the distance between a point (p) and a triangle (a, b, c).
-//------------------------------------------------------------------------------
-double
-pointTriangleDistance(const Dim<3>::Vector& p,
-                      const Dim<3>::Vector& a,
-                      const Dim<3>::Vector& b,
-                      const Dim<3>::Vector& c);
+// //------------------------------------------------------------------------------
+// // Compute the distance between a point (p) and a triangle (a, b, c).
+// //------------------------------------------------------------------------------
+// double
+// pointTriangleDistance(const Dim<3>::Vector& p,
+//                       const Dim<3>::Vector& a,
+//                       const Dim<3>::Vector& b,
+//                       const Dim<3>::Vector& c);
 
-//------------------------------------------------------------------------------
-// For a point (p) and a triangle (a, b, c), compute the coordinates of the 
-// point on the triangle closest to p.
-//------------------------------------------------------------------------------
-Dim<3>::Vector
-closestPointOnTriangle(const Dim<3>::Vector& p,
-                       const Dim<3>::Vector& a,
-                       const Dim<3>::Vector& b,
-                       const Dim<3>::Vector& c);
+// //------------------------------------------------------------------------------
+// // For a point (p) and a triangle (a, b, c), compute the coordinates of the 
+// // point on the triangle closest to p.
+// //------------------------------------------------------------------------------
+// Dim<3>::Vector
+// closestPointOnTriangle(const Dim<3>::Vector& p,
+//                        const Dim<3>::Vector& a,
+//                        const Dim<3>::Vector& b,
+//                        const Dim<3>::Vector& c);
 
 }
 

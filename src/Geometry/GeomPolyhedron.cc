@@ -390,31 +390,6 @@ convexIntersect(const GeomPolyhedron& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Test if we intersect a box.
-//------------------------------------------------------------------------------
-bool
-GeomPolyhedron::
-intersect(const GeomPolyhedron::Box& rhs) const {
-  BOOST_FOREACH(Vector vec, mVertices) {
-    if (testPointInBox(vec, rhs)) return true;
-  }
-
-  typedef Wm5::Vector3<double> WMVector;
-  vector<WMVector> WMvertices(8);
-  rhs.ComputeVertices(&WMvertices.front());
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[0]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[1]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[2]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[3]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[4]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[5]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[6]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<3> >(WMvertices[7]))) return true;
-
-  return false;
-}
-
-//------------------------------------------------------------------------------
 // Compute the centroid.
 //------------------------------------------------------------------------------
 GeomPolyhedron::Vector

@@ -156,7 +156,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   }
 
   // Compute our node bounding boxes.
-  typedef typename Dimension::Box Box;
+  typedef std::pair<Vector, Vector> Box;
   const FieldList<Dimension, Box> nodeSampleBoxes = nodeBoundingBoxes(dataBase);
 
   // Iterate over all the other domains and check who has bounding volumes that

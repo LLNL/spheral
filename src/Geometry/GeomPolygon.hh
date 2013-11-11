@@ -12,7 +12,6 @@
 
 #include "GeomVector.hh"
 #include "GeomFacet2d.hh"
-#include "Wm5Box2.h"
 
 namespace Spheral {
 
@@ -21,7 +20,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef GeomVector<2> Vector;
   typedef GeomFacet2d Facet;
-  typedef Wm5::Box2<double> Box;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -55,7 +53,6 @@ public:
   // Test if we intersect another polygon.
   bool intersect(const GeomPolygon& rhs) const;
   bool convexIntersect(const GeomPolygon& rhs) const;
-  bool intersect(const Box& rhs) const;
 
   // Return the intersections of this polygon with a line segment 
   // denoted by it's end points.

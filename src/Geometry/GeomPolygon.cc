@@ -19,7 +19,6 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
-#include "Utilities/spheralWildMagicConverters.hh"
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
@@ -320,27 +319,6 @@ convexIntersect(const GeomPolygon& rhs) const {
 
   // We can't exclude anybody, so must intersect!
   return true;
-}
-
-//------------------------------------------------------------------------------
-// Test if we intersect a box.
-//------------------------------------------------------------------------------
-bool
-GeomPolygon::
-intersect(const GeomPolygon::Box& rhs) const {
-  BOOST_FOREACH(Vector vec, mVertices) {
-    if (testPointInBox(vec, rhs)) return true;
-  }
-
-  typedef Wm5::Vector2<double> WMVector;
-  vector<WMVector> WMvertices(4);
-  rhs.ComputeVertices(&WMvertices.front());
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[0]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[1]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[2]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[3]))) return true;
-
-  return false;
 }
 
 //------------------------------------------------------------------------------
