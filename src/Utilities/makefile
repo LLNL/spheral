@@ -15,13 +15,10 @@ SRCTARGETS = \
 	nodeOrderingInst.cc \
 	RegisterMPIDataTypes.cc \
 	RedistributionRegistrar.cc \
-	spheralWildMagicConvertersInst.cc \
-	orientedBoundingBoxInst.cc \
 	nodeBoundingBoxesInst.cc \
 	boundingBoxInst.cc \
 	globalBoundingVolumesInst.cc \
 	lineSegmentIntersections.cc \
-	pointDistances.cc \
 	integrateThroughMeshAlongSegmentInst.cc \
 	numberDensityInst.cc \
 	medianPositionInst.cc \

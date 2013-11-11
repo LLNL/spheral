@@ -26,39 +26,19 @@ class Neighbor:
         space = Spheral.add_cpp_namespace("NeighborSpace")
 
         # Expose types.
-        self.GridCellIndex1d = addObject(space, "GridCellIndex1d")
-        self.GridCellIndex2d = addObject(space, "GridCellIndex2d")
-        self.GridCellIndex3d = addObject(space, "GridCellIndex3d")
-        
-        self.GridCellPlane1d = addObject(space, "GridCellPlane1d")
-        self.GridCellPlane2d = addObject(space, "GridCellPlane2d")
-        self.GridCellPlane3d = addObject(space, "GridCellPlane3d")
-
-        self.Neighbor1d = addObject(space, "Neighbor1d", allow_subclassing=True)
-        self.Neighbor2d = addObject(space, "Neighbor2d", allow_subclassing=True)
-        self.Neighbor3d = addObject(space, "Neighbor3d", allow_subclassing=True)
-
-        self.NestedGridNeighbor1d = addObject(space, "NestedGridNeighbor1d", parent=self.Neighbor1d)
-        self.NestedGridNeighbor2d = addObject(space, "NestedGridNeighbor2d", parent=self.Neighbor2d)
-        self.NestedGridNeighbor3d = addObject(space, "NestedGridNeighbor3d", parent=self.Neighbor3d)
-
-        self.TreeNeighbor1d = addObject(space, "TreeNeighbor1d", parent=self.Neighbor1d)
-        self.TreeNeighbor2d = addObject(space, "TreeNeighbor2d", parent=self.Neighbor2d)
-        self.TreeNeighbor3d = addObject(space, "TreeNeighbor3d", parent=self.Neighbor3d)
-
-        self.ConnectivityMap1d = addObject(space, "ConnectivityMap1d", allow_subclassing=True)
-        self.ConnectivityMap2d = addObject(space, "ConnectivityMap2d", allow_subclassing=True)
-        self.ConnectivityMap3d = addObject(space, "ConnectivityMap3d", allow_subclassing=True)
-
         self.NeighborSearchType = space.add_enum("NeighborSearchType", ["None", "Gather", "Scatter", "GatherScatter"])
 
-        self.vector_of_GridCellIndex1d = addObject(mod, "vector_of_GridCellIndex1d", allow_subclassing=True)
-        self.vector_of_GridCellIndex2d = addObject(mod, "vector_of_GridCellIndex2d", allow_subclassing=True)
-        self.vector_of_GridCellIndex3d = addObject(mod, "vector_of_GridCellIndex3d", allow_subclassing=True)
-
-        self.vector_of_vector_of_GridCellIndex1d = addObject(mod, "vector_of_vector_of_GridCellIndex1d", allow_subclassing=True)
-        self.vector_of_vector_of_GridCellIndex2d = addObject(mod, "vector_of_vector_of_GridCellIndex2d", allow_subclassing=True)
-        self.vector_of_vector_of_GridCellIndex3d = addObject(mod, "vector_of_vector_of_GridCellIndex3d", allow_subclassing=True)
+        for ndim in (1, 2, 3):
+            exec("""
+self.GridCellIndex%(ndim)id = addObject(space, "GridCellIndex%(ndim)id")
+self.GridCellPlane%(ndim)id = addObject(space, "GridCellPlane%(ndim)id")
+self.Neighbor%(ndim)id = addObject(space, "Neighbor%(ndim)id", allow_subclassing=True)
+self.NestedGridNeighbor%(ndim)id = addObject(space, "NestedGridNeighbor%(ndim)id", parent=self.Neighbor%(ndim)id)
+self.TreeNeighbor%(ndim)id = addObject(space, "TreeNeighbor%(ndim)id", parent=self.Neighbor%(ndim)id)
+self.ConnectivityMap%(ndim)id = addObject(space, "ConnectivityMap%(ndim)id", allow_subclassing=True)
+self.vector_of_GridCellIndex%(ndim)id = addObject(mod, "vector_of_GridCellIndex%(ndim)id", allow_subclassing=True)
+self.vector_of_vector_of_GridCellIndex%(ndim)id = addObject(mod, "vector_of_vector_of_GridCellIndex%(ndim)id", allow_subclassing=True)
+""" % {"ndim" : ndim})
 
         return
 
@@ -67,37 +47,17 @@ class Neighbor:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateGridCellIndexBindings(self.GridCellIndex1d, 1)
-        self.generateGridCellIndexBindings(self.GridCellIndex2d, 2)
-        self.generateGridCellIndexBindings(self.GridCellIndex3d, 3)
-
-        self.generateGridCellPlaneBindings(self.GridCellPlane1d, 1)
-        self.generateGridCellPlaneBindings(self.GridCellPlane2d, 2)
-        self.generateGridCellPlaneBindings(self.GridCellPlane3d, 3)
-
-        self.generateNeighborBindings(self.Neighbor1d, 1)
-        self.generateNeighborBindings(self.Neighbor2d, 2)
-        self.generateNeighborBindings(self.Neighbor3d, 3)
-
-        self.generateNestedGridNeighborBindings(self.NestedGridNeighbor1d, 1)
-        self.generateNestedGridNeighborBindings(self.NestedGridNeighbor2d, 2)
-        self.generateNestedGridNeighborBindings(self.NestedGridNeighbor3d, 3)
-
-        self.generateTreeNeighborBindings(self.TreeNeighbor1d, 1)
-        self.generateTreeNeighborBindings(self.TreeNeighbor2d, 2)
-        self.generateTreeNeighborBindings(self.TreeNeighbor3d, 3)
-
-        self.generateConnectivityMapBindings(self.ConnectivityMap1d, 1)
-        self.generateConnectivityMapBindings(self.ConnectivityMap2d, 2)
-        self.generateConnectivityMapBindings(self.ConnectivityMap3d, 3)
-
-        generateStdVectorBindings(self.vector_of_GridCellIndex1d, "Spheral::NeighborSpace::GridCellIndex1d", "vector_of_GridCellIndex1d", indexAsPointer=True)
-        generateStdVectorBindings(self.vector_of_GridCellIndex2d, "Spheral::NeighborSpace::GridCellIndex2d", "vector_of_GridCellIndex2d", indexAsPointer=True)
-        generateStdVectorBindings(self.vector_of_GridCellIndex3d, "Spheral::NeighborSpace::GridCellIndex3d", "vector_of_GridCellIndex3d", indexAsPointer=True)
-
-        generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex1d, "vector_of_GridCellIndex1d", "vector_of_vector_of_GridCellIndex1d", indexAsPointer=True)
-        generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex2d, "vector_of_GridCellIndex2d", "vector_of_vector_of_GridCellIndex2d", indexAsPointer=True)
-        generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex3d, "vector_of_GridCellIndex3d", "vector_of_vector_of_GridCellIndex3d", indexAsPointer=True)
+        for ndim in (1, 2, 3):
+            exec("""
+self.generateGridCellIndexBindings(self.GridCellIndex%(ndim)id, %(ndim)i)
+self.generateGridCellPlaneBindings(self.GridCellPlane%(ndim)id, %(ndim)i)
+self.generateNeighborBindings(self.Neighbor%(ndim)id, %(ndim)i)
+self.generateNestedGridNeighborBindings(self.NestedGridNeighbor%(ndim)id, %(ndim)i)
+self.generateTreeNeighborBindings(self.TreeNeighbor%(ndim)id, %(ndim)i)
+self.generateConnectivityMapBindings(self.ConnectivityMap%(ndim)id, %(ndim)i)
+generateStdVectorBindings(self.vector_of_GridCellIndex%(ndim)id, "Spheral::NeighborSpace::GridCellIndex%(ndim)id", "vector_of_GridCellIndex%(ndim)id", indexAsPointer=True)
+generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vector_of_GridCellIndex%(ndim)id", "vector_of_vector_of_GridCellIndex%(ndim)id", indexAsPointer=True)
+""" % {"ndim" : ndim})
 
         return
 
@@ -432,6 +392,9 @@ class Neighbor:
         fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
         vector_of_const_nodelist = "vector_of_const_nodelist%id" % ndim
         intfieldlist = "Spheral::FieldSpace::IntFieldList%id" % ndim
+
+        # Constructor.
+        x.add_constructor([])
 
         # Methods.
         x.add_method("patchConnectivity", None, [constrefparam(intfieldlist, "flags"),

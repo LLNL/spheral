@@ -11,7 +11,6 @@
 #include <vector>
 #include "GeomVector.hh"
 #include "GeomFacet3d.hh"
-#include "Wm5Box3.h"
 
 namespace Spheral {
 
@@ -20,7 +19,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef GeomVector<3> Vector;
   typedef GeomFacet3d Facet;
-  typedef Wm5::Box3<double> Box;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -53,7 +51,7 @@ public:
   // Test if we intersect another polyhedron.
   bool intersect(const GeomPolyhedron& rhs) const;
   bool convexIntersect(const GeomPolyhedron& rhs) const;
-  bool intersect(const Box& rhs) const;
+  bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
   // Return the centroid of the vertices.
   Vector centroid() const;

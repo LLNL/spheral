@@ -50,7 +50,8 @@ template<typename Dimension>
 DataBase<Dimension>::DataBase():
   mNodeListPtrs(0),
   mFluidNodeListPtrs(0),
-  mFluidNodeListAsNodeListPtrs(0) {
+  mFluidNodeListAsNodeListPtrs(0),
+  mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
 }
 
 //------------------------------------------------------------------------------
@@ -72,6 +73,7 @@ operator=(const DataBase<Dimension>& rhs) {
     mNodeListPtrs = rhs.mNodeListPtrs;
     mFluidNodeListPtrs = rhs.mFluidNodeListPtrs;
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
+    mConnectivityMapPtr = boost::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
   return *this;
@@ -425,8 +427,9 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 updateConnectivityMap() const {
-  mConnectivityMapPtr = shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>(fluidNodeListBegin(),
-                                                                                               fluidNodeListEnd()));
+  REQUIRE(mConnectivityMapPtr != 0 and
+          mConnectivityMapPtr.get() != 0);
+  mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd());
 }
 
 //------------------------------------------------------------------------------

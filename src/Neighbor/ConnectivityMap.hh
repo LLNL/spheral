@@ -41,10 +41,16 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors, destructor.
+  ConnectivityMap();
+  ~ConnectivityMap();
+
   template<typename NodeListIterator>
   ConnectivityMap(const NodeListIterator& begin,
                   const NodeListIterator& end);
-  ~ConnectivityMap();
+
+  // Rebuild for a given set of NodeLists.
+  template<typename NodeListIterator>
+  void rebuild(const NodeListIterator& begin, const NodeListIterator& end);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
@@ -121,7 +127,6 @@ private:
   void computeConnectivity();
 
   // No default constructor, copying, or assignment.
-  ConnectivityMap();
   ConnectivityMap(const ConnectivityMap&);
   ConnectivityMap& operator=(const ConnectivityMap&);
 #endif

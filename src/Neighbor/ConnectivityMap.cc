@@ -31,6 +31,20 @@ using FieldSpace::Field;
 using BoundarySpace::Boundary;
 
 //------------------------------------------------------------------------------
+// Constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+ConnectivityMap<Dimension>::
+ConnectivityMap():
+  mNodeLists(),
+  mConnectivity(FieldSpace::Copy),
+  mNodeTraversalIndices(),
+  mDomainDecompIndependent(NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent()),
+  mKeys(FieldSpace::Copy) {
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -21,12 +21,12 @@ using DataBaseSpace::DataBase;
 // The bounding boxes for a NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-Field<Dimension, typename Dimension::Box>
+Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
 nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::Box Box;
+  typedef std::pair<typename Dimension::Vector, typename Dimension::Vector> Box;
 
   Field<Dimension, Box> result("NodeList bounding boxes", nodes);
   const Field<Dimension, Vector>& positions = nodes.positions();
@@ -43,12 +43,12 @@ nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes) {
 // The bounding boxes for all nodes in a DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldList<Dimension, typename Dimension::Box>
+FieldList<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
 nodeBoundingBoxes(const DataBaseSpace::DataBase<Dimension>& dataBase) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::Box Box;
+  typedef std::pair<typename Dimension::Vector, typename Dimension::Vector> Box;
 
   FieldList<Dimension, Box> result = dataBase.newGlobalFieldList(Box(), "Bounding boxes");
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();

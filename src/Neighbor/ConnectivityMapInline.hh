@@ -20,11 +20,31 @@ ConnectivityMap(const NodeListIterator& begin,
   mNodeLists(),
   mConnectivity(FieldSpace::Copy),
   mNodeTraversalIndices(),
-  mDomainDecompIndependent(false),
+  mDomainDecompIndependent(NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent()),
   mKeys(FieldSpace::Copy) {
+
+  // The private method does the grunt work of filling in the connectivity once we have
+  // established the set of NodeLists.
+  this->rebuild(begin, end);
+
+  // We'd better be valid after the constructor is finished!
+  ENSURE(valid());
+}
+
+//------------------------------------------------------------------------------
+// Rebuild for a given set of NodeLists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename NodeListIterator>
+inline
+void
+ConnectivityMap<Dimension>::
+rebuild(const NodeListIterator& begin,
+        const NodeListIterator& end) {
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
+  mNodeLists = std::vector<const NodeSpace::NodeList<Dimension>*>();
   for (NodeListIterator itr = begin; itr != end; ++itr) {
     typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = registrar.findInsertionPoint(*itr,
                                                                                                                 mNodeLists.begin(),
@@ -32,14 +52,7 @@ ConnectivityMap(const NodeListIterator& begin,
     mNodeLists.insert(posItr, *itr);
   }
 
-  // Copy the flag about domain decomposition independence.
-  mDomainDecompIndependent = registrar.domainDecompositionIndependent();
-
-  // The private method does the grunt work of filling in the connectivity once we have
-  // established the set of NodeLists.
-  computeConnectivity();
-
-  // We'd better be valid after the constructor is finished!
+  this->computeConnectivity();
   ENSURE(valid());
 }
 

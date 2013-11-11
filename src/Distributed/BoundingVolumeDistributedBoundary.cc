@@ -19,10 +19,8 @@
 #include "Field/FieldList.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
-#include "Utilities/orientedBoundingBox.hh"
 #include "Utilities/nodeBoundingBoxes.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/packWMElement.hh"
 #include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
 #include "Communicator.hh"
@@ -156,7 +154,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   }
 
   // Compute our node bounding boxes.
-  typedef typename Dimension::Box Box;
+  typedef std::pair<Vector, Vector> Box;
   const FieldList<Dimension, Box> nodeSampleBoxes = nodeBoundingBoxes(dataBase);
 
   // Iterate over all the other domains and check who has bounding volumes that
