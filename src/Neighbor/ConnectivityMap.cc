@@ -458,10 +458,18 @@ computeConnectivity() {
 
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists();
-  if (mConnectivity.size() != numNodeLists) {
-    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+  bool ok = (mConnectivity.size() == numNodeLists);
+  {
+    unsigned i = 0;
+    while (ok and i != numNodeLists) {
+      ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
+      ++i;
+    }
+  }
+  if (ok) {
+    mConnectivity = vector<vector<int> >(numNodeLists);
   } else {
-    mConnectivity.Zero();
+    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
   }
   mNodeTraversalIndices = vector< vector<int> >();
 
