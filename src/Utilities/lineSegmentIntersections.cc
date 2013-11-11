@@ -521,10 +521,11 @@ segmentSegmentDistance(const Dim<3>::Vector& a0,
                        const Dim<3>::Vector& b0,
                        const Dim<3>::Vector& b1) {
   typedef Dim<3>::Vector Vector;
-  const double reltol = 1.0e-10*helpfulScaleFactor(a0, a1, b0, b1);
-  const Vector u = a1 - a0,
-               v = b1 - b0,
-               w = a0 - b0;
+  const double tol = 1.0e-10;
+  const double fscale = helpfulScaleFactor(a0, a1, b0, b1);
+  const Vector u = (a1 - a0)/fscale,
+               v = (b1 - b0)/fscale,
+               w = (a0 - b0)/fscale;
   const double a = u.magnitude2(),         // always >= 0
                b = u.dot(v),
                c = v.magnitude2(),         // always >= 0
@@ -535,7 +536,7 @@ segmentSegmentDistance(const Dim<3>::Vector& a0,
   double tc, tN, tD = D;       // tc = tN / tD, default tD = D >= 0
 
   // compute the line parameters of the two closest points
-  if (D < reltol) { // the lines are almost parallel
+  if (D < tol) { // the lines are almost parallel
     sN = 0.0;       // force using point P0 on segment S1
     sD = 1.0;       // to prevent possible division by 0.0 later
     tN = e;
@@ -579,13 +580,13 @@ segmentSegmentDistance(const Dim<3>::Vector& a0,
   }
 
   // finally do the division to get sc and tc
-  sc = (std::abs(sN) < reltol ? 0.0 : sN / sD);
-  tc = (std::abs(tN) < reltol ? 0.0 : tN / tD);
+  sc = (std::abs(sN) < tol ? 0.0 : sN / sD);
+  tc = (std::abs(tN) < tol ? 0.0 : tN / tD);
 
   // get the difference of the two closest points
   Vector dP = w + (sc * u) - (tc * v);  // =  S1(sc) - S2(tc)
 
-  return dP.magnitude();   // return the closest distance
+  return dP.magnitude() * fscale;   // return the closest distance
 }
 
 //------------------------------------------------------------------------------
