@@ -130,6 +130,19 @@ convexIntersect(const Box1d& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if the boxes intersect.
+// rhs box reprsented as (xmin, xmax) bounding coordinates.
+//------------------------------------------------------------------------------
+inline
+bool
+Box1d::
+intersect(const std::pair<Vector, Vector>& rhs) const {
+  if (mCenter.x() + mExtent < rhs.first.x()) return false;
+  if (mCenter.x() - mExtent > rhs.second.x()) return false;
+  return true;
+}
+
+//------------------------------------------------------------------------------
 // Center attribute.
 //------------------------------------------------------------------------------
 inline

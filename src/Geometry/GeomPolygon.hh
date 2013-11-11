@@ -53,6 +53,7 @@ public:
   // Test if we intersect another polygon.
   bool intersect(const GeomPolygon& rhs) const;
   bool convexIntersect(const GeomPolygon& rhs) const;
+  bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
   // Return the intersections of this polygon with a line segment 
   // denoted by it's end points.
