@@ -390,6 +390,86 @@ convexIntersect(const GeomPolyhedron& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if we intersect the given box.
+//------------------------------------------------------------------------------
+bool
+GeomPolyhedron::
+intersect(const std::pair<Vector, Vector>& rhs) const {
+  if (not testBoxIntersection(mXmin, mXmax, rhs.first, rhs.second)) return false;
+  
+  // Build a GeompPolygon representation of the box and use our generic intersection
+  // method.
+  // Create the piecewise linear complex representing the box. Note that 
+  // the box consists of facets that are defined by their connections to 
+  // generating points.
+  // Should look like the following:
+  //
+  //        6--------7            y
+  //       /        /|            |
+  //      /        / |            |
+  //     2--------3  |             ------x
+  //     |  .     |  |           /
+  //     |  4.....|..5          z
+  //     | .      | / 
+  //     |.       |/
+  //     0--------1             
+  //
+  vector<Vector> verts(8);
+  vector<vector<unsigned> > facets(6, vector<unsigned>(4));
+
+  // Vertices.
+  const double x1 = rhs.first.x(), y1 = rhs.first.y(), z1 = rhs.first.z(),
+               x2 = rhs.second.x(), y2 = rhs.second.y(), z2 = rhs.second.z();
+  verts[0] = Vector(x1, y1, z2);
+  verts[1] = Vector(x2, y1, z2);
+  verts[2] = Vector(x1, y2, z2);
+  verts[3] = Vector(x2, y2, z2);
+  verts[4] = Vector(x1, y1, z1);
+  verts[5] = Vector(x2, y1, z1);
+  verts[6] = Vector(x1, y2, z1);
+  verts[7] = Vector(x2, y2, z1);
+
+  // facet 0 -- bottom face.
+  facets[0][0] = 0;
+  facets[0][1] = 4;
+  facets[0][2] = 5;
+  facets[0][3] = 1;
+
+  // facet 1 -- top face.
+  facets[1][0] = 2;
+  facets[1][1] = 3;
+  facets[1][2] = 7;
+  facets[1][3] = 6;
+
+  // facet 2 -- left face.
+  facets[2][0] = 0;
+  facets[2][1] = 2;
+  facets[2][2] = 6;
+  facets[2][3] = 4;
+
+  // facet 3 -- right face.
+  facets[3][0] = 1;
+  facets[3][1] = 5;
+  facets[3][2] = 7;
+  facets[3][3] = 3;
+
+  // facet 4 -- front face.
+  facets[4][0] = 0;
+  facets[4][1] = 1;
+  facets[4][2] = 3;
+  facets[4][3] = 2;
+
+  // facet 5 -- back face.
+  facets[5][0] = 5;
+  facets[5][1] = 4;
+  facets[5][2] = 6;
+  facets[5][3] = 7;
+
+  GeomPolyhedron other(verts, facets);
+  return this->intersect(other);
+}
+
+//------------------------------------------------------------------------------
 // Compute the centroid.
 //------------------------------------------------------------------------------
 GeomPolyhedron::Vector

@@ -322,6 +322,30 @@ convexIntersect(const GeomPolygon& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if we intersect the given box.
+//------------------------------------------------------------------------------
+bool
+GeomPolygon::
+intersect(const std::pair<Vector, Vector>& rhs) const {
+  if (not testBoxIntersection(mXmin, mXmax, rhs.first, rhs.second)) return false;
+  
+  // Build a GeompPolygon representation of the box and use our generic intersection
+  // method.
+  vector<Vector> verts(4);
+  verts[0] = rhs.first; 
+  verts[1] = Vector(rhs.second.x(), rhs.first.y());
+  verts[2] = rhs.second;
+  verts[3] = Vector(rhs.first.x(), rhs.second.y());
+  vector<vector<unsigned> > facets(4);
+  facets[0].push_back(0); facets[0].push_back(1);
+  facets[1].push_back(1); facets[1].push_back(2);
+  facets[2].push_back(2); facets[2].push_back(3);
+  facets[3].push_back(3); facets[3].push_back(0);
+  GeomPolygon other(verts, facets);
+  return this->intersect(other);
+}
+
+//------------------------------------------------------------------------------
 // Compute the intersections with a line segment.
 //------------------------------------------------------------------------------
 vector<GeomPolygon::Vector>

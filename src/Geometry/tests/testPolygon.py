@@ -219,11 +219,8 @@ class TestPolygon(unittest.TestCase):
     def testIntersectBoxInterior(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid()
-        box = WMBox2d(WMVector2d(centroid.x, centroid.y),
-                      WMVector2d(1.0, 0.0),
-                      WMVector2d(0.0, 1.0),
-                      0.95*rinner,
-                      0.95*rinner)
+        box = pair_Vector2d_Vector2d(centroid - 0.95*rinner*Vector.one,
+                                     centroid + 0.95*rinner*Vector.one)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a contained box.")
         return
@@ -234,11 +231,8 @@ class TestPolygon(unittest.TestCase):
     def testIntersectBoxExterior(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid()
-        box = WMBox2d(WMVector2d(centroid.x, centroid.y),
-                      WMVector2d(1.0, 0.0),
-                      WMVector2d(0.0, 1.0),
-                      2.0*router,
-                      2.0*router)
+        box = pair_Vector2d_Vector2d(centroid - 2.0*router*Vector.one,
+                                     centroid + 2.0*router*Vector.one)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a box we are in.")
         return
@@ -253,11 +247,7 @@ class TestPolygon(unittest.TestCase):
             if fuzzyEqual(v.x, xmin, 1.0e-10):
                 vertex = v
         assert not vertex is None
-        box = WMBox2d(WMVector2d(v.x - 1.0, v.y - 1.0),
-                      WMVector2d(1.0, 0.0),
-                      WMVector2d(0.0, 1.0),
-                      1.0,
-                      1.0)
+        box = pair_Vector2d_Vector2d(Vector(v.x - 2.0, v.y - 2.0), v)
         self.failUnless(self.polygon.intersect(box),
                         "Failed to intersect with a box touching on one side.")
 
@@ -265,16 +255,9 @@ class TestPolygon(unittest.TestCase):
     # Test that that we don't intersect a box outside the polygon.
     #---------------------------------------------------------------------------
     def testNotIntersectBox(self):
-        xmin = self.polygon.xmin.x
-        centroid = self.polygon.centroid()
-        delta = centroid.x - xmin
-        assert delta > 0.0
-        centroid.x -= 3.0*delta
-        box = WMBox2d(WMVector2d(centroid.x, centroid.y),
-                      WMVector2d(1.0, 0.0),
-                      WMVector2d(0.0, 1.0),
-                      delta,
-                      delta)
+        xmin, xmax = self.polygon.xmin, self.polygon.xmax
+        delta = xmax - xmin
+        box = pair_Vector2d_Vector2d(xmin - 2.0*delta, xmax - 2.0*delta)
         self.failUnless(not self.polygon.intersect(box),
                         "Erroneously intersect external box.")
 

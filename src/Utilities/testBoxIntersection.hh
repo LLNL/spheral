@@ -9,6 +9,7 @@
 #ifndef __Spheral_testBoxIntersection__
 #define __Spheral_testBoxIntersection__
 
+#include <utility>
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -59,6 +60,18 @@ testBoxIntersection(const Dim<3>::Vector& xmin1, const Dim<3>::Vector& xmax1,
 }
 
 //------------------------------------------------------------------------------
+// Same as above using std::pairs to hold the box min/max's.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+testBoxIntersection(const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box1,
+                    const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box2,
+                    const double tol = 1.0e-10) {
+  return testBoxIntersection(box1.first, box1.second, box2.first, box2.second, tol);
+}
+
+//------------------------------------------------------------------------------
 // Test if a point is contained in a box.
 //------------------------------------------------------------------------------
 inline
@@ -100,6 +113,18 @@ testPointInBox(const Dim<3>::Vector& point,
   if (point.z() > (xmax.z() + tol)) return false;
 
   return true;
+}
+
+//------------------------------------------------------------------------------
+// Same as above but specifying the box min/max using a std::pair.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+testPointInBox(const typename Dimension::Vector& point,
+               const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box,
+               const double tol = 1.0e-10) {
+  return testPointInBox(point, box.first, box.second, tol);
 }
 
 }

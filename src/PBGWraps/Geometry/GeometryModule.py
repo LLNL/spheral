@@ -667,7 +667,6 @@ class Geometry:
     def addPolygonMethods(self, x):
 
         me = "Spheral::Polygon"
-        box = "Wm5::WMBox2d"
 
         # Constructors.
         x.add_constructor([])
@@ -685,7 +684,7 @@ class Geometry:
                                                 param("double", "tol", default_value="1.0e-8")], is_const=True)
         x.add_method("intersect", "bool", [constrefparam(me, "rhs")], is_const=True)
         x.add_method("convexIntersect", "bool", [constrefparam(me, "rhs")], is_const=True)
-        x.add_method("intersect", "bool", [constrefparam(box, "box")], is_const=True)
+        x.add_method("intersect", "bool", [constrefparam("pair_Vector2d_Vector2d", "rhs")], is_const=True)
         x.add_method("intersect", "vector_of_Vector2d", [constrefparam("Vector2d", "x0"),
                                                          constrefparam("Vector2d", "x1")], is_const=True)
         x.add_method("centroid", "Vector2d", [], is_const=True)
@@ -730,7 +729,6 @@ class Geometry:
     def addPolyhedronMethods(self, x):
 
         me = "Spheral::Polyhedron"
-        box = "Wm5::WMBox3d"
 
         # Constructors.
         x.add_constructor([])
@@ -748,7 +746,7 @@ class Geometry:
                                                 param("double", "tol", default_value="1.0e-8")], is_const=True)
         x.add_method("intersect", "bool", [constrefparam(me, "rhs")], is_const=True)
         x.add_method("convexIntersect", "bool", [constrefparam(me, "rhs")], is_const=True)
-        x.add_method("intersect", "bool", [constrefparam(box, "box")], is_const=True)
+        x.add_method("intersect", "bool", [constrefparam("pair_Vector3d_Vector3d", "rhs")], is_const=True)
         x.add_method("centroid", "Vector3d", [], is_const=True)
         x.add_function_as_method("const_reference_as_pointer",
                                  retval(ptr("vector_of_Vector3d"), reference_existing_object=True),
