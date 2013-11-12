@@ -54,7 +54,7 @@ public:
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
-  // old2new -- maps old -> new node indicies.
+  // old2new -- maps old -> new node indices.
   void patchConnectivity(const FieldSpace::FieldList<Dimension, int>& flags,
                          const FieldSpace::FieldList<Dimension, int>& old2new);
 
@@ -111,12 +111,8 @@ private:
   typedef FieldSpace::FieldList<Dimension, std::vector<std::vector<int> > > ConnectivityStorageType;
   ConnectivityStorageType mConnectivity;
 
-  // The set of node indicies per Nodelistin order for traversal.
+  // The set of node indices per Nodelist in order for traversal.
   std::vector< std::vector<int> > mNodeTraversalIndices;
-
-  // Locally cached copy of the flag from NodeListRegistrar as to whether we're
-  // running in domain decomposition independent mode or not.
-  bool mDomainDecompIndependent;
 
   // The set of keys we may compute for each node.
   typedef typename KeyTraits::Key Key;

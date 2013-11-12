@@ -20,7 +20,6 @@ ConnectivityMap(const NodeListIterator& begin,
   mNodeLists(),
   mConnectivity(FieldSpace::Copy),
   mNodeTraversalIndices(),
-  mDomainDecompIndependent(NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent()),
   mKeys(FieldSpace::Copy) {
 
   // The private method does the grunt work of filling in the connectivity once we have
@@ -76,9 +75,10 @@ const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
 connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   REQUIRE(nodeID >= 0 and 
           (nodeID < nodeListPtr->numInternalNodes()) or
-          (mDomainDecompIndependent and nodeID < nodeListPtr->numNodes()));
+          (domainDecompIndependent and nodeID < nodeListPtr->numNodes()));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
   REQUIRE(nodeListID < mNodeLists.size());
@@ -94,10 +94,11 @@ const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
 connectivityForNode(const int nodeListID,
                     const int nodeID) const {
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   REQUIRE(nodeListID >= 0 and nodeListID < mNodeLists.size());
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
-          (mDomainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
+          (domainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
   return mConnectivity(nodeListID, nodeID);
 }
 
@@ -129,7 +130,8 @@ ConnectivityMap<Dimension>::
 calculatePairInteraction(const int nodeListi, const int i,
                          const int nodeListj, const int j,
                          const int firstGhostNodej) const {
-  if (mDomainDecompIndependent) {
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  if (domainDecompIndependent) {
     return ((nodeListj > nodeListi) or
             (nodeListj == nodeListi and 
              (mKeys(nodeListj, j) == mKeys(nodeListi, i) ? j > 1 : mKeys(nodeListj, j) > mKeys(nodeListi, i))));
