@@ -462,31 +462,33 @@ computeConnectivity() {
   const double kernelExtent2 = kernelExtent*kernelExtent;
 
   // Erase any prior information.
+  CHECK(mNodeTraversalIndices.size() == mConnectivity.size());
   const unsigned numNodeLists = dataBase.numNodeLists();
-  // bool ok = (mConnectivity.size() == numNodeLists);
-  // {
-  //   unsigned i = 0;
-  //   while (ok and i != numNodeLists) {
-  //     ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
-  //     ++i;
-  //   }
-  // }
-  // if (ok) {
-  //   for (unsigned i = 0; i != numNodeLists; ++i) {
-  //     const unsigned n = (domainDecompIndependent ? 
-  //                         mConnectivity[i]->numElements() :
-  //                         mConnectivity[i]->numInternalElements());
-  //     for (unsigned j = 0; j != n; ++j) {
-  //       for (unsigned k = 0; k != numNodeLists; ++k) {
-  //         mConnectivity(i, j)[k].clear();
-  //       }
-  //     }
-  //   }
-  // } else {
-  //   mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
-  // }
-  mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
-  mNodeTraversalIndices = vector< vector<int> >();
+  bool ok = (mConnectivity.size() == numNodeLists);
+  {
+    unsigned i = 0;
+    while (ok and i != numNodeLists) {
+      ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
+      ++i;
+    }
+  }
+  if (ok) {
+    for (unsigned i = 0; i != numNodeLists; ++i) {
+      for (unsigned j = 0; j != mConnectivity[i]->numInternalElements(); ++j) {
+        for (unsigned k = 0; k != numNodeLists; ++k) {
+          mConnectivity(i,j)[k].clear();
+        }
+        if (domainDecompIndependent) {
+          for (unsigned j = mConnectivity[i]->numInternalElements(); j != mConnectivity[i]->numElements(); ++j) {
+            mConnectivity(i,j).resize(numNodeLists);
+          }
+        }
+      }
+    }
+  } else {
+    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+    mNodeTraversalIndices = vector< vector<int> >(numNodeLists);
+  }
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
@@ -495,11 +497,11 @@ computeConnectivity() {
   if (domainDecompIndependent) mKeys = mortonOrderIndicies(dataBase);
 
   // Fill in the ordering for walking the nodes.
+  CHECK(mNodeTraversalIndices.size() == numNodeLists);
   if (domainDecompIndependent) {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       const NodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
-      mNodeTraversalIndices.push_back(vector<int>(nodeList.numNodes()));
-      CHECK(mNodeTraversalIndices.size() == iNodeList + 1);
+      mNodeTraversalIndices[iNodeList].resize(nodeList.numNodes());
       vector<pair<int, Key> > keys;
       keys.reserve(nodeList.numNodes());
       for (int i = 0; i != nodeList.numNodes(); ++i) keys.push_back(pair<int, Key>(i, mKeys(iNodeList, i)));
@@ -510,12 +512,10 @@ computeConnectivity() {
   } else {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       const NodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
-      mNodeTraversalIndices.push_back(vector<int>(nodeList.numInternalNodes()));
-      CHECK(mNodeTraversalIndices.size() == iNodeList + 1);
+      mNodeTraversalIndices[iNodeList].resize(nodeList.numInternalNodes());
       for (int i = 0; i != nodeList.numInternalNodes(); ++i) mNodeTraversalIndices[iNodeList][i] = i;
     }
   }
-  CHECK(mNodeTraversalIndices.size() == numNodeLists);
 
   // Create a list of flags to keep track of which nodes have been completed thus far.
   FieldList<Dimension, int> flagNodeDone = dataBase.newGlobalFieldList(int());
