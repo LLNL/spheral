@@ -18,7 +18,7 @@ ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
                 const NodeListIterator& end):
   mNodeLists(),
-  mConnectivity(FieldSpace::Copy),
+  mConnectivity(),
   mNodeTraversalIndices(),
   mKeys(FieldSpace::Copy) {
 
@@ -81,8 +81,8 @@ connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
           (domainDecompIndependent and nodeID < nodeListPtr->numNodes()));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
-  REQUIRE(nodeListID < mNodeLists.size());
-  return mConnectivity(nodeListID, nodeID);
+  REQUIRE(nodeListID < mConnectivity.size());
+  return mConnectivity[nodeListID][nodeID];
 }
 
 //------------------------------------------------------------------------------
@@ -95,11 +95,11 @@ ConnectivityMap<Dimension>::
 connectivityForNode(const int nodeListID,
                     const int nodeID) const {
   const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
-  REQUIRE(nodeListID >= 0 and nodeListID < mNodeLists.size());
+  REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
           (domainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
-  return mConnectivity(nodeListID, nodeID);
+  return mConnectivity[nodeListID][nodeID];
 }
 
 //------------------------------------------------------------------------------

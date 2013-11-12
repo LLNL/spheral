@@ -108,7 +108,7 @@ private:
 
   // The full connectivity map.  This might be quite large!
   // [NodeList] [nodeID] [NodeListID] [neighborIndex]
-  typedef FieldSpace::FieldList<Dimension, std::vector<std::vector<int> > > ConnectivityStorageType;
+  typedef std::vector<std::vector<std::vector<std::vector<int> > > > ConnectivityStorageType;
   ConnectivityStorageType mConnectivity;
 
   // The set of node indices per Nodelist in order for traversal.
