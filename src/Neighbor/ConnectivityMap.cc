@@ -38,7 +38,7 @@ inline
 ConnectivityMap<Dimension>::
 ConnectivityMap():
   mNodeLists(),
-  mConnectivity(FieldSpace::Copy),
+  mConnectivity(),
   mNodeTraversalIndices(),
   mKeys(FieldSpace::Copy) {
 }
@@ -92,7 +92,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     const size_t numNodes = (domainDecompIndependent ? 
                              mNodeLists[iNodeList]->numNodes() :
                              mNodeLists[iNodeList]->numInternalNodes());
-    CHECK((*mConnectivity[iNodeList]).size() == numNodes);
+    CHECK((mConnectivity[iNodeList]).size() == numNodes);
 
     // Patch the traversal ordering and connectivity for this NodeList.
     for (size_t i = 0; i != numNodes; ++i) {
@@ -103,7 +103,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       } else {
         if (domainDecompIndependent) keys.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
         mNodeTraversalIndices[iNodeList][i] = old2new(iNodeList, i);
-        vector< vector<int> >& neighbors = mConnectivity(iNodeList, i);
+        vector< vector<int> >& neighbors = mConnectivity[iNodeList][i];
         CHECK(neighbors.size() == numNodeLists);
         for (size_t jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
           nkeys = vector<pair<int, Key> >();
@@ -263,30 +263,30 @@ valid() const {
   }
 
   // Iterate over each NodeList entered.
+  int nodeListIDi = 0;
   for (typename ConnectivityStorageType::const_iterator connectivityItr = mConnectivity.begin();
        connectivityItr != mConnectivity.end();
-       ++connectivityItr) {
-    const Field<Dimension, vector<vector<int> > >& allNeighbors = **connectivityItr;
+       ++connectivityItr, ++nodeListIDi) {
+    const vector<vector<vector<int> > >& allNeighbors = *connectivityItr;
 
     // Are all internal nodes represented?
-    const int nodeListIDi = distance(mConnectivity.begin(), connectivityItr);
     CHECK(nodeListIDi >= 0 and nodeListIDi < mNodeLists.size());
     const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
     const int numNodes = domainDecompIndependent ? nodeListPtri->numNodes() : nodeListPtri->numInternalNodes();
     const int firstGhostNodei = nodeListPtri->firstGhostNode();
-    // if (allNeighbors.size() != numNodes) {
-    //   cerr << "ConnectivityMap::valid: Failed test that all nodes set for NodeList "
-    //        << mNodeLists[nodeListIDi]->name()
-    //        << endl;
-    //   return false;
-    // }
+    if (allNeighbors.size() != numNodes) {
+      cerr << "ConnectivityMap::valid: Failed test that all nodes set for NodeList "
+           << mNodeLists[nodeListIDi]->name()
+           << endl;
+      return false;
+    }
 
     // Iterate over the nodes for this NodeList.
     for (int i = 0; i != allNeighbors.size(); ++i) {
 
       // The set of neighbors for this node.  This has to be sized as the number of
       // NodeLists.
-      const vector< vector<int> >& allNeighborsForNode = allNeighbors(i);
+      const vector< vector<int> >& allNeighborsForNode = allNeighbors[i];
       if (allNeighborsForNode.size() != numNodeLists) {
         cerr << "ConnectivityMap::valid: Failed allNeighborsForNode.size() == numNodeLists" << endl;
         return false;
@@ -468,25 +468,30 @@ computeConnectivity() {
   {
     unsigned i = 0;
     while (ok and i != numNodeLists) {
-      ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
+      const unsigned n = (domainDecompIndependent ? mNodeLists[i]->numNodes() : mNodeLists[i]->numInternalNodes());
+      ok = (mConnectivity[i].size() == n);
       ++i;
     }
   }
   if (ok) {
     for (unsigned i = 0; i != numNodeLists; ++i) {
-      for (unsigned j = 0; j != mConnectivity[i]->numInternalElements(); ++j) {
+      const unsigned n = (domainDecompIndependent ? mNodeLists[i]->numNodes() : mNodeLists[i]->numInternalNodes());
+      for (unsigned j = 0; j != n; ++j) {
+        CHECK(mConnectivity[i][j].size() == numNodeLists);
         for (unsigned k = 0; k != numNodeLists; ++k) {
-          mConnectivity(i,j)[k].clear();
-        }
-        if (domainDecompIndependent) {
-          for (unsigned j = mConnectivity[i]->numInternalElements(); j != mConnectivity[i]->numElements(); ++j) {
-            mConnectivity(i,j).resize(numNodeLists);
-          }
+          mConnectivity[i][j][k].clear();
         }
       }
     }
   } else {
-    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+    mConnectivity = ConnectivityStorageType(numNodeLists);
+    for (unsigned i = 0; i != numNodeLists; ++i) {
+      const unsigned n = (domainDecompIndependent ? mNodeLists[i]->numNodes() : mNodeLists[i]->numInternalNodes());
+      mConnectivity[i].resize(n);
+      for (unsigned j = 0; j != n; ++j) {
+        mConnectivity[i][j].resize(numNodeLists);
+      }
+    }
     mNodeTraversalIndices = vector< vector<int> >(numNodeLists);
   }
 
@@ -563,12 +568,12 @@ computeConnectivity() {
                ++masterItr) {
             i = *masterItr;
             if (domainDecompIndependent or i < firstGhostNode) {
-              CHECK(i < mConnectivity[iNodeList]->size());
+              CHECK(i < mConnectivity[iNodeList].size());
               start = Timing::currentTime();
               CHECK(flagNodeDone(iNodeList, i) == 0);
 
               // Get the neighbor set we're building for this node.
-              vector< vector<int> >& neighbors = mConnectivity(iNodeList, i);
+              vector< vector<int> >& neighbors = mConnectivity[iNodeList][i];
               CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
               // We keep track of the Morton indicies.
@@ -612,7 +617,7 @@ computeConnectivity() {
                         keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
                         // In this case we also need to have ghost nodes aware of any internal neighbors.
                         if (j >= firstGhostNodej) {
-                          vector< vector<int> >& otherNeighbors = mConnectivity(jNodeList, j);
+                          vector< vector<int> >& otherNeighbors = mConnectivity[jNodeList][j];
                           CHECK(otherNeighbors.size() == numNodeLists);
                           otherNeighbors[iNodeList].push_back(i);
                         }
@@ -659,7 +664,7 @@ computeConnectivity() {
       for (int i = nodeListPtr->firstGhostNode();
            i != nodeListPtr->numNodes();
            ++i) {
-        vector< vector<int> >& neighbors = mConnectivity(iNodeList, i);
+        vector< vector<int> >& neighbors = mConnectivity[iNodeList][i];
         CHECK(neighbors.size() == numNodeLists);
         for (int jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
           vector<pair<int, Key> > keys;
