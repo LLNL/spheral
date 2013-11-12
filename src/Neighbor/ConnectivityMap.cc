@@ -40,7 +40,6 @@ ConnectivityMap():
   mNodeLists(),
   mConnectivity(FieldSpace::Copy),
   mNodeTraversalIndices(),
-  mDomainDecompIndependent(NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent()),
   mKeys(FieldSpace::Copy) {
 }
 
@@ -61,10 +60,12 @@ ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
 
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+
   // We have to recompute the keys to sort nodes by excluding the 
   // nodes that are being removed.
   const size_t numNodeLists = mConnectivity.size();
-  if (mDomainDecompIndependent) {
+  if (domainDecompIndependent) {
     for (size_t iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       for (size_t i = 0; i != mNodeLists[iNodeList]->numNodes(); ++i) {
         if (flags(iNodeList, i) == 0) mKeys(iNodeList, i) = KeyTraits::maxKey;
@@ -88,7 +89,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     keys = vector<pair<int, Key> >();
 
     // Walk the nodes of the NodeList.
-    const size_t numNodes = (mDomainDecompIndependent ? 
+    const size_t numNodes = (domainDecompIndependent ? 
                              mNodeLists[iNodeList]->numNodes() :
                              mNodeLists[iNodeList]->numInternalNodes());
     CHECK((*mConnectivity[iNodeList]).size() == numNodes);
@@ -100,7 +101,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       if (flags(iNodeList, i) == 0) {
         iNodesToKill.push_back(i);
       } else {
-        if (mDomainDecompIndependent) keys.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
+        if (domainDecompIndependent) keys.push_back(make_pair(old2new(iNodeList, i), mKeys(iNodeList, i)));
         mNodeTraversalIndices[iNodeList][i] = old2new(iNodeList, i);
         vector< vector<int> >& neighbors = mConnectivity(iNodeList, i);
         CHECK(neighbors.size() == numNodeLists);
@@ -112,14 +113,14 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
             if (flags(jNodeList, j) == 0) {
               jNodesToKill.push_back(k);
             } else {
-              if (mDomainDecompIndependent) nkeys.push_back(make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
+              if (domainDecompIndependent) nkeys.push_back(make_pair(old2new(jNodeList, j), mKeys(jNodeList, j)));
               neighbors[jNodeList][k] = old2new(jNodeList, j);
             }
           }
           removeElements(neighbors[jNodeList], jNodesToKill);
 
           // Recompute the ordering of the neighbors.
-          if (mDomainDecompIndependent) {
+          if (domainDecompIndependent) {
             sort(nkeys.begin(), nkeys.end(), ComparePairsBySecondElement<pair<int, Key> >());
             for (size_t k = 0; k != neighbors[jNodeList].size(); ++k) {
               CHECK2(k == 0 or nkeys[k].second > nkeys[k-1].second,
@@ -142,7 +143,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     // Recompute the ordering for traversing the nodes.
     {
       const size_t numNodes = mNodeTraversalIndices[iNodeList].size();
-      if (mDomainDecompIndependent) {
+      if (domainDecompIndependent) {
         // keys = vector<pair<int, Key> >();
         // for (size_t k = 0; k != numNodes; ++k) {
         //   const int i = mNodeTraversalIndices[iNodeList][k];
@@ -233,6 +234,8 @@ bool
 ConnectivityMap<Dimension>::
 valid() const {
 
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+
   // Are the number of NodeLists consistent?
   const int numNodeLists = mNodeLists.size();
   if (mConnectivity.size() != numNodeLists) {
@@ -269,7 +272,7 @@ valid() const {
     const int nodeListIDi = distance(mConnectivity.begin(), connectivityItr);
     CHECK(nodeListIDi >= 0 and nodeListIDi < mNodeLists.size());
     const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
-    const int numNodes = mDomainDecompIndependent ? nodeListPtri->numNodes() : nodeListPtri->numInternalNodes();
+    const int numNodes = domainDecompIndependent ? nodeListPtri->numNodes() : nodeListPtri->numInternalNodes();
     const int firstGhostNodei = nodeListPtri->firstGhostNode();
     // if (allNeighbors.size() != numNodes) {
     //   cerr << "ConnectivityMap::valid: Failed test that all nodes set for NodeList "
@@ -307,13 +310,13 @@ valid() const {
 
           // When enforcing domain independence the ith node may be a ghost, but all of it's neighbors should
           // be internal.
-          if (mDomainDecompIndependent and (i >= firstGhostNodei) and (maxNeighbor > firstGhostNodej)) {
+          if (domainDecompIndependent and (i >= firstGhostNodei) and (maxNeighbor > firstGhostNodej)) {
             cerr << "ConnectivityMap::valid: Failed test that all neighbors of a ghost node should be internal." << endl;
             return false;
           }
 
           for (int k = 1; k < neighbors.size(); ++k) {
-            if (mDomainDecompIndependent) {
+            if (domainDecompIndependent) {
               // In the case of domain decomposition reproducibility, neighbors are sorted
               // by hashed IDs.
               if (mKeys(nodeListIDj, neighbors[k]) < mKeys(nodeListIDj, neighbors[k - 1])) {
@@ -345,7 +348,7 @@ valid() const {
         for (vector<int>::const_iterator jItr = neighbors.begin();
              jItr != neighbors.end();
              ++jItr) {
-          if (mDomainDecompIndependent or (*jItr < nodeListPtrj->numInternalNodes())) {
+          if (domainDecompIndependent or (*jItr < nodeListPtrj->numInternalNodes())) {
             const vector< vector<int> >& otherNeighbors = connectivityForNode(nodeListPtrj, *jItr);
             if (find(otherNeighbors[nodeListIDi].begin(),
                      otherNeighbors[nodeListIDi].end(),
@@ -362,7 +365,7 @@ valid() const {
 
   // Check that if we are using domain decompostion independence then the keys 
   // have been calculated.
-  if (mDomainDecompIndependent) {
+  if (domainDecompIndependent) {
     for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
          itr != mNodeLists.end();
          ++itr) {
@@ -379,7 +382,7 @@ valid() const {
     return false;
   }
   for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
-    const int numExpected = mDomainDecompIndependent ? mNodeLists[nodeList]->numNodes() : mNodeLists[nodeList]->numInternalNodes();
+    const int numExpected = domainDecompIndependent ? mNodeLists[nodeList]->numNodes() : mNodeLists[nodeList]->numInternalNodes();
     bool ok = mNodeTraversalIndices[nodeList].size() == numExpected;
     for (int i = 0; i != numExpected; ++i) {
       ok = ok and (count(mNodeTraversalIndices[nodeList].begin(),
@@ -394,8 +397,8 @@ valid() const {
 
   // Check that the node traversal is ordered correctly.
   for (int nodeList = 0; nodeList != numNodeLists; ++nodeList) {
-    if ((mDomainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
-        (not mDomainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
+    if ((domainDecompIndependent and mNodeLists[nodeList]->numNodes() > 0) or
+        (not domainDecompIndependent and mNodeLists[nodeList]->numInternalNodes() > 0)) {
       const int firstGhostNode = mNodeLists[nodeList]->firstGhostNode();
       for (const_iterator itr = begin(nodeList); itr < end(nodeList) - 1; ++itr) {
         if (not calculatePairInteraction(nodeList, *itr,
@@ -444,6 +447,8 @@ computeConnectivity() {
   }
   END_CONTRACT_SCOPE;
 
+  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+
   // Build ourselves a temporary DataBase with the set of NodeLists.
   // Simultaneously find the maximum kernel extent.
   DataBase<Dimension> dataBase;
@@ -458,38 +463,39 @@ computeConnectivity() {
 
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists();
-  bool ok = (mConnectivity.size() == numNodeLists);
-  {
-    unsigned i = 0;
-    while (ok and i != numNodeLists) {
-      ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
-      ++i;
-    }
-  }
-  if (ok) {
-    for (unsigned i = 0; i != numNodeLists; ++i) {
-      const unsigned n = mConnectivity[i]->numInternalElements();
-      for (unsigned j = 0; j != n; ++j) {
-        for (unsigned k = 0; k != numNodeLists; ++k) {
-          mConnectivity(i, j)[k].clear();
-        }
-      }
-    }
-    // mConnectivity = vector<vector<int> >(numNodeLists);
-  } else {
-    mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
-  }
+  // bool ok = (mConnectivity.size() == numNodeLists);
+  // {
+  //   unsigned i = 0;
+  //   while (ok and i != numNodeLists) {
+  //     ok = (mConnectivity[i]->nodeListPtr() == mNodeLists[i]);
+  //     ++i;
+  //   }
+  // }
+  // if (ok) {
+  //   for (unsigned i = 0; i != numNodeLists; ++i) {
+  //     const unsigned n = (domainDecompIndependent ? 
+  //                         mConnectivity[i]->numElements() :
+  //                         mConnectivity[i]->numInternalElements());
+  //     for (unsigned j = 0; j != n; ++j) {
+  //       for (unsigned k = 0; k != numNodeLists; ++k) {
+  //         mConnectivity(i, j)[k].clear();
+  //       }
+  //     }
+  //   }
+  // } else {
+  //   mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
+  // }
+  mConnectivity = dataBase.newGlobalFieldList(vector<vector<int> >(numNodeLists), "ConnectivityMap connectivity");
   mNodeTraversalIndices = vector< vector<int> >();
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
   // hash fills the bill.
   typedef typename KeyTraits::Key Key;
-  const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
-  if (mDomainDecompIndependent) mKeys = mortonOrderIndicies(dataBase);
+  if (domainDecompIndependent) mKeys = mortonOrderIndicies(dataBase);
 
   // Fill in the ordering for walking the nodes.
-  if (mDomainDecompIndependent) {
+  if (domainDecompIndependent) {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       const NodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
       mNodeTraversalIndices.push_back(vector<int>(nodeList.numNodes()));
@@ -556,7 +562,7 @@ computeConnectivity() {
                masterItr != neighbori.masterEnd();
                ++masterItr) {
             i = *masterItr;
-            if (mDomainDecompIndependent or i < firstGhostNode) {
+            if (domainDecompIndependent or i < firstGhostNode) {
               CHECK(i < mConnectivity[iNodeList]->size());
               start = Timing::currentTime();
               CHECK(flagNodeDone(iNodeList, i) == 0);
@@ -602,7 +608,7 @@ computeConnectivity() {
                     if ((iNodeList != jNodeList) or (i != j)) {
                       neighbors[jNodeList].push_back(j);
 
-                      if (mDomainDecompIndependent) {
+                      if (domainDecompIndependent) {
                         keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
                         // In this case we also need to have ghost nodes aware of any internal neighbors.
                         if (j >= firstGhostNodej) {
@@ -622,7 +628,7 @@ computeConnectivity() {
               // We have a few options for how to order the neighbors for this node.
               for (k = 0; k != numNodeLists; ++k) {
 
-                if (mDomainDecompIndependent) {
+                if (domainDecompIndependent) {
                   // Sort in a domain independent manner.
                   CHECK(keys[k].size() == neighbors[k].size());
                   sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
@@ -647,7 +653,7 @@ computeConnectivity() {
 
   // In the domain decompostion independent case, we need to sort the neighbors for ghost
   // nodes as well.
-  if (mDomainDecompIndependent) {
+  if (domainDecompIndependent) {
     for (int iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
       const NodeList<Dimension>* nodeListPtr = mNodeLists[iNodeList];
       for (int i = nodeListPtr->firstGhostNode();
