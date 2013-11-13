@@ -116,6 +116,25 @@ damageGradient() const {
 }
 
 //------------------------------------------------------------------------------
+// Access the fragment ID field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+FieldSpace::Field<Dimension, int>&
+SolidNodeList<Dimension>::
+fragmentIDs() {
+  return mFragmentIDs;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::Field<Dimension, int>&
+SolidNodeList<Dimension>::
+fragmentIDs() const {
+  return mFragmentIDs;
+}
+
+//------------------------------------------------------------------------------
 // Access the strength model this solid node list is using.
 //------------------------------------------------------------------------------
 template<typename Dimension>

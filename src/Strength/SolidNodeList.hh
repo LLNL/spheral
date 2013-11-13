@@ -70,6 +70,10 @@ public:
   const FieldSpace::Field<Dimension, SymTensor>& effectiveDamage() const;
   const FieldSpace::Field<Dimension, Vector>& damageGradient() const;
 
+  // The fragment ID field.
+  FieldSpace::Field<Dimension, int>& fragmentIDs();
+  const FieldSpace::Field<Dimension, int>& fragmentIDs() const;
+
   // The strength model this solid is using.
   const SolidMaterial::StrengthModel<Dimension>& strengthModel() const;
 
@@ -90,6 +94,7 @@ private:
   FieldSpace::Field<Dimension, SymTensor> mDamage;
   FieldSpace::Field<Dimension, SymTensor> mEffectiveDamage;
   FieldSpace::Field<Dimension, Vector> mDamageGradient;
+  FieldSpace::Field<Dimension, int> mFragmentIDs;
 #endif
 
   // Pointer to the associated strength object.
