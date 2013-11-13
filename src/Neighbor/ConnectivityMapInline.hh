@@ -18,6 +18,7 @@ ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
                 const NodeListIterator& end):
   mNodeLists(),
+  mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
   mKeys(FieldSpace::Copy) {
@@ -43,13 +44,24 @@ rebuild(const NodeListIterator& begin,
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
-  mNodeLists = std::vector<const NodeSpace::NodeList<Dimension>*>();
+  const bool domainDecompIndependent = registrar.domainDecompositionIndependent();
+  const unsigned numNodeLists = std::distance(begin, end);
+  mNodeLists.clear();
+  mOffsets.resize(numNodeLists);
+  std::vector<unsigned> numNodes(numNodeLists);
   for (NodeListIterator itr = begin; itr != end; ++itr) {
-    typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = registrar.findInsertionPoint(*itr,
-                                                                                                                mNodeLists.begin(),
-                                                                                                                mNodeLists.end());
+    typename std::vector<const NodeSpace::NodeList<Dimension>*>::iterator posItr = 
+      registrar.findInsertionPoint(*itr, mNodeLists.begin(), mNodeLists.end());
+    const unsigned i = std::distance(mNodeLists.begin(), posItr);
+    CHECK(i < numNodeLists);
     mNodeLists.insert(posItr, *itr);
+    numNodes[i] = (domainDecompIndependent ? (*itr)->numNodes() : (*itr)->numInternalNodes());
   }
+
+  // Construct the offsets.
+  mOffsets[0] = 0;
+  for (unsigned i = 1; i != numNodeLists; ++i) mOffsets[i] = mOffsets[i - 1] + numNodes[i - 1];
+  CHECK(mOffsets.size() == mNodeLists.size());
 
   this->computeConnectivity();
   ENSURE(valid());
@@ -81,8 +93,9 @@ connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
           (domainDecompIndependent and nodeID < nodeListPtr->numNodes()));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
-  REQUIRE(nodeListID < mConnectivity.size());
-  return mConnectivity[nodeListID][nodeID];
+  REQUIRE(nodeListID < mConnectivity.size() and nodeListID < mOffsets.size());
+  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  return mConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
 //------------------------------------------------------------------------------
@@ -99,7 +112,8 @@ connectivityForNode(const int nodeListID,
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
           (domainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
-  return mConnectivity[nodeListID][nodeID];
+  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  return mConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
 //------------------------------------------------------------------------------
