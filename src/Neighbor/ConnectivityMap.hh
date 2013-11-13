@@ -11,7 +11,6 @@
 #ifndef __GCCXML__
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 #include "Utilities/KeyTraits.hh"
 #include "Field/FieldList.hh"
 #else
@@ -107,8 +106,9 @@ private:
   std::vector<const NodeSpace::NodeList<Dimension>*> mNodeLists;
 
   // The full connectivity map.  This might be quite large!
-  // [NodeList] [nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector<std::vector<std::vector<std::vector<int> > > > ConnectivityStorageType;
+  // [offset[NodeList] + nodeID] [NodeListID] [neighborIndex]
+  typedef std::vector<std::vector<std::vector<int> > > ConnectivityStorageType;
+  std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
 
   // The set of node indices per Nodelist in order for traversal.
