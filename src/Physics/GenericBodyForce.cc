@@ -7,7 +7,7 @@
 #include <string>
 
 #include "GenericBodyForce.hh"
-#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementFieldList.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 
@@ -48,16 +48,17 @@ registerState(DataBase<Dimension>& dataBase,
 
   // These state fields may be registered by other physics as well, but
   // since they are shared it is harmless.
-  for (typename DataBase<Dimension>::NodeListIterator itr = dataBase.nodeListBegin();
-       itr != dataBase.nodeListEnd();
-       ++itr) {
-    PolicyPointer positionPolicy(new IncrementState<Dimension, Vector>);
-    PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>);
-    state.enroll((*itr)->mass());
-    state.enroll((*itr)->positions(), positionPolicy);
-    state.enroll((*itr)->velocity(), velocityPolicy);
-    state.enroll((*itr)->Hfield());
-  }
+  FieldList<Dimension, Scalar> mass = dataBase.globalMass();
+  FieldList<Dimension, Vector> position = dataBase.globalPosition();
+  FieldList<Dimension, Vector> velocity = dataBase.globalVelocity();
+  FieldList<Dimension, SymTensor> Hfield = dataBase.globalHfield();
+
+  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
+  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>());
+  state.enroll(mass);
+  state.enroll(position, positionPolicy);
+  state.enroll(velocity, velocityPolicy);
+  state.enroll(Hfield);
 }
 
 //------------------------------------------------------------------------------
@@ -68,26 +69,15 @@ void
 GenericBodyForce<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  typedef typename StateDerivatives<Dimension>::KeyType Key;
-  const Key DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
-  const Key DvDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity;
-
   // These derivative fields *may* conflict with other physics packages.
   // Since we create local storage for derivative fields we have to be
   // careful here, and only create storage for those NodeLists that are
   // not already registered by someone else.  We also deliberately do not
   // zero out the fields at this stage!
-  dataBase.resizeGlobalFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
-  dataBase.resizeGlobalFieldList(mDvDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, false);
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::NodeListIterator itr = dataBase.nodeListBegin();
-       itr != dataBase.nodeListEnd();
-       ++itr, ++nodeListi) {
-    const Key DxDtKey = StateBase<Dimension>::key(*mDxDt[nodeListi]);
-    const Key DvDtKey = StateBase<Dimension>::key(*mDvDt[nodeListi]);
-    if (not derivs.registered(DxDtKey)) derivs.enroll(*mDxDt[nodeListi]);
-    if (not derivs.registered(DvDtKey)) derivs.enroll(*mDvDt[nodeListi]);
-  }
+  dataBase.resizeGlobalFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
+  dataBase.resizeGlobalFieldList(mDvDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, false);
+  if (not derivs.registered(mDxDt)) derivs.enroll(mDxDt);
+  if (not derivs.registered(mDvDt)) derivs.enroll(mDvDt);
 }
 
 //------------------------------------------------------------------------------

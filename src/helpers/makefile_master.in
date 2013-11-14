@@ -77,13 +77,13 @@ PYSTEOBJSDATE = .pysteobjsdate
 OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o)
 
 TAULIBS = # @TAULIBS@
-LIBS =  -L$(WILDMAGICLIBDIR) $(WILDMAGICLIBS) $(WILDMAGICLIBS) -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
+LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
 
 DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
 # g++ flags
 
-INCS = $(EXTRAINCLUDES) -I$(SRCTOP) -I$(BOOSTROOT) -I$(SRCTOP)/../../include -I$(WILDMAGICINCDIR)
+INCS = $(EXTRAINCLUDES) -I$(SRCTOP) -I$(BOOSTROOT) -I$(SRCTOP)/../../include
 
 # Allow developers to override optimization flag
 ifneq ("$(opt_override)","")

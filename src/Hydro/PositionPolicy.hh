@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementFieldList.hh"
 
 namespace Spheral {
 
@@ -24,18 +24,18 @@ namespace NodeSpace {
   template<typename Dimension> class FluidNodeList;
 }
 namespace FieldSpace {
-  template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension, typename DataType> class FieldList;
 }
 
 template<typename Dimension>
 class PositionPolicy: 
-    public IncrementState<Dimension, typename Dimension::Vector> {
+    public IncrementFieldList<Dimension, typename Dimension::Vector> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename FieldUpdatePolicyBase<Dimension, Vector>::KeyType KeyType;
+  typedef typename FieldListUpdatePolicyBase<Dimension, Vector>::KeyType KeyType;
 
   // Constructors, destructor.
   PositionPolicy();

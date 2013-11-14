@@ -8,6 +8,8 @@
 #ifndef __Spheral_nodeBoundingBox__
 #define __Spheral_nodeBoundingBox__
 
+#include <utility>
+
 namespace Spheral {
 
 // Forward declarations.
@@ -26,7 +28,7 @@ namespace DataBaseSpace {
 // The bounding box for a position and H.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Box
+std::pair<typename Dimension::Vector, typename Dimension::Vector>
 boundingBox(const typename Dimension::Vector& xi,
             const typename Dimension::SymTensor& Hi,
             const typename Dimension::Scalar& kernelExtent);
@@ -35,14 +37,14 @@ boundingBox(const typename Dimension::Vector& xi,
 // The bounding boxes for a NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::Field<Dimension, typename Dimension::Box>
+FieldSpace::Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
 nodeBoundingBoxes(const NodeSpace::NodeList<Dimension>& nodes);
 
 //------------------------------------------------------------------------------
 // The bounding boxes for all nodes in a DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FieldSpace::FieldList<Dimension, typename Dimension::Box>
+FieldSpace::FieldList<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
 nodeBoundingBoxes(const DataBaseSpace::DataBase<Dimension>& dataBase);
 
 }

@@ -16,8 +16,8 @@
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -157,9 +157,8 @@ double weighting(const double& ui,
 template<typename Dimension>
 NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
 NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
-  IncrementState<Dimension, typename Dimension::Scalar>(),
+  IncrementFieldList<Dimension, typename Dimension::Scalar>(),
   mDataBasePtr(&dataBase) {
-  mFired = false;
 }
 
 //------------------------------------------------------------------------------
@@ -182,9 +181,6 @@ update(const KeyType& key,
        const double multiplier,
        const double t,
        const double dt) {
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy);
 
   typedef typename Dimension::SymTensor SymTensor;
 
@@ -192,102 +188,104 @@ update(const KeyType& key,
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
 //   std::cerr.precision(15);
 
-  if (not mFired) {
-    mFired = true;
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> eps = state.fields(fieldKey, Scalar());
+  const unsigned numFields = eps.numFields();
 
-    // Get the state fields.
-    FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
-    const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-    const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-    const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-    const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
-    const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
-    const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-    const size_t numNodeLists = nodeLists.size();
+  // Get the state fields.
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+  const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
+  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  CHECK(nodeLists.size() == numFields);
 
-    // Prepare a counter to keep track of how we go through the pair-accelerations.
-    FieldList<Dimension, Scalar> DepsDt(FieldSpace::Copy);
-    FieldList<Dimension, int> offset(FieldSpace::Copy);
-    for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
-      offset.appendNewField("offset", *nodeLists[nodeListi], 0);
-    }
+  // Prepare a counter to keep track of how we go through the pair-accelerations.
+  FieldList<Dimension, Scalar> DepsDt(FieldSpace::Copy);
+  FieldList<Dimension, int> offset(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
+    DepsDt.appendNewField("delta E", *nodeLists[nodeListi], 0.0);
+    offset.appendNewField("offset", *nodeLists[nodeListi], 0);
+  }
 
-    // Walk all the NodeLists.
-    const double hdt = 0.5*multiplier;
-    for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  // Walk all the NodeLists.
+  const double hdt = 0.5*multiplier;
+  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
 
-      // Iterate over the internal nodes of this NodeList.
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
+    // Iterate over the internal nodes of this NodeList.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
 
-        // State for node i.
-        Scalar& DepsDti = DepsDt(nodeListi, i);
-        const Scalar& mi = mass(nodeListi, i);
-        const Vector& vi = velocity(nodeListi, i);
-        const Scalar& ui = specificEnergy0(nodeListi, i);
-        const Vector& ai = acceleration(nodeListi, i);
-        const Vector vi12 = vi + ai*hdt;
-        const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
-        CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+      // State for node i.
+      Scalar& DepsDti = DepsDt(nodeListi, i);
+      const Scalar& mi = mass(nodeListi, i);
+      const Vector& vi = velocity(nodeListi, i);
+      const Scalar& ui = specificEnergy0(nodeListi, i);
+      const Vector& ai = acceleration(nodeListi, i);
+      const Vector vi12 = vi + ai*hdt;
+      const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
+      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
 
-        // Get the connectivity (neighbor set) for this node.
-        const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      // Get the connectivity (neighbor set) for this node.
+      const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
-        // Iterate over the neighbor NodeLists.
-        for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      // Iterate over the neighbor NodeLists.
+      for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
 
-          // The set of neighbors from this NodeList.
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          if (connectivity.size() > 0) {
-            const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+        // The set of neighbors from this NodeList.
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        if (connectivity.size() > 0) {
+          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
-            // Iterate over the neighbors, and accumulate the specific energy
-            // change.
-            for (vector<int>::const_iterator jitr = connectivity.begin();
-                 jitr != connectivity.end();
-                 ++jitr) {
-              const int j = *jitr;
+          // Iterate over the neighbors, and accumulate the specific energy
+          // change.
+          for (vector<int>::const_iterator jitr = connectivity.begin();
+               jitr != connectivity.end();
+               ++jitr) {
+            const int j = *jitr;
 
-              if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                           nodeListj, j,
-                                                           firstGhostNodej)) {
-                Scalar& DepsDtj = DepsDt(nodeListj, j);
-                const Scalar& mj = mass(nodeListj, j);
-                const Vector& vj = velocity(nodeListj, j);
-                const Scalar& uj = specificEnergy0(nodeListj, j);
-                const Vector& aj = acceleration(nodeListj, j);
-                const Vector vj12 = vj + aj*hdt;
-                const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
-                CHECK(j >= firstGhostNodej or paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
+            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                         nodeListj, j,
+                                                         firstGhostNodej)) {
+              Scalar& DepsDtj = DepsDt(nodeListj, j);
+              const Scalar& mj = mass(nodeListj, j);
+              const Vector& vj = velocity(nodeListj, j);
+              const Scalar& uj = specificEnergy0(nodeListj, j);
+              const Vector& aj = acceleration(nodeListj, j);
+              const Vector vj12 = vj + aj*hdt;
+              const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
+              CHECK(j >= firstGhostNodej or paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
 
-                CHECK(offset(nodeListi, i) < pacci.size());
-                const Vector& pai = pacci[offset(nodeListi, i)];
-                ++offset(nodeListi, i);
+              CHECK(offset(nodeListi, i) < pacci.size());
+              const Vector& pai = pacci[offset(nodeListi, i)];
+              ++offset(nodeListi, i);
 
-                CHECK(offset(nodeListj, j) < paccj.size());
-                const Vector& paj = paccj[offset(nodeListj, j)];
-                ++offset(nodeListj, j);
+              CHECK(offset(nodeListj, j) < paccj.size());
+              const Vector& paj = paccj[offset(nodeListj, j)];
+              ++offset(nodeListj, j);
 
-                const Scalar duij = -(vi12.dot(pai) + vj12.dot(paj));
-                const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
+              const Scalar duij = -(vi12.dot(pai) + vj12.dot(paj));
+              const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
-                CHECK(wi >= 0.0 and wi <= 1.0);
-                CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
-                DepsDti += wi*duij;
-                DepsDtj += (1.0 - wi)*duij;
-              }
+              CHECK(wi >= 0.0 and wi <= 1.0);
+              CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
+              DepsDti += wi*duij;
+              DepsDtj += (1.0 - wi)*duij;
             }
           }
         }
-
-        // Now we can update the energy.
-        CHECK(offset(nodeListi, i) == pacci.size());
-        eps(nodeListi, i) += DepsDti*multiplier;
       }
+
+      // Now we can update the energy.
+      CHECK(offset(nodeListi, i) == pacci.size());
+      eps(nodeListi, i) += DepsDti*multiplier;
     }
   }
 }
@@ -308,11 +306,6 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
     return true;
   }
 }
-
-//------------------------------------------------------------------------------
-// Static initializations.
-//------------------------------------------------------------------------------
-template<typename Dimension> bool NonSymmetricSpecificThermalEnergyPolicy<Dimension>::mFired = false;
 
 }
 

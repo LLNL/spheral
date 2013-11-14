@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // DeviatoricStressPolicy.
 //
-// Specialized version of the IncrementState policy, with some criteria for
+// Specialized version of the IncrementFieldList policy, with some criteria for
 // zeroing out the deviatoric stress in special cases.
 //
 // Created by JMO, Mon Feb  6 11:34:57 PST 2006
@@ -11,12 +11,12 @@
 
 #include <string>
 
-#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementFieldList.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class DeviatoricStressPolicy: public IncrementState<Dimension, typename Dimension::SymTensor> {
+class DeviatoricStressPolicy: public IncrementFieldList<Dimension, typename Dimension::SymTensor> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs

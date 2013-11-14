@@ -237,13 +237,8 @@ class TestPolyhedron(unittest.TestCase):
     def testIntersectBoxInterior(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
         centroid = self.polyhedron.centroid()
-        box = WMBox3d(WMVector3d(centroid.x, centroid.y, centroid.z),
-                      WMVector3d(1.0, 0.0, 0.0),
-                      WMVector3d(0.0, 1.0, 0.0),
-                      WMVector3d(0.0, 0.0, 1.0),
-                      0.95*rinner,
-                      0.95*rinner,
-                      0.95*rinner)
+        box = pair_Vector3d_Vector3d(centroid - 0.95*rinner*Vector.one,
+                                     centroid + 0.95*rinner*Vector.one)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a contained box.")
         return
@@ -254,13 +249,8 @@ class TestPolyhedron(unittest.TestCase):
     def testIntersectBoxExterior(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
         centroid = self.polyhedron.centroid()
-        box = WMBox3d(WMVector3d(centroid.x, centroid.y, centroid.z),
-                      WMVector3d(1.0, 0.0, 0.0),
-                      WMVector3d(0.0, 1.0, 0.0),
-                      WMVector3d(0.0, 0.0, 1.0),
-                      2.0*router,
-                      2.0*router,
-                      2.0*router)
+        box = pair_Vector3d_Vector3d(centroid - 2.0*router*Vector.one,
+                                     centroid + 2.0*router*Vector.one)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a box we are in.")
         return
@@ -275,13 +265,7 @@ class TestPolyhedron(unittest.TestCase):
             if fuzzyEqual(v.x, xmin, 1.0e-10):
                 vertex = v
         assert not vertex is None
-        box = WMBox3d(WMVector3d(v.x - 1.0, v.y - 1.0, v.z - 1.0),
-                      WMVector3d(1.0, 0.0, 0.0),
-                      WMVector3d(0.0, 1.0, 0.0),
-                      WMVector3d(0.0, 0.0, 1.0),
-                      1.0,
-                      1.0,
-                      1.0)
+        box = pair_Vector3d_Vector3d(Vector(v.x - 2.0, v.y - 2.0, v.z - 2.0), v)
         self.failUnless(self.polyhedron.intersect(box),
                         "Failed to intersect with a box touching on one side.")
 
@@ -289,18 +273,9 @@ class TestPolyhedron(unittest.TestCase):
     # Test that that we don't intersect a box outside the polyhedron.
     #---------------------------------------------------------------------------
     def testNotIntersectBox(self):
-        xmin = self.polyhedron.xmin.x
-        centroid = self.polyhedron.centroid()
-        delta = centroid.x - xmin
-        assert delta > 0.0
-        centroid.x -= 3.0*delta
-        box = WMBox3d(WMVector3d(centroid.x, centroid.y, centroid.z),
-                      WMVector3d(1.0, 0.0, 0.0),
-                      WMVector3d(0.0, 1.0, 0.0),
-                      WMVector3d(0.0, 0.0, 1.0),
-                      delta,
-                      delta,
-                      delta)
+        xmin, xmax = self.polyhedron.xmin, self.polyhedron.xmax
+        delta = xmax - xmin
+        box = pair_Vector3d_Vector3d(xmin - 2.0*delta, xmax - 2.0*delta)
         self.failUnless(not self.polyhedron.intersect(box),
                         "Erroneously intersect external box.")
 

@@ -11,7 +11,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
 #include "SolidMaterial/StrengthModel.hh"
@@ -22,7 +22,7 @@ namespace Spheral {
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using SolidMaterial::SolidNodeList;
-using FieldSpace::Field;
+using FieldSpace::FieldList;
 using SolidMaterial::StrengthModel;
 
 //------------------------------------------------------------------------------
@@ -57,30 +57,30 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::soundSpeed);
-
-  // Get the density, energy, and pressure fields from the state.
-  const KeyType rhoKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType epsKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  CHECK(state.registered(rhoKey));
-  CHECK(state.registered(epsKey));
-  CHECK(state.registered(PKey));
-  Field<Dimension, Scalar>& soundSpeed = state.field(key, 0.0);
-  const Field<Dimension, Scalar>& rho = state.field(rhoKey, 0.0);
-  const Field<Dimension, Scalar>& eps = state.field(epsKey, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(PKey, 0.0);
-
-  // Get the solid node list and strength model.
-  const SolidNodeList<Dimension>* nodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(soundSpeed.nodeListPtr());
-  REQUIRE(nodeListPtr != 0);
-  const StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
+  REQUIRE(fieldKey == HydroFieldNames::soundSpeed and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> stateFields = state.fields(fieldKey, Scalar());
+  const unsigned numFields = stateFields.numFields();
 
   // Have the base class set the initial sound speed.
   SoundSpeedPolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);
 
-  // Set the full sound speed.
-  strengthModel.soundSpeed(soundSpeed, rho, eps, P, soundSpeed);
+  // Get the density, energy, and pressure fields from the state.
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+
+  // Walk the individual fields.
+  for (unsigned k = 0; k != numFields; ++k) {
+
+    // Get the strength model.  This cast is ugly, but is a work-around for now.
+    const SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
+    CHECK(solidNodeListPtr != 0);
+    const SolidMaterial::StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
+
+    // Set the full sound speed.
+    strengthModel.soundSpeed(*stateFields[k], *rho[k], *eps[k], *P[k], *stateFields[k]);
+  }
 }
 
 //------------------------------------------------------------------------------

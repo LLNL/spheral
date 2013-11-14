@@ -243,23 +243,6 @@ struct CrappyFieldCompareMethod {
   }
 };
 
-// Wm5 boxes don't define operator==, so have to be handled specially.
-template<>
-struct CrappyFieldCompareMethod<Wm5::Box2<double> > {
-  static bool compare(const std::vector<Wm5::Box2<double> >& lhs,
-                      const std::vector<Wm5::Box2<double> >& rhs) {
-    return false;
-  }
-};
-
-template<>
-struct CrappyFieldCompareMethod<Wm5::Box3<double> > {
-  static bool compare(const std::vector<Wm5::Box3<double> >& lhs,
-                      const std::vector<Wm5::Box3<double> >& rhs) {
-    return false;
-  }
-};
-
 template<typename Dimension, typename DataType>
 inline
 bool

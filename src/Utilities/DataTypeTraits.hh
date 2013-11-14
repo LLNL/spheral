@@ -315,22 +315,6 @@ struct DataTypeTraits<Dim<3>::ThirdRankTensor> {
 #endif
 };
 
-//------------------------------------------------------------------------------
-template<>
-struct DataTypeTraits<Dim<1>::Box> {
-  static Dim<1>::Box zero() { return Dim<1>::Box(Dim<1>::Vector(), 0.0); }
-};
-
-template<>
-struct DataTypeTraits<Dim<2>::Box> {
-  static Dim<2>::Box zero() { return Dim<2>::Box(); }
-};
-
-template<>
-struct DataTypeTraits<Dim<3>::Box> {
-  static Dim<3>::Box zero() { return Dim<3>::Box(); }
-};
-
 }
 
 #else

@@ -19,7 +19,6 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
-#include "Utilities/spheralWildMagicConverters.hh"
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
@@ -323,24 +322,27 @@ convexIntersect(const GeomPolygon& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Test if we intersect a box.
+// Test if we intersect the given box.
 //------------------------------------------------------------------------------
 bool
 GeomPolygon::
-intersect(const GeomPolygon::Box& rhs) const {
-  BOOST_FOREACH(Vector vec, mVertices) {
-    if (testPointInBox(vec, rhs)) return true;
-  }
-
-  typedef Wm5::Vector2<double> WMVector;
-  vector<WMVector> WMvertices(4);
-  rhs.ComputeVertices(&WMvertices.front());
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[0]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[1]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[2]))) return true;
-  if (this->contains(convertWMVectorToVector<Dim<2> >(WMvertices[3]))) return true;
-
-  return false;
+intersect(const std::pair<Vector, Vector>& rhs) const {
+  if (not testBoxIntersection(mXmin, mXmax, rhs.first, rhs.second)) return false;
+  
+  // Build a GeompPolygon representation of the box and use our generic intersection
+  // method.
+  vector<Vector> verts(4);
+  verts[0] = rhs.first; 
+  verts[1] = Vector(rhs.second.x(), rhs.first.y());
+  verts[2] = rhs.second;
+  verts[3] = Vector(rhs.first.x(), rhs.second.y());
+  vector<vector<unsigned> > facets(4);
+  facets[0].push_back(0); facets[0].push_back(1);
+  facets[1].push_back(1); facets[1].push_back(2);
+  facets[2].push_back(2); facets[2].push_back(3);
+  facets[3].push_back(3); facets[3].push_back(0);
+  GeomPolygon other(verts, facets);
+  return this->intersect(other);
 }
 
 //------------------------------------------------------------------------------

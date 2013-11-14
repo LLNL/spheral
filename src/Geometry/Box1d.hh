@@ -45,6 +45,7 @@ public:
   // Test if we intersect another box.
   bool intersect(const Box1d& rhs) const;
   bool convexIntersect(const Box1d& rhs) const;
+  bool intersect(const std::pair<Vector, Vector>& rhs) const;  // Another way of representing a box.
 
   // Access the attributes.
   Vector& center();

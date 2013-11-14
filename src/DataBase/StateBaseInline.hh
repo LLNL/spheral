@@ -1,5 +1,6 @@
 #include "boost/algorithm/string.hpp"
 #include "NodeList/NodeListRegistrar.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"
 
@@ -14,6 +15,18 @@ typename StateBase<Dimension>::KeyType
 StateBase<Dimension>::
 key(const FieldSpace::FieldBase<Dimension>& field) {
   return buildFieldKey(field.name(), field.nodeListPtr()->name());
+}
+
+//------------------------------------------------------------------------------
+// Construct the lookup key for the given FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename StateBase<Dimension>::KeyType
+StateBase<Dimension>::
+key(const FieldSpace::FieldListBase<Dimension>& fieldList) {
+  REQUIRE(fieldList.begin_base() != fieldList.end_base());
+  return buildFieldKey((*fieldList.begin_base())->name(), UpdatePolicyBase<Dimension>::wildcard());
 }
 
 //------------------------------------------------------------------------------
@@ -38,6 +51,18 @@ registered(const FieldSpace::FieldBase<Dimension>& field) const {
   const KeyType key = this->key(field);
   typename StorageType::const_iterator itr = mStorage.find(key);
   return (itr != mStorage.end());
+}
+
+//------------------------------------------------------------------------------
+// Test if the given FieldList is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+StateBase<Dimension>::
+registered(const FieldSpace::FieldListBase<Dimension>& fieldList) const {
+  REQUIRE(fieldList.begin_base() != fieldList.end_base());
+  return this->registered(**fieldList.begin_base());
 }
 
 //------------------------------------------------------------------------------

@@ -12,11 +12,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "Wm5ContBox2.h"
-#include "Wm5ContBox3.h"
-
-#include "orientedBoundingBox.hh"
-#include "spheralWildMagicConverters.hh"
 #include "DataBase/DataBase.hh"
 #include "Utilities/allReduce.hh"
 #include "Geometry/Dimension.hh"

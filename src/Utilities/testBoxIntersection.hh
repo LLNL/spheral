@@ -9,12 +9,8 @@
 #ifndef __Spheral_testBoxIntersection__
 #define __Spheral_testBoxIntersection__
 
+#include <utility>
 #include "Geometry/Dimension.hh"
-#include "spheralWildMagicConverters.hh"
-#include "Wm5IntrBox2Box2.h"
-#include "Wm5IntrBox3Box3.h"
-#include "Wm5ContBox2.h"
-#include "Wm5ContBox3.h"
 
 namespace Spheral {
 
@@ -64,6 +60,18 @@ testBoxIntersection(const Dim<3>::Vector& xmin1, const Dim<3>::Vector& xmax1,
 }
 
 //------------------------------------------------------------------------------
+// Same as above using std::pairs to hold the box min/max's.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+testBoxIntersection(const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box1,
+                    const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box2,
+                    const double tol = 1.0e-10) {
+  return testBoxIntersection(box1.first, box1.second, box2.first, box2.second, tol);
+}
+
+//------------------------------------------------------------------------------
 // Test if a point is contained in a box.
 //------------------------------------------------------------------------------
 inline
@@ -108,51 +116,15 @@ testPointInBox(const Dim<3>::Vector& point,
 }
 
 //------------------------------------------------------------------------------
-// The more general case of arbitrary boxes not necessarily axis aligned.
+// Same as above but specifying the box min/max using a std::pair.
 //------------------------------------------------------------------------------
+template<typename Dimension>
 inline
 bool
-testBoxIntersection(const Dim<1>::Box& box1, const Dim<1>::Box& box2) {
-  return testBoxIntersection(box1.center() - box1.extent(),
-                             box1.center() + box1.extent(),
-                             box2.center() - box2.extent(),
-                             box2.center() + box2.extent());
-}
-
-inline
-bool
-testBoxIntersection(const Dim<2>::Box& box1, const Dim<2>::Box& box2) {
-  Wm5::IntrBox2Box2<double> test(box1, box2);
-  return test.Test();
-}
-
-inline
-bool
-testBoxIntersection(const Dim<3>::Box& box1, const Dim<3>::Box& box2) {
-  Wm5::IntrBox3Box3<double> test(box1, box2);
-  return test.Test();
-}
-
-//------------------------------------------------------------------------------
-// A similar in spirit test is if a point is contained in a box.
-//------------------------------------------------------------------------------
-inline
-bool
-testPointInBox(const Dim<1>::Vector& point, const Dim<1>::Box& box) {
-  return (point.x() >= box.center().x() - box.extent() and
-          point.x() <= box.center().x() + box.extent());
-}
-
-inline
-bool
-testPointInBox(const Dim<2>::Vector& point, const Dim<2>::Box& box) {
-  return Wm5::InBox(convertVectorToWMVector<Dim<2> >(point), box);
-}
-
-inline
-bool
-testPointInBox(const Dim<3>::Vector& point, const Dim<3>::Box& box) {
-  return Wm5::InBox(convertVectorToWMVector<Dim<3> >(point), box);
+testPointInBox(const typename Dimension::Vector& point,
+               const std::pair<typename Dimension::Vector, typename Dimension::Vector>& box,
+               const double tol = 1.0e-10) {
+  return testPointInBox(point, box.first, box.second, tol);
 }
 
 }

@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceFieldList.hh"
 
 namespace Spheral {
 
@@ -25,12 +25,12 @@ namespace FieldSpace {
 }
 
 template<typename Dimension>
-class VoronoiMassDensityPolicy: public ReplaceState<Dimension, typename Dimension::Scalar> {
+class VoronoiMassDensityPolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
-  typedef typename ReplaceState<Dimension, Scalar>::KeyType KeyType;
+  typedef typename ReplaceFieldList<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
   VoronoiMassDensityPolicy(const double rhoMin,

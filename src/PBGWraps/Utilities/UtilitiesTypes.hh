@@ -10,7 +10,6 @@
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/mortonOrderIndicies.hh"
 #include "Utilities/peanoHilbertOrderIndicies.hh"
-#include "Utilities/orientedBoundingBox.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/testBoxIntersection.hh"
@@ -220,33 +219,6 @@ globalNodeIDsAll(const DataBaseSpace::DataBase<Dimension>& dataBase) {
   return globalNodeIDs(dataBase);
 }
 
-}
-
-//------------------------------------------------------------------------------
-// And these...
-//------------------------------------------------------------------------------
-inline
-void
-orientedBoundingBox1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase,
-                      Dim<1>::Box& nodeBox,
-                      Dim<1>::Box& sampleBox) {
-  return orientedBoundingBox(dataBase, nodeBox, sampleBox);
-}
-
-inline
-void
-orientedBoundingBox2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase,
-                      Dim<2>::Box& nodeBox,
-                      Dim<2>::Box& sampleBox) {
-  return orientedBoundingBox(dataBase, nodeBox, sampleBox);
-}
-
-inline
-void
-orientedBoundingBox3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
-                      Dim<3>::Box& nodeBox,
-                      Dim<3>::Box& sampleBox) {
-  return orientedBoundingBox(dataBase, nodeBox, sampleBox);
 }
 
 //------------------------------------------------------------------------------

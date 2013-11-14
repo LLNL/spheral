@@ -80,18 +80,6 @@ Spheral.add_function("convertStringToElement", "%(value)s", [param("std::string"
                      custom_name = "unpackElement%(name)s")
 """ % {"value" : value, "name" : name})
 
-        # orientedBoundingBox
-        for dim, value, name in (("1d", "Box1d",        "Box1d"),
-                                 ("2d", "Wm5::WMBox2d", "Box2d"),
-                                 ("3d", "Wm5::WMBox3d", "Box3d")):
-            exec("""
-Spheral.add_function("orientedBounding%(name)s", None,
-                     [constrefparam("DataBase%(dim)s", "dataBase"),
-                      refparam("%(value)s", "nodeBox"),
-                      refparam("%(value)s", "sampleBox")],
-                     docstring = "Compute the minimum volume bounding box.")
-""" % {"value" : value, "name" : name, "dim" : dim})
-
         # boundingVolumes
         for dim, value, vector, inst in (("1d", "Box1d", "Vector1d", "Dim<1>"),
                                          ("2d", "Polygon", "Vector2d", "Dim<2>"),
@@ -166,14 +154,6 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                  template_parameters = [vector],
                                  custom_name = "closestPointOnSegment",
                                  docstring = "Find the closest point on a line segment (a0,a1) to point (p).")
-
-        # Point-triangle distance.
-        Spheral.add_function("pointTriangleDistance", "double", 
-                             [constrefparam("Vector3d", "p"),
-                              constrefparam("Vector3d", "a"),
-                              constrefparam("Vector3d", "b"),
-                              constrefparam("Vector3d", "c")],
-                             docstring = "Compute the distance between a point and an arbitrary triangle.")
 
         # Closest point in plane to a point.
         Spheral.add_function("closestPointOnPlane", "Vector3d",
