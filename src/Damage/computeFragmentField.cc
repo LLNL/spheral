@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "computeFragmentField.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "Utilities/globalNodeIDs.hh"
@@ -134,7 +135,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   CHECK(maxGlobalID >= numGlobalNodesRemaining);
 
   // Prepare the result.
-  Field<Dimension, int> result("Fragment index", nodes, maxGlobalID);
+  Field<Dimension, int> result(SolidFieldNames::fragmentIDs, nodes, maxGlobalID);
   int numFragments = 0;
 
   // Flag any nodes above the damage threshold as dust.
