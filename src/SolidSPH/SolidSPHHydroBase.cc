@@ -24,10 +24,10 @@
 #include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/ReplaceState.hh"
-#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/ReplaceBoundedFieldList.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -216,42 +216,50 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
 
-  // Now register away.
+  // Build the FieldList versions of our state.
+  FieldList<Dimension, SymTensor> S, D;
+  FieldList<Dimension, Scalar> ps;
+  FieldList<Dimension, Vector> gradD;
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
     SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
     CHECK(solidNodeListPtr != 0);
-
-    // Register the deviatoric stress and plastic strain to be evolved.
-    PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>());
-    PolicyPointer plasticStrainPolicy(new PlasticStrainPolicy<Dimension>());
-    state.enroll(solidNodeListPtr->deviatoricStress(), deviatoricStressPolicy);
-    state.enroll(solidNodeListPtr->plasticStrain(), plasticStrainPolicy);
-
-    // Register the bulk modulus, shear modulus, and yield strength.
-    PolicyPointer bulkModulusPolicy(new BulkModulusPolicy<Dimension>());
-    PolicyPointer shearModulusPolicy(new ShearModulusPolicy<Dimension>());
-    PolicyPointer yieldStrengthPolicy(new YieldStrengthPolicy<Dimension>());
-    state.enroll(*mBulkModulus[nodeListi], bulkModulusPolicy);
-    state.enroll(*mShearModulus[nodeListi], shearModulusPolicy);
-    state.enroll(*mYieldStrength[nodeListi], yieldStrengthPolicy);
-
-    // Override the policy for the sound speed.
-    PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
-    state.enroll(*cs[nodeListi], csPolicy);
-
-    // Register the effective damage and damage gradient with default no-op updates.
-    // If there are any damage models running they can override these choices.
-    state.enroll(solidNodeListPtr->effectiveDamage());
-    state.enroll(solidNodeListPtr->damageGradient());
+    S.appendField(solidNodeListPtr->deviatoricStress());
+    ps.appendField(solidNodeListPtr->plasticStrain());
+    D.appendField(solidNodeListPtr->effectiveDamage());
+    gradD.appendField(solidNodeListPtr->damageGradient());
 
     // Make a copy of the beginning plastic strain.
     *mPlasticStrain0[nodeListi] = solidNodeListPtr->plasticStrain();
     (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
-    state.enroll(*mPlasticStrain0[nodeListi]);
   }
+
+  // Register the deviatoric stress and plastic strain to be evolved.
+  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>());
+  PolicyPointer plasticStrainPolicy(new PlasticStrainPolicy<Dimension>());
+  state.enroll(S, deviatoricStressPolicy);
+  state.enroll(ps, plasticStrainPolicy);
+
+  // Register the bulk modulus, shear modulus, and yield strength.
+  PolicyPointer bulkModulusPolicy(new BulkModulusPolicy<Dimension>());
+  PolicyPointer shearModulusPolicy(new ShearModulusPolicy<Dimension>());
+  PolicyPointer yieldStrengthPolicy(new YieldStrengthPolicy<Dimension>());
+  state.enroll(mBulkModulus, bulkModulusPolicy);
+  state.enroll(mShearModulus, shearModulusPolicy);
+  state.enroll(mYieldStrength, yieldStrengthPolicy);
+
+  // Override the policy for the sound speed.
+  PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
+  state.enroll(cs, csPolicy);
+
+  // Register the effective damage and damage gradient with default no-op updates.
+  // If there are any damage models running they can override these choices.
+  state.enroll(D);
+  state.enroll(gradD);
+
+  state.enroll(mPlasticStrain0);
 }
 
 //------------------------------------------------------------------------------
@@ -270,8 +278,10 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  const string DSDtName = IncrementState<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
+  const string DSDtName = IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
   dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, DSDtName, false);
+
+  derivs.enroll(mDdeviatoricStressDt);
 
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -279,7 +289,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
        ++itr, ++nodeListi) {
     SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
     CHECK(solidNodeListPtr != 0);
-    derivs.enroll(*mDdeviatoricStressDt[nodeListi]);
     derivs.enroll(solidNodeListPtr->plasticStrainRate());
   }
 }
@@ -346,22 +355,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradDamage.size() == numNodeLists);
 
   // Derivative FieldLists.
-  FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-  FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
-  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   FieldList<Dimension, Scalar> XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  FieldList<Dimension, SymTensor> DSDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  FieldList<Dimension, SymTensor> DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);

@@ -13,7 +13,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
 #include "Utilities/DBC.hh"
@@ -25,6 +25,7 @@ using namespace std;
 
 using NodeSpace::NodeList;
 using FieldSpace::Field;
+using FieldSpace::FieldList;
 using SolidMaterial::SolidNodeList;
 
 //------------------------------------------------------------------------------
@@ -59,10 +60,10 @@ computeJ2(const typename Dimension::SymTensor& x) {
 template<typename Dimension>
 PlasticStrainPolicy<Dimension>::
 PlasticStrainPolicy():
-  UpdatePolicyBase<Dimension>(SolidFieldNames::deviatoricStress,
-                              HydroFieldNames::massDensity,
-                              HydroFieldNames::specificThermalEnergy,
-                              HydroFieldNames::pressure) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(SolidFieldNames::deviatoricStress,
+                                                                   HydroFieldNames::massDensity,
+                                                                   HydroFieldNames::specificThermalEnergy,
+                                                                   HydroFieldNames::pressure) {
 }
 
 //------------------------------------------------------------------------------
@@ -89,68 +90,52 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::plasticStrain);
-  Field<Dimension, Scalar>& stateField = state.field(key, 0.0);
+  REQUIRE(fieldKey == SolidFieldNames::plasticStrain and
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> ps = state.fields(fieldKey, 0.0);
+  const unsigned numFields = ps.numFields();
 
-  // Get the deviatoric stress.
-  const KeyType deviatoricStressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
-  CHECK(state.registered(deviatoricStressKey));
-  Field<Dimension, SymTensor>& deviatoricStress = state.field(deviatoricStressKey, SymTensor::zero);
-
-  // We also need the mass density, thermal energy, pressure, and plastic strain rate.
-  const KeyType rhoKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType epsKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType GKey = State<Dimension>::buildFieldKey(SolidFieldNames::shearModulus, nodeListKey);
-  const KeyType YKey = State<Dimension>::buildFieldKey(SolidFieldNames::yieldStrength, nodeListKey);
-  const KeyType ps0Key = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain + "0", nodeListKey);
-  const KeyType psrKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrainRate, nodeListKey);
-  CHECK(state.registered(rhoKey));
-  CHECK(state.registered(epsKey));
-  CHECK(state.registered(PKey));
-  CHECK(state.registered(GKey));
-  CHECK(state.registered(YKey));
-  CHECK(state.registered(ps0Key));
-  CHECK(derivs.registered(psrKey));
-  const Field<Dimension, Scalar>& rho = state.field(rhoKey, 0.0);
-  const Field<Dimension, Scalar>& eps = state.field(epsKey, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(PKey, 0.0);
-  const Field<Dimension, Scalar>& G = state.field(GKey, 0.0);
-  const Field<Dimension, Scalar>& Y = state.field(YKey, 0.0);
-  const Field<Dimension, Scalar>& ps0 = state.field(ps0Key, 0.0);
-  Field<Dimension, Scalar>& psr = derivs.field(psrKey, 0.0);
+  // Get the state we depend on.
+  FieldList<Dimension, SymTensor> deviatoricStress = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  const FieldList<Dimension, Scalar> G = state.fields(SolidFieldNames::shearModulus, 0.0);
+  const FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  const FieldList<Dimension, Scalar> ps0 = state.fields(SolidFieldNames::plasticStrain + "0", 0.0);
+  FieldList<Dimension, Scalar> psr = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
 
   // Iterate over the internal nodes.
-  const SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateField.nodeListPtr());
-  CHECK(solidNodeListPtr != 0);
-  for (int i = 0; i != solidNodeListPtr->numInternalNodes(); ++i) {
+  for (unsigned k = 0; k != numFields; ++k) {
+    const unsigned n = ps[k]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
 
-    // Equivalent stress deviator.
-    const double J2 = computeJ2<Dimension>(deviatoricStress(i));
-    CHECK(J2 >= 0.0);
-    const double equivalentStressDeviator = sqrt(3.0*J2);
+      // Equivalent stress deviator.
+      const double J2 = computeJ2<Dimension>(deviatoricStress(k,i));
+      CHECK(J2 >= 0.0);
+      const double equivalentStressDeviator = sqrt(3.0*J2);
 
-    // Plastic yield limit.
-    const double yieldLimit = max(0.0, Y(i));
+      // Plastic yield limit.
+      const double yieldLimit = max(0.0, Y(k,i));
 
-    // von Mises yield scaling constant.
-    double f;
-    if (distinctlyGreaterThan(equivalentStressDeviator, 0.0)) {
-      f = min(1.0, yieldLimit/equivalentStressDeviator);
-    } else {
-      f = 1.0;
-    }
+      // von Mises yield scaling constant.
+      double f;
+      if (distinctlyGreaterThan(equivalentStressDeviator, 0.0)) {
+        f = min(1.0, yieldLimit/equivalentStressDeviator);
+      } else {
+        f = 1.0;
+      }
 
-    // Scale the stress deviator.
-    deviatoricStress(i) *= f;
+      // Scale the stress deviator.
+      deviatoricStress(k,i) *= f;
 
-    // Update the plastic strain and strain rate.
-    if (distinctlyGreaterThan(G(i), 0.0)) {
-      stateField(i) += (1.0 - f)*equivalentStressDeviator / (3.0*G(i));
-      psr(i) = (stateField(i) - ps0(i))*safeInv(dt);
+      // Update the plastic strain and strain rate.
+      if (distinctlyGreaterThan(G(k,i), 0.0)) {
+        ps(k,i) += (1.0 - f)*equivalentStressDeviator / (3.0*G(k,i));
+        psr(k,i) = (ps(k,i) - ps0(k,i))*safeInv(dt);
+      }
     }
   }
-
 }
 
 //------------------------------------------------------------------------------

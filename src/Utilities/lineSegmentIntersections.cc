@@ -11,15 +11,18 @@
 // These are largely adapted from code in "Computational Geometry in C" by
 // Joseph O'Rourke.
 //----------------------------------------------------------------------------//
+#include "boost/geometry.hpp"
+#include "boost/geometry/geometries/register/point.hpp"
+
 #include "lineSegmentIntersections.hh"
 #include "pointInPolygon.hh"
-#include "spheralWildMagicConverters.hh"
-#include "Wm5Segment2.h"
-#include "Wm5Segment3.h"
-#include "Wm5DistSegment2Segment2.h"
-#include "Wm5DistSegment3Segment3.h"
 
 using namespace std;
+namespace bg = boost::geometry;
+
+BOOST_GEOMETRY_REGISTER_POINT_2D_GET_SET(Spheral::Dim<2>::Vector, double, bg::cs::cartesian, 
+                                         Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y, 
+                                         Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y);
 
 namespace Spheral {
 
@@ -273,16 +276,20 @@ segmentSegmentIntersection(const Dim<3>::Vector& a0,
   if (between(b0, b1, a0, reltol)) { result1 = a0; result2 = a0; return 'v'; }
   if (between(b0, b1, a1, reltol)) { result1 = a1; result2 = a1; return 'v'; }
 
-  // Let WildMagic compute the general case.
-  const Wm5::Segment3<double> aseg(convertVectorToWMVector<Dim<3> >(a0),
-                                   convertVectorToWMVector<Dim<3> >(a1));
-  const Wm5::Segment3<double> bseg(convertVectorToWMVector<Dim<3> >(b0),
-                                   convertVectorToWMVector<Dim<3> >(b1));
-  Wm5::DistSegment3Segment3<double> dist(aseg, bseg);
-  if (fuzzyEqual(dist.Get(), 0.0, reltol)) {
-    result1 = a0 + (a1 - a0)*dist.GetSegment0Parameter();
+  const Vector den = na.cross(nb), num = (b0 - a0).cross(nb);
+  const double denmag = den.magnitude(), 
+               nummag = num.magnitude(),
+              dottest = den.dot(num);
+
+  // If den & num are parallel, the lines intersect (but we still have to check
+  // if the segments intersect).
+  if (denmag > reltol and fuzzyEqual(std::abs(dottest), denmag*nummag, reltol)) {
+    const double f = nummag/denmag * sgn(dottest);
+    result1 = a0 + f*na;
     result2 = result1;
-    return '1';
+    return (between(a0, a1, result1, reltol) ? '1' : '0');
+  } else {
+      return '0';
   }
 }
 
@@ -489,36 +496,97 @@ segmentSegmentDistance(const Dim<2>::Vector& a0,
                        const Dim<2>::Vector& a1,
                        const Dim<2>::Vector& b0,
                        const Dim<2>::Vector& b1) {
-  // Wild magic has accuracy problems when the endpoint of one segment lies on 
-  // another, so we screen for that case.
-  const double reltol = 1.0e-8*helpfulScaleFactor(a0, a1, b0, b1);
-  if (between(a0, a1, b0, reltol) or between(a0, a1, b1, reltol) or
-      between(b0, b1, a0, reltol) or between(b0, b1, a1, reltol)) return 0.0;
+  typedef Dim<2>::Vector Vector;
+  typedef bg::model::segment<Vector> segment2d;
 
-  const Wm5::Segment2<double> aseg(convertVectorToWMVector<Dim<2> >(a0),
-                                   convertVectorToWMVector<Dim<2> >(a1));
-  const Wm5::Segment2<double> bseg(convertVectorToWMVector<Dim<2> >(b0),
-                                   convertVectorToWMVector<Dim<2> >(b1));
-  return Wm5::DistSegment2Segment2<double>(aseg, bseg).Get();
+  // Check if the segments intersect.
+  Vector p1, p2, p3, p4;
+  if (segmentSegmentIntersection(a0, a1, b0, b1, p1, p2, 1.0e-10) == '1') return 0.0;
+
+  // Otherwise check for the minimum distance of each segment from the end points
+  // of the other.
+  // We export this task to Boost.Geometry.
+  const segment2d aseg(a0, a1), bseg(b0, b1);
+  return std::min(bg::distance(a0, bseg), 
+                  std::min(bg::distance(a1, bseg),
+                           std::min(bg::distance(b0, aseg), bg::distance(b1, aseg))));
 }
 
 // 3-D.
+// This code lifted from the example at 
+// http://geomalgorithms.com/a07-_distance.html#dist3D_Segment_to_Segment
 double
 segmentSegmentDistance(const Dim<3>::Vector& a0,
                        const Dim<3>::Vector& a1,
                        const Dim<3>::Vector& b0,
                        const Dim<3>::Vector& b1) {
-  // Wild magic has accuracy problems when the endpoint of one segment lies on 
-  // another, so we screen for that case.
-  const double reltol = 1.0e-8*helpfulScaleFactor(a0, a1, b0, b1);
-  if (between(a0, a1, b0, reltol) or between(a0, a1, b1, reltol) or
-      between(b0, b1, a0, reltol) or between(b0, b1, a1, reltol)) return 0.0;
+  typedef Dim<3>::Vector Vector;
+  const double tol = 1.0e-10;
+  const double fscale = helpfulScaleFactor(a0, a1, b0, b1);
+  const Vector u = (a1 - a0)/fscale,
+               v = (b1 - b0)/fscale,
+               w = (a0 - b0)/fscale;
+  const double a = u.magnitude2(),         // always >= 0
+               b = u.dot(v),
+               c = v.magnitude2(),         // always >= 0
+               d = u.dot(w),
+               e = v.dot(w),
+               D = a*c - b*b;              // always >= 0
+  double sc, sN, sD = D;       // sc = sN / sD, default sD = D >= 0
+  double tc, tN, tD = D;       // tc = tN / tD, default tD = D >= 0
 
-  const Wm5::Segment3<double> aseg(convertVectorToWMVector<Dim<3> >(a0),
-                                   convertVectorToWMVector<Dim<3> >(a1));
-  const Wm5::Segment3<double> bseg(convertVectorToWMVector<Dim<3> >(b0),
-                                   convertVectorToWMVector<Dim<3> >(b1));
-  return Wm5::DistSegment3Segment3<double>(aseg, bseg).Get();
+  // compute the line parameters of the two closest points
+  if (D < tol) { // the lines are almost parallel
+    sN = 0.0;       // force using point P0 on segment S1
+    sD = 1.0;       // to prevent possible division by 0.0 later
+    tN = e;
+    tD = c;
+  } else {                 // get the closest points on the infinite lines
+    sN = (b*e - c*d);
+    tN = (a*e - b*d);
+    if (sN < 0.0) {        // sc < 0 => the s=0 edge is visible
+      sN = 0.0;
+      tN = e;
+      tD = c;
+    } else if (sN > sD) {  // sc > 1  => the s=1 edge is visible
+      sN = sD;
+      tN = e + b;
+      tD = c;
+    }
+  }
+
+  if (tN < 0.0) {            // tc < 0 => the t=0 edge is visible
+    tN = 0.0;
+    // recompute sc for this edge
+    if (-d < 0.0)
+      sN = 0.0;
+    else if (-d > a)
+      sN = sD;
+    else {
+      sN = -d;
+      sD = a;
+    }
+  } else if (tN > tD) {      // tc > 1  => the t=1 edge is visible
+    tN = tD;
+    // recompute sc for this edge
+    if ((-d + b) < 0.0)
+      sN = 0;
+    else if ((-d + b) > a)
+      sN = sD;
+    else {
+      sN = (-d +  b);
+      sD = a;
+    }
+  }
+
+  // finally do the division to get sc and tc
+  sc = (std::abs(sN) < tol ? 0.0 : sN / sD);
+  tc = (std::abs(tN) < tol ? 0.0 : tN / tD);
+
+  // get the difference of the two closest points
+  Vector dP = w + (sc * u) - (tc * v);  // =  S1(sc) - S2(tc)
+
+  return dP.magnitude() * fscale;   // return the closest distance
 }
 
 //------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 #include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/DBC.hh"
 
@@ -19,7 +19,7 @@ namespace Spheral {
 
 using namespace std;
 using NodeSpace::NodeList;
-using FieldSpace::Field;
+using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -27,8 +27,8 @@ using FieldSpace::Field;
 template<typename Dimension>
 VoronoiMassDensityPolicy<Dimension>::
 VoronoiMassDensityPolicy(const double rhoMin, const double rhoMax):
-  ReplaceState<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
-                                                      HydroFieldNames::volume),
+  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
+                                                          HydroFieldNames::volume),
   mRhoMin(rhoMin),
   mRhoMax(rhoMax) {
   REQUIRE(rhoMin <= rhoMax);
@@ -54,23 +54,23 @@ update(const KeyType& key,
        const double multiplier,
        const double t,
        const double dt) {
+
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::massDensity);
-  Field<Dimension, Scalar>& massDensity = state.field(key, 0.0);
+  REQUIRE(fieldKey == HydroFieldNames::massDensity and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> massDensity = state.fields(fieldKey, Scalar());
+  const unsigned numFields = massDensity.numFields();
 
   // Get the mass and volume from the state.
-  const KeyType massKey = State<Dimension>::buildFieldKey(HydroFieldNames::mass, nodeListKey);
-  const KeyType volKey = State<Dimension>::buildFieldKey(HydroFieldNames::volume, nodeListKey);
-  CHECK(state.registered(massKey));
-  CHECK(state.registered(volKey));
-  const Field<Dimension, Scalar>& mass = state.field(massKey, 0.0);
-  const Field<Dimension, Scalar>& volume = state.field(volKey, 0.0);
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
 
   // Set the mass density.
-  const NodeList<Dimension>& nodeList = mass.nodeList();
-  for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
-    massDensity(i) = max(mRhoMin, min(mRhoMax, mass(i) * safeInv(volume(i))));
+  for (unsigned i = 0; i != numFields; ++i) {
+    for (unsigned j = 0; j != massDensity[i]->numInternalElements(); ++j) {
+      massDensity(i,j) = max(mRhoMin, min(mRhoMax, mass(i,j) * safeInv(volume(i,j))));
+    }
   }
 }
 

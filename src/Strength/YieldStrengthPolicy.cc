@@ -14,12 +14,12 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
 
-using FieldSpace::Field;
+using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 using SolidMaterial::SolidNodeList;
 
@@ -29,11 +29,11 @@ using SolidMaterial::SolidNodeList;
 template<typename Dimension>
 YieldStrengthPolicy<Dimension>::
 YieldStrengthPolicy():
-UpdatePolicyBase<Dimension>(HydroFieldNames::massDensity,
-                            HydroFieldNames::specificThermalEnergy,
-                            HydroFieldNames::pressure,
-                            SolidFieldNames::plasticStrain,
-                            IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
+                                                                   HydroFieldNames::specificThermalEnergy,
+                                                                   HydroFieldNames::pressure,
+                                                                   SolidFieldNames::plasticStrain,
+                                                                   IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain) {
 }
 
 //------------------------------------------------------------------------------
@@ -58,36 +58,30 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::yieldStrength);
-  Field<Dimension, Scalar>& stateField = state.field(key, 0.0);
+  REQUIRE(fieldKey == SolidFieldNames::yieldStrength and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> stateFields = state.fields(fieldKey, Scalar());
+  const unsigned numFields = stateFields.numFields();
 
   // Get the mass density, specific thermal energy, pressure,
   // plastic strain, and plastic strain rate from the state.
-  const KeyType massDensityKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType energyKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType PSKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
-  const KeyType PSRKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrainRate, nodeListKey);
-  CHECK(state.registered(massDensityKey));
-  CHECK(state.registered(energyKey));
-  CHECK(state.registered(PKey));
-  CHECK(state.registered(PSKey));
-  CHECK(derivs.registered(PSRKey));
-  const Field<Dimension, Scalar>& massDensity = state.field(massDensityKey, 0.0);
-  const Field<Dimension, Scalar>& energy = state.field(energyKey, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(PKey, 0.0);
-  const Field<Dimension, Scalar>& PS = state.field(PSKey, 0.0);
-  const Field<Dimension, Scalar>& PSR = derivs.field(PSRKey, 0.0);
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  const FieldList<Dimension, Scalar> PS = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  const FieldList<Dimension, Scalar> PSR = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
 
-  // We only do this if this is a solid node list.
-  const SolidNodeList<Dimension>* nodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateField.nodeListPtr());
-  CHECK(nodeListPtr != 0);
+  // Walk the individual fields.
+  for (unsigned k = 0; k != numFields; ++k) {
 
-  // Get the strength model.
-  const SolidMaterial::StrengthModel<Dimension>& strengthModel = nodeListPtr->strengthModel();
+    // Get the strength model.  This cast is ugly, but is a work-around for now.
+    const SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
+    CHECK(solidNodeListPtr != 0);
+    const SolidMaterial::StrengthModel<Dimension>& strengthModel = solidNodeListPtr->strengthModel();
 
-  // Now set the yield strength.
-  strengthModel.yieldStrength(stateField, massDensity, energy, P, PS, PSR);
+    // Now set the yield strength.
+    strengthModel.yieldStrength(*stateFields[k], *massDensity[k], *energy[k], *P[k], *PS[k], *PSR[k]);
+  }
 }
 
 //------------------------------------------------------------------------------

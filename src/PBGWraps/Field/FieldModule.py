@@ -108,8 +108,8 @@ self.addFieldListMethods(self.VectorSymTensorFieldList%(dim)s, "vector_of_SymTen
 self.addFieldListSetMethods(self.FieldListSet%(dim)s, %(ndim)i)
 """ % {"dim" : dim, "ndim" : ndim})
 
-        # std::vector<Field*> and std::vector<FieldList>
-        for element in ["Int", "Scalar", "Vector", "Tensor", "SymTensor"]:
+            # std::vector<Field*> and std::vector<FieldList>
+            for element in ["Int", "Scalar", "Vector", "Tensor", "SymTensor"]:
                 exec("""
 generateStdVectorBindings(self.vector_of_%(element)sFieldPtr%(dim)s, "Spheral::FieldSpace::%(element)sField%(dim)s*", "vector_of_%(element)sFieldPtr%(dim)s", indexAsPointer=True)
 generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::FieldSpace::%(element)sFieldList%(dim)s", "vector_of_%(element)sFieldList%(dim)s", indexAsPointer=True)

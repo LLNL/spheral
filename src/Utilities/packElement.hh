@@ -642,7 +642,4 @@ unpackElement(std::map<Key, Value>& mapvalue,
 
 }
 
-// To be helpful we also load up the WildMagic element types.
-#include "packWMElement.hh"
-
 #endif

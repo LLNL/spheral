@@ -297,7 +297,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the damage and effective damage.
   // Note we are overriding the default no-op policy for the effective damage
-  // as originally registered by the Strength class.
+  // as originally registered by the SolidSPHHydroBase class.
   PolicyPointer damagePolicy(new TensorDamagePolicy<Dimension>(*this));
   PolicyPointer effDamagePolicy(new EffectiveTensorDamagePolicy<Dimension>());
   state.enroll(this->nodeList().damage(), damagePolicy);

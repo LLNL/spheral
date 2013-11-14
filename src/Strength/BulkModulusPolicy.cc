@@ -10,7 +10,7 @@
 #include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/Field.hh"
+#include "Field/FieldList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Material/EquationOfState.hh"
 #include "Utilities/DBC.hh"
@@ -19,7 +19,7 @@ namespace Spheral {
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using FieldSpace::Field;
+using FieldSpace::FieldList;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -27,8 +27,8 @@ using FieldSpace::Field;
 template<typename Dimension>
 BulkModulusPolicy<Dimension>::
 BulkModulusPolicy():
-  UpdatePolicyBase<Dimension>(HydroFieldNames::massDensity,
-                              HydroFieldNames::specificThermalEnergy) {
+  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
+                                                                   HydroFieldNames::specificThermalEnergy) {
 }
 
 //------------------------------------------------------------------------------
@@ -53,24 +53,28 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::bulkModulus);
-  Field<Dimension, Scalar>& stateField = state.field(key, 0.0);
+  REQUIRE(fieldKey == SolidFieldNames::bulkModulus and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  FieldList<Dimension, Scalar> stateFields = state.fields(fieldKey, Scalar());
+  const unsigned numFields = stateFields.numFields();
 
   // Get the mass density and specific thermal energy fields from the state.
-  const KeyType massDensityKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey);
-  const KeyType energyKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
-  CHECK(state.registered(massDensityKey));
-  CHECK(state.registered(energyKey));
-  const Field<Dimension, Scalar>& massDensity = state.field(massDensityKey, 0.0);
-  const Field<Dimension, Scalar>& energy = state.field(energyKey, 0.0);
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  CHECK(massDensity.size() == numFields);
+  CHECK(energy.size() == numFields);
 
-  // Get the eos.  This cast is ugly, but is a work-around for now.
-  const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(stateField.nodeListPtr());
-  CHECK(fluidNodeListPtr != 0);
-  const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+  // Walk the individual fields.
+  for (unsigned k = 0; k != numFields; ++k) {
 
-  // Now set the bulk modulus.
-  eos.setBulkModulus(stateField, massDensity, energy);
+    // Get the eos.  This cast is ugly, but is a work-around for now.
+    const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
+    CHECK(fluidNodeListPtr != 0);
+    const Material::EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
+
+    // Now set the bulk modulus.
+    eos.setBulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
+  }
 
 //   // Is there a scalar damage field for this NodeList?
 //   {

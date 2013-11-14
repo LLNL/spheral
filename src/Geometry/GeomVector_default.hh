@@ -54,6 +54,10 @@ public:
   double operator()(size_type index) const;
   double& operator()(size_type index);
 
+  // More C++ style indexing.
+  double operator[](size_type index) const;
+  double& operator[](size_type index);
+
   // Access the individual elements by (x, y, z) notation.
   double x() const;
   double y() const;

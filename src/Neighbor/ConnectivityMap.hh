@@ -41,14 +41,20 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors, destructor.
+  ConnectivityMap();
+  ~ConnectivityMap();
+
   template<typename NodeListIterator>
   ConnectivityMap(const NodeListIterator& begin,
                   const NodeListIterator& end);
-  ~ConnectivityMap();
+
+  // Rebuild for a given set of NodeLists.
+  template<typename NodeListIterator>
+  void rebuild(const NodeListIterator& begin, const NodeListIterator& end);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
-  // old2new -- maps old -> new node indicies.
+  // old2new -- maps old -> new node indices.
   void patchConnectivity(const FieldSpace::FieldList<Dimension, int>& flags,
                          const FieldSpace::FieldList<Dimension, int>& old2new);
 
@@ -102,15 +108,11 @@ private:
 
   // The full connectivity map.  This might be quite large!
   // [NodeList] [nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector< boost::shared_ptr< std::vector< boost::shared_ptr<std::vector< std::vector<int> > > > > > ConnectivityStorageType;
+  typedef FieldSpace::FieldList<Dimension, std::vector<std::vector<int> > > ConnectivityStorageType;
   ConnectivityStorageType mConnectivity;
 
-  // The set of node indicies per Nodelistin order for traversal.
-  std::vector< std::vector<int> > mNodeTraversalIndicies;
-
-  // Locally cached copy of the flag from NodeListRegistrar as to whether we're
-  // running in domain decomposition independent mode or not.
-  bool mDomainDecompIndependent;
+  // The set of node indices per Nodelist in order for traversal.
+  std::vector< std::vector<int> > mNodeTraversalIndices;
 
   // The set of keys we may compute for each node.
   typedef typename KeyTraits::Key Key;
@@ -121,7 +123,6 @@ private:
   void computeConnectivity();
 
   // No default constructor, copying, or assignment.
-  ConnectivityMap();
   ConnectivityMap(const ConnectivityMap&);
   ConnectivityMap& operator=(const ConnectivityMap&);
 #endif

@@ -7,7 +7,7 @@
 #ifndef __Spheral_BulkModulusPolicy_hh__
 #define __Spheral_BulkModulusPolicy_hh__
 
-#include "DataBase/UpdatePolicyBase.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -23,7 +23,7 @@ namespace FieldSpace {
 
 template<typename Dimension>
 class BulkModulusPolicy: 
-    public UpdatePolicyBase<Dimension> {
+    public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
