@@ -79,6 +79,7 @@ class Strength:
         x.add_static_attribute("longitudinalSoundSpeed", "std::string",  is_const=True)
         x.add_static_attribute("yieldStrength", "std::string",  is_const=True)
         x.add_static_attribute("effectiveFlaws", "std::string",  is_const=True)
+        x.add_static_attribute("fragmentIDs", "std::string",  is_const=True)
         return
 
     #---------------------------------------------------------------------------
@@ -87,6 +88,7 @@ class Strength:
     def generateSolidNodeListBindings(self, x, ndim):
 
         me = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
+        intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
@@ -122,6 +124,7 @@ class Strength:
         const_ref_return_value(x, me, "%s::damage" % me, symtensorfield, [], "damage")
         const_ref_return_value(x, me, "%s::effectiveDamage" % me, symtensorfield, [], "effectiveDamage")
         const_ref_return_value(x, me, "%s::damageGradient" % me, vectorfield, [], "damageGradient")
+        const_ref_return_value(x, me, "%s::fragmentIDs" % me, intfield, [], "fragmentIDs")
         const_ref_return_value(x, me, "%s::strengthModel" % me, strengthmodel, [], "strengthModel")
 
         x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
