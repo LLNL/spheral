@@ -139,29 +139,29 @@ output("WTPi")
 # Create the NodeLists and generators.
 #-------------------------------------------------------------------------------
 nodeSet, gens = [], []
-if restoreCycle is None:
-    for iz in xrange(nxparts):
-        zmin = float(iz    )/nxparts
-        zmax = float(iz + 1)/nxparts
-        for iy in xrange(nxparts):
-            ymin = float(iy    )/nxparts
-            ymax = float(iy + 1)/nxparts
-            for ix in xrange(nxparts):
-                xmin = float(ix    )/nxparts
-                xmax = float(ix + 1)/nxparts
-                nodeSet.append(makeFluidNodeList("nodes%i" % (ix + nxparts*(iy + nxparts*iz)),
-                                                 eos, 
-                                                 hmin = hmin,
-                                                 hmax = hmax,
-                                                 nPerh = nPerh,
-                                                 rhoMin = rhomin))
-                gens.append(GenerateNodeDistribution3d(nx/nxparts, ny/nxparts, nz/nxparts,
-                                                       rho0, seed,
-                                                       xmin = (xmin, ymin, zmin),
-                                                       xmax = (xmax, ymax, zmax),
-                                                       nNodePerh = nPerh,
-                                                       SPH = (HydroConstructor == SPHHydro)))
+for iz in xrange(nxparts):
+    zmin = float(iz    )/nxparts
+    zmax = float(iz + 1)/nxparts
+    for iy in xrange(nxparts):
+        ymin = float(iy    )/nxparts
+        ymax = float(iy + 1)/nxparts
+        for ix in xrange(nxparts):
+            xmin = float(ix    )/nxparts
+            xmax = float(ix + 1)/nxparts
+            nodeSet.append(makeFluidNodeList("nodes%i" % (ix + nxparts*(iy + nxparts*iz)),
+                                             eos, 
+                                             hmin = hmin,
+                                             hmax = hmax,
+                                             nPerh = nPerh,
+                                             rhoMin = rhomin))
+            gens.append(GenerateNodeDistribution3d(nx/nxparts, ny/nxparts, nz/nxparts,
+                                                   rho0, seed,
+                                                   xmin = (xmin, ymin, zmin),
+                                                   xmax = (xmax, ymax, zmax),
+                                                   nNodePerh = nPerh,
+                                                   SPH = (HydroConstructor == SPHHydro)))
 
+if restoreCycle is None:
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes3d
         #from PeanoHilbertDistributeNodes import distributeNodes3d
@@ -301,7 +301,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = (HydroConstructor == SPHHydro))
 output("control")
 
 #-------------------------------------------------------------------------------

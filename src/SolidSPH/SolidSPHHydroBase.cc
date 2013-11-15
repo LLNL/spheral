@@ -173,12 +173,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  // Create storage for the bulk and shear moduli, and yield strength.
+  // Create storage for the state we're holding.
+  mDdeviatoricStressDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
   mBulkModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::bulkModulus);
   mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
   mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
 
-  // Set those suckers.
+  // Set the moduli.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
