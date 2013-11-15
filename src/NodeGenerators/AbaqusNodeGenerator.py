@@ -222,7 +222,7 @@ class AbaqusNodeGenerator(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def tetMoments(self, vertices):
         assert len(vertices) == 4
-        vol = ((vertices[1] - vertices[0]).cross(vertices[2] - vertices[0])).dot(vertices[3] - vertices[0])
+        vol = ((vertices[1] - vertices[0]).cross(vertices[2] - vertices[0])).dot(vertices[3] - vertices[0])/6.0
         cent = 0.25*(vertices[0] + vertices[1] + vertices[2] + vertices[3])
         assert vol > 0.0
         return vol, cent
