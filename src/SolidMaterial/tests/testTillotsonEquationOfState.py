@@ -44,6 +44,8 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         self.eos = TillotsonEquationOfStateMKS(self.rho0,
                                                self.etamin,
                                                self.etamax,
+                                               self.etamin,
+                                               self.etamax,
                                                self.a,
                                                self.b,
                                                self.A,

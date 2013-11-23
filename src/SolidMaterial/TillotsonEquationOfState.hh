@@ -36,6 +36,8 @@ public:
   TillotsonEquationOfState(const double referenceDensity,
                            const double etamin,
                            const double etamax,
+                           const double etamin_solid,
+                           const double etamax_solid,
                            const double a,
                            const double b,
                            const double A,
@@ -105,6 +107,8 @@ public:
                              const Scalar specificThermalEnergy) const;
 
   // Access the member data.
+  double etamin_solid() const;
+  double etamax_solid() const;
   double a() const;
   double b() const;
   double A() const;
@@ -116,6 +120,8 @@ public:
   double epsVapor() const;
   double atomicWeight() const;
   
+  void etamin_solid(const double x);
+  void etamax_solid(const double x);
   void a(const double x);
   void b(const double x);
   void A(const double x);
@@ -151,8 +157,9 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double ma, mb, mA, mB, malpha, mbeta, meps0, mepsLiquid, mepsVapor,
-    mAtomicWeight, mCv, mGamma, mExternalPressure;
+  double mEtaMinSolid, mEtaMaxSolid,
+         ma, mb, mA, mB, malpha, mbeta, meps0, mepsLiquid, mepsVapor,
+         mAtomicWeight, mCv, mGamma, mExternalPressure;
 
   // Disallow default constructor
   TillotsonEquationOfState();
