@@ -25,9 +25,9 @@ NodeIteratorBase<Dimension>::
 NodeIteratorBase():
   mNodeID(0),
   mFieldID(0),
-  mNodeListBegin(0),
-  mNodeListEnd(0),
-  mNodeListItr(0) {
+  mNodeListBegin(),
+  mNodeListEnd(),
+  mNodeListItr() {
 }
 
 //------------------------------------------------------------------------------
@@ -79,9 +79,9 @@ NodeIteratorBase<Dimension>::
 valid() const {
 
   // We want real NodeList iterators.
-  const bool validNodeListIterators = (mNodeListItr != typename vector<NodeList<Dimension>*>::const_iterator(0) &&
-                                       mNodeListBegin != typename vector<NodeList<Dimension>*>::const_iterator(0) &&
-                                       mNodeListEnd != typename vector<NodeList<Dimension>*>::const_iterator(0));
+  const bool validNodeListIterators = (mNodeListItr != typename vector<NodeList<Dimension>*>::const_iterator() &&
+                                       mNodeListBegin != typename vector<NodeList<Dimension>*>::const_iterator() &&
+                                       mNodeListEnd != typename vector<NodeList<Dimension>*>::const_iterator());
 
   // Test if the NodeList iterator is in the appropriate range.
   const bool nodeListRange = (mNodeListItr >= mNodeListBegin &&
