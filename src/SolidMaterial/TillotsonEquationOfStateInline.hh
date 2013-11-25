@@ -4,6 +4,44 @@ namespace Spheral {
 namespace SolidMaterial {
 
 //------------------------------------------------------------------------------
+// etamin_solid
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TillotsonEquationOfState<Dimension>::
+etamin_solid() const {
+  return mEtaMinSolid;
+}
+
+template<typename Dimension>
+inline
+void
+TillotsonEquationOfState<Dimension>::
+etamin_solid(const double x) {
+  mEtaMinSolid = x;
+}
+
+//------------------------------------------------------------------------------
+// etamax_solid
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TillotsonEquationOfState<Dimension>::
+etamax_solid() const {
+  return mEtaMaxSolid;
+}
+
+template<typename Dimension>
+inline
+void
+TillotsonEquationOfState<Dimension>::
+etamax_solid(const double x) {
+  mEtaMaxSolid = x;
+}
+
+//------------------------------------------------------------------------------
 // a
 //------------------------------------------------------------------------------
 template<typename Dimension>

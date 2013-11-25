@@ -228,6 +228,8 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     x.add_constructor([param("double", "referenceDensity"),
                        param("double", "etamin"),
                        param("double", "etamax"),
+                       param("double", "etamin_solid"),
+                       param("double", "etamax_solid"),
                        param("double", "a"),
                        param("double", "b"),
                        param("double", "A"),
@@ -263,6 +265,8 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     x.add_method("compute_dP4deps_rho", "double", [param("double", "phi"), param("double", "dphideps_rho"), param("double", "eta"), param("double", "rho"), param("double", "eps")], is_const=True)
 
     # Attributes.
+    x.add_instance_attribute("etamin_solid", "double", getter="etamin_solid", setter="etamin_solid")
+    x.add_instance_attribute("etamax_solid", "double", getter="etamax_solid", setter="etamax_solid")
     x.add_instance_attribute("a", "double", getter="a", setter="a")
     x.add_instance_attribute("b", "double", getter="b", setter="b")
     x.add_instance_attribute("A", "double", getter="A", setter="A")

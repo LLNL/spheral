@@ -22,6 +22,8 @@ TillotsonEquationOfState can be constructed one of two ways:
         etamin              : Lower bound for rho/rho0                           
         etamax              : Upper bound for rho/rho0                           
         units               : Units the user wants to work in                    
+        etamin_solid        : Optional more restrictive lower bound for rho/rho0 in solid phase
+        etamax_solid        : Optional more restrictive upper bound for rho/rho0 in solid phase
         externalPressure    : Optional external pressure                         
         minimumPressure     : Optional minimum pressure                          
         maximumPressure     : Optional maximum pressure                          
@@ -31,6 +33,8 @@ TillotsonEquationOfState can be constructed one of two ways:
         referenceDensity    : reference material mass density
         etamin              : minimum allowed ratio rho/rho0
         etamax              : maximum allowed ratio rho/rho0
+        etamin_solid        : minimum allowed ratio rho/rho0 (solid phase)
+        etamax_solid        : maximum allowed ratio rho/rho0 (solid phase)
         a
         b
         A
@@ -69,7 +73,9 @@ def _TillotsonFactory(*args,
 
     # The arguments that need to be passed to this method.
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
-    optionalKwArgs = {"externalPressure" : 0.0,
+    optionalKwArgs = {"etamin_solid"     : 0.0,
+                      "etamax_solid"     : 1e200,
+                      "externalPressure" : 0.0,
                       "minimumPressure"  : -1e200,
                       "maximumPressure"  :  1e200,
                       "minPressureType"  : PressureFloor}
@@ -114,6 +120,8 @@ def _TillotsonFactory(*args,
         passargs = [SpheralMaterialPropertiesLib[mat]["rho0"] * rhoConv,
                     etamin,
                     etamax,
+                    etamin_solid,
+                    etamax_solid,
                     params["a"],
                     params["b"],
                     params["A"] * Pconv,
@@ -125,10 +133,10 @@ def _TillotsonFactory(*args,
                     params["epsVapor"] * specificEconv,
                     SpheralMaterialPropertiesLib[mat]["atomicWeight"] * mconv,
                     units]
-        passargs.append(externalPressure)
-        passargs.append(minimumPressure)
-        passargs.append(maximumPressure)
-        passargs.append(minPressureType)
+        passargs.extend([externalPressure,
+                         minimumPressure,
+                         maximumPressure,
+                         minPressureType])
         passkwargs = {}
 
     else:

@@ -22,10 +22,10 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.3.tar.bz2
-PYTHONURL = http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tar.bz2
-PYTHONDIR = $(PYTHONDIST:.tar.bz2=)
-PYTHONBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(PYTHONDIST))
+PYTHONDIST = Python-2.7.6.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.6/$(PYTHONDIST)
+PYTHONDIR = $(PYTHONDIST:.tgz=)
+PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
 # Numpy
 NUMPYDIST = numpy-1.6.2.tar.gz
@@ -61,7 +61,7 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(SPHERALDIR)/bin/cmake
-CMAKEDIST = cmake-2.8.9.tar.gz
+CMAKEDIST = cmake-2.8.12.tar.gz
 CMAKEURL = http://www.cmake.org/files/v2.8/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
@@ -288,7 +288,7 @@ TETGENURL = http://tetgen.org/files/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.17
+POLYTOPEVER = 0.5.18
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
@@ -370,7 +370,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(SPHERALDIR)/include $(SPHERALDIR)/bin
 	rm -fr $(PYTHONDIR)
-	$(BZIP2) -dc $(PYTHONDIST) | $(TAR) -xf -
+	$(GZIP) -dc $(PYTHONDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYTHONDIR); \
 	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
 	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' 

@@ -467,6 +467,7 @@ def dumpPhysicsState(stateThingy,
         fieldLists = []
 
     # Build up the list of fields in the state object.
+    fields += [x for x in state.allIntFields()]
     fields += [x for x in state.allScalarFields()]
     fields += [x for x in state.allVectorFields()]
     fields += [x for x in state.allTensorFields()]
@@ -474,6 +475,7 @@ def dumpPhysicsState(stateThingy,
 
     # Are we also dumping the derivative fields?
     if not derivs is None:
+        fields += [x for x in derivs.allIntFields()]
         fields += [x for x in derivs.allScalarFields()]
         fields += [x for x in derivs.allVectorFields()]
         fields += [x for x in derivs.allTensorFields()]

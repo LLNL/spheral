@@ -40,6 +40,8 @@ units = PhysicalConstants(1.0,  # unit length in meters
 eosGranite = TillotsonEquationOfState(rho0Granite,     # ref density (kg/m^3)
                                       etaMinGranite,   # etamin             
                                       etaMaxGranite,   # etamax             
+                                      etaMinGranite,   # etamin             
+                                      etaMaxGranite,   # etamax             
                                       0.5,             # a      (dimensionless)
                                       1.5,             # b      (dimensionless)
                                       60.0 * GPa,      # A      (Pa)

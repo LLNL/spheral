@@ -25,3 +25,4 @@ const std::string Spheral::SolidFieldNames::yieldStrength = "yield strength";
 const std::string Spheral::SolidFieldNames::effectiveFlaws = "effective flaws";
 const std::string Spheral::SolidFieldNames::porosityAlpha = "porosity alpha";
 const std::string Spheral::SolidFieldNames::porosityStrain = "porosity strain";
+const std::string Spheral::SolidFieldNames::fragmentIDs = "fragment index";

@@ -49,7 +49,7 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
-  static const std::string prefix() { return "delta "; }
+  static const std::string prefix() { return "new "; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
