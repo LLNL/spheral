@@ -173,12 +173,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  // Create storage for the bulk and shear moduli, and yield strength.
+  // Create storage for the state we're holding.
+  mDdeviatoricStressDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
   mBulkModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::bulkModulus);
   mShearModulus = dataBase.newFluidFieldList(0.0, SolidFieldNames::shearModulus);
   mYieldStrength = dataBase.newFluidFieldList(0.0, SolidFieldNames::yieldStrength);
+  mPlasticStrain0 = dataBase.newFluidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
 
-  // Set those suckers.
+  // Set the moduli.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -220,6 +222,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, SymTensor> S, D;
   FieldList<Dimension, Scalar> ps;
   FieldList<Dimension, Vector> gradD;
+  FieldList<Dimension, int> fragIDs;
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -230,6 +233,7 @@ registerState(DataBase<Dimension>& dataBase,
     ps.appendField(solidNodeListPtr->plasticStrain());
     D.appendField(solidNodeListPtr->effectiveDamage());
     gradD.appendField(solidNodeListPtr->damageGradient());
+    fragIDs.appendField(solidNodeListPtr->fragmentIDs());
 
     // Make a copy of the beginning plastic strain.
     *mPlasticStrain0[nodeListi] = solidNodeListPtr->plasticStrain();
@@ -259,6 +263,10 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(D);
   state.enroll(gradD);
 
+  // Register the fragment IDs.
+  state.enroll(fragIDs);
+
+  // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
 }
 
@@ -340,6 +348,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -353,6 +362,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
   CHECK(gradDamage.size() == numNodeLists);
+  CHECK(fragIDs.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -445,6 +455,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
       const Scalar sDi = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
       const Vector gradDi = unitVectorWithZero(gradDamage(nodeListi, i)*Dimension::nDim/Hi.Trace());
+      const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
@@ -509,6 +520,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
               const Scalar sDj = max(0.0, min(1.0, damage(nodeListj, j).eigenValues().maxElement()));
               const Vector gradDj = unitVectorWithZero(gradDamage(nodeListj, j)*Dimension::nDim/Hj.Trace());
+              const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -526,6 +538,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
+
+              // Flag if this is a contiguous material pair or not.
+              const bool sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
 
               // Node displacement.
               const Vector rij = ri - rj;
@@ -601,7 +616,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the stress tensors.
               SymTensor sigmai = -Peffi*SymTensor::one;
               SymTensor sigmaj = -Peffj*SymTensor::one;
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 sigmai += fDeffij*Si;
                 sigmaj += fDeffij*Sj;
               }
@@ -639,13 +654,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Velocity gradient.
               DvDxi -= mj*deltaDvDxi;
               DvDxj -= mi*deltaDvDxj;
-              if (nodeListi == nodeListj) {
+              if (sameMatij) {
                 localDvDxi -= mj*deltaDvDxi;
                 localDvDxj -= mi*deltaDvDxj;
               }
 
               // Estimate of delta v (for XSPH).
-              if (XSPH and (nodeListi == nodeListj)) {
+              if (XSPH and sameMatij) {
                 const double fXSPH = fDeffij*max(0.0, min(1.0, abs(vij.dot(rij)*safeInv(vij.magnitude()*rij.magnitude()))));
                 CHECK(fXSPH >= 0.0 and fXSPH <= 1.0);
                 XSPHWeightSumi += fXSPH*mj/rhoj*Wi;
@@ -762,6 +777,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -770,6 +786,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(K);
     (*boundaryItr)->applyFieldListGhostBoundary(mu);
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
+    (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
   }
 }
 
@@ -790,6 +807,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
   FieldList<Dimension, Scalar> mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -798,6 +816,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(K);
     (*boundaryItr)->enforceFieldListBoundary(mu);
     (*boundaryItr)->enforceFieldListBoundary(Y);
+    (*boundaryItr)->enforceFieldListBoundary(fragIDs);
   }
 }
 

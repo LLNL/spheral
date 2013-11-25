@@ -33,6 +33,8 @@ TillotsonEquationOfState<Dimension>::
 TillotsonEquationOfState(const double referenceDensity,
                          const double etamin,
                          const double etamax,
+                         const double etamin_solid,
+                         const double etamax_solid,
                          const double a,
                          const double b,
                          const double A,
@@ -55,6 +57,8 @@ TillotsonEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minPressureType),
+  mEtaMinSolid(etamin_solid),
+  mEtaMaxSolid(etamax_solid),
   ma(a),
   mb(b),
   mA(A),
@@ -181,11 +185,14 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  const double eta = this->boundedEta(massDensity);
-  const double mu = eta - 1.0;
-  const double rho0 = this->referenceDensity();
-  const double rho = rho0*eta;
-  const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
+  const double eta = this->boundedEta(massDensity),
+               mu = eta - 1.0,
+               eta_solid = std::max(mEtaMinSolid, std::min(mEtaMaxSolid, eta)),
+               mu_solid = eta_solid - 1.0,
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               rho_solid = rho0*eta_solid,
+               eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
 
   // Define three fundamental pressures:
   //   P1 - solid, compression.
@@ -199,15 +206,15 @@ pressure(const Scalar massDensity,
   if (mu >= 0.0) {
 
     // Option 1: compression, solid.
-    const double phi = computePhi(eta, eps);
-    P = computeP1(mu, computeP2(phi, mu, rho, eps));
+    const double phi = computePhi(eta_solid, eps);
+    P = computeP1(mu, computeP2(phi, mu_solid, rho_solid, eps));
 
   } else if (eps <= mepsLiquid) {
 
     // Option 2: expansion, solid : same as 1, but setting B=0.
-    const double phi = computePhi(eta, eps);
-    if (fuzzyEqual(eta, this->etamin())) return 0.0;
-    P = computeP2(phi, mu, rho, eps);
+    const double phi = computePhi(eta_solid, eps);
+    if (fuzzyEqual(eta_solid, mEtaMinSolid)) return 0.0;
+    P = computeP2(phi, mu_solid, rho_solid, eps);
 
   } else if (eps <= mepsVapor) {
 
@@ -215,10 +222,10 @@ pressure(const Scalar massDensity,
     // Treated here as a linear combination of the solid and gaseous phases.
     // Following Saito et al. we compute P2 and P4 at the epsLiquid and epsVapor 
     // specific energies.
-    const double phi2 = computePhi(eta, mepsLiquid);
+    const double phi2 = computePhi(eta_solid, mepsLiquid);
     const double phi4 = computePhi(eta, mepsVapor);
-    double P2 = computeP2(phi2, mu, rho, mepsLiquid);
-    if (fuzzyEqual(eta, this->etamin())) P2 = 0.0;
+    double P2 = computeP2(phi2, mu_solid, rho_solid, mepsLiquid);
+    if (fuzzyEqual(eta_solid, mEtaMinSolid)) P2 = 0.0;
     const double P4 = computeP4(phi4, mu, eta, rho, mepsVapor);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
@@ -318,35 +325,39 @@ double
 TillotsonEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
-  const double eta = this->boundedEta(massDensity);
-  const double mu = eta - 1.0;
-  const double rho0 = this->referenceDensity();
-  const double rho = rho0*eta;
-  const double eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
-  const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
+  const double eta = this->boundedEta(massDensity),
+               mu = eta - 1.0,
+               eta_solid = std::max(mEtaMinSolid, std::min(mEtaMaxSolid, eta)),
+               mu_solid = eta_solid - 1.0,
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta,
+               rho_solid = rho0*eta_solid,
+               eps = std::max(0.0, specificThermalEnergy),   // I'm not sure if this EOS admits negative energies.
+               Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho),
+               Prho2_solid = Prho2*(rho*rho)/(rho_solid*rho_solid);
 
   // There are four regimes:
   double dPdrho;
   if (mu >= 0.0) {
 
     // Option 1: compression, solid.
-    const double phi = computePhi(eta, eps);
-    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta, eps);
-    const double dphideps_rho = compute_dphideps_rho(eta, eps);
-    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho, eps);
-    const double dP1drho_eps = compute_dP1drho_eps(rho0, mu, dP2drho_eps);
-    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho, eps);
-    dPdrho = dP1drho_eps + Prho2*dP2deps_rho; // Note dP1deps_rho == dP2deps_rho
+    const double phi = computePhi(eta_solid, eps);
+    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, eps);
+    const double dphideps_rho = compute_dphideps_rho(eta_solid, eps);
+    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, eps);
+    const double dP1drho_eps = compute_dP1drho_eps(rho0, mu_solid, dP2drho_eps);
+    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, eps);
+    dPdrho = dP1drho_eps + Prho2_solid*dP2deps_rho; // Note dP1deps_rho == dP2deps_rho
 
   } else if (eps <= mepsLiquid) {
 
     // Option 2: expansion, solid : same as 1, but setting B=0.
-    const double phi = computePhi(eta, eps);
-    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta, eps);
-    const double dphideps_rho = compute_dphideps_rho(eta, eps);
-    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho, eps);
-    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho, eps);
-    dPdrho = dP2drho_eps + Prho2*dP2deps_rho;
+    const double phi = computePhi(eta_solid, eps);
+    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, eps);
+    const double dphideps_rho = compute_dphideps_rho(eta_solid, eps);
+    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, eps);
+    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, eps);
+    dPdrho = dP2drho_eps + Prho2_solid*dP2deps_rho;
 
   } else if (eps <= mepsVapor) {
 
@@ -357,11 +368,11 @@ computeDPDrho(const Scalar massDensity,
     double dP2drho, dP4drho;
     {
       const double phi = computePhi(eta, mepsLiquid);
-      const double dphidrho_eps = compute_dphidrho_eps(rho0, eta, mepsLiquid);
-      const double dphideps_rho = compute_dphideps_rho(eta, mepsLiquid);
-      const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho, mepsLiquid);
-      const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho, mepsLiquid);
-      dP2drho = dP2drho_eps + Prho2*dP2deps_rho;
+      const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, mepsLiquid);
+      const double dphideps_rho = compute_dphideps_rho(eta_solid, mepsLiquid);
+      const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, mepsLiquid);
+      const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, mepsLiquid);
+      dP2drho = dP2drho_eps + Prho2_solid*dP2deps_rho;
     }
     {
       const double phi = computePhi(eta, mepsVapor);

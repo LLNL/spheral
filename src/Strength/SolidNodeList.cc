@@ -63,6 +63,7 @@ SolidNodeList(string name,
   mDamage(SolidFieldNames::tensorDamage, *this),
   mEffectiveDamage(SolidFieldNames::effectiveTensorDamage, *this),
   mDamageGradient(SolidFieldNames::damageGradient, *this),
+  mFragmentIDs(SolidFieldNames::fragmentIDs, *this),
   mStrength(strength) {
 }
 
@@ -154,6 +155,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDamage, pathName + "/" + mDamage.name());
   file.write(mEffectiveDamage, pathName + "/" + mEffectiveDamage.name());
   file.write(mDamageGradient, pathName + "/" + mDamageGradient.name());
+  file.write(mFragmentIDs, pathName + "/" + mFragmentIDs.name());
 }
 
 //------------------------------------------------------------------------------
@@ -173,7 +175,8 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDamage, pathName + "/" + mDamage.name());
   file.read(mEffectiveDamage, pathName + "/" + mEffectiveDamage.name());
   file.read(mDamageGradient, pathName + "/" + mDamageGradient.name());
-}  
+  file.read(mFragmentIDs, pathName + "/" + mFragmentIDs.name());
+}
 
 }
 }

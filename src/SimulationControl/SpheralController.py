@@ -137,18 +137,21 @@ class SpheralController(RestartableObject):
         # Set the simulation time.
         self.integrator.currentTime = initialTime
 
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None:
+            self.iterateIdealH()
+
         # Initialize the integrator and packages.
-        for package in self.integrator.physicsPackages():
-            package.initializeProblemStartup(self.integrator.dataBase())
-        state = eval("State%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
-        derivs = eval("StateDerivatives%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
+        db = self.integrator.dataBase()
+        packages = self.integrator.physicsPackages()
+        for package in packages:
+            package.initializeProblemStartup(db)
+        state = eval("State%s(db, packages)" % (self.dim))
+        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
         self.integrator.initialize(state, derivs)
 
         # If requested, initialize the derivatives.
         if initializeDerivatives:
-            state = eval("State%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
-            derivs = eval("StateDerivatives%s(self.integrator.dataBase(), self.integrator.physicsPackages())" % (self.dim))
-            db = self.integrator.dataBase()
             self.integrator.evaluateDerivatives(initialTime, 0.0, db, state, derivs)
 
         # Set up the default periodic work.
@@ -169,12 +172,7 @@ class SpheralController(RestartableObject):
 
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
-            self.iterateIdealH()
             self.doPeriodicWork(force=True)
-
-        # # Do the per package one time initialization.
-        # for package in self.integrator.physicsPackages():
-        #     package.initializeProblemStartup(self.integrator.dataBase())
 
         return
 

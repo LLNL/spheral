@@ -20,7 +20,7 @@ template<typename Dimension>
 CoarseNodeIterator<Dimension>::
 CoarseNodeIterator():
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr(0) {
+  mNodeIDItr() {
 }
 
 //------------------------------------------------------------------------------
@@ -32,11 +32,11 @@ CoarseNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeLis
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListBegin,
                    typename vector<NodeList<Dimension>*>::const_iterator nodeListEnd):
   NodeIteratorBase<Dimension>(),
-  mNodeIDItr(0) {
+  mNodeIDItr() {
   initialize(nodeListItr,
              nodeListBegin,
              nodeListEnd,
-             vector<int>::const_iterator(0));
+             vector<int>::const_iterator());
   ENSURE(valid());
 }
 
@@ -114,7 +114,7 @@ initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
            vector<int>::const_iterator IDItr) {
 
   // Pre-conditions.
-  REQUIRE((nodeListItr == nodeListEnd && IDItr == vector<int>::const_iterator(0)) ||
+  REQUIRE((nodeListItr == nodeListEnd && IDItr == vector<int>::const_iterator()) ||
           (nodeListItr < nodeListEnd && 
            IDItr >= (*nodeListItr)->neighbor().coarseNeighborBegin() &&
            IDItr <= (*nodeListItr)->neighbor().coarseNeighborEnd()));
