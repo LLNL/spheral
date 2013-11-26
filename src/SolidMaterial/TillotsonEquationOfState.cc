@@ -191,30 +191,35 @@ pressure(const Scalar massDensity,
                rho = rho0*eta,
                eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
 
-  // Define three fundamental pressures:
+  // Tillotson defines three fundamental pressure regimes:
   //   P1 - solid, compression.
   //   P2 - solid, expansion.
   //   P4 - gaseous, expansion.
-  // A third category (P3) is interpreted as a mixture of gaseous and solid
+  // A forth category (P3) is interpreted as a mixture of gaseous and solid
   // phases, and is interpolated between P2 and P4.
 
-  // There are four regimes:
   double P;
   const double phi = mb/(1.0 + eps/(meps0*eta*eta));
   const double chi = 1.0/eta - 1.0;
+
   if (mu >= 0.0) {
 
-    // Option 1: compression, solid.
+    // Regime 1: compression, solid.
     P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
 
   } else if (eps <= mepsLiquid) {
 
-    // Option 2: expansion, solid : same as 1, but setting B=0.
+    // Regime 2: expansion, solid : same as 1, only if rho>cutoff density.
     P = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.0;
 
-  } else if (eps <= mepsVapor) {
+  } else if (eps >= mepsVapor) {
 
-    // Option 3: expansion, liquid.
+    // Regime 4: expansion, vapor.
+    P = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
+
+  } else {
+
+    // Regime 3: expansion, partial vapor.
     // Treated here as a linear combination of the solid and gaseous phases.
     // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
     // epsVapor specific energies</strike> Melosh (personal communication) we
@@ -223,11 +228,6 @@ pressure(const Scalar massDensity,
     double P4 = ma*rho*eps + 
                (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
-
-  } else {
-
-    // Option 4: expansion, gaseous.
-    P = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
 
   }
 
@@ -321,73 +321,41 @@ computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity),
                mu = eta - 1.0,
-               eta_solid = std::max(mEtaMinSolid, std::min(mEtaMaxSolid, eta)),
-               mu_solid = eta_solid - 1.0,
                rho0 = this->referenceDensity(),
                rho = rho0*eta,
-               rho_solid = rho0*eta_solid,
-               eps = std::max(0.0, specificThermalEnergy),   // I'm not sure if this EOS admits negative energies.
-               Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho),
-               Prho2_solid = Prho2*(rho*rho)/(rho_solid*rho_solid);
+               eps = std::max(0.0, specificThermalEnergy);
 
-  // There are four regimes:
   double dPdrho;
+  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
+  const double chi = 1.0/eta - 1.0;
+  const double dphidrho = (1.0/rho0)*((2.0*mb*meps0*eps*eta)/
+                                     ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
+
   if (mu >= 0.0) {
 
-    // Option 1: compression, solid.
-    const double phi = computePhi(eta_solid, eps);
-    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, eps);
-    const double dphideps_rho = compute_dphideps_rho(eta_solid, eps);
-    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, eps);
-    const double dP1drho_eps = compute_dP1drho_eps(rho0, mu_solid, dP2drho_eps);
-    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, eps);
-    dPdrho = dP1drho_eps + Prho2_solid*dP2deps_rho; // Note dP1deps_rho == dP2deps_rho
+    // Regime 1: compression, solid.
+    dPdrho = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
 
   } else if (eps <= mepsLiquid) {
 
-    // Option 2: expansion, solid : same as 1, but setting B=0.
-    const double phi = computePhi(eta_solid, eps);
-    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, eps);
-    const double dphideps_rho = compute_dphideps_rho(eta_solid, eps);
-    const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, eps);
-    const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, eps);
-    dPdrho = dP2drho_eps + Prho2_solid*dP2deps_rho;
+    // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
+    dPdrho = (eta > mEtaMinSolid) ? 
+              eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
 
-  } else if (eps <= mepsVapor) {
+  } else if (eps >= mepsVapor) {
+     
+    // Regime 4: expansion, gaseous.
+    dPdrho = ma*eps + 
+             eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.*malpha*chi*phi*rho0/rho) + 
+             mA*exp(-malpha*chi*chi -mbeta*chi)*(1./rho0 + rho0*mu*(mbeta+2.*malpha*chi)/(rho*rho));
 
-    // Option 3: expansion, liquid.
-    // Treated here as a linear combination of the solid and gaseous phases.
-    // Following Saito et al. we compute P2 and P4 at the epsLiquid and epsVapor 
-    // specific energies.
-    double dP2drho, dP4drho;
-    {
-      const double phi = computePhi(eta, mepsLiquid);
-      const double dphidrho_eps = compute_dphidrho_eps(rho0, eta_solid, mepsLiquid);
-      const double dphideps_rho = compute_dphideps_rho(eta_solid, mepsLiquid);
-      const double dP2drho_eps = compute_dP2drho_eps(phi, dphidrho_eps, rho0, rho_solid, mepsLiquid);
-      const double dP2deps_rho = compute_dP2deps_rho(phi, dphideps_rho, rho_solid, mepsLiquid);
-      dP2drho = dP2drho_eps + Prho2_solid*dP2deps_rho;
-    }
-    {
-      const double phi = computePhi(eta, mepsVapor);
-      const double dphidrho_eps = compute_dphidrho_eps(rho0, eta, mepsVapor);
-      const double dphideps_rho = compute_dphideps_rho(eta, mepsVapor);
-      const double dP4drho_eps = compute_dP4drho_eps(phi, dphidrho_eps, rho0, eta, mu, rho, mepsVapor);
-      const double dP4deps_rho = compute_dP4deps_rho(phi, dphideps_rho, eta, rho, mepsVapor);
-      dP4drho = dP4drho_eps + Prho2*dP4deps_rho;
-    }
-    dPdrho = dP2drho + (dP4drho - dP2drho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
   } else {
 
-    // Option 4: expansion, gaseous.
-    const double phi = computePhi(eta, eps);
-    const double dphidrho_eps = compute_dphidrho_eps(rho0, eta, eps);
-    const double dphideps_rho = compute_dphideps_rho(eta, eps);
-    const double dP4drho_eps = compute_dP4drho_eps(phi, dphidrho_eps, rho0, eta, mu, rho, eps);
-    const double dP4deps_rho = compute_dP4deps_rho(phi, dphideps_rho, eta, rho, eps);
-    dPdrho = dP4drho_eps + Prho2*dP4deps_rho;
-
+    // Regime 3: expansion, liquid.
+    // Treated here as a linear combination of the solid and gaseous phases.
+    double dP2drho=0, dP4drho=0;
+    dPdrho = dP2drho + (dP4drho - dP2drho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
   }
 
   // That's it.
