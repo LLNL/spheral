@@ -187,11 +187,8 @@ pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity),
                mu = eta - 1.0,
-               eta_solid = std::max(mEtaMinSolid, std::min(mEtaMaxSolid, eta)),
-               mu_solid = eta_solid - 1.0,
                rho0 = this->referenceDensity(),
                rho = rho0*eta,
-               rho_solid = rho0*eta_solid,
                eps = std::max(0.0, specificThermalEnergy);   // I'm not sure if this EOS admits negative energies.
 
   // Define three fundamental pressures:
@@ -203,37 +200,34 @@ pressure(const Scalar massDensity,
 
   // There are four regimes:
   double P;
+  const double phi = mb/(1.0 + eps/(meps0*eta*eta));
+  const double chi = 1.0/eta - 1.0;
   if (mu >= 0.0) {
 
     // Option 1: compression, solid.
-    const double phi = computePhi(eta_solid, eps);
-    P = computeP1(mu, computeP2(phi, mu_solid, rho_solid, eps));
+    P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
 
   } else if (eps <= mepsLiquid) {
 
     // Option 2: expansion, solid : same as 1, but setting B=0.
-    const double phi = computePhi(eta_solid, eps);
-    if (fuzzyEqual(eta_solid, mEtaMinSolid)) return 0.0;
-    P = computeP2(phi, mu_solid, rho_solid, eps);
+    P = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.0;
 
   } else if (eps <= mepsVapor) {
 
     // Option 3: expansion, liquid.
     // Treated here as a linear combination of the solid and gaseous phases.
-    // Following Saito et al. we compute P2 and P4 at the epsLiquid and epsVapor 
-    // specific energies.
-    const double phi2 = computePhi(eta_solid, mepsLiquid);
-    const double phi4 = computePhi(eta, mepsVapor);
-    double P2 = computeP2(phi2, mu_solid, rho_solid, mepsLiquid);
-    if (fuzzyEqual(eta_solid, mEtaMinSolid)) P2 = 0.0;
-    const double P4 = computeP4(phi4, mu, eta, rho, mepsVapor);
+    // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
+    // epsVapor specific energies</strike> Melosh (personal communication) we
+    // compute P2 and P4 at the given energy.
+    double P2 = (eta > mEtaMinSolid) ? (ma + phi)*rho*eps + mA*mu + mB*mu*mu : 0.;
+    double P4 = ma*rho*eps + 
+               (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
   } else {
 
     // Option 4: expansion, gaseous.
-    const double phi = computePhi(eta, eps);
-    P = computeP4(phi, mu, eta, rho, eps);
+    P = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
 
   }
 
