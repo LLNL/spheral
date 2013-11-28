@@ -32,9 +32,12 @@ commandLine(seed = "constantDTheta",
             gamma = 5.0/3.0,
             mu = 1.0,
 
+            Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
+            Qlimiter = False,
+            balsaraCorrection = False,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -64,6 +67,7 @@ commandLine(seed = "constantDTheta",
             restoreCycle = None,
             restartStep = 1000,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",
             outputFile = "None",
@@ -71,7 +75,6 @@ commandLine(seed = "constantDTheta",
 
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
-
 
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
@@ -96,6 +99,8 @@ elif thetaFactor == 1.0:
     Espike *= 0.5
 
 dataDir = os.path.join(dataRoot,
+                       str(HydroConstructor).split()[1].split(".")[1][:-2],
+                       str(Qconstructor).split()[1].split(".")[-1][:-2],
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
@@ -232,19 +237,23 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct a standard Monaghan-Gingold artificial viscosity.
+# Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-qMG = MonaghanGingoldViscosity(Cl, Cq)
-qMG.epsilon2 = epsilon2
-output("qMG")
-output("qMG.Cl")
-output("qMG.Cq")
-output("qMG.epsilon2")
+q = Qconstructor(Cl, Cq)
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, qMG,
+hydro = HydroConstructor(WT, WTPi, q,
                          cfl = cfl,
                          compatibleEnergyEvolution = compatibleEnergy,
                          gradhCorrection = gradhCorrection,
@@ -299,11 +308,18 @@ output("integrator.dtMax")
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralVisitDump
+    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            vizMethod = vizMethod,
                             vizBaseName = "Sedov-cylindrical-2d-%ix%i" % (nRadial, nTheta),
                             vizDir = vizDir,
                             vizStep = vizCycle,
