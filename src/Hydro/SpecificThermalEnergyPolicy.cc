@@ -280,7 +280,7 @@ update(const KeyType& key,
               CHECK(wi >= 0.0 and wi <= 1.0);
               CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
               DepsDti += wi*duij;
-              DepsDtj += (1.0 - wi)*duij;
+              DepsDtj += (1.0 - wi)*duij*mi/mj;
             }
           }
         }
