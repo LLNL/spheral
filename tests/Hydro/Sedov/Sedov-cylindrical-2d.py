@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------------------
 import os, sys, shutil
 from Spheral2d import *
+from findLastRestart import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
@@ -22,12 +23,12 @@ commandLine(seed = "constantDTheta",
             nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
-            smoothSpike = False,
+            smoothSpike = True,
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -120,6 +121,12 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
+# If we're restarting, find the set of most recent restart files.
+#-------------------------------------------------------------------------------
+if restoreCycle is None:
+    restoreCycle = findLastRestart(restartBaseName)
+
+#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -149,6 +156,7 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
+H = nodes1.Hfield()
 if restoreCycle is None:
     if seed == "square":
         generator = GenerateSquareNodeDistribution(nRadial,
@@ -162,7 +170,7 @@ if restoreCycle is None:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
                                                rmax = rmax,
-                                               xmin = Vector(0,0),
+                                               xmin = Vector(-1,-1),
                                                xmax = Vector(1,1),
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
@@ -323,8 +331,8 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
 # Report the error norms.
 rmin, rmax = 0.0, 0.95
 r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-x = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-y = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+yprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
 v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
@@ -382,7 +390,7 @@ if outputFile != "None" and mpi.rank == 0:
     f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "A", "hr", "ht",
                                           "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
     for (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
-         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, x, y, rho, P, v, eps, A, hr, ht,
+         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, rho, P, v, eps, A, hr, ht,
                                                                rhoans, Pans, vans, epsans, Aans, hans):
          f.write((16*"%16.12e " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
