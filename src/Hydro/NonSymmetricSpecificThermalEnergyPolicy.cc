@@ -199,7 +199,7 @@ update(const KeyType& key,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> specificEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+  const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const FieldList<Dimension, vector<Vector> > pairAccelerations = derivs.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   const ConnectivityMap<Dimension>& connectivityMap = mDataBasePtr->connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
@@ -227,7 +227,7 @@ update(const KeyType& key,
       Scalar& DepsDti = DepsDt(nodeListi, i);
       const Scalar& mi = mass(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar& ui = specificEnergy0(nodeListi, i);
+      const Scalar& ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
@@ -257,7 +257,7 @@ update(const KeyType& key,
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               const Scalar& mj = mass(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
-              const Scalar& uj = specificEnergy0(nodeListj, j);
+              const Scalar& uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
@@ -271,13 +271,14 @@ update(const KeyType& key,
               const Vector& paj = paccj[offset(nodeListj, j)];
               ++offset(nodeListj, j);
 
-              const Scalar duij = -(vi12.dot(pai) + vj12.dot(paj));
+              const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
+              const Scalar duij = dEij/mi;
               const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
-              CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, duij*mi/mj, dt), 1.0, 1.0e-10));
+              CHECK(fuzzyEqual(wi + weighting(uj, ui, mj, mi, dEij/mj, dt), 1.0, 1.0e-10));
               DepsDti += wi*duij;
-              DepsDtj += (1.0 - wi)*duij;
+              DepsDtj += (1.0 - wi)*dEij/mj;
             }
           }
         }
