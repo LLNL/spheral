@@ -295,8 +295,8 @@ def dumpPhysicsState(stateThingy,
         fieldLists.append(hminhmax)
 
         # We also like to dump the moments of the local point distribution.
-        zerothMoment = eval("ScalarFieldList%id(FieldListBase.Copy)" % dataBase.nDim)
-        firstMoment = eval("VectorFieldList%id(FieldListBase.Copy)" % dataBase.nDim)
+        zerothMoment = eval("ScalarFieldList%id(Copy)" % dataBase.nDim)
+        firstMoment = eval("VectorFieldList%id(Copy)" % dataBase.nDim)
         W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
         zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
         fieldLists += [zerothMoment, firstMoment]
