@@ -5,7 +5,6 @@ import os, sys, shutil
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 
@@ -65,9 +64,8 @@ commandLine(seed = "constantDTheta",
             restartStep = 1000,
 
             clearDirectories = False,
-            dataRoot = "dump-cylindrical-Sedov",
-            graphics = True,
-
+            dataRoot = "dumps-cylindrical-Sedov",
+            outputFile = "None",
             )
 
 assert thetaFactor in (0.5, 1.0, 2.0)
@@ -120,12 +118,6 @@ if mpi.rank == 0:
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
 mpi.barrier()
-
-#-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -303,38 +295,12 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             vizBaseName = "Sedov-cylindrical-2d-%ix%i" % (nRadial, nTheta),
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Restart if we're doing it.
-#-------------------------------------------------------------------------------
-if not restoreCycle is None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-##     db.updateFluidMassDensity()
-
-##     # This bit of craziness is needed to try and get the intial mass density
-##     # as exactly as possible.
-##     for i in xrange(10):
-##         thpt = mpi.allreduce(max(nodes1.massDensity().internalValues()), mpi.MAX)
-##         print i, thpt
-##         for j in xrange(nodes1.numInternalNodes):
-##             nodes1.mass()[j] *= rho1/thpt
-##         state = State(db, integrator.physicsPackages())
-##         derivs = StateDerivatives(db, integrator.physicsPackages())
-##         integrator.initialize(state, derivs)
-##         db.updateFluidMassDensity()
-    control.smoothState(smoothIters)
-    control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
-    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Finally run the problem and plot the results.
@@ -357,22 +323,48 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
 # Report the error norms.
 rmin, rmax = 0.0, 0.95
 r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+x = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+y = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
 v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
 Pf = ScalarField("pressure", nodes1)
 nodes1.pressure(Pf)
 P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), nodes1.massDensity().internalValues())], mpi.SUM)
+
+Hinverse = db.newFluidSymTensorFieldList()
+db.fluidHinverse(Hinverse)
+hrfl = db.newFluidScalarFieldList()
+htfl = db.newFluidScalarFieldList()
+for Hfield, hrfield, htfield in zip(Hinverse,
+                                    hrfl,
+                                    htfl):
+    n = Hfield.numElements
+    assert hrfield.numElements == n
+    assert htfield.numElements == n
+    positions = Hfield.nodeList().positions()
+    for i in xrange(n):
+        runit = positions[i].unitVector()
+        tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
+        hrfield[i] = (Hfield[i]*runit).magnitude()
+        htfield[i] = (Hfield[i]*tunit).magnitude()
+hr = mpi.allreduce(list(hrfl[0].internalValues()), mpi.SUM)
+ht = mpi.allreduce(list(htfl[0].internalValues()), mpi.SUM)
+
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
-    multiSort(r, rho, v, eps, P)
+    multiSort(r, rho, v, eps, P, A, hr, ht)
     rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+    Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
                               ("Velocity", v, vans),
-                              ("Thermal E", eps, epsans)]:
+                              ("Thermal E", eps, epsans),
+                              ("Entropy", A, Aans),
+                              ("hr", hr, hans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
         Pn = Pnorm.Pnorm(error, r)
@@ -382,68 +374,16 @@ if mpi.rank == 0:
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
 
 #-------------------------------------------------------------------------------
-# Plot the results.
+# If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if graphics:
-    import Gnuplot
-    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
-
-    # Plot the final state.
-    rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    del HPlot
-    Hinverse = db.newFluidSymTensorFieldList()
-    db.fluidHinverse(Hinverse)
-    hr = db.newFluidScalarFieldList()
-    ht = db.newFluidScalarFieldList()
-    for Hfield, hrfield, htfield in zip(Hinverse,
-                                        hr,
-                                        ht):
-        n = Hfield.numElements
-        assert hrfield.numElements == n
-        assert htfield.numElements == n
-        positions = Hfield.nodeList().positions()
-        for i in xrange(n):
-            runit = positions[i].unitVector()
-            tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
-            hrfield[i] = (Hfield[i]*runit).magnitude()
-            htfield[i] = (Hfield[i]*tunit).magnitude()
-    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_r")
-    htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_t")
-
-    # Overplot the analytic solution.
-    plotAnswer(answer, control.time(),
-               rhoPlot = rhoPlot,
-               velPlot = vrPlot,
-               epsPlot = epsPlot,
-               PPlot = PPlot,
-               HPlot = hrPlot)
-
-    # Compute the simulated specific entropy.
-    rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
-    Pf = ScalarField("pressure", nodes1)
-    nodes1.pressure(Pf)
-    P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
-    A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
-
-    # The analytic solution for the simulated entropy.
-    xprof = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-    Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
-
-    # Plot the specific entropy.
-    if mpi.rank == 0:
-        AsimData = Gnuplot.Data(xprof, A,
-                                with_ = "points",
-                                title = "Simulation",
-                                inline = True)
-        AansData = Gnuplot.Data(xprof, Aans,
-                                with_ = "lines",
-                                title = "Solution",
-                                inline = True)
-        Aplot = Gnuplot.Gnuplot()
-        Aplot.plot(AsimData)
-        Aplot.replot(AansData)
-        Aplot.title("Specific entropy")
-        Aplot.refresh()
-    else:
-        Aplot = fakeGnuplot()
+if outputFile != "None" and mpi.rank == 0:
+    outputFile = os.path.join(dataDir, outputFile)
+    f = open(outputFile, "w")
+    f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "A", "hr", "ht",
+                                          "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
+    for (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
+         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, x, y, rho, P, v, eps, A, hr, ht,
+                                                               rhoans, Pans, vans, epsans, Aans, hans):
+         f.write((16*"%16.12e " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
+                                           rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
+    f.close()
