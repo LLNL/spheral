@@ -327,8 +327,8 @@ computeDPDrho(const Scalar massDensity,
 
   double dPdrho;
   const double phi = mb/(1.0 + eps/(meps0*eta*eta));
-  const double chi = 1.0/eta - 1.0;
-  const double dphidrho = (1.0/rho0)*((2.0*mb*meps0*eps*eta)/
+  const double chi = 1./eta - 1.0;
+  const double dphidrho = (1./rho0)*((2.0*mb*meps0*eps*eta)/
                                      ((eps+meps0*eta*eta)*(eps+meps0*eta*eta)));
 
   if (mu >= 0.0) {
@@ -346,15 +346,22 @@ computeDPDrho(const Scalar massDensity,
      
     // Regime 4: expansion, gaseous.
     dPdrho = ma*eps + 
-             eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.*malpha*chi*phi*rho0/rho) + 
-             mA*exp(-malpha*chi*chi -mbeta*chi)*(1./rho0 + rho0*mu*(mbeta+2.*malpha*chi)/(rho*rho));
-
+             eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
+             mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
+                                                        2.0*rho0*mu*malpha*chi/(rho*rho));
 
   } else {
 
     // Regime 3: expansion, liquid.
     // Treated here as a linear combination of the solid and gaseous phases.
-    double dP2drho=0, dP4drho=0;
+    double dP2drho, dP4drho;
+
+    dP2drho = (eta > mEtaMinSolid) ? 
+               eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu) : 0.0;
+    dP4drho = ma*eps + 
+              eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
+              mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
+                                                         2.0*rho0*mu*malpha*chi/(rho*rho));
     dPdrho = dP2drho + (dP4drho - dP2drho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
   }
 
