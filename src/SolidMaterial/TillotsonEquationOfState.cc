@@ -377,7 +377,7 @@ computeDPDrho(const Scalar massDensity,
   }
 
   // That's it.
-  dPdrho_ad = dPdrho_eps + pressure(rho, eps)/(rho*rho);
+  dPdrho_ad = dPdrho_eps + dPdeps_rho*pressure(rho, eps)/(rho*rho);
   return std::abs(dPdrho_ad);
 }
 
