@@ -267,10 +267,10 @@ third party libraries (with their headers) under some place we'll refer to as
 \verb.TPL_TOP..  We can configure and build as
 
 \begin{verbatim}
-./configure --with-opt=3 --with-dbc=none --prefix=/usr/local/Spheral/cxx
-make cxxonly \
-     EXTRAINCLUDES='-I TPL_TOP/include -I TPL/WildMagic5/Include \
-     EXTRALIBS='-L TPL_TOP/lib -L TPL_TOP/WildMagic5/Library/ReleaseDynamic'
+./configure --with-cxxonly --prefix=/usr/local/Spheral/cxx \
+            --with-opt=3 --with-dbc=none 
+make cxxonly EXTRAINCLUDES='-I TPL_TOP/include \
+             EXTRALIBS='-L TPL_TOP/lib'
 \end{verbatim}
 
 This will resulting \Spheral\ headers will be installed under
