@@ -1174,7 +1174,7 @@ $(HDF5BUILDDATE):  $(HDF5DIST)
 $(SILODIST):
 	$(CURL) -k "$(SILOURL)" > $(SILODIST)
 
-$(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
+$(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(SILODIST)"
 	@echo "################################################################################"
