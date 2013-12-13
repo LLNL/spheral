@@ -1,6 +1,9 @@
 #-------------------------------------------------------------------------------
 # The Taylor anvil impact problem -- impact of a solid cylinder on an unyielding
 # surface.
+#
+# This scenario is based on the v=205 m/sec example in
+# Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
 from math import *
 import mpi
@@ -25,12 +28,12 @@ units = PhysicalConstants
 commandLine(seed = "cylindrical",
 
             # Geometry
-            rlength = 0.25,
-            zlength = 2.0,
-            reflect = True,                                # Use reflecting BC
+            rlength = 0.945,
+            zlength = 7.5,
+            reflect = True,          # Use reflecting BC (True) or two rods (false)
 
             # Initial z velocity.
-            vz0 = -2.5e-2,
+            vz0 = 2.05e-2,
 
             # Resolution
             nr = 10,
@@ -81,6 +84,9 @@ commandLine(seed = "cylindrical",
             vizTime = 1.0,
             baseDir = "dumps-TaylorImpact-3d",
             verbosedt = False,
+
+            # Should we generate tabular output of the state on completion?
+            tableOutput = None,
             )
 
 rmin = 0.0
@@ -183,7 +189,7 @@ nodes1 = makeSolidNodeList("Cylinder 1", eosCu, strengthCu,
                            xmax = Vector( 10,  10,  10))          # Box size for neighbor finding
 nodeSet = [nodes1]
 if not reflect:
-    nodes2 = makeSolidNodeList("Cylinder 1", eosCu, strengthCu,
+    nodes2 = makeSolidNodeList("Cylinder 2", eosCu, strengthCu,
                                nPerh = nPerh,
                                hmin = hmin,
                                hmax = hmax,
@@ -250,10 +256,10 @@ if restoreCycle is None:
     del n
 
     nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-    nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, 0.0, vz0)))
+    nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, 0.0, -vz0)))
     if not reflect:
         nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
-        nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, 0.0, -vz0)))
+        nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, 0.0, vz0)))
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -350,12 +356,30 @@ control = SpheralController(integrator, WT,
                             restartStep = restartStep,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartBaseName,
-                            vizBaseName = "RoundAsteroid-KineticImpactor-3d",
+                            restoreCycle = restoreCycle,
+                            vizBaseName = "TaylorImpact-3d",
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizMethod = dumpPhysicsState)
 output("control")
+
+#-------------------------------------------------------------------------------
+# In the two material case, it's useful to smooth the initial velocity field
+# in order to avoid interpenetration at the interface.
+#-------------------------------------------------------------------------------
+if (not reflect) and control.totalSteps == 0:
+    print "Smoothing initial velocity field."
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    integrator.initialize(state, derivs)
+    vel = db.fluidVelocity
+    pos = db.fluidPosition
+    H = db.fluidHfield
+    m = db.fluidMass
+    velsmooth = smoothVectorFieldsMash(vel, pos, m, H, WT)
+    vel.assignFields(velsmooth)
+    control.dropViz(control.totalSteps, 0.0, 0.0)
 
 #-------------------------------------------------------------------------------
 # Advance to completetion.
@@ -366,3 +390,63 @@ if not steps is None:
 
 else:
     control.advance(goalTime, maxSteps)
+
+#-------------------------------------------------------------------------------
+# If requested, generate table output of the full results.
+#-------------------------------------------------------------------------------
+if tableOutput:
+    print "Generating data for table output."
+
+    # Local method to handle writing std::vectors of various types.
+    def write_vals:
+        if type(vals) == vector_of_double:
+            for val in vals:
+                f.write(" %16.12g" % val)
+        elif type(vals) == vector_of_Vector:
+            for val in vals:
+                f.write((3*" %16.12g") % (val.x, val.y, val.z))
+        elif type(vals) == vector_of_Tensor:
+            for val in vals:
+                f.write((9*" %16.12g") % (val.xx, val.xy, val.xz,
+                                          val.yx, val.yy, val.yz,
+                                          val.zx, val.zy, val.zz))
+        else:
+            assert type(vals) == vector_of_SymTensor:
+            for val in vals:
+                f.write((6*" %16.12g") % (val.xx, val.xy, val.xz,
+                                                  val.yy, val.yz,
+                                                          val.zz))
+        f.write("\n")
+        return
+
+    # First generate the state and derivatives.
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    derivs.Zero()
+    integrator.initialize(state, derivs)
+    dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+    integrator.evaluteDerivatives(control.time() + dt, dt, db, state, derivs)
+
+    # Open the file and write the sizes and such.
+    f = open(tableOutput + "_domain=%02i_nprocs=%02i.txt" % (mpi.rank, mpi.procs), "w")
+    f.write("%i %i %g %g\n" % (nodes1.numInternalNodes, nodes2.numInternalNodes, control.time(), dt))
+
+    # Write each of the fields.
+    mass = state.scalarFields(HydroFieldNames.mass)
+    rho = state.scalarFields(HydroFieldNames.massDensity)
+    pos = state.vectorFields(HydroFieldNames.position)
+    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+    vel = state.vectorFields(HydroFieldNames.velocity)
+    H = state.symTensorFields(HydroFieldNames.Hfield)
+    P = state.scalarFields(HydroFieldNames.pressure)
+    cs = state.scalarFields(HydroFieldNames.soundSpeed)
+    K = state.scalarFields(SolidFieldNames.bulkModulus)
+    mu = state.scalarFields(SolidFieldNames.shearModulus)
+    Y = state.scalarFields(SolidFieldNames.yieldStrength)
+    ps = state.scalarFields(SolidFieldNames.plasticStrain)
+    for k in xrange(2):
+        for field in (mass, rho, pos, eps, vel, H, P, cs, K, mu Y, ps):
+            vals = field.internalValues()
+            write_vals(f, vals)
+
+    f.close()
