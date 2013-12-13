@@ -1,0 +1,141 @@
+# -*-makefile-*-
+# Spheral++ main makefile
+#-------------------------------------------------------------------------------
+SPHERALDIR = $(HOME)/Spheral++
+SRCTOP = $(SPHERALDIR)/src/src
+LIBDIR = $(SPHERALDIR)/lib
+PYTHONDIR = $(SPHERALDIR)/include/python2.1
+PYTHONLIB = -L$(SPHERALDIR)/lib/python2.1/config -lpython2.1 -lpython2.1.a
+PYTHONEXE = $(SPHERALDIR)/bin/python
+BOOSTDIR = $(SPHERALDIR)/boost
+HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
+
+PYFFLEDIR = $(SRCTOP)/Pyffle
+HDFINCDIR = $(HOME)/local/power-aix/include
+HDFLIBDIR = $(HOME)/local/power-aix/lib
+
+PYTHONDATEFILE = lastpythonmake
+
+OBJS = $(SRCTARGETS:.cc=.o)
+BPLOBJS = $(BPLTARGETS:.cc=.o)
+PYFFLEOBJS = $(PYFFLETARGETS:.pw=.o)
+
+LIBS = -L $(LIBDIR) #-lboost_python
+
+DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
+
+# g++ flags
+##INCS = $(EXTRAINCLUDES) -I$(PYTHONDIR) -I$(PYTHONDIR)/Include -I$(SRCTOP) -I$(PYFFLEDIR) #-I$(BLITZDIR)
+##CC = gcc
+##CXX = g++
+##DEPFLAG = -MM
+##CCFLAGS = -ggdb $(INCS)
+####CXXFLAGS = -ggdb -fpic -DHAVE_XCPT -DGNUCXX $(INCS)
+##CXXFLAGS = -O2 -fpic -DHAVE_XCPT -DGNUCXX $(INCS) # -DNOASSERT
+##SHAREDFLAG = -shared
+
+# KCC flags
+INCS = $(EXTRAINCLUDES) -I$(PYTHONDIR) -I$(PYTHONDIR)/Include -I$(SRCTOP) -I$(PYFFLEDIR)
+CC = newKCC --c
+CXX = newKCC
+DEPFLAG = -M
+CCFLAGS = -g $(INCS)
+CXXFLAGS = +K0 -w --restrict --one_instantiation_per_object -DHAVE_XCPT $(INCS)
+SHAREDFLAG =
+
+#PURIFY=--link_command_prefix /usr/local/bin/purify
+
+#-------------------------------------------------------------------------------
+.SUFFIXES:      .hh .cc .o .so Methods.pw Methods.cc Methods.o .d .py
+
+force_build:
+
+%.py:	force_build
+	rm -f $(LIBDIR)/$*.py
+	cp -f $*.py $(LIBDIR)
+	chmod 444 $(LIBDIR)/$*.py
+	touch $(PYTHONDATEFILE)
+
+%.d: %.cc
+	$(SHELL) -ec '$(CXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $< \
+	| sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
+	[ -s $@ ] || rm -f $@'
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+
+%Methods.d: %Methods.pw
+	rm -f $*Methods.cc
+	$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > $*Methods.cc
+	$(SHELL) -ec '$(CXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $*Methods.cc \
+	| sed '\''s/\($*\)\Methods.o[ :]*/\1Methods.o $@ : /g'\'' \
+	| sed '\''s/\($*\)\Methods.cc /\1Methods.pw /g'\'' > $@; \
+	[ -s $@ ] || rm -f $@'
+	rm -f $*Methods.cc
+
+%Methods.cc: %Methods.pw
+	rm -f $*Methods.cc
+	$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > $*Methods.cc
+
+%Methods.o: %Methods.pw
+	rm -f $*Methods.cc
+	$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > $*Methods.cc
+	$(CXX) $(CXXFLAGS) $(EXTRAFLAGS) -w -c $*Methods.cc -o $*Methods.o
+	rm -f $*Methods.cc
+
+.INTERMEDIATE:	Methods.cc
+
+#-------------------------------------------------------------------------------
+include $(SRCTOP)/cxxpkglist
+PKGLIBS := $(patsubst %, -l%, $(CXXPKGS))
+
+#-------------------------------------------------------------------------------
+include $(SRCTARGETS:.cc=.d)
+include $(BPLTARGETS:.cc=.d)
+include $(PYFFLETARGETS:.pw=.d)
+
+all:	$(PYFFLELIST) $(PYTHONTARGETS) $(LIBTARGET) $(MODTARGET)
+
+$(LIBTARGET): $(OBJS) $(PYFFLEOBJS)
+	mkdir -p $(LIBDIR)
+	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS)
+	cp -f $(LIBTARGET) $(LIBDIR)
+
+$(MODTARGET): $(LIBTARGET) $(BPLOBJS)
+	mkdir -p $(LIBDIR)
+	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(BPLOBJS) $(LIBS) $(EXTRALIBS) $(LIBTARGET) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
+	cp -f $(MODTARGET) $(LIBDIR)
+
+$(PYFFLEMODTARGET): $(PYFFLEOBJS) $(PYFFLEMODTARGET)
+	mkdir -p $(LIBDIR)
+	$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py -compose $(PKGNAME) $(PYFFLETARGETS)
+	$(CC) $(CCFLAGS) -w -c $(PKGNAME)module.c
+	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PYFFLEMODTARGET) $(PKGNAME)module.o $(PYFFLEOBJS) $(LIBS) $(EXTRALIBS) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS) -lPyffle
+	rm -fr $(PKGNAME)module.o
+	cp -f $(PYFFLEMODTARGET) $(LIBDIR)
+
+$(LINKLIST):	$(OBJS)
+	rm -fr $(LINKLIST)
+	$(PYTHONEXE) $(SRCTOP)/helpers/prepend_dir.py -c "prepend('$(LIBTARGET)', '$(PKGDIR)')" > $(LINKLIST)
+
+$(PYFFLELIST):	$(PYFFLETARGETS)
+	rm -fr $(PYFFLELIST)
+	$(PYTHONEXE) $(SRCTOP)/helpers/prepend_dir.py -c "prepend('$(PYFFLETARGETS)', '$(PKGDIR)')" > $(PYFFLELIST)
+
+pyffledocs:  $(PYFFLETARGETS)
+	$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py -html $(PYFFLETARGETS)
+	mkdir -p $(HTMLDOCDIR)
+	cp -f *.html $(HTMLDOCDIR)
+	rm -f *.html
+
+$(PYTHONTARGETS):	$(PYTHONDATEFILE)
+
+$(PYTHONDATEFILE):
+
+clean:
+	rm -fr $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LINKLIST) $(PYFFLELIST) $(SRCTARGETS:.cc=.d)
+
+spotless:
+	make clean
+	rm -fr *.o *.d *Methods.cc *~ ti_files
+
