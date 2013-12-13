@@ -217,8 +217,8 @@ HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
 # SILO
-SILODIST = silo-4.8-bsd.tar.gz
-SILOURL = https://wci.llnl.gov/codes/silo/silo-4.8/$(SILODIST)
+SILODIST = silo-4.9.1-bsd.tar.gz
+SILOURL = https://wci.llnl.gov/codes/silo/silo-4.9.1/$(SILODIST)
 SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
@@ -1182,7 +1182,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-silex --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' ; \
+	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
