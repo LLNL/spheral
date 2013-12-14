@@ -142,6 +142,14 @@ class Silo:
                                  refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
                                 docstring = "Write polyhedral zone list object.")
 
+        # DBPutPointmesh
+        self.space.add_function("DBPutPointmesh", "int",
+                                [refparam("DBfile", "file"),
+                                 param("std::string", "name"),
+                                 refparam("vector_of_vector_of_double", "coords"),
+                                 refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                docstring = "Write Pointmesh object.")
+
         # Bind templated types for a variety of Silo data types.
         for type in ("int", "float", "double", "char"):
             ext = "_" + type.replace(" ", "_")
@@ -187,8 +195,21 @@ class Silo:
                                     custom_name = "DBPutUcdvar1",
                                     docstring = "Write a Ucd array of type %s." % type)
 
-        # DBPutUcdvar
+            # DBPutPointvar1
+            self.space.add_function("DBPutPointvar1", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "name"),
+                                     param("std::string", "meshName"),
+                                     refparam("vector_of_%s" % type, "values"),
+                                     refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                    template_parameters = [type],
+                                    custom_name = "DBPutPointvar1",
+                                    docstring = "Write a Pointmesh array of type %s." % type)
+
+        # Support for writing compound types.
         for type in ("Vector2d", "Vector3d", "Tensor2d", "Tensor3d", "SymTensor2d", "SymTensor3d"):
+
+            # DBPutUcdvar
             self.space.add_function("DBPutUcdvar", "int",
                                     [refparam("DBfile", "file"),
                                      param("std::string", "name"),
@@ -200,6 +221,17 @@ class Silo:
                                     template_parameters = [type],
                                     custom_name = "DBPutUcdvar",
                                     docstring = "Write a Ucd array of type %s." % type)
+
+            # DBPutPointvar
+            self.space.add_function("DBPutPointvar", "int",
+                                    [refparam("DBfile", "file"),
+                                     param("std::string", "name"),
+                                     param("std::string", "meshName"),
+                                     refparam("vector_of_%s" % type, "values"),
+                                     refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                    template_parameters = [type],
+                                    custom_name = "DBPutPointvar",
+                                    docstring = "Write a Pointmesh array of type %s." % type)
 
         return
 

@@ -376,6 +376,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         key = "pair_NodeList%id_string" % ndim
         vectorkeys = "vector_of_pair_NodeList%id_string" % ndim
+        vector_of_nodelist = "vector_of_NodeList%id" % ndim
 
         # Constructors.
         x.add_constructor([])
@@ -394,6 +395,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r"), constrefparam(symtensor, "H")], is_const=True)
         x.add_method("setRefineNodeLists", None, [constrefparam(vector, "r")], is_const=True)
         x.add_method("Zero", None, [])
+        x.add_method("nodeListPtrs", vector_of_nodelist, [], is_const=True)
 
         # Comparison operators.
         x.add_binary_comparison_operator("==")

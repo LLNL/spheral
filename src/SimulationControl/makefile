@@ -29,7 +29,8 @@ PYTHONTARGETS = \
 	bisectFunction.py \
 	NodeHistory.py \
 	AverageStrain.py \
-	SpheralHadesDump.py
+	SpheralHadesDump.py \
+	siloPointmeshDump.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
