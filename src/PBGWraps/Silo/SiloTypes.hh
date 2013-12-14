@@ -1201,6 +1201,108 @@ DBPutPHZonelist(DBfile& file,
   return result;
 }
 
+//------------------------------------------------------------------------------
+// DBPutPointmesh
+//------------------------------------------------------------------------------
+inline
+int
+DBPutPointmesh(DBfile& file,
+               std::string name,
+               std::vector<std::vector<double> >& coords,
+               DBoptlist_wrapper& optlist) {
+
+  // Preconditions.
+  const unsigned ndims = coords.size();
+  VERIFY(ndims == 2 or ndims == 3);
+  const unsigned npoints = coords[0].size();
+  for (unsigned idim = 0; idim != ndims; ++idim) VERIFY(coords[idim].size() == npoints);
+
+  // We need the C-stylish pointers to the coordinates.
+  double** coordPtrs = new double*[ndims];
+  for (unsigned k = 0; k != ndims; ++k) {
+    coordPtrs[k] = new double[npoints];
+    std::copy(coords[k].begin(), coords[k].end(), coordPtrs[k]);
+  }
+
+  // Do the deed.
+  const int result = DBPutPointmesh(&file, 
+                                    name.c_str(),
+                                    ndims,
+                                    coordPtrs,
+                                    npoints,
+                                    SiloTraits<double>::datatype(),
+                                    optlist.mOptlistPtr);
+
+  // That's it.
+  for (unsigned k = 0; k != ndims; ++k) delete[] coordPtrs[k];
+  delete[] coordPtrs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// DBPutPointvar
+// We assume here that the underlying element type is double.
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBPutPointvar(DBfile& file,
+              std::string name,
+              std::string meshName,
+              std::vector<T>& values,
+              DBoptlist_wrapper& optlist) {
+
+  unsigned i, j;
+
+  // Build the sub-variable names.
+  int nvars = Spheral2Silo<T>::numElements();
+  int nels = values.size();
+
+  // Build the sub-variables.
+  double** vars = new double*[nvars];
+  for (i = 0; i != nvars; ++i) {
+    vars[i] = new double[nels];
+  }
+  for (j = 0; j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
+
+  const int result = DBPutPointvar(&file,
+                                   name.c_str(),
+                                   meshName.c_str(),
+                                   nvars,
+                                   (void*) vars,
+                                   nels,
+                                   SiloTraits<double>::datatype(),
+                                   optlist.mOptlistPtr);
+
+  // That's it.
+  for (i = 0; i != nvars; ++i) {
+    delete[] vars[i];
+  }
+  delete[] vars;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// DBPutPointvar1
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+int
+DBPutPointvar1(DBfile& file,
+               std::string name,
+               std::string meshName,
+               std::vector<T>& values,
+               DBoptlist_wrapper& optlist) {
+
+  return DBPutPointvar1(&file,
+                        name.c_str(),
+                        meshName.c_str(),
+                        (void*) &(*values.begin()),
+                        values.size(),
+                        SiloTraits<T>::datatype(),
+                        optlist.mOptlistPtr);
+}
+
 }
 
 //------------------------------------------------------------------------------
