@@ -27,6 +27,7 @@ class Silo:
         # Expose types.
         self.DBfile = addObject(self.space, "DBfile", allow_subclassing=True)
         self.DBoptlist = addObject(self.space, "DBoptlist_wrapper", custom_name="DBoptlist", allow_subclassing=True)
+        self.DBmrgtree = addObject(self.space, "DBmrgtree_wrapper", custom_name="DBmrgtree", allow_subclassing=True)
         self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
 
         self.vector_of_DBoptlist = addObject(mod, "vector_of_DBoptlist", allow_subclassing=True)
@@ -39,6 +40,7 @@ class Silo:
     def generateBindings(self, mod):
 
         self.generateDBoptlistBindings(self.DBoptlist)
+        self.generateDBmrgtreeBindings(self.DBmrgtree)
         generateStdVectorBindings(self.vector_of_DBoptlist, "silo::DBoptlist_wrapper*", "vector_of_DBoptlist")
 
         # DBCreate
@@ -51,6 +53,22 @@ class Silo:
                                  param("int", "fileType")],
                                 custom_name = "DBCreate",
                                 docstring = "Create a SILO file.")
+
+        # # DBMakeMrgtree
+        # self.space.add_function("DBMakeMrgtree_wrap", 
+        #                         retval("DBmrgtree*", reference_existing_object=True),
+        #                         [param("int", "mesh_type"),
+        #                          param("int", "info_bits"),
+        #                          param("int", "max_children"),
+        #                          refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+        #                         custom_name = "DBMakeMrgtree",
+        #                         docstring = "Create a DBmrgtree object.")
+
+        # # DBFreeMrgtree
+        # self.space.add_function("DBFreeMrgtree_wrap", 
+        #                         retval("DBmrgtree*", reference_existing_object=True),
+        #                         [refparam("DBmrgtree", "tree")],
+        #                         docstring = "Free a DBmrgtree object.")
 
         # DBClose
         self.space.add_function("DBClose", "int", [refparam("DBfile", "file")],
@@ -149,6 +167,39 @@ class Silo:
                                  refparam("vector_of_vector_of_double", "coords"),
                                  refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
                                 docstring = "Write Pointmesh object.")
+
+        # DBAddRegion
+        self.space.add_function("DBAddRegion", "int",
+                                [refparam("DBmrgtree_wrapper", "tree"),
+                                 param("std::string", "reg_name"),
+                                 param("int", "info_bits"),
+                                 param("int", "max_children"),
+                                 param("std::string", "maps_name"),
+                                 refparam("vector_of_int", "seg_ids"),
+                                 refparam("vector_of_int", "seg_lens"),
+                                 refparam("vector_of_int", "seg_types"),
+                                 refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                docstring = "Add a region to a DBMrgtree.")
+
+        # DBSetCwr
+        self.space.add_function("DBSetCwr", "int",
+                                [refparam("DBmrgtree_wrapper", "tree"),
+                                 param("std::string", "path")],
+                                docstring = "Set the current working region in tree.")
+
+        # DBGetCwr
+        self.space.add_function("DBGetCwr", retval("const char*", caller_owns_return=False),
+                                [refparam("DBmrgtree_wrapper", "tree")],
+                                docstring = "Get the current working region in tree.")
+
+        # DBPutMrgtree
+        self.space.add_function("DBPutMrgtree", "int",
+                                [refparam("DBfile", "file"),
+                                 param("std::string", "name"),
+                                 param("std::string", "mesh_name"),
+                                 refparam("DBmrgtree_wrapper", "tree"),
+                                 refparam("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")],
+                                docstring = "Write a DBmrgtree object to a file.")
 
         # Bind templated types for a variety of Silo data types.
         for type in ("int", "float", "double", "char"):
@@ -268,5 +319,27 @@ class Silo:
                                                                    param("int", "option_size")],
                          template_parameters = [ValueType],
                          custom_name = "getOption%s" % ValueBase.upper())
+
+        return
+
+    #---------------------------------------------------------------------------
+    # DBmrgtree Bindings.
+    #---------------------------------------------------------------------------
+    def generateDBmrgtreeBindings(self, x):
+
+        # Constructors.
+        x.add_constructor([param("int", "mesh_type", default_value="DB_POINTMESH"),
+                           param("int", "info_bits", default_value="0"),
+                           param("int", "max_children", default_value="1024"),
+                           param("silo::DBoptlist_wrapper", "optlist", default_value="silo::DBoptlist_wrapper(0)")])
+
+        # Attributes.
+        x.add_instance_attribute("name", "std::string", getter="name", setter="name")
+        x.add_instance_attribute("src_mesh_name", "std::string", getter="src_mesh_name", setter="src_mesh_name")
+        x.add_instance_attribute("src_mesh_type", "int", getter="src_mesh_type", setter="src_mesh_type")
+        x.add_instance_attribute("type_info_bits", "int", getter="type_info_bits", setter="type_info_bits")
+        x.add_instance_attribute("num_nodes", "int", getter="num_nodes", setter="num_nodes")
+        #x.add_instance_attribute("mrgvar_onames", retval("char**", caller_owns_return=False))
+        #x.add_instance_attribute("mrgvar_rnames", retval("char**", caller_owns_return=False))
 
         return

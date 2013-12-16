@@ -125,47 +125,54 @@ def writeMasterSiloFile(ndim, baseName, procDirBaseName, nodeLists,
     assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
     assert silo.DBPutMultimesh(db, "MMESH", domainNames, meshTypes, optlist) == 0
 
-    # Extract the material names, and write per material info if any.
-    if len(nodeLists) > 0:
+    # Create the material regions.
+    mattree = DBmrgtree()
+    assert DBAddRegion(mattree, 
+                       name="materials", 
+                       max_children=len(nodeLists)) == 0
+    assert DBSetCwr(mattree, path="materials") == 1
+    for nodes in nodeLists:
+        assert DBAddRegion(mattree, 
+                           name = nodes.name) == 0
 
-        # Write material names.
-        materialNames = [x.name for x in nodeLists]
-        material_names = vector_of_string()
-        matnames = vector_of_string()
-        matnos = vector_of_int()
+    # Write material names.
+    materialNames = [x.name for x in nodeLists]
+    material_names = vector_of_string()
+    matnames = vector_of_string()
+    matnos = vector_of_int()
+    for p in domainNamePatterns:
+        material_names.append(p % "MATERIAL")
+    for (name, i) in zip(materialNames, range(len(materialNames))):
+        matnames.append(name)
+        matnos.append(i)
+    assert len(material_names) == mpi.procs
+    assert len(matnames) == len(nodeLists)
+    assert len(matnos) == len(nodeLists)
+    optlist = silo.DBoptlist(1024)
+    assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
+    assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
+    assert optlist.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
+    assert optlist.addOption(silo._DBOPT_MATNOS, silo._DBOPT_NMATNOS, matnos) == 0
+    assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
+
+    # Write the variable descriptions for non-scalar variables (vector and tensors).
+    writeDefvars(db, fieldwad)
+
+    # Write the variables descriptors.
+    ucdTypes = vector_of_int(mpi.procs, silo._DB_UCDVAR)
+    for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+        domainVarNames = vector_of_string()
         for p in domainNamePatterns:
-            material_names.append(p % "MATERIAL")
-        for (name, i) in zip(materialNames, range(len(materialNames))):
-            matnames.append(name)
-            matnos.append(i)
-        assert len(material_names) == mpi.procs
-        assert len(matnames) == len(nodeLists)
-        assert len(matnos) == len(nodeLists)
-        optlist = silo.DBoptlist(1024)
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
-        assert optlist.addOption(silo._DBOPT_MATNOS, silo._DBOPT_NMATNOS, matnos) == 0
-        assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
-
-        # Write the variable descriptions for non-scalar variables (vector and tensors).
-        writeDefvars(db, fieldwad)
-
-        # Write the variables descriptors.
-        ucdTypes = vector_of_int(mpi.procs, silo._DB_UCDVAR)
-        for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
-            domainVarNames = vector_of_string()
-            for p in domainNamePatterns:
-                domainVarNames.append(p % name)
-            assert len(domainVarNames) == mpi.procs
-            assert silo.DBPutMultivar(db, name, domainVarNames, ucdTypes, optlistMV) == 0
-            if desc != None:
-                for subname, vals in subvars:
-                    domainVarNames = vector_of_string()
-                    for p in domainNamePatterns:
-                        domainVarNames.append(p % subname)
-                    assert len(domainVarNames) == mpi.procs
-                    assert silo.DBPutMultivar(db, subname, domainVarNames, ucdTypes, optlistVar) == 0
+            domainVarNames.append(p % name)
+        assert len(domainVarNames) == mpi.procs
+        assert silo.DBPutMultivar(db, name, domainVarNames, ucdTypes, optlistMV) == 0
+        if desc != None:
+            for subname, vals in subvars:
+                domainVarNames = vector_of_string()
+                for p in domainNamePatterns:
+                    domainVarNames.append(p % subname)
+                assert len(domainVarNames) == mpi.procs
+                assert silo.DBPutMultivar(db, subname, domainVarNames, ucdTypes, optlistVar) == 0
 
     # That's it.
     assert silo.DBClose(db) == 0
@@ -182,7 +189,6 @@ def writeDomainSiloFile(ndim, baseName, procDirBaseName, nodeLists, label, time,
     db = silo.DBCreate(fileName, 
                        silo._DB_CLOBBER, silo._DB_LOCAL, label, silo._DB_HDF5)
     nullOpts = silo.DBoptlist()
-    print "db is ", db
 
     # Read the per material info.
     ntot = sum([n.numInternalNodes for n in nodeLists])
