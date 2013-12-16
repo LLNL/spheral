@@ -99,6 +99,7 @@ struct Spheral2Silo<Spheral::Dim<3>::SymTensor> {
 //------------------------------------------------------------------------------
 typedef ::DBfile DBfile;
 typedef ::DBoptlist DBoptlist;
+typedef ::DBmrgtree DBmrgtree;
 using ::DBMakeOptlist;
 using ::DBClearOptlist;
 using ::DBClearOption;
@@ -608,6 +609,55 @@ struct DBoptlist_wrapper {
   }
 };
                               
+//------------------------------------------------------------------------------
+// Wrapper class to handle the memory managemnt necessary with DBmrgtree
+//------------------------------------------------------------------------------
+struct DBmrgtree_wrapper {
+  DBmrgtree* mDBmrgtree;
+
+  // Constructors.
+  DBmrgtree_wrapper(int mesh_type,
+                    int info_bits,
+                    int max_children,
+                    DBoptlist_wrapper optlist):
+    mDBmrgtree(DBMakeMrgtree(mesh_type, info_bits, max_children, optlist.mOptlistPtr)) {}
+
+  // Destructor.
+  ~DBmrgtree_wrapper() {
+    DBFreeMrgtree(mDBmrgtree);
+  }
+
+  // name
+  std::string name() const { return (mDBmrgtree->name != NULL ? 
+                                     std::string(mDBmrgtree->name) :
+                                     std::string()); }
+  void name(std::string val) { 
+    mDBmrgtree->name = new char[val.length() + 1];
+    strcpy(mDBmrgtree->name, val.c_str());
+  }
+
+  // src_mesh_name
+  std::string src_mesh_name() const { return (mDBmrgtree->src_mesh_name != NULL ? 
+                                              std::string(mDBmrgtree->src_mesh_name) :
+                                              std::string()); }
+  void src_mesh_name(std::string val) { 
+    mDBmrgtree->src_mesh_name = new char[val.length() + 1];
+    strcpy(mDBmrgtree->src_mesh_name, val.c_str());
+  }
+
+  // src_mesh_type
+  int src_mesh_type() const { return mDBmrgtree->src_mesh_type; }
+  void src_mesh_type(int val) { mDBmrgtree->src_mesh_type = val; }
+
+  // type_info_bits
+  int type_info_bits() const { return mDBmrgtree->type_info_bits; }
+  void type_info_bits(int val) { mDBmrgtree->type_info_bits = val; }
+
+  // num_nodes
+  int num_nodes() const { return mDBmrgtree->num_nodes; }
+  void num_nodes(int val) { mDBmrgtree->num_nodes = val; }
+};
+                              
 //..............................................................................
 // std::string specializations.
 //..............................................................................
@@ -674,6 +724,30 @@ DBCreate_wrap(std::string pathName,
               int fileType) {
   return DBCreate(pathName.c_str(), mode, target, fileInfo.c_str(), fileType);
 }
+
+//------------------------------------------------------------------------------
+// DBMakeMrgtree
+//------------------------------------------------------------------------------
+// inline
+// DBmrgtree*
+// DBMakeMrgtree_wrap(int mesh_type,
+//                    int info_bits,
+//                    int max_children,
+//                    DBoptlist_wrapper& optlist) {
+//   return DBMakeMrgtree(mesh_type,
+//                        info_bits,
+//                        max_children,
+//                        optlist.mOptlistPtr);
+// }
+
+//------------------------------------------------------------------------------
+// DBFreeMrgtree
+//------------------------------------------------------------------------------
+// inline
+// void
+// DBFreeMrgtree_wrap(DBmrgtree& tree) {
+//   DBFreeMrgtree(&tree);
+// }
 
 //------------------------------------------------------------------------------
 // DBClose
@@ -1301,6 +1375,72 @@ DBPutPointvar1(DBfile& file,
                         values.size(),
                         SiloTraits<T>::datatype(),
                         optlist.mOptlistPtr);
+}
+
+//------------------------------------------------------------------------------
+// DBAddRegion
+//------------------------------------------------------------------------------
+inline
+int
+DBAddRegion(DBmrgtree_wrapper& tree,
+            std::string reg_name,
+            int info_bits,
+            int max_children,
+            std::string maps_name,
+            std::vector<int>& seg_ids,
+            std::vector<int>& seg_lens,
+            std::vector<int>& seg_types,
+            DBoptlist_wrapper& optlist) {
+  int nsegs = seg_ids.size();
+  VERIFY(seg_lens.size() == nsegs);
+  VERIFY(seg_types.size() == nsegs);
+  return DBAddRegion(tree.mDBmrgtree,
+                     reg_name.c_str(),
+                     info_bits,
+                     max_children,
+                     (maps_name.size() > 0 ? maps_name.c_str() : NULL),
+                     nsegs,
+                     (nsegs > 0 ? &(*seg_ids.begin()) : NULL),
+                     (nsegs > 0 ? &(*seg_lens.begin()) : NULL),
+                     (nsegs > 0 ? &(*seg_types.begin()) : NULL),
+                     optlist.mOptlistPtr);
+}
+
+//------------------------------------------------------------------------------
+// DBSetCwr
+//------------------------------------------------------------------------------
+inline
+int
+DBSetCwr(DBmrgtree_wrapper& tree,
+         std::string path) {
+  return DBSetCwr(tree.mDBmrgtree,
+                  path.c_str());
+}
+
+//------------------------------------------------------------------------------
+// DBGetCwr
+//------------------------------------------------------------------------------
+inline
+const char*
+DBGetCwr(DBmrgtree_wrapper& tree) {
+  return DBGetCwr(tree.mDBmrgtree);
+}
+
+//------------------------------------------------------------------------------
+// DBPutMrgtree
+//------------------------------------------------------------------------------
+inline
+int
+DBPutMrgtree(DBfile& file,
+             std::string name,
+             std::string mesh_name,
+             DBmrgtree_wrapper& tree,
+             DBoptlist_wrapper& optlist) {
+  return DBPutMrgtree(&file,
+                      name.c_str(),
+                      mesh_name.c_str(),
+                      tree.mDBmrgtree,
+                      optlist.mOptlistPtr);
 }
 
 }
