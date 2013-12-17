@@ -85,8 +85,8 @@ commandLine(seed = "cylindrical",
             baseDir = "dumps-TaylorImpact-3d",
             verbosedt = False,
 
-            # Should we generate tabular output of the state on completion?
-            tableOutput = None,
+            # Should we generate a state snapshot on completion?
+            siloSnapShotFile = None,
             )
 
 rmin = 0.0
@@ -384,67 +384,52 @@ if (not reflect) and control.totalSteps == 0:
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
-    raise ValueError, ("Completed %i steps." % steps)
-
 else:
     control.advance(goalTime, maxSteps)
 
 #-------------------------------------------------------------------------------
 # If requested, generate table output of the full results.
 #-------------------------------------------------------------------------------
-# if tableOutput:
-#     print "Generating data for table output."
+if siloSnapShotFile:
+    from siloPointmeshDump import siloPointmeshDump
+    print "Generating snapshot in silo files."
 
-#     # Local method to handle writing std::vectors of various types.
-#     def write_vals:
-#         if type(vals) == vector_of_double:
-#             for val in vals:
-#                 f.write(" %16.12g" % val)
-#         elif type(vals) == vector_of_Vector:
-#             for val in vals:
-#                 f.write((3*" %16.12g") % (val.x, val.y, val.z))
-#         elif type(vals) == vector_of_Tensor:
-#             for val in vals:
-#                 f.write((9*" %16.12g") % (val.xx, val.xy, val.xz,
-#                                           val.yx, val.yy, val.yz,
-#                                           val.zx, val.zy, val.zz))
-#         else:
-#             assert type(vals) == vector_of_SymTensor:
-#             for val in vals:
-#                 f.write((6*" %16.12g") % (val.xx, val.xy, val.xz,
-#                                                   val.yy, val.yz,
-#                                                           val.zz))
-#         f.write("\n")
-#         return
+    # First generate the state and derivatives.
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    derivs.Zero()
+    integrator.initialize(state, derivs)
+    dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+    integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
 
-#     # First generate the state and derivatives.
-#     state = State(db, integrator.physicsPackages())
-#     derivs = StateDerivatives(db, integrator.physicsPackages())
-#     derivs.Zero()
-#     integrator.initialize(state, derivs)
-#     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
-#     integrator.evaluteDerivatives(control.time() + dt, dt, db, state, derivs)
+    # Grab the fields and their derivatives.
+    mass = state.scalarFields(HydroFieldNames.mass)
+    rho = state.scalarFields(HydroFieldNames.massDensity)
+    pos = state.vectorFields(HydroFieldNames.position)
+    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+    vel = state.vectorFields(HydroFieldNames.velocity)
+    H = state.symTensorFields(HydroFieldNames.H)
+    P = state.scalarFields(HydroFieldNames.pressure)
+    S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    cs = state.scalarFields(HydroFieldNames.soundSpeed)
+    K = state.scalarFields(SolidFieldNames.bulkModulus)
+    mu = state.scalarFields(SolidFieldNames.shearModulus)
+    Y = state.scalarFields(SolidFieldNames.yieldStrength)
+    ps = state.scalarFields(SolidFieldNames.plasticStrain)
+    massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
+    DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
+    DvelDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+    DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+    DvelDx = derivs.vectorFields(HydroFieldNames.velocityGradient)
+    DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
+    Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
+    DSDt = state.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
 
-#     # Open the file and write the sizes and such.
-#     f = open(tableOutput + "_domain=%02i_nprocs=%02i.txt" % (mpi.rank, mpi.procs), "w")
-#     f.write("%i %i %g %g\n" % (nodes1.numInternalNodes, nodes2.numInternalNodes, control.time(), dt))
-
-#     # Write each of the fields.
-#     mass = state.scalarFields(HydroFieldNames.mass)
-#     rho = state.scalarFields(HydroFieldNames.massDensity)
-#     pos = state.vectorFields(HydroFieldNames.position)
-#     eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
-#     vel = state.vectorFields(HydroFieldNames.velocity)
-#     H = state.symTensorFields(HydroFieldNames.Hfield)
-#     P = state.scalarFields(HydroFieldNames.pressure)
-#     cs = state.scalarFields(HydroFieldNames.soundSpeed)
-#     K = state.scalarFields(SolidFieldNames.bulkModulus)
-#     mu = state.scalarFields(SolidFieldNames.shearModulus)
-#     Y = state.scalarFields(SolidFieldNames.yieldStrength)
-#     ps = state.scalarFields(SolidFieldNames.plasticStrain)
-#     for k in xrange(2):
-#         for field in (mass, rho, pos, eps, vel, H, P, cs, K, mu Y, ps):
-#             vals = field.internalValues()
-#             write_vals(f, vals)
-
-#     f.close()
+    # Write the sucker.
+    siloPointmeshDump(siloSnapShotFile, 
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
+                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
+                      baseDirectory = dataDir,
+                      label = "Spheral++ snapshot of state and derivatives.",
+                      time = control.time(),
+                      cycle = control.totalSteps)
