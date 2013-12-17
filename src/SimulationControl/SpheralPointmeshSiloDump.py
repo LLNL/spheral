@@ -134,10 +134,11 @@ def dumpPhysicsState(stateThingy,
                       cycle = currentCycle)
 
     # Add to the master file.
-    masterFileName = os.path.join(baseDirectory, baseFileName + ".visit")
-    mf = open(masterFileName, "a")
-    mf.write("%s\n" % (fullBaseName + ".silo"))
-    mf.close()
+    if mpi.rank == 0:
+        masterFileName = os.path.join(baseDirectory, baseFileName + ".visit")
+        mf = open(masterFileName, "a")
+        mf.write("%s\n" % (fullBaseName + ".silo"))
+        mf.close()
 
     return
 
