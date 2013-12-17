@@ -30,7 +30,7 @@ commandLine(seed = "cylindrical",
             # Geometry
             rlength = 0.945,
             zlength = 7.5,
-            reflect = True,          # Use reflecting BC (True) or two rods (false)
+            reflect = True,          # Use reflecting BC (True) or two rods (False)
 
             # Initial z velocity.
             vz0 = 2.05e-2,
@@ -350,7 +350,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
-from SpheralVisitDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -360,8 +359,7 @@ control = SpheralController(integrator, WT,
                             vizBaseName = "TaylorImpact-3d",
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            vizMethod = dumpPhysicsState)
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -394,59 +392,59 @@ else:
 #-------------------------------------------------------------------------------
 # If requested, generate table output of the full results.
 #-------------------------------------------------------------------------------
-if tableOutput:
-    print "Generating data for table output."
+# if tableOutput:
+#     print "Generating data for table output."
 
-    # Local method to handle writing std::vectors of various types.
-    def write_vals:
-        if type(vals) == vector_of_double:
-            for val in vals:
-                f.write(" %16.12g" % val)
-        elif type(vals) == vector_of_Vector:
-            for val in vals:
-                f.write((3*" %16.12g") % (val.x, val.y, val.z))
-        elif type(vals) == vector_of_Tensor:
-            for val in vals:
-                f.write((9*" %16.12g") % (val.xx, val.xy, val.xz,
-                                          val.yx, val.yy, val.yz,
-                                          val.zx, val.zy, val.zz))
-        else:
-            assert type(vals) == vector_of_SymTensor:
-            for val in vals:
-                f.write((6*" %16.12g") % (val.xx, val.xy, val.xz,
-                                                  val.yy, val.yz,
-                                                          val.zz))
-        f.write("\n")
-        return
+#     # Local method to handle writing std::vectors of various types.
+#     def write_vals:
+#         if type(vals) == vector_of_double:
+#             for val in vals:
+#                 f.write(" %16.12g" % val)
+#         elif type(vals) == vector_of_Vector:
+#             for val in vals:
+#                 f.write((3*" %16.12g") % (val.x, val.y, val.z))
+#         elif type(vals) == vector_of_Tensor:
+#             for val in vals:
+#                 f.write((9*" %16.12g") % (val.xx, val.xy, val.xz,
+#                                           val.yx, val.yy, val.yz,
+#                                           val.zx, val.zy, val.zz))
+#         else:
+#             assert type(vals) == vector_of_SymTensor:
+#             for val in vals:
+#                 f.write((6*" %16.12g") % (val.xx, val.xy, val.xz,
+#                                                   val.yy, val.yz,
+#                                                           val.zz))
+#         f.write("\n")
+#         return
 
-    # First generate the state and derivatives.
-    state = State(db, integrator.physicsPackages())
-    derivs = StateDerivatives(db, integrator.physicsPackages())
-    derivs.Zero()
-    integrator.initialize(state, derivs)
-    dt = integrator.selectDt(dtmin, dtmax, state, derivs)
-    integrator.evaluteDerivatives(control.time() + dt, dt, db, state, derivs)
+#     # First generate the state and derivatives.
+#     state = State(db, integrator.physicsPackages())
+#     derivs = StateDerivatives(db, integrator.physicsPackages())
+#     derivs.Zero()
+#     integrator.initialize(state, derivs)
+#     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+#     integrator.evaluteDerivatives(control.time() + dt, dt, db, state, derivs)
 
-    # Open the file and write the sizes and such.
-    f = open(tableOutput + "_domain=%02i_nprocs=%02i.txt" % (mpi.rank, mpi.procs), "w")
-    f.write("%i %i %g %g\n" % (nodes1.numInternalNodes, nodes2.numInternalNodes, control.time(), dt))
+#     # Open the file and write the sizes and such.
+#     f = open(tableOutput + "_domain=%02i_nprocs=%02i.txt" % (mpi.rank, mpi.procs), "w")
+#     f.write("%i %i %g %g\n" % (nodes1.numInternalNodes, nodes2.numInternalNodes, control.time(), dt))
 
-    # Write each of the fields.
-    mass = state.scalarFields(HydroFieldNames.mass)
-    rho = state.scalarFields(HydroFieldNames.massDensity)
-    pos = state.vectorFields(HydroFieldNames.position)
-    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
-    vel = state.vectorFields(HydroFieldNames.velocity)
-    H = state.symTensorFields(HydroFieldNames.Hfield)
-    P = state.scalarFields(HydroFieldNames.pressure)
-    cs = state.scalarFields(HydroFieldNames.soundSpeed)
-    K = state.scalarFields(SolidFieldNames.bulkModulus)
-    mu = state.scalarFields(SolidFieldNames.shearModulus)
-    Y = state.scalarFields(SolidFieldNames.yieldStrength)
-    ps = state.scalarFields(SolidFieldNames.plasticStrain)
-    for k in xrange(2):
-        for field in (mass, rho, pos, eps, vel, H, P, cs, K, mu Y, ps):
-            vals = field.internalValues()
-            write_vals(f, vals)
+#     # Write each of the fields.
+#     mass = state.scalarFields(HydroFieldNames.mass)
+#     rho = state.scalarFields(HydroFieldNames.massDensity)
+#     pos = state.vectorFields(HydroFieldNames.position)
+#     eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+#     vel = state.vectorFields(HydroFieldNames.velocity)
+#     H = state.symTensorFields(HydroFieldNames.Hfield)
+#     P = state.scalarFields(HydroFieldNames.pressure)
+#     cs = state.scalarFields(HydroFieldNames.soundSpeed)
+#     K = state.scalarFields(SolidFieldNames.bulkModulus)
+#     mu = state.scalarFields(SolidFieldNames.shearModulus)
+#     Y = state.scalarFields(SolidFieldNames.yieldStrength)
+#     ps = state.scalarFields(SolidFieldNames.plasticStrain)
+#     for k in xrange(2):
+#         for field in (mass, rho, pos, eps, vel, H, P, cs, K, mu Y, ps):
+#             vals = field.internalValues()
+#             write_vals(f, vals)
 
-    f.close()
+#     f.close()

@@ -30,7 +30,8 @@ PYTHONTARGETS = \
 	NodeHistory.py \
 	AverageStrain.py \
 	SpheralHadesDump.py \
-	siloPointmeshDump.py
+	siloPointmeshDump.py \
+	SpheralPointmeshSiloDump.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
