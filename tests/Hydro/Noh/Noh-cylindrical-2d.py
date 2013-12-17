@@ -348,8 +348,11 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
+    #import SpheralVisitDump
+    #vizMethod = SpheralVisitDump.dumpPhysicsState
+
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -525,3 +528,9 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+
+# import siloPointmeshDump
+# siloPointmeshDump.siloPointmeshDump("test_silo", fields=[nodes1.massDensity(),
+#                                                          nodes1.velocity(),
+#                                                          nodes1.Hfield()])
+

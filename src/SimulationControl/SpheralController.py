@@ -45,6 +45,8 @@ class SpheralController(RestartableObject):
                  vizStep = None,
                  vizTime = None,
                  vizMethod = None,
+                 vizFields = [],
+                 vizFieldLists = [],
                  initialTime = 0.0,
                  SPH = False,
                  skipInitialPeriodicWork = False):
@@ -89,6 +91,8 @@ class SpheralController(RestartableObject):
                                  vizDir = vizDir,
                                  vizStep = vizStep,
                                  vizTime = vizTime,
+                                 vizFields = vizFields,
+                                 vizFieldLists = vizFieldLists,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork)
 
         # Read the restart information if requested.
@@ -115,6 +119,8 @@ class SpheralController(RestartableObject):
                             vizDir = None,
                             vizStep = None,
                             vizTime = None,
+                            vizFields = [],
+                            vizFieldLists = [],
                             skipInitialPeriodicWork = False):
 
         # Intialize the cycle count.
@@ -168,7 +174,8 @@ class SpheralController(RestartableObject):
         if not vizBaseName is None:
             assert not vizDir is None
             assert not (vizStep is None and vizTime is None)
-            self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime)
+            self.addVisualizationDumps(vizBaseName, vizDir, vizStep, vizTime,
+                                       vizFields, vizFieldLists)
 
         # Force the periodic work to fire at problem initalization.
         if (not skipInitialPeriodicWork) and (restoreCycle is None):
@@ -614,11 +621,14 @@ class SpheralController(RestartableObject):
     #---------------------------------------------------------------------------
     # Add visualization.
     #---------------------------------------------------------------------------
-    def addVisualizationDumps(self, vizBaseName, vizDir, vizStep, vizTime):
+    def addVisualizationDumps(self, vizBaseName, vizDir, vizStep, vizTime,
+                              vizFields, vizFieldLists):
         self.vizBaseName = vizBaseName
         self.vizDir = vizDir
         self.vizStep = vizStep
         self.vizTime = vizTime
+        self.vizFields = vizFields
+        self.vizFieldLists = vizFieldLists
         if vizStep is not None:
             self.appendPeriodicWork(self.dropViz, vizStep)
         if vizTime is not None:
@@ -644,6 +654,8 @@ class SpheralController(RestartableObject):
         self.vizMethod(self.integrator,
                        baseFileName = self.vizBaseName,
                        baseDirectory = self.vizDir,
+                       fields = self.vizFields,
+                       fieldLists = self.vizFieldLists,
                        currentTime = self.time(),
                        currentCycle = self.totalSteps,
                        boundaries = self.integrator.uniqueBoundaryConditions())
