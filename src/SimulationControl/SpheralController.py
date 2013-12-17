@@ -68,9 +68,11 @@ class SpheralController(RestartableObject):
                 from Spheral1dVizDump import dumpPhysicsState
             elif self.dim == "2d":
                 #from SpheralVoronoiSiloDump import dumpPhysicsState
-                from SpheralVisitDump import dumpPhysicsState
+                #from SpheralVisitDump import dumpPhysicsState
+                from SpheralPointmeshSiloDump import dumpPhysicsState
             else:
-                from SpheralVisitDump import dumpPhysicsState
+                #from SpheralVisitDump import dumpPhysicsState
+                from SpheralPointmeshSiloDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
 
         # If this is a parallel run, automatically construct and insert

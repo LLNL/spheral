@@ -420,7 +420,7 @@ if siloSnapShotFile:
     DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
     DvelDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
     DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
-    DvelDx = derivs.vectorFields(HydroFieldNames.velocityGradient)
+    DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
     Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
     DSDt = state.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
