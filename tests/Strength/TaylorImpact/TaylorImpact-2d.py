@@ -1,220 +1,271 @@
 #-------------------------------------------------------------------------------
 # The Taylor anvil impact problem -- impact of a solid cylinder on an unyielding
-# surface  This is actually a 2-D version, so it's not really a cylinder.
+# surface.
+#
+# This scenario is based on the v=205 m/sec example in
+# Eakins & Thadhani, Journal of Applied Physics, 100, 073503 (2006)
 #-------------------------------------------------------------------------------
-from Numeric import *
-from Spheral import *
+from math import *
+import mpi
+
+from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from SpheralController import *
 from findLastRestart import *
-from SpheralVisitDump import SpheralVisitDump
-from math import *
-
-from Strength import *
-
-# Load the mpi module if we're parallel.
-mpi, procID, numProcs = loadmpi()
-
-#-------------------------------------------------------------------------------
-# Generic problem parameters
-# All CGS units.
-#-------------------------------------------------------------------------------
-seed = 'lattice'
-
-xlength, rlength = 4.694, 0.381
-nx, ny = 135, 11
-nPerh = 2.01
-
-xmin = (0.0, 0.0)
-xmax = (xlength, rlength)
-
-rho0 = 16.69
-m0 = (xlength*rlength)*rho0/(nx*ny)
-hx = nPerh*xlength/nx
-hy = nPerh*rlength/ny
-H0 = SymTensor2d(1.0/hx, 0.0,
-                 0.0, 1.0/hx)
-
-v0 = Vector2d(-2.5e4, 0.0)
-
-Qconstructor = MonaghanGingoldViscosity2d
-Cl, Cq = 1.0, 1.0
-Qlimiter = False
-balsaraCorrection = False
-epsilon2 = 1e-4
-negligibleSoundSpeed = 1e-5
-csMultiplier = 1e-4
-HsmoothMin, HsmoothMax = 1e-5, 0.5
-cfl = 0.5
-useVelocityMagnitudeForDt = False
-XSPH = False
-epsilonTensile = 0.1
-nTensile = 4
-hybridMassDensityThreshold = 0.01
-
-neighborSearchType = Neighbor2d.NeighborSearchType.GatherScatter
-numGridLevels = 20
-topGridCellSize = 1.0
-origin = Vector2d(0.0, 0.0)
-
-goalTime = 150.0e-6
-dtSample = 1e-6
-dt = 1e-10
-dtMin, dtMax = 1e-12, 1e-5
-dtGrowth = 2.0
-maxSteps = None
-statsStep = 10
-smoothIters = 0
-HEvolution = Hydro2d.HEvolutionType.IdealH
-sumForMassDensity = Hydro2d.MassDensityType.IntegrateDensity # HybridDensity # CorrectedSumDensity
-
-restartStep = 1000
-restartBaseName = "dumps-2d/TaylorImpact-%i-%i" % (nx, ny)
-restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
 #-------------------------------------------------------------------------------
-title("2-D Taylor anvil impact strength test")
+title("2D Cu taylor anvil impact strength test")
 
 #-------------------------------------------------------------------------------
-# Tantalum material properties.
+# Generic problem parameters
+# All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
-eosTantalum = GruneisenEquationOfStateCGS2d(16.69,   # reference density  
-                             1e-4,    # etamin             
-                             6.0,     # etamax             
-                             0.341e6, # C0                 
-                             1.2,     # S1                 
-                             0.0,     # S2                 
-                             0.0,     # S3                 
-                             1.67,    # gamma0             
-                             0.42,    # b                  
-                             180.948) # atomic weight
-coldFitTantalum = NinthOrderPolynomialFit(-6.86446714e9,
-                                          -1.17070812e10,
-                                           9.70252276e11,
-                                          -4.12557402e11,
-                                           1.13401823e11,
-                                          -1.86584799e10,
-                                           0.0,
-                                           0.0,
-                                           0.0,
-                                           0.0)
-meltFitTantalum = NinthOrderPolynomialFit(9.24414908e10,
-                                          2.53949977e11,
-                                          1.06113848e12,
-                                         -5.28947636e11,
-                                          1.67906438e11,
-                                         -2.92459765e10,
-                                          0.0,
-                                          0.0,
-                                          0.0,
-                                          0.0)
-strengthTantalum = SteinbergGuinanStrengthCGS2d(eosTantalum,
-                                                6.900000e11,        # G0
-                                                1.4500e-12,         # A
-                                                1.3000e-04,         # B
-                                                7.7000e9,           # Y0
-                                                1.1e10,             # Ymax
-                                                1.0e-3,             # Yp
-                                                10.0000,            # beta
-                                                0.0,                # gamma0
-                                                0.1,                # nhard
-                                                coldFitTantalum,
-                                                meltFitTantalum)
+units = PhysicalConstants
+
+commandLine(seed = "lattice",
+
+            # Geometry
+            rlength = 0.945,
+            zlength = 7.5,
+            reflect = True,          # Use reflecting BC (True) or two rods (False)
+
+            # Initial z velocity.
+            vz0 = 2.05e-2,
+
+            # Resolution
+            nr = 10,
+            nz = 80,
+            nPerh = 2.01,
+            
+            # Material.
+            etamin = 0.2,
+            etamax = 4.0,
+
+            # Artificial viscosity (and other numerical crap).
+            HydroConstructor = SolidASPHHydro,             # Hydro algorithm
+            Qconstructor = MonaghanGingoldViscosity,       # Artificial viscosity algorithm
+            HEvolution = IdealH,
+            densityUpdate = IntegrateDensity,
+            compatibleEnergyEvolution = True,
+            Cl = 1.0,                                      # Linear Q coefficient
+            Cq = 1.0,                                      # Quadratic Q coefficient
+            Qlimiter = False,                              # Q directional limiter switch
+            balsaraCorrection = False,                     # Q shear switch
+            epsilon2 = 1e-2,                               
+            negligibleSoundSpeed = 1e-5,
+            csMultiplier = 1e-4,
+            hmin = 1e-5, 
+            hmax = 1000.0, 
+            hminratio = 0.1,
+            limitIdealH = False,
+            cfl = 0.4,
+            useVelocityMagnitudeForDt = True,
+            XSPH = True,
+            epsilonTensile = 0.0,
+            nTensile = 4,
+            rigorousBoundaries = False,
+
+            # Simulation control
+            goalTime = 150.0,
+            steps = None,
+            dt = 1e-3,
+            dtmin = 1.0e-3,
+            dtmax = 100.0,
+            dtGrowth = 2.0,
+            maxSteps = None,
+            statsStep = 10,
+            restartStep = 1000,
+            restoreCycle = None,
+            redistributeStep = 2000,
+            vizCycle = 50,
+            vizTime = 1.0,
+            baseDir = "dumps-TaylorImpact-2d",
+            verbosedt = False,
+            )
+
+# Restart and output files.
+dataDir = os.path.join(baseDir,
+                       "reflect=%s" % reflect,
+                       "%ix%i" % (nr, nz))
+restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
+vizDir = os.path.join(dataDir, "viz")
+restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if not os.path.exists(dataDir):
+        os.makedirs(dataDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+mpi.barrier()
+if not os.path.exists(restartDir):
+    os.makedirs(restartDir)
+mpi.barrier()
+
+#-------------------------------------------------------------------------------
+# If we're restarting, find the set of most recent restart files.
+#-------------------------------------------------------------------------------
+if restoreCycle is None:
+    restoreCycle = findLastRestart(restartBaseName)
+
+#-------------------------------------------------------------------------------
+# Construct our base units.
+#-------------------------------------------------------------------------------
+units = PhysicalConstants(0.01,    # Unit length (m)
+                          0.001,   # Unit mass (kg)
+                          1.0e-6)  # Unit time (sec)
+
+#-------------------------------------------------------------------------------
+# Copper material parameters.
+#-------------------------------------------------------------------------------
+eosCu = TillotsonEquationOfState("copper",
+                                 etamin,
+                                 etamax,
+                                 units)
+rho0 = eosCu.referenceDensity
+eps0 = 0.0
+
+coldFitCu = NinthOrderPolynomialFit(-1.05111874e-02,
+                                    -2.13429672e-02,
+                                     6.92768584e-01,
+                                    -2.45626513e-02,
+                                    -2.48677403e-02,
+                                     4.35373677e-02,
+                                     0.00000000e+00,
+                                     0.00000000e+00,
+                                     0.00000000e+00,
+                                     0.00000000e+00)
+
+meltFitCu = NinthOrderPolynomialFit( 5.22055639e-02,
+                                     1.90143176e-01,
+                                     8.51351901e-01,
+                                    -1.12049022e-01,
+                                    -6.11436674e-03,
+                                     4.36007831e-02,
+                                     0.00000000e+00,
+                                     0.00000000e+00,
+                                     0.00000000e+00,
+                                     0.00000000e+00)
+
+strengthCu = SteinbergGuinanStrengthMKS(eosCu,
+                                        4.770000e-01,   # G0 (Mb)
+                                        2.8300e+00,     # A  (Mb^-1)
+                                        3.7700e-04,     # B  (dimensionless)
+                                        1.2000e-03,     # Y0 (Mb)
+                                        6.4000e-03,     # Ymax (Mb)
+                                        1.0000e-03,     # Yp (dimensionless)
+                                        3.6000e+01,     # beta (dimensionless)
+                                        0.0000e+00,     # gamma0 (dimensionless)
+                                        4.5000e-01,     # nhard (dimensionless)
+                                        coldFitCu,
+                                        meltFitCu)
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = SphSolidNodeList2d("Tantalum", eosTantalum, strengthTantalum)
-nodes.nodesPerSmoothingScale = nPerh
-nodes.epsilonTensile = epsilonTensile
-nodes.nTensile = nTensile
-nodes.XSPH = XSPH
-output('nodes.name()')
-output('nodes.nodesPerSmoothingScale')
-output('nodes.epsilonTensile')
-output('nodes.nTensile')
-output('nodes.XSPH')
+nodes1 = makeSolidNodeList("Cylinder 1", eosCu, strengthCu,
+                           nPerh = nPerh,
+                           hmin = hmin,
+                           hmax = hmax,
+                           rhoMin = etamin*rho0,
+                           rhoMax = etamax*rho0,
+                           xmin = Vector(-10, -10, -10),          # Box size for neighbor finding
+                           xmax = Vector( 10,  10,  10))          # Box size for neighbor finding
+nodeSet = [nodes1]
+if not reflect:
+    nodes2 = makeSolidNodeList("Cylinder 2", eosCu, strengthCu,
+                               nPerh = nPerh,
+                               hmin = hmin,
+                               hmax = hmax,
+                               rhoMin = etamin*rho0,
+                               rhoMax = etamax*rho0,
+                               xmin = Vector(-10, -10, -10),          # Box size for neighbor finding
+                               xmax = Vector( 10,  10,  10))          # Box size for neighbor finding
+    nodeSet.append(nodes2)
+
+for n in nodeSet:
+    output("n.name")
+    output("  n.nodesPerSmoothingScale")
+    output("  n.hmin")
+    output("  n.hmax")
+    output("  n.rhoMin")
+    output("  n.rhoMax")
+del n
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel2d(BSplineKernel2d(), 1000)
-WTPi = TableKernel2d(BSplineKernel2d(), 1000)
+WT = TableKernel(BSplineKernel(), 1000)
+WTPi = WT
 output('WT')
 output('WTPi')
-kernelExtent = WT.kernelExtent()
-
-#-------------------------------------------------------------------------------
-# Construct the neighbor objects and associate them with the node lists.
-#-------------------------------------------------------------------------------
-neighborTimer = SpheralTimer('Neighbor initialization.')
-neighborTimer.start()
-neighbor = NestedGridNeighbor2d(nodes,
-                                neighborSearchType,
-                                numGridLevels,
-                                topGridCellSize,
-                                origin,
-                                kernelExtent)
-nodes.registerNeighbor(neighbor)
-neighborTimer.stop()
-neighborTimer.printStatus()
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     from GenerateNodeDistribution2d import *
-    from DistributeNodes import distributeNodes2d
+    from VoronoiDistributeNodes import distributeNodes2d
     print "Generating node distribution."
-    generator = GenerateNodeDistribution2d(nx,
-                                           ny,
-                                           rho0,
-                                           seed,
-                                           xmin = xmin,
-                                           xmax = xmax,
-                                           nNodePerh = nPerh)
-    nTantalum = generator.globalNumNodes()
-    nodeInfo = distributeNodes2d([(nodes, nTantalum, generator)])
+    generator1 = GenerateNodeDistribution2d(2*nr, nz, 
+                                            rho = rho0,
+                                            distributionType = seed,
+                                            xmin = (-rlength, 0.0),
+                                            xmax = ( rlength, zlength),
+                                            nNodePerh = nPerh)
+    stuff2distribute = [(nodes1, generator1)]
+    if not reflect:
+        generator2 = GenerateNodeDistribution2d(2*nr, nz,
+                                                rho = rho0,
+                                                distributionType = seed,
+                                                xmin = (-rlength, -zlength),
+                                                xmax = ( rlength,  0.0),
+                                                nNodePerh = nPerh)
+        stuff2distribute.append((nodes2, generator2))
+    distributeNodes2d(*tuple(stuff2distribute))
+    for n in nodeSet:
+        output('n.name')
+        output('   mpi.reduce(n.numInternalNodes, mpi.MIN)')
+        output('   mpi.reduce(n.numInternalNodes, mpi.MAX)')
+        output('   mpi.reduce(n.numInternalNodes, mpi.SUM)')
+    del n
 
-    # Set the node masses.
-    nodes.setMass(ScalarField2d("tmp", nodes, m0))
-
-    # Set the smoothing scales.
-    nodes.setHfield(SymTensorField2d("tmp", nodes, H0))
-
-    # Set the node mass densities.
-    nodes.setMassDensity(ScalarField2d("tmp", nodes, rho0))
-
-    # Set node specific thermal energies
-    nodes.setSpecificThermalEnergy(ScalarField2d("tmp", nodes,
-                                                 eosTantalum.specificThermalEnergy(rho0, 300.0)))
-
-    # Set the node velocities.
-    nodes.setVelocity(VectorField2d("tmp", nodes, v0))
+    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+    nodes1.velocity(VectorField("tmp", nodes1, Vector(0.0, -vz0)))
+    if not reflect:
+        nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0))
+        nodes2.velocity(VectorField("tmp", nodes2, Vector(0.0, vz0)))
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(1.0, 0.0))
-yPlane0 = Plane2d(Vector2d(0.0, 0.0), Vector2d(0.0, 1.0))
-xbc0 = ReflectingBoundary2d(xPlane0)
-ybc0 = ReflectingBoundary2d(yPlane0)
+bcs = []
+if reflect:
+    yplane = Plane(Vector(0.0, 0.0), Vector(0.0, 1.0))
+    bc = ReflectingBoundary(yplane)
+    bcs.append(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
-db = DataBase2d()
-db.appendNodeList(nodes)
+db = DataBase()
+for n in nodeSet:
+    db.appendNodeList(n)
 output('db')
 output('db.numNodeLists')
 output('db.numFluidNodeLists')
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosities for the problem.
+# Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
 q = Qconstructor(Cl, Cq)
 q.limiter = Qlimiter
@@ -222,140 +273,100 @@ q.balsaraShearCorrection = balsaraCorrection
 q.epsilon2 = epsilon2
 q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
-output('q')
-output('q.Cl')
-output('q.Cq')
-output('q.limiter')
-output('q.epsilon2')
-output('q.negligibleSoundSpeed')
-output('q.csMultiplier')
-output('q.balsaraShearCorrection')
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.limiter")
+output("q.epsilon2")
+output("q.negligibleSoundSpeed")
+output("q.csMultiplier")
+output("q.balsaraShearCorrection")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro2d(WT, WTPi, q)
-hydro.cfl = cfl
-hydro.useVelocityMagnitudeForDt = True
-hydro.HEvolution = HEvolution
-hydro.sumForMassDensity = sumForMassDensity
-hydro.HsmoothMin = HsmoothMin
-hydro.HsmoothMax = HsmoothMax
-hydro.hybridMassDensityThreshold = hybridMassDensityThreshold
-output('hydro')
-output('hydro.cfl')
-output('hydro.useVelocityMagnitudeForDt')
-output('hydro.HEvolution')
-output('hydro.sumForMassDensity')
-output('hydro.HsmoothMin')
-output('hydro.HsmoothMax')
-output('hydro.kernel()')
-output('hydro.PiKernel()')
-output('hydro.valid()')
-output('hydro.hybridMassDensityThreshold')
+hydro = HydroConstructor(WT,
+                         WTPi,
+                         q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         gradhCorrection = False,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH,
+                         epsTensile = epsilonTensile,
+                         nTensile = nTensile)
+for bc in bcs:
+    hydro.appendBoundary(bc)
+output("hydro")
+output("hydro.cfl")
+output("hydro.useVelocityMagnitudeForDt")
+output("hydro.HEvolution")
+output("hydro.sumForMassDensity")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.gradhCorrection")
+output("hydro.kernel()")
+output("hydro.PiKernel()")
 
 #-------------------------------------------------------------------------------
-# Construct a strength physics object.
+# Construct a time integrator.
 #-------------------------------------------------------------------------------
-strength = Strength2d()
-output("strength")
-
-#-------------------------------------------------------------------------------
-# Construct a predictor corrector integrator, and add the physics packages.
-#-------------------------------------------------------------------------------
-integrator = PredictorCorrectorIntegrator2d(db)
+integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
-integrator.appendPhysicsPackage(strength)
 integrator.lastDt = dt
-if dtMin:
-    integrator.dtMin = dtMin
-if dtMax:
-    integrator.dtMax = dtMax
+integrator.verbose = verbosedt
+if dtmin:
+    integrator.dtMin = dtmin
+if dtmax:
+    integrator.dtMax = dtmax
 integrator.dtGrowth = dtGrowth
-output('integrator')
-output('integrator.havePhysicsPackage(hydro)')
-output('integrator.havePhysicsPackage(strength)')
-output('integrator.valid()')
-output('integrator.lastDt')
-output('integrator.dtMin')
-output('integrator.dtMax')
-output('integrator.dtGrowth')
+integrator.rigorousBoundaries = rigorousBoundaries
+output("integrator")
+output("integrator.havePhysicsPackage(hydro)")
+output("integrator.lastDt")
+output("integrator.dtMin")
+output("integrator.dtMax")
+output("integrator.dtGrowth")
+output("integrator.rigorousBoundaries")
+output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
-                            boundaryConditions = [xbc0, ybc0],
                             statsStep = statsStep,
                             restartStep = restartStep,
+                            redistributeStep = redistributeStep,
                             restartBaseName = restartBaseName,
-                            initializeMassDensity = False)
-output('control')
+                            restoreCycle = restoreCycle,
+                            vizBaseName = "TaylorImpact-2d",
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
+output("control")
 
 #-------------------------------------------------------------------------------
-# Smooth the initial conditions/restore state.
+# In the two material case, it's useful to smooth the initial velocity field
+# in order to avoid interpenetration at the interface.
 #-------------------------------------------------------------------------------
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
+if (not reflect) and control.totalSteps == 0:
+    print "Smoothing initial velocity field."
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    integrator.initialize(state, derivs)
+    vel = db.fluidVelocity
+    pos = db.fluidPosition
+    H = db.fluidHfield
+    m = db.fluidMass
+    velsmooth = smoothVectorFieldsMash(vel, pos, m, H, WT)
+    vel.assignFields(velsmooth)
+    control.dropViz(control.totalSteps, 0.0, 0.0)
+
+#-------------------------------------------------------------------------------
+# Advance to completetion.
+#-------------------------------------------------------------------------------
+if not steps is None:
+    control.step(steps)
 else:
-    control.smoothState(smoothIters)
-
-    # Viz the initial conditions.
-    P = db.fluidPressure
-    cs = db.fluidSoundSpeed
-    Hi = db.fluidHinverse
-    vx = ScalarField2d("x velocity", nodes)
-    vy = ScalarField2d("y velocity", nodes)
-    for i in xrange(nodes.numInternalNodes):
-        vx[i] = nodes.velocity()[i].x
-        vy[i] = nodes.velocity()[i].y
-    dumper = SpheralVisitDump(db,
-                              "TaylorImpact-2d-visit",
-                              "dumps-2d",
-                              listOfFieldLists = [db.fluidMassDensity,
-                                                  db.fluidVelocity,
-                                                  db.fluidWeight,
-                                                  db.fluidSpecificThermalEnergy,
-                                                  P,
-                                                  cs,
-                                                  Hi],
-                              listOfFields = [nodes.deviatoricStress(),
-                                              nodes.plasticStrain(),
-                                              vx,
-                                              vy]
-                              )
-    dumper.dump(control.time(), control.totalSteps)
-
-#-------------------------------------------------------------------------------
-# Advance to the end time.
-#-------------------------------------------------------------------------------
-while control.time() < goalTime:
-    nextGoalTime = min(control.time() + dtSample, goalTime)
-    control.advance(nextGoalTime, maxSteps)
-    control.dropRestartFile()
-
-    # Viz the current state.
-    P = db.fluidPressure
-    cs = db.fluidSoundSpeed
-    Hi = db.fluidHinverse
-    vx = ScalarField2d("x velocity", nodes)
-    vy = ScalarField2d("y velocity", nodes)
-    for i in xrange(nodes.numInternalNodes):
-        vx[i] = nodes.velocity()[i].x
-        vy[i] = nodes.velocity()[i].y
-    dumper = SpheralVisitDump(db,
-                              "TaylorImpact-2d-visit",
-                              "dumps-2d",
-                              listOfFieldLists = [db.fluidMassDensity,
-                                                  db.fluidVelocity,
-                                                  db.fluidWeight,
-                                                  db.fluidSpecificThermalEnergy,
-                                                  P,
-                                                  cs,
-                                                  Hi],
-                              listOfFields = [nodes.deviatoricStress(),
-                                              nodes.plasticStrain(),
-                                              vx,
-                                              vy]
-                              )
-    dumper.dump(control.time(), control.totalSteps)
+    control.advance(goalTime, maxSteps)
