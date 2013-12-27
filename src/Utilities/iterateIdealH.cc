@@ -176,7 +176,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
           // Iterate over the neighbor NodeLists.
           for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-            const double fweightij = (nodeListi == nodeListj ? 1.0 : 0.2);
+            const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
 
             // Neighbors from this NodeList.
             const vector<int>& connectivity = fullConnectivity[nodeListj];
