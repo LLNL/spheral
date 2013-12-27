@@ -483,7 +483,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // there are some nodes in this list.
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         if (connectivity.size() > 0) {
-          const double fweightij = (nodeListi == nodeListj ? 1.0 : 0.2);
+          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
