@@ -114,7 +114,7 @@ initialize(typename vector<NodeList<Dimension>*>::const_iterator nodeListItr,
            vector<int>::const_iterator IDItr) {
 
   // Pre-conditions.
-  REQUIRE((nodeListItr == nodeListEnd && IDItr == vector<int>::const_iterator()) ||
+  REQUIRE(nodeListItr == nodeListEnd ||
           (nodeListItr < nodeListEnd && 
            IDItr >= (*nodeListItr)->neighbor().masterBegin() &&
            IDItr <= (*nodeListItr)->neighbor().masterEnd()));
