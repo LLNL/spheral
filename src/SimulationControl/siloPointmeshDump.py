@@ -222,8 +222,10 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     assert matOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
     assert matOpts.addOption(silo._DBOPT_DTIME, time) == 0
     assert matOpts.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
+    vecInt = vector_of_int(0)
+    vecDouble = vector_of_double(0)
     assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist,
-                              vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
+                              vecInt, vecInt, vecInt, vecDouble,
                               matOpts) == 0
 
     # Write the variable descriptions for non-scalar variables (vector and tensors).
