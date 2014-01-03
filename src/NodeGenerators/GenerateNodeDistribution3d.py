@@ -60,7 +60,10 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  thetamin is not None and
                  thetamax is not None and
                  zmin is not None and
-                 zmax is not None)                 
+                 zmax is not None) or 
+                (distributionType == 'hcp' and
+                 xmin is not None and
+                 xmax is not None)
                 )
 
         self.n1 = n1
@@ -99,82 +102,93 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                       self.nNodePerh)
         elif distributionType == 'constantDAngle':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.constantDAngleSphericalDistribution(self.nRadial,
-                                                             self.nTheta,
-                                                             self.nPhi,
-                                                             self.rho,
-                                                             self.rmin,
-                                                             self.rmax,
-                                                             self.thetamin,
-                                                             self.thetamax,
-                                                             self.phimin,
-                                                             self.phimax,
-                                                             self.nNodePerh)
+                self.constantDAngleSphericalDistribution(self.nRadial,
+                                                         self.nTheta,
+                                                         self.nPhi,
+                                                         self.rho,
+                                                         self.rmin,
+                                                         self.rmax,
+                                                         self.thetamin,
+                                                         self.thetamax,
+                                                         self.phimin,
+                                                         self.phimax,
+                                                         self.nNodePerh)
         elif distributionType == 'constantNShell':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.constantNShellSphericalDistribution(self.nRadial,
-                                                             self.nTheta,
-                                                             self.nPhi,
-                                                             self.rho,
-                                                             self.rmin,
-                                                             self.rmax,
-                                                             self.thetamin,
-                                                             self.thetamax,
-                                                             self.phimin,
-                                                             self.phimax,
-                                                             self.nNodePerh)
+                self.constantNShellSphericalDistribution(self.nRadial,
+                                                         self.nTheta,
+                                                         self.nPhi,
+                                                         self.rho,
+                                                         self.rmin,
+                                                         self.rmax,
+                                                         self.thetamin,
+                                                         self.thetamax,
+                                                         self.phimin,
+                                                         self.phimax,
+                                                         self.nNodePerh)
 
         elif distributionType == 'lattice':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.latticeDistribution(self.n1,      # nx
-                                             self.n2,      # ny
-                                             self.n3,      # nz
-                                             self.rho,
-                                             self.xmin,    # (xmin, ymin, zmin)
-                                             self.xmax,    # (xmax, ymax, zmax)
-                                             self.rmin,
-                                             self.rmax,
-                                             self.nNodePerh)
+                self.latticeDistribution(self.n1,      # nx
+                                         self.n2,      # ny
+                                         self.n3,      # nz
+                                         self.rho,
+                                         self.xmin,    # (xmin, ymin, zmin)
+                                         self.xmax,    # (xmax, ymax, zmax)
+                                         self.rmin,
+                                         self.rmax,
+                                         self.nNodePerh)
 
         elif distributionType == 'cylindrical':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.cylindrical(self.n1,      # nr
-                                     self.n2,      # nz
-                                     self.rho,
-                                     self.rmin,
-                                     self.rmax,
-                                     self.thetamin,
-                                     self.thetamax,
-                                     self.zmin,
-                                     self.zmax,
-                                     self.nNodePerh)
+                self.cylindrical(self.n1,      # nr
+                                 self.n2,      # nz
+                                 self.rho,
+                                 self.rmin,
+                                 self.rmax,
+                                 self.thetamin,
+                                 self.thetamax,
+                                 self.zmin,
+                                 self.zmax,
+                                 self.nNodePerh)
 
         elif distributionType == 'constantNTheta':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.constantNTheta(self.n1,      # nr
-                                        self.n2,      # ntheta
-                                        self.n3,      # nz
-                                        self.rho,
-                                        self.rmin,
-                                        self.rmax,
-                                        self.thetamin,
-                                        self.thetamax,
-                                        self.zmin,
-                                        self.zmax,
-                                        self.nNodePerh)
+                self.constantNTheta(self.n1,      # nr
+                                    self.n2,      # ntheta
+                                    self.n3,      # nz
+                                    self.rho,
+                                    self.rmin,
+                                    self.rmax,
+                                    self.thetamin,
+                                    self.thetamax,
+                                    self.zmin,
+                                    self.zmax,
+                                    self.nNodePerh)
 
         elif distributionType == 'line':
             self.x, self.y, self.z, self.m, self.H = \
-                    self.lineDistribution(self.n1,      # nx
-                                          self.n2,      # ny
-                                          self.n3,      # nz
-                                          self.rho,
-                                          self.xmin,    # (xmin, ymin, zmin)
-                                          self.xmax,    # (xmax, ymax, zmax)
-                                          self.rmin,
-                                          self.rmax,
-                                          self.nNodePerh)
+                self.lineDistribution(self.n1,      # nx
+                                      self.n2,      # ny
+                                      self.n3,      # nz
+                                      self.rho,
+                                      self.xmin,    # (xmin, ymin, zmin)
+                                      self.xmax,    # (xmax, ymax, zmax)
+                                      self.rmin,
+                                      self.rmax,
+                                      self.nNodePerh)
 
+        elif distributionType == 'hcp':
+            self.x, self.y, self.z, self.m, self.H = \
+                self.hcpDistribution(self.n1,      # nx
+                                     self.n2,      # ny
+                                     self.n3,      # nz
+                                     self.rho,
+                                     self.xmin,    # (xmin, ymin, zmin)
+                                     self.xmax,    # (xmax, ymax, zmax)
+                                     self.rmin,
+                                     self.rmax,
+                                     self.nNodePerh)
 
         # If the user provided a "rejecter", give it a pass
         # at the nodes.
@@ -758,6 +772,65 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                  0.0, 0.0, 1.0)
                     Hi.rotationalTransform(R)
                     H.append(Hi)
+
+        return x, y, z, m, H
+
+    #-------------------------------------------------------------------------------
+    # Seed positions/masses on an hcp lattice
+    #-------------------------------------------------------------------------------
+    def hcpDistribution(self, nx, ny, nz, rho,
+                        xmin,
+                        xmax,
+                        rmin,
+                        rmax,
+                        nNodePerh = 2.01):
+
+        assert nx > 0
+        assert ny > 0
+        assert nz > 0
+        assert rho > 0
+
+        dx = (xmax[0] - xmin[0])/nx
+        dy = (xmax[1] - xmin[1])/ny
+        dz = (xmax[2] - xmin[2])/nz
+
+        n = nx*ny*nz
+        volume = ((xmax[0] - xmin[0])*
+                  (xmax[1] - xmin[1])*
+                  (xmax[2] - xmin[2]))
+
+        m0 = rho*volume/n
+        hx = 1.0/(nNodePerh*dx)
+        hy = 1.0/(nNodePerh*dy)
+        hz = 1.0/(nNodePerh*dz)
+        H0 = SymTensor3d(hx, 0.0, 0.0,
+                         0.0, hy, 0.0,
+                         0.0, 0.0, hz)
+
+        x = []
+        y = []
+        z = []
+        m = []
+        H = []
+
+        for k in xrange(nz):
+            for j in xrange(ny):
+                for i in xrange(nx):
+                    xx = xmin[0] + (i + 0.5*((j % 2) + (k % 2)))*dx
+                    yy = xmin[1] + (j + 0.5*(k % 2))*dy
+                    zz = xmin[2] + (k + 0.5)*dz
+
+                    # xx = xmin[0] + 0.5*dx*(2*i + (j % 2) + (k % 2))
+                    # yy = xmin[1] + 0.5*dy*sqrt(3.0)/3.0*(j + (k % 2))
+                    # zz = xmin[2] + dz*sqrt(6.0)/3.0*k
+                    r = sqrt(xx*xx + yy*yy + zz*zz)
+                    if ((r >= rmin or rmin is None) and
+                        (r <= rmax or rmax is None)):
+                        x.append(xx)
+                        y.append(yy)
+                        z.append(zz)
+                        m.append(m0)
+                        H.append(H0)
 
         return x, y, z, m, H
 
