@@ -28,7 +28,8 @@ PYTHONTARGETS = \
 	GenerateSphericalShellSection.py \
 	AbaqusNodeGenerator.py \
 	CentroidalVoronoiRelaxation.py \
-	InteriorGenerator.py
+	InteriorGenerator.py \
+	FacetedSurfaceGenerator.py
 
 SPHERALTOP = ..
 
