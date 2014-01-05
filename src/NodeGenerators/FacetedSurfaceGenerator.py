@@ -62,7 +62,8 @@ def VFSurfaceGenerator(filename,
                        xmin = None,
                        xmax = None,
                        nNodePerh = 2.01,
-                       SPH = False):
+                       SPH = False,
+                       scaleFactor = 1.0):
     surface = None
     if mpi.rank == 0:
         f = open(filename, "r")
@@ -73,7 +74,7 @@ def VFSurfaceGenerator(filename,
             assert stuff[0] in ("v", "f")
             if stuff[0] == "v":
                 assert len(stuff) == 4
-                verts.append(Vector(float(stuff[1]), float(stuff[2]), float(stuff[3])))
+                verts.append(Vector(float(stuff[1]), float(stuff[2]), float(stuff[3]))*scaleFactor)
             else:
                 assert len(stuff) >= 4
                 facets.append(vector_of_unsigned())
@@ -104,13 +105,34 @@ class PolyhedralSurfaceRejecter:
         assert len(z) == n
         assert len(m) == n
         assert len(H) == n
+
+        # We'll take advantage of any available parallelism to split
+        # up the containment testing.  The following algorithm is borrowed 
+        # from NodeGeneratorBase to divvy up the ID range.
+        ndomain0 = n/mpi.procs
+        remainder = n % mpi.procs
+        assert remainder < mpi.procs
+        ndomain = ndomain0
+        if mpi.rank < remainder:
+            ndomain += 1
+        imin = mpi.rank*ndomain0 + min(mpi.rank, remainder)
+        imax = imin + ndomain
+
+        # Check our local range of IDs.
+        xloc, yloc, zloc, mloc, Hloc = [], [], [], [], []
+        localIndices = [i for i in xrange(imin, imax)
+                           if self.surface.contains(Vector(x[i], y[i], z[i]))]
+
+        # Now cull to the interior values.
         xnew, ynew, znew, mnew, Hnew = [], [], [], [], []
-        for i in xrange(n):
-            j = 0
-            if self.surface.contains(Vector(x[i], y[i], z[i])):
+        for iproc in xrange(mpi.procs):
+            otherIndices = mpi.bcast(localIndices, iproc)
+            for i in otherIndices:
                 xnew.append(x[i])
                 ynew.append(y[i])
                 znew.append(z[i])
                 mnew.append(m[i])
                 Hnew.append(H[i])
+
+        # That's it.
         return xnew, ynew, znew, mnew, Hnew
