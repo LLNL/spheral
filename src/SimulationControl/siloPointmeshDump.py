@@ -74,6 +74,21 @@ def siloPointmeshDump(baseName,
         else:
             print "siloPointmeshDump WARNING: ignoring unknown field type."
 
+    # For any tensor fields, dump the trace, determinant, min, and max eigen values.
+    for f in (tensorFields + symTensorFields):
+        n = f.nodeList()
+        tr = eval("ScalarField%id('%s_trace', n)" % (ndim, f.name))
+        det = eval("ScalarField%id('%s_determinant', n)" % (ndim, f.name))
+        mineigen = eval("ScalarField%id('%s_eigen_min', n)" % (ndim, f.name))
+        maxeigen = eval("ScalarField%id('%s_eigen_max', n)" % (ndim, f.name))
+        for i in xrange(n.numInternalNodes):
+            eigen = f[i].eigenValues()
+            tr[i] = f[i].Trace()
+            det[i] = f[i].Determinant()
+            mineigen[i] = eigen.minElement()
+            maxeigen[i] = eigen.maxElement()
+        scalarFields += [tr, det, mineigen, maxeigen]
+
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle, 
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
