@@ -86,7 +86,7 @@ commandLine(seed = "cylindrical",
             verbosedt = False,
 
             # Should we generate a state snapshot on completion?
-            siloSnapShotFile = None,
+            siloSnapShotFile = "",
             )
 
 rmin = 0.0
