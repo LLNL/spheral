@@ -9,7 +9,7 @@ AC_ARG_WITH(scipy,
 [  --with-scipy ............................. build the scipy python package],
 [
     AC_MSG_RESULT(yes)
-    SCIPYTARGETS=".scipy-0.10.1.date"
+    SCIPYTARGETS=".scipy-0.13.2.date"
 ],
 [
     AC_MSG_RESULT(no)
