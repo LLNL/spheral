@@ -91,8 +91,8 @@ PYGTKDIR = $(PYGTKDIST:.tar.gz=)
 PYGTKBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYGTKDIST))
 
 # Matplotlib
-MATPLOTLIBDIST = matplotlib-1.2.0.tar.gz
-MATPLOTLIBURL = http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.2.0/matplotlib-1.2.0.tar.gz/download
+MATPLOTLIBDIST = matplotlib-1.3.1.tar.gz
+MATPLOTLIBURL = http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz/download
 MATPLOTLIBDIR = $(MATPLOTLIBDIST:.tar.gz=)
 MATPLOTLIBBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MATPLOTLIBDIST))
 

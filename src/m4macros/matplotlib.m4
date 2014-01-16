@@ -9,7 +9,7 @@ AC_ARG_WITH(matplotlib,
 [  --with-matplotlib ........................ build the matplotlib python graphics package],
 [
     AC_MSG_RESULT(yes)
-    MATPLOTLIBTARGETS=".matplotlib-1.0.0.date"
+    MATPLOTLIBTARGETS=".matplotlib-1.3.1.date"
 ],
 [
     AC_MSG_RESULT(no)
