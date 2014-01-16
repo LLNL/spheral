@@ -131,7 +131,7 @@ if test "`uname -s`" = "AIX"; then
   #GCCXMLDIST="gccxml-0.6.0.tar.bz2"
 else
   GCCXMLDIST="gccxml-cvssnapshot-2008-02-04.tar.bz2"
-  EXTRATHIRDPARTYTARGETS+=" .numpy-1.6.2.date .gnuplot-py-1.8.date"
+  EXTRATHIRDPARTYTARGETS+=" .numpy-1.7.2.date .gnuplot-py-1.8.date"
 fi
 
 # -----------------------------------------------------------------

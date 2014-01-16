@@ -28,8 +28,8 @@ PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.6.2.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.6.2/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.7.2.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.7.2/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -97,8 +97,8 @@ MATPLOTLIBDIR = $(MATPLOTLIBDIST:.tar.gz=)
 MATPLOTLIBBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MATPLOTLIBDIST))
 
 # Scipy
-SCIPYDIST = scipy-0.10.1.tar.gz
-SCIPYURL = http://sourceforge.net/projects/scipy/files/scipy/0.10.1/$(SCIPYDIST)/download
+SCIPYDIST = scipy-0.13.2.tar.gz
+SCIPYURL = http://sourceforge.net/projects/scipy/files/scipy/0.13.2/$(SCIPYDIST)/download
 SCIPYDIR = $(SCIPYDIST:.tar.gz=)
 SCIPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SCIPYDIST))
 
