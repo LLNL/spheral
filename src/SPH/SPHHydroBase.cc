@@ -646,17 +646,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density (only if the same material).
-              if (nodeListi == nodeListj) {
-                rhoSumi += mj*Wi;
-                rhoSumj += mi*Wj;
-              }
+              // if (nodeListi == nodeListj) {
+                rhoSumi += mi*Wi;
+                rhoSumj += mj*Wj;
+              // }
 
               // Mass density evolution.
               const Vector vij = vi - vj;
               const double deltaDrhoDti = vij.dot(gradWi);
               const double deltaDrhoDtj = vij.dot(gradWj);
-              DrhoDti += deltaDrhoDti;
-              DrhoDtj += deltaDrhoDtj;
+              DrhoDti += mj/rhoj*deltaDrhoDti;
+              DrhoDtj += mi/rhoi*deltaDrhoDtj;
 
               // Compute the pair-wise artificial viscosity.
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
@@ -739,7 +739,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       rhoSumi += mi*W0*Hdeti;
 
       // Finish the continuity equation.
-      DrhoDti *= mi*safeOmegai;
+      DrhoDti *= rhoi*safeOmegai;
 
       // Finish the thermal energy derivative.
       DepsDti *= safeOmegai;
