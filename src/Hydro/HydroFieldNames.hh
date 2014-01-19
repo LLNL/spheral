@@ -20,6 +20,7 @@ struct HydroFieldNames {
   static const std::string velocityGradient;
   static const std::string internalVelocityGradient;
   static const std::string massDensity;
+  static const std::string normalization;
   static const std::string specificThermalEnergy;
   static const std::string maxViscousPressure;
   static const std::string XSPHDeltaV;

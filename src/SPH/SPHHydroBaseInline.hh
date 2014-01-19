@@ -244,6 +244,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
+normalization() const {
+  return mNormalization;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
 }

@@ -80,7 +80,7 @@ class Physics:
         self.vector_of_Physics2d = addObject(mod, "vector_of_Physics2d", allow_subclassing=True)
         self.vector_of_Physics3d = addObject(mod, "vector_of_Physics3d", allow_subclassing=True)
 
-        self.MassDensityType = space.add_enum("MassDensityType", ["SumDensity", "RigorousSumDensity", "IntegrateDensity", "VoronoiCellDensity", "SumVoronoiCellDensity"])
+        self.MassDensityType = space.add_enum("MassDensityType", ["SumDensity", "RigorousSumDensity", "HybridSumDensity", "IntegrateDensity", "VoronoiCellDensity", "SumVoronoiCellDensity"])
         self.HEvolutionType = space.add_enum("HEvolutionType", ["IdealH", "IntegrateH"])
 
         return

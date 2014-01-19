@@ -32,9 +32,10 @@ namespace PhysicsSpace {
 enum MassDensityType {
   SumDensity = 0,
   RigorousSumDensity = 1,
-  IntegrateDensity = 2,
-  VoronoiCellDensity = 3,
-  SumVoronoiCellDensity = 4,
+  HybridSumDensity = 2,
+  IntegrateDensity = 3,
+  VoronoiCellDensity = 4,
+  SumVoronoiCellDensity = 5,
 };
 
 enum HEvolutionType {
