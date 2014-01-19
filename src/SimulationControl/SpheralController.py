@@ -47,6 +47,8 @@ class SpheralController(RestartableObject):
                  vizMethod = None,
                  vizFields = [],
                  vizFieldLists = [],
+                 vizGhosts = False,
+                 vizDerivs = False,
                  initialTime = 0.0,
                  SPH = False,
                  skipInitialPeriodicWork = False):
@@ -74,6 +76,8 @@ class SpheralController(RestartableObject):
                 #from SpheralVisitDump import dumpPhysicsState
                 from SpheralPointmeshSiloDump import dumpPhysicsState
             self.vizMethod = dumpPhysicsState
+        self.vizGhosts = vizGhosts
+        self.vizDerivs = vizDerivs
 
         # If this is a parallel run, automatically construct and insert
         # a DistributedBoundaryCondition into each physics package.
@@ -660,6 +664,8 @@ class SpheralController(RestartableObject):
                        fieldLists = self.vizFieldLists,
                        currentTime = self.time(),
                        currentCycle = self.totalSteps,
+                       dumpGhosts = self.vizGhosts,
+                       dumpDerivatives = self.vizDerivs,
                        boundaries = self.integrator.uniqueBoundaryConditions())
         return
 
