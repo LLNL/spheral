@@ -82,6 +82,7 @@ class Hydro:
         x.add_static_attribute("velocityGradient", "std::string",  is_const=True)
         x.add_static_attribute("internalVelocityGradient", "std::string",  is_const=True)
         x.add_static_attribute("massDensity", "std::string",  is_const=True)
+        x.add_static_attribute("normalization", "std::string",  is_const=True)
         x.add_static_attribute("specificThermalEnergy", "std::string",  is_const=True)
         x.add_static_attribute("maxViscousPressure", "std::string",  is_const=True)
         x.add_static_attribute("XSPHDeltaV", "std::string",  is_const=True)

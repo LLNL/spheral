@@ -147,6 +147,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
+  mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
@@ -325,6 +326,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
+  dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
   dataBase.resizeFluidFieldList(mXSPHWeightSum, 0.0, HydroFieldNames::XSPHWeightSum, false);
@@ -341,6 +343,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
   derivs.enroll(mMassDensitySum);
+  derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
   derivs.enroll(mXSPHWeightSum);
@@ -451,6 +454,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  FieldList<Dimension, Scalar> normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
@@ -466,6 +470,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
+  CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -540,6 +545,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
+      Scalar& normi = normalization(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
@@ -599,6 +605,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(Hdetj > 0.0);
 
               Scalar& rhoSumj = rhoSum(nodeListj, j);
+              Scalar& normj = normalization(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
@@ -645,11 +652,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
               massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
 
-              // Contribution to the sum density (only if the same material).
-              // if (nodeListi == nodeListj) {
-                rhoSumi += mi*Wi;
-                rhoSumj += mj*Wj;
-              // }
+              // Contribution to the sum density.
+              rhoSumi += Wi;
+              rhoSumj += Wj;
+              normi += mi/rhoi*Wi;
+              normj += mj/rhoj*Wj;
 
               // Mass density evolution.
               const Vector vij = vi - vj;
@@ -736,7 +743,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
       // Add the self-contribution to density sum.
-      rhoSumi += mi*W0*Hdeti;
+      rhoSumi += W0*Hdeti;
+      normi += mi/rhoi*W0*Hdeti;
+      rhoSumi *= mi;
 
       // Finish the continuity equation.
       DrhoDti *= rhoi*safeOmegai;
@@ -859,9 +868,21 @@ finalize(const typename Dimension::Scalar time,
     computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                                                HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                                                      HydroFieldNames::massDensity, 0.0);
     massDensity.assignFields(massDensitySum);
+  } else if (densityUpdate() == PhysicsSpace::HybridSumDensity) {
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                                                      HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, Scalar> normalization = state.fields(HydroFieldNames::normalization, 0.0);
+    const unsigned numNodeLists = normalization.size();
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = normalization[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        if (normalization(nodeListi, i) > 0.9) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
+      }
+    }
   } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
     this->updateVolume(state, false);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1062,6 +1083,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mHideal, pathName + "/Hideal");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
+  file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.write(mMassSecondMoment, pathName + "/massSecondMoment");
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
@@ -1096,6 +1118,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mHideal, pathName + "/Hideal");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
+  file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.read(mMassSecondMoment, pathName + "/massSecondMoment");
   file.read(mXSPHWeightSum, pathName + "/XSPHWeightSum");
