@@ -653,17 +653,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomentj += fweightij*gradWj.magnitude2()*thpt;
 
               // Contribution to the sum density.
-              rhoSumi += Wi;
-              rhoSumj += Wj;
-              normi += mi/rhoi*Wi;
-              normj += mj/rhoj*Wj;
+              if (nodeListi == nodeListj) {
+                rhoSumi += mj*Wi;
+                rhoSumj += mi*Wj;
+                normi += mi/rhoi*Wi;
+                normj += mj/rhoj*Wj;
+              }
 
               // Mass density evolution.
               const Vector vij = vi - vj;
               const double deltaDrhoDti = vij.dot(gradWi);
               const double deltaDrhoDtj = vij.dot(gradWj);
-              DrhoDti += mj/rhoj*deltaDrhoDti;
-              DrhoDtj += mi/rhoi*deltaDrhoDtj;
+              DrhoDti += deltaDrhoDti;
+              DrhoDtj += deltaDrhoDtj;
 
               // Compute the pair-wise artificial viscosity.
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
@@ -743,12 +745,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
       // Add the self-contribution to density sum.
-      rhoSumi += W0*Hdeti;
+      rhoSumi += mi*W0*Hdeti;
       normi += mi/rhoi*W0*Hdeti;
-      rhoSumi *= mi;
 
       // Finish the continuity equation.
-      DrhoDti *= rhoi*safeOmegai;
+      DrhoDti *= mi*safeOmegai;
 
       // Finish the thermal energy derivative.
       DepsDti *= safeOmegai;
@@ -880,7 +881,7 @@ finalize(const typename Dimension::Scalar time,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = normalization[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
-        if (normalization(nodeListi, i) > 0.9) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
+        if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
       }
     }
   } else if (densityUpdate() == PhysicsSpace::VoronoiCellDensity) {
