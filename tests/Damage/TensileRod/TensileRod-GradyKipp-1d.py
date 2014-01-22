@@ -97,6 +97,7 @@ commandLine(length = 3.0,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
             effectiveFlawAlgorithm = SampledFlaws,
+            damageInCompression = False,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             Qconstructor = MonaghanGingoldViscosity,
@@ -446,7 +447,8 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          strainType,
                                          damageMethod,
                                          useDamageGradient,
-                                         flawAlgorithm = effectiveFlawAlgorithm)
+                                         flawAlgorithm = effectiveFlawAlgorithm,
+                                         damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
     damageModel = DamageModelConstructor(nodes,
@@ -460,7 +462,8 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          useDamageGradient,
                                          0.4,
                                          effectiveFlawAlgorithm,
-                                         numFlawsPerNode)
+                                         numFlawsPerNode,
+                                         damageInCompression = damageInCompression)
 
 output("damageModel")
 output("damageModel.useDamageGradient")
