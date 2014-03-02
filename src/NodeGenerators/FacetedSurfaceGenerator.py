@@ -3,9 +3,11 @@
 # points.
 #-------------------------------------------------------------------------------
 import mpi
+from numpy.polynomial import Polynomial as P
 from NodeGeneratorBase import NodeGeneratorBase
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
-    vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned
+    vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
+    rotationMatrix
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -119,17 +121,8 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
 # This is the format used by the NASA radar asteroid shape models:
 #  http://echo.jpl.nasa.gov/asteroids/shapes/shapes.html
 #-------------------------------------------------------------------------------
-def VFSurfaceGenerator(filename,
-                       rho,
-                       nx,
-                       ny = None,
-                       nz = None,
-                       seed = "hcp",
-                       xmin = None,
-                       xmax = None,
-                       nNodePerh = 2.01,
-                       SPH = False,
-                       scaleFactor = 1.0):
+def VFSurfacePolyhedron(filename,
+                        scaleFactor = 1.0):
     surface = None
     if mpi.rank == 0:
         f = open(filename, "r")
@@ -153,8 +146,185 @@ def VFSurfaceGenerator(filename,
                 assert facets[i][j] < nverts
         surface = Polyhedron(verts, facets)
     surface = mpi.bcast(surface)
+    return surface
+
+#-------------------------------------------------------------------------------
+# Create a FacetedSurfaceGenerator based on a polyhedron in VF format in a file.
+#-------------------------------------------------------------------------------
+def VFSurfaceGenerator(filename,
+                       rho,
+                       nx,
+                       ny = None,
+                       nz = None,
+                       seed = "hcp",
+                       xmin = None,
+                       xmax = None,
+                       nNodePerh = 2.01,
+                       SPH = False,
+                       scaleFactor = 1.0):
+    surface = VFSurfacePolyhedron(filename, scaleFactor)
     return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
                                       nNodePerh, SPH)
+
+#-------------------------------------------------------------------------------
+# Generate nodes inside a surface by extruding inward from the facets of a 
+# surface.
+#-------------------------------------------------------------------------------
+class ExtrudedSurfaceGenerator(NodeGeneratorBase):
+
+    def __init__(self,
+                 surface,
+                 lextrude,
+                 nextrude,
+                 dltarget,
+                 dstarget,
+                 rho,
+                 flags = None,
+                 nNodePerh = 2.01,
+                 SPH = False):
+        surfaceFacets = surface.facets()
+        surfaceVertices = surface.vertices()
+        
+        # Find the facets surrounding each vertex.
+        verts2facets = {}
+        for fi in xrange(len(surfaceFacets)):
+            f = surfaceFacets[fi]
+            for ip in f.ipoints:
+                if ip in verts2facets:
+                    verts2facets[ip].append(fi)
+                else:
+                    verts2facets[ip] = [fi]
+        
+        # Find the effective normal for each vertex.
+        vertnorms = {}
+        for i in verts2facets:
+            vertnorms[i] = Vector()
+            for fi in verts2facets[i]:
+                nhat = surfaceFacets[fi].normal
+                wi = 1.0/surfaceFacets[fi].area
+                vertnorms[i] += nhat * wi
+            vertnorms[i] = vertnorms[i].unitVector()
+        
+        # Get the facets we need to extrude.
+        if flags is None:
+            facets = surfaceFacets
+        else:
+            assert len(flags) == len(surfaceFacets)
+            facets = [surfaceFacets[i] for i in xrange(len(surfaceFacets)) if (flags[i] == 1)]
+        
+        # Find the maximum extent we need to use to cover the volumes of all extruded
+        # facets.
+        ymin, ymax, zmin, zmax = 1e200, -1e200, 1e200, -1e200
+        for f in facets:
+            nhat = f.normal
+            T = rotationMatrix(nhat)
+            p = f.position
+            verts = [T*(surfaceVertices[i] - p) for i in f.ipoints]
+            ymin = min(ymin, min([v.y for v in verts]))
+            ymax = max(ymax, max([v.y for v in verts]))
+            zmin = min(zmin, min([v.z for v in verts]))
+            zmax = max(zmax, max([v.z for v in verts]))
+        ny = max(1, int((ymax - ymin)/dstarget + 0.5))
+        nz = max(1, int((zmax - zmin)/dstarget + 0.5))
+        dy = (ymax - ymin)/ny
+        dz = (zmax - zmin)/nz
+        
+        # Find the ratio needed for the spacing in the x direction.
+        # We have to check for ratio=1 explicitly, since the series sum
+        # doesn't work in that case.
+        if abs(lextrude - nextrude*dltarget) < 1e-5*lextrude:
+            ratio = 1.0
+            l = lextrude
+            dx = dltarget
+        else:
+            stuff = [0.0]*(nextrude + 1)
+            stuff[0:1] = [dltarget - lextrude, -lextrude]
+            stuff[-1] = dltarget
+            p = P(stuff, [1.0e-3, 1.0e10], [1.0e-3, 1.0e10])
+            complex_ratio = p.roots()[-1]
+            assert complex_ratio.imag == 0.0
+            ratio = complex_ratio.real
+        
+            # Unfortnately the root finding above isn't 100% accurate, so we 
+            # adjust the initial step size to get the correct total length.
+            l = dltarget*(1.0 - ratio**nextrude)/(1.0 - ratio)
+            dx = dltarget * lextrude/l
+        
+        # Build the template values we'll use to stamp into each facet volume.
+        rt, mt, Ht = [], [], []
+        for iz in xrange(nz):
+            zi = zmin + (iz + 0.5)*dz
+            for iy in xrange(ny):
+                yi = ymin + (iy + 0.5)*dy
+                xi = 0.0
+                dxi = dx
+                for ix in xrange(nextrude):
+                    dxi = dx*ratio**ix
+                    if ratio == 1.0:
+                        xi = -(ix + 0.5)*dx
+                    else:
+                        xi = -dx*(1.0 - ratio**ix)/(1.0 - ratio) + 0.5*dxi
+                    rt.append(Vector(xi, yi, zi))
+                    mt.append(rho*dxi*dy*dz)
+                    Ht.append(SymTensor(1.0/(nNodePerh*dxi), 0.0, 0.0,
+                                        0.0, 1.0/(nNodePerh*dy), 0.0,
+                                        0.0, 0.0, 1.0/(nNodePerh*dz)))
+        
+        # Now walk the facets and build our values.
+        self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
+        for f in facets:
+            nhat = f.normal
+            T = rotationMatrix(nhat)
+            Ti = T.Transpose()
+            p = f.position
+            verts = vector_of_Vector()
+            for ip in f.ipoints:
+                verts.append(surfaceVertices[ip])
+                verts.append(surfaceVertices[ip] - vertnorms[ip]*lextrude)
+            poly = Polyhedron(verts)   # Better be convex!
+            for i in xrange(len(rt)):
+                ri = Ti*rt[i] + p
+                if poly.contains(ri):
+                    self.x.append(ri.x)
+                    self.y.append(ri.y)
+                    self.z.append(ri.z)
+                    self.m.append(mt[i])
+                    self.H.append(SymTensor(Ht[i]))
+                    self.H[-1].rotationalTransform(Ti)
+        self.rho = [rho] * len(self.x)
+        
+        # Invoke the base class to finish up.
+        NodeGeneratorBase.__init__(self, True, self.x, self.y, self.z, self.m, self.H, self.rho)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i < len(self.x)
+        return Vector(self.x[i], self.y[i], self.z[i])
+
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i < len(self.m)
+        return self.m[i]
+
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        assert i < len(self.rho)
+        return self.rho[i]
+
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i < len(self.H)
+        return self.H[i]
 
 # #-------------------------------------------------------------------------------
 # # Helper rejecter method given a polyhedral surface.
