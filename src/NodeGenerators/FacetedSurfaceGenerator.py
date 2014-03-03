@@ -228,6 +228,8 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         nz = max(1, int((zmax - zmin)/dstarget + 0.5))
         dy = (ymax - ymin)/ny
         dz = (zmax - zmin)/nz
+        if mpi.rank == 0:
+            print "FacetedSurfaceGenerator: choose (nx,ny,nz)=(%i,%i,%i) for template block." % (nextrude, ny, nz)
         
         # Find the ratio needed for the spacing in the x direction.
         # We have to check for ratio=1 explicitly, since the series sum
@@ -249,6 +251,8 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             # adjust the initial step size to get the correct total length.
             l = dltarget*(1.0 - ratio**nextrude)/(1.0 - ratio)
             dx = dltarget * lextrude/l
+        if mpi.rank == 0:
+            print "FacetedSurfaceGenerator: selected ratio=%g, dxfirst=%g, l=%g." % (ratio, dx, l)
         
         # Build the template values we'll use to stamp into each facet volume.
         rt, mt, Ht = [], [], []
@@ -269,10 +273,25 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                     Ht.append(SymTensor(1.0/(nNodePerh*dxi), 0.0, 0.0,
                                         0.0, 1.0/(nNodePerh*dy), 0.0,
                                         0.0, 0.0, 1.0/(nNodePerh*dz)))
+        if mpi.rank == 0:
+            print "FacetedSurfaceGenerator: built template block of %i points per facet." % len(rt)
         
+        # Figure out a crude partitioning of the facets between processors.
+        ndomain0 = len(surfaceFacets)/mpi.procs
+        remainder = len(surfaceFacets) % mpi.procs
+        assert remainder < mpi.procs
+        ndomain = ndomain0
+        if mpi.rank < remainder:
+            ndomain += 1
+        imin = mpi.rank*ndomain0 + min(mpi.rank, remainder)
+        imax = imin + ndomain
+                    
         # Now walk the facets and build our values.
         self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
-        for f in facets:
+        for fi in xrange(imin, imax):
+            if mpi.rank == 0:
+                print "%i..." % fi
+            f = surfaceFacets[fi]
             nhat = f.normal
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
@@ -294,7 +313,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         self.rho = [rho] * len(self.x)
         
         # Invoke the base class to finish up.
-        NodeGeneratorBase.__init__(self, True, self.x, self.y, self.z, self.m, self.H, self.rho)
+        NodeGeneratorBase.__init__(self, False, self.x, self.y, self.z, self.m, self.H, self.rho)
 
         return
 
