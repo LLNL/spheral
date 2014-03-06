@@ -3,6 +3,7 @@
 # points.
 #-------------------------------------------------------------------------------
 import mpi
+from math import *
 from numpy.polynomial import Polynomial as P
 from NodeGeneratorBase import NodeGeneratorBase
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
@@ -224,12 +225,6 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             ymax = max(ymax, max([v.y for v in verts]))
             zmin = min(zmin, min([v.z for v in verts]))
             zmax = max(zmax, max([v.z for v in verts]))
-        ny = max(1, int((ymax - ymin)/dstarget + 0.5))
-        nz = max(1, int((zmax - zmin)/dstarget + 0.5))
-        dy = (ymax - ymin)/ny
-        dz = (zmax - zmin)/nz
-        if mpi.rank == 0:
-            print "FacetedSurfaceGenerator: choose (nx,ny,nz)=(%i,%i,%i) for template block." % (nextrude, ny, nz)
         
         # Find the ratio needed for the spacing in the x direction.
         # We have to check for ratio=1 explicitly, since the series sum
@@ -256,18 +251,23 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         
         # Build the template values we'll use to stamp into each facet volume.
         rt, mt, Ht = [], [], []
-        for iz in xrange(nz):
-            zi = zmin + (iz + 0.5)*dz
+        xi = 0.0
+        dxi = dx
+        for ix in xrange(nextrude):
+            dxi = dx*ratio**ix
+            if ratio == 1.0:
+                xi = -(ix + 0.5)*dx
+            else:
+                xi = -dx*(1.0 - ratio**ix)/(1.0 - ratio) + 0.5*dxi
+            ds = max(dstarget, dxi)
+            ny = max(1, int((ymax - ymin)/ds + 0.5))
+            nz = max(1, int((zmax - zmin)/ds + 0.5))
+            dy = (ymax - ymin)/ny
+            dz = (zmax - zmin)/nz
             for iy in xrange(ny):
                 yi = ymin + (iy + 0.5)*dy
-                xi = 0.0
-                dxi = dx
-                for ix in xrange(nextrude):
-                    dxi = dx*ratio**ix
-                    if ratio == 1.0:
-                        xi = -(ix + 0.5)*dx
-                    else:
-                        xi = -dx*(1.0 - ratio**ix)/(1.0 - ratio) + 0.5*dxi
+                for iz in xrange(nz):
+                    zi = zmin + (iz + 0.5)*dz
                     rt.append(Vector(xi, yi, zi))
                     mt.append(rho*dxi*dy*dz)
                     Ht.append(SymTensor(1.0/(nNodePerh*dxi), 0.0, 0.0,
@@ -277,29 +277,40 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             print "FacetedSurfaceGenerator: built template block of %i points per facet." % len(rt)
         
         # Figure out a crude partitioning of the facets between processors.
-        ndomain0 = len(surfaceFacets)/mpi.procs
-        remainder = len(surfaceFacets) % mpi.procs
-        assert remainder < mpi.procs
-        ndomain = ndomain0
-        if mpi.rank < remainder:
-            ndomain += 1
-        imin = mpi.rank*ndomain0 + min(mpi.rank, remainder)
-        imax = imin + ndomain
+        if len(facets) > mpi.procs:
+            ndomain0 = len(facets)/mpi.procs
+            remainder = len(facets) % mpi.procs
+            assert remainder < mpi.procs
+            ndomain = ndomain0
+            if mpi.rank < remainder:
+                ndomain += 1
+            imin = mpi.rank*ndomain0 + min(mpi.rank, remainder)
+            imax = imin + ndomain
+        else:
+            if mpi.rank < len(facets):
+                imin = mpi.rank
+                imax = imin + 1
+            else:
+                imin = 0
+                imax = 0
                     
         # Now walk the facets and build our values.
         self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
         for fi in xrange(imin, imax):
             if mpi.rank == 0:
                 print "%i..." % fi
-            f = surfaceFacets[fi]
+            f = facets[fi]
             nhat = f.normal
+            p = f.position
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
             p = f.position
             verts = vector_of_Vector()
             for ip in f.ipoints:
-                verts.append(surfaceVertices[ip])
-                verts.append(surfaceVertices[ip] - vertnorms[ip]*lextrude)
+                fphat = (p - surfaceVertices[ip]).unitVector()
+                vi = surfaceVertices[ip] + fphat*0.2*dstarget
+                verts.append(vi)
+                verts.append(vi - vertnorms[ip]*lextrude)
             poly = Polyhedron(verts)   # Better be convex!
             for i in xrange(len(rt)):
                 ri = Ti*rt[i] + p
