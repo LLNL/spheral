@@ -259,7 +259,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 xi = -(ix + 0.5)*dx
             else:
                 xi = -dx*(1.0 - ratio**ix)/(1.0 - ratio) + 0.5*dxi
-            ds = max(dstarget, dxi)
+            ds = min(4.0*dstarget, max(dstarget, dxi))
             ny = max(1, int((ymax - ymin)/ds + 0.5))
             nz = max(1, int((zmax - zmin)/ds + 0.5))
             dy = (ymax - ymin)/ny
@@ -304,11 +304,10 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             p = f.position
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
-            p = f.position
             verts = vector_of_Vector()
             for ip in f.ipoints:
                 fphat = (p - surfaceVertices[ip]).unitVector()
-                vi = surfaceVertices[ip] + fphat*0.2*dstarget
+                vi = surfaceVertices[ip] + fphat*0.05*dstarget
                 verts.append(vi)
                 verts.append(vi - vertnorms[ip]*lextrude)
             poly = Polyhedron(verts)   # Better be convex!
