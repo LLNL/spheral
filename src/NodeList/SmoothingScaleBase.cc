@@ -49,6 +49,7 @@ template<typename Dimension>
 void
 SmoothingScaleBase<Dimension>::
 newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
+                               const FieldSpace::Field<Dimension, Vector>& position,
                                const FieldSpace::Field<Dimension, Tensor>& DvDx,
                                const FieldSpace::Field<Dimension, Scalar>& zerothMoment,
                                const FieldSpace::Field<Dimension, SymTensor>& secondMoment,
@@ -70,6 +71,7 @@ newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
   const int n = nodeList.numInternalNodes();
   for (int i = 0; i != n; ++i) {
     DHDt(i) = smoothingScaleDerivative(H(i),
+                                       position(i),
                                        DvDx(i),
                                        hmin,
                                        hmax,
@@ -77,6 +79,7 @@ newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
                                        nPerh,
                                        maxNumNeighbors);
     Hideal(i) = newSmoothingScale(H(i), 
+                                  position(i),
                                   zerothMoment(i),
                                   secondMoment(i),
                                   connectivityMap.numNeighborsForNode(&nodeList, i), 

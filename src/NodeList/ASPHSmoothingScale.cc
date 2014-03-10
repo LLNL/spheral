@@ -166,6 +166,7 @@ template<>
 Dim<1>::SymTensor
 ASPHSmoothingScale<Dim<1> >::
 smoothingScaleDerivative(const Dim<1>::SymTensor& H,
+                         const Dim<1>::Vector& pos,
                          const Dim<1>::Tensor& DvDx,
                          const Dim<1>::Scalar hmin,
                          const Dim<1>::Scalar hmax,
@@ -180,6 +181,7 @@ template<>
 Dim<2>::SymTensor
 ASPHSmoothingScale<Dim<2> >::
 smoothingScaleDerivative(const Dim<2>::SymTensor& H,
+                         const Dim<2>::Vector& pos,
                          const Dim<2>::Tensor& DvDx,
                          const Dim<2>::Scalar hmin,
                          const Dim<2>::Scalar hmax,
@@ -202,6 +204,7 @@ template<>
 Dim<3>::SymTensor
 ASPHSmoothingScale<Dim<3> >::
 smoothingScaleDerivative(const Dim<3>::SymTensor& H,
+                         const Dim<3>::Vector& pos,
                          const Dim<3>::Tensor& DvDx,
                          const Dim<3>::Scalar hmin,
                          const Dim<3>::Scalar hmax,
@@ -272,6 +275,7 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
                     const int numNeighbors,
@@ -374,6 +378,7 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 newSmoothingScale(const SymTensor& H,
+                  const Vector& pos,
                   const Scalar zerothMoment,
                   const SymTensor& secondMoment,
                   const int numNeighbors,
@@ -389,6 +394,7 @@ newSmoothingScale(const SymTensor& H,
 
   // Get the ideal H vote.
   const SymTensor Hideal = idealSmoothingScale(H, 
+                                               pos,
                                                zerothMoment,
                                                secondMoment,
                                                numNeighbors,

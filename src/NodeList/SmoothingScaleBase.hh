@@ -47,6 +47,7 @@ public:
 
   // Compute the time derivative and ideal H simultaneously for a Field of H's.
   void newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
+                                      const FieldSpace::Field<Dimension, Vector>& position,
                                       const FieldSpace::Field<Dimension, Tensor>& DvDx,
                                       const FieldSpace::Field<Dimension, Scalar>& zerothMoment,
                                       const FieldSpace::Field<Dimension, SymTensor>& secondMoment,
@@ -65,6 +66,7 @@ public:
   // Time derivative of the smoothing scale.
   virtual SymTensor
   smoothingScaleDerivative(const SymTensor& H,
+                           const Vector& pos,
                            const Tensor& DvDx,
                            const Scalar hmin,
                            const Scalar hmax,
@@ -75,6 +77,7 @@ public:
   // Return a new H, with limiting based on the old value.
   virtual SymTensor
   newSmoothingScale(const SymTensor& H,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
                     const int numNeighbors,
@@ -88,6 +91,7 @@ public:
   // Determine an "ideal" H for the given moments.
   virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
                       const int numNeighbors,
