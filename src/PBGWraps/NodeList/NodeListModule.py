@@ -341,6 +341,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
 
         # Methods.
         x.add_method("newSmoothingScaleAndDerivative", None, [constrefparam(symtensorfield, "H"),
+                                                              constrefparam(vectorfield, "position"),
                                                               constrefparam(tensorfield, "DvDx"),
                                                               constrefparam(scalarfield, "zerothMoment"),
                                                               constrefparam(symtensorfield, "secondMoment"),
@@ -421,6 +422,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
 
         # Methods.
         x.add_method("smoothingScaleDerivative", symtensor, [constrefparam(symtensor, "H"),
+                                                             constrefparam(vector, "pos"),
                                                              constrefparam(tensor, "DvDx"),
                                                              param("double", "hmin"),
                                                              param("double", "hmax"),
@@ -429,6 +431,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
                                                              param("int", "maxNumNeighbors")],
                      is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
         x.add_method("newSmoothingScale", symtensor, [constrefparam(symtensor, "H"),
+                                                      constrefparam(vector, "pos"),
                                                       param("double", "zerothMoment"),
                                                       constrefparam(symtensor, "secondMoment"),
                                                       param("int", "numNeighbors"),
@@ -440,6 +443,7 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
                                                       param("int", "maxNumNeighbors")],
                      is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
         x.add_method("idealSmoothingScale", symtensor, [constrefparam(symtensor, "H"),
+                                                        constrefparam(vector, "pos"),
                                                         param("double", "zerothMoment"),
                                                         constrefparam(symtensor, "secondMoment"),
                                                         param("int", "numNeighbors"),
