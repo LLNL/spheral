@@ -268,14 +268,12 @@ weibullFlawDistributionOwen(const unsigned seed,
       CHECK(rho(i) > 0.0);
       const double Vi = mass(i)/rho(i) * volumeMultiplier;
       CHECK(Vi > 0.0);
-      const double epsmaxi = pow(kWeibull*Vi, -mInv);
-      CHECK(epsmaxi > 0.0);
-      const double Bi = pow(epsmaxi, mWeibull);
-      CHECK(Bi > 0.0);
+      const double Ai = numFlawsPerNode/(kWeibull*Vi);
+      CHECK(Ai > 0.0);
 
       // Seed flaws on the node.
       for (int j = 0; j != numFlawsPerNode; ++j) {
-        flaws(i).push_back(pow(Bi * generator(), mInv));
+        flaws(i).push_back(pow(Ai * generator(), mInv));
         CHECK(flaws(i).back() >= 0.0 and flaws(i).back() <= epsmaxi);
       }
       CHECK(flaws(i).size() == numFlawsPerNode);
