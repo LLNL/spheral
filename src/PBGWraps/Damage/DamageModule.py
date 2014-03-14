@@ -275,7 +275,7 @@ class Damage:
                             param("double", "kWeibull"),
                             param("double", "mWeibull"),
                             constrefparam(fluidnodelist, "nodeList"),
-                            param("int", "numFlawsPerNode"),
+                            param("int", "minFlawsPerNode"),
                             param("double", "volumeMultiplier", default_value="1.0")],
                            template_parameters = [dim],
                            custom_name = "weibullFlawDistributionOwen%id" % ndim)

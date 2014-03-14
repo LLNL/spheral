@@ -152,7 +152,7 @@ for test in xrange(ntests):
                                               kWeibull,
                                               mWeibull,
                                               nodes,
-                                              1,     # numFlawsPerNode
+                                              1,      # minFlawsPerNode
                                               1.0)    # volumeMultiplier
 
     # Collect the distribution function of flaws.
