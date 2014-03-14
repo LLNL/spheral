@@ -53,7 +53,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 1.0
-        numFlawsPerNode     : (optional) defaults to "1"
+        minFlawsPerNode     : (optional) defaults to "1"
 """
 
 #-------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                           "kWeibull"                 : None,
                           "mWeibull"                 : None,
                           "nodeList"                 : None,
-                          "numFlawsPerNode"          : 1,
+                          "minFlawsPerNode"          : 1,
                           "volumeMultiplier"         : 1.0}
 
         # Extra arguments for our convenient constructor.
@@ -247,7 +247,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                            "crackGrowthMultiplier",
                            "flawAlgorithm",
                            "criticalDamageThreshold",
-                           "numFlawsPerNode"]
+                           "minFlawsPerNode"]
         for x in backCompatOrder:
             assert (x in weibull_kwargs) or (x in damage_kwargs)
 
