@@ -815,6 +815,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                             ri,
                                                              DvDxi,
                                                              hmin,
                                                              hmax,

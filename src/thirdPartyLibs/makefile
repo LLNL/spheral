@@ -294,6 +294,12 @@ POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
 POLYTOPEBUILDDATE = $(patsubst %.tbz, .%.date, $(POLYTOPEDIST))
 
+# OpenSubDiv
+OPENSUBDIVDIST = OpenSubdiv-master.zip
+OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/master.zip
+OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
+OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
+
 #-------------------------------------------------------------------------------
 all:	$(PYTHONBUILDDATE) \
 	$(BOOSTDATE) \
@@ -315,6 +321,7 @@ all:	$(PYTHONBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(MPMATHBUILDDATE) \
 	$(POLYTOPEBUILDDATE) \
+	$(OPENSUBDIVTARGETS) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
 #	$(FLANNBUILDDATE) \
@@ -353,6 +360,7 @@ clean:
 	       $(HYPREDIR) $(HYPREBUILDDATE) \
 	       $(FLANNDIR) $(FLANNBUILDDATE) \
 	       $(PCLDIR) $(PCLBUILDDATE) \
+	       $(OPENSUBDIVDIR) $(OPENSUBDIVBUILDDATE) \
 	       $(EXTRATHIRDPARTYTARGETS) \
 	       .*.date
 
@@ -1458,4 +1466,33 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
 	fi
 	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR) $(TETGENDIR)
 	touch $(POLYTOPEBUILDDATE)
+
+#-------------------------------------------------------------------------------
+# OpenSubDiv
+#-------------------------------------------------------------------------------
+$(OPENSUBDIVDIST):
+	$(CURL) "$(OPENSUBDIVURL)" > $(OPENSUBDIVDIST)
+
+$(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
+	@echo "################################################################################"
+	@echo "# Building $(OPENSUBDIVDIST)"
+	@echo "################################################################################"
+	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
+	rm -fr $(OPENSUBDIVDIR)
+	$(UNZIP) $(OPENSUBDIVDIST)
+	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt OpenSubdiv-master-CMakeLists_txt.patch
+	$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt OpenSubdiv-master-opensubdiv-osd-CMakeLists_txt.patch
+	$(MKDIR) $(OPENSUBDIVDIR)/build
+	$(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(SPHERALDIR) -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_GPU=1 .. ; \
+	$(MAKE) ; \
+	$(MAKE) install"
+	@if ! test -e $(SPHERALDIR)/lib/libosdCPU.a -a \
+	           -e $(SPHERALDIR)/lib/libosdutil.a ; then \
+	echo "ERROR building Opensubdiv."; \
+	rm -f $(OPENSUBDIVBUILDDATE); \
+	exit 1; \
+	fi
+	rm -fr $(OPENSUBDIVDIR)
+	touch $(OPENSUBDIVBUILDDATE)
 

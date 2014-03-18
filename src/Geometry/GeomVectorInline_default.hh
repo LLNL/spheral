@@ -133,6 +133,25 @@ GeomVector<nDim>::operator()(typename GeomVector<nDim>::size_type index) {
 }
 
 //------------------------------------------------------------------------------
+// Return the (index) element using the bracket operator.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+double
+GeomVector<nDim>::operator[](typename GeomVector<nDim>::size_type index) const {
+  REQUIRE(index < nDim);
+  return *(begin() + index);
+}
+
+template<int nDim>
+inline
+double&
+GeomVector<nDim>::operator[](typename GeomVector<nDim>::size_type index) {
+  REQUIRE(index < nDim);
+  return *(begin() + index);
+}
+
+//------------------------------------------------------------------------------
 // Return the x (first) element.
 //------------------------------------------------------------------------------
 template<int nDim>

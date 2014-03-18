@@ -1,0 +1,20 @@
+# -----------------------------------------------------------------
+# opensubdiv -- a collection of math & science oriented python extensions.
+# -----------------------------------------------------------------
+AC_DEFUN([SETUP_OPENSUBDIV],[
+AC_SUBST(OPENSUBDIVTARGETS)
+
+AC_MSG_CHECKING(for --with-opensubdiv)
+AC_ARG_WITH(opensubdiv,
+[  --with-opensubdiv ........................ build the opensubdiv python package],
+[
+    AC_MSG_RESULT(no)
+    OPENSUBDIVTARGETS=""
+],
+[
+    AC_MSG_RESULT(yes)
+    OPENSUBDIVTARGETS=".OpenSubdiv-master.date"
+])
+
+])
+

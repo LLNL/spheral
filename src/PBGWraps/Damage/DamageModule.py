@@ -194,6 +194,7 @@ class Damage:
                            param("double", "crackGrowthMultiplier"),
                            param("EffectiveFlawAlgorithm", "flawAlgorithm"),
                            param("double", "criticalDamageThreshold"),
+                           param("bool", "damageInCompression"),
                            refparam(vectordoublefield, "flaws")])
 
         # Physics interface.
@@ -241,6 +242,7 @@ class Damage:
         x.add_instance_attribute("strainAlgorithm", "TensorStrainAlgorithm", getter="strainAlgorithm", is_const=True)
         x.add_instance_attribute("effectiveDamageAlgorithm", "EffectiveDamageAlgorithm", getter="effectiveDamageAlgorithm", is_const=True)
         x.add_instance_attribute("useDamageGradient", "bool", getter="useDamageGradient", setter="useDamageGradient")
+        x.add_instance_attribute("damageInCompression", "bool", getter="damageInCompression", setter="damageInCompression")
         x.add_instance_attribute("criticalDamageThreshold", "double", getter="criticalDamageThreshold", setter="criticalDamageThreshold")
 
         return
@@ -273,7 +275,7 @@ class Damage:
                             param("double", "kWeibull"),
                             param("double", "mWeibull"),
                             constrefparam(fluidnodelist, "nodeList"),
-                            param("int", "numFlawsPerNode"),
+                            param("int", "minFlawsPerNode"),
                             param("double", "volumeMultiplier", default_value="1.0")],
                            template_parameters = [dim],
                            custom_name = "weibullFlawDistributionOwen%id" % ndim)

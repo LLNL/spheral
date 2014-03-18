@@ -64,6 +64,7 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                   const double crackGrowthMultiplier,
                   const EffectiveFlawAlgorithm flawAlgorithm,
                   const double criticalDamageThreshold,
+                  const bool damageInCompression,
                   const FlawStorageType& flaws):
   DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, flawAlgorithm, flaws),
   mStrain(SolidFieldNames::strainTensor, nodeList),
@@ -74,7 +75,8 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
   mStrainAlgorithm(strainAlgorithm),
   mEffDamageAlgorithm(effDamageAlgorithm),
   mCriticalDamageThreshold(criticalDamageThreshold),
-  mUseDamageGradient(useDamageGradient) {
+  mUseDamageGradient(useDamageGradient),
+  mDamageInCompression(damageInCompression) {
 }
 
 //------------------------------------------------------------------------------

@@ -237,6 +237,7 @@ def dumpPhysicsState(stateThingy,
                      fieldLists = None,
                      currentTime = None,
                      currentCycle = None,
+                     dumpGhosts = False,
                      dumpDerivatives = False,
                      boundaries = None):
 
@@ -306,12 +307,12 @@ def dumpPhysicsState(stateThingy,
         fieldLists.append(hmax)
         fieldLists.append(hminhmax)
 
-        # We also like to dump the moments of the local point distribution.
-        zerothMoment = eval("ScalarFieldList%id(FieldListBase.Copy)" % dataBase.nDim)
-        firstMoment = eval("VectorFieldList%id(FieldListBase.Copy)" % dataBase.nDim)
-        W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
-        zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
-        fieldLists += [zerothMoment, firstMoment]
+        # # We also like to dump the moments of the local point distribution.
+        # zerothMoment = eval("ScalarFieldList%id(Copy)" % dataBase.nDim)
+        # firstMoment = eval("VectorFieldList%id(Copy)" % dataBase.nDim)
+        # W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
+        # zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
+        # fieldLists += [zerothMoment, firstMoment]
 
     # Add a domain decomposition tag (if we're parallel).
     try:

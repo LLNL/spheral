@@ -84,6 +84,25 @@ useDamageGradient(const bool x) {
 }
 
 //------------------------------------------------------------------------------
+// Flag to determine if damage in compression is allowed.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+TensorDamageModel<Dimension>::
+damageInCompression() const {
+  return mDamageInCompression;
+}
+
+template<typename Dimension>
+inline
+void
+TensorDamageModel<Dimension>::
+damageInCompression(const bool x) {
+  mDamageInCompression = x;
+}
+
+//------------------------------------------------------------------------------
 // Threshold for the damage beyond which a node no longer votes on the time
 // step.
 //------------------------------------------------------------------------------

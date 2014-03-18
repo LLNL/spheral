@@ -11,7 +11,7 @@
 //                internal data types in accordance with suggestions from
 //                Brian White
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GeomVector_defalt_hh__
+#ifndef __Spheral_GeomVector_default_hh__
 #define __Spheral_GeomVector_default_hh__
 
 #include <iostream>

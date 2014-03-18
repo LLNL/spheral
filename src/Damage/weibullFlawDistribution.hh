@@ -49,7 +49,7 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double kWeibull,
                             const double mWeibull,
                             const NodeSpace::FluidNodeList<Dimension>& nodeList,
-                            const int numFlawsPerNode,
+                            const int minFlawsPerNode,
                             const double volumeMultiplier = 1.0);
 
 }
