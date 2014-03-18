@@ -34,6 +34,7 @@ public:
   virtual
   SymTensor
   smoothingScaleDerivative(const SymTensor& H,
+                           const Vector& pos,
                            const Tensor& DvDx,
                            const Scalar hmin,
                            const Scalar hmax,
@@ -45,6 +46,7 @@ public:
   virtual
   SymTensor
   newSmoothingScale(const SymTensor& H,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
                     const int numNeighbors,
@@ -59,6 +61,7 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
                       const int numNeighbors,
@@ -84,6 +87,7 @@ public:
 template<> 
 Dim<1>::SymTensor
 ASPHSmoothingScale<Dim<1> >::smoothingScaleDerivative(const Dim<1>::SymTensor&, 
+                                                      const Dim<1>::Vector& pos,
                                                       const Dim<1>::Tensor&,
                                                       const Dim<1>::Scalar hmin,
                                                       const Dim<1>::Scalar hmax,
@@ -93,6 +97,7 @@ ASPHSmoothingScale<Dim<1> >::smoothingScaleDerivative(const Dim<1>::SymTensor&,
 template<>
 Dim<2>::SymTensor
 ASPHSmoothingScale<Dim<2> >::smoothingScaleDerivative(const Dim<2>::SymTensor&, 
+                                                      const Dim<2>::Vector& pos,
                                                       const Dim<2>::Tensor&,
                                                       const Dim<2>::Scalar hmin,
                                                       const Dim<2>::Scalar hmax,
@@ -102,6 +107,7 @@ ASPHSmoothingScale<Dim<2> >::smoothingScaleDerivative(const Dim<2>::SymTensor&,
 template<>
 Dim<3>::SymTensor
 ASPHSmoothingScale<Dim<3> >::smoothingScaleDerivative(const Dim<3>::SymTensor&, 
+                                                      const Dim<3>::Vector& pos,
                                                       const Dim<3>::Tensor&,
                                                       const Dim<3>::Scalar hmin,
                                                       const Dim<3>::Scalar hmax,

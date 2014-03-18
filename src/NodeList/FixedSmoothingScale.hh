@@ -33,6 +33,7 @@ public:
   virtual
   SymTensor
   smoothingScaleDerivative(const SymTensor& H,
+                           const Vector& pos,
                            const Tensor& DvDx,
                            const Scalar hmin,
                            const Scalar hmax,
@@ -44,6 +45,7 @@ public:
   virtual
   SymTensor
   newSmoothingScale(const SymTensor& H,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
                     const int numNeighbors,
@@ -58,6 +60,7 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
                       const int numNeighbors,

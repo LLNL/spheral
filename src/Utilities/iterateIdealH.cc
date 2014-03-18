@@ -201,6 +201,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           // Finish the moments and measure the new H.
           zerothMoment = Dimension::rootnu(zerothMoment);
           H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(Hi,
+                                                                    ri,
                                                                     zerothMoment,
                                                                     secondMoment,
                                                                     numNeighbors,

@@ -4,6 +4,7 @@
 //------------------------------------------------------------------------------
 #include <set>
 #include <algorithm>
+#include <limits>
 #include "boost/unordered_map.hpp"
 
 #include "weibullFlawDistribution.hh"
@@ -90,9 +91,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
         CHECK(rho(i) > 0.0);
         volume += mass(i)/rho(i);
       }
-#ifdef USE_MPI
       volume = allReduce(volume, MPI_SUM, Communicator::communicator());
-#endif
     }
     volume = std::max(volume, 1e-100);
     CHECK(volume > 0.0);
@@ -142,47 +141,35 @@ weibullFlawDistributionBenzAsphaug(double volume,
     }
 
     // Sort the flaws on each node by energy.
-    size_t minNumFlaws = INT_MAX;
-    size_t maxNumFlaws = 0;
-    size_t totalNumFlaws = 0;
+    unsigned minNumFlaws = INT_MAX;
+    unsigned maxNumFlaws = 0;
+    unsigned totalNumFlaws = 0;
     double epsMax = 0.0;
     double sumFlaws = 0.0;
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
       sort(flaws(i).begin(), flaws(i).end());
-      minNumFlaws = min(minNumFlaws, flaws(i).size());
-      maxNumFlaws = max(maxNumFlaws, flaws(i).size());
+      minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
+      maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
       epsMax = max(epsMax, flaws(i).back());
       for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
     }
 
     // Prepare some diagnostic output.
-    {
-#ifdef USE_MPI
-      {
-        size_t minNumFlaws0 = minNumFlaws;
-        size_t maxNumFlaws0 = maxNumFlaws;
-        size_t totalNumFlaws0 = totalNumFlaws;
-        double epsMax0 = epsMax;
-        double sumFlaws0 = sumFlaws;
-        MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, Communicator::communicator());
-        MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, Communicator::communicator());
-        MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, Communicator::communicator());
-        MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
-        MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
-      }
-#endif
-      if (procID == 0) {
-        cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
-             << "                                    Max num flaws per node: " << maxNumFlaws << endl
-             << "                                    Total num flaws       : " << totalNumFlaws << endl
-             << "                                    Avg flaws per node    : " << totalNumFlaws / n << endl
-             << "                                    Min flaw strain       : " << epsMin << endl
-             << "                                    Max flaw strain       : " << epsMax << endl
-             << "                                    Avg node failure      : " << sumFlaws / n << endl;
-      }
+    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
+    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
+    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
+    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
+    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+    if (procID == 0) {
+      cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
+           << "                                    Max num flaws per node: " << maxNumFlaws << endl
+           << "                                    Total num flaws       : " << totalNumFlaws << endl
+           << "                                    Avg flaws per node    : " << totalNumFlaws / n << endl
+           << "                                    Min flaw strain       : " << epsMin << endl
+           << "                                    Max flaw strain       : " << epsMax << endl
+           << "                                    Avg node failure      : " << sumFlaws / n << endl;
     }
-
   }
 
   // That's it.
@@ -210,13 +197,13 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double kWeibull,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
-                            const int numFlawsPerNode,
+                            const int minFlawsPerNode,
                             const double volumeMultiplier) {
 
   // Pre-conditions.
   REQUIRE(kWeibull >= 0.0);
   REQUIRE(mWeibull > 0.0);
-  REQUIRE(numFlawsPerNode > 0);
+  REQUIRE(minFlawsPerNode > 0);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -254,6 +241,26 @@ weibullFlawDistributionOwen(const unsigned seed,
   base_generator_type basegen(seed);
   boost::uniform_01<base_generator_type> generator(basegen);
 
+  // Find the minimum and maximum node volumes.
+  double Vmin = std::numeric_limits<double>::max(), 
+         Vmax = std::numeric_limits<double>::min();
+  for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
+    const double Vi = mass(i)/rho(i);
+    Vmin = min(Vmin, Vi);
+    Vmax = max(Vmax, Vi);
+  }
+  Vmin = allReduce(Vmin*volumeMultiplier, MPI_MIN, Communicator::communicator());
+  Vmax = allReduce(Vmax*volumeMultiplier, MPI_MAX, Communicator::communicator());
+  CHECK(Vmin > 0.0);
+  CHECK(Vmax >= Vmin);
+
+  // Compute the maximum strain we expect for the minimum volume.
+  const double epsMax2m = minFlawsPerNode/(kWeibull*Vmin);  // epsmax ** m
+
+  // Based on this compute the maximum number of flaws any node will have.  We'll use this to
+  // spin the random number generator without extra communiction.
+  const int maxFlawsPerNode = std::max(1, int(kWeibull*Vmax*epsMax2m + 0.5));
+
   // Iterate over the nodes.
   const double mInv = 1.0/mWeibull;
   for (int iorder = 0; iorder != n + 1; ++iorder) {
@@ -268,38 +275,38 @@ weibullFlawDistributionOwen(const unsigned seed,
       CHECK(rho(i) > 0.0);
       const double Vi = mass(i)/rho(i) * volumeMultiplier;
       CHECK(Vi > 0.0);
-      const double epsmaxi = pow(kWeibull*Vi, -mInv);
-      CHECK(epsmaxi > 0.0);
-      const double Bi = pow(epsmaxi, mWeibull);
-      CHECK(Bi > 0.0);
+      const int numFlawsi = std::max(1, std::min(maxFlawsPerNode, int(kWeibull*Vi*epsMax2m + 0.5)));
+      const double Ai = numFlawsi/(kWeibull*Vi);
+      CHECK(Ai > 0.0);
 
       // Seed flaws on the node.
-      for (int j = 0; j != numFlawsPerNode; ++j) {
-        flaws(i).push_back(pow(Bi * generator(), mInv));
-        CHECK(flaws(i).back() >= 0.0 and flaws(i).back() <= epsmaxi);
+      for (int j = 0; j != numFlawsi; ++j) {
+        flaws(i).push_back(pow(Ai * generator(), mInv));
       }
-      CHECK(flaws(i).size() == numFlawsPerNode);
+
+      // Spin the random number generator to keep in sync with other processors.
+      for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
 
     } else {
+
       // Other domains just cycle the random number generator so that
       // we can be domain decomposition independent.
-      for (int j = 0; j != numFlawsPerNode; ++j) {
-        double tmp = generator();
-      }
+      for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
+
     }
   }
 
   // Sort the flaws on each node by energy.
-  size_t minNumFlaws = std::numeric_limits<int>::max();
-  size_t maxNumFlaws = 0;
-  size_t totalNumFlaws = 0;
+  unsigned minNumFlaws = std::numeric_limits<int>::max();
+  unsigned maxNumFlaws = 0;
+  unsigned totalNumFlaws = 0;
   double epsMin = std::numeric_limits<double>::max();
   double epsMax = std::numeric_limits<double>::min();
   double sumFlaws = 0.0;
   for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
     sort(flaws(i).begin(), flaws(i).end());
-    minNumFlaws = min(minNumFlaws, flaws(i).size());
-    maxNumFlaws = max(maxNumFlaws, flaws(i).size());
+    minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
+    maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
     totalNumFlaws += flaws(i).size();
     epsMin = min(epsMin, flaws(i).front());
     epsMax = max(epsMax, flaws(i).back());
@@ -308,38 +315,27 @@ weibullFlawDistributionOwen(const unsigned seed,
 
   // Prepare some diagnostic output.
   if (n > 0) {
-#ifdef USE_MPI
-    {
-      size_t minNumFlaws0 = minNumFlaws;
-      size_t maxNumFlaws0 = maxNumFlaws;
-      size_t totalNumFlaws0 = totalNumFlaws;
-      double epsMin0 = epsMin;
-      double epsMax0 = epsMax;
-      double sumFlaws0 = sumFlaws;
-      MPI_Allreduce(&minNumFlaws0, &minNumFlaws, 1, MPI_UNSIGNED, MPI_MIN, Communicator::communicator());
-      MPI_Allreduce(&maxNumFlaws0, &maxNumFlaws, 1, MPI_UNSIGNED, MPI_MAX, Communicator::communicator());
-      MPI_Allreduce(&totalNumFlaws0, &totalNumFlaws, 1, MPI_UNSIGNED, MPI_SUM, Communicator::communicator());
-      MPI_Allreduce(&epsMin0, &epsMin, 1, MPI_DOUBLE, MPI_MIN, Communicator::communicator());
-      MPI_Allreduce(&epsMax0, &epsMax, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
-      MPI_Allreduce(&sumFlaws0, &sumFlaws, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
-    }
-#endif
-    if (procID == 0) {
-      cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
-           << "                             Max num flaws per node: " << maxNumFlaws << endl
-           << "                             Total num flaws       : " << totalNumFlaws << endl
-           << "                             Avg flaws per node    : " << totalNumFlaws / n << endl
-           << "                             Min flaw strain       : " << epsMin << endl
-           << "                             Max flaw strain       : " << epsMax << endl
-           << "                             Avg node failure      : " << sumFlaws / n << endl;
-    }
+    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
+    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
+    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
+    epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
+    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
+    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+  }
+  if (procID == 0) {
+    cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
+         << "                             Max num flaws per node: " << maxNumFlaws << endl
+         << "                             Total num flaws       : " << totalNumFlaws << endl
+         << "                             Avg flaws per node    : " << totalNumFlaws / n << endl
+         << "                             Min flaw strain       : " << epsMin << endl
+         << "                             Max flaw strain       : " << epsMax << endl
+         << "                             Avg node failure      : " << sumFlaws / n << endl;
   }
 
   // That's it.
   BEGIN_CONTRACT_SCOPE;
   {
     for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
-      ENSURE(flaws(i).size() == numFlawsPerNode);
       for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
            itr != flaws(i).end();
            ++itr) ENSURE(*itr >= *(itr - 1));

@@ -37,6 +37,32 @@ using SolidMaterial::SolidNodeList;
 using PhysicsSpace::TensorDamageModel;
 using Material::EquationOfState;
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Force all eigen values positive.
+//------------------------------------------------------------------------------
+inline
+void
+abs_in_place(Dim<1>::Vector& vec) {
+  vec[0] = std::abs(vec[0]);
+}
+
+inline
+void
+abs_in_place(Dim<2>::Vector& vec) {
+  vec[0] = std::abs(vec[0]);
+  vec[1] = std::abs(vec[1]);
+}
+
+inline
+void
+abs_in_place(Dim<3>::Vector& vec) {
+  vec[0] = std::abs(vec[0]);
+  vec[1] = std::abs(vec[1]);
+  vec[2] = std::abs(vec[2]);
+}
+
 //------------------------------------------------------------------------------
 // Sort the eigen values (& associated eigen vectors) in decreasing order.
 //------------------------------------------------------------------------------
@@ -119,6 +145,8 @@ effectiveRotation(const Dim<3>::Tensor& DvDx) {
                          0.0, -sin(theta.z()), cos(theta.z())));
 }
 
+}
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -182,6 +210,8 @@ update(const KeyType& key,
   const Field<Dimension, Scalar>& DDDt = derivs.field(DdamageDtKey, 0.0);
   const Field<Dimension, Tensor>& localDvDx = derivs.field(DvDxKey, Tensor::zero);
 
+  const bool damageInCompression = mDamageModelPtr->damageInCompression();
+
   // Iterate over the internal nodes.
   for (int i = 0; i != stateField.numInternalElements(); ++i) {
 
@@ -214,6 +244,9 @@ update(const KeyType& key,
 //       CHECK(fDi >= 0.0 and fDi <= 1.0);
 //       eigeni.eigenValues *= fDi/(fDi*fDi + 1.0e-10);
     
+      // If we're allowing damage in compression, force all strains to be abs value.
+      if (damageInCompression) abs_in_place(eigeni.eigenValues);
+
       // We want to go over these from max to min.
       sortEigen(eigeni);
 

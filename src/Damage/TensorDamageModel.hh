@@ -85,6 +85,7 @@ public:
                     const double crackGrowthMultiplier,
                     const EffectiveFlawAlgorithm flawAlgorithm,
                     const double criticalDamageThreshold,
+                    const bool damageInCompression,
                     const FlawStorageType& flaws);
   virtual ~TensorDamageModel();
 
@@ -128,7 +129,7 @@ public:
   const FieldSpace::Field<Dimension, SymTensor>& newEffectiveDamage() const;
   const FieldSpace::Field<Dimension, Vector>& newDamageGradient() const;
 
-  // The algorihms being used to update the strain and effective damage.
+  // The algorithms being used to update the strain and effective damage.
   TensorStrainAlgorithm strainAlgorithm() const;
   EffectiveDamageAlgorithm effectiveDamageAlgorithm() const;
 
@@ -136,6 +137,10 @@ public:
   // of a timestep.
   bool useDamageGradient() const;
   void useDamageGradient(const bool x);
+
+  // Flag to determine if damage in compression is allowed.
+  bool damageInCompression() const;
+  void damageInCompression(const bool x);
 
   // The critical damage threshold for not setting the time step.
   double criticalDamageThreshold() const; 
@@ -163,7 +168,7 @@ private:
   TensorStrainAlgorithm mStrainAlgorithm;
   EffectiveDamageAlgorithm mEffDamageAlgorithm;
   double mCriticalDamageThreshold;
-  bool mUseDamageGradient;
+  bool mUseDamageGradient, mDamageInCompression;
 
   // No default constructor, copying or assignment.
   TensorDamageModel();
