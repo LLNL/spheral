@@ -115,6 +115,11 @@ SETUP_MATPLOTLIB
 SETUP_SCIPY
 
 # -------------------------------------------------
+# setup opensubdiv (m4macros/opensubdiv.m4)
+# -------------------------------------------------
+SETUP_OPENSUBDIV
+
+# -------------------------------------------------
 # setup ANEOS (m4macros/aneos.m4)
 # -------------------------------------------------
 SETUP_ANEOS
