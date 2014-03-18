@@ -1480,9 +1480,11 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
 	rm -fr $(OPENSUBDIVDIR)
 	$(UNZIP) $(OPENSUBDIVDIST)
+	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt OpenSubdiv-master-CMakeLists_txt.patch
+	$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt OpenSubdiv-master-opensubdiv-osd-CMakeLists_txt.patch
 	$(MKDIR) $(OPENSUBDIVDIR)/build
 	$(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
-	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(SPHERALDIR) -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 .. ; \
+	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(SPHERALDIR) -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_GPU=1 .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libosdCPU.a -a \
