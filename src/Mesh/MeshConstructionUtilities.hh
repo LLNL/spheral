@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <vector>
+#include <set>
 #include "boost/tuple/tuple.hpp"
 #include "boost/functional/hash.hpp"
 

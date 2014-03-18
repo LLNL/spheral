@@ -22,6 +22,14 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
+# See if we can import the polytope bindings.
+# ------------------------------------------------------------------------------
+try:
+    from PolytopeModules import PolytopeModules as polytope
+except:
+    print "WARNING: unable to import polytope python bindings."
+
+# ------------------------------------------------------------------------------
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralModules import *

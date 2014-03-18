@@ -247,7 +247,6 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     writeDefvars(db, fieldwad)
 
     # Write the field components.
-    centering = silo._DB_ZONECENT
     varOpts = silo.DBoptlist(1024)
     assert varOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
     assert varOpts.addOption(silo._DBOPT_DTIME, time) == 0
