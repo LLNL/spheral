@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_OPENSUBDIV],[
 AC_SUBST(OPENSUBDIVTARGETS)
+AC_SUBST(OPENSUBDIVLIBS)
 
 AC_MSG_CHECKING(for --with-opensubdiv)
 AC_ARG_WITH(opensubdiv,
@@ -10,10 +11,12 @@ AC_ARG_WITH(opensubdiv,
 [
     AC_MSG_RESULT(no)
     OPENSUBDIVTARGETS=""
+    OPENSUBDIVLIBS=""
 ],
 [
     AC_MSG_RESULT(yes)
     OPENSUBDIVTARGETS=".OpenSubdiv-master.date"
+    OPENSUBDIVLIBS="-losdCPU -losdutil"
 ])
 
 ])
