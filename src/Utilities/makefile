@@ -27,7 +27,8 @@ SRCTARGETS = \
 	pointOnPolygon.cc \
 	pointInPolygon.cc \
 	pointOnPolyhedron.cc \
-	pointInPolyhedron.cc
+	pointInPolyhedron.cc \
+	refinePolyhedron.cc
 
 PYTHONTARGETS = \
 	fitspline.py
@@ -36,6 +37,8 @@ LINKLIST = linklist
 PYFFLELIST = pyfflelist
 SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
+
+EXTRALIBS = $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)
 
 #EXTRAFLAGS = 
 #EXTRALIBS = $(PAPILIBS) 
