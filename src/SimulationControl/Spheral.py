@@ -22,14 +22,6 @@ except:
     pass
 
 # ------------------------------------------------------------------------------
-# See if we can import the polytope bindings.
-# ------------------------------------------------------------------------------
-try:
-    from PolytopeModules import PolytopeModules as polytope
-except:
-    print "WARNING: unable to import polytope python bindings."
-
-# ------------------------------------------------------------------------------
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralModules import *
@@ -112,3 +104,12 @@ from SpheralController import *
 # Import the command line interpreter.
 # ------------------------------------------------------------------------------
 from SpheralOptionParser import commandLine
+
+# ------------------------------------------------------------------------------
+# See if we can import the polytope bindings.
+# ------------------------------------------------------------------------------
+try:
+    from PolytopeModules import polytope
+except:
+    print "WARNING: unable to import polytope python bindings."
+

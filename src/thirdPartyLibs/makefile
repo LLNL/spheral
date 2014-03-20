@@ -1459,12 +1459,14 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
 	@if ! test -e $(SPHERALDIR)/lib/libpolytope.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_2d.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_3d.a -a \
+                   -e $(SPHERALDIR)/lib/PolytopeModules.$(DYLIBEXT) -a \
 	           -e $(SPHERALDIR)/include/polytope/polytope.hh; then \
 	echo "ERROR building Polytope."; \
 	rm -f $(POLYTOPEBUILDDATE); \
 	exit 1; \
 	fi
 	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR) $(TETGENDIR)
+	ln -f -s $(SPHERALDIR)/lib/PolytopeModules.$(DYLIBEXT) $(LIBDIR)/PolytopeModules.$(DYLIBEXT)
 	touch $(POLYTOPEBUILDDATE)
 
 #-------------------------------------------------------------------------------
