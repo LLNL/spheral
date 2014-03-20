@@ -63,19 +63,19 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   }
     
   // Initialize the OSD topology.
-  PxOsdUtilSubdivTopology topology;
+  PxOsdUtilSubdivTopology topology0;
   bool ok;
   std::string errorMessage;
-  ok = topology.Initialize(numVertices0, 
-                           &numVertsPerFace0[0], numVertsPerFace0.size(),
-                           &faceVertices0[0], faceVertices0.size(),
-                           numLevels,
-                           &errorMessage);
+  ok = topology0.Initialize(numVertices0, 
+                            &numVertsPerFace0[0], numVertsPerFace0.size(),
+                            &faceVertices0[0], faceVertices0.size(),
+                            numLevels,
+                            &errorMessage);
   VERIFY2(ok, errorMessage);
 
   // Create a uniform refinement thingus.
   PxOsdUtilUniformEvaluator uniformEvaluator;
-  ok = uniformEvaluator.Initialize(topology, &errorMessage);
+  ok = uniformEvaluator.Initialize(topology0, &errorMessage);
   VERIFY2(ok, errorMessage);
 
   // Give the evaluator the intial vertex positions to start with.
@@ -90,6 +90,11 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   const float *positions1 = NULL;
   ok = uniformEvaluator.GetRefinedTopology(&topology1, &positions1, &errorMessage);
   VERIFY2(ok, errorMessage);
+
+  // // BLAGO!
+  // topology0.WriteObjFile("topology0.obj", &positions0[0], &errorMessage);
+  // topology1.WriteObjFile("topology1.obj", positions1, &errorMessage);
+  // // BLAGO!
 
   // Construct our new polyhedron.
   const int numVertices1 = topology1.numVertices,
