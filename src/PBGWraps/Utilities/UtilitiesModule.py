@@ -261,6 +261,10 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam("Vector3d", "normal")],
                              docstring = "Test if the given 3-D point p is in a polygon.")
 
+        Spheral.add_function("refinePolyhedron", "Polyhedron", 
+                             [constrefparam("Polyhedron", "poly0"), param("int", "numLevels")],
+                             docstring = "Return a new Polyhedron based on refining an existing one a given number of levels.")
+
         # Boost.math functions.
         Spheral.add_function("legendre_p", "double", 
                              [param("int", "l"), param("int", "m"), param("double", "x")],
