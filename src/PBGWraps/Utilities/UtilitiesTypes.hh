@@ -25,6 +25,7 @@
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/pointOnPolyhedron.hh"
+#include "Utilities/refinePolyhedron.hh"
 
 typedef std::pair<double, double> pair_double_double;
 using namespace Spheral::FieldSpace;

@@ -8,17 +8,19 @@
 //
 // Created by JMO, Tue Mar 18 15:23:04 PDT 2014
 //----------------------------------------------------------------------------//
-#include "refinePolyhedron.hh"
 
 // We base this on Pixar's opensubdiv package.
+#ifdef HAVE_OPENSUBDIV
 #include "opensubdiv/osdutil/adaptiveEvaluator.h"
 #include "opensubdiv/osdutil/uniformEvaluator.h"
 #include "opensubdiv/osdutil/topology.h"
 #include "opensubdiv/osd/error.h"
+#endif
 
 #include <vector>
 #include <algorithm>
 
+#include "refinePolyhedron.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -27,6 +29,12 @@ using namespace std;
 
 GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
                                 const unsigned numLevels) {
+
+#ifndef HAVE_OPENSUBDIV
+  VERIFY2(false, "ERROR: attempt to call refinePolyhedron, but OpenSubdiv has not been compiled into Spheral.");
+  return GeomPolyhedron();
+
+#else
 
   typedef Dim<3>::Vector Vector;
   typedef GeomPolyhedron::Facet Facet;
@@ -40,7 +48,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   {
     const vector<Vector>& verts0 = poly0.vertices();
     const vector<Facet>& facets0 = poly0.facets();
-    for (unsigned i = 0; numVertices0; ++i) {
+    for (unsigned i = 0; i != numVertices0; ++i) {
       positions0[3*i  ] = verts0[i].x();
       positions0[3*i+1] = verts0[i].y();
       positions0[3*i+2] = verts0[i].z();
@@ -83,7 +91,30 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   ok = uniformEvaluator.GetRefinedTopology(&topology1, &positions1, &errorMessage);
   VERIFY2(ok, errorMessage);
 
-  const int numVertices1 = topology1.numVertices;
+  // Construct our new polyhedron.
+  const int numVertices1 = topology1.numVertices,
+            numFacets1 = topology1.nverts.size();
+  vector<Vector> vertices1;
+  vertices1.reserve(numVertices1);
+  for (unsigned i = 0; i != numVertices1; ++i) {
+    vertices1.push_back(Vector(positions1[3*i],
+                               positions1[3*i+1],
+                               positions1[3*i+2]));
+  }
+  CHECK(vertices1.size() == numVertices1);
+  vector<vector<unsigned> > facets1(numFacets1);
+  unsigned k = 0;
+  for (unsigned i = 0; i != numFacets1; ++i) {
+    const unsigned nvf = topology1.nverts[i];
+    for (unsigned j = 0; j != nvf; ++j) {
+      facets1[i].push_back(topology1.indices[k++]);
+    }
+  }
+  GeomPolyhedron poly1(vertices1, facets1);
+
+  // That's it.
+  return poly1;
+#endif
 }
 
 }
