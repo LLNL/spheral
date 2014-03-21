@@ -1434,7 +1434,7 @@ $(TETGENDIST):
 $(POLYTOPEDIST):
 	$(CURL) "$(POLYTOPEURL)" > $(POLYTOPEDIST)
 
-$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE)
+$(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) $(PYTHONBUILDDATE) $(PYBINDGENBUILDDATE)
 	@echo "################################################################################"
 	@echo "# Building $(POLYTOPEDIST)"
 	@echo "################################################################################"
