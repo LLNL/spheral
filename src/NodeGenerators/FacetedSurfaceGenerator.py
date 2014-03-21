@@ -6,6 +6,7 @@ import mpi
 from math import *
 from numpy.polynomial import Polynomial as P
 from NodeGeneratorBase import NodeGeneratorBase
+from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
     rotationMatrix
@@ -118,38 +119,6 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         return self.H[i]
 
 #-------------------------------------------------------------------------------
-# Read a VF (vertex-facet labeled) shape file to create the polyhedral surface.
-# This is the format used by the NASA radar asteroid shape models:
-#  http://echo.jpl.nasa.gov/asteroids/shapes/shapes.html
-#-------------------------------------------------------------------------------
-def VFSurfacePolyhedron(filename,
-                        scaleFactor = 1.0):
-    surface = None
-    if mpi.rank == 0:
-        f = open(filename, "r")
-        verts = vector_of_Vector()
-        facets = vector_of_vector_of_unsigned()
-        for line in f:
-            stuff = line.split()
-            assert stuff[0] in ("v", "f")
-            if stuff[0] == "v":
-                assert len(stuff) == 4
-                verts.append(Vector(float(stuff[1]), float(stuff[2]), float(stuff[3]))*scaleFactor)
-            else:
-                assert len(stuff) >= 4
-                facets.append(vector_of_unsigned())
-                for x in stuff[1:]:
-                    facets[-1].append(int(x) - 1)
-        f.close()
-        nverts = len(verts)
-        for i in xrange(len(facets)):
-            for j in xrange(len(facets[i])):
-                assert facets[i][j] < nverts
-        surface = Polyhedron(verts, facets)
-    surface = mpi.bcast(surface)
-    return surface
-
-#-------------------------------------------------------------------------------
 # Create a FacetedSurfaceGenerator based on a polyhedron in VF format in a file.
 #-------------------------------------------------------------------------------
 def VFSurfaceGenerator(filename,
@@ -163,7 +132,17 @@ def VFSurfaceGenerator(filename,
                        nNodePerh = 2.01,
                        SPH = False,
                        scaleFactor = 1.0):
-    surface = VFSurfacePolyhedron(filename, scaleFactor)
+    surface = None
+    if mpi.rank == 0:
+        surface = readPolyhedronOBJ(filename)
+        if scaleFactor != 1.0:
+            verts = surface.vertices()
+            facets = surface.facetsVertices()
+            newverts = vector_of_Vector(verts.size())
+            for i in xrange(verts.size()):
+                newverts[i] *= scaleFactor
+            surface = Polyhedron(newverts, facets)
+    surface = mpi.bcast(surface, 0)
     return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
                                       nNodePerh, SPH)
 

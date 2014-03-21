@@ -31,7 +31,8 @@ PYTHONTARGETS = \
 	AverageStrain.py \
 	SpheralHadesDump.py \
 	siloPointmeshDump.py \
-	SpheralPointmeshSiloDump.py
+	SpheralPointmeshSiloDump.py \
+	PolyhedronFileUtilities.py
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
