@@ -701,7 +701,7 @@ class Geometry:
                                  template_parameters = [me, "vector_of_Facet2d", "&%s::facets" % me],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "facets")
-        x.add_method("closestFacet", "Facet2d", [constrefparam("Vector2d", "point")], is_const=True)
+        x.add_method("closestFacet", "unsigned int", [constrefparam("Vector2d", "point")], is_const=True)
         x.add_method("distance", "double", [constrefparam("Vector2d", "point")], is_const=True)
         x.add_method("closestPoint", "Vector2d", [constrefparam("Vector2d", "point")], is_const=True)
         x.add_method("reconstruct", None, [constrefparam("vector_of_Vector2d", "vertices"),
@@ -761,7 +761,7 @@ class Geometry:
                                  template_parameters = [me, "vector_of_Facet3d", "&%s::facets" % me],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "facets")
-        x.add_method("closestFacet", "Facet3d", [constrefparam("Vector3d", "point")], is_const=True)
+        x.add_method("closestFacet", "unsigned int", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("distance", "double", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("closestPoint", "Vector3d", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("reconstruct", None, [constrefparam("vector_of_Vector3d", "vertices"),

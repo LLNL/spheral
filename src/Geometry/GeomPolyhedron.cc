@@ -594,7 +594,7 @@ volume() const {
 //------------------------------------------------------------------------------
 // Find the facet closest to the given point.
 //------------------------------------------------------------------------------
-const GeomPolyhedron::Facet&
+unsigned
 GeomPolyhedron::
 closestFacet(const GeomPolyhedron::Vector& p) const {
   unsigned result = 0;
@@ -609,7 +609,7 @@ closestFacet(const GeomPolyhedron::Vector& p) const {
     }
   }
   ENSURE(result < mFacets.size());
-  return mFacets[result];
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -627,7 +627,7 @@ distance(const GeomPolyhedron::Vector& p) const {
 GeomPolyhedron::Vector
 GeomPolyhedron::
 closestPoint(const GeomPolyhedron::Vector& p) const {
-  const Facet& f = this->closestFacet(p);
+  const Facet& f = mFacets[this->closestFacet(p)];
   return f.closestPoint(p);
 }
 

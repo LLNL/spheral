@@ -83,7 +83,7 @@ public:
   double volume() const;
 
   // Find the facet closest to the given point.
-  const Facet& closestFacet(const Vector& p) const;
+  unsigned closestFacet(const Vector& p) const;
 
   // Compute the minimum distance to a point.
   double distance(const Vector& p) const;
