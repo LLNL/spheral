@@ -131,16 +131,19 @@ def VFSurfaceGenerator(filename,
                        xmax = None,
                        nNodePerh = 2.01,
                        SPH = False,
-                       scaleFactor = 1.0):
+                       scaleFactor = 1.0,
+                       refineFactor = 0):
     surface = None
     if mpi.rank == 0:
         surface = readPolyhedronOBJ(filename)
+        if refineFactor != 0:
+            surface = refinePolyhedron(surface, refineFactor)
         if scaleFactor != 1.0:
             verts = surface.vertices()
-            facets = surface.facetsVertices()
+            facets = surface.facetVertices
             newverts = vector_of_Vector(verts.size())
             for i in xrange(verts.size()):
-                newverts[i] *= scaleFactor
+                newverts[i] = verts[i] * scaleFactor
             surface = Polyhedron(newverts, facets)
     surface = mpi.bcast(surface, 0)
     return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
