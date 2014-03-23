@@ -621,6 +621,7 @@ class Geometry:
         x.add_instance_attribute("point2", "Vector2d", getter="point2", is_const=True)
         x.add_instance_attribute("ipoint1", "unsigned int", getter="ipoint1", is_const=True)
         x.add_instance_attribute("ipoint2", "unsigned int", getter="ipoint2", is_const=True)
+        x.add_instance_attribute("ipoints", "vector_of_unsigned", getter="ipoints", is_const=True)
         x.add_instance_attribute("normal", "Vector2d", getter="normal", is_const=True)
         x.add_instance_attribute("position", "Vector2d", getter="position", is_const=True)
         x.add_instance_attribute("area", "double", getter="area", is_const=True)
@@ -688,7 +689,6 @@ class Geometry:
         x.add_method("intersect", "vector_of_Vector2d", [constrefparam("Vector2d", "x0"),
                                                          constrefparam("Vector2d", "x1")], is_const=True)
         x.add_method("centroid", "Vector2d", [], is_const=True)
-#         x.add_method("vertices", retval("const vector_of_Vector2d&", reference_existing_object=True), [], is_const=True)
         x.add_function_as_method("const_reference_as_pointer",
                                  retval(ptr("vector_of_Vector2d"), reference_existing_object=True),
                                  [param(me, "self")],
@@ -701,6 +701,24 @@ class Geometry:
                                  template_parameters = [me, "vector_of_Facet2d", "&%s::facets" % me],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "facets")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_Vector2d"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_Vector2d", "&%s::vertexUnitNorms" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "vertexUnitNorms")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_vector_of_unsigned"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_vector_of_unsigned", "&%s::vertexFacetConnectivity" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "vertexFacetConnectivity")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_vector_of_unsigned"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_vector_of_unsigned", "&%s::facetFacetConnectivity" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "facetFacetConnectivity")
         x.add_method("closestFacet", "unsigned int", [constrefparam("Vector2d", "point")], is_const=True)
         x.add_method("distance", "double", [constrefparam("Vector2d", "point")], is_const=True)
         x.add_method("closestPoint", "Vector2d", [constrefparam("Vector2d", "point")], is_const=True)
@@ -761,6 +779,24 @@ class Geometry:
                                  template_parameters = [me, "vector_of_Facet3d", "&%s::facets" % me],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "facets")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_Vector3d"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_Vector3d", "&%s::vertexUnitNorms" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "vertexUnitNorms")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_vector_of_unsigned"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_vector_of_unsigned", "&%s::vertexFacetConnectivity" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "vertexFacetConnectivity")
+        x.add_function_as_method("const_reference_as_pointer",
+                                 retval(ptr("vector_of_vector_of_unsigned"), reference_existing_object=True),
+                                 [param(me, "self")],
+                                 template_parameters = [me, "vector_of_vector_of_unsigned", "&%s::facetFacetConnectivity" % me],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "facetFacetConnectivity")
         x.add_method("closestFacet", "unsigned int", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("distance", "double", [constrefparam("Vector3d", "point")], is_const=True)
         x.add_method("closestPoint", "Vector3d", [constrefparam("Vector3d", "point")], is_const=True)

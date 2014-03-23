@@ -16,6 +16,7 @@
 #include "polytope/convexHull_2d.hh"
 
 #include "GeomPolygon.hh"
+#include "FacetedVolumeUtilities.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
@@ -34,6 +35,9 @@ GeomPolygon::
 GeomPolygon():
   mVertices(),
   mFacets(),
+  mVertexUnitNorms(),
+  mVertexFacetConnectivity(),
+  mFacetFacetConnectivity(),
   mXmin(),
   mXmax(),
   mConvex(true) {
@@ -47,6 +51,9 @@ GeomPolygon::
 GeomPolygon(const vector<GeomPolygon::Vector>& points):
   mVertices(),
   mFacets(),
+  mVertexUnitNorms(),
+  mVertexFacetConnectivity(),
+  mFacetFacetConnectivity(),
   mXmin(),
   mXmax(),
   mConvex(true) {
@@ -99,6 +106,9 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     // Fill in our bounding box.
     setBoundingBox();
+
+    // Compute the ancillary geometry.
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE;
@@ -163,6 +173,9 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
 
   // Check if we're convex.
   mConvex = this->convex();
+
+  // Compute the ancillary geometry.
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 }
 
 //------------------------------------------------------------------------------
@@ -172,6 +185,9 @@ GeomPolygon::
 GeomPolygon(const GeomPolygon& rhs):
   mVertices(rhs.mVertices),
   mFacets(),
+  mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mFacetFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
@@ -194,11 +210,12 @@ operator=(const GeomPolygon& rhs) {
     mVertices = rhs.mVertices;
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
-    BOOST_FOREACH(const Facet& facet, rhs.mFacets) {
-         mFacets.push_back(Facet(mVertices,
-                                 facet.ipoint1(),
-                                 facet.ipoint2()));
-    }
+    BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                           facet.ipoint1(),
+                                                                           facet.ipoint2()));
+    mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mVertexUnitNorms = rhs.mVertexUnitNorms;
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
     mConvex = rhs.mConvex;
@@ -463,6 +480,7 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
   ENSURE(mFacets.size() == facetVertices.size());
 }
 

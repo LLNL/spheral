@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // GeomPolyhedron -- Geometric polyhedron class.
 //
-// A 2-D structure representing a polyhedron as a collection of GeomFacets.
+// A 3-D structure representing a polyhedron as a collection of GeomFacets.
 //
 // Created by JMO, Fri Jan 29 14:36:01 PST 2010
 //----------------------------------------------------------------------------//
@@ -13,6 +13,7 @@
 #include "boost/foreach.hpp"
 
 #include "GeomPolyhedron.hh"
+#include "FacetedVolumeUtilities.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/boundingBox.hh"
@@ -36,6 +37,9 @@ GeomPolyhedron::
 GeomPolyhedron():
   mVertices(),
   mFacets(),
+  mVertexUnitNorms(),
+  mVertexFacetConnectivity(),
+  mFacetFacetConnectivity(),
   mXmin(),
   mXmax(),
   mConvex(true) {
@@ -49,6 +53,11 @@ GeomPolyhedron::
 GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mVertices(),
   mFacets(),
+  mVertexUnitNorms(),
+  mVertexFacetConnectivity(),
+  mFacetFacetConnectivity(),
+  mXmin(),
+  mXmax(),
   mConvex(true) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
@@ -182,6 +191,9 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     // Fill in our bounding box.
     setBoundingBox();
 
+    // Compute the ancillary geometry.
+    GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE;
     {
@@ -249,6 +261,9 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 
   // Check if we're convex.
   mConvex = this->convex();
+
+  // Compute the ancillary geometry.
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 }
 
 //------------------------------------------------------------------------------
@@ -258,6 +273,9 @@ GeomPolyhedron::
 GeomPolyhedron(const GeomPolyhedron& rhs):
   mVertices(rhs.mVertices),
   mFacets(),
+  mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mFacetFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
@@ -281,6 +299,9 @@ operator=(const GeomPolyhedron& rhs) {
     BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
                                                                            facet.ipoints(),
                                                                            facet.normal()));
+    mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mFacetFacetConnectivity = rhs.mVertexFacetConnectivity;
+    mVertexUnitNorms = rhs.mVertexUnitNorms;
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
     mConvex = rhs.mConvex;
@@ -573,6 +594,7 @@ reconstruct(const vector<GeomPolyhedron::Vector>& vertices,
   }
   setBoundingBox();
   mConvex = this->convex();
+  GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
   ENSURE(mFacets.size() == numFacets);
 }
 

@@ -51,6 +51,9 @@ public:
   unsigned ipoint1() const;
   unsigned ipoint2() const;
 
+  // We provide the points as a standard vector for compatibility with GeomFacet3d.
+  const std::vector<unsigned>& ipoints() const;
+
   const Vector& normal() const;
   
   Vector position() const;
@@ -70,7 +73,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   const std::vector<Vector>* mVerticesPtr;
-  unsigned mPoint1, mPoint2;
+  std::vector<unsigned> mPoints;
   Vector mNormal;
 };
 
