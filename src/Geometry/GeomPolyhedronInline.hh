@@ -17,6 +17,27 @@ facets() const {
   return mFacets;
 }
 
+inline
+const std::vector<GeomPolyhedron::Vector>&
+GeomPolyhedron::
+vertexUnitNorms() const {
+  return mVertexUnitNorms;
+}
+
+inline
+const std::vector<std::vector<unsigned> >&
+GeomPolyhedron::
+vertexFacetConnectivity() const {
+  return mVertexFacetConnectivity;
+}
+
+inline
+const std::vector<std::vector<unsigned> >&
+GeomPolyhedron::
+facetFacetConnectivity() const {
+  return mFacetFacetConnectivity;
+}
+
 //------------------------------------------------------------------------------
 // Access the bounding box.
 //------------------------------------------------------------------------------

@@ -168,33 +168,9 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         self.surface = surface
         surfaceFacets = surface.facets()
         surfaceVertices = surface.vertices()
-        
-        # Find the facets surrounding each vertex.
-        self.verts2facets = {}
-        for fi in xrange(len(surfaceFacets)):
-            f = surfaceFacets[fi]
-            for ip in f.ipoints:
-                if ip in self.verts2facets:
-                    self.verts2facets[ip].append(fi)
-                else:
-                    self.verts2facets[ip] = [fi]
-        
-        # Now construct the facet->facet neighbor info.
-        self.facetNeighbors = [set() for i in xrange(len(surfaceFacets))]
-        for vi in self.verts2facets:
-            for fi in self.verts2facets[vi]:
-                dummy = [self.facetNeighbors[fi].add(fii) for fii in self.verts2facets[vi]]
+        vertexNorms = surface.vertexUnitNorms()
+        facetNeighbors = surface.facetFacetConnectivity()
 
-        # Find the effective normal for each vertex.
-        self.vertnorms = {}
-        for i in self.verts2facets:
-            self.vertnorms[i] = Vector()
-            for fi in self.verts2facets[i]:
-                nhat = surfaceFacets[fi].normal
-                wi = 1.0/surfaceFacets[fi].area
-                self.vertnorms[i] += nhat * wi
-            self.vertnorms[i] = self.vertnorms[i].unitVector()
-        
         # Get the facets we need to extrude.
         if flags is None:
             facets = surfaceFacets
@@ -293,7 +269,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 fphat = (p - surfaceVertices[ip]).unitVector()
                 vi = surfaceVertices[ip] + fphat*0.05*dstarget
                 verts.append(vi)
-                verts.append(vi - self.vertnorms[ip]*lextrude)
+                verts.append(vi - vertexNorms[ip]*lextrude)
             localExtrudedFacets.append(Polyhedron(verts))   # Better be convex!
         for i in xrange(mpi.procs):
             self.extrudedFacets.extend(mpi.bcast(localExtrudedFacets, i))
@@ -310,7 +286,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             for i in xrange(len(rt)):
                 ri = Ti*rt[i] + p
                 if self.extrudedFacets[fi].contains(ri) and surface.contains(ri):
-                    stuff = [(surfaceFacets[j].distance(ri), j) for j in self.facetNeighbors[fi] if flags[j] == 1]
+                    stuff = [(surfaceFacets[j].distance(ri), j) for j in facetNeighbors[fi] if flags[j] == 1]
                     stuff.sort()
                     if stuff[0][1] == fi:
                         self.x.append(ri.x)

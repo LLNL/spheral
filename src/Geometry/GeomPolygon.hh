@@ -65,6 +65,9 @@ public:
   // Access the internal data.
   const std::vector<Vector>& vertices() const;
   const std::vector<Facet>& facets() const;
+  const std::vector<Vector>& vertexUnitNorms() const;
+  const std::vector<std::vector<unsigned> >& vertexFacetConnectivity() const;
+  const std::vector<std::vector<unsigned> >& facetFacetConnectivity() const;
   const Vector& xmin() const;
   const Vector& xmax() const;
 
@@ -102,6 +105,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;
   std::vector<Facet> mFacets;
+  std::vector<Vector> mVertexUnitNorms;
+  std::vector<std::vector<unsigned> > mVertexFacetConnectivity, mFacetFacetConnectivity;
   Vector mXmin, mXmax;
   bool mConvex;
 

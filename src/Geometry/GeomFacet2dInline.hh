@@ -12,8 +12,7 @@ inline
 GeomFacet2d::
 GeomFacet2d():
   mVerticesPtr(0),
-  mPoint1(0),
-  mPoint2(0),
+  mPoints(2, 0),
   mNormal(1.0, 0.0) {
   VERIFY(false);
 }
@@ -24,10 +23,11 @@ GeomFacet2d(const std::vector<GeomFacet2d::Vector>& vertices,
             const unsigned point1,
             const unsigned point2):
   mVerticesPtr(&vertices),
-  mPoint1(point1),
-  mPoint2(point2),
+  mPoints(2),
   mNormal(vertices[point2].y() - vertices[point1].y(),
           vertices[point1].x() - vertices[point2].x()) {
+  mPoints[0] = point1;
+  mPoints[1] = point2;
   REQUIRE((this->point2() - this->point1()).magnitude2() > 0.0);
   REQUIRE(fuzzyEqual((this->point2() - this->point1()).dot(mNormal), 0.0, 1.0e-10));
   REQUIRE((this->point2() - this->point1()).cross(mNormal).z() <= 0.0);
@@ -37,8 +37,7 @@ inline
 GeomFacet2d::
 GeomFacet2d(const GeomFacet2d& rhs):
   mVerticesPtr(rhs.mVerticesPtr),
-  mPoint1(rhs.mPoint1),
-  mPoint2(rhs.mPoint2),
+  mPoints(rhs.mPoints),
   mNormal(rhs.mNormal) {
 }
 
@@ -48,8 +47,7 @@ GeomFacet2d::
 operator=(const GeomFacet2d& rhs) {
   if (this != &rhs) {
     mVerticesPtr = rhs.mVerticesPtr;
-    mPoint1 = rhs.mPoint1;
-    mPoint2 = rhs.mPoint2;
+    mPoints = rhs.mPoints;
     mNormal = rhs.mNormal;
   }
   return *this;
@@ -69,7 +67,7 @@ int
 GeomFacet2d::
 compare(const GeomFacet2d::Vector& point,
         const double tol) const {
-  const double test = mNormal.dot(point - (*mVerticesPtr)[mPoint1]);
+  const double test = mNormal.dot(point - (*mVerticesPtr)[mPoints[0]]);
   return (fuzzyEqual(test, 0.0, tol) ?  0 :
           test > 0.0                 ?  1 :
                                        -1);
@@ -83,8 +81,8 @@ const GeomFacet2d::Vector&
 GeomFacet2d::
 point1() const {
   REQUIRE(mVerticesPtr != 0 and
-          mPoint1 < mVerticesPtr->size());
-  return (*mVerticesPtr)[mPoint1];
+          mPoints[0] < mVerticesPtr->size());
+  return (*mVerticesPtr)[mPoints[0]];
 }
 
 inline
@@ -92,22 +90,29 @@ const GeomFacet2d::Vector&
 GeomFacet2d::
 point2() const {
   REQUIRE(mVerticesPtr != 0 and
-          mPoint2 < mVerticesPtr->size());
-  return (*mVerticesPtr)[mPoint2];
+          mPoints[1] < mVerticesPtr->size());
+  return (*mVerticesPtr)[mPoints[1]];
 }
 
 inline
 unsigned
 GeomFacet2d::
 ipoint1() const {
-  return mPoint1;
+  return mPoints[0];
 }
 
 inline
 unsigned
 GeomFacet2d::
 ipoint2() const {
-  return mPoint2;
+  return mPoints[1];
+}
+
+inline
+const std::vector<unsigned>&
+GeomFacet2d::
+ipoints() const {
+  return mPoints;
 }
 
 inline
@@ -145,8 +150,8 @@ bool
 GeomFacet2d::
 operator==(const GeomFacet2d& rhs) const {
   return (*mVerticesPtr == *(rhs.mVerticesPtr) and
-          mPoint1 == rhs.mPoint1 and
-          mPoint2 == rhs.mPoint2);
+          mPoints[0] == rhs.mPoints[0] and
+          mPoints[1] == rhs.mPoints[1]);
 }
 
 //------------------------------------------------------------------------------
