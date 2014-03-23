@@ -4,6 +4,7 @@ from Spheral3d import *
 from FacetedSurfaceGenerator import *
 from siloPointmeshDump import *
 from VoronoiDistributeNodes import distributeNodes3d
+from PolyhedronFileUtilities import *
 
 verts = vector_of_Vector()
 for vi in [Vector(0,0,0), Vector(1,0,0), Vector(0,1,0), Vector(1,1,0), 
@@ -36,3 +37,4 @@ for i in xrange(nodes.numNodes):
 
 siloPointmeshDump("test_void", 
                   fields = [nodes.mass(), nodes.massDensity(), nodes.Hfield(), Hinv])
+writePolyhedronOBJ(surface, "test_void_surface.obj")

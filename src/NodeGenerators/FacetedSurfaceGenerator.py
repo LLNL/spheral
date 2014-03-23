@@ -165,28 +165,35 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                  flags = None,
                  nNodePerh = 2.01,
                  SPH = False):
+        self.surface = surface
         surfaceFacets = surface.facets()
         surfaceVertices = surface.vertices()
         
         # Find the facets surrounding each vertex.
-        verts2facets = {}
+        self.verts2facets = {}
         for fi in xrange(len(surfaceFacets)):
             f = surfaceFacets[fi]
             for ip in f.ipoints:
-                if ip in verts2facets:
-                    verts2facets[ip].append(fi)
+                if ip in self.verts2facets:
+                    self.verts2facets[ip].append(fi)
                 else:
-                    verts2facets[ip] = [fi]
+                    self.verts2facets[ip] = [fi]
         
+        # Now construct the facet->facet neighbor info.
+        self.facetNeighbors = [set() for i in xrange(len(surfaceFacets))]
+        for vi in self.verts2facets:
+            for fi in self.verts2facets[vi]:
+                dummy = [self.facetNeighbors[fi].add(fii) for fii in self.verts2facets[vi]]
+
         # Find the effective normal for each vertex.
-        vertnorms = {}
-        for i in verts2facets:
-            vertnorms[i] = Vector()
-            for fi in verts2facets[i]:
+        self.vertnorms = {}
+        for i in self.verts2facets:
+            self.vertnorms[i] = Vector()
+            for fi in self.verts2facets[i]:
                 nhat = surfaceFacets[fi].normal
                 wi = 1.0/surfaceFacets[fi].area
-                vertnorms[i] += nhat * wi
-            vertnorms[i] = vertnorms[i].unitVector()
+                self.vertnorms[i] += nhat * wi
+            self.vertnorms[i] = self.vertnorms[i].unitVector()
         
         # Get the facets we need to extrude.
         if flags is None:
@@ -276,36 +283,47 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 imin = 0
                 imax = 0
                     
-        # Now walk the facets and build our values.
-        self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
+        # We need all the extruded facet polyhedra.  In general these may be intersecting!
+        self.extrudedFacets, localExtrudedFacets = [], []
         for fi in xrange(imin, imax):
-            if mpi.rank == 0:
-                print "%i..." % fi
             f = facets[fi]
-            nhat = f.normal
             p = f.position
-            T = rotationMatrix(nhat)
-            Ti = T.Transpose()
             verts = vector_of_Vector()
             for ip in f.ipoints:
                 fphat = (p - surfaceVertices[ip]).unitVector()
                 vi = surfaceVertices[ip] + fphat*0.05*dstarget
                 verts.append(vi)
-                verts.append(vi - vertnorms[ip]*lextrude)
-            poly = Polyhedron(verts)   # Better be convex!
+                verts.append(vi - self.vertnorms[ip]*lextrude)
+            localExtrudedFacets.append(Polyhedron(verts))   # Better be convex!
+        for i in xrange(mpi.procs):
+            self.extrudedFacets.extend(mpi.bcast(localExtrudedFacets, i))
+        assert len(self.extrudedFacets) == len(facets)
+
+        # Now walk the facets and build our values.
+        self.x, self.y, self.z, self.m, self.H, self.node2facet = [], [], [], [], [], []
+        for fi in xrange(imin, imax):
+            f = facets[fi]
+            p = f.position
+            nhat = f.normal
+            T = rotationMatrix(nhat)
+            Ti = T.Transpose()
             for i in xrange(len(rt)):
                 ri = Ti*rt[i] + p
-                if poly.contains(ri):
-                    self.x.append(ri.x)
-                    self.y.append(ri.y)
-                    self.z.append(ri.z)
-                    self.m.append(mt[i])
-                    self.H.append(SymTensor(Ht[i]))
-                    self.H[-1].rotationalTransform(Ti)
+                if self.extrudedFacets[fi].contains(ri) and surface.contains(ri):
+                    stuff = [(surfaceFacets[j].distance(ri), j) for j in self.facetNeighbors[fi] if flags[j] == 1]
+                    stuff.sort()
+                    if stuff[0][1] == fi:
+                        self.x.append(ri.x)
+                        self.y.append(ri.y)
+                        self.z.append(ri.z)
+                        self.m.append(mt[i])
+                        self.H.append(SymTensor(Ht[i]))
+                        self.H[-1].rotationalTransform(Ti)
+                        self.node2facet.append(fi)
         self.rho = [rho] * len(self.x)
         
         # Invoke the base class to finish up.
-        NodeGeneratorBase.__init__(self, False, self.x, self.y, self.z, self.m, self.H, self.rho)
+        NodeGeneratorBase.__init__(self, False, self.x, self.y, self.z, self.m, self.H, self.rho, self.node2facet)
 
         return
 
