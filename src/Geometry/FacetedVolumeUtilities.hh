@@ -34,7 +34,7 @@ computeAncillaryGeometry(const PolyType& poly,
   // Find the facets surrounding each vertex.
   vertexFacetConnectivity = vector<vector<unsigned> >(nverts);
   {
-    deque<set<unsigned> > uniqueFacetIDs(nverts);
+    vector<set<unsigned> > uniqueFacetIDs(nverts);
     for (unsigned fi = 0; fi != nfacets; ++fi) {
       const Facet& facet = facets[fi];
       const vector<unsigned>& ipoints = facet.ipoints();
@@ -50,7 +50,7 @@ computeAncillaryGeometry(const PolyType& poly,
   // Construct the facet->facet connectivity.
   facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
   {
-    deque<set<unsigned> > uniqueFacetIDs(nfacets);
+    vector<set<unsigned> > uniqueFacetIDs(nfacets);
     BOOST_FOREACH(const vector<unsigned>& vertexFacets, vertexFacetConnectivity) {
       BOOST_FOREACH(const unsigned fi, vertexFacets) {
         uniqueFacetIDs[fi].insert(vertexFacets.begin(), vertexFacets.end());
@@ -58,6 +58,7 @@ computeAncillaryGeometry(const PolyType& poly,
     }
     for (unsigned i = 0; i != nfacets; ++i) {
       facetFacetConnectivity[i].assign(uniqueFacetIDs[i].begin(), uniqueFacetIDs[i].end());
+      CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
     }
   }
 
