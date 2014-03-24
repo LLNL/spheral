@@ -1,15 +1,15 @@
 //---------------------------------Spheral++----------------------------------//
-// mortonOrderIndicies
+// peanoHilbertOrderIndices
 //
-// Compute the Morton ordered hashed indicies for the given set of NodeLists.
+// Compute the PeanoHilbert ordered hashed indices for the given set of NodeLists.
 // 
 // Algorithm described in
 // Warren & Salmon (1995), Computer Physics Communications, 87, 266-290.
 //
-// Created by JMO, Fri Dec 19 14:58:23 PST 2008
+// Created by JMO, Sat Dec 20 22:36:58 PST 2008
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_mortonOrderIndicies__
-#define __Spheral_mortonOrderIndicies__
+#ifndef __Spheral_peanoHilbertOrderIndices__
+#define __Spheral_peanoHilbertOrderIndices__
 
 #include "Utilities/KeyTraits.hh"
 
@@ -25,14 +25,11 @@ namespace FieldSpace {
 
 template<typename Dimension>
 FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-mortonOrderIndicies(const DataBaseSpace::DataBase<Dimension>& dataBase);
+peanoHilbertOrderIndices(const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& positions);
 
-// Special version allowing the user to pass a mask indicating nodes
-// to ignore in the ordering.
 template<typename Dimension>
 FieldSpace::FieldList<Dimension, typename KeyTraits::Key>
-mortonOrderIndicies(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                    const FieldSpace::FieldList<Dimension, int>& mask);
+peanoHilbertOrderIndices(const DataBaseSpace::DataBase<Dimension>& dataBase);
 
 }
 

@@ -7,7 +7,7 @@
 // Created by JMO, Tue Mar 25 14:19:18 PDT 2008
 //----------------------------------------------------------------------------//
 #include "MortonOrderRedistributeNodes.hh"
-#include "Utilities/mortonOrderIndicies.hh"
+#include "Utilities/mortonOrderIndices.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 
@@ -43,13 +43,13 @@ MortonOrderRedistributeNodes<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// Hash the node positions into their tree ordered indicies.
+// Hash the node positions into their tree ordered indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, KeyTraits::Key>
 MortonOrderRedistributeNodes<Dimension>::
-computeHashedIndicies(const DataBase<Dimension>& dataBase) const {
-  return mortonOrderIndicies(dataBase);
+computeHashedIndices(const DataBase<Dimension>& dataBase) const {
+  return mortonOrderIndices(dataBase);
 }
 
 }

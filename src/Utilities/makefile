@@ -9,8 +9,8 @@ SRCTARGETS = \
 	Process.cc \
 	iterateIdealHInst.cc \
 	KeyTraits.cc \
-	mortonOrderIndiciesInst.cc \
-	peanoHilbertOrderIndiciesInst.cc \
+	mortonOrderIndicesInst.cc \
+	peanoHilbertOrderIndicesInst.cc \
 	PeanoHilbertTransform.cc \
 	nodeOrderingInst.cc \
 	RegisterMPIDataTypes.cc \

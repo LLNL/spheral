@@ -24,7 +24,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
-#include "Utilities/peanoHilbertOrderIndicies.hh"
+#include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/KeyTraits.hh"
 #include "Utilities/DBC.hh"
 
@@ -95,7 +95,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   // Build keys to sort the nodes by.
   DataBaseSpace::DataBase<Dimension> db;
   db.appendNodeList(const_cast<NodeList<Dimension>&>(nodeList));
-  FieldList<Dimension, Key> keys = peanoHilbertOrderIndicies(db);
+  FieldList<Dimension, Key> keys = peanoHilbertOrderIndices(db);
 
   // Build the local list of node info.
   typedef std::vector<boost::tuples::tuple<Key, int, int> > InfoType;

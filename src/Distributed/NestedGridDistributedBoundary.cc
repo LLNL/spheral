@@ -191,7 +191,7 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
     const NestedGridNeighbor<Dimension>& neighbor = this->getNestedGridNeighbor(*nodeListItr);
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
 
-    // Insert these grid cell indicies into the (possibly redundant) set of occupied grid cells.
+    // Insert these grid cell indices into the (possibly redundant) set of occupied grid cells.
     CHECK(occupiedGridCells.size() <= numGridLevels);
     for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
       CHECK(gridLevel < gridCells.size());
@@ -219,8 +219,8 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
-packGridCellIndicies(const vector< vector< GridCellIndex<Dimension> > >& gridCellSet,
-		     vector<int>& packedGridCellIndicies) const {
+packGridCellIndices(const vector< vector< GridCellIndex<Dimension> > >& gridCellSet,
+		     vector<int>& packedGridCellIndices) const {
 
   int packedIndex = 0;
   for (int gridLevel = 0; gridLevel != gridCellSet.size(); ++gridLevel) {
@@ -228,8 +228,8 @@ packGridCellIndicies(const vector< vector< GridCellIndex<Dimension> > >& gridCel
 	 gridCellItr != gridCellSet[gridLevel].end();
 	 ++gridCellItr) {
       for (int i = 0; i != Dimension::nDim; ++i) {
-	CHECK(packedIndex < packedGridCellIndicies.size());
-	packedGridCellIndicies[packedIndex] = (*gridCellItr)(i);
+	CHECK(packedIndex < packedGridCellIndices.size());
+	packedGridCellIndices[packedIndex] = (*gridCellItr)(i);
 	++packedIndex;
       }
     }
@@ -243,19 +243,19 @@ packGridCellIndicies(const vector< vector< GridCellIndex<Dimension> > >& gridCel
 template<typename Dimension>
 void
 NestedGridDistributedBoundary<Dimension>::
-unpackGridCellIndicies(const vector<int>& packedGridCellIndicies,
+unpackGridCellIndices(const vector<int>& packedGridCellIndices,
 		       const vector<int>& gridCellDimension,
 		       vector< vector< GridCellIndex<Dimension> > >& gridCellSet) const {
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE;
   {
-    REQUIRE(fmod(packedGridCellIndicies.size(), (double) Dimension::nDim) == 0);
+    REQUIRE(fmod(packedGridCellIndices.size(), (double) Dimension::nDim) == 0);
     int checkcount = 0;
     for (vector<int>::const_iterator itr = gridCellDimension.begin();
          itr != gridCellDimension.end();
          ++itr) checkcount = checkcount + *itr;
-    REQUIRE(checkcount*Dimension::nDim == packedGridCellIndicies.size());
+    REQUIRE(checkcount*Dimension::nDim == packedGridCellIndices.size());
   }
   END_CONTRACT_SCOPE;
 
@@ -272,14 +272,14 @@ unpackGridCellIndicies(const vector<int>& packedGridCellIndicies,
           gridCellDimension[gridLevel] < 10000000);
     gridCellSet[gridLevel].reserve(gridCellDimension[gridLevel]);
 
-    // Loop over the number of grid cell indicies on this grid level.
+    // Loop over the number of grid cell indices on this grid level.
     for (int gcIndex = 0; gcIndex != gridCellDimension[gridLevel]; ++gcIndex) {
-      CHECK(packedIndex + Dimension::nDim <= packedGridCellIndicies.size());
+      CHECK(packedIndex + Dimension::nDim <= packedGridCellIndices.size());
 
       // Build the next GridCellIndex from the packed info.
       GridCellIndex<Dimension> gc;
       for (int i = 0; i < Dimension::nDim; ++i) {
-	gc(i) = packedGridCellIndicies[packedIndex];
+	gc(i) = packedGridCellIndices[packedIndex];
 	++packedIndex;
       }
 
@@ -327,12 +327,12 @@ distributeOccupiedGridCells() {
     int totalNumGridCells = 0;
     for (int gridLevel = 0; gridLevel < numGridLevels; ++gridLevel)
       totalNumGridCells += occupiedGridCellDimensions[sendDomain][gridLevel];
-    vector<int> packedGridCellIndicies(totalNumGridCells*Dimension::nDim);
-    if (procID == sendDomain) packGridCellIndicies(mOccupiedGridCells[sendDomain], packedGridCellIndicies);
+    vector<int> packedGridCellIndices(totalNumGridCells*Dimension::nDim);
+    if (procID == sendDomain) packGridCellIndices(mOccupiedGridCells[sendDomain], packedGridCellIndices);
 
     // Broadcast the sucker and unpack the data.
-    MPI_Bcast(&packedGridCellIndicies.front(), totalNumGridCells*Dimension::nDim, MPI_INT, sendDomain, Communicator::communicator());
-    if (procID != sendDomain) unpackGridCellIndicies(packedGridCellIndicies, occupiedGridCellDimensions[sendDomain], mOccupiedGridCells[sendDomain]);
+    MPI_Bcast(&packedGridCellIndices.front(), totalNumGridCells*Dimension::nDim, MPI_INT, sendDomain, Communicator::communicator());
+    if (procID != sendDomain) unpackGridCellIndices(packedGridCellIndices, occupiedGridCellDimensions[sendDomain], mOccupiedGridCells[sendDomain]);
   }
 }
 
@@ -563,7 +563,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
             const Field<Dimension, Vector>& positions = (**nodeListItr).positions();
             const Field<Dimension, Vector>& extents = neighbor.nodeExtentField();
 	    const Field<Dimension, SymTensor>& Hinv = *Hinverse[nodeListi];
-            vector<int> indiciesToKill;
+            vector<int> indicesToKill;
             for (int k = 0; k != sendNodes.size(); ++k) {
               const int i = sendNodes[k];
               const Vector& xi = positions(i);
@@ -578,14 +578,14 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
                                         drMag < radiusSampleDomain[neighborProc] or          // You see me
                                         testBoxIntersection(xmini, xmaxi, xminNodesDomain[neighborProc], xmaxNodesDomain[neighborProc]) or // I see you
                                         testBoxIntersection(xi, xi, xminSampleDomain[neighborProc], xmaxSampleDomain[neighborProc]));      // You see me
-              if (not interacting) indiciesToKill.push_back(k);
+              if (not interacting) indicesToKill.push_back(k);
             }
 
 	    // Are we killing all of the send nodes?
-	    if (indiciesToKill.size() == sendNodes.size()) {
+	    if (indicesToKill.size() == sendNodes.size()) {
 	      this->removeDomainBoundaryNodes(*nodeListItr, neighborProc);
 	    } else {
-	      removeElements(sendNodes, indiciesToKill);
+	      removeElements(sendNodes, indicesToKill);
 	    }
 
           }

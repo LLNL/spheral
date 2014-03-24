@@ -47,7 +47,7 @@ public:
   // Hash the positions.
   virtual
   FieldSpace::FieldList<Dimension, Key> 
-  computeHashedIndicies(const DataBaseSpace::DataBase<Dimension>& dataBase) const;
+  computeHashedIndices(const DataBaseSpace::DataBase<Dimension>& dataBase) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

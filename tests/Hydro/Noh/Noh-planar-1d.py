@@ -418,7 +418,7 @@ xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndicies(db)
+    mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)

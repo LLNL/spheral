@@ -208,14 +208,14 @@ redistributeNodes(DataBase<Dimension>& dataBase,
         setMasterNodeLists(dataBase, *gcItr, masterGridLevel);
 
         // Gather the available nodes from the coarse neighbor set to process 0.
-        vector<int> coarseNodeIndicies;
+        vector<int> coarseNodeIndices;
         vector<Scalar> coarseNodeWork;
-        gatherAvailableCoarseNodes(dataBase, nodeDistribution, work, coarseNodeIndicies, coarseNodeWork);
+        gatherAvailableCoarseNodes(dataBase, nodeDistribution, work, coarseNodeIndices, coarseNodeWork);
 
         // Assign nodes from this set to the current domain, until it's work quota is
         // filled.
         currentDomainFull = assignNodesToDomain(dataBase,
-                                                coarseNodeIndicies,
+                                                coarseNodeIndices,
                                                 coarseNodeWork,
                                                 currentDomain,
                                                 targetWorkPerDomain,
@@ -667,7 +667,7 @@ setMasterNodeLists(DataBase<Dimension>& dataBase,
 
 //------------------------------------------------------------------------------
 // Gather up the unassigned coarse neighbor nodes, filling in the global node 
-// indicies and work.
+// indices and work.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -675,11 +675,11 @@ NestedGridRedistributeNodes<Dimension>::
 gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
                            const vector<DomainNode<Dimension> >& nodeDistribution,
                            const FieldList<Dimension, Scalar>& work,
-                           vector<int>& globalNodeIndicies,
+                           vector<int>& globalNodeIndices,
                            vector<Scalar>& globalNodeWork) const {
 
   // Pre-conditions.
-  REQUIRE(globalNodeIndicies.size() == 0);
+  REQUIRE(globalNodeIndices.size() == 0);
   REQUIRE(globalNodeWork.size() == 0);
 
   // Iterate over the coarse neighbor set.
@@ -697,7 +697,7 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
 
     // If this node is still unassigned, add it to the result.
     if (domainNodeItr->domainID == -1) {
-      globalNodeIndicies.push_back(domainNodeItr->globalNodeID);
+      globalNodeIndices.push_back(domainNodeItr->globalNodeID);
       globalNodeWork.push_back(work(nodeItr));
     }
   }
@@ -719,11 +719,11 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
       MPI_Recv(&(*recvNodeWork.begin()), numRecvNodes, MPI_DOUBLE, sendProc, 122, Communicator::communicator(), &status3);
 
       // Add the other processors nodes to our list.
-      globalNodeIndicies.reserve(globalNodeIndicies.size() + numRecvNodes);
+      globalNodeIndices.reserve(globalNodeIndices.size() + numRecvNodes);
       globalNodeWork.reserve(globalNodeWork.size() + numRecvNodes);
       for (int i = 0; i != numRecvNodes; ++i) {
         CHECK(i < recvNodeIDs.size() && i < recvNodeWork.size());
-        globalNodeIndicies.push_back(recvNodeIDs[i]);
+        globalNodeIndices.push_back(recvNodeIDs[i]);
         globalNodeWork.push_back(recvNodeWork[i]);
       }
     }
@@ -731,10 +731,10 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
   } else {
 
     // Send our info to the root process.
-    CHECK(globalNodeIndicies.size() == globalNodeWork.size());
-    int numSendNodes = globalNodeIndicies.size();
+    CHECK(globalNodeIndices.size() == globalNodeWork.size());
+    int numSendNodes = globalNodeIndices.size();
     MPI_Send(&numSendNodes, 1, MPI_INT, 0, 120, Communicator::communicator());
-    MPI_Send(&(*globalNodeIndicies.begin()), numSendNodes, MPI_INT, 0, 121, Communicator::communicator());
+    MPI_Send(&(*globalNodeIndices.begin()), numSendNodes, MPI_INT, 0, 121, Communicator::communicator());
     MPI_Send(&(*globalNodeWork.begin()), numSendNodes, MPI_DOUBLE, 0, 122, Communicator::communicator());
 
   }
@@ -743,9 +743,9 @@ gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,
   // OK, now the root process has all info, while all other processes have their own
   // local set of coarse nodes only.
   BEGIN_CONTRACT_SCOPE;
-  ENSURE(globalNodeIndicies.size() == globalNodeWork.size());
-  sort(globalNodeIndicies.begin(), globalNodeIndicies.end());
-  ENSURE(unique(globalNodeIndicies.begin(), globalNodeIndicies.end()) == globalNodeIndicies.end());
+  ENSURE(globalNodeIndices.size() == globalNodeWork.size());
+  sort(globalNodeIndices.begin(), globalNodeIndices.end());
+  ENSURE(unique(globalNodeIndices.begin(), globalNodeIndices.end()) == globalNodeIndices.end());
   END_CONTRACT_SCOPE;
 }
 
@@ -760,7 +760,7 @@ template<typename Dimension>
 bool
 NestedGridRedistributeNodes<Dimension>::
 assignNodesToDomain(const DataBase<Dimension>& dataBase,
-                    const vector<int>& globalNodeIndicies,
+                    const vector<int>& globalNodeIndices,
                     const vector<Scalar>& globalNodeWork,
                     const int currentDomainID,
                     const double targetWork,
@@ -769,7 +769,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
                     vector< map<GridCellIndex<Dimension>, int> >&gridCellPopulations,
                     vector<int>& gridLevelPopulations) const {
 
-  REQUIRE(globalNodeIndicies.size() == globalNodeWork.size());
+  REQUIRE(globalNodeIndices.size() == globalNodeWork.size());
   REQUIRE(currentDomainID >= 0 && currentDomainID < this->numDomains());
   REQUIRE(distinctlyGreaterThan(targetWork, 0.0));
   REQUIRE(currentWorkSum >= 0.0);
@@ -782,7 +782,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
   // Iterate until we either exhaust the current pool of coarse nodes
   // or fill the domains work quota.
   const int numGridLevels = gridLevelPopulations.size();
-  int numCoarseNodes = globalNodeIndicies.size();
+  int numCoarseNodes = globalNodeIndices.size();
   MPI_Bcast(&numCoarseNodes, 1, MPI_INT, 0, Communicator::communicator());
   int i = 0;
   bool domainFull = false;
@@ -793,7 +793,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
     double globalWork;
     if (procID == 0) {
       CHECK(i >= 0 && i < numCoarseNodes);
-      globalNodeID = globalNodeIndicies[i];
+      globalNodeID = globalNodeIndices[i];
       globalWork = globalNodeWork[i];
 //       cerr << "    -> Assigning node " << globalNodeID << " to domain " << currentDomainID << endl;
     }

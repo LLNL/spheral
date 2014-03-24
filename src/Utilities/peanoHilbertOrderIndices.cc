@@ -1,17 +1,19 @@
 //---------------------------------Spheral++----------------------------------//
-// peanoHilbertOrderIndicies
+// peanoHilbertOrderIndices
 //
-// Compute the PeanoHilbert ordered hashed indicies for the given set of NodeLists.
+// Compute the PeanoHilbert ordered hashed indices for the given set of NodeLists.
 // 
 // Algorithm described in
 // Warren & Salmon (1995), Computer Physics Communications, 87, 266-290.
 //
 // Created by JMO, Sat Dec 20 22:36:58 PST 2008
 //----------------------------------------------------------------------------//
-#include <boost/assign.hpp>
+#include "boost/foreach.hpp"
+#include "boost/assign.hpp"
 
-#include "peanoHilbertOrderIndicies.hh"
+#include "peanoHilbertOrderIndices.hh"
 #include "PeanoHilbertTransform.hh"
+#include "globalBoundingVolumes.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
@@ -21,6 +23,7 @@ namespace Spheral {
 using namespace std;
 using namespace boost::assign;
 
+using NodeSpace::NodeList;
 using DataBaseSpace::DataBase;
 using FieldSpace::FieldList;
 
@@ -405,32 +408,45 @@ hashPosition(const Dim<3>::Vector& position,
 // }
 
 //------------------------------------------------------------------------------
-// Hash the node positions into their tree ordered indicies.
+// Hash the node positions into their tree ordered indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, KeyTraits::Key>
-peanoHilbertOrderIndicies(const DataBase<Dimension>& dataBase) {
+peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions) {
 
   typedef typename KeyTraits::Key Key;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result = dataBase.newGlobalFieldList(KeyTraits::zero, "hashed indicies");
+  FieldList<Dimension, Key> result(FieldSpace::Copy);
+  const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
+  BOOST_FOREACH(const NodeList<Dimension>* nodeListPtr, nodeListPtrs) {
+    result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);
+  }
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;
-  dataBase.boundingBox(xmin, xmax, true);
+  globalBoundingBox(positions, xmin, xmax, true);
+  const Vector stepSize = (xmax - xmin)/KeyTraits::maxKey1d;
 
   // Go over all nodes and hash each position.
-  const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
-  for (AllNodeIterator<Dimension> nodeItr = dataBase.nodeBegin();
-       nodeItr != dataBase.nodeEnd();
+  for (AllNodeIterator<Dimension> nodeItr = positions.nodeBegin();
+       nodeItr != positions.nodeEnd();
        ++nodeItr) {
     result(nodeItr) = hashPosition(positions(nodeItr), xmin, xmax);
   }
 
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Hash the node positions into their tree ordered indices.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, KeyTraits::Key>
+peanoHilbertOrderIndices(const DataBase<Dimension>& dataBase) {
+  return peanoHilbertOrderIndices(dataBase.globalPosition());
 }
 
 }

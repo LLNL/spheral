@@ -14,6 +14,7 @@
 
 #include <vector>
 #include "Geometry/Dimension.hh"
+#include "Field/FieldList.hh"
 
 // Forward declarations.
 namespace Spheral {

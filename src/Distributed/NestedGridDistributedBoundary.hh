@@ -78,14 +78,14 @@ public:
 
   // Pack the occupied grid cell set into a C style array syntax for messaging
   // with MPI.
-  void packGridCellIndicies(const std::vector< std::vector< NeighborSpace::GridCellIndex<Dimension> > >& gridCellSet,
-			    std::vector<int>& packedGridCellIndicies) const;
+  void packGridCellIndices(const std::vector< std::vector< NeighborSpace::GridCellIndex<Dimension> > >& gridCellSet,
+                           std::vector<int>& packedGridCellIndices) const;
 
   // Unpack the occupied grid cell set from C style array syntax to the more
   // sensible set of occupied grid cells.
-  void unpackGridCellIndicies(const std::vector<int>& packedGridCellIndicies,
-			      const std::vector<int>& gridCellDimension,
-			      std::vector< std::vector< NeighborSpace::GridCellIndex<Dimension> > >& gridCellSet) const;
+  void unpackGridCellIndices(const std::vector<int>& packedGridCellIndices,
+                             const std::vector<int>& gridCellDimension,
+                             std::vector< std::vector< NeighborSpace::GridCellIndex<Dimension> > >& gridCellSet) const;
 
   // Access the flag determing if we're applying box culling.
   bool boxCulling() const;

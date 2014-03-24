@@ -302,6 +302,7 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         intfieldlist = "IntFieldList%id" % ndim
         ullfieldlist = "ULLFieldList%id" % ndim
         scalarfieldlist = "ScalarFieldList%id" % ndim
+        vectorfieldlist = "VectorFieldList%id" % ndim
         vector_of_boundary = "vector_of_Boundary%id" % ndim
         tablekernel = "TableKernel%id" % ndim
         smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
@@ -346,14 +347,21 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              custom_name = "iterateIdealH%id" % ndim,
                              docstring="Iterate the Hfield for NodeLists in the DataBase using the ideal H algorithm.")
 
-        Spheral.add_function("mortonOrderIndicies%id" % ndim, ullfieldlist,
-                             [constrefparam(database, "dataBase")],
-                             docstring = "Compute indicies for nodes obeying Morton ordering.")
+        Spheral.add_function("mortonOrderIndices%id" % ndim, ullfieldlist,
+                             [constrefparam(vectorfieldlist, "positions")],
+                             docstring = "Compute indices for nodes obeying Morton ordering.")
         
-        Spheral.add_function("peanoHilbertOrderIndicies%id" % ndim, ullfieldlist,
+        Spheral.add_function("mortonOrderIndices%id" % ndim, ullfieldlist,
                              [constrefparam(database, "dataBase")],
-                             docstring = "Compute indicies for nodes obeying the Peano-Hilbert ordering.")
+                             docstring = "Compute indices for nodes obeying Morton ordering.")
         
+        Spheral.add_function("peanoHilbertOrderIndices%id" % ndim, ullfieldlist,
+                             [constrefparam(vectorfieldlist, "positions")],
+                             docstring = "Compute indices for nodes obeying the Peano-Hilbert ordering.")
+
+        Spheral.add_function("peanoHilbertOrderIndices%id" % ndim, ullfieldlist,
+                             [constrefparam(database, "dataBase")],
+                             docstring = "Compute indices for nodes obeying the Peano-Hilbert ordering.")
 
         Spheral.add_function("integrateThroughMeshAlongSegment%id" % ndim,
                              "double",

@@ -383,7 +383,7 @@ if outputFile != "None":
     epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in internalValues(Hfield)], mpi.SUM)
     sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
-    mof = mortonOrderIndicies(db)
+    mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
     if mpi.rank == 0:
         thpt = zip(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof)

@@ -96,17 +96,17 @@ public:
                           const NeighborSpace::GridCellIndex<Dimension>& gridCell,
                           const int gridLevel) const;
 
-  // Gather up the unassigned coarse neighbor nodes, filling in the global node indicies and work.
+  // Gather up the unassigned coarse neighbor nodes, filling in the global node indices and work.
   void gatherAvailableCoarseNodes(const DataBaseSpace::DataBase<Dimension>& dataBase,
                                   const std::vector<DomainNode<Dimension> >& nodeDistribution,
                                   const FieldSpace::FieldList<Dimension, Scalar>& work,
-                                  std::vector<int>& globalNodeIndicies,
+                                  std::vector<int>& globalNodeIndices,
                                   std::vector<Scalar>& globalNodeWork) const;
 
   // Assign from the given set of nodes to the given grid cell, until either the
   // desired work per domain is reached or we exhast the given set of nodes.
   bool assignNodesToDomain(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                           const std::vector<int>& globalNodeIndicies,
+                           const std::vector<int>& globalNodeIndices,
                            const std::vector<Scalar>& globalNodeWork,
                            const int currentDomainID,
                            const double targetWork,

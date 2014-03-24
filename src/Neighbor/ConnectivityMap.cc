@@ -15,7 +15,7 @@
 #include "Boundary/Boundary.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/timingUtilities.hh"
-#include "Utilities/mortonOrderIndicies.hh"
+#include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
 namespace Spheral {
 namespace NeighborSpace {
@@ -481,7 +481,7 @@ computeConnectivity() {
   // by that will give us a unique ordering regardless of position.  The Morton ordered
   // hash fills the bill.
   typedef typename KeyTraits::Key Key;
-  if (domainDecompIndependent) mKeys = mortonOrderIndicies(dataBase);
+  if (domainDecompIndependent) mKeys = mortonOrderIndices(dataBase);
 
   // Fill in the ordering for walking the nodes.
   CHECK(mNodeTraversalIndices.size() == numNodeLists);
@@ -558,7 +558,7 @@ computeConnectivity() {
               vector< vector<int> >& neighbors = mConnectivity[mOffsets[iNodeList] + i];
               CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
 
-              // We keep track of the Morton indicies.
+              // We keep track of the Morton indices.
               keys = vector<vector<pair<int, Key> > >(numNodeLists);
 
               // Get the state for this node.

@@ -253,9 +253,9 @@ class Distributed:
                                                            param("int", "newGridCellInfluenceRadius")], is_const=True)
         x.add_method("flattenOccupiedGridCells", None, [constrefparam(database, "dataBase"),
                                                         refparam(vector_of_vector_of_gridcellindex, "gridCells")], is_const=True)
-        x.add_method("packGridCellIndicies", None, [constrefparam(vector_of_vector_of_gridcellindex, "gridCells"),
+        x.add_method("packGridCellIndices", None, [constrefparam(vector_of_vector_of_gridcellindex, "gridCells"),
                                                     refparam("vector_of_int", "packedGridCells")], is_const=True)
-        x.add_method("unpackGridCellIndicies", None, [constrefparam("vector_of_int", "packedGridCells"),
+        x.add_method("unpackGridCellIndices", None, [constrefparam("vector_of_int", "packedGridCells"),
                                                       constrefparam("vector_of_int", "gridCellDimensions"),
                                                       refparam(vector_of_vector_of_gridcellindex, "gridCells")], is_const=True)
         
@@ -419,7 +419,7 @@ class Distributed:
         x.add_method("gatherAvailableCoarseNodes", None, [constrefparam(database, "dataBase"),
                                                           constrefparam(vector_of_domainnode, "nodeDistribution"),
                                                           constrefparam(scalarfieldlist, "work"),
-                                                          refparam("vector_of_int", "globalNodeIndicies"),
+                                                          refparam("vector_of_int", "globalNodeIndices"),
                                                           refparam("vector_of_double", "globalNodeWork")], is_const=True)
 
         # Attributes.
@@ -455,7 +455,7 @@ class Distributed:
                            param("bool", "localReorderOnly", default_value="false")])
 
         # Methods.
-        x.add_method("computeHashedIndicies", ullfieldlist, [constrefparam(database, "dataBase")],
+        x.add_method("computeHashedIndices", ullfieldlist, [constrefparam(database, "dataBase")],
                      is_const = True,
                      is_virtual = True,
                      is_pure_virtual = True)
@@ -464,9 +464,9 @@ class Distributed:
                                                  param(vector_of_boundary, "boundaries", default_value="%s()" % vector_of_boundary)],
                      is_virtual = True)
         x.add_method("computeStepSize", vector, [constrefparam(pair_vector_vector, "box")], is_const=True)
-        x.add_method("buildIndex2IDPairs", vector_of_pair_ull_domainnode, [constrefparam(ullfieldlist, "indicies"),
+        x.add_method("buildIndex2IDPairs", vector_of_pair_ull_domainnode, [constrefparam(ullfieldlist, "indices"),
                                                                            constrefparam(vector_of_domainnode, "domainNodes")], is_const=True)
-##         x.add_method("findUpperKey", key, [constrefparam("vector_of_ULL", "indicies"),
+##         x.add_method("findUpperKey", key, [constrefparam("vector_of_ULL", "indices"),
 ##                                            constrefparam("vector_of_int", "count"),
 ##                                            constrefparam("vector_of_double", "work"),
 ##                                            param(key, "lowerBound"),
@@ -476,15 +476,15 @@ class Distributed:
 ##                                            param("int", "maxNodes"),
 ##                                            refparam(key, "upperKey"),
 ##                                            refparam("int", "numNodes")], is_const=True)
-        x.add_method("numIndiciesInRange", "int", [constrefparam("vector_of_ULL", "indicies"),
+        x.add_method("numIndicesInRange", "int", [constrefparam("vector_of_ULL", "indices"),
                                                    constrefparam("vector_of_int", "count"),
                                                    param(key, "lowerBound"),
                                                    param(key, "upperBound")], is_const=True)
-        x.add_method("workInRange", "double", [constrefparam("vector_of_ULL", "indicies"),
+        x.add_method("workInRange", "double", [constrefparam("vector_of_ULL", "indices"),
                                                constrefparam("vector_of_double", "work"),
                                                param(key, "lowerBound"),
                                                param(key, "upperBound")], is_const=True)
-        x.add_method("workAndNodesInRange", None, [constrefparam("vector_of_ULL", "indicies"),
+        x.add_method("workAndNodesInRange", None, [constrefparam("vector_of_ULL", "indices"),
                                                    constrefparam("vector_of_int", "count"),
                                                    constrefparam("vector_of_double", "work"),
                                                    param(key, "lowerBound"),
@@ -494,7 +494,7 @@ class Distributed:
         x.add_method("targetNumNodes", "int", [param("int", "numGlobal"),
                                                param("int", "numProcs"),
                                                param("int", "targetProc")], is_const=True)
-        x.add_method("findNextIndex", key, [constrefparam("vector_of_ULL", "indicies"),
+        x.add_method("findNextIndex", key, [constrefparam("vector_of_ULL", "indices"),
                                             param(key, "index"),
                                             param(key, "maxIndex")], is_const=True)
         x.add_method("domainForIndex", "int", [param(key, "index"),
@@ -535,7 +535,7 @@ class Distributed:
                            param("bool", "localReorderOnly", default_value="false")])
 
         # Methods.
-        x.add_method("computeHashedIndicies", ullfieldlist, [constrefparam(database, "dataBase")],
+        x.add_method("computeHashedIndices", ullfieldlist, [constrefparam(database, "dataBase")],
                      is_const = True,
                      is_virtual = True)
 

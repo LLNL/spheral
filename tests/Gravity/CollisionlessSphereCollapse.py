@@ -221,7 +221,7 @@ if outputFile != "None":
     Hprof = mpi.reduce(nodes.Hfield().internalValues(), mpi.SUM)
     phi = gravity.potential()
     phiprof = mpi.reduce(phi[0].internalValues(), mpi.SUM)
-    mof = mortonOrderIndicies(db)
+    mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
         from SpheralGnuPlotUtilities import multiSort
