@@ -1,14 +1,17 @@
 //---------------------------------Spheral++----------------------------------//
-// mortonOrderIndicies
+// mortonOrderIndices
 //
-// Compute the Morton ordered hashed indicies for the given set of NodeLists.
+// Compute the Morton ordered hashed indices for the given set of NodeLists.
 // 
 // Algorithm described in
 // Warren & Salmon (1995), Computer Physics Communications, 87, 266-290.
 //
 // Created by JMO, Fri Dec 19 14:58:23 PST 2008
 //----------------------------------------------------------------------------//
-#include "mortonOrderIndicies.hh"
+#include "boost/foreach.hpp"
+
+#include "mortonOrderIndices.hh"
+#include "globalBoundingVolumes.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
@@ -17,6 +20,7 @@ namespace Spheral {
 
 using namespace std;
 
+using NodeSpace::NodeList;
 using DataBaseSpace::DataBase;
 using FieldSpace::FieldList;
 
@@ -100,28 +104,31 @@ hashPosition(const Dim<3>::Vector& xoff,
 }
 
 //------------------------------------------------------------------------------
-// Hash the node positions into their tree ordered indicies.
+// Hash the node positions into their tree ordered indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, KeyTraits::Key>
-mortonOrderIndicies(const DataBase<Dimension>& dataBase) {
+mortonOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions) {
 
   typedef typename KeyTraits::Key Key;
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result = dataBase.newGlobalFieldList(KeyTraits::zero, "hashed indicies");
+  FieldList<Dimension, Key> result(FieldSpace::Copy);
+  const vector<NodeList<Dimension>*>& nodeListPtrs = positions.nodeListPtrs();
+  BOOST_FOREACH(const NodeList<Dimension>* nodeListPtr, nodeListPtrs) {
+    result.appendNewField("hashed indices", *nodeListPtr, KeyTraits::zero);
+  }
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;
-  dataBase.boundingBox(xmin, xmax, true);
+  globalBoundingBox(positions, xmin, xmax, true);
   const Vector stepSize = (xmax - xmin)/KeyTraits::maxKey1d;
 
   // Go over all nodes.
-  const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
-  for (AllNodeIterator<Dimension> nodeItr = dataBase.nodeBegin();
-       nodeItr != dataBase.nodeEnd();
+  for (AllNodeIterator<Dimension> nodeItr = positions.nodeBegin();
+       nodeItr != positions.nodeEnd();
        ++nodeItr) {
 
     // Find the offset from the minimum coordinates.
@@ -135,12 +142,21 @@ mortonOrderIndicies(const DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Hash the node positions into their tree ordered indices.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, KeyTraits::Key>
+mortonOrderIndices(const DataBase<Dimension>& dataBase) {
+  return mortonOrderIndices(dataBase.globalPosition());
+}
+
+//------------------------------------------------------------------------------
 // Same as above except allowing a mask to be applied (ignoring nodes with 
 // mask = 0).
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, KeyTraits::Key>
-mortonOrderIndicies(const DataBase<Dimension>& dataBase,
+mortonOrderIndices(const DataBase<Dimension>& dataBase,
                     const FieldList<Dimension, int>& mask) {
 
   typedef typename KeyTraits::Key Key;
@@ -148,7 +164,7 @@ mortonOrderIndicies(const DataBase<Dimension>& dataBase,
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.
-  FieldList<Dimension, Key> result = dataBase.newGlobalFieldList(KeyTraits::zero, "hashed indicies");
+  FieldList<Dimension, Key> result = dataBase.newGlobalFieldList(KeyTraits::zero, "hashed indices");
 
   // Get the bounding box and step sizes.
   Vector xmin, xmax;

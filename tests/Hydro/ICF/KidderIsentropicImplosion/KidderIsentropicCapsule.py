@@ -228,24 +228,24 @@ output("integrator.domainDecompositionIndependent")
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 # Find the nrGhost nodes closest to the inner boundary.
-mindiciesFL = mortonOrderIndicies(db)
-mindicies = mindiciesFL[0]
+mindicesFL = mortonOrderIndices(db)
+mindices = mindicesFL[0]
 positions = nodes.positions()
-nodeSet = mpi.allreduce([(positions[i].x, mindicies[i]) for i in xrange(nodes.numInternalNodes)],
+nodeSet = mpi.allreduce([(positions[i].x, mindices[i]) for i in xrange(nodes.numInternalNodes)],
                         mpi.SUM)
 nodeSet.sort()
 
-innerIndicies = [tup[1] for tup in nodeSet[:nrGhost]]
-innerNodes = [i for i in xrange(nodes.numInternalNodes) if mindicies[i] in innerIndicies]
+innerIndices = [tup[1] for tup in nodeSet[:nrGhost]]
+innerNodes = [i for i in xrange(nodes.numInternalNodes) if mindices[i] in innerIndices]
 assert mpi.allreduce(len(innerNodes), mpi.SUM) == nrGhost
 
-outerIndicies = [tup[1] for tup in nodeSet[-nrGhost:]]
-outerNodes = [i for i in xrange(nodes.numInternalNodes) if mindicies[i] in outerIndicies]
+outerIndices = [tup[1] for tup in nodeSet[-nrGhost:]]
+outerNodes = [i for i in xrange(nodes.numInternalNodes) if mindices[i] in outerIndices]
 assert mpi.allreduce(len(outerNodes), mpi.SUM) == nrGhost
 
 interiorNodes = [i for i in xrange(nodes.numInternalNodes)
-                 if ((i not in innerIndicies) and
-                     (i not in outerIndicies))]
+                 if ((i not in innerIndices) and
+                     (i not in outerIndices))]
 
 h0 = nPerh * dr
 

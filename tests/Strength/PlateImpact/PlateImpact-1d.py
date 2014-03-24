@@ -655,7 +655,7 @@ if outputFile != "None":
     vprof = mpi.reduce([v.x for v in internalValues(vel)], mpi.SUM)
     epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in internalValues(Hfield)], mpi.SUM)
-    mof = mortonOrderIndicies(db)
+    mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
     if mpi.rank == 0:
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)

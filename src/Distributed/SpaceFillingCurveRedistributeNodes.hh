@@ -3,7 +3,7 @@
 //
 // This is an abstract base for the space filling curve family of 
 // repartitioners.  The assumption is that the descendent classes will provide
-// the computeHashedIndicies method to assign unique keys to each point in the
+// the computeHashedIndices method to assign unique keys to each point in the
 // order that that algorithm wants the points distributed.
 //
 // Created by JMO, Wed Apr  9 13:13:46 PDT 2008
@@ -68,7 +68,7 @@ public:
   // This is the required method for all descendant classes.
   virtual
   FieldSpace::FieldList<Dimension, Key> 
-  computeHashedIndicies(const DataBaseSpace::DataBase<Dimension>& dataBase) const = 0;
+  computeHashedIndices(const DataBaseSpace::DataBase<Dimension>& dataBase) const = 0;
 
   // Given a Spheral++ data base of NodeLists, repartition it among the processors.
   // This is the method required of all descendent classes.
@@ -79,14 +79,14 @@ public:
   // Compute the cell size in each dimension.
   Vector computeStepSize(const std::pair<Vector, Vector>& box) const;
   
-  // Stitch together the given indicies and DomainNode list.
+  // Stitch together the given indices and DomainNode list.
   // This returns the set sorted by the index.
   std::vector<std::pair<Key, DomainNode<Dimension> > >
-  buildIndex2IDPairs(const FieldSpace::FieldList<Dimension, Key>& indicies,
+  buildIndex2IDPairs(const FieldSpace::FieldList<Dimension, Key>& indices,
                      const std::vector<DomainNode<Dimension> >& domainNodes) const;
 
   // Find the hashed index the given amount of work above the specified lower bound.
-  Key findUpperKey(const std::vector<Key>& indicies,
+  Key findUpperKey(const std::vector<Key>& indices,
                    const std::vector<int>& count,
                    const std::vector<Scalar>& work,
                    const Key lowerBound,
@@ -98,19 +98,19 @@ public:
                    int& numNodes) const;
 
   // Compute the global number of nodes in the given index range.
-  int numIndiciesInRange(const std::vector<Key>& indicies,
+  int numIndicesInRange(const std::vector<Key>& indices,
                          const std::vector<int>& count,
                          const Key lowerBound,
                          const Key upperBound) const;
 
   // Compute the global work for the nodes in the given index range.
-  Scalar workInRange(const std::vector<Key>& indicies,
+  Scalar workInRange(const std::vector<Key>& indices,
                      const std::vector<Scalar>& work,
                      const Key lowerBound,
                      const Key upperBound) const;
 
   // Combines the above.
-  void workAndNodesInRange(const std::vector<Key>& indicies,
+  void workAndNodesInRange(const std::vector<Key>& indices,
                            const std::vector<int>& count,
                            const std::vector<Scalar>& work,
                            const Key lowerBound,
@@ -124,7 +124,7 @@ public:
                      const int targetProc) const;
 
   // Get the next (global) index following the given value.
-  Key findNextIndex(const std::vector<Key>& indicies,
+  Key findNextIndex(const std::vector<Key>& indices,
                     const Key index,
                     const Key maxIndex) const;
 

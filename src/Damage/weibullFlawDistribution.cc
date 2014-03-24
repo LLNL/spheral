@@ -9,7 +9,7 @@
 
 #include "weibullFlawDistribution.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Utilities/mortonOrderIndicies.hh"
+#include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/nodeOrdering.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Field/Field.hh"
@@ -218,7 +218,7 @@ weibullFlawDistributionOwen(const unsigned seed,
   // in a domain independent manner.
   DataBase<Dimension> db;
   db.appendNodeList(const_cast<FluidNodeList<Dimension>&>(nodeList));
-  FieldList<Dimension, Key> keyList = mortonOrderIndicies(db);
+  FieldList<Dimension, Key> keyList = mortonOrderIndices(db);
   FieldList<Dimension, int> orderingList = nodeOrdering(keyList);
   CHECK(orderingList.numFields() == 1);
   Field<Dimension, int>& ordering = *orderingList[0];

@@ -3,7 +3,7 @@
 //
 // This is an abstract base for the space filling curve family of 
 // repartitioners.  The assumption is that the descendent classes will provide
-// the computeHashedIndicies method to assign unique keys to each point in the
+// the computeHashedIndices method to assign unique keys to each point in the
 // order that that algorithm wants the points distributed.
 //
 // Created by JMO, Wed Apr  9 13:13:46 PDT 2008
@@ -153,53 +153,53 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const Scalar targetWork = workField.sumElements()/numProcs;
   if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Target work per process " << targetWork << endl;
 
-  // Compute the Key indicies for each point on this processor.
-  if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Hashing indicies" << endl;
-  FieldList<Dimension, Key> indicies = computeHashedIndicies(dataBase);
+  // Compute the Key indices for each point on this processor.
+  if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Hashing indices" << endl;
+  FieldList<Dimension, Key> indices = computeHashedIndices(dataBase);
 
-  // Find the range of hashed indicies.
-  const Key indexMin = indicies.min();
-  const Key indexMax = indicies.max();
+  // Find the range of hashed indices.
+  const Key indexMin = indices.min();
+  const Key indexMax = indices.max();
   CHECK(indexMax < indexMax + indexMax);
   if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Index min/max : " << indexMin << " " << indexMax << endl;
 
   // Build the array of (hashed index, DomainNode) pairs.
   // Note this comes back locally sorted.
-  if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: sorting indicies" << endl;
-  vector<pair<Key, DomainNode<Dimension> > > sortedIndicies = buildIndex2IDPairs(indicies,
+  if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: sorting indices" << endl;
+  vector<pair<Key, DomainNode<Dimension> > > sortedIndices = buildIndex2IDPairs(indices,
                                                                                  nodeDistribution);
   const int numLocalNodes = nodeDistribution.size();
 
-  // Build our set of unique indicies and their count.
+  // Build our set of unique indices and their count.
   if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Counting uniques and such" << endl;
-  vector<Key> uniqueIndicies;
+  vector<Key> uniqueIndices;
   vector<int> count;
   vector<Scalar> work;
-  uniqueIndicies.reserve(sortedIndicies.size());
-  count.reserve(sortedIndicies.size());
-  work.reserve(sortedIndicies.size());
-  uniqueIndicies.push_back(sortedIndicies.front().first);
+  uniqueIndices.reserve(sortedIndices.size());
+  count.reserve(sortedIndices.size());
+  work.reserve(sortedIndices.size());
+  uniqueIndices.push_back(sortedIndices.front().first);
   count.push_back(1);
-  work.push_back(sortedIndicies.front().second.work);
+  work.push_back(sortedIndices.front().second.work);
   int maxCount = 1;
   {
     int j = 0;
-    for (int i = 1; i < sortedIndicies.size(); ++i) {
-      CHECK(sortedIndicies[i].first >= sortedIndicies[i-1].first);
-      if (sortedIndicies[i].first == uniqueIndicies[j]) {
+    for (int i = 1; i < sortedIndices.size(); ++i) {
+      CHECK(sortedIndices[i].first >= sortedIndices[i-1].first);
+      if (sortedIndices[i].first == uniqueIndices[j]) {
         ++count[j];
-        work[j] += sortedIndicies[i].second.work;
+        work[j] += sortedIndices[i].second.work;
       } else {
-        uniqueIndicies.push_back(sortedIndicies[i].first);
+        uniqueIndices.push_back(sortedIndices[i].first);
         count.push_back(1);
-        work.push_back(sortedIndicies[i].second.work);
+        work.push_back(sortedIndices[i].second.work);
         ++j;
       }
       maxCount = max(maxCount, count[j]);
     }
   }
-  CHECK(count.size() == uniqueIndicies.size());
-  CHECK(work.size() == uniqueIndicies.size());
+  CHECK(count.size() == uniqueIndices.size());
+  CHECK(work.size() == uniqueIndices.size());
   {
     int tmp = maxCount;
     MPI_Allreduce(&tmp, &maxCount, 1, MPI_INT, MPI_MAX, Communicator::communicator());
@@ -210,8 +210,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //   {
 //     for (int ii = 0; ii != numProcs; ++ii) {
 //       if (procID == ii) {
-//         for (size_t i = 0; i != uniqueIndicies.size(); ++i) {
-//           cerr << uniqueIndicies[i] << endl;
+//         for (size_t i = 0; i != uniqueIndices.size(); ++i) {
+//           cerr << uniqueIndices[i] << endl;
 //         }
 //       }
 //       MPI_Barrier(Communicator::communicator());
@@ -219,14 +219,14 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 //   }
 //   // DEBUG
 
-  // Figure out the range of hashed indicies we want for each process.
-  // Note this will not be optimal when there are degnerate indicies!
+  // Figure out the range of hashed indices we want for each process.
+  // Note this will not be optimal when there are degnerate indices!
   Key lowerBound = indexMin;
   vector<pair<Key, Key> > indexRanges;
   for (int iProc = 0; iProc != numProcs; ++iProc) {
     Key upperBound;
     int numNodes;
-    findUpperKey(uniqueIndicies,
+    findUpperKey(uniqueIndices,
                  count,
                  work,
                  lowerBound,
@@ -236,17 +236,17 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                  maxNodes,
                  upperBound,
                  numNodes);
-//     cerr << "Chose indicies in range: "
+//     cerr << "Chose indices in range: "
 //          << lowerBound << " " << upperBound << endl;
 //     if (procID == 0) cerr << "  range [" 
 //                           << lowerBound << " " 
 //                           << upperBound << "], work in range "
-//                           << workInRange(uniqueIndicies, work, lowerBound, upperBound)
+//                           << workInRange(uniqueIndices, work, lowerBound, upperBound)
 //                           << ", num in range "
-//                           << numIndiciesInRange(uniqueIndicies, count, lowerBound, upperBound)
+//                           << numIndicesInRange(uniqueIndices, count, lowerBound, upperBound)
 //                           << endl;
     indexRanges.push_back(pair<Key, Key>(lowerBound, upperBound));
-    lowerBound = findNextIndex(uniqueIndicies, upperBound, indexMax);
+    lowerBound = findNextIndex(uniqueIndices, upperBound, indexMax);
   }
   CHECK(lowerBound == indexMax);
   CHECK(indexRanges[0].first == indexMin);
@@ -256,8 +256,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // We now know the target index range for each domain.
   // Go through our local DomainNode set and assign them appropriately.
   nodeDistribution = vector<DomainNode<Dimension> >();
-  for (typename vector<pair<Key, DomainNode<Dimension> > >::iterator itr = sortedIndicies.begin();
-       itr != sortedIndicies.end();
+  for (typename vector<pair<Key, DomainNode<Dimension> > >::iterator itr = sortedIndices.begin();
+       itr != sortedIndices.end();
        ++itr) {
     nodeDistribution.push_back(itr->second);
     nodeDistribution.back().domainID = domainForIndex(itr->first, indexRanges);
@@ -273,7 +273,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // At this point we have the nodes on each domain, but they are not sorted locally.
   // That is the next step.  Rebuild the local sorting.
   nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs);
-  sortedIndicies = buildIndex2IDPairs(indicies, nodeDistribution);
+  sortedIndices = buildIndex2IDPairs(indices, nodeDistribution);
 
   // Extract the desired node orderings for each NodeList.
   const size_t numNodeLists = dataBase.numNodeLists();
@@ -282,8 +282,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) orderings.push_back(vector<int>((*nodeListItr)->numInternalNodes()));
-  for (typename vector<pair<Key, DomainNode<Dimension> > >::const_iterator itr = sortedIndicies.begin();
-       itr != sortedIndicies.end();
+  for (typename vector<pair<Key, DomainNode<Dimension> > >::const_iterator itr = sortedIndices.begin();
+       itr != sortedIndices.end();
        ++itr) {
     const DomainNode<Dimension>& node = itr->second;
     CHECK(node.nodeListID >= 0 and node.nodeListID < numNodeLists);
@@ -323,7 +323,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
          nodeListItr != dataBase.nodeListEnd();
          ++nodeListItr) {
-      const Field<Dimension, Key> keyField = **indicies.fieldForNodeList(**nodeListItr);
+      const Field<Dimension, Key> keyField = **indices.fieldForNodeList(**nodeListItr);
       for (int i = 1; i < (*nodeListItr)->numInternalNodes(); ++i) {
         ENSURE(keyField(i) >= keyField(i - 1));
       }
@@ -344,7 +344,7 @@ SpaceFillingCurveRedistributeNodes<Dimension>::
 computeStepSize(const pair<typename Dimension::Vector, typename Dimension::Vector>& box) const {
   // We choose the number of cells per dimension to be the maximum power of 2 such that
   // mNumGridCellsPerSide**3 < 2**64, so
-  // that the indicies will fit into a 64 bit Key.  This gives us 2**21.
+  // that the indices will fit into a 64 bit Key.  This gives us 2**21.
   const Vector result = (box.second - box.first)/1048576;
 //   const Vector result = (box.second - box.first)/2097152;
   ENSURE(result > 0.0);
@@ -357,17 +357,17 @@ computeStepSize(const pair<typename Dimension::Vector, typename Dimension::Vecto
 template<typename Dimension>
 vector<pair<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key, DomainNode<Dimension> > >
 SpaceFillingCurveRedistributeNodes<Dimension>::
-buildIndex2IDPairs(const FieldList<Dimension, typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+buildIndex2IDPairs(const FieldList<Dimension, typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
                    const vector<DomainNode<Dimension> >& domainNodes) const {
 
   vector<pair<Key, DomainNode<Dimension> > > result;
   result.reserve(domainNodes.size());
   size_t i = 0;
-  for (InternalNodeIterator<Dimension> nodeItr = indicies.internalNodeBegin();
-       nodeItr != indicies.internalNodeEnd();
+  for (InternalNodeIterator<Dimension> nodeItr = indices.internalNodeBegin();
+       nodeItr != indices.internalNodeEnd();
        ++nodeItr, ++i) {
     CHECK(i < domainNodes.size());
-    result.push_back(pair<Key, DomainNode<Dimension> >(indicies(nodeItr),
+    result.push_back(pair<Key, DomainNode<Dimension> >(indices(nodeItr),
                                                                  domainNodes[i]));
   }
   ENSURE(i == domainNodes.size());
@@ -381,13 +381,13 @@ buildIndex2IDPairs(const FieldList<Dimension, typename SpaceFillingCurveRedistri
 //------------------------------------------------------------------------------
 // Find the (global) hashed index the given amount of work above the specified
 // lower bound.
-// We assume here that the vector<indicies> is unique, and the associated 
+// We assume here that the vector<indices> is unique, and the associated 
 // work array contains the work per node for each index.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename SpaceFillingCurveRedistributeNodes<Dimension>::Key
 SpaceFillingCurveRedistributeNodes<Dimension>::
-findUpperKey(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+findUpperKey(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
              const vector<int>& count,
              const vector<typename Dimension::Scalar>& work,
              const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key lowerBound,
@@ -397,8 +397,8 @@ findUpperKey(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>
              const int maxNodes,
              Key& upperBound1,
              int& numNodes) const {
-  REQUIRE(count.size() == indicies.size());
-  REQUIRE(work.size() == indicies.size());
+  REQUIRE(count.size() == indices.size());
+  REQUIRE(work.size() == indices.size());
   REQUIRE(lowerBound <= maxUpperBound);
   REQUIRE(workTarget > 0.0);
   
@@ -410,7 +410,7 @@ findUpperKey(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>
     CHECK(trialUpperBound >= upperBound0 and
           trialUpperBound <= upperBound1);
     Scalar workTrial;
-    workAndNodesInRange(indicies, count, work, lowerBound, trialUpperBound, numNodes, workTrial);
+    workAndNodesInRange(indices, count, work, lowerBound, trialUpperBound, numNodes, workTrial);
 //     if (procID == 0) cerr << "  --> [" 
 //                           << upperBound0 << " " << trialUpperBound 
 //                           << "]   "
@@ -437,26 +437,26 @@ findUpperKey(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>
 }
 
 //------------------------------------------------------------------------------
-// Compute the (global) number of nodes in the given range of indicies.
+// Compute the (global) number of nodes in the given range of indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 int
 SpaceFillingCurveRedistributeNodes<Dimension>::
-numIndiciesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+numIndicesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
                    const vector<int>& count,
                    const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key lowerBound,
                    const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key upperBound) const {
   REQUIRE(lowerBound <= upperBound);
 
-  // Find the positions of the requested range in our local set of indicies.
-  const int ilower = max(0, bisectSearch(indicies, lowerBound));
-  const int iupper = max(0, std::min(int(indicies.size()) - 1, bisectSearch(indicies, upperBound)));
+  // Find the positions of the requested range in our local set of indices.
+  const int ilower = max(0, bisectSearch(indices, lowerBound));
+  const int iupper = max(0, std::min(int(indices.size()) - 1, bisectSearch(indices, upperBound)));
 
   // Count up how many of the suckers we have locally.
   int result = 0;
   for (int i = ilower; i != iupper + 1; ++i) {
-    if (indicies[i] >= lowerBound and 
-        indicies[i] <= upperBound) result += count[i];
+    if (indices[i] >= lowerBound and 
+        indices[i] <= upperBound) result += count[i];
   }
 
   // Globally reduce that sucker.
@@ -467,26 +467,26 @@ numIndiciesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dime
 }
 
 //------------------------------------------------------------------------------
-// Compute the (global) work for the nodes in the given range of indicies.
+// Compute the (global) work for the nodes in the given range of indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 SpaceFillingCurveRedistributeNodes<Dimension>::
-workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
             const vector<typename Dimension::Scalar>& work,
             const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key lowerBound,
             const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key upperBound) const {
   REQUIRE(lowerBound <= upperBound);
 
-  // Find the positions of the requested range in our local set of indicies.
-  const int ilower = max(0, bisectSearch(indicies, lowerBound));
-  const int iupper = max(0, min(int(int(indicies.size()) - 1), bisectSearch(indicies, upperBound)));
+  // Find the positions of the requested range in our local set of indices.
+  const int ilower = max(0, bisectSearch(indices, lowerBound));
+  const int iupper = max(0, min(int(int(indices.size()) - 1), bisectSearch(indices, upperBound)));
 
   // Sum our local work.
   Scalar result = 0;
   for (int i = ilower; i != iupper + 1; ++i) {
-    if (indicies[i] >= lowerBound and 
-        indicies[i] <= upperBound) result += work[i];
+    if (indices[i] >= lowerBound and 
+        indices[i] <= upperBound) result += work[i];
   }
 
   // Globally reduce that sucker.
@@ -498,12 +498,12 @@ workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>:
 
 //------------------------------------------------------------------------------
 // Compute the (global) work and number of nodes for the nodes in the given
-//  range of indicies.
+//  range of indices.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SpaceFillingCurveRedistributeNodes<Dimension>::
-workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
                     const vector<int>& count,
                     const vector<typename Dimension::Scalar>& work,
                     const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key lowerBound,
@@ -513,16 +513,16 @@ workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dim
 
   REQUIRE(lowerBound <= upperBound);
 
-  // Find the positions of the requested range in our local set of indicies.
-  const int ilower = max(0, bisectSearch(indicies, lowerBound));
-  const int iupper = max(0, min(int(int(indicies.size()) - 1), bisectSearch(indicies, upperBound)));
+  // Find the positions of the requested range in our local set of indices.
+  const int ilower = max(0, bisectSearch(indices, lowerBound));
+  const int iupper = max(0, min(int(int(indices.size()) - 1), bisectSearch(indices, upperBound)));
 
   // Sum our local work.
   Scalar localWork = 0.0;
   int localCount = 0;
   for (int i = ilower; i != iupper + 1; ++i) {
-    if (indicies[i] >= lowerBound and 
-        indicies[i] <= upperBound) {
+    if (indices[i] >= lowerBound and 
+        indices[i] <= upperBound) {
       localWork += work[i];
       localCount += count[i];
     }
@@ -556,17 +556,17 @@ targetNumNodes(const int numGlobal,
 template<typename Dimension>
 typename SpaceFillingCurveRedistributeNodes<Dimension>::Key
 SpaceFillingCurveRedistributeNodes<Dimension>::
-findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indicies,
+findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>::Key>& indices,
               const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key index,
               const typename SpaceFillingCurveRedistributeNodes<Dimension>::Key maxIndex) const {
 
   // Find the position of the given index in our local array.
-  const int inext = bisectSearch(indicies, index) + 1;
-  CHECK(inext >= 0 and inext <= indicies.size());
+  const int inext = bisectSearch(indices, index) + 1;
+  CHECK(inext >= 0 and inext <= indices.size());
 
   // The next value on this processor.
   Key result = maxIndex;
-  if (inext < indicies.size() and indicies[inext] > index) result = indicies[inext];
+  if (inext < indices.size() and indices[inext] > index) result = indices[inext];
 //   cerr << "  Local result: " << result << endl;
   MPI_Barrier(Communicator::communicator());
 

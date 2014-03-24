@@ -8,8 +8,8 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/rotationMatrix.hh"
 #include "Utilities/iterateIdealH.hh"
-#include "Utilities/mortonOrderIndicies.hh"
-#include "Utilities/peanoHilbertOrderIndicies.hh"
+#include "Utilities/mortonOrderIndices.hh"
+#include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/testBoxIntersection.hh"
@@ -140,20 +140,20 @@ rotationMatrix3d(const Dim<3>::Vector& runit) {
 //------------------------------------------------------------------------------
 inline
 FieldSpace::FieldList<Dim<1>, uint64_t>
-mortonOrderIndicies1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase) {
-  return mortonOrderIndicies(dataBase);
+mortonOrderIndices1d(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positions) {
+  return mortonOrderIndices(positions);
 }
 
 inline
 FieldSpace::FieldList<Dim<2>, uint64_t>
-mortonOrderIndicies2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase) {
-  return mortonOrderIndicies(dataBase);
+mortonOrderIndices2d(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& positions) {
+  return mortonOrderIndices(positions);
 }
 
 inline
 FieldSpace::FieldList<Dim<3>, uint64_t>
-mortonOrderIndicies3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
-  return mortonOrderIndicies(dataBase);
+mortonOrderIndices3d(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& positions) {
+  return mortonOrderIndices(positions);
 }
 
 //------------------------------------------------------------------------------
@@ -161,23 +161,44 @@ mortonOrderIndicies3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
 //------------------------------------------------------------------------------
 inline
 FieldSpace::FieldList<Dim<1>, uint64_t>
-mortonOrderIndicies1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase,
+mortonOrderIndices1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase) {
+  return mortonOrderIndices(dataBase);
+}
+
+inline
+FieldSpace::FieldList<Dim<2>, uint64_t>
+mortonOrderIndices2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase) {
+  return mortonOrderIndices(dataBase);
+}
+
+inline
+FieldSpace::FieldList<Dim<3>, uint64_t>
+mortonOrderIndices3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
+  return mortonOrderIndices(dataBase);
+}
+
+//------------------------------------------------------------------------------
+// And these...
+//------------------------------------------------------------------------------
+inline
+FieldSpace::FieldList<Dim<1>, uint64_t>
+mortonOrderIndices1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase,
                       const FieldList<Dim<1>, int>& mask) {
-  return mortonOrderIndicies(dataBase, mask);
+  return mortonOrderIndices(dataBase, mask);
 }
 
 inline
 FieldSpace::FieldList<Dim<2>, uint64_t>
-mortonOrderIndicies2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase,
+mortonOrderIndices2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase,
                       const FieldList<Dim<2>, int>& mask) {
-  return mortonOrderIndicies(dataBase, mask);
+  return mortonOrderIndices(dataBase, mask);
 }
 
 inline
 FieldSpace::FieldList<Dim<3>, uint64_t>
-mortonOrderIndicies3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
+mortonOrderIndices3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
                       const FieldList<Dim<3>, int>& mask) {
-  return mortonOrderIndicies(dataBase, mask);
+  return mortonOrderIndices(dataBase, mask);
 }
 
 //------------------------------------------------------------------------------
@@ -185,20 +206,41 @@ mortonOrderIndicies3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase,
 //------------------------------------------------------------------------------
 inline
 FieldSpace::FieldList<Dim<1>, uint64_t>
-peanoHilbertOrderIndicies1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase) {
-  return peanoHilbertOrderIndicies(dataBase);
+peanoHilbertOrderIndices1d(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& positions) {
+  return peanoHilbertOrderIndices(positions);
 }
 
 inline
 FieldSpace::FieldList<Dim<2>, uint64_t>
-peanoHilbertOrderIndicies2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase) {
-  return peanoHilbertOrderIndicies(dataBase);
+peanoHilbertOrderIndices2d(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& positions) {
+  return peanoHilbertOrderIndices(positions);
 }
 
 inline
 FieldSpace::FieldList<Dim<3>, uint64_t>
-peanoHilbertOrderIndicies3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
-  return peanoHilbertOrderIndicies(dataBase);
+peanoHilbertOrderIndices3d(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& positions) {
+  return peanoHilbertOrderIndices(positions);
+}
+
+//------------------------------------------------------------------------------
+// And these...
+//------------------------------------------------------------------------------
+inline
+FieldSpace::FieldList<Dim<1>, uint64_t>
+peanoHilbertOrderIndices1d(const DataBaseSpace::DataBase<Dim<1> >& dataBase) {
+  return peanoHilbertOrderIndices(dataBase);
+}
+
+inline
+FieldSpace::FieldList<Dim<2>, uint64_t>
+peanoHilbertOrderIndices2d(const DataBaseSpace::DataBase<Dim<2> >& dataBase) {
+  return peanoHilbertOrderIndices(dataBase);
+}
+
+inline
+FieldSpace::FieldList<Dim<3>, uint64_t>
+peanoHilbertOrderIndices3d(const DataBaseSpace::DataBase<Dim<3> >& dataBase) {
+  return peanoHilbertOrderIndices(dataBase);
 }
 
 //------------------------------------------------------------------------------
