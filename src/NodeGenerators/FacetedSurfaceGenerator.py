@@ -174,9 +174,14 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         # Get the facets we need to extrude.
         if flags is None:
             facets = surfaceFacets
+            realFacetIDs = range(len(facets))
+            flags = [1]*len(facets)
         else:
             assert len(flags) == len(surfaceFacets)
-            facets = [surfaceFacets[i] for i in xrange(len(surfaceFacets)) if (flags[i] == 1)]
+            realFacetIDs = [fi for fi in xrange(len(surfaceFacets)) if (flags[fi] == 1)]
+            facets = [surfaceFacets[i] for i in realFacetIDs]
+            print "flags        : ", flags[0:10]
+            print "realFacetIDs : ", realFacetIDs[0:10]
         
         # Find the maximum extent we need to use to cover the volumes of all extruded
         # facets.
@@ -261,8 +266,8 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                     
         # We need all the extruded facet polyhedra.  In general these may be intersecting!
         self.extrudedFacets, localExtrudedFacets = [], []
-        for fi in xrange(imin, imax):
-            f = facets[fi]
+        for i in xrange(imin, imax):
+            f = facets[i]
             p = f.position
             verts = vector_of_Vector()
             for ip in f.ipoints:
@@ -277,23 +282,29 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
 
         # Now walk the facets and build our values.
         self.x, self.y, self.z, self.m, self.H, self.node2facet = [], [], [], [], [], []
-        for fi in xrange(imin, imax):
-            f = facets[fi]
+        for i in xrange(imin, imax):
+            f = facets[i]
+            fi = realFacetIDs[i]
+            neighbors = facetNeighbors[fi]
+            if not (fi in neighbors):
+                import sys
+                sys.stderr.write("%i %i, %s\n" % (i, fi, [j for j in neighbors]))
+            assert (fi in neighbors)
             p = f.position
             nhat = f.normal
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
-            for i in xrange(len(rt)):
-                ri = Ti*rt[i] + p
-                if self.extrudedFacets[fi].contains(ri) and surface.contains(ri):
-                    stuff = [(surfaceFacets[j].distance(ri), j) for j in facetNeighbors[fi] if flags[j] == 1]
+            for j in xrange(len(rt)):
+                rj = Ti*rt[j] + p
+                if self.extrudedFacets[i].contains(rj) and surface.contains(rj):
+                    stuff = [(surfaceFacets[k].distance(rj), k) for k in neighbors if flags[k] == 1]
                     stuff.sort()
                     if stuff[0][1] == fi:
-                        self.x.append(ri.x)
-                        self.y.append(ri.y)
-                        self.z.append(ri.z)
-                        self.m.append(mt[i])
-                        self.H.append(SymTensor(Ht[i]))
+                        self.x.append(rj.x)
+                        self.y.append(rj.y)
+                        self.z.append(rj.z)
+                        self.m.append(mt[j])
+                        self.H.append(SymTensor(Ht[j]))
                         self.H[-1].rotationalTransform(Ti)
                         self.node2facet.append(fi)
         self.rho = [rho] * len(self.x)
