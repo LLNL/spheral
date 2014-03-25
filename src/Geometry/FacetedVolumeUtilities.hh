@@ -46,6 +46,7 @@ computeAncillaryGeometry(const PolyType& poly,
       vertexFacetConnectivity[i].assign(uniqueFacetIDs[i].begin(), uniqueFacetIDs[i].end());
     }
   }
+  CHECK(vertexFacetConnectivity.size() == nverts);
 
   // Construct the facet->facet connectivity.
   facetFacetConnectivity = vector<vector<unsigned> >(nfacets);
@@ -61,6 +62,7 @@ computeAncillaryGeometry(const PolyType& poly,
       CHECK(find(facetFacetConnectivity[i].begin(), facetFacetConnectivity[i].end(), i) != facetFacetConnectivity[i].end());
     }
   }
+  CHECK(facetFacetConnectivity.size() == nfacets);
 
   // Find the normals to the surface at each vertex.
   vertexUnitNormals = vector<Vector>(nverts);
@@ -70,6 +72,7 @@ computeAncillaryGeometry(const PolyType& poly,
     }
     vertexUnitNormals[i] = vertexUnitNormals[i].unitVector();
   }
+  CHECK(vertexUnitNormals.size() == nverts);
 }
 
 }

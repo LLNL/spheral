@@ -274,7 +274,7 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mVertices(rhs.mVertices),
   mFacets(),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
-  mFacetFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
   mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
@@ -596,6 +596,7 @@ reconstruct(const vector<GeomPolyhedron::Vector>& vertices,
   mConvex = this->convex();
   GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
   ENSURE(mFacets.size() == numFacets);
+  ENSURE(mFacetFacetConnectivity.size() == numFacets);
 }
 
 //------------------------------------------------------------------------------
