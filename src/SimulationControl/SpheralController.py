@@ -150,7 +150,7 @@ class SpheralController(RestartableObject):
         self.integrator.currentTime = initialTime
 
         # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None:
+        if restoreCycle is None and not skipInitialPeriodicWork:
             self.iterateIdealH()
 
         # Initialize the integrator and packages.
