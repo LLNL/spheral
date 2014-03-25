@@ -186,7 +186,7 @@ GeomPolygon(const GeomPolygon& rhs):
   mVertices(rhs.mVertices),
   mFacets(),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
-  mFacetFacetConnectivity(rhs.mVertexFacetConnectivity),
+  mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
   mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
@@ -482,6 +482,7 @@ reconstruct(const vector<GeomPolygon::Vector>& vertices,
   mConvex = this->convex();
   GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
   ENSURE(mFacets.size() == facetVertices.size());
+  ENSURE(mFacetFacetConnectivity.size() == mFacets.size());
 }
 
 //------------------------------------------------------------------------------
