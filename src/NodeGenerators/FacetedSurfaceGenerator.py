@@ -180,8 +180,6 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             assert len(flags) == len(surfaceFacets)
             realFacetIDs = [fi for fi in xrange(len(surfaceFacets)) if (flags[fi] == 1)]
             facets = [surfaceFacets[i] for i in realFacetIDs]
-            print "flags        : ", flags[0:10]
-            print "realFacetIDs : ", realFacetIDs[0:10]
         
         # Find the maximum extent we need to use to cover the volumes of all extruded
         # facets.
@@ -265,6 +263,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 imax = 0
                     
         # We need all the extruded facet polyhedra.  In general these may be intersecting!
+        print "FacetedSurfaceGenerator: building extruded facets..."
         self.extrudedFacets, localExtrudedFacets = [], []
         for i in xrange(imin, imax):
             f = facets[i]
@@ -281,22 +280,19 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         assert len(self.extrudedFacets) == len(facets)
 
         # Now walk the facets and build our values.
-        self.x, self.y, self.z, self.m, self.H, self.node2facet = [], [], [], [], [], []
+        print "FacetedSurfaceGenerator: seeding points..."
+        self.x, self.y, self.z, self.m, self.H, self.nodes2facets = [], [], [], [], [], []
         for i in xrange(imin, imax):
             f = facets[i]
             fi = realFacetIDs[i]
             neighbors = facetNeighbors[fi]
-            if not (fi in neighbors):
-                import sys
-                sys.stderr.write("%i %i, %s\n" % (i, fi, [j for j in neighbors]))
-            assert (fi in neighbors)
             p = f.position
             nhat = f.normal
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
             for j in xrange(len(rt)):
                 rj = Ti*rt[j] + p
-                if self.extrudedFacets[i].contains(rj) and surface.contains(rj):
+                if self.extrudedFacets[i].contains(rj): # and surface.contains(rj):
                     stuff = [(surfaceFacets[k].distance(rj), k) for k in neighbors if flags[k] == 1]
                     stuff.sort()
                     if stuff[0][1] == fi:
@@ -306,11 +302,11 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                         self.m.append(mt[j])
                         self.H.append(SymTensor(Ht[j]))
                         self.H[-1].rotationalTransform(Ti)
-                        self.node2facet.append(fi)
+                        self.nodes2facets.append(fi)
         self.rho = [rho] * len(self.x)
         
         # Invoke the base class to finish up.
-        NodeGeneratorBase.__init__(self, False, self.x, self.y, self.z, self.m, self.H, self.rho, self.node2facet)
+        NodeGeneratorBase.__init__(self, False, self.x, self.y, self.z, self.m, self.H, self.rho, self.nodes2facets)
 
         return
 
