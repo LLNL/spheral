@@ -96,7 +96,8 @@ C_OPT:=@OPT@
 endif
 
 #set compile line here
-CC =  @CC@
+LD = @LD@
+CC = @CC@
 CXX = @CXX@
 FORT = @FORT@
 MPICC = @MPICC@
@@ -308,7 +309,7 @@ $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(LD) $(DYNLIBFLAG) $(LDINSTALLNAME) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------

@@ -61,6 +61,14 @@ SETUP_MPI
 # -----------------------------------------------
 SETUP_COMPILERS_THE_WAY_I_WANT
 
+# -----------------------------------------------
+# Optionally build the CXX libraries as static.
+# This really only works for CXX only builds
+# currently.
+# (m4macros/static_build.m4)
+# -----------------------------------------------
+SETUP_STATIC_BUILD
+
 # ----------------------------------------------
 # Setup up compiler flags for spheral depending
 # on the compiler
