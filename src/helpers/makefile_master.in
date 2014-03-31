@@ -78,6 +78,7 @@ PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
 OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o)
+LOBJS = $(SRCTARGETS:.cc=.lo) $(FSRCTARGETS:.f=.lo)
 
 TAULIBS = # @TAULIBS@
 LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
@@ -96,7 +97,8 @@ C_OPT:=@OPT@
 endif
 
 #set compile line here
-LD = @LD@
+LIBTOOL = @LIBTOOL@
+LIBTOOLLINKFLAGS = @LIBTOOLLINKFLAGS@
 CC = @CC@
 CXX = @CXX@
 FORT = @FORT@
@@ -227,10 +229,10 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(LIBTOOL) --mode=compile --tag=CXX $(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 %.o: %.f
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(LIBTOOL) --mode=compile --tag=FC $(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 # %.C: %.py # $(MODPKGS)
 # 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
@@ -309,7 +311,7 @@ $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(LD) $(DYNLIBFLAG) $(LDINSTALLNAME) -o $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(LIBTOOL) $(LIBTOOLLINKFLAGS) $(LDINSTALLNAME) $(MPICXX) -o $(LIBTARGET) $(LOBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
