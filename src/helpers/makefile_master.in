@@ -78,7 +78,6 @@ PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
 OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o)
-LOBJS = $(SRCTARGETS:.cc=.lo) $(FSRCTARGETS:.f=.lo)
 
 TAULIBS = # @TAULIBS@
 LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
@@ -97,8 +96,6 @@ C_OPT:=@OPT@
 endif
 
 #set compile line here
-LIBTOOL = @LIBTOOL@
-LIBTOOLLINKFLAGS = @LIBTOOLLINKFLAGS@
 CC = @CC@
 CXX = @CXX@
 FORT = @FORT@
@@ -139,6 +136,10 @@ LDINSTALLNAME = @LDINSTALLNAME@
 MODULELINK = @MODULELINK@
 LIBTARGETFLAGS = @LIBTARGETFLAGS@
 SHLIBEXT = @SHLIBEXT@
+
+#-------------------------------------------------------------------------------
+# Static lib based on the dynamic library.
+STATICLIBTARGET = $(LIBTARGET:.$(DYLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
@@ -200,7 +201,7 @@ CONFIG_SHELL=@CONFIG_SHELL@
 
 all:	@ALL@
 
-cxxonly:	$(LIBTARGET)
+cxxonly:	$(STATICLIBTARGET)
 
 install-headers:
 ifneq ($(HEADERS),)
@@ -229,10 +230,10 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
 
 %.o: %.cc
-	$(LIBTOOL) --mode=compile --tag=CXX $(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 %.o: %.f
-	$(LIBTOOL) --mode=compile --tag=FC $(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
 # %.C: %.py # $(MODPKGS)
 # 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
@@ -311,8 +312,17 @@ $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(LIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(LIBTOOL) $(LIBTOOLLINKFLAGS) $(LDINSTALLNAME) $(MPICXX) -o $(LIBTARGET) $(LOBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
 	cp -f $(LIBTARGET) $(LIBDIR)
+
+#-------------------------------------------------------------------------------
+$(STATICLIBTARGET): $(LIBTARGET)
+	@echo "################################################################################"
+	@echo "# Building library $(STATICLIBTARGET)"
+	@echo "################################################################################"
+	@mkdir -p $(LIBDIR)
+	ar -rvs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
+	cp -f $(STATICLIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
 $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
@@ -320,7 +330,7 @@ $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
 	@echo "# Building library $(THIRDPARTYLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(THIRDPARTYLIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) -o $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) $(THIRDPARTYLIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(THIRDPARTYLIBTARGET) $(THIRDPARTYLIBDIR)
 
 #-------------------------------------------------------------------------------
