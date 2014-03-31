@@ -63,7 +63,7 @@ AC_SUBST(PYTHONCONFFLAGS)
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
 JAMTOOLSETOPTS=
-LDINSTALLNAME=
+LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
 
@@ -520,7 +520,7 @@ elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
 
 elif test "$OSNAME" = "Darwin"; then
   LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
-  LDINSTALLNAME="$LDINSTALLNAME -install_name @rpath/\${@}"
+  LDINSTALLNAME="-install_name @rpath/\${@} -o"
 
 #   # On Mac OS X Darwin, you install libraries with an "dylib_install_name" flag to avoid
 #   # using rpath or DYLD_LIBRARY_PATH nonsense when linking to these libraries.

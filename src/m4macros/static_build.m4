@@ -3,19 +3,16 @@
 # targets.
 # -----------------------------------------------------------------
 AC_DEFUN([SETUP_STATIC_BUILD],[
-AC_SUBST(LIBTOOL)
-AC_SUBST(LIBTOOLLINKFLAGS)
 AC_SUBST(DYLIBEXT)
-
-LIBTOOL="libtool"
-LIBTOOLLINKFLAGS="--mode=link --tag=CXX"
+AC_SUBST(LD)
+AC_SUBST(LDINSTALLNAME)
 
 AC_MSG_CHECKING(for --with-static-libs)
 AC_ARG_WITH(static-libs,
 [  --with-static-libs ....................... link C++ libs statically (only works for cxxonly builds)],
 [
     AC_MSG_RESULT(yes)
-    DYLIBEXT=la
+    DYLIBEXT=a 
 ],
 [
     AC_MSG_RESULT(no)

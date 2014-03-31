@@ -67,7 +67,7 @@ SETUP_COMPILERS_THE_WAY_I_WANT
 # currently.
 # (m4macros/static_build.m4)
 # -----------------------------------------------
-SETUP_STATIC_BUILD
+# SETUP_STATIC_BUILD
 
 # ----------------------------------------------
 # Setup up compiler flags for spheral depending
