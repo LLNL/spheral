@@ -261,13 +261,6 @@ Additionally, it is up to the user to provide where the necessary third party
 libraries are installed via the \verb.EXTRAINCLUDES. and
 \verb.EXTRALIBS. compile arguments.
 
-There is an additional configure option available for C++ only builds:
-\verb.--with-static-libs..  If \verb.--with-static-libs. is chosen then the C++
-libraries will be built as static libraries (i.e., ``.a'' rather than ``.so''
-targets).  Note however currently this option {\em only} works with C++ only
-builds: a standard \Spheral\ build with the full python interface should not
-choose this option.
-
 Consider the following example.  We want to install a C++ only optimized build under
 \verb./usr/local/Spheral/cxx..  We have previously installed the necessary
 third party libraries (with their headers) under some place we'll refer to as
@@ -283,6 +276,9 @@ make cxxonly EXTRAINCLUDES='-I TPL_TOP/include \
 This will resulting \Spheral\ headers will be installed under
 \verb./usr/local/Spheral/cxx/include. and the corresponding libraries in
 \verb./usr/local/Spheral/cxx/lib..
+Note that in C++ only mode \Spheral\ builds and installs both static and shared
+versions of the libraries.  This is different than the standard build which
+currently only suports shared libraries.
 
 %-------------------------------------------------------------------------------
 \section{Running \Spheral}
