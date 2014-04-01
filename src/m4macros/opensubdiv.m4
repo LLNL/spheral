@@ -6,16 +6,16 @@ AC_SUBST(OPENSUBDIVTARGETS)
 AC_SUBST(OPENSUBDIVLIBS)
 AC_SUBST(CXXFLAGS)
 
-AC_MSG_CHECKING(for --with-opensubdiv)
+AC_MSG_CHECKING(for --without-opensubdiv)
 AC_ARG_WITH(opensubdiv,
-[  --with-opensubdiv ........................ build the opensubdiv python package],
+[  --without-opensubdiv ..................... do not build the opensubdiv package],
 [
-    AC_MSG_RESULT(no)
+    AC_MSG_RESULT(yes)
     OPENSUBDIVTARGETS=""
     OPENSUBDIVLIBS=""
 ],
 [
-    AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(no)
     OPENSUBDIVTARGETS=".OpenSubdiv-master.date"
     OPENSUBDIVLIBS="-losdCPU -losdutil"
     CXXFLAGS="$CXXFLAGS -DHAVE_OPENSUBDIV"
