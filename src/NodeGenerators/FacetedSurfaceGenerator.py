@@ -157,6 +157,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
 
     def __init__(self,
                  surface,
+                 lconstant,
                  lextrude,
                  nextrude,
                  dltarget,
@@ -170,6 +171,13 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         surfaceVertices = surface.vertices()
         vertexNorms = surface.vertexUnitNorms()
         facetNeighbors = surface.facetFacetConnectivity()
+
+        assert lconstant <= lextrude
+
+        # Figure out the extent and resolution of the ratioed region.
+        nconstant = int(lconstant/dltarget + 0.5)
+        lratioed = lextrude - lconstant
+        nratioed = nextrude - nconstant
 
         # Get the facets we need to extrude.
         if flags is None:
@@ -197,37 +205,39 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         # Find the ratio needed for the spacing in the x direction.
         # We have to check for ratio=1 explicitly, since the series sum
         # doesn't work in that case.
-        if abs(lextrude - nextrude*dltarget) < 1e-5*lextrude:
+        if abs(lratioed - nratioed*dltarget) < 1e-5*lratioed:
             ratio = 1.0
-            l = lextrude
+            l = lratioed
             dx = dltarget
         else:
-            stuff = [0.0]*(nextrude + 1)
-            stuff[0:1] = [dltarget - lextrude, -lextrude]
+            stuff = [0.0]*(nratioed + 1)
+            stuff[0:1] = [dltarget - lratioed, -lratioed]
             stuff[-1] = dltarget
             p = P(stuff, [1.0e-3, 1.0e10], [1.0e-3, 1.0e10])
             complex_ratio = p.roots()[-1]
             assert complex_ratio.imag == 0.0
             ratio = complex_ratio.real
         
-            # Unfortnately the root finding above isn't 100% accurate, so we 
+            # Unfortunately the root finding above isn't 100% accurate, so we 
             # adjust the initial step size to get the correct total length.
-            l = dltarget*(1.0 - ratio**nextrude)/(1.0 - ratio)
-            dx = dltarget * lextrude/l
+            l = dltarget*(1.0 - ratio**nratioed)/(1.0 - ratio)
+            dx = dltarget # * lratioed/l
         if mpi.rank == 0:
             print "FacetedSurfaceGenerator: selected ratio=%g, dxfirst=%g, l=%g." % (ratio, dx, l)
         
         # Build the template values we'll use to stamp into each facet volume.
         rt, mt, Ht = [], [], []
-        xi = 0.0
         dxi = dx
-        for ix in xrange(nextrude):
-            dxi = dx*ratio**ix
-            if ratio == 1.0:
-                xi = -(ix + 0.5)*dx
+        xi = 0.5*dx
+        ix = -1
+        while xi > -lextrude:
+            ix += 1
+            if ix < nconstant:
+                dxi = dx # lconstant/nconstant
             else:
-                xi = -dx*(1.0 - ratio**ix)/(1.0 - ratio) + 0.5*dxi
-            ds = min(4.0*dstarget, max(dstarget, dxi))
+                dxi = dx*ratio**(ix - nconstant)
+            xi -= dxi
+            ds = min(2.0*dstarget, max(dstarget, dxi))
             ny = max(1, int((ymax - ymin)/ds + 0.5))
             nz = max(1, int((zmax - zmin)/ds + 0.5))
             dy = (ymax - ymin)/ny

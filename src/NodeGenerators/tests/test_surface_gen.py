@@ -15,9 +15,10 @@ surface = Polyhedron(verts)
 flags = [1, 1, 1, 0, 0, 0]
 
 gen = ExtrudedSurfaceGenerator(surface, 
-                               lextrude = 0.25, 
-                               nextrude = 10, 
-                               dltarget = 0.01, 
+                               lconstant = 0.05,
+                               lextrude = 0.5, 
+                               nextrude = 20, 
+                               dltarget = 0.005, 
                                dstarget = 0.1,
                                rho = 1.0,
                                flags = flags,
