@@ -189,11 +189,11 @@ class SPH:
         x.add_method("updateVolume", None, [refparam(state, "state"), param("bool", "boundaries")], is_const=True)
         x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
         x.add_method("dumpState", None, [refparam(fileio, "fileIO"),
-                                         refparam("std::string", "pathName")],
+                                         param("std::string", "pathName")],
                      is_const = True,
                      is_virtual = True)
-        x.add_method("restoreState", None, [refparam(fileio, "fileIO"),
-                                            refparam("std::string", "pathName")],
+        x.add_method("restoreState", None, [constrefparam(fileio, "fileIO"),
+                                            param("std::string", "pathName")],
                      is_virtual = True)
         
         # Attributes.
