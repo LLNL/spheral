@@ -198,8 +198,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SPHHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
 
 protected:
