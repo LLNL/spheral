@@ -13,7 +13,8 @@ SRCTARGETS = \
 
 PYTHONTARGETS = \
 	SPHHydros.py \
-	SPHUtilities.py
+	SPHUtilities.py \
+	FacetedSurfaceASPHHydro.py
 
 LINKLIST = linklist
 SPHERALTOP = ..
