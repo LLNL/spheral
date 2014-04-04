@@ -40,13 +40,13 @@ using FieldSpace::Field;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 NodeList<Dimension>::NodeList(std::string name,
-                              const int numInternal,
-                              const int numGhost,
+                              const unsigned numInternal,
+                              const unsigned numGhost,
                               const Scalar hmin,
                               const Scalar hmax,
                               const Scalar hminratio,
                               const Scalar nPerh,
-                              const int maxNumNeighbors):
+                              const unsigned maxNumNeighbors):
   mNumNodes(numInternal + numGhost),
   mFirstGhostNode(numInternal),
   mName(name),
@@ -98,10 +98,9 @@ NodeList<Dimension>::~NodeList() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-NodeList<Dimension>::numInternalNodes(int size) {
-  CHECK(size >= 0);
-  int numGhost = numGhostNodes();
-  int oldFirstGhostNode = mFirstGhostNode;
+NodeList<Dimension>::numInternalNodes(unsigned size) {
+  unsigned numGhost = numGhostNodes();
+  unsigned oldFirstGhostNode = mFirstGhostNode;
   mFirstGhostNode = size;
   mNumNodes = size + numGhost;
   for (FieldBaseIterator fieldPtrItr = mFieldBaseList.begin();
@@ -115,9 +114,8 @@ NodeList<Dimension>::numInternalNodes(int size) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-NodeList<Dimension>::numGhostNodes(int size) {
-  CHECK(size >= 0);
-  int numInternal = numInternalNodes();
+NodeList<Dimension>::numGhostNodes(unsigned size) {
+  unsigned numInternal = numInternalNodes();
   mNumNodes = numInternal + size;
   for (FieldBaseIterator fieldPtrItr = mFieldBaseList.begin();
        fieldPtrItr < mFieldBaseList.end(); ++fieldPtrItr) {
@@ -406,9 +404,9 @@ NodeList<Dimension>::nodeType(int i) const {
 // The index of the first ghost node.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-int
+unsigned 
 NodeList<Dimension>::firstGhostNode() const {
-  CHECK(mFirstGhostNode >=0 && mFirstGhostNode <= numNodes());
+  CHECK(mFirstGhostNode <= numNodes());
   return mFirstGhostNode;
 }
 

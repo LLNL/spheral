@@ -66,7 +66,7 @@ namespace Spheral {
 
 template<typename Type>
 inline
-int
+unsigned
 sizeGeomType(Type& self) {
   return DataTypeTraits<Type>::numElements(self);
 }

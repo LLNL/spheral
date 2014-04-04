@@ -1545,47 +1545,47 @@ operator<=(const DataType& rhs) const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 FieldList<Dimension, DataType>::numFields() const {
   return mFieldPtrs.size();
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 FieldList<Dimension, DataType>::size() const {
   return numFields();
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 FieldList<Dimension, DataType>::numNodes() const {
-  int numberOfNodes = 0;
+  unsigned numberOfNodes = 0;
   for (const_iterator iter = begin(); iter != end(); ++iter) {
-    numberOfNodes += static_cast<int>((*iter)->nodeList().numNodes());
+    numberOfNodes += (*iter)->nodeList().numNodes();
   }
   return numberOfNodes;
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 FieldList<Dimension, DataType>::numInternalNodes() const {
-  int numberOfNodes = 0;
+  unsigned numberOfNodes = 0;
   for (const_iterator iter = begin(); iter != end(); ++iter) {
-    numberOfNodes += static_cast<int>((*iter)->nodeList().numInternalNodes());
+    numberOfNodes += (*iter)->nodeList().numInternalNodes();
   }
   return numberOfNodes;
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 FieldList<Dimension, DataType>::numGhostNodes() const {
-  int numberOfNodes = 0;
+  unsigned numberOfNodes = 0;
   for (const_iterator iter = begin(); iter != end(); ++iter) {
-    numberOfNodes += static_cast<int>((*iter)->nodeList().numGhostNodes());
+    numberOfNodes += (*iter)->nodeList().numGhostNodes();
   }
   return numberOfNodes;
 }

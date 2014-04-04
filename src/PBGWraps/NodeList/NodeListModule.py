@@ -188,13 +188,13 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
 
         # Constructors.
         x.add_constructor([param("std::string", "name"),
-                           param("int", "numInternal", default_value="0"),
-                           param("int", "numGhost", default_value="0"),
+                           param("unsigned int", "numInternal", default_value="0"),
+                           param("unsigned int", "numGhost", default_value="0"),
                            param("double", "hmin", default_value="1.0e-20"),
                            param("double", "hmax", default_value="1.0e20"),
                            param("double", "hminratio", default_value="0.1"),
                            param("double", "nPerh", default_value="2.01"),
-                           param("int", "maxNumNeighbors", default_value="500")])
+                           param("unsigned int", "maxNumNeighbors", default_value="500")])
 
         # Methods.
         x.add_method("nodeType", "NodeType", [param("int", "ID")], is_const=True)
@@ -227,13 +227,13 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
 
         # Attributes.
         x.add_instance_attribute("name", "std::string", getter="name", is_const=True)
-        x.add_instance_attribute("numNodes", "int", getter="numNodes", is_const=True)
-        x.add_instance_attribute("numInternalNodes", "int", getter="numInternalNodes", setter="numInternalNodes")
-        x.add_instance_attribute("numGhostNodes", "int", getter="numGhostNodes", setter="numGhostNodes")
-        x.add_instance_attribute("numFields", "int", getter="numFields", is_const=True)
-        x.add_instance_attribute("firstGhostNode", "int", getter="firstGhostNode", is_const=True)
+        x.add_instance_attribute("numNodes", "unsigned int", getter="numNodes", is_const=True)
+        x.add_instance_attribute("numInternalNodes", "unsigned int", getter="numInternalNodes", setter="numInternalNodes")
+        x.add_instance_attribute("numGhostNodes", "unsigned int", getter="numGhostNodes", setter="numGhostNodes")
+        x.add_instance_attribute("numFields", "unsigned int", getter="numFields", is_const=True)
+        x.add_instance_attribute("firstGhostNode", "unsigned int", getter="firstGhostNode", is_const=True)
         x.add_instance_attribute("nodesPerSmoothingScale", "double", getter="nodesPerSmoothingScale", setter="nodesPerSmoothingScale")
-        x.add_instance_attribute("maxNumNeighbors", "int", getter="maxNumNeighbors", setter="maxNumNeighbors")
+        x.add_instance_attribute("maxNumNeighbors", "unsigned int", getter="maxNumNeighbors", setter="maxNumNeighbors")
         x.add_instance_attribute("hmin", "double", getter="hmin", setter="hmin")
         x.add_instance_attribute("hmax", "double", getter="hmax", setter="hmax")
         x.add_instance_attribute("hminratio", "double", getter="hminratio", setter="hminratio")

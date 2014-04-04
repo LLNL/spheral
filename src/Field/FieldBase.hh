@@ -57,12 +57,12 @@ public:
   void unregisterNodeList();
 
   // Methods every field must provide.
-  virtual int size() const = 0;
+  virtual unsigned size() const = 0;
   virtual void Zero() = 0;
   virtual void setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) = 0;
-  virtual void resizeField(int size) = 0;
-  virtual void resizeFieldInternal(int size, int oldFirstGhostNode) = 0;
-  virtual void resizeFieldGhost(int size) = 0;
+  virtual void resizeField(unsigned size) = 0;
+  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode) = 0;
+  virtual void resizeFieldGhost(unsigned size) = 0;
   virtual void deleteElement(int nodeID) = 0;
   virtual void deleteElements(const std::vector<int>& nodeIDs) = 0;
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const = 0;

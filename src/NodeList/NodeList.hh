@@ -69,13 +69,13 @@ public:
 
   // Constructors
   explicit NodeList(std::string name,
-                    const int numInternal,
-                    const int numGhost,
+                    const unsigned numInternal,
+                    const unsigned numGhost,
                     const Scalar hmin = 1.0e-20,
                     const Scalar hmax = 1.0e20,
                     const Scalar hminratio = 0.1,
                     const Scalar nPerh = 2.01,
-                    const int maxNumNeighbors = 500);
+                    const unsigned maxNumNeighbors = 500);
 
   // Destructor
   virtual ~NodeList();
@@ -84,11 +84,11 @@ public:
   std::string name() const;
 
   // Get or set the number of Nodes.
-  int numNodes() const;
-  int numInternalNodes() const;
-  int numGhostNodes() const;
-  void numInternalNodes(int size);
-  void numGhostNodes(int size);
+  unsigned numNodes() const;
+  unsigned numInternalNodes() const;
+  unsigned numGhostNodes() const;
+  void numInternalNodes(unsigned size);
+  void numGhostNodes(unsigned size);
 
   // Provide the standard NodeIterators over the nodes of this NodeList.
   AllNodeIterator<Dimension> nodeBegin() const;
@@ -150,7 +150,7 @@ public:
   // NodeLists can contain ghost nodes (either communicated from neighbor
   // processors, or simply created for boundary conditions).
   NodeType nodeType(int i) const;
-  int firstGhostNode() const;
+  unsigned firstGhostNode() const;
 
   // Access the neighbor object.
   NeighborSpace::Neighbor<Dimension>& neighbor() const;
@@ -163,8 +163,8 @@ public:
   void nodesPerSmoothingScale(const Scalar val);
 
   // The maximum number of neighbors we want to have (for calculating the ideal H).
-  int maxNumNeighbors() const;
-  void maxNumNeighbors(const int val);
+  unsigned maxNumNeighbors() const;
+  void maxNumNeighbors(const unsigned val);
 
   // Allowed range of smoothing scales for use in calculating H.
   Scalar hmin() const;
@@ -207,8 +207,8 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  int mNumNodes;
-  int mFirstGhostNode;
+  unsigned mNumNodes;
+  unsigned mFirstGhostNode;
 
   std::string mName;
 
@@ -224,7 +224,7 @@ private:
   // Stuff for how H is handled.
   Scalar mhmin, mhmax, mhminratio;
   Scalar mNodesPerSmoothingScale;
-  int mMaxNumNeighbors;
+  unsigned mMaxNumNeighbors;
 
   // List of fields that are defined over this NodeList.
   mutable std::vector<FieldSpace::FieldBase<Dimension>*> mFieldBaseList;

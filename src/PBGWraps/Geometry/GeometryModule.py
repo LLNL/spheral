@@ -188,7 +188,7 @@ class Geometry:
         x.add_method("operator()", "double", [param("int", "index")], custom_name="__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType", "int",
+        x.add_function_as_method("sizeGeomType", "unsigned int",
                                  [param(me, "self")],
                                  template_parameters = [me],
                                  custom_name = "__len__")
@@ -303,7 +303,7 @@ class Geometry:
         x.add_method("operator()", "double", [param("int", "row"), param("int", "column")], custom_name="__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType", "int",
+        x.add_function_as_method("sizeGeomType", "unsigned int",
                                  [param(me, "self")],
                                  template_parameters = [me],
                                  custom_name = "__len__")
@@ -444,7 +444,7 @@ class Geometry:
                                  custom_name = "__call__")
     
         # Add sequence methods.
-        x.add_function_as_method("sizeGeomType", "int",
+        x.add_function_as_method("sizeGeomType", "unsigned int",
                                  [param(me, "self")],
                                  template_parameters = [me],
                                  custom_name = "__len__")

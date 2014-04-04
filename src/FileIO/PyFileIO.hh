@@ -33,6 +33,7 @@ public:
   virtual ~PyFileIO();
 
   // Descendent python objects should provide these write methods.
+  virtual void write_unsigned_int(const unsigned value, const std::string pathName) = 0;
   virtual void write_int(const int value, const std::string pathName) = 0;
   virtual void write_bool(const bool value, const std::string pathName) = 0;
   virtual void write_double(const double value, const std::string pathName) = 0;
@@ -94,6 +95,7 @@ public:
   virtual void write_IntField3d(const FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) = 0;
 
   // Descendent python objects should provide these read methods.
+  virtual unsigned read_unsigned_int(const std::string pathName) const = 0;
   virtual int read_int(const std::string pathName) const = 0;
   virtual bool read_bool(const std::string pathName) const = 0;
   virtual double read_double(const std::string pathName) const = 0;
@@ -157,6 +159,7 @@ public:
   // Override the base FileIO read methods to use the above pure virtual methods.
 
   // Write methods.
+  virtual void write(const unsigned value, const std::string pathName) { write_unsigned_int(value, pathName); }
   virtual void write(const int value, const std::string pathName) { write_int(value, pathName); }
   virtual void write(const bool value, const std::string pathName) { write_bool(value, pathName); }
   virtual void write(const double value, const std::string pathName) { write_double(value, pathName); }
@@ -218,6 +221,7 @@ public:
   virtual void write(const FieldSpace::Field<Dim<3>, int>& value, const std::string pathName) { write_IntField3d(value, pathName); }
 
   // Read methods.
+  virtual void read(unsigned& value, const std::string pathName) const { value = read_unsigned_int(pathName); }
   virtual void read(int& value, const std::string pathName) const { value = read_int(pathName); }
   virtual void read(bool& value, const std::string pathName) const { value = read_bool(pathName); }
   virtual void read(double& value, const std::string pathName) const {value = read_double(pathName); }
