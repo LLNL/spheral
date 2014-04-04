@@ -384,21 +384,21 @@ operator()(const NodeIteratorBase<Dimension>& itr) const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 Field<Dimension, DataType>::numElements() const {
   return mDataArray.size();
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 Field<Dimension, DataType>::numInternalElements() const {
   return this->nodeList().numInternalNodes();
 }
 
 template<typename Dimension, typename DataType>
 inline
-int
+unsigned 
 Field<Dimension, DataType>::size() const {
   return numElements();
 }
@@ -1170,7 +1170,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::setNodeList(const NodeSpace::NodeList<Dimension>& nodeList) {
-  int oldSize = this->size();
+  unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
   if (this->size() > oldSize) {
@@ -1188,9 +1188,9 @@ Field<Dimension, DataType>::setNodeList(const NodeSpace::NodeList<Dimension>& no
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeField(int size) {
+Field<Dimension, DataType>::resizeField(unsigned size) {
   REQUIRE(size == this->nodeList().numNodes());
-  int oldSize = this->size();
+  unsigned oldSize = this->size();
   mDataArray.resize(size);
   if (oldSize < size) {
     std::fill(mDataArray.begin() + oldSize,
@@ -1207,7 +1207,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::deleteElement(int nodeID) {
-  const int originalSize = this->size();
+  const unsigned originalSize = this->size();
   REQUIRE(nodeID >= 0 && nodeID < originalSize);
   mDataArray.erase(mDataArray.begin() + nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
@@ -1269,12 +1269,12 @@ unpackValues(const int numElements,
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeFieldInternal(const int size,
-                                                const int oldFirstGhostNode) {
-  const int currentSize = this->size();
-  const int currentInternalSize = oldFirstGhostNode;
-  const int numGhostNodes = this->nodeList().numGhostNodes();
-  const int newSize = size + numGhostNodes;
+Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
+                                                const unsigned oldFirstGhostNode) {
+  const unsigned currentSize = this->size();
+  const unsigned currentInternalSize = oldFirstGhostNode;
+  const unsigned numGhostNodes = this->nodeList().numGhostNodes();
+  const unsigned newSize = size + numGhostNodes;
   REQUIRE(numGhostNodes == currentSize - oldFirstGhostNode);
   REQUIRE(newSize == this->nodeList().numNodes());
 
@@ -1319,12 +1319,12 @@ Field<Dimension, DataType>::resizeFieldInternal(const int size,
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeFieldGhost(const int size) {
-  const int currentSize = this->size();
-  const int numInternalNodes = this->nodeList().numInternalNodes();
-  const int currentNumGhostNodes = currentSize - numInternalNodes;
+Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
+  const unsigned currentSize = this->size();
+  const unsigned numInternalNodes = this->nodeList().numInternalNodes();
+  const unsigned currentNumGhostNodes = currentSize - numInternalNodes;
   REQUIRE(currentNumGhostNodes >= 0);
-  const int newSize = numInternalNodes + size;
+  const unsigned newSize = numInternalNodes + size;
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.

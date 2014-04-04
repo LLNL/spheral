@@ -175,6 +175,9 @@ class GzipFileIO(PyFileIO):
     # Use pickling for the majority of the write methods.  Most objects we just
     # convert to strings and pickle that.
     #---------------------------------------------------------------------------
+    def write_unsigned_int(self, val, pathName):
+        self.writeObject(val, pathName)
+
     def write_int(self, val, pathName):
         self.writeObject(val, pathName)
 
@@ -322,6 +325,9 @@ class GzipFileIO(PyFileIO):
     #---------------------------------------------------------------------------
     # We now use unpickling to read objects.
     #---------------------------------------------------------------------------
+    def read_unsigned_int(self, pathName):
+        return self.readObject(pathName)
+
     def read_int(self, pathName):
         return self.readObject(pathName)
 

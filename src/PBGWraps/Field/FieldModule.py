@@ -170,13 +170,13 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 
         # Methods.
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
-        x.add_method("size", "int", [], is_const=True, is_pure_virtual=True)
+        x.add_method("size", "unsigned int", [], is_const=True, is_pure_virtual=True)
         x.add_method("Zero", None, [], is_pure_virtual=True)
         x.add_method("setNodeList", None, [constrefparam(nodelist, "nodeList")], is_pure_virtual=True)
-        x.add_method("resizeField", None, [param("int", "size")], is_pure_virtual=True)
-        x.add_method("resizeFieldInternal", None, [param("int", "size"),
-                                                   param("int", "oldFirstGhostNode")], is_pure_virtual=True)
-        x.add_method("resizeFieldGhost", None, [param("int", "size")], is_pure_virtual=True)
+        x.add_method("resizeField", None, [param("unsigned int", "size")], is_pure_virtual=True)
+        x.add_method("resizeFieldInternal", None, [param("unsigned int", "size"),
+                                                   param("unsigned int", "oldFirstGhostNode")], is_pure_virtual=True)
+        x.add_method("resizeFieldGhost", None, [param("unsigned int", "size")], is_pure_virtual=True)
         x.add_method("deleteElement", None, [param("int", "nodeID")], is_pure_virtual=True)
         x.add_method("deleteElements", None, [constrefparam("vector_of_int", "nodeIDs")], is_pure_virtual=True)
         x.add_method("packValues", "vector_of_char", [constrefparam("vector_of_int", "nodeIDs")], is_const=True, is_pure_virtual=True)
@@ -290,7 +290,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
 #         x.add_inplace_numeric_operator("-=", right_cppclass=val)
 
         # Sequence methods.
-        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
+        x.add_method("size", "unsigned int", [], is_const=True, custom_name="__len__")
         if indexAsPointer:
             x.add_function_as_method("indexContainerAsPointer",
                                      retval(ptr(val), reference_existing_object=True),
@@ -316,13 +316,13 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
                                  custom_name = "__contains__")
 
         # The virtual methods from FieldBase.
-        x.add_method("size", "int", [], is_const=True, is_virtual=True)
+        x.add_method("size", "unsigned int", [], is_const=True, is_virtual=True)
         x.add_method("Zero", None, [], is_virtual=True)
         x.add_method("setNodeList", None, [constrefparam(nodelist, "nodeList")], is_virtual=True)
-        x.add_method("resizeField", None, [param("int", "size")], is_virtual=True)
-        x.add_method("resizeFieldInternal", None, [param("int", "size"),
-                                                   param("int", "oldFirstGhostNode")], is_virtual=True)
-        x.add_method("resizeFieldGhost", None, [param("int", "size")], is_virtual=True)
+        x.add_method("resizeField", None, [param("unsigned int", "size")], is_virtual=True)
+        x.add_method("resizeFieldInternal", None, [param("unsigned int", "size"),
+                                                   param("unsigned int", "oldFirstGhostNode")], is_virtual=True)
+        x.add_method("resizeFieldGhost", None, [param("unsigned int", "size")], is_virtual=True)
         x.add_method("deleteElement", None, [param("int", "nodeID")], is_virtual=True)
         x.add_method("deleteElements", None, [constrefparam("vector_of_int", "nodeIDs")], is_virtual=True)
         x.add_method("packValues", "vector_of_char", [constrefparam("vector_of_int", "nodeIDs")], is_const=True, is_virtual=True)
@@ -422,7 +422,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
                 x.add_method("applyScalarMax", None, [param("double", "dataMax")])
 
         # Sequence methods.
-        x.add_method("size", "int", [], is_const=True, custom_name="__len__")
+        x.add_method("size", "unsigned int", [], is_const=True, custom_name="__len__")
         x.add_function_as_method("indexContainer",
                                  retval(ptr(field), reference_existing_object=True),
                                  [param(me, "self"), param("int", "index")],

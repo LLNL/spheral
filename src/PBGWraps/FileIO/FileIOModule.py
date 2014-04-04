@@ -35,7 +35,7 @@ class FileIO:
         "Spheral::FieldSpace::SymTensorField3d",
         "Spheral::FieldSpace::ThirdRankTensorField3d",
         "Spheral::FieldSpace::IntField3d",
-        "double", "std::string", "int", "bool",
+        "double", "std::string", "int", "bool", "unsigned int",
         ]
 
     #---------------------------------------------------------------------------
@@ -209,7 +209,7 @@ class FileIO:
     # to a FileIO object.
     #---------------------------------------------------------------------------
     def _addFileIOReadWriteMethods(self, fio_obj, val, pureVirtual=True):
-        if val in ["int", "bool", "double", "std::string"]:
+        if val in ["unsigned int", "int", "bool", "double", "std::string"]:
             fio_obj.add_method("write", None, [param(val, "value"),
                                                param("std::string", "pathName")],
                                is_virtual = True,
@@ -232,14 +232,14 @@ class FileIO:
     #---------------------------------------------------------------------------
     def _addPyFileIOReadWriteMethods(self, pyfio_obj, val):
         stripval = val.split("::")[-1]
-        if val in ["int", "bool", "double", "std::string"]:
-            pyfio_obj.add_method("write_%s" % stripval,
+        if val in ["unsigned int", "int", "bool", "double", "std::string"]:
+            pyfio_obj.add_method("write_%s" % stripval.replace(" ", "_"),
                                  None,
                                  [param(val, "value"), 
                                   param("const std::string", "pathName")],
                                  is_virtual = True,
                                  is_pure_virtual = True)
-            pyfio_obj.add_method("read_%s" % stripval,
+            pyfio_obj.add_method("read_%s" % stripval.replace(" ", "_"),
                                  val,
                                  [param("const std::string", "pathName")],
                                  is_const = True,

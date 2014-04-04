@@ -19,7 +19,7 @@ NodeList<Dimension>::name() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned 
 NodeList<Dimension>::numNodes() const {
   return mNumNodes;
 }
@@ -29,9 +29,9 @@ NodeList<Dimension>::numNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned 
 NodeList<Dimension>::numInternalNodes() const {
-  CHECK(mFirstGhostNode >=0 && mFirstGhostNode <= numNodes());
+  CHECK(mFirstGhostNode <= numNodes());
   return mFirstGhostNode;
 }
 
@@ -40,9 +40,9 @@ NodeList<Dimension>::numInternalNodes() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned 
 NodeList<Dimension>::numGhostNodes() const {
-  CHECK(mFirstGhostNode >=0 && mFirstGhostNode <= numNodes());
+  CHECK(mFirstGhostNode <= numNodes());
   return numNodes() - mFirstGhostNode;
 }
 
@@ -189,14 +189,14 @@ NodeList<Dimension>::nodesPerSmoothingScale(const typename Dimension::Scalar val
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned 
 NodeList<Dimension>::maxNumNeighbors() const {
   return mMaxNumNeighbors;
 }
 
 template<typename Dimension>
 void
-NodeList<Dimension>::maxNumNeighbors(const int val) {
+NodeList<Dimension>::maxNumNeighbors(const unsigned val) {
   mMaxNumNeighbors = val;
 }
 

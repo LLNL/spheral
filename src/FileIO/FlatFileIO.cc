@@ -110,6 +110,14 @@ FlatFileIO::close() {
 }
 
 //------------------------------------------------------------------------------
+// Write an unsigned to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::write(const unsigned value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+//------------------------------------------------------------------------------
 // Write an int to the file.
 //------------------------------------------------------------------------------
 void
@@ -225,6 +233,14 @@ void
 FlatFileIO::
 write(const string value, const string pathName) {
   writeGenericType(value, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Read an unsigned from the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::read(unsigned& value, const string pathName) const {
+  readGenericType(value, pathName);
 }
 
 //------------------------------------------------------------------------------

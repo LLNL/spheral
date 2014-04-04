@@ -186,10 +186,10 @@ PILDIR = $(PILDIST:.tar.gz=)
 PILBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PILDIST))
 
 # pybindgen
-PYBINDGENDIST = pybindgen-0.15.9.zip
-PYBINDGENURL = http://sourceforge.net/projects/spheral/files/ThirdPartySources/$(PYBINDGENDIST)/download
-PYBINDGENDIR = $(PYBINDGENDIST:.zip=)
-PYBINDGENBUILDDATE = $(patsubst %.zip, .%.date, $(PYBINDGENDIST))
+PYBINDGENDIST = PyBindGen-0.17.0.tar.gz
+PYBINDGENURL = https://pypi.python.org/packages/source/P/PyBindGen/$(PYBINDGENDIST)
+PYBINDGENDIR = $(PYBINDGENDIST:.tar.gz=)
+PYBINDGENBUILDDATE = $(patsubst %.tar.gz, .%.date, $(PYBINDGENDIST))
 
 # WildMagic
 WILDMAGICDIST = WildMagic5p9.zip
@@ -1038,7 +1038,7 @@ $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 	@echo "# Building $(PYBINDGENDIST)"
 	@echo "################################################################################"
 	rm -fr $(PYBINDGENDIR)
-	$(UNZIP) $(PYBINDGENDIST)
+	$(GZIP) -dc $(PYBINDGENDIST) | $(TAR) -xf -
 	$(CP) -r $(PYBINDGENDIR)/pybindgen $(PYTHONLIBDIR)
 	@if test -n "`$(PYTHONEXE) -c 'import pybindgen'`"; then \
 	echo "ERROR building PYBINDGEN python extension."; \
@@ -1047,21 +1047,6 @@ $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
 	fi
 	rm -fr $(PYBINDGENDIR)
 	touch $(PYBINDGENBUILDDATE)
-
-# $(PYBINDGENBUILDDATE):	$(PYTHONBUILDDATE) $(PYBINDGENDIST)
-# 	@echo "################################################################################"
-# 	@echo "# Building $(PYBINDGENDIST)"
-# 	@echo "################################################################################"
-# 	rm -fr $(PYBINDGENDIR)
-# 	$(BZIP2) -dc $(PYBINDGENDIST) | $(TAR) -xf -
-# 	$(SHELL) -ec 'cd $(PYBINDGENDIR); ./waf configure --prefix=$(SPHERALDIR); ./waf install'
-# 	@if test -n "`$(PYTHONEXE) -c 'import pybindgen'`"; then \
-# 	echo "ERROR building PYBINDGEN python extension."; \
-# 	rm -f $(PYBINDGENBUILDDATE); \
-# 	exit 1; \
-# 	fi
-# 	rm -fr $(PYBINDGENDIR)
-# 	touch $(PYBINDGENBUILDDATE)
 
 #-------------------------------------------------------------------------------
 # WildMagic

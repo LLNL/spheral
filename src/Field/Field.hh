@@ -92,9 +92,9 @@ public:
   const DataType& at(int index) const;
 
   // The number of elements in the field.
-  int numElements() const;
-  int numInternalElements() const;
-  virtual int size() const;
+  unsigned numElements() const;
+  unsigned numInternalElements() const;
+  virtual unsigned size() const;
 
   // Zero out the field elements.
   virtual void Zero();
@@ -206,9 +206,9 @@ public:
 
   // Required functions to control size of fields.
   virtual void setNodeList(const NodeSpace::NodeList<Dimension>& nodeList);
-  virtual void resizeField(int size);
-  virtual void resizeFieldInternal(int size, int oldFirstGhostNode);
-  virtual void resizeFieldGhost(int size);
+  virtual void resizeField(unsigned size);
+  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
+  virtual void resizeFieldGhost(unsigned size);
   virtual void deleteElement(int nodeID);
   virtual void deleteElements(const std::vector<int>& nodeIDs);
   virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;

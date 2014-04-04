@@ -242,17 +242,17 @@ public:
   bool operator<=(const DataType& rhs) const;
 
   // The number of fields in the FieldList.
-  int numFields() const;
-  int size() const;
+  unsigned numFields() const;
+  unsigned size() const;
 
   // The number of nodes in the FieldList.
-  int numNodes() const;
+  unsigned numNodes() const;
   
   // The number of internal nodes in the FieldList.
-  int numInternalNodes() const;
+  unsigned numInternalNodes() const;
   
   // The number of ghost nodes in the FieldList.
-  int numGhostNodes() const;
+  unsigned numGhostNodes() const;
 
   // Get the NodeLists this FieldList is defined on.
   const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
