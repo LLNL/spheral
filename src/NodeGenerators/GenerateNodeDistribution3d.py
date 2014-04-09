@@ -88,6 +88,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 
         # Generate the internal sets of positions, masses, and H
         if distributionType == 'optimal':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                     self.optimalSphericalDistribution(self.nRadial,
                                                       self.nTheta,
@@ -101,6 +102,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                       self.phimax,
                                                       self.nNodePerh)
         elif distributionType == 'constantDAngle':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                 self.constantDAngleSphericalDistribution(self.nRadial,
                                                          self.nTheta,
@@ -114,6 +116,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                          self.phimax,
                                                          self.nNodePerh)
         elif distributionType == 'constantNShell':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                 self.constantNShellSphericalDistribution(self.nRadial,
                                                          self.nTheta,
@@ -128,6 +131,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                          self.nNodePerh)
 
         elif distributionType == 'lattice':
+            serialInitialization = False
             self.x, self.y, self.z, self.m, self.H = \
                 self.latticeDistribution(self.n1,      # nx
                                          self.n2,      # ny
@@ -140,6 +144,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                          self.nNodePerh)
 
         elif distributionType == 'cylindrical':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                 self.cylindrical(self.n1,      # nr
                                  self.n2,      # nz
@@ -153,6 +158,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                  self.nNodePerh)
 
         elif distributionType == 'constantNTheta':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                 self.constantNTheta(self.n1,      # nr
                                     self.n2,      # ntheta
@@ -167,6 +173,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                     self.nNodePerh)
 
         elif distributionType == 'line':
+            serialInitialization = True
             self.x, self.y, self.z, self.m, self.H = \
                 self.lineDistribution(self.n1,      # nx
                                       self.n2,      # ny
@@ -179,6 +186,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                       self.nNodePerh)
 
         elif distributionType == 'hcp':
+            serialInitialization = False
             self.x, self.y, self.z, self.m, self.H = \
                 self.hcpDistribution(self.n1,      # nx
                                      self.n2,      # ny
@@ -202,9 +210,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         # Make rho a list
         self.rho = [self.rho] * len(self.m)
 
-        # Have the base class break up the serial node distribution
-        # for parallel cases.
-        NodeGeneratorBase.__init__(self, True,
+        # Initialize the base class.  If "serialInitialization" is True, this
+        # is where the points are broken up between processors as well.
+        NodeGeneratorBase.__init__(self, serialInitialization,
                                    self.x, self.y, self.z, self.m, self.H)
 
         # If SPH has been specified, make sure the H tensors are round.
@@ -575,20 +583,22 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         m = []
         H = []
 
-        for k in xrange(nz):
-            for j in xrange(ny):
-                for i in xrange(nx):
-                    xx = xmin[0] + (i + 0.5)*dx
-                    yy = xmin[1] + (j + 0.5)*dy
-                    zz = xmin[2] + (k + 0.5)*dz
-                    r = sqrt(xx*xx + yy*yy + zz*zz)
-                    if ((r >= rmin or rmin is None) and
-                        (r <= rmax or rmax is None)):
-                        x.append(xx)
-                        y.append(yy)
-                        z.append(zz)
-                        m.append(m0)
-                        H.append(H0)
+        imin, imax = self.globalIDRange(nx*ny*nz)
+        for iglobal in xrange(imin, imax):
+            i = iglobal % nx
+            j = (iglobal // nx) % ny
+            k = iglobal // (nx*ny)
+            xx = xmin[0] + (i + 0.5)*dx
+            yy = xmin[1] + (j + 0.5)*dy
+            zz = xmin[2] + (k + 0.5)*dz
+            r = sqrt(xx*xx + yy*yy + zz*zz)
+            if ((r >= rmin or rmin is None) and
+                (r <= rmax or rmax is None)):
+                x.append(xx)
+                y.append(yy)
+                z.append(zz)
+                m.append(m0)
+                H.append(H0)
 
         return x, y, z, m, H
 
@@ -813,24 +823,26 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         m = []
         H = []
 
-        for k in xrange(nz):
-            for j in xrange(ny):
-                for i in xrange(nx):
-                    xx = xmin[0] + (i + 0.5*((j % 2) + (k % 2)))*dx
-                    yy = xmin[1] + (j + 0.5*(k % 2))*dy
-                    zz = xmin[2] + (k + 0.5)*dz
+        imin, imax = self.globalIDRange(nx*ny*nz)
+        for iglobal in xrange(imin, imax):
+            i = iglobal % nx
+            j = (iglobal // nx) % ny
+            k = iglobal // (nx*ny)
+            xx = xmin[0] + (i + 0.5*((j % 2) + (k % 2)))*dx
+            yy = xmin[1] + (j + 0.5*(k % 2))*dy
+            zz = xmin[2] + (k + 0.5)*dz
 
-                    # xx = xmin[0] + 0.5*dx*(2*i + (j % 2) + (k % 2))
-                    # yy = xmin[1] + 0.5*dy*sqrt(3.0)/3.0*(j + (k % 2))
-                    # zz = xmin[2] + dz*sqrt(6.0)/3.0*k
-                    r = sqrt(xx*xx + yy*yy + zz*zz)
-                    if ((r >= rmin or rmin is None) and
-                        (r <= rmax or rmax is None)):
-                        x.append(xx)
-                        y.append(yy)
-                        z.append(zz)
-                        m.append(m0)
-                        H.append(H0)
+            # xx = xmin[0] + 0.5*dx*(2*i + (j % 2) + (k % 2))
+            # yy = xmin[1] + 0.5*dy*sqrt(3.0)/3.0*(j + (k % 2))
+            # zz = xmin[2] + dz*sqrt(6.0)/3.0*k
+            r = sqrt(xx*xx + yy*yy + zz*zz)
+            if ((r >= rmin or rmin is None) and
+                (r <= rmax or rmax is None)):
+                x.append(xx)
+                y.append(yy)
+                z.append(zz)
+                m.append(m0)
+                H.append(H0)
 
         return x, y, z, m, H
 
