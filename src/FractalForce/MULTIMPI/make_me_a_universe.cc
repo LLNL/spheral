@@ -21,7 +21,7 @@ namespace FractalSpace
     double G=1.0;
 
     double m=0.375*PFM->omega_start/pi/static_cast<double>(PFM->p_mess->number_particles_total);
-    FF << "m= " << m << endl;
+    FF << "m= " << m << "\n";
     bool zel_predict=PFM->crash_levels > 0 && PFM->max_particles > PFM->number_particles; 
     int splits_tmp=0;
     double cut_off_tmp=0.0;
@@ -36,16 +36,16 @@ namespace FractalSpace
 	  {
 	    PF->rad[i]=i*drad+1.0;
 	    PF->grow[i]=Growth(PFM->omega_start,PFM->lambda_start,1.0/PF->rad[i]-1.0);
-	    FF << i << " " << PF->rad[i] << " " << PF->grow[i] << endl;
+	    FF << i << " " << PF->rad[i] << " " << PF->grow[i] << "\n";
 	  }
       }
     int count=0;
     make_particles(fractal_memory,fractal,count,m,false);
-    FF << "size " << count << endl;
+    FF << "size " << count << "\n";
     PFM->number_particles=count;
     PF->set_number_particles(count);
     update_rv(fractal,0,0.0,0.0);
-    FF << "make parts " << count << endl;
+    FF << "make parts " << count << "\n";
     double delta_z=Growth(PFM->omega_0,PFM->omega_lambda,PFM->redshift_start);
     double vfratio=1.0/(1.5*PFM->omega_start)*dGrowthdT(PFM->omega_start,PFM->lambda_start,0.0);
     double omega_fraction=1.0/(1.5*PFM->omega_start);

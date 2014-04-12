@@ -6,10 +6,12 @@ namespace FractalSpace
   void balance_by_particles(Fractal_Memory* PFM)
   {
     Fractal* PF=PFM->p_fractal;
-    ofstream& FFM=PFM->p_file->FileFractalMemory;
+    //    ofstream& FFM=PFM->p_file->FileFractalMemory;
+    FILE* PFFM=PFM->p_file->PFFractalMemory;
     int balance=PFM->balance;
     double scalepoint=1.0;
-    double scalepart=7.0;
+    //    double scalepart=30.0;
+    double scalepart=1.0e-6;
     int steps=PFM->steps;
     /*
     if(steps % 20 < 10 )
@@ -23,7 +25,8 @@ namespace FractalSpace
 	scalepart= 1.0+1.5*static_cast<double>(steps % 10);
       }
     */
-    FFM << " scalings balance " << steps << " " << scalepoint << " " << scalepart << endl;
+    //    FFM << " scalings balance " << steps << " " << scalepoint << " " << scalepart << "\n";
+    fprintf(PFFM," scalings balance %d %10.2f %10.2f \n",steps,scalepoint,scalepart);
     const int ROOT=0;
     const int mult=10;
     const double MN=PFM->minimum_number;
@@ -97,7 +100,8 @@ namespace FractalSpace
       {
 	Misc::sum_up(sumz[nz+1],pointsa,nz*length0*length1,(nz+1)*length0*length1,1);
 	sumz[nz+1]+=sumz[nz];
-	FFM << " sumz " << nz << " " << sumz[nz+1] << endl;
+	//	FFM << " sumz " << nz << " " << sumz[nz+1] << "\n";
+	fprintf(PFFM," sumz %d \t %10.2E \n",nz,sumz[nz+1]);
       }
     vector <int>lowerz(FractalNodes2);
     vector <int>upperz(FractalNodes2);
@@ -113,15 +117,17 @@ namespace FractalSpace
 	lowerz[FRZ]=std::lower_bound(sumz.begin(),sumz.end(),target)-sumz.begin();
 	if(FRZ > 0 && lowerz[FRZ] <= lowerz[FRZ-1])
 	  lowerz[FRZ]=lowerz[FRZ-1]+1;
-	FFM << " target " << FRZ << " " << target << " " << pztotal << " " << lowerz[FRZ] << endl;
+	//	FFM << " target " << FRZ << " " << target << " " << pztotal << " " << lowerz[FRZ] << "\n";
+	fprintf(PFFM," target %d \t %10.2E \t %d \t %d \n",FRZ,target,pztotal,lowerz[FRZ]);
 	if(FRZ > 0)
 	  upperz[FRZ-1]=lowerz[FRZ];
       }
     upperz[FractalNodes2-1]=length2;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
-	FFM << " FRZ " << FRZ << " " << lowerz[FRZ] << " " << upperz[FRZ] << " ";
-	FFM << sumz[lowerz[FRZ]] << " " << sumz[upperz[FRZ]] << endl;
+	//	FFM << " FRZ " << FRZ << " " << lowerz[FRZ] << " " << upperz[FRZ] << " ";
+	//	FFM << sumz[lowerz[FRZ]] << " " << sumz[upperz[FRZ]] << "\n";
+	fprintf(PFFM," FRZ %d \t %d \t %d \t %10.2E %10.2E \n",FRZ,lowerz[FRZ],upperz[FRZ],sumz[lowerz[FRZ]],sumz[upperz[FRZ]]);
       }
 
     vector <double>pointsb(length0*length1,0);
@@ -163,8 +169,9 @@ namespace FractalSpace
 	uppery[FRZ][FractalNodes1-1]=length1;
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
-	    FFM << " FRYZ " << FRZ << " " << FRY << " " << lowery[FRZ][FRY] << " " << uppery[FRZ][FRY] << " ";
-	    FFM << sumy[lowery[FRZ][FRY]] << " " << sumy[uppery[FRZ][FRY]] << endl;
+	    //	    FFM << " FRYZ " << FRZ << " " << FRY << " " << lowery[FRZ][FRY] << " " << uppery[FRZ][FRY] << " ";
+	    //	    FFM << sumy[lowery[FRZ][FRY]] << " " << sumy[uppery[FRZ][FRY]] << "\n";
+	    fprintf(PFFM," FRYZ %d \t %d \t %d \t %d \t %10.2E %10.2E \n",FRZ,FRY,lowery[FRZ][FRY],uppery[FRZ][FRY],sumy[lowery[FRZ][FRY]],sumy[uppery[FRZ][FRY]]);
 	  }
 
 	vector <double>pointsc(length0,0);
@@ -196,8 +203,10 @@ namespace FractalSpace
 	    upperx[FRZ][FRY][FractalNodes0-1]=length0;
 	    for(int FRX=0;FRX<FractalNodes0;FRX++)
 	      {
-		FFM << " FRXYZ " << FRZ << " " << FRY << " " << FRX << " " << lowerx[FRZ][FRY][FRX] << " " << upperx[FRZ][FRY][FRX] << " " ;
-		FFM << sumx[lowerx[FRZ][FRY][FRX]] << " " << sumx[upperx[FRZ][FRY][FRX]] << endl;
+		//		FFM << " FRXYZ " << FRZ << " " << FRY << " " << FRX << " " << lowerx[FRZ][FRY][FRX] << " " << upperx[FRZ][FRY][FRX] << " " ;
+		//		FFM << sumx[lowerx[FRZ][FRY][FRX]] << " " << sumx[upperx[FRZ][FRY][FRX]] << "\n";
+		fprintf(PFFM," FRXYZ %d \t %d \t %d \t %d \t %d \t %10.2E %10.2E \n",FRZ,FRY,FRX,lowerx[FRZ][FRY][FRX],upperx[FRZ][FRY][FRX],
+			sumx[lowerx[FRZ][FRY][FRX]],sumx[upperx[FRZ][FRY][FRX]]);
 	      }
 	  }
       }
@@ -240,9 +249,12 @@ namespace FractalSpace
 		int VOL=(PFM->Boxes[FR][1]-PFM->Boxes[FR][0]);
 		VOL*=(PFM->Boxes[FR][3]-PFM->Boxes[FR][2]);
 		VOL*=(PFM->Boxes[FR][5]-PFM->Boxes[FR][4]);
-		FFM << " BOXES " << FR << " " << FRX << " " << FRY << " " << FRZ << " " << VOL << " ";
-		FFM << PFM->Boxes[FR][0] << " " << PFM->Boxes[FR][1] << " " << PFM->Boxes[FR][2];
-		FFM << " " << PFM->Boxes[FR][3] << " " << PFM->Boxes[FR][4] << " " << PFM->Boxes[FR][5] << endl;
+		//		FFM << " BOXES " << FR << " " << FRX << " " << FRY << " " << FRZ << " " << VOL << " ";
+		//		FFM << PFM->Boxes[FR][0] << " " << PFM->Boxes[FR][1] << " " << PFM->Boxes[FR][2];
+		//		FFM << " " << PFM->Boxes[FR][3] << " " << PFM->Boxes[FR][4] << " " << PFM->Boxes[FR][5] << "\n";
+		fprintf(PFFM," BOXES %d \t %d \t %d \t %d \t %d ",FR,FRX,FRY,FRZ,VOL);
+		fprintf(PFFM," %d \t %d \t %d ",PFM->Boxes[FR][0],PFM->Boxes[FR][1],PFM->Boxes[FR][2]);
+		fprintf(PFFM," \t %d \t %d \t %d \n",PFM->Boxes[FR][3],PFM->Boxes[FR][4],PFM->Boxes[FR][5]);
 		FR++;
 	      }
 	  }

@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void test_gal(Fractal_Memory& mem,Fractal& fractal)
   {
-    ofstream& FileFractal=mem.p_file->FileFractal;
-    FileFractal << " Made It test_gal a " << endl;
+    ofstream& FileFractal=mem.p_file->DUMPS;
+    //    ofstream& FileFractal=mem.p_file->FileFractal;
+    FileFractal << " Made It test_gal a " << "\n";
     //    double rand_max=(double)RAND_MAX;
     //    double rmax=1.0e-5;
     double rmax=0.3;
@@ -22,7 +23,7 @@ namespace FractalSpace
     double eps2=1.0/(eps*eps);
     for(int n=0;n < fractal.get_number_particles();++n)
       {
-	//	FileFractal << "fractal " << n << endl;
+	//	FileFractal << "fractal " << n << "\n";
 	Particle* p=fractal.particle_list[n];
 	if(p->get_p_highest_level_group() == 0)
 	  continue;
@@ -55,8 +56,8 @@ namespace FractalSpace
 	FileFractal << field[1] << "\t" << frx << "\t";
 	FileFractal << field[2] << "\t" << fry << "\t";
 	FileFractal << field[3] << "\t" << frz << "\t";
-	FileFractal << " l" << p->get_highest_level() << endl;
+	FileFractal << " l" << p->get_highest_level() << "\n";
       }
-    FileFractal << " Made It test_gal b " << endl;
+    FileFractal << " Made It test_gal b " << "\n";
   }
 }

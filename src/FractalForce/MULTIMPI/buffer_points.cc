@@ -5,13 +5,13 @@ namespace FractalSpace
 {
   void buffer_points(Group& group, Fractal& fractal,Misc& misc)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
     int padd=fractal.get_padding();
     double scale=static_cast<double>(fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max()));
     int width=Misc::pow(2,fractal.get_level_max()-group.get_level()-1);
     //
     if(misc.get_debug())
-      FileFractal << " here in buffer a " << &group << " " << group.get_level() << endl;
+      FileFractal << " here in buffer a " << &group << " " << group.get_level() << "\n";
     //--------------------------------------------------------------------------------------------------------------------------------
     // padding has priority, make the 26 neighbors into high points, if not already
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace FractalSpace
 		if(n_x > 1 || n_y > 1 || n_z > 1 || n_x < 0 || n_y < 0 || n_z < 0)
 		  {
 		    fractal.p_mess->Full_Stop();
-		    FileFractal << " buffer badd " << endl;
+		    FileFractal << " buffer badd " << "\n";
 		    point.dump();
 		    particle.dump(*point.p_FILE);
 		  }
@@ -127,6 +127,6 @@ namespace FractalSpace
     group.set_number_high_points(n_h);
     group.p_list_really_high.clear();
     if(misc.get_debug())
-      FileFractal << " here in buffer b " << &group << " " << group.get_level() << endl;
+      FileFractal << " here in buffer b " << &group << " " << group.get_level() << "\n";
   }
 }

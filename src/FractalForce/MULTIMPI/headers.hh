@@ -34,8 +34,9 @@ namespace FractalSpace
 			  vector <bool>& periods,bool& inside,vector <bool>& buff,vector <bool>& edge);
   template <class M>  void energy_simple(M& mem, Fractal& fractal);
   void equivalence_class(Group& group);
+  void factors(int FR,vector <int>& divs,bool& easy);
   int find_global_level_max(Fractal_Memory& mem,Fractal& frac);
-  int findPointByPos(vector <Point*>& plist,Point* psend,ofstream& FF);
+  int findPointByPos(vector <Point*>& plist,Point* psend,FILE* PFF);
   void fix_memory(Fractal& frac,const int& ispace,const int& jfield);
   void force_at_particle(Group& group, Fractal& fractal,const bool& conserve);
   void force_at_particle(vector <vector <Group*> >& all_groups, Fractal& fractal);
@@ -49,8 +50,9 @@ namespace FractalSpace
   void fractal_force(Fractal& fractal,Fractal_Memory& fractal_memory);
   void fractal_force_init(Fractal_Memory* p_mem);
   int fractal_force_wrapper(Fractal_Memory* p_fractal_memory,Fractal* p_fractal);
-  template <class M> void fractal_memory_parameters(M& mem);
+  template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_);
   void Full_Stop(Fractal_Memory& mem,int number);
+  void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number);
   void gather_particles(Fractal_Memory& mem,Fractal& frac);
   void go_ahead_points(vector <Point*>& adj,vector <bool>& ins,vector <bool>& go_ahead);
   void groups_level(Fractal& fractal,vector < vector<Group*> >& all_groups);
@@ -66,9 +68,13 @@ namespace FractalSpace
   void high_points(Group& group, Fractal& fractal,Misc& misc);
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
-  void hypre_eror(ofstream& FH,int level,int ni,int er);
+  void hypre_eror(FILE* PFH,int level,int ni,int er);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool& do_over);
+  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_groups);
+  bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
+  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level);
+  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool buffer_groups);
+  void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
   void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH);
@@ -109,6 +115,7 @@ namespace FractalSpace
   void particle_lists_fixed(vector <vector <Group*> >& all_groups,Fractal& fractal,Misc& misc);
   void periodic_solver(Group& group, Fractal_Memory& fractal_memory,Fractal& fractal);
   void poisson_solver(Fractal& fractal,Fractal_Memory& mem,const int& level);
+  void poisson_solver(Fractal& fractal,Fractal_Memory& mem,const int& level,int what_points);
   void potential_start(Group& group);
   void power_spectrum(fftw_complex* rhoC,const int& length,vector <double>& variance_rho,vector <double>& variance_pot,
 		      vector <double>& variance_force,vector <double>& variance_force_s,const int& lev,const double& d0,const bool& start_up,
@@ -125,6 +132,7 @@ namespace FractalSpace
   void sort3_list(Group& group,int what);
   void sort3_list(vector <Point*>& list_points,int what);
   void sort_3(Fractal& fractal,Group& group);
+  void split_nodes(int FR,int& FR0,int& FR1,int& FR2);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
 						 int& count,const double& m,const int& split_to,const bool& gen_part);
   void start_writing(Fractal_Memory* PFM,int Numberparticles,double G,vector <double>& xmin,vector <double>& xmax,
@@ -141,6 +149,7 @@ namespace FractalSpace
   bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal);
   void tree_dump(Fractal_Memory& FM);
   void tree_start(Group& group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
+  void tree_start_mini(Group& group,Fractal& fractal,Fractal_Memory& memo,Misc& misc);
   Point* try_harder(Point& point0,const int& ni,const bool& easy);
   void update_rv(Fractal& fractal,const int& param,const double& const1,const double& const2);
   template <class T> bool vector_in_box(vector <T>& xvec,vector <T>& box);

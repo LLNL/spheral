@@ -84,7 +84,7 @@ namespace FractalSpace
     static string vel;
     Fractal()
     {
-      cout << " made ghost fractal" << endl;
+      cout << " made ghost fractal" << "\n";
     }
     template <class M> Fractal(M& mem):
       density_0(0.0),
@@ -92,7 +92,7 @@ namespace FractalSpace
       highest_level_used(0),
       omega_fraction(2.0/3.0)
     {
-      cout << " starting fractal " << endl;
+      cout << " starting fractal " << "\n";
       //      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
       clocks_per_sec=1.0;
       steps=0;
@@ -115,7 +115,7 @@ namespace FractalSpace
       debug=mem.debug;
       base_mass=mem.base_mass;
       //
-      cout << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << endl;
+      //      cout << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
       p_mess=mem.p_mess;
       p_file=mem.p_file;
       MPIrun=mem.MPIrun;
@@ -123,10 +123,10 @@ namespace FractalSpace
       FractalNodes0=mem.FractalNodes0;
       FractalNodes1=mem.FractalNodes1;
       FractalNodes2=mem.FractalNodes2;
-      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << endl;
-      cout << " fractal start c " << p_mess << " " << p_file << endl;
+      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
+      cout << " fractal start c " << p_mess << " " << p_file << "\n";
       FractalRank=get_FractalRank();
-      cout << FractalRank << endl;
+      cout << FractalRank << "\n";
       assert(FractalRank<FractalNodes);
       Box=mem.Boxes[FractalRank];
       BBox=mem.BBoxes[FractalRank];
@@ -137,6 +137,8 @@ namespace FractalSpace
       BBoxLev=mem.BBoxesLev[FractalRank];
       PBoxLev=mem.PBoxesLev[FractalRank];
       RealBox=mem.RealBoxes[FractalRank];
+      //
+      p_file->FileFractal << "Box frac " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
       //
       time_1.assign(50,0);
       time_2.assign(50,0);
@@ -193,7 +195,7 @@ namespace FractalSpace
       time_string[41]="Wait Global Level\t";
       time_string[42]="\t";
       time_string[43]="\t";
-      time_string[44]="\t";
+      time_string[44]="Tree Dump\t";
       time_string[45]="Cosmo Startup\t";
       time_string[46]="Tree Total\t";
       time_string[47]="Poisson Total\t";
@@ -210,11 +212,11 @@ namespace FractalSpace
       masks_square=mem.masks_square;
       rad.assign(101,0.0);
       grow.assign(101,0.0);
-      cout << "Making Fractal " << this << endl;
+      cout << "Making Fractal " << this << "\n";
     }
     ~Fractal()
     {    
-      cout << "Ending Fractal " << this << endl;
+      cout << "Ending Fractal " << this << "\n";
     };
     void redo(Fractal_Memory* PFM)
     {
@@ -418,7 +420,7 @@ namespace FractalSpace
     void set_density_0(const double& d)
     {
       density_0=d;
-      p_file->FileFractal << "density_0 " << density_0 << endl;
+      p_file->FileFractal << "density_0 " << density_0 << "\n";
     }
     int get_number_particles()
     {
@@ -563,6 +565,52 @@ namespace FractalSpace
     {
       return steps;
     }
+    void print_list(int what)
+    {
+      static int steppp=0;
+      vector <double>pos(3);
+      vector <double>pf(4);
+      fprintf(p_file->PFPos," how many particles in list %d %d \n",particle_list.size(),what);
+      for(unsigned int p=0;p<particle_list.size();p++)
+	{
+	  particle_list[p]->get_pos(pos);
+	  if(what == 0)
+	    fprintf(p_file->PFPos," PARTS%d %6d %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2]);
+	  else
+	    {
+	      particle_list[p]->get_field_pf(pf);
+	      fprintf(p_file->PFPos," PARTS%d %6d %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2],
+		      pf[0],pf[1],pf[2],pf[3]);
+	    }
+	}
+      if(what == 0)
+	steppp++;
+    }
+    void print_list_world(int what)
+    {
+      static int steppp=0;
+      vector <double>pos(3);
+      vector <double>pf(4);
+      fprintf(p_file->PFPos," how many particles in world list %d %d \n",particle_list_world.size(),what);
+      for(unsigned int p=0;p<particle_list_world.size();p++)
+	{
+	  particle_list_world[p]->get_pos(pos);
+	  if(what == 0)
+	    fprintf(p_file->PFPos," WORLD%d %6d %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2]);
+	  else
+	    {
+	      particle_list_world[p]->get_field_pf(pf);
+	      fprintf(p_file->PFPos," WORLD%d %6d %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2],
+		      pf[0],pf[1],pf[2],pf[3]);
+	    }
+	}
+      if(what == 0)
+	steppp++;
+    }
+    double get_delta_time(int which)
+    {
+      return delta_time[which];
+    }
     void get_total_times(vector <double>& TT)
     {
       TT=total_time;
@@ -579,9 +627,10 @@ namespace FractalSpace
 	delta_p[level]=p_mess->Clock()-time_p[level];
       else if(what ==0)
 	{
-	  p_file->FileTimeLev.precision(2);
-	  p_file->FileTimeLev << " " << endl;
-	  p_file->FileTimeLev << " steps " << steps << endl;
+	  //	  p_file->FileTimeLev.precision(2);
+	  //	  p_file->FileTimeLev << " " << "\n";
+	  //	  p_file->FileTimeLev << " steps " << steps << "\n";
+	  fprintf(p_file->PFTimeLev,"\n steps %5d \n",steps);
 	  for(int ni=0;ni<=level_max;ni++)
 	    {
 	      total_g[ni]+=delta_g[ni];
@@ -590,7 +639,8 @@ namespace FractalSpace
 	      double dtp=delta_p[ni]/clocks_per_sec;
 	      double totalg=total_g[ni]/clocks_per_sec;
 	      double totalp=total_p[ni]/clocks_per_sec;
-	      p_file->FileTimeLev << steps <<"\t" << ni << scientific << "\t" << dtg << "\t" << totalg << "\t" << dtp << "\t" << totalp << endl;
+	      //	      p_file->FileTimeLev << steps <<"\t" << ni << scientific << "\t" << dtg << "\t" << totalg << "\t" << dtp << "\t" << totalp << "\n";
+	      fprintf(p_file->PFTimeLev," %5d \t %3d \t %10.2E \t %10.2E \t %10.2E \t %10.2E \n",steps,ni,dtg,totalg,dtp,totalp);
 	    }
 	}
       else
@@ -608,8 +658,9 @@ namespace FractalSpace
       else if(what == 0)
 	{
 	  steps++;
-	  p_file->FileTime << " " << endl;
-	  p_file->FileTime << " steps " << steps << endl;
+	  //	  p_file->FileTime << " " << "\n";
+	  //	  p_file->FileTime << " steps " << steps << "\n";
+	  fprintf(p_file->PFTime,"\n steps %5d \n",steps);
 	  for(int i=0; i < 50; i++)
 	    total_time[i]+=delta_time[i];
 	  double dt49=(delta_time[49]/clocks_per_sec)+1.0e-6;
@@ -624,8 +675,10 @@ namespace FractalSpace
 	    {
 	      double dt=delta_time[i]/clocks_per_sec;
 	      double dtt=total_time[i]/clocks_per_sec;
-	      p_file->FileTime << "timing " << steps << "\t" << i << " \t" << scientific << dt << "\t"  << dtt << "\t" ;
-	      p_file->FileTime << fixed << 100.0*dt/dt49 << "\t" << 100.0*dtt/dtt49 << "\t" << time_string[i] << endl;
+	      //	      p_file->FileTime << "timing " << steps << "\t" << i << " \t" << scientific << dt << "\t"  << dtt << "\t" ;
+	      fprintf(p_file->PFTime,"timing %5d \t %3d \t %10.2E \t %10.2E \t",steps,i,dt,dtt);
+	      //	      p_file->FileTime << fixed << 100.0*dt/dt49 << "\t" << 100.0*dtt/dtt49 << "\t" << time_string[i] << "\n";
+	      fprintf(p_file->PFTime,"%10.2f \t %10.2f \t %s \n",100.0*dt/dt49,100.0*dtt/dtt49,time_string[i].c_str());
 	    }
 	}
       else if(what== -2)

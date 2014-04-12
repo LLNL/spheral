@@ -9,9 +9,10 @@ namespace FractalSpace
   {
     fractal.timing(-2,0);
     fractal.timing(-1,49);
-    mem.p_file->FileFractal << " Made It step a " << endl;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    FileFractal << " Made It step a " << "\n";
     fractal_force(fractal,mem);
-    mem.p_file->FileFractal << " Made It step b " << endl;
+    FileFractal << " Made It step b " << "\n";
     fractal.timing(1,49);
     fractal.timing(0,0);
     fractal.timing_lev(0,0);
@@ -19,6 +20,7 @@ namespace FractalSpace
     vector <double> pos(3);
     vector <double> vel(3);
     vector <double> force(3);
+    const vector <double>zeroforce(3,0.0);
     if(mem.periodic)
       {
 	double parad=pow(mem.arad,mem.pexp);
@@ -32,9 +34,9 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
-	    if(!p->get_real_particle())
-	       continue;
 	    p->get_field(pos,vel,force);
+	    if(!p->get_real_particle())
+	      force=zeroforce;
 	    vel[0]=vel[0]*v_const+force[0]*f_const;
 	    vel[1]=vel[1]*v_const+force[1]*f_const;
 	    vel[2]=vel[2]*v_const+force[2]*f_const;
@@ -55,9 +57,9 @@ namespace FractalSpace
 	for(int n=0;n < fractal.get_number_particles();++n)
 	  {
 	    Particle* p=fractal.particle_list[n];
-	    if(!p->get_real_particle())
-	       continue;
 	    p->get_field(pos,vel,force);
+	    if(!p->get_real_particle())
+	      force=zeroforce;
 	    //	    p->dump(FP);
 	    vel[0]+=force[0]*dt;
 	    vel[1]+=force[1]*dt;

@@ -13,6 +13,7 @@ namespace FractalSpace
       shear[i]=shear_force[i]*fractal.omega_fraction;
     double min_vol=1.0;
     r=min_vol;
+    double dr=fractal.rad[1]-fractal.rad[0];
     for(int i=0;i<=100;i++)
       {
 	double haha=fractal.grow[i];
@@ -29,13 +30,14 @@ namespace FractalSpace
 	    r=fractal.grow[i];
 	    if(min_vol < vol_crash)
 	      {
-		double dr=fractal.rad[i]-fractal.rad[i-1];
+		if(i > 0)
+		  dr=fractal.rad[i]-fractal.rad[i-1];
 		double dvol=(vol-vol_old)/dr;
 		double dx=-(vol-vol_crash)/dvol;
-		//		cout << "maxx " << vol << " "  << vol_old << " "  << vol_crash << " "  << dr << " "  << dx << endl;
+		//		cout << "maxx " << vol << " "  << vol_old << " "  << vol_crash << " "  << dr << " "  << dx << "\n";
 		r=-(fractal.rad[i]+dx);
 		assert(dx/dr > -1.0 && dx <= 0.0);
-		//		cout << "maxx " << r << " " << dx << endl;
+		//		cout << "maxx " << r << " " << dx << "\n";
 		return;
 	      }
 	  }

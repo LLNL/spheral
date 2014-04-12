@@ -7,7 +7,7 @@ namespace FractalSpace
   //
   void sor(Group& group, Fractal& fractal,vector <Point*>& list_edge,const int& dir)
   {
-    ofstream& FileSor=fractal.p_file->FileSor;
+    ofstream& FileSor=fractal.p_file->DUMPS;
     double rj=group.get_rjac();
     double g_c=group.get_force_const();
     //
@@ -71,12 +71,12 @@ namespace FractalSpace
 		    << rj << "\t " 
 		    << fractal.get_epsilon_sor() << "\t"
 		    << group.get_level() 
-		    << endl;
+		    << "\n";
 	    return;
 	  }
       }
     if(maxits_real ==1) return;
-    FileSor << " not converged " << endl;
+    FileSor << " not converged " << "\n";
     /*
     for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
       {
@@ -94,8 +94,8 @@ namespace FractalSpace
 	    << rj << "\t " 
 	    << fractal.get_epsilon_sor() << "\t"
 	    << group.get_level() 
-	    << endl;
-    FileSor << " not converged " << endl;
+	    << "\n";
+    FileSor << " not converged " << "\n";
   }
   bool it_is_inside(Point* p_point)
   {

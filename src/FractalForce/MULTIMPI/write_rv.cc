@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void write_rv(const int& step,Fractal& fractal)
   {
-    ofstream& FilePos=fractal.p_file->FilePos;
+    //    ofstream& FilePos=fractal.p_file->FilePos;
+    FILE* PFPos=fractal.p_file->PFPos;
     int nphase=-1;
     int nfield=-1;
     int nparts=fractal.get_number_particles();
@@ -22,14 +23,14 @@ namespace FractalSpace
 	vector <double> vel(3);
 	vector <double> pf(4);
 	particle.get_pos(pos);
-	FilePos << "out " << step << "S" << "\t" << n << "\t" << fixed << pos[0] << "\t" <<pos[1] << "\t" << pos[2];
+	fprintf(PFPos," Out%d %7d %10.6E %10.6E %10.6E",step,n,pos[0],pos[1],pos[2]);
 	if(nphase >= 6)
 	  particle.get_vel(vel);
 	else
 	  vel.assign(3,-1234.5);
-	FilePos << scientific << "\t" << vel[0] << "\t" << vel[1] << "\t" << vel[2];
+	fprintf(PFPos," %10.6E %10.6E %10.6E",vel[0],vel[1],vel[2]);
 	double m=particle.get_mass();
-	FilePos << "\t" << m ;
+	//	FilePos << "\t" << m ;
 	if(period)
 	  {
 	    if(m > 0.0)
@@ -39,17 +40,15 @@ namespace FractalSpace
 	      }
 	    else
 	      mlevel=-1;
-	    FilePos << "\t" << "L" << mlevel << "M";
+	    fprintf(PFPos,"%4d",mlevel);
 	  }
-	FilePos << "\t" << "L" << plevel << "P";
+	fprintf(PFPos,"%4d",plevel);
 	if(nfield >= 4)
 	  particle.get_field_pf(pf);
 	else
 	  pf.assign(4,-1234.5);
-	FilePos << scientific << "\t" << pf[0] << "\t" << pf[1] << "\t" << pf[2] << "\t" << pf[3] ;
-	FilePos  << endl;
+	fprintf(PFPos," %10.6E %10.6E %10.6E %10.6E \n",pf[0],pf[1],pf[2],pf[3]);
       }
-    fractal.p_mess->Full_Stop();
-    FilePos << " wrote it " << endl;
+    //    fflush(PFPos);
   }
 }

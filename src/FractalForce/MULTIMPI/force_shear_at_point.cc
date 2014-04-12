@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void force_shear_at_point(Group& group, Fractal& fractal)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    FileFractal << " enter force_shear_at_point " << endl;
+    //    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    //    FileFractal << " enter force_shear_at_point " << "\n";
     const double conv=(double)(fractal.get_grid_length())*pow(2.0,group.get_level()-1);
     //
     for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
@@ -41,6 +42,6 @@ namespace FractalSpace
 	      point.copy_force_shear_point_4(Point::cefc[rp]);
 	  }
       }
-    FileFractal << " exit force shear at point " << endl;
+    //    FileFractal << " exit force shear at point " << "\n";
   }
 }

@@ -5,8 +5,8 @@ namespace FractalSpace
 {
   void assign_density(Group& group, Fractal& fractal)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    if(fractal.get_debug()) FileFractal << "enter assign density " << &group << " " << group.get_level() << endl;
+    //    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    if(fractal.get_debug()) FileFractal << "enter assign density " << &group << " " << group.get_level() << "\n";
     //--------------------------------------------------------------------------------------------------------------------------------
     // equivalength grid_length if total volume done at highest resolution
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ namespace FractalSpace
 	// add mass to the eight points forming the corners. These eight points will always all exist
 	// because of the restriction of which points can have particles
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//	    FileFractal << " testing " << endl;
+	//	    FileFractal << " testing " << "\n";
 	//	    point.dump();
 	point.add_density_at_points<double>(dens);
       }
@@ -64,7 +64,7 @@ namespace FractalSpace
 	// scaling is the inverse volume of a cell
 	//--------------------------------------------------------------------------------------------------------------------------------
 	double scaling=(double)(Misc::pow(fractal.get_grid_length(),3))*pow(8.0,group.get_level());
-	//      FileFractal << " scaling " << scaling << " " << group.get_level() << endl;
+	//      FileFractal << " scaling " << scaling << " " << group.get_level() << "\n";
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  {
 	    //--------------------------------------------------------------------------------------------------------------------------------
@@ -76,13 +76,13 @@ namespace FractalSpace
 	  }
       }
     double d_0=fractal.get_density_0();
-    //    FileFractal << "density zero " << d_0 << endl;
+    //    FileFractal << "density zero " << d_0 << "\n";
     //--------------------------------------------------------------------------------------------------------------------------------
     // subtract mean density
     //--------------------------------------------------------------------------------------------------------------------------------
     if(group.get_set_dens() && d_0 != 0.0)
       group.subtract_density(d_0);
-    if(fractal.get_debug()) FileFractal << "leaving assign density" << endl;
+    //    if(fractal.get_debug()) FileFractal << "leaving assign density" << "\n";
     //
   }
 }

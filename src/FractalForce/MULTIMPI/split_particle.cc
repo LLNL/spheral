@@ -6,6 +6,7 @@ namespace FractalSpace
   template <class M, class F>  int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
 						  int& count,const double& m,const int& split_to,const bool& gen_part)
   {
+    Particle* par=0;
     int iphase=3;
     if(mem.do_vel) iphase=6;
     int jfield=6;
@@ -91,8 +92,16 @@ namespace FractalSpace
     //
     if(many ==1)
       {
-	Particle* par=new (nothrow) Particle(iphase,jfield);
-	assert(par);
+	try
+	  {
+	    par=new Particle(iphase,jfield);
+	  }
+	catch (bad_alloc& ba)
+	  {
+	    cerr << " single Particle allocation failure split particle ";
+	    cerr << mem.p_mess->FractalRank << " " << count << " " << ba.what() << endl;
+	    exit(0);
+	  }
 	frac.particle_list[count]=par;
 	frac.particle_list[count]->set_pos(x0,y0,z0);
 	frac.particle_list[count]->set_mass(m);
@@ -109,8 +118,16 @@ namespace FractalSpace
 	      {
 		for(int ix=0;ix < many;ix++)
 		  {
-		    Particle* par=new (nothrow) Particle(iphase,jfield);
-		    assert(par);
+		    try
+		      {
+			par=new Particle(iphase,jfield);
+		      }
+		    catch (bad_alloc& ba)
+		      {
+			cerr << " Multi Particle allocation failure split particle ";
+			cerr << mem.p_mess->FractalRank << " " << count << " " << ba.what() << endl;
+			exit(0);
+		      }
 		    frac.particle_list[count]=par;
 		    frac.particle_list[count]->
 		      set_pos(

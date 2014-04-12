@@ -7,7 +7,8 @@ namespace FractalSpace
   //
   void velocities(Fractal_Memory& mem,Fractal& frac)
   {
-    ofstream& FileFractal= frac.p_file->FileFractal;
-    FileFractal << "not yet " << &mem << " " << &frac << endl;    
+    ofstream& FileFractal= frac.p_file->DUMPS;
+    //    ofstream& FileFractal= frac.p_file->FileFractal;
+    FileFractal << "not yet " << &mem << " " << &frac << "\n";    
   }
 }
