@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void particle_lists_fixed(vector <vector <Group*> >& all_groups,Fractal& fractal,Misc& misc)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    FileFractal << "enter particle lists " << fractal.get_level_max() << " " << fractal.get_number_particles() << endl;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    FileFractal << "enter particle lists " << fractal.get_level_max() << " " << fractal.get_number_particles() << "\n";
     if(fractal.get_level_max() < 1) return;
     if(fractal.get_number_particles() < 1) return;
     const double grid_length=fractal.get_grid_length();
@@ -15,7 +16,7 @@ namespace FractalSpace
     Group& group=**all_groups[0].begin();
     for(int particle=0;particle < fractal.get_number_particles();++particle)
       {
-	FileFractal << " haha 1 " << endl;
+	FileFractal << " haha 1 " << "\n";
 	Particle& p=*fractal.particle_list[particle];
 	p.get_pos(pos);
 	int n_x=(int)floor(pos[0]*grid_length);
@@ -26,20 +27,20 @@ namespace FractalSpace
 	if(doit)
 	  {
 	    //
-	    FileFractal << particle << " " << n_x << " " << n_y << " " << n_z << " " << pp << endl;
+	    FileFractal << particle << " " << n_x << " " << n_y << " " << n_z << " " << pp << "\n";
 	    //
 	    Point& point=*(group.list_points[pp]);
 	    //
-	    FileFractal << "point " << pp << " " << &point << endl;
-	    FileFractal << point.list_other_particles.size() << endl;
+	    FileFractal << "point " << pp << " " << &point << "\n";
+	    FileFractal << point.list_other_particles.size() << "\n";
 	    //
 	    point.list_other_particles.push_back(&p);
 	    p.set_p_highest_level_group(misc.p_group_0);
-	    FileFractal << " haha 2 " << endl;
+	    FileFractal << " haha 2 " << "\n";
 	  }
 	else
 	  {
-	    FileFractal << "particle outside " << pos[0] << " " << pos[1] << " " << pos[2] << " " << particle << endl;
+	    FileFractal << "particle outside " << pos[0] << " " << pos[1] << " " << pos[2] << " " << particle << "\n";
 	  }
       }
     for(int lev=1;lev <= fractal.get_level_max();++lev)
@@ -76,6 +77,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    FileFractal << "leaving particle lists " << endl;
+    FileFractal << "leaving particle lists " << "\n";
   }
 }

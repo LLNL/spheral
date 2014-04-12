@@ -15,7 +15,7 @@ namespace FractalSpace
     if(doit) 
       {
 	group.get_forcem(sumf0,sum0);
-	//	cout << " SUM0 " << &group << " " << sumf0[0] << " " << sumf0[1] << " " << sumf0[2] << " " << sum0 << endl;
+	//	cout << " SUM0 " << &group << " " << sumf0[0] << " " << sumf0[1] << " " << sumf0[2] << " " << sum0 << "\n";
 	sum0=1.0e-30;
       }
     //
@@ -42,7 +42,7 @@ namespace FractalSpace
 	pf[1]=(sumf0[0]-sumf[0])/sum0;
 	pf[2]=(sumf0[1]-sumf[1])/sum0;
 	pf[3]=(sumf0[2]-sumf[2])/sum0;
-	//	cout << " SUMM " << &group << " " << sumf[0] << " " << sumf[1] << " " << sumf[2] << " " << sum0 << endl;
+	//	cout << " SUMM " << &group << " " << sumf[0] << " " << sumf[1] << " " << sumf[2] << " " << sum0 << "\n";
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  {
 	    Point& point=**point_itr;
@@ -59,7 +59,7 @@ namespace FractalSpace
     else
       {
 	group.set_forcem(sumf,sum0);
-	//	cout << " SUMS " << &group << " " << sumf[0] << " " << sumf[1] << " " << sumf[2] << " " << sum0 << endl;
+	//	cout << " SUMS " << &group << " " << sumf[0] << " " << sumf[1] << " " << sumf[2] << " " << sum0 << "\n";
       }
   }
 }

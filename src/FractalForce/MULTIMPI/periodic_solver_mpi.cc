@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void periodic_solver(Group& group, Fractal_Memory& mem,Fractal& frac)
   {
-    ofstream& FileFFT=frac.p_file->FileFFT;
-    FileFFT << "entering periodic " << endl;
+    ofstream& FileFFT=frac.p_file->DUMPS;
+    //    ofstream& FileFFT=frac.p_file->FileFFT;
+    FileFFT << "entering periodic " << "\n";
     const int length_1=frac.get_grid_length();  
     const int length_c=(length_1+2)/2;
     const int length_2=length_1*length_1;
@@ -20,14 +21,14 @@ namespace FractalSpace
 	double aa=pi*static_cast<double>(k)/static_cast<double>(length_1);
 	green_1[k]=1.0e-30+pow(2.0*sin(aa),2);
       }
-    mem.p_mess->zeroR();
+    mem.p_mess->zeroR(-frac.get_density_0());
     Full_Stop(mem,34);
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
     frac.timing(1,24);
     mem.p_mess->fftw_real_to_complex();
     double g_c=group.get_force_const()/length_3;
-    FileFFT << "going to power spectrum from periodic " << length_1 << endl;
+    FileFFT << "going to power spectrum from periodic " << length_1 << "\n";
     vector <double> variance_rho(length_1,0.0);
     vector <double> variance_pot(length_1,0.0);
     vector <double> variance_force(length_1,0.0);
@@ -60,7 +61,7 @@ namespace FractalSpace
     slices_to_potf(group,mem,frac);
     frac.timing(1,24);
     mem.p_mess->free_potRC();
-    FileFFT << "exiting periodic " << endl;
+    FileFFT << "exiting periodic " << "\n";
   }
 }
 

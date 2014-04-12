@@ -6,8 +6,9 @@ namespace FractalSpace
   void force_at_point(Group& group, Fractal& fractal)
   {
     // worry about group 1 at the edge for isolated BC.
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    if(fractal.get_debug()) FileFractal << " enter force at point " << &group << " " << group.get_level() << endl;
+    //    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    //    if(fractal.get_debug()) FileFractal << " enter force at point " << &group << " " << group.get_level() << "\n";
     const double conv=(double)(fractal.get_grid_length())*pow(2.0,group.get_level()-1);
     //
     if(group.get_level() == 0)
@@ -63,6 +64,6 @@ namespace FractalSpace
 	point.dumppf();
       }
     */
-    if(fractal.get_debug()) FileFractal << " exit force at point " << endl;
+    //    if(fractal.get_debug()) FileFractal << " exit force at point " << "\n";
   }
 }

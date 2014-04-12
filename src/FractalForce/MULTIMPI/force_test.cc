@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void force_test(Fractal& fractal)
   {
-    ofstream& FileForce=fractal.p_file->FileForce;
+    ofstream& FileForce=fractal.p_file->DUMPS;
+    //    ofstream& FileForce=fractal.p_file->FileForce;
     double sum_m=0.0;
     double sum_fx1=0.0;
     double sum_fy1=0.0;
@@ -33,6 +34,6 @@ namespace FractalSpace
     FileForce << fractal.get_steps() << " " << sum_m << " ";
     FileForce << sum_fx1 << " " << sqrt(sum_fx2) << " ";
     FileForce << sum_fy1 << " " << sqrt(sum_fy2) << " ";
-    FileForce << sum_fz1 << " " << sqrt(sum_fz2) << endl;
+    FileForce << sum_fz1 << " " << sqrt(sum_fz2) << "\n";
   }
 }

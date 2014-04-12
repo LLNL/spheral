@@ -120,7 +120,6 @@ namespace FractalSpace
     PFM->global_level_max=PFM->level_max;
     /***********************/
     //Leave these parameters alone
-    PFM->min_hypre_group_size=1;
     PFM->new_points_gen=9;
     PFM->steps=0;
     PFM->momentum_conserve=false;
@@ -133,7 +132,7 @@ namespace FractalSpace
     PFM->start_up=false;
     PFM->halo_fixed=false;
     //
-    PFM->min_hypre_group_size=45;
+    PFM->min_hypre_group_size=343;
     //
     PFM->splits=0;
     PFM->masks=0;
@@ -142,11 +141,22 @@ namespace FractalSpace
     //
     // Construct a Mess object. 
     // All MPI and FFTW stuff is done in Mess member functions. 
-    // This will be used throughout the simulation.
+    // This will be used throughout the simulation. 
+   /*
     Mess* p_mess=new Mess(PFM->MPIrun,
 			  PFM->grid_length,
 			  PFM->periodic,
 			  PFM->number_particles,
+			  PFM->FFTNodes,
+			  PFM->FractalWorld);
+    */
+    Mess* p_mess=new Mess(PFM->MPIrun,
+			  PFM->grid_length,
+			  PFM->periodic,
+			  PFM->number_particles,
+			  PFM->FractalNodes0,
+			  PFM->FractalNodes1,
+			  PFM->FractalNodes2,
 			  PFM->FFTNodes,
 			  PFM->FractalWorld);
     PFM->p_mess=p_mess;
@@ -155,7 +165,8 @@ namespace FractalSpace
     // Construct a File object. 
     // All output is done in File member functions. 
     // This will be used throughout the simulation.
-    File* p_file=new File(PFM->BaseDirectory,p_mess->FractalRank,PFM->RUN);
+    //    File* p_file=new File(PFM->BaseDirectory,p_mess->FractalRank,PFM->RUN);
+    File* p_file=new File(PFM->BaseDirectory,p_mess->FractalNodes,p_mess->FractalRank,PFM->RUN);
     PFM->p_file=p_file;
     PFM->p_mess->p_file=p_file;
     
@@ -190,7 +201,16 @@ namespace FractalSpace
     int NP=PFM->number_particles;
     Fractal* PF=new Fractal(*PFM);
     PFM->p_fractal=PF;
-    Particle* PL=new Particle[NP];
+    Particle* PL;
+    try
+      {
+	PL=new Particle[NP];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " bad particles " << NP << " " << ba.what() << endl;
+	exit(0);
+      }
     PFM->p_mess->Parts_in=PL;
     PF->particle_list.resize(NP);
     for(int ni=0;ni<NP;ni++)

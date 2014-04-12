@@ -36,8 +36,8 @@ namespace FractalSpace
   }
   bool LesserPointA(Point* p1,Point* p2)
   {
-    //    FF << "Lesser A " << p1 << " " << p1->get_pos_point(0) << " " << p1->get_pos_point(1) << " " << p1->get_pos_point(2) << endl;
-    //    FF << "Lesser B " << p2 << " " << p2->get_pos_point(0) << " " << p2->get_pos_point(1) << " " << p2->get_pos_point(2) << endl;
+    //    FF << "Lesser A " << p1 << " " << p1->get_pos_point(0) << " " << p1->get_pos_point(1) << " " << p1->get_pos_point(2) << "\n";
+    //    FF << "Lesser B " << p2 << " " << p2->get_pos_point(0) << " " << p2->get_pos_point(1) << " " << p2->get_pos_point(2) << "\n";
     int dz=p1->get_pos_point(Misc::dim2)-p2->get_pos_point(Misc::dim2);
     if(dz != 0)
       return dz < 0;

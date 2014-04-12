@@ -298,7 +298,7 @@ namespace FractalSpace
 		      }
 		  }
 	      }
-	    //	    FileFractal << endl;
+	    //	    FileFractal << "\n";
 	  }
       }
     int positions[27][27];

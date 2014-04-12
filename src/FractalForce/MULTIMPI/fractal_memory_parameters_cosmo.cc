@@ -5,25 +5,37 @@ namespace FractalSpace
 {
   string Fractal::sim_parameters="cosmos_flat_lambda";
   //
-  template <class M> void fractal_memory_parameters(M& mem)
+  template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_)
   {
+    mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     // These are the parameters you need to set.
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
-    cout << " enter parameters " << endl;
-    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/64/";
+    string sa="/p/lscratch";
+    string sb="c";
+    if(_inteL_ == 0)
+      sb="v";
+    string sc="/jensv/cosmo/";
+    mem.BaseDirectory=sa+sb+sc;
+    //    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/";
+    /*
+    stringstream ssFN;
+    ssFN << mem.FractalNodes;
+    string stringFN=ssFN.str();
+    mem.BaseDirectory.append(stringFN);
+    mem.BaseDirectory.append("/");
+    */
     //base directory
     mem.RUN="svendborg";
     //directory name desriptor
     mem.MPIrun=true;
     // Is this an MPI run.
-    mem.FractalNodes0=4;
+    //    mem.FractalNodes0=4;
     //number of nodes in x-direction
-    mem.FractalNodes1=4;
+    //    mem.FractalNodes1=4;
     //number of nodes in y-direction
-    mem.FractalNodes2=4;
+    //    mem.FractalNodes2=4;
     //number of nodes in z-direction
-    mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     //total number of nodes
     mem.MPIrun=mem.MPIrun || mem.FractalNodes > 1;
     // makes sense
@@ -32,21 +44,20 @@ namespace FractalSpace
     // max number of nodes for FFTW
     mem.periodic = true ;
     //true for periodic BC and false for isolated BC
-    mem.grid_length = 256;    
+    if(mem.grid_length < 64)
+      mem.grid_length = 256;
     // length of fundamental grid, must be even
     mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
-    mem.max_particles=(mem.number_particles*4);
+    mem.max_particles=mem.number_particles*_mulT_;
     //    mem.max_particles=1;
     //The max number of particles the initial conditions code can generate through particle splitting
     mem.level_max = 10 ; 
+    //    mem.level_max = 0 ; 
     mem.global_level_max=mem.level_max;
     mem.highest_level_init=min(mem.highest_level_init,mem.level_max);
     // highest level, nothing magical about this
     // total resolution = grid_length*2**level_max
-    mem.min_hypre_group_size=45;
-    //    mem.min_hypre_group_size=-1;
-    // minum group size to use hypre
     mem.minimum_number = 8 ; 
     // min number of particles in a cell to make it a high density cell
     // minimum_number**(1/3) is the local resolution in units of the local
@@ -60,18 +71,22 @@ namespace FractalSpace
     // maximum number of iterations in SOR or Hypre Solver
     mem.epsilon_sor = 1.0e-7;
     //convergence criterion in SOR or Hypre Solver
+    //    mem.hypre_load_balance=true;
+    mem.hypre_load_balance=false;
     mem.debug=true;
     // Does extra testing and prints out a bunch of diagnostics
     mem.new_points_gen=9;
     //Generate this many Points in each go
     mem.number_steps_total=906;
+    //    mem.number_steps_total=8;
     // Total number of steps
-    mem.number_steps_out=100;
+    mem.number_steps_out=50;
     // Output how often
     mem.time_trial=true;
     mem.redshift_start=99.0;
     // step length
     mem.step_length=0.025;
+    //    mem.step_length=1.0e-30;
     // initial redshift
     mem.omega_0=0.3;
     // Omega_matter at current epoch, NOT initial epoch.
@@ -83,7 +98,7 @@ namespace FractalSpace
     // Initial seed for std:rand
     // sets your values for parameters
     mem.steps=-1;
-    mem.min_hypre_group_size=45;
+    mem.min_hypre_group_size=343;
     mem.momentum_conserve=false;
     mem.amnesia=true; // (true) forget everything after you are done. (false) remember everything.
     mem.mind_wipe=false; // (true) delete everything and then come back without calculating anything.
@@ -98,7 +113,7 @@ namespace FractalSpace
     mem.sigma_initial=mem.sigma_0*Growth(mem.omega_0,mem.omega_lambda,mem.redshift_start);
     mem.time=Age_of_the_universe(mem.omega_start,mem.lambda_start,0.0);
     mem.total_mass=1.0;
-    cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << endl;
+    cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << "\n";
     //
     mem.crash_levels=8;
     mem.crash_pow=2.0;
@@ -208,10 +223,10 @@ namespace FractalSpace
     mem.masks_level_init[2]=4;
     mem.masks_square_init[2]=true;
     mem.masks_init=0;
-    cout << " finishing cosmo " << endl;
+    cout << " finishing cosmo " << "\n";
   }
 }
 namespace FractalSpace
 {
-  template void fractal_memory_parameters(Fractal_Memory& mem);
+  template void fractal_memory_parameters(Fractal_Memory& mem,int _inteL_,int _mulT_);
 }

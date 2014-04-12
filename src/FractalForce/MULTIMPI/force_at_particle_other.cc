@@ -6,7 +6,8 @@ namespace FractalSpace
   void force_at_particle(vector <vector <Group*> >& all_groups, Fractal& fractal)
   { 
     //
-    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> pott(8);

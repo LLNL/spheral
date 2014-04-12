@@ -13,9 +13,6 @@ namespace FractalSpace
       }
     if(!mem.MPIrun)
       return highest_level_global;
-    frac.timing(-1,41);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,41);
     int* highest= new int[1];
     highest[0]=highest_level_global;
     mem.p_mess->Find_Max_INT(highest,1);

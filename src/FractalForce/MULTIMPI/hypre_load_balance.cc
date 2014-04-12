@@ -5,23 +5,22 @@ namespace FractalSpace
 {
   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance)
   {
-    load_balance=false;
-    ofstream& FH=mem.p_file->FileHypre;
-    int FractalNodes=mem.FractalNodes;
-    int FractalRank=mem.p_mess->FractalRank;
-    int involved=0;
+    FILE* PFH=mem.p_file->PFHypre;
+    int HypreNodes=mem.p_mess->HypreNodes;
+    int HypreRank=mem.p_mess->HypreRank;
     int count_max=-1;
-    double count_sum0=FractalNodes;
+    double count_sum0=HypreNodes;
     double count_sum1=0.0;
     double count_sum2=0.0;
-    for(int FR=0;FR<FractalNodes;FR++)
+    int total=0;
+    for(int HR=0;HR<HypreNodes;HR++)
       {
-	if(mem.ij_counts[FR] > 0)
-	  involved++;
-	double holy_handgrenade_of_antioch=mem.ij_counts[FR];
+	double holy_handgrenade_of_antioch=mem.ij_counts[HR];
 	count_sum1+=holy_handgrenade_of_antioch;
 	count_sum2+=pow(holy_handgrenade_of_antioch,2);
-	count_max=max(count_max,mem.ij_counts[FR]);
+	count_max=max(count_max,mem.ij_counts[HR]);
+	total+=mem.ij_counts[HR];
+	fprintf(PFH," Hypre counts \t %d \t %d \n",HR,mem.ij_counts[HR]);
       }
 
     int average=count_sum1/count_sum0;
@@ -30,43 +29,44 @@ namespace FractalSpace
     bool spread_even = average >= mem.hypre_max_average_load;
     bool OOM = count_max >= mem.hypre_max_node_load;
 
-    FH << " Hypre on Nodes " << average << " " << count_max << " " << nodes_eff << " " << involved << endl;
-    FH << " Hypre Load Balance " << spread_even << OOM << endl;
+    //    FH << " Hypre on Nodes " << average << " " << count_max << " " << nodes_eff << "\n";
+    fprintf(PFH," Hypre on Nodes %d %d %d \n",average,count_max,nodes_eff);
+    //    FH << " Hypre Load Balance " << spread_even << OOM << "\n";
+    fprintf(PFH," Hypre Load Balance %d %d \n",spread_even,OOM);
     if(!mem.hypre_load_balance)
       return 0;
     if(!spread_even && !OOM)
       return 0;
     load_balance=true;
-    int total=count_sum1+0.01;
-    for(int FR=0;FR<FractalNodes;FR++)
+    double aHypreNodes=HypreNodes;
+    for(int HR=0;HR<HypreNodes;HR++)
       {
-	long long int Sumb=(FR+1)*total;
-	long long int Suma=FR*total;
-	int sumb=Sumb/FractalNodes;
-	int suma=Suma/FractalNodes;
-	mem.ij_countsB[FR]=sumb-suma;
-	FH << " test load " << FR << " " << suma << " " << sumb << " " << mem.ij_countsB[FR] << endl;
+	double aHR=HR;
+	int sumb=((aHR+1.0)*total)/aHypreNodes;
+	int suma=(aHR*total)/aHypreNodes;
+	if(HR == HypreNodes-1)
+	  sumb=total;
+	mem.ij_countsB[HR]=sumb-suma;
+	fprintf(PFH," test load \t %d \t %d \t %d \t %d \n",HR,suma,sumb,mem.ij_countsB[HR]);
       }
     mem.ij_offsetsB[0]=0;
-    FH << " offsets balance " << 0 << " " << mem.ij_offsetsB[0] << " " << mem.ij_countsB[0] << endl;
-    for(int FR=1;FR<=FractalNodes;FR++)
+    fprintf(PFH," offsets balance %d \t %d \t %d \n",0,mem.ij_offsetsB[0],mem.ij_countsB[0]);
+    for(int HR=1;HR<=HypreNodes;HR++)
       {
-	mem.ij_offsetsB[FR]=mem.ij_offsetsB[FR-1]+mem.ij_countsB[FR-1];
-	FH << " offsets balance " << FR << " " << mem.ij_offsetsB[FR] << " " << mem.ij_countsB[FR] << endl;
+	mem.ij_offsetsB[HR]=mem.ij_offsetsB[HR-1]+mem.ij_countsB[HR-1];
+	fprintf(PFH," offsets balance %d \t %d \t %d \n",HR,mem.ij_offsetsB[HR],mem.ij_countsB[HR]);
       }
-    int first_on_new_node=mem.ij_offsetsB[FractalRank];
-    int last_on_new_node=mem.ij_offsetsB[FractalRank+1]-1;
+    int first_on_new_node=mem.ij_offsetsB[HypreRank];
+    int last_on_new_node=mem.ij_offsetsB[HypreRank+1]-1;
     int off_elements=0;
     for(vector<Point*>::const_iterator point_itr=points.begin();point_itr !=points.end();++point_itr)
       {
 	Point* p=*point_itr;
-	if(p==0)
-	  continue;
 	int label=p->get_ij_number();
 	if(label < first_on_new_node || label > last_on_new_node)
 	  off_elements++;
       }
-    FH << " off_elements " << off_elements << endl;
+    fprintf(PFH," off_elements %d \n",off_elements);
     return off_elements;
   }
   template <class T> bool overlap_interval(T Imin,T Imax,T Jmin,T Jmax,T& LOW,T& HIGH)

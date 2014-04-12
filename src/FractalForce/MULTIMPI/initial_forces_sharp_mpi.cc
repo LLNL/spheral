@@ -6,8 +6,9 @@ namespace FractalSpace
   typedef ptrdiff_t pint;
   void initial_forces_sharp(Fractal_Memory& mem,Fractal& frac)
   {
-    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
-    FileFractal << "enter initial_forces " << endl;
+    ofstream& FileFractal=mem.p_fractal->p_file->DUMPS;
+    //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
+    FileFractal << "enter initial_forces " << "\n";
     int highest_level_used=-1;
     for(int level=0;level <= frac.get_level_max();level++)
       {
@@ -38,7 +39,7 @@ namespace FractalSpace
     int highest_level_fft=min(mem.highest_level_init,highest_level_used);
     double var_initial=mem.sigma_initial*mem.sigma_initial;
     double dead_parrot=0.0;
-    FileFractal << "mem.scaling= " << mem.scaling << " " << var_initial << endl;
+    FileFractal << "mem.scaling= " << mem.scaling << " " << var_initial << "\n";
     vector <double> green_2(length+1);
     for (int k=0;k <length;++k)
       {
@@ -47,7 +48,7 @@ namespace FractalSpace
       }
     for(int lev=0;lev <= highest_level_fft;++lev)
       {
-	FileFractal << "make power " << lev << " " << highest_level_fft << endl;
+	FileFractal << "make power " << lev << " " << highest_level_fft << "\n";
 	double boost_power=pow(8.0,lev);
 	double boost_scale=pow(2.0,lev);
 	double force_const=fourpi/boost_scale/boost_scale*length_5;
@@ -101,15 +102,15 @@ namespace FractalSpace
 		    mem.p_mess->potC[holy_grail][0]=pot_k*cos(angle);
 		    mem.p_mess->potC[holy_grail][1]=pot_k*sin(angle);
 		    //		    FileFractal << " power " << aa << " "  << bb << " "  << cc << " "  << dd << " " ;
-		    //		    FileFractal << mem.p_mess->potC[holy_grail][0] << " " << mem.p_mess->potC[holy_grail][1] << endl;
+		    //		    FileFractal << mem.p_mess->potC[holy_grail][0] << " " << mem.p_mess->potC[holy_grail][1] << "\n";
 		  }
 	      }
 	  }
-	FileFractal << "calling power_spectrum from initial_forces " << length << endl;
-	FileFractal << "sizes a " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << endl;
+	FileFractal << "calling power_spectrum from initial_forces " << length << "\n";
+	FileFractal << "sizes a " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
 	power_spectrum(mem.p_mess->potC,length,variance_rho,variance_pot,variance_force,variance_force_s,lev,frac.get_density_0(),true,mem);
 	//
-	FileFractal << "back from power " << lev << endl;
+	FileFractal << "back from power " << lev << "\n";
 	if(lev == 0)
 	  {
 	    double a=mem.norm_scale*(double)length;
@@ -120,7 +121,7 @@ namespace FractalSpace
 	      {
 		double var_obs=(1.0-a)*variance_rho[n1]+a*variance_rho[n1+1];
 		dead_parrot=sqrt(var_initial/var_obs);
-		FileFractal << "dead parrot " << dead_parrot << endl;
+		FileFractal << "dead parrot " << dead_parrot << "\n";
 	      }
 	    else if(mem.norm_what == 1 || mem.norm_what==2)
 	      {
@@ -139,7 +140,7 @@ namespace FractalSpace
 	for(int i=0;i < length/2;i++)
 	  {
 	    if(mem.p_mess->IAmAnFFTNode)
-	      FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << endl;
+	      FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << "\n";
 	  }
 	for(pint kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x ; kx++)
 	  {
@@ -201,16 +202,16 @@ namespace FractalSpace
 	    group.scale_pot_forces(dead_parrot);
 	    double varx,vary,varz;
 	    group.get_force_variance(varx,vary,varz);
-	    FileFractal << "point variances " << group.get_level() << " " << group.list_points.size() << " " << varx << " " << vary << " " << varz << endl;
-	    FileFractal << "sharpiea " << frac.get_level_max() << endl;
+	    //	    FileFractal << "point variances " << group.get_level() << " " << group.list_points.size() << " " << varx << " " << vary << " " << varz << "\n";
+	    //	    FileFractal << "sharpiea " << frac.get_level_max() << "\n";
 	    force_at_particle_sharp(group,frac); 		
-	    FileFractal << "sharpieb " << frac.get_level_max() << endl;
+	    //	    FileFractal << "sharpieb " << frac.get_level_max() << "\n";
 	  }
       }
-    FileFractal << "calling fractal " << &frac << endl;
+    FileFractal << "calling fractal " << &frac << "\n";
     sum_pot_forces(frac);
     //  assert(0);
-    FileFractal << "whatt0 " << endl;
+    FileFractal << "whatt0 " << "\n";
     for(int lev=0;lev<=highest_level_used;lev++)
       {
 	double sum0=1.0e-10;
@@ -243,7 +244,7 @@ namespace FractalSpace
 	sum2[0]=sqrt(sum2[0]-sum1[0]*sum1[0]);
 	sum2[1]=sqrt(sum2[1]-sum1[1]*sum1[1]);
 	sum2[2]=sqrt(sum2[2]-sum1[2]*sum1[2]);
-	FileFractal << " level forces " << lev  << " " << sum1[0] << " " << sum2[0] << " " << sum1[1] << " " << sum2[1] << " " << sum1[2] << " " << sum2[2] << endl;
+	FileFractal << " level forces " << lev  << " " << sum1[0] << " " << sum2[0] << " " << sum1[1] << " " << sum2[1] << " " << sum1[2] << " " << sum2[2] << "\n";
       } 
     sum_pot_forces(frac);
     //

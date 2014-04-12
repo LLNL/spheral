@@ -48,9 +48,6 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=3;
     int doubles=0;
-    frac.timing(-1,39);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,39);
     mem.p_file->note(true," info to slices a ");
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," info to slices b ");

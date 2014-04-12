@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void particle_lists(vector <vector <Group*> >& all_groups,Fractal& fractal,Fractal& fractal_other,Misc& misc)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    FileFractal << "enter particle lists " << fractal.get_level_max() << " " << fractal_other.get_number_particles() << endl;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    FileFractal << "enter particle lists " << fractal.get_level_max() << " " << fractal_other.get_number_particles() << "\n";
     if(fractal.get_level_max() < 1) return;
     if(fractal_other.get_number_particles() < 1) return;
     const double grid_length=fractal.get_grid_length();
@@ -77,6 +78,6 @@ namespace FractalSpace
 	  }
       }
 
-    FileFractal << "leaving particle lists " << endl;
+    FileFractal << "leaving particle lists " << "\n";
   }
 }

@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void initial_forces_sharp(Fractal_Memory& mem,Fractal& frac)
   {
-    ofstream& FileFractal=frac.p_file->FileFractal;
-    FileFractal << "enter initial_forces " << endl;
+    ofstream& FileFractal=frac.p_file->DUMPS;
+    //    ofstream& FileFractal=frac.p_file->FileFractal;
+    FileFractal << "enter initial_forces " << "\n";
     int highest_level_used=0;
     for(int level=0;level <= frac.get_level_max();level++)
       {
@@ -34,13 +35,13 @@ namespace FractalSpace
     double rand_max=(double)RAND_MAX;
     size_t sizeC=sizeof(fftw_complex);
     size_t sizeR=sizeof(double);
-    FileFractal << "sizes " << sizeC << " " << sizeR << endl;
+    FileFractal << "sizes " << sizeC << " " << sizeR << "\n";
     double* potR;
     fftw_complex* potC;
     potR=(double*) fftw_malloc(sizeR*2*length_c*length*length);
     potC=(fftw_complex*) fftw_malloc(sizeC*length_c*length*length);
-    FileFractal << " potR " << potR[10] << endl;
-    FileFractal << " potC " << potC[100] << " " << *potC[100] << endl;
+    FileFractal << " potR " << potR[10] << "\n";
+    FileFractal << " potC " << potC[100] << " " << *potC[100] << "\n";
     fftw_plan plan_cr=fftw_plan_dft_c2r_3d(length,length,length,potC,potR,FFTW_ESTIMATE);
     double pi=4.0*atan(1.0);
     double twopi=2.0*pi;
@@ -49,7 +50,7 @@ namespace FractalSpace
     int highest_level_fft=min(mem.highest_level_init,highest_level_used);
     double var_initial=mem.sigma_initial*mem.sigma_initial;
     double dead_parrot=0.0;
-    FileFractal << "mem.scaling= " << mem.scaling << " " << var_initial << endl;
+    FileFractal << "mem.scaling= " << mem.scaling << " " << var_initial << "\n";
     vector <double> green_2(length+1);
     for (int k=0;k <length;++k)
       {
@@ -59,7 +60,7 @@ namespace FractalSpace
     //
     for(int lev=0;lev <= highest_level_fft;++lev)
       {
-	FileFractal << "make power " << lev << " " << highest_level_fft << endl;
+	FileFractal << "make power " << lev << " " << highest_level_fft << "\n";
 	double boost_power=pow(8.0,lev);
 	double boost_scale=pow(2.0,lev);
 	double force_const=fourpi/boost_scale/boost_scale*length_5;
@@ -109,11 +110,11 @@ namespace FractalSpace
 		  }
 	      }
 	  }
-	FileFractal << "calling power_spectrum from initial_forces " << length << endl;
-	FileFractal << "sizes a " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << endl;
+	FileFractal << "calling power_spectrum from initial_forces " << length << "\n";
+	FileFractal << "sizes a " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
 	power_spectrum(potC,length,variance_rho,variance_pot,variance_force,variance_force_s,lev,frac.get_density_0(),true,mem);
 	//
-	FileFractal << "back from power " << lev << endl;
+	FileFractal << "back from power " << lev << "\n";
 	if(lev == 0)
 	  {
 	    double a=mem.norm_scale*(double)length;
@@ -124,7 +125,7 @@ namespace FractalSpace
 	      {
 		double var_obs=(1.0-a)*variance_rho[n1]+a*variance_rho[n1+1];
 		dead_parrot=sqrt(var_initial/var_obs);
-		FileFractal << "dead parrot " << dead_parrot << endl;
+		FileFractal << "dead parrot " << dead_parrot << "\n";
 	      }
 	    else if(mem.norm_what == 1 || mem.norm_what==2)
 	      {
@@ -142,7 +143,7 @@ namespace FractalSpace
 	//
 	for(int i=0;i < length/2;i++)
 	  {
-	    FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << endl;
+	    FileFractal << "real variance a " << i << " " << (double)i/(double)length << " " << variance_rho[i] << "\n";
 	  }
 	for(int kx=0;kx < length ; kx++)
 	  {
@@ -166,7 +167,7 @@ namespace FractalSpace
 	  {
 	    Group& group=**group_itr;
 	    bool top_group= lev == 0;
-	    FileFractal << "group " << top_group << " " << &group << endl;
+	    FileFractal << "group " << top_group << " " << &group << "\n";
 	    if(!top_group)
 	      potential_start(group);
 	    double sumpot=0.0;
@@ -182,14 +183,14 @@ namespace FractalSpace
 		int n=mem.fftw_where(p_xi,p_yi,p_zi,length,length);
 		//		FileFractal << p_x << " " << p_y << " "<< p_z << " " ;
 		//		FileFractal << p_xi << " " << p_yi << " "<< p_zi << " " ;
-		//		FileFractal << n << " " << potR[n] << endl;
+		//		FileFractal << n << " " << potR[n] << "\n";
 		if(top_group)
 		  point.set_potential_point(potR[n]);
 		else
 		  point.add_potential_point(potR[n]);
 		sumpot+=pow(point.get_potential_point(),2);
 	      }
-	    FileFractal << "sumpot " << sumpot << endl;
+	    FileFractal << "sumpot " << sumpot << "\n";
 	    force_at_point(group,frac);
 	  }
       }
@@ -218,16 +219,16 @@ namespace FractalSpace
 	    group.scale_pot_forces(dead_parrot);
 	    double varx,vary,varz;
 	    group.get_force_variance(varx,vary,varz);
-	    FileFractal << "point variances " << group.get_level() << " " << group.list_points.size() << " " << varx << " " << vary << " " << varz << endl;
-	    FileFractal << "sharpiea " << frac.get_level_max() << endl;
+	    FileFractal << "point variances " << group.get_level() << " " << group.list_points.size() << " " << varx << " " << vary << " " << varz << "\n";
+	    FileFractal << "sharpiea " << frac.get_level_max() << "\n";
 	    force_at_particle_sharp(group,frac); 		
-	    FileFractal << "sharpieb " << frac.get_level_max() << endl;
+	    FileFractal << "sharpieb " << frac.get_level_max() << "\n";
 	  }
       }
-    FileFractal << "calling fractal " << &frac << endl;
+    FileFractal << "calling fractal " << &frac << "\n";
     sum_pot_forces(frac);
     //  assert(0);
-    FileFractal << "whatt0 " << endl;
+    FileFractal << "whatt0 " << "\n";
     for(int lev=0;lev<=highest_level_used;lev++)
       {
 	double sum0=1.0e-10;
@@ -260,7 +261,7 @@ namespace FractalSpace
 	sum2[0]=sqrt(sum2[0]-sum1[0]*sum1[0]);
 	sum2[1]=sqrt(sum2[1]-sum1[1]*sum1[1]);
 	sum2[2]=sqrt(sum2[2]-sum1[2]*sum1[2]);
-	FileFractal << " level forces " << lev  << " " << sum1[0] << " " << sum2[0] << " " << sum1[1] << " " << sum2[1] << " " << sum1[2] << " " << sum2[2] << endl;
+	FileFractal << " level forces " << lev  << " " << sum1[0] << " " << sum2[0] << " " << sum1[1] << " " << sum2[1] << " " << sum1[2] << " " << sum2[2] << "\n";
       } 
     sum_pot_forces(frac);
     //

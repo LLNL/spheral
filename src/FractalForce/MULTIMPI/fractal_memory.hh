@@ -266,7 +266,7 @@ namespace FractalSpace
     }
     ~Fractal_Memory()
     {
-      cout << "Ending Fractal_Memory " << this << endl;
+      cout << "Ending Fractal_Memory " << this << "\n";
     }
     void calc_FractalNodes()
     {
@@ -302,6 +302,12 @@ namespace FractalSpace
 		  count++;
 		}
 	    }
+	}
+      for(int FR=0;FR < FractalNodes;FR++)
+	{
+	  p_file->FileFractal << "Box fracAA " << Boxes[FR][0] << " " << Boxes[FR][1] << " " << Boxes[FR][2] << " " 
+			      << Boxes[FR][3] << " " << Boxes[FR][4] << " " << Boxes[FR][5] << "\n";
+
 	}
       assert(count==FractalNodes);
     }
@@ -385,7 +391,7 @@ namespace FractalSpace
     }
     void calc_RealBoxes()
     {
-      cout << "real " << FractalNodes << " " << grid_length << endl;
+      cout << "real " << FractalNodes << " " << grid_length << "\n";
       RealBoxes.resize(FractalNodes);
       RealPBoxes.resize(FractalNodes);
       RealIBoxes.resize(FractalNodes);
@@ -409,30 +415,38 @@ namespace FractalSpace
 	  LeftCorners[b].resize(3);
 	  for(int ni=0;ni<6;ni+=2)
 	    {
-	      //	      cout << " b ni " << b << " " << ni << endl;
+	      //	      cout << " b ni " << b << " " << ni << "\n";
 	      RealBoxes[b][ni]=static_cast<double>(Boxes[b][ni])*glinv;
 	      RealBoxes[b][ni+1]=static_cast<double>(Boxes[b][ni+1]+1)*glinv;
 	      RealPBoxes[b][ni]=static_cast<double>(PBoxes[b][ni])*glinv;
 	      RealPBoxes[b][ni+1]=static_cast<double>(PBoxes[b][ni+1])*glinv;
 	      LeftCorners[b][ni/2]=Boxes[b][ni];
+	      RealIBoxes[b][ni]=RealBoxes[b][ni]+glinv*2.0;
+	      RealIBoxes[b][ni+1]=RealBoxes[b][ni+1]-glinv*2.0;
 	      if(periodic)
 		{
 		  if(Boxes[b][ni] == 0)
 		    {
-		      LeftCorners[b][ni/2]=-1;
-		      RealIBoxes[b][ni]=RealPBoxes[b][ni];
+		      LeftCorners[b][ni/2]=-2;
+		      //		      RealIBoxes[b][ni]=RealPBoxes[b][ni];
+		      RealIBoxes[b][ni]=-10.0;
 		    }
-		  if(Boxes[b][ni+1]=grid_length-1)
-		    RealIBoxes[b][ni+1]=RealPBoxes[b][ni+1];
+		  if(Boxes[b][ni+1]==grid_length-1)
+		    //		    RealIBoxes[b][ni+1]=RealPBoxes[b][ni+1];
+		    RealIBoxes[b][ni+1]=10.0;
 		  continue;
 		}
-	      RealBoxes[b][ni]=max(RealBoxes[b][ni],glinv);
-	      RealBoxes[b][ni+1]=min(RealBoxes[b][ni+1],1.0-glinv);
-	      RealPBoxes[b][ni]=max(RealPBoxes[b][ni],glinv);
-	      RealPBoxes[b][ni+1]=min(RealPBoxes[b][ni+1],1.0-glinv);
+	      else
+		{
+		  /*    I changed this */
+		  RealBoxes[b][ni]=max(RealBoxes[b][ni],glinv);
+		  RealBoxes[b][ni+1]=min(RealBoxes[b][ni+1],1.0-glinv);
+		  RealPBoxes[b][ni]=max(RealPBoxes[b][ni],glinv);
+		  RealPBoxes[b][ni+1]=min(RealPBoxes[b][ni+1],1.0-glinv);
+		}
 	    }
 	}
-      cout << " real b " << endl;
+      cout << " real b " << "\n";
     }
     int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc)
     {
@@ -451,7 +465,7 @@ namespace FractalSpace
 	  double a2=pow(12.0*omega_0*h*h,0.424)*(1.0+pow(45.0*omega_0*h*h,-0.582));
 	  double alpha=pow(a1,-omega_b/omega_0)*pow(a2,-pow(omega_b/omega_0,3));
 	  scaling=box_length*omega_0*h*h*sqrt(alpha)*pow(1.0-omega_b/omega_0,0.6);
-	  cout << "scaling " << a1 << " " << a2 << " " << alpha << " " << " " << box_length << " " << h << " " << scaling << endl;
+	  cout << "scaling " << a1 << " " << a2 << " " << alpha << " " << " " << box_length << " " << h << " " << scaling << "\n";
 	}
     }
     // public interface functions

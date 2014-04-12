@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void potential_start(Group& group)
   {
-    //    cout << "enter pot start " << &group << endl;
+    //    cout << "enter pot start " << &group << "\n";
     //---------------------------------------------------------------------------------------------------
     // We use potential from the mother group as initial conditions  and boundary conditions for the potential
     // We look at the 3x3x3 we made. First we do a straight copy at the 8 corner points. 
@@ -43,6 +43,6 @@ namespace FractalSpace
 	  p_point->copy_potential_point_6();
       }
     //
-    //    cout << "exit pot start" << endl;
+    //    cout << "exit pot start" << "\n";
   }
 }

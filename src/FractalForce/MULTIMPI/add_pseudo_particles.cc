@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void add_pseudo_particles(Fractal_Memory& mem,Fractal& frac)
   {
-    frac.p_file->FileFractal << " entered into add pseudo particles " << endl;
+    //    frac.p_file->FileFractal << " entered into add pseudo particles " << "\n";
     if(!mem.periodic)
       return;
     //    ofstream& FF=mem.p_file->FileFractal;

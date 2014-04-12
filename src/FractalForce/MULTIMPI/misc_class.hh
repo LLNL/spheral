@@ -16,10 +16,10 @@ namespace FractalSpace
     {
       assert(this);
       debug=false;
-      cout << "Making Misc " << this << endl;
+      cout << "Making Misc " << this << "\n";
     }
     ~Misc(){
-      cout << "Ending Misc " << this << endl;
+      cout << "Ending Misc " << this << "\n";
     }
     bool get_debug()
     {
@@ -273,7 +273,7 @@ namespace FractalSpace
       int j=vec.size();
       for(int i=0;i<j;i++)
 	FILE << vec[i] << " " ;
-      FILE << endl;
+      FILE << "\n";
     }
     template <class T> static void vector_print(const vector <T>& veca,const vector <T>& vecb,ofstream& FILE)
     {
@@ -283,7 +283,7 @@ namespace FractalSpace
       j=vecb.size();
       for(int i=0;i<j;i++)
 	FILE << vecb[i] << " " ;
-      FILE << endl;
+      FILE << "\n";
     }
     template <class T> static void vector_print(const vector <T>& veca,const vector <T>& vecb,const vector <T>& vecc,ofstream& FILE)
     {
@@ -296,7 +296,7 @@ namespace FractalSpace
       j=vecc.size();
       for(int i=0;i<j;i++)
 	FILE << vecc[i] << " " ;
-      FILE << endl;
+      FILE << "\n";
     }
     template <class T> static void sum_up(T& sum,vector <T>& values,int first,int last,const int stride)
     {
