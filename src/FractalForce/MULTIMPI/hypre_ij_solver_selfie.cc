@@ -37,7 +37,7 @@ namespace FractalSpace
     HypreRank=mem.p_mess->HypreRank;
     FHT << "\n";
     FHT << scientific;
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time" << "\n";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time Selfie" << "\n";
     fprintf(PFH," Am I a Hypre Node %d \n",mem.p_mess->IAmAHypreNode);
     if(!do_something)
       {
@@ -162,19 +162,19 @@ namespace FractalSpace
     hypre_eror(PFH,level,33,HYPRE_BoomerAMGSetPrintFileName(par_solver, "amg_real.log"));
     hypre_eror(PFH,level,34,HYPRE_BoomerAMGSetMaxIter(par_solver, frac.get_maxits()));
     Hypre_gen_time+=mem.p_mess->Clock();
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_gen_time << "\t" << "Gen    Time" << "\n";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_gen_time << "\t" << "Gen    Time Selfie" << "\n";
     
     Hypre_setup_time=-mem.p_mess->Clock();
     hypre_eror(PFH,level,35,HYPRE_BoomerAMGSetup(par_solver, par_matrix, par_vector_rho, par_vector_pot));
     Hypre_setup_time+=mem.p_mess->Clock();
     
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_setup_time << "\t" << "Setup  Time" << "\n";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_setup_time << "\t" << "Setup  Time Selfie" << "\n";
     
     Hypre_solve_time=-mem.p_mess->Clock();
     hypre_eror(PFH,level,36,HYPRE_BoomerAMGSolve(par_solver, par_matrix, par_vector_rho, par_vector_pot));
     Hypre_solve_time+=mem.p_mess->Clock();
     
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_solve_time << "\t" << "Solve  Time" << "\n";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_solve_time << "\t" << "Solve  Time Selfie" << "\n";
     
     Hypre_dump_time=-mem.p_mess->Clock();
     int its;
@@ -215,11 +215,11 @@ namespace FractalSpace
     hypre_eror(PFH,level,43,HYPRE_IJVectorDestroy(ij_vector_pot));
     Hypre_dump_time+=mem.p_mess->Clock();
     
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_dump_time << "\t" << "Dump   Time" << "\n";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_dump_time << "\t" << "Dump   Time Selfie" << "\n";
     Hypre_total_time+=mem.p_mess->Clock();
     Hypre_sum_time[level]+=Hypre_total_time;
 
-    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_total_time << "\t" << Hypre_sum_time[level] << " Total Time ";
+    FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_total_time << "\t" << Hypre_sum_time[level] << " Total Time Selfie";
     FHT << "\t" <<mem.ij_offsets[mem.p_mess->HypreNodes] << "\n";
     fprintf(PFH," exit hypre selfie solver %d %d steps %d \n",level,total, mem.steps);
   }
