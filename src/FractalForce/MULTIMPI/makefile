@@ -14,6 +14,9 @@ compiler = mpiicpc
 system = intel
 manynodes = short
 #
+HypreLib = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/lib
+HypreDir = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/include
+#
 ifeq ($(system),intel)
 	compiler = mpiicpc
 	Loptfftw = -L/g/g90/jensv/cplus/fftw-3.3.3/install-intel/lib
@@ -25,7 +28,6 @@ ifeq ($(system),intel)
 		Lopthypre = -L/g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-noglobal/lib
 		head_dir_hypre = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-noglobal/include
 	endif
-	compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug) $(fopt1) $(Wopt1) $(gprof)
 endif
 #
 ifeq ($(system),ibmgnu)
@@ -39,8 +41,9 @@ ifeq ($(system),ibmgnu)
 		Lopthypre = -L/g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal/lib
 		head_dir_hypre = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal/include
 	endif
-	compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug) $(fopt1) $(Wopt1)
 endif
+#
+compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug) $(fopt1) $(Wopt1) $(gprof)
 #
 parameter_per_file = fractal_memory_parameters_cosmo
 fractal_galaxy_run_o=fractal_galaxy.o
@@ -513,7 +516,7 @@ on_edge.o \
 overlap.o \
 particle_lists.o \
 particle_lists_fixed.o \
-poisson_solver.o \
+poisson_solverA.o \
 potential_start.o \
 power_spectrum.o \
 remove_pseudo_particles.o \
@@ -537,8 +540,10 @@ write_rv.o
 #
 files_hypre_nina_o= \
 hypre_dump.o \
-hypre_ij_numbering_find.o \
-hypre_ij_solver.o \
+hypre_ij_numbering_findA.o \
+hypre_ij_numbering_selfie.o \
+hypre_ij_solverA.o \
+hypre_ij_solver_selfie.o \
 hypre_load_balance.o \
 hypre_send_pots.o
 #
