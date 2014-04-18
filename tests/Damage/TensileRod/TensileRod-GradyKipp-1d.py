@@ -1,9 +1,11 @@
 #ATS:if SYS_TYPE.startswith('darwin'):
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20131226.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20131226.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:    t12 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt --restoreCycle 500' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20131226.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
 #ATS:else:
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:    t12 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
 # test of the cracking/failure models.
@@ -135,7 +137,7 @@ commandLine(length = 3.0,
             domainIndependent = False,
 
             restoreCycle = None,
-            restartStep = 1000,
+            restartStep = 500,
 
             graphics = True,
 

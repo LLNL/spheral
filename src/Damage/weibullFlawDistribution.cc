@@ -243,7 +243,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
   // Find the minimum and maximum node volumes.
   double Vmin = std::numeric_limits<double>::max(), 
-         Vmax = std::numeric_limits<double>::min();
+    Vmax = std::numeric_limits<double>::min();
   for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
     const double Vi = mass(i)/rho(i);
     Vmin = min(Vmin, Vi);
@@ -252,47 +252,50 @@ weibullFlawDistributionOwen(const unsigned seed,
   Vmin = allReduce(Vmin*volumeMultiplier, MPI_MIN, Communicator::communicator());
   Vmax = allReduce(Vmax*volumeMultiplier, MPI_MAX, Communicator::communicator());
   CHECK(Vmin > 0.0);
-  CHECK(Vmax >= Vmin);
+  CHECK(n == 0 or Vmax >= Vmin);
 
-  // Compute the maximum strain we expect for the minimum volume.
-  const double epsMax2m = minFlawsPerNode/(kWeibull*Vmin);  // epsmax ** m
+  if (n > 0) {
 
-  // Based on this compute the maximum number of flaws any node will have.  We'll use this to
-  // spin the random number generator without extra communiction.
-  const int maxFlawsPerNode = std::max(1, int(kWeibull*Vmax*epsMax2m + 0.5));
+    // Compute the maximum strain we expect for the minimum volume.
+    const double epsMax2m = minFlawsPerNode/(kWeibull*Vmin);
 
-  // Iterate over the nodes.
-  const double mInv = 1.0/mWeibull;
-  for (int iorder = 0; iorder != n + 1; ++iorder) {
+    // Based on this compute the maximum number of flaws any node will have.  We'll use this to
+    // spin the random number generator without extra communiction.
+    const int maxFlawsPerNode = std::max(1, int(kWeibull*Vmax*epsMax2m + 0.5));
 
-    // Is this one of our nodes?
-    typename unordered_map<unsigned, unsigned>::const_iterator itr = order2local.find(iorder);
-    if (itr != order2local.end()) {
+    // Iterate over the nodes.
+    const double mInv = 1.0/mWeibull;
+    for (int iorder = 0; iorder != n + 1; ++iorder) {
 
-      // We have the node!
-      const unsigned i = itr->second;
-      CHECK(i < nodeList.numInternalNodes());
-      CHECK(rho(i) > 0.0);
-      const double Vi = mass(i)/rho(i) * volumeMultiplier;
-      CHECK(Vi > 0.0);
-      const int numFlawsi = std::max(1, std::min(maxFlawsPerNode, int(kWeibull*Vi*epsMax2m + 0.5)));
-      const double Ai = numFlawsi/(kWeibull*Vi);
-      CHECK(Ai > 0.0);
+      // Is this one of our nodes?
+      typename unordered_map<unsigned, unsigned>::const_iterator itr = order2local.find(iorder);
+      if (itr != order2local.end()) {
 
-      // Seed flaws on the node.
-      for (int j = 0; j != numFlawsi; ++j) {
-        flaws(i).push_back(pow(Ai * generator(), mInv));
+        // We have the node!
+        const unsigned i = itr->second;
+        CHECK(i < nodeList.numInternalNodes());
+        CHECK(rho(i) > 0.0);
+        const double Vi = mass(i)/rho(i) * volumeMultiplier;
+        CHECK(Vi > 0.0);
+        const int numFlawsi = std::max(1, std::min(maxFlawsPerNode, int(kWeibull*Vi*epsMax2m + 0.5)));
+        const double Ai = numFlawsi/(kWeibull*Vi);
+        CHECK(Ai > 0.0);
+
+        // Seed flaws on the node.
+        for (int j = 0; j != numFlawsi; ++j) {
+          flaws(i).push_back(pow(Ai * generator(), mInv));
+        }
+
+        // Spin the random number generator to keep in sync with other processors.
+        for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
+
+      } else {
+
+        // Other domains just cycle the random number generator so that
+        // we can be domain decomposition independent.
+        for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
+
       }
-
-      // Spin the random number generator to keep in sync with other processors.
-      for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = generator();
-
-    } else {
-
-      // Other domains just cycle the random number generator so that
-      // we can be domain decomposition independent.
-      for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = generator();
-
     }
   }
 
@@ -314,15 +317,13 @@ weibullFlawDistributionOwen(const unsigned seed,
   }
 
   // Prepare some diagnostic output.
-  if (n > 0) {
-    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
-    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
-    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
-    epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
-    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
-  }
-  if (procID == 0) {
+  minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
+  maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
+  totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
+  epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
+  epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
+  sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+  if (n > 0 and procID == 0) {
     cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
          << "                             Max num flaws per node: " << maxNumFlaws << endl
          << "                             Total num flaws       : " << totalNumFlaws << endl
