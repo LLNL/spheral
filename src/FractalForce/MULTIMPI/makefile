@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh libs.hh headers.hh fractal_interface_public.hh
+classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh libs.hh headers.hh fractal_interface_public.hh mini_Point_class.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 fftopt1 = 
@@ -109,6 +109,9 @@ daughter_group_nina.o :	daughter_group_nina.cc $(classes)
 #
 dens_to_slices.o :	dens_to_slices.cc $(classes)
 	$(compile) -c dens_to_slices.cc
+#
+dens_to_slicesA.o :	dens_to_slicesA.cc $(classes)
+	$(compile) -c dens_to_slicesA.cc
 #
 dump_tree.o :	dump_tree.cc $(classes)
 	$(compile) -c dump_tree.cc
@@ -245,6 +248,12 @@ hypre_ij_solver_pcg.o :	hypre_ij_solver_pcg.cc $(classes)
 hypre_load_balance.o :	hypre_load_balance.cc $(classes)
 	$(compile) -c hypre_load_balance.cc
 #
+hypre_load_balanceA.o :	hypre_load_balanceA.cc $(classes)
+	$(compile) -c hypre_load_balanceA.cc
+#
+hypre_load_balanceB.o :	hypre_load_balanceB.cc $(classes)
+	$(compile) -c hypre_load_balanceB.cc
+#
 hypre_solver.o :	hypre_solver.cc $(classes)
 	$(compile) -c hypre_solver.cc
 #
@@ -259,6 +268,9 @@ hypre_struct_solver.o :	hypre_struct_solver.cc $(classes)
 #
 info_to_slices.o :	info_to_slices.cc $(classes)
 	$(compile) -c info_to_slices.cc
+#
+info_to_slicesA.o :	info_to_slicesA.cc $(classes)
+	$(compile) -c info_to_slicesA.cc
 #
 initial_forces_sharp.o :	initial_forces_sharp.cc $(classes)
 	$(compile) -c initial_forces_sharp.cc
@@ -516,7 +528,7 @@ on_edge.o \
 overlap.o \
 particle_lists.o \
 particle_lists_fixed.o \
-poisson_solverA.o \
+poisson_solver.o \
 potential_start.o \
 power_spectrum.o \
 remove_pseudo_particles.o \
@@ -540,11 +552,11 @@ write_rv.o
 #
 files_hypre_nina_o= \
 hypre_dump.o \
-hypre_ij_numbering_findA.o \
+hypre_ij_numbering_find.o \
 hypre_ij_numbering_selfie.o \
-hypre_ij_solverA.o \
+hypre_ij_solver.o \
 hypre_ij_solver_selfie.o \
-hypre_load_balance.o \
+hypre_load_balanceB.o \
 hypre_send_pots.o
 #
 files_hypre_empty_o= \

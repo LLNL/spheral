@@ -9,7 +9,6 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int zoom=Misc::pow(2,frac.get_level_max());
     int length_1=frac.get_grid_length();
-    int length_2=length_1*length_1;
     vector <int>counts_out(FractalNodes);
     counts_out.assign(FractalNodes,0);
     vector <vector <int> > dataI_out(FractalNodes);
@@ -31,9 +30,9 @@ namespace FractalSpace
 	    int p_xi=((pos_point[0]+really_long) % wrapping)/division;
 	    int p_yi=((pos_point[1]+really_long) % wrapping)/division;
 	    int p_zi=((pos_point[2]+really_long) % wrapping)/division;
-	    int global_pos=p_xi+(p_yi+p_zi*length_1)*length_1;
 	    int S=mem.p_mess->WhichSlice[p_xi];
-	    dataI_out[S].push_back(global_pos);
+	    int slice_point=frac.where(p_xi,p_yi,p_zi,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]);
+	    dataI_out[S].push_back(slice_point);
 	    dataI_out[S].push_back(group_number);
 	    dataI_out[S].push_back(point_number);
 	    counts_out[S]++;
@@ -64,8 +63,6 @@ namespace FractalSpace
     BoxSL=mem.p_mess->BoxSL[Slice];
     int counterI=0;
     int number=0;
-    int nx,ny,nz;
-    int numberS=-1;
     int how_many=how_manyI/3;
     mem.p_mess->what_Slice_point.resize(how_many);
     mem.p_mess->return_group.resize(how_many);
@@ -75,12 +72,7 @@ namespace FractalSpace
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    int n=dataI_in[counterI];
-	    nx=n % length_1;
-	    ny=(n/length_1) % length_1;
-	    nz=n/length_2;
-	    numberS=frac.where(nx,ny,nz,BoxS,BoxSL);
-	    mem.p_mess->what_Slice_point[number]=numberS;
+	    mem.p_mess->what_Slice_point[number]=dataI_in[counterI];
 	    mem.p_mess->return_group[number]=dataI_in[counterI+1];
 	    mem.p_mess->return_point[number]=dataI_in[counterI+2];
 	    mem.p_mess->return_node[number]=FR;
