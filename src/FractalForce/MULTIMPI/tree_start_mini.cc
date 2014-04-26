@@ -6,6 +6,10 @@ namespace FractalSpace
 {
   void tree_start_mini(Group& group, Fractal& fractal,Fractal_Memory& mem,Misc& misc)
   {
+    bool dumpit=mem.p_mess->FractalRank == mem.p_mess->FractalNodes-1;
+    dumpit=false;
+    int minimum=fractal.get_minimum_number();
+    minimum=1;
     ofstream& FileFractal=fractal.p_file->DUMPS;
     ofstream* p_FilePoint=&fractal.p_file->DUMPS;
     double a_grid_length=(double)fractal.get_grid_length();
@@ -44,20 +48,24 @@ namespace FractalSpace
     Misc::vector_print(PBoxLength,FileFractal);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
     mini_Point* mP=new mini_Point[volume];
-    int t_points=0;
-    for(int nz=PBox[4];nz <= PBox[5];nz++)
+    if(dumpit)
       {
-	for(int ny=PBox[2];ny <= PBox[3];ny++)
-	  {
-	    for(int nx=PBox[0];nx <= PBox[1];nx++)
-	      {
-		if((&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
-		  t_points++;
-	      }
-	  }
+	cerr << " BOXESA " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << endl;
+	cerr << " BOXESB " << BBox[0] << " " << BBox[1] << " " << BBox[2] << " " << BBox[3] << " " << BBox[4] << " " << BBox[5] << endl;
+	cerr << " BOXESC " << PBox[0] << " " << PBox[1] << " " << PBox[2] << " " << PBox[3] << " " << PBox[4] << " " << PBox[5] << endl;
+	cerr << " VOLUMEA " << volume << endl;
       }
-    cout << " empties " << mem.p_mess->FractalRank << " " << t_points << "\n";
-    assert(t_points == 0);
+    for(int nz=PBox[4];nz <= PBox[5];nz++)
+      for(int ny=PBox[2];ny <= PBox[3];ny++)
+	for(int nx=PBox[0];nx <= PBox[1];nx++)
+	  {
+	    int n=fractal.where_1(nx,ny,nz);
+	    mini_Point* pmP=&mP[n];
+	    pmP->realpoint=false;
+	    pmP->it_is_a_point=false;
+	    pmP->numbers=0;
+	    pmP->pmyself=0;
+	  }
     vector <double> pos(3);
     //
     for(int particle=0; particle < fractal.get_number_particles(); ++particle)
@@ -80,6 +88,22 @@ namespace FractalSpace
 	assert(n>=0);
 	(&mP[n])->realpoint=true;
 	(&mP[n])->it_is_a_point=true;
+	(&mP[n])->numbers++;
+      }
+    int na=0;
+    for(int nz=PBox[4];nz <= PBox[5];nz++)
+      {
+	for(int ny=PBox[2];ny <= PBox[3];ny++)
+	  {
+	    for(int nx=PBox[0];nx <= PBox[1];nx++)
+	      {
+		if(!(&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
+		  continue;
+		na++;
+		if(dumpit)
+		  cerr << " dumpA " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
+	      }
+	  }
       }
     //
     for(int nz=PBox[4];nz <= PBox[5];nz++)
@@ -88,22 +112,39 @@ namespace FractalSpace
 	  {
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
-		if(!(&mP[fractal.where_1(nx,ny,nz)])->realpoint)
-		  continue;
-		for(int dz=0;dz<=1;dz++)
+		if((&mP[fractal.where_1(nx,ny,nz)])->realpoint)
 		  {
-		    for(int dy=0;dy<=1;dy++)
+		    for(int dz=0;dz<=1;dz++)
 		      {
-			for(int dx=0;dx<=1;dx++)
+			for(int dy=0;dy<=1;dy++)
 			  {
-			    int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
-			    if(n < 0) 
-			      continue;
-			    (&mP[n])->realpoint=true;
-			    (&mP[n])->it_is_a_point=true;
+			    for(int dx=0;dx<=1;dx++)
+			      {
+				int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
+				if(n < 0) 
+				  continue;
+				(&mP[n])->it_is_a_point=true;
+			      }
 			  }
 		      }
 		  }
+	      }
+	  }
+      }
+    na=0;
+    for(int nz=PBox[4];nz <= PBox[5];nz++)
+      {
+	for(int ny=PBox[2];ny <= PBox[3];ny++)
+	  {
+	    for(int nx=PBox[0];nx <= PBox[1];nx++)
+	      {
+		int n=fractal.where_1(nx,ny,nz);
+		if(!(&mP[n])->it_is_a_point)
+		  continue;
+		(&mP[n])->realpoint=true;
+		na++;
+		if(dumpit)
+		  cerr << " dumpB " << nx << " " << ny << " " << nz << " " << n << " " << na << endl;
 	      }
 	  }
       }
@@ -115,22 +156,39 @@ namespace FractalSpace
 	      {
 		for(int nx=PBox[0];nx <= PBox[1];nx++)
 		  {
-		    if(!(&mP[fractal.where_1(nx,ny,nz)])->realpoint)
-		      continue;
-		    for(int dz=-1;dz<=1;dz++)
+		    int n=fractal.where_1(nx,ny,nz);
+		    if((&mP[n])->realpoint)
 		      {
-			for(int dy=-1;dy<=1;dy++)
+			for(int dz=-1;dz<=1;dz++)
 			  {
-			    for(int dx=-1;dx<=1;dx++)
+			    for(int dy=-1;dy<=1;dy++)
 			      {
-				int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
-				if(n < 0)
-				  continue;
-				(&mP[n])->realpoint=true;
-				(&mP[n])->it_is_a_point=true;
-			      }
+				for(int dx=-1;dx<=1;dx++)
+				  {
+				    int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
+				    if(n < 0)
+				      continue;
+				    (&mP[n])->it_is_a_point=true;
+				  }			      }
 			  }
 		      }
+		  }
+	      }
+	  }
+	na=0;
+	for(int nz=PBox[4];nz <= PBox[5];nz++)
+	  {
+	    for(int ny=PBox[2];ny <= PBox[3];ny++)
+	      {
+		for(int nx=PBox[0];nx <= PBox[1];nx++)
+		  {
+		    int n=fractal.where_1(nx,ny,nz);
+		    if(!(&mP[n])->it_is_a_point)
+		      continue;
+		    (&mP[n])->realpoint=true;
+		    na++;
+		    if(dumpit)
+		      cerr << " dumpC " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
 		  }
 	      }
 	  }
@@ -165,6 +223,21 @@ namespace FractalSpace
 	      }
 	  }
       }
+    na=0;
+    for(int nz=PBox[4];nz <= PBox[5];nz++)
+      {
+	for(int ny=PBox[2];ny <= PBox[3];ny++)
+	  {
+	    for(int nx=PBox[0];nx <= PBox[1];nx++)
+	      {
+		if(!(&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
+		  continue;
+		na++;
+		if(dumpit)
+		  cerr << " dumpD " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
+	      }
+	  }
+      }
     int total_points=0;
     for(int nz=PBox[4];nz <= PBox[5];nz++)
       {
@@ -173,11 +246,14 @@ namespace FractalSpace
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
 		if((&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
-		  total_points++;
+		  {
+		    total_points++;
+		  }
 	      }
 	  }
       }
     //
+    cout << " To generate point OK in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
     try
       {    
 	new_points=new Point[total_points];
@@ -187,14 +263,17 @@ namespace FractalSpace
 	cerr << " bad allocation in tree start mini " << mem.p_mess->FractalRank;
 	cerr << " " << total_points << " ";
 	cerr << ba.what() << "\n";
-	cerr.flush();
-	cout << " generated points in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
+	mem.p_file->FlushAll();
+	cerr << " generated points bad in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
+	int FR=mem.p_mess->FractalRank;
+	cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+	cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
 	for(int FR=0;FR < mem.p_mess->FractalNodes;FR++)
 	  {
-	    cout << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
-	    cout << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
+	    cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+	    cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
 	  }
-	cout.flush();
+	cerr.flush();
 	assert(0);
       }
     mem.total_points_generated=total_points;
