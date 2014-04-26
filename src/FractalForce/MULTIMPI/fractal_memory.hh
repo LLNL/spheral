@@ -17,11 +17,16 @@ namespace FractalSpace
     int FractalNodes1;
     int FractalNodes2;
     int FFTNodes;
+    int SpecialNodes;
     bool time_trial;
     int min_hypre_group_size;
     bool hypre_load_balance;
+    int HypreMaxSpecial;
     int hypre_max_node_load;
     int hypre_max_average_load;
+    double G;
+    vector <double>xmin;
+    vector <double>xmax;
     vector <int> TouchWhichBoxes;
     vector < vector <int> > Boxes;
     vector < vector <int> > BBoxes;
@@ -46,7 +51,6 @@ namespace FractalSpace
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
-    int N8;
     //    vector <double>total_time;
     //
     bool split_particles;
@@ -156,6 +160,7 @@ namespace FractalSpace
     Fractal* p_fractal;
     Mess* p_mess;
     File* p_file;
+    Point* p_ghost_point;
     //
     Fractal_Memory():
       //
@@ -173,12 +178,14 @@ namespace FractalSpace
       FractalNodes1(1),
       FractalNodes2(1),
       FFTNodes(1234567),
+      SpecialNodes(0),
       time_trial(true),
       min_hypre_group_size(45),
       hypre_load_balance(false),
+      HypreMaxSpecial(200000),
       hypre_max_node_load(200000),
       hypre_max_average_load(20000),
-      N8(8),
+      G(1.0),
       amnesia(true),
       mind_wipe(false),
       fixed_potential(false),
@@ -261,12 +268,40 @@ namespace FractalSpace
       global_level_max=level_max;
       padding=min(padding,1);
       split_particles= force_max > 0.0;
+      xmin.assign(3,0.0);
+      xmax.assign(3,1.0);
       //      total_time.assign(50,0.0);
+      p_ghost_point=new Point;
       //
     }
     ~Fractal_Memory()
     {
+      delete p_ghost_point;
       cout << "Ending Fractal_Memory " << this << "\n";
+    }
+    void set_G(double Cavendish)
+    {
+      G=Cavendish;
+    }
+    void get_G(double& Cavendish)
+    {
+      Cavendish=G;
+    }
+    void set_xmin(vector <double>& xm)
+    {
+      xmin=xm;
+    }
+    void set_xmax(vector <double>& xm)
+    {
+      xmax=xm;
+    }
+    void get_xmin(vector <double>& xm)
+    {
+      xm=xmin;
+    }
+    void get_xmax(vector <double>& xm)
+    {
+      xm=xmax;
     }
     void calc_FractalNodes()
     {
@@ -335,7 +370,7 @@ namespace FractalSpace
 		Buffers[count][2*n]=0;
 	      else
 		Buffers[count][2*n]=1;
-	      if(Boxes[count][2*n+1] == grid_length && !periodic)
+	      if(Boxes[count][2*n+1] == grid_length-1 && !periodic)
 		Buffers[count][2*n+1]=0;
 	      else
 		Buffers[count][2*n+1]=1;
