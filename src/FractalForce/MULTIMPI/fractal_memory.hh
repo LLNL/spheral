@@ -426,7 +426,7 @@ namespace FractalSpace
     }
     void calc_RealBoxes()
     {
-      cout << "real " << FractalNodes << " " << grid_length << "\n";
+      //      cout << "real " << FractalNodes << " " << grid_length << "\n";
       RealBoxes.resize(FractalNodes);
       RealPBoxes.resize(FractalNodes);
       RealIBoxes.resize(FractalNodes);
@@ -481,7 +481,7 @@ namespace FractalSpace
 		}
 	    }
 	}
-      cout << " real b " << "\n";
+      //      cout << " real b " << "\n";
     }
     int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc)
     {
