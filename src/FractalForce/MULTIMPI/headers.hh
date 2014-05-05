@@ -10,6 +10,8 @@ namespace FractalSpace
   void assign_density(Group& group, Fractal& fractal);
   void balance_by_particles(Fractal_Memory*PFM);
   void balance_by_particles_smarter(Fractal_Memory* PFM);
+  void binary_balancing(vector <double>& numbers,double minimum,
+			int Nodes,int length,vector <int>& lowers,vector <int>& uppers);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);

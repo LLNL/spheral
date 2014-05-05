@@ -2,18 +2,11 @@
 #define _mini_Point_Defined_
 namespace FractalSpace
 {
-  class mini_Point{
-  public:
+  struct mini_Point{
     bool realpoint;
     bool it_is_a_point;
+    int numbers;
     Point* pmyself;
-    mini_Point():
-      realpoint(false),
-      it_is_a_point(false),
-      pmyself(0)
-    {}
-    ~mini_Point()
-    {}
   };
 }
 #endif

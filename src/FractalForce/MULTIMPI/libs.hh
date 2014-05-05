@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <cfloat>
+#include <numeric>
 #include <algorithm>
 #include <complex>
 #include <ctime>

@@ -57,10 +57,10 @@ namespace FractalSpace
     const int jlower=ilower;
     const int jupper=iupper;
     fprintf(PFH," limits %d %d \n",ilower,iupper);
-    cout << " test Ha " << HypreRank << " " << ilower << " " << iupper << " " << mem.ij_offsetsB.size() << " " << mem.p_mess->HypreNodes << endl;
+    cout << " test Ha " << HypreRank << " " << ilower << " " << iupper << " " << mem.ij_offsetsB.size() << " " << mem.p_mess->HypreNodes << "\n";
     hypre_eror(PFH,level,0,HYPRE_IJMatrixCreate(MPI_COMM_SELF,ilower,iupper,jlower,jupper,&ij_matrix));
     //    hypre_eror(PFH,level,0,HYPRE_IJMatrixCreate(HypreComm,ilower,iupper,jlower,jupper,&ij_matrix));
-    cout << " test Hb " << HypreRank << " " << ilower << " " << iupper << " " << mem.ij_offsetsB.size() << " " << mem.p_mess->HypreNodes << endl;
+    cout << " test Hb " << HypreRank << " " << ilower << " " << iupper << " " << mem.ij_offsetsB.size() << " " << mem.p_mess->HypreNodes << "\n";
     hypre_eror(PFH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
     HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
     int ij_index,udsize;
