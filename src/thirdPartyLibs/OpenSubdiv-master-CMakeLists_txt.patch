@@ -1,0 +1,14 @@
+267,271c267,273
+< find_package(OpenGL)
+< find_package(OpenGLES)
+< find_package(OpenCL 1.1)
+< if(NOT NO_CUDA)
+<     find_package(CUDA 4.0)
+---
+> if(NOT NO_GPU)
+>     find_package(OpenGL)
+>     find_package(OpenGLES)
+>     find_package(OpenCL 1.1)
+>     if(NOT NO_CUDA)
+>         find_package(CUDA 4.0)
+>     endif()
