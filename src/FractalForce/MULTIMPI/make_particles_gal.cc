@@ -5,9 +5,10 @@ namespace FractalSpace
 {
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool&)
   {
-    ofstream& FileFractal=frac.p_file->FileFractal;
-    ofstream& FilePos=frac.p_file->FilePos;
-    FileFractal << " particle a m= " << m << endl;
+    ofstream& FileFractal=mem.p_file->DUMPS;
+    //    ofstream& FileFractal=mem.p_file->FileFractal;
+    //    ofstream& FilePos=mem.p_file->FilePos;
+    FileFractal << " particle a m= " << m << "\n";
     double rand_max=(double)RAND_MAX;
     //    double rmax=1.0e-5;
     double rmax=0.3;
@@ -27,11 +28,19 @@ namespace FractalSpace
     double total_mass=m*static_cast<double>(nparts);
     double sigma2=total_mass/(2.0*rmax);
     //    sigma2=0.0; //*************//
-    Particle* particles=new Particle[nparts];
+    try
+      {
+	Particle* particles=new Particle[nparts];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " bad galaxy allocation " << nparts << " " << ba.what() << endl;
+	exit(0);
+      }
     frac.particle_list.resize(nparts);
-    FileFractal << " parta " << nparts << endl;
+    FileFractal << " parta " << nparts << "\n";
     frac.set_number_particles(nparts);
-    FileFractal << " partb " << nparts << endl;
+    FileFractal << " partb " << nparts << "\n";
     vector <double>vel(3,0.0);
     for(int n=0;n<nparts;++n)
       {
@@ -66,10 +75,10 @@ namespace FractalSpace
 	frac.particle_list[n]->set_vel(vel);
 	frac.particle_list[n]->set_mass(m);
 	//	FilePos << " init " << n << "\t" << r << "\t" << sig << "\t" << x << "\t" << y << "\t" << z << "\t";
-	//	FilePos << vel[0] << "\t" << vel[1] << "\t" << vel[2] << "\t" << endl;
+	//	FilePos << vel[0] << "\t" << vel[1] << "\t" << vel[2] << "\t" << "\n";
       }
     count=nparts;
-    FileFractal << " particle b m= " << m << endl;
+    FileFractal << " particle b m= " << m << "\n";
   }
 }
 namespace FractalSpace

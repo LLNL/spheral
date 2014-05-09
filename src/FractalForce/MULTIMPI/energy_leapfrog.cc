@@ -8,8 +8,10 @@ namespace FractalSpace
   template <class M>  void energy_simple(M& mem,Fractal& fractal)
   {
     ofstream& FileEnergy=fractal.p_file->FileEnergy;
-    ofstream& FileMom=fractal.p_file->FileMom;
-    ofstream& FileP=fractal.p_file->FileParticle;
+    ofstream& FileMom=fractal.p_file->DUMPS;
+    //    ofstream& FileMom=fractal.p_file->FileMom;
+    ofstream& FileP=fractal.p_file->DUMPS;
+    //    ofstream& FileP=fractal.p_file->FileParticle;
     assert(Fractal::integrator=="leapfrog");
     double sum_m=0.0;
     double sum_x=0.0;
@@ -24,7 +26,7 @@ namespace FractalSpace
     double sum_p=0.0;
     vector <double>pos(3,0.0);
     vector <double>vel(3,0.0);
-    FileP << " number of particles " << fractal.get_number_particles() << endl;
+    FileP << " number of particles " << fractal.get_number_particles() << "\n";
     for(int n=0;n < fractal.get_number_particles();++n)
       {
 	Particle* p=fractal.particle_list[n];
@@ -61,7 +63,7 @@ namespace FractalSpace
 	sum_py=m*(pos[2]*vel[0]-pos[0]*vel[2]);
 	sum_pz=m*(pos[0]*vel[1]-pos[1]*vel[0]);
       }
-    FileP << " sum " << sum_vx << " " << sum_vy << " " << sum_vz << " " << sum_ekx << " " << sum_eky << " " << sum_ekz << " " << sum_p << endl;
+    FileP << " sum " << sum_vx << " " << sum_vy << " " << sum_vz << " " << sum_ekx << " " << sum_eky << " " << sum_ekz << " " << sum_p << "\n";
     mem.potential_energy=0.5*sum_p;
     mem.kinetic_energy=0.5*(sum_ekx+sum_eky+sum_ekz);
     vector <double>sums(9);
@@ -104,13 +106,13 @@ namespace FractalSpace
 	      }
 	    FileEnergy << "\t" << M::omega(mem.arad,mem.omega_start,mem.lambda_start);
 	    FileEnergy << "\t" << M::lambda(mem.arad,mem.omega_start,mem.lambda_start);
-	    FileEnergy << "\t" << M::hubble(mem.arad,mem.omega_start,mem.lambda_start) << endl;
+	    FileEnergy << "\t" << M::hubble(mem.arad,mem.omega_start,mem.lambda_start) << "\n";
 	    FileMom << scientific << mem.time << "\t " << mem.arad << "\t " << mem.steps << "\t " << 
 	      sum_vx << "\t " << sum_vy << "\t " << sum_vz << "\t " <<
 	      sum_px << "\t " << sum_py << "\t " << sum_pz;
 	    if(mem.MPIrun)
 	      FileMom << "\t" << sums[3] << "\t" << sums[4] << "\t" << sums[5] << "\t" << sums[6] << "\t" << sums[7] << "\t" << sums[8];
-	    FileMom << endl;
+	    FileMom << "\n";
 	  }
       }
     else
@@ -120,7 +122,7 @@ namespace FractalSpace
 	if(mem.steps >= 0)
 	  {
 	    FileEnergy << scientific << mem.time <<  "\t " << mem.steps << "\t " << 
-	      total_energy << "\t " << -mem.potential_energy << "\t " << 0.5*(mem.kinetic_energy_old+mem.kinetic_energy) << "\t " << endl;
+	      total_energy << "\t " << -mem.potential_energy << "\t " << 0.5*(mem.kinetic_energy_old+mem.kinetic_energy) << "\t " << "\n";
 	    if(mem.MPIrun)
 	      {
 		sums[0]=total_energy;
@@ -140,7 +142,7 @@ namespace FractalSpace
 	      sum_px << "\t " << sum_py << "\t " << sum_pz;
 	    if(mem.MPIrun)
 	      FileMom << "\t" << sums[3] << "\t" << sums[4] << "\t" << sums[5] << "\t" << sums[6] << "\t" << sums[7] << "\t" << sums[8];
-	    FileMom << endl;
+	    FileMom << "\n";
 	  }
       }
     mem.kinetic_energy_old=mem.kinetic_energy;

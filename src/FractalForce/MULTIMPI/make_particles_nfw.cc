@@ -41,6 +41,6 @@ namespace FractalSpace
 	frac.particle_list[n]->set_pos(x,y,z);
 	frac.particle_list[n]->set_mass(m);
       }
-    FileFractal << " particle m= " << m << endl;
+    FileFractal << " particle m= " << m << "\n";
   }
 }

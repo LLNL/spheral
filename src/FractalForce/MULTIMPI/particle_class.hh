@@ -361,11 +361,11 @@ namespace FractalSpace
 	}
       else
 	FILE << "\t" << " watch ";
-      FILE << endl;
+      FILE << "\n";
     }
     template <typename T> void dump(ofstream& FILE,vector <T>& pott,vector <T>& f_x,vector <T>& f_y,vector <T>& f_z)
     {
-      FILE << " particle dump b " << endl;
+      FILE << " particle dump b " << "\n";
       FILE << scientific;
       FILE << "\t" << phase_space[0];
       FILE << "\t" << phase_space[1];
@@ -374,9 +374,9 @@ namespace FractalSpace
       FILE << "\t" << field[1];
       FILE << "\t" << field[2];
       FILE << "\t" << field[3];
-      FILE << endl;
+      FILE << "\n";
       for(int ii=0;ii < 8;ii++)
-	FILE << pott[ii] << "\t" << f_x[ii] << "\t" << f_y[ii] << "\t" << f_z[ii] << endl;
+	FILE << pott[ii] << "\t" << f_x[ii] << "\t" << f_y[ii] << "\t" << f_z[ii] << "\n";
     }
   };
 }

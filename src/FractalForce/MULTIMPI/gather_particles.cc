@@ -8,7 +8,7 @@ namespace FractalSpace
     Group* p_fake_group=new Group;
     ofstream& FF=frac.p_file->FileFractal;
     //    ofstream& FP=frac.p_file->FileParticle;
-    FF << " entered gather_particles " << endl;
+    FF << " entered gather_particles " << "\n";
     if(!mem.MPIrun)
       return;
     //    int FractalRank=mem.p_mess->FractalRank;
@@ -26,7 +26,7 @@ namespace FractalSpace
 	Particle* P=frac.particle_list[particle];
 	P->get_world(FR,number);
 	int lev=P->get_highest_level();
-	//	FF << " gather00 " << P->get_p_highest_level_group() << " " << number << " " << FR << endl;
+	//	FF << " gather00 " << P->get_p_highest_level_group() << " " << number << " " << FR << "\n";
 	if(P->get_p_highest_level_group()==0)
 	  continue;
 	if(number < 0)
@@ -52,9 +52,6 @@ namespace FractalSpace
     int doubles=4;
     if(sendrad)
       doubles=5;
-    frac.timing(-1,38);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,38);
     mem.p_file->note(true," gather particles a ");
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," gather particles b ");
@@ -64,7 +61,9 @@ namespace FractalSpace
     mem.p_file->note(true," gather particles c ");
     dataR_out.clear();
     dataI_out.clear();
-    FF << " world size " << frac.particle_list_world.size() << endl;
+    //    really_clear(dataR_out);
+    //    really_clear(dataI_out);
+    FF << " world size " << frac.particle_list_world.size() << "\n";
     int p2=0;
     int p4=0;
     Particle* P=0;
@@ -86,18 +85,22 @@ namespace FractalSpace
 	  }
       }
     delete p_fake_group;
-    FF << " gather b " << how_manyI << " " << frac.particle_list_world.size() << endl;
+    FF << " gather b " << how_manyI << " " << frac.particle_list_world.size() << "\n";
     frac.set_number_particles((how_manyI/2));
     frac.particle_list=frac.particle_list_world;
     frac.particle_list_world.clear();
-    FF << " gather e " << mem.p_mess->parts_tmp << endl;
+    //    really_clear(frac.particle_list_world);
+    FF << " gather e " << mem.p_mess->parts_tmp << "\n";
     Particle* pt=mem.p_mess->parts_tmp;
     delete [] pt;
     pt=0;
+    Particle* ptp=mem.p_mess->parts_tmpp;
+    delete [] ptp;
+    ptp=0;
     remove_pseudo_particles(mem,frac);
     frac.particle_list.resize((how_manyI/2));
     frac.set_number_particles((how_manyI/2));
-    FF << " finished remove_particles " << endl;
+    FF << " finished remove_particles " << "\n";
   }
 }
 

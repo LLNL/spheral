@@ -7,6 +7,9 @@ namespace FractalSpace
   public:
     int FractalRank;
     int FractalNodes;
+    int FractalNodes0;
+    int FractalNodes1;
+    int FractalNodes2;
     int FFTRank;
     int FFTNodes;
     int HypreRank;
@@ -40,6 +43,8 @@ namespace FractalSpace
     MPI_Group HypreGroup;
     bool IAmAnFFTNode;
     bool IAmAHypreNode;
+    vector <int>Hranks;
+    vector <int>IHranks;
     bool time_trial;
     bool standalone;
     File* p_file;
@@ -63,7 +68,48 @@ namespace FractalSpace
       TreeTime(-1.0)
     {
       WallTime=Clock();
-      cout << " Empty Mess " << endl;
+      cout << " Empty Mess " << "\n";
+    }
+    Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,
+	 int& FR0,int& FR1,int& FR2,const int& FN,MPI_Comm& FW):
+      FractalRank(0),
+      FractalNodes(1),
+      FractalNodes0(FR0),
+      FractalNodes1(FR1),
+      FractalNodes2(FR2),
+      FFTNodes(FN),
+      HypreRank(0),
+      HypreNodes(0),
+      number_particles_total(-1),
+      start_x(0),
+      length_x(GR),
+      total_memory(1),
+      FractalWorld(FW),
+      IAmAnFFTNode(true),
+      IAmAHypreNode(true),
+      time_trial(true),
+      TreeTime(-1.0)
+    {
+      cout << " Making a Mess with parameters" << "\n";
+      int grid_length=GR;
+      bool periodic=PR;
+      WallTime=Clock();
+      if(MR)
+	{
+	  MPIStartup(PR,FR0,FR1,FR2);
+	  FractalRank=what_is_my_rank(); 
+	  FractalNodes=how_many_nodes(); 
+	  assert(FractalNodes == FR0*FR1*FR2);
+	  FFTWStartup(grid_length,periodic);
+	  calc_fftw_Slices(grid_length,periodic);	
+	  calc_total_particles(NP);
+	}
+      else
+	{
+	  number_particles_total=NP;
+	  length_x=grid_length;
+	}
+      cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN,MPI_Comm& FW):
       FractalRank(0),
@@ -81,7 +127,7 @@ namespace FractalSpace
       time_trial(true),
       TreeTime(-1.0)
     {
-      cout << " Making a Mess with parameters" << endl;
+      cout << " Making a Mess with parameters" << "\n";
       int grid_length=GR;
       bool periodic=PR;
       WallTime=Clock();
@@ -99,19 +145,19 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
-      cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << endl;
+      cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
     ~Mess()
     {
-      cout << " starting to clean up a mess " << FractalRank << endl;
+      cout << " starting to clean up a mess " << FractalRank << "\n";
       FFTWFinal();
       if(standalone)
 	MPIFinal();
-      cout << " cleaned up a mess " << FractalRank << endl;
+      cout << " cleaned up a mess " << FractalRank << "\n";
     }
     void MPIStartup()
     {
-      cout << " Into MPIStartup " << endl;
+      cout << " Into MPIStartup " << "\n";
       int knights;
       MPI_Initialized(&knights);
       if(!knights)
@@ -128,7 +174,31 @@ namespace FractalSpace
       FFTNodes=min(FFTNodes,FractalNodes);
       HypreRank=FractalRank;
       HypreNodes=FractalNodes;
-      cout << " initialized MPI " << FractalRank << " " << FractalNodes << endl;
+      cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
+    }
+    void MPIStartup(bool PR,int& FR0,int& FR1,int& FR2)
+    {
+      cout << " Into MPIStartup " << "\n";
+      int knights;
+      MPI_Initialized(&knights);
+      if(!knights)
+	MPI_Init(NULL,NULL);
+      int dims[]={FR0,FR1,FR2};
+      int periods[]={PR,PR,PR};
+      //      int periods[]={true,true,true};
+      MPI_Cart_create(MPI_COMM_WORLD,3,dims,periods,true,&FractalWorld);
+      FFTWorld=FractalWorld;
+      HypreWorld=FractalWorld;
+      MPI_Comm_group(FractalWorld,&FractalGroup);
+      MPI_Comm_group(FFTWorld,&FFTGroup);
+      //      MPI_Comm_group(HypreWorld,&HypreGroup);
+      FractalRank=what_is_my_rank(); 
+      FractalNodes=how_many_nodes();
+      FFTRank=FractalRank;
+      FFTNodes=min(FFTNodes,FractalNodes);
+      HypreRank=FractalRank;
+      HypreNodes=FractalNodes;
+      cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
     }
     void MPIFinal()
     {
@@ -152,6 +222,8 @@ namespace FractalSpace
     int what_is_my_FFT_rank()
     {
       int rank;
+      if(FFTWorld == MPI_COMM_NULL)
+	return -1;
       MPI_Comm_rank(FFTWorld,&rank);
       return rank;
     }
@@ -180,15 +252,16 @@ namespace FractalSpace
     void FFTWStartup(const int& length_1,const bool& periodic)
     {
       const pint Length_1=length_1;
-      cout << " FFTWStartup a " << FractalRank << " " << FFTRank << " " << FFTNodes << endl;
+      //      cout << " FFTWStartup a " << FractalRank << " " << FFTRank << " " << FFTNodes << "\n";
       doFFTWorld(length_1,periodic);
       fftw_mpi_init();
-      cout << " FFTWStartup b " << FractalRank << " " << FFTRank << " " << FFTNodes << endl;
+      //      cout << " FFTWStartup b " << FractalRank << " " << FFTRank << " " << FFTNodes << "\n";
       if(!IAmAnFFTNode) return;
       if(periodic)
 	{
 	  const pint Length_c=(Length_1+2)/2;
 	  total_memory=fftw_mpi_local_size_3d(Length_1,Length_1,Length_c,FFTWorld,&length_x,&start_x);
+	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << "\n";
 	  create_potRC();
 	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_1,Length_1,Length_1,potR,potC,FFTWorld,FFTW_MEASURE);
 	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_1,Length_1,Length_1,potC,potR,FFTWorld,FFTW_MEASURE);
@@ -198,23 +271,20 @@ namespace FractalSpace
 	  const pint Length_11=Length_1+1;
 	  const pint Length_2=2*Length_1;
 	  double g_c=pow(static_cast<double>(Length_1),-5)/8.0;
-
-	  //	  g_c/=64.0;
-
-	  cout << " g_c= " << g_c << " " << FractalRank << endl;
+	  //	  cout << " g_c= " << g_c << " " << FractalRank << "\n";
 	  total_memory=fftw_mpi_local_size_3d(Length_2,Length_2,Length_11,FFTWorld,&length_x,&start_x);
-	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << endl;
-	  cout << "mess haha " << FractalRank << " " << green.max_size() << endl;
+	  cout << " total_memory " << FractalRank << " " << total_memory << " " << length_x << " " << start_x << " " << g_c << "\n";
+	  //	  cout << "mess haha " << FractalRank << " " << green.max_size() << "\n";
 	  green.resize(length_x*Length_11*Length_11);
-	  cout << " mess a " << FractalRank << endl;
+	  //	  cout << " mess a " << FractalRank << "\n";
 	  create_potRC();
-	  cout << " mess b " << FractalRank << endl;
+	  //	  cout << " mess b " << FractalRank << "\n";
 	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FFTWorld,FFTW_MEASURE);
-	  cout << " mess c " << FractalRank << endl;
+	  //	  cout << " mess c " << FractalRank << "\n";
 	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_2,Length_2,Length_2,potC,potR,FFTWorld,FFTW_MEASURE);
-	  cout << " mess d " << FractalRank << endl;
+	  //	  cout << " mess d " << FractalRank << "\n";
 	  zeroR();
-	  cout << " mess e " << FractalRank << endl;
+	  //	  cout << " mess e " << FractalRank << "\n";
 	  pint Length_22=Length_2+2;
 	  for(pint nx=start_x;nx < start_x+length_x;++nx)
 	    {
@@ -249,7 +319,7 @@ namespace FractalSpace
     }
     void doFFTWorld(int length_1,bool periodic)
     {
-      cout << " messya " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << endl;
+      cout << " messya " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
       FFTRank=FractalRank;
       int howlong=length_1;
       if(!periodic)
@@ -263,7 +333,7 @@ namespace FractalSpace
 	  assert(FFTNodes > 1);
 	}
       IAmAnFFTNode=FFTRank < FFTNodes;
-      cout << " messyb " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << endl;
+      cout << " messyb " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
       int* ranks=new int[FFTNodes];
       for(int ni=0;ni < FFTNodes;ni++)
 	ranks[ni]=ni;
@@ -284,7 +354,7 @@ namespace FractalSpace
 	  assert(FFTRank == what_is_my_FFT_rank());
 	  assert(FFTNodes == how_many_FFT_nodes());
 	}
-      cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << endl;
+      //      cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
     }
     void FFTWFinal()
     {
@@ -306,7 +376,7 @@ namespace FractalSpace
 	      for(nz=0;nz<Length;nz++)
 		{
 		  pint n=fftw_where(nx,ny,nz,length,length+2);
-		  FILE << " dumpR " << nx << " " << ny << " " << nz << " " << n << " " << potR[n] << endl;
+		  FILE << " dumpR " << nx << " " << ny << " " << nz << " " << n << " " << potR[n] << "\n";
 		}
 	    }
 	}
@@ -347,11 +417,11 @@ namespace FractalSpace
 	length_1=2*length_a;
       paramsend[0]=start_x;
       paramsend[1]=start_x+length_x-1;
-      cout << "calc_fftwa " << FFTRank << " " << start_x << " " << length_x << endl;
+      cout << "calc_fftwa " << FFTRank << " " << start_x << " " << length_x << "\n";
       //      if(IAmAnFFTNode)
       MPI_Allgather(paramsend,2,MPI_INT,paramrecv,2,MPI_INT,FractalWorld);
       //      MPI_Barrier(FractalWorld);
-      cout << "calc_fftwb " << FFTRank << " " << start_x << " " << length_x << endl;
+      cout << "calc_fftwb " << FFTRank << " " << start_x << " " << length_x << "\n";
       Slices.resize(FractalNodes); // this is not an error.
       BoxS.resize(FractalNodes); // it must be dimensioned
       BoxSL.resize(FractalNodes); // this way
@@ -372,7 +442,7 @@ namespace FractalSpace
 	  BoxSL[FR][1]=length_1;
 	  BoxSL[FR][2]=length_1;
 	  if(FFTRank == 0)
-	    cout << " slices " << FFTRank << " " << Slices[FR][0] << " " << Slices[FR][1] << " " << FR << " " << FractalRank << endl;
+	    cout << " slices " << FFTRank << " " << Slices[FR][0] << " " << Slices[FR][1] << " " << FR << " " << FractalRank << "\n";
 	}
       delete [] paramrecv;
       //      free(paramrecv);
@@ -394,11 +464,11 @@ namespace FractalSpace
 	    {
 	      allok=false;
 	      for(int nx=0;nx<length_1;nx++)
-		if(FFTRank == 0) cout << " success " << FractalRank << " " << FFTRank << " " << nx << " " << WhichSlice[nx] << endl;
+		if(FFTRank == 0) cout << " success " << FractalRank << " " << FFTRank << " " << nx << " " << WhichSlice[nx] << "\n";
 	    }
 	}
       for(int ni=0;ni<length_1;ni++)
-	if(FFTRank == 0) cout << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << endl;
+	if(FFTRank == 0) cout << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << "\n";
       assert(allok);
     }
     void How_Many_On_Nodes(const int& count,vector <int>& counts)
@@ -428,21 +498,43 @@ namespace FractalSpace
     void How_Many_Things_To_Send(vector <int>& counts_out_send,vector <int>& counts_in_send)
     {
       assert(p_file);
-      cout << " into how many " << FractalNodes << " " << p_file << endl;
+      //      cout << " into how many " << FractalNodes << " " << p_file << "\n";
       //      ofstream& FF=p_file->FileFractal;
       int* counts_out=new int[FractalNodes];
       int* counts_in=new int[FractalNodes];
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_out[FR]=counts_out_send[FR];
-	  //	  FF << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << endl;
+	  //	  FF << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << "\n";
 	}
       for(int FR=0;FR<FractalNodes;FR++)
 	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,FractalWorld);
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_in_send[FR]=counts_in[FR];
-	  //	  FF << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << endl;
+	  //	  FF << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << "\n";
+	}
+      delete [] counts_out;
+      delete [] counts_in;
+    }
+    void How_Many_Things_To_Send(MPI_Comm& World,
+				 vector <int>& counts_out_send,vector <int>& counts_in_send)
+    {
+      int Nodes;
+      MPI_Comm_size(World,&Nodes);
+      int* counts_out=new int[Nodes];
+      int* counts_in=new int[Nodes];
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  counts_out[FR]=counts_out_send[FR];
+	  //	  FF << "sending a " << Rank << " " << FR << " " << counts_out[FR] << "\n";
+	}
+      for(int FR=0;FR<Nodes;FR++)
+	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,World);
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  counts_in_send[FR]=counts_in[FR];
+	  //	  FF << "sending b " << Rank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << "\n";
 	}
       delete [] counts_out;
       delete [] counts_in;
@@ -479,7 +571,7 @@ namespace FractalSpace
       double* DataR_out=new double[max(maxcount*doubles,1)];
       int* dataI_in=new int[how_manyI];
       double* dataR_in=new double[how_manyR];
-      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(integers > 0)
@@ -511,7 +603,7 @@ namespace FractalSpace
       countsR_out=0;
       DataI_out=0;
       DataR_out=0;
-      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
@@ -532,8 +624,8 @@ namespace FractalSpace
       dataR_in=0;
     }
     void Send_Data_Somewhere_Faster(vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
-			     vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
-			     vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
+				    vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
+				    vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
     {
       int* displsI= new int[FractalNodes];
       int* displsR= new int[FractalNodes];
@@ -570,7 +662,7 @@ namespace FractalSpace
       double* DataR_out=new double[max(maxcount*doubles,1)];
       int* dataI_in=new int[how_manyI];
       double* dataR_in=new double[how_manyR];
-      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(integers > 0)
@@ -602,7 +694,7 @@ namespace FractalSpace
       countsR_out=0;
       DataI_out=0;
       DataR_out=0;
-      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      //      cout << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
@@ -629,8 +721,8 @@ namespace FractalSpace
       dataR_in=0;
     }
     void Send_Data_Somewhere_No_Block(vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
-			     vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
-			     vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
+				      vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
+				      vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
     {
       ofstream& FF=p_file->FileFractal;
       vector <int>displsI(FractalNodes,0);
@@ -663,7 +755,7 @@ namespace FractalSpace
       vector <MPI_Request> requestRout;
       vector <MPI_Request> requestIin;
       vector <MPI_Request> requestRin;
-      FF << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      FF << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
       int answer=-1;
       if(integers > 0)
 	{
@@ -696,6 +788,9 @@ namespace FractalSpace
 	      MPI_MYTest(1,answer);
 	    }
 	}
+      //
+      Full_Stop_Do_Not_Argue();
+      //
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  if(FR == FractalRank || counts_out_send[FR] == 0)
@@ -731,23 +826,145 @@ namespace FractalSpace
 	  answer=MPI_Waitall(requestRin.size(),&(*requestRin.begin()),&(*statusRin.begin()));
 	  MPI_MYTest(7,answer);
 	}
-      FF << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << endl;
+      FF << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+    }
+    void Send_Data_Somewhere_No_Block(MPI_Comm& World,
+				      vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
+				      vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
+				      vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
+    {
+      int Rank;
+      MPI_Comm_rank(World,&Rank);
+      int Nodes;
+      MPI_Comm_size(World,&Nodes);
+      ofstream& FF=p_file->FileFractal;
+      vector <int>displsI(Nodes,0);
+      vector <int>displsR(Nodes,0);
+      vector <int>countsI_in(Nodes,0);
+      vector <int>countsR_in(Nodes,0);
+      vector <int>countsI_out(Nodes,0);
+      vector <int>countsR_out(Nodes,0);
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  countsI_in[FR]=counts_in_send[FR]*integers;
+	  countsI_out[FR]=counts_out_send[FR]*integers;
+	  countsR_in[FR]=counts_in_send[FR]*doubles;
+	  countsR_out[FR]=counts_out_send[FR]*doubles;
+	  if(FR > 0)
+	    {
+	      displsI[FR]=displsI[FR-1]+counts_in_send[FR-1]*integers;
+	      displsR[FR]=displsR[FR-1]+counts_in_send[FR-1]*doubles;
+	    }
+	}
+      how_manyI=displsI[Nodes-1]+counts_in_send[Nodes-1]*integers;
+      how_manyR=displsR[Nodes-1]+counts_in_send[Nodes-1]*doubles;
+      int extraI=countsI_out[Rank];
+      int extraR=countsR_out[Rank];
+      int startI=displsI[Rank];
+      int startR=displsR[Rank];
+      const int tagI=0;
+      const int tagR=1;
+      vector <MPI_Request> requestIout;
+      vector <MPI_Request> requestRout;
+      vector <MPI_Request> requestIin;
+      vector <MPI_Request> requestRin;
+      FF << " howmanyIR " << Rank << " " << how_manyI << " " << how_manyR << "\n";
+      int answer=-1;
+      if(integers > 0)
+	{
+	  dataI_in_send.resize(how_manyI);
+	  for(int ni=0;ni<extraI;ni++)
+	    dataI_in_send[ni+startI]=dataI_out[Rank][ni];
+	  //	  std::copy(dataI_out[Rank].begin(),dataI_out[Rank].begin()+extraI,dataI_in_send.begin()+startI)
+	}
+      if(doubles > 0)
+	{
+	  dataR_in_send.resize(how_manyR);
+	  for(int ni=0;ni<extraR;ni++)
+	    dataR_in_send[ni+startR]=dataR_out[Rank][ni];
+	  //	  std::copy(dataR_out[Rank].begin(),dataR_out[Rank].begin()+extraR,dataR_in_send.begin()+startR)
+	}
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  if(FR == Rank || counts_in_send[FR] == 0)
+	    continue;
+	  if(integers > 0)
+	    {
+	      requestIin.push_back(MPI_Request());
+	      answer=MPI_Irecv(&(*(dataI_in_send.begin()+displsI[FR])),countsI_in[FR],MPI_INT,FR,tagI,World,&requestIin.back());
+	      MPI_MYTest(0,answer);
+	    }
+	  if(doubles > 0)
+	    {
+	      requestRin.push_back(MPI_Request());
+	      answer=MPI_Irecv(&(*(dataR_in_send.begin()+displsR[FR])),countsR_in[FR],MPI_DOUBLE,FR,tagR,World,&requestRin.back());
+	      MPI_MYTest(1,answer);
+	    }
+	}
+      //
+      Full_Stop_Do_Not_Argue(World);
+      //
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  if(FR == Rank || counts_out_send[FR] == 0)
+	    continue;
+	  if(integers > 0)
+	    {
+	      requestIout.push_back(MPI_Request());
+	      answer=MPI_Isend(&(*dataI_out[FR].begin()),countsI_out[FR],MPI_INT,FR,tagI,World,&requestIout.back());
+	      MPI_MYTest(2,answer);
+	    }
+	  if(doubles > 0)
+	    {
+	      requestRout.push_back(MPI_Request());
+	      answer=MPI_Isend(&(*dataR_out[FR].begin()),countsR_out[FR],MPI_DOUBLE,FR,tagR,World,&requestRout.back());
+	      MPI_MYTest(3,answer);
+	    }
+	}
+      if(integers > 0)
+	{
+	  vector <MPI_Status> statusIout(requestIout.size());
+	  vector <MPI_Status> statusIin(requestIin.size());
+	  answer=MPI_Waitall(requestIout.size(),&(*requestIout.begin()),&(*statusIout.begin()));
+	  MPI_MYTest(4,answer);
+	  answer=MPI_Waitall(requestIin.size(),&(*requestIin.begin()),&(*statusIin.begin()));
+	  MPI_MYTest(5,answer);
+	}
+      if(doubles > 0)
+	{
+	  vector <MPI_Status> statusRout(requestRout.size());
+	  vector <MPI_Status> statusRin(requestRin.size());
+	  answer=MPI_Waitall(requestRout.size(),&(*requestRout.begin()),&(*statusRout.begin()));
+	  MPI_MYTest(6,answer);
+	  answer=MPI_Waitall(requestRin.size(),&(*requestRin.begin()),&(*statusRin.begin()));
+	  MPI_MYTest(7,answer);
+	}
+      FF << " how many " << Rank << " " << how_manyI << " " << how_manyR << "\n";
     }
     void MPI_MYTest(int which,int test)
     {
       if(test == MPI_SUCCESS)
       	return;
-      ofstream& FFM=p_file->FileFractalMemory;
-      FFM << " MPI Error " << which << " " << test;
-      FFM << " " << MPI_ERR_COMM << " " << MPI_ERR_TYPE;
-      FFM << " " << MPI_ERR_COUNT << " " << MPI_ERR_TAG;
-      FFM << " " << MPI_ERR_RANK << " " << MPI_SUCCESS << endl;
+      //      ofstream& FFM=p_file->FileFractalMemory;
+      //      FFM << " MPI Error " << which << " " << test;
+      //      FFM << " " << MPI_ERR_COMM << " " << MPI_ERR_TYPE;
+      //      FFM << " " << MPI_ERR_COUNT << " " << MPI_ERR_TAG;
+      //      FFM << " " << MPI_ERR_RANK << " " << MPI_SUCCESS << "\n";
+      fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
+	      MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
     }
     void calc_total_particles(const int& NP)
     {
       int particles[1]={NP};
       Find_Sum_INT(particles,1);
       number_particles_total=particles[0];
+    }
+    void Find_Max_INT(vector <int>& integers,int how_long)
+    {
+      //      int* maxy=new int[how_long];
+      vector <int> maxy(how_long);
+      MPI_Allreduce(&(*integers.begin()),&(*maxy.begin()),how_long,MPI_INT,MPI_MAX,FractalWorld);
+      integers=maxy;
     }
     void Find_Max_INT(int* integers,const int& how_long)
     {
@@ -766,6 +983,12 @@ namespace FractalSpace
       for(int ni=0;ni<how_long;ni++)
 	doubles[ni]=maxy[ni];
       delete [] maxy;
+    }
+    void Find_Sum_INT(vector <int>& integers,int how_long)
+    {
+      vector <int>sumup(how_long);
+      MPI_Allreduce(&(*integers.begin()),&(*sumup.begin()),how_long,MPI_INT,MPI_SUM,FractalWorld);
+      integers=sumup;
     }
     void Find_Sum_INT(int* integers,const int& how_long)
     {
@@ -789,6 +1012,18 @@ namespace FractalSpace
       delete [] doublesa;
       delete [] doublesb;
     }
+    void Find_Sum_DOUBLE_to_ROOT(vector <double>& numbers,int how_long,int ROOT)
+    {
+      vector <double> sumup(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,FractalWorld);
+      numbers=sumup;
+    }
+    void Find_Sum_INT_to_ROOT(vector <int>& numbers,int how_long,int ROOT)
+    {
+      vector <int> sumup(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_INT,MPI_SUM,ROOT,FractalWorld);
+      numbers=sumup;
+    }
     void Find_Sum_INT_to_ROOT(int* numbers,const int& how_long,const int& ROOT)
     {
       int* sumup=new int[how_long];
@@ -798,6 +1033,21 @@ namespace FractalSpace
 	numbers[ni]=sumup[ni];
       delete [] sumup;
     }
+    void Send_INT_from_ROOT(vector <int>& numbers,int how_long,int ROOT)
+    {
+      /*
+      int *numbersa= new int[how_long];
+      for(int ni=0;ni<how_long;ni++)
+	numbersa[ni]=numbers[ni];
+      MPI_Bcast(numbersa,how_long,MPI_INT,ROOT,FractalWorld);
+      */
+      MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT,FractalWorld);
+      /*
+      for(int ni=0;ni<how_long;ni++)
+	numbers[ni]=numbersa[ni];
+      delete [] numbersa;
+      */
+    }
     void Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT)
     {
       MPI_Bcast(numbers,how_long,MPI_INT,ROOT,FractalWorld);
@@ -806,6 +1056,83 @@ namespace FractalSpace
     {
       if(time_trial)
 	MPI_Barrier(FractalWorld);
+    }
+    void Full_Stop_Do_Not_Argue()
+    {
+      MPI_Barrier(FractalWorld);
+    }
+    void Full_Stop(MPI_Comm& World)
+    {
+      if(time_trial)
+	MPI_Barrier(World);
+    }
+    void Full_Stop_Do_Not_Argue(MPI_Comm& World)
+    {
+      MPI_Barrier(World);
+    }
+    void split_nodes(int FR,int& FR0,int& FR1,int& FR2)
+    {
+      bool easy=false;
+      vector <int>divs;
+      factors(FR,divs,easy);
+      if(easy)
+	{
+	  FR0=divs[0];
+	  FR1=FR0;
+	  FR2=FR0;
+	  return;
+	}
+      int sumF=10*FR;
+      int numfactors=divs.size();
+      vector <int>Nodes(3);
+      vector <int>threepow(numfactors);
+      threepow[0]=1;
+      for(int num=1;num<numfactors;num++)
+	threepow[num]=threepow[num-1]*3;
+      int options=threepow[numfactors-1]*3;
+      for(int nopt=0;nopt<options;nopt++)
+	{
+	  Nodes.assign(3,1);
+	  for(int num=0;num<numfactors;num++)
+	    {
+	      int which=(nopt/threepow[num]) % 3;
+	      Nodes[which]*=divs[num];
+	    }
+	  int sum3=Nodes[0]+Nodes[1]+Nodes[2];
+	  if(sum3 < sumF)
+	    {
+	      sumF=sum3;
+	      FR0=Nodes[0];
+	      FR1=Nodes[1];
+	      FR2=Nodes[2];
+	    }
+	}
+    }
+    void factors(int FR,vector <int>& divs,bool& easy)
+    {
+      //  cout << " enter factors " << FR << endl;
+      divs.clear();
+      int third=pow(static_cast<double>(FR)+0.5,1.0/3.0);
+      if(third*third*third == FR)
+	{
+	  divs.push_back(third);
+	  easy=true;
+	  return;
+	}
+      divs.push_back(1);
+      int diva=FR;
+      int divisor=2;
+      while(divisor <= FR && diva > 1)
+	{
+	  if(diva % divisor == 0)
+	    {
+	      divs.push_back(divisor);
+	      diva/=divisor;
+	    }
+	  else
+	    divisor++;
+	  //      cout << " In factors " << FR << " " << diva << " " << divisor << " " << endl;
+	}
     }
     void zeroR()
     {
@@ -824,6 +1151,14 @@ namespace FractalSpace
       return MPI_Wtime();
       //      return clock();
     }
+    int MyHypreRank()
+    {
+      int rank;
+      if(HypreWorld == MPI_COMM_NULL)
+	return -1;
+      MPI_Comm_rank(HypreWorld,&rank);
+      return rank;      
+    }
     void HypreGroupCreate(vector <int>& ranks)
     {
       int* Ranks=new int[HypreNodes];
@@ -834,12 +1169,13 @@ namespace FractalSpace
       MPI_Comm_create(FractalWorld, HypreGroup, &HypreWorld);
       delete [] Ranks;
     }
-    void HypreFree()
+    void HypreGroupFree()
     {
       if(!IAmAHypreNode)
-	return;
+      	return;
       MPI_Group_free(&HypreGroup);
       MPI_Comm_free(&HypreWorld);
+      HypreWorld=FractalWorld;
     }
   };
 }

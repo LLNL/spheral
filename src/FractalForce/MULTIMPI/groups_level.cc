@@ -6,7 +6,8 @@ namespace FractalSpace
 {
   void groups_level(Fractal& fractal,vector < vector<Group*> >& all_groups)
     {
-      ofstream& FileFractal=fractal.p_file->FileFractal;
+      ofstream& FileFractal=fractal.p_file->DUMPS;
+      //      ofstream& FileFractal=fractal.p_file->FileFractal;
       vector <int> parts;
       parts.assign(100,0);
       vector <int> ngroups;
@@ -21,8 +22,8 @@ namespace FractalSpace
 	  parts[lev]++;
 	}
 
-      FileFractal << " " << endl;
-      FileFractal << " steps " << fractal.get_steps() << endl;
+      FileFractal << " " << "\n";
+      FileFractal << " steps " << fractal.get_steps() << "\n";
       for(int ni=0;ni<=fractal.get_level_max();ni++)
 	{
 	  unsigned int sgroups=all_groups[ni].size();
@@ -37,11 +38,11 @@ namespace FractalSpace
 	      ngroups[bin]++;
 	      npoints[bin]+=ps;
 	    }
-	  if(sgroups > 0) FileFractal << "\t" << ni << "\t" << sgroups << "\t" << spoints << "\t" << parts[ni] << endl;
+	  if(sgroups > 0) FileFractal << "\t" << ni << "\t" << sgroups << "\t" << spoints << "\t" << parts[ni] << "\n";
 	}
-      FileFractal << endl;
+      FileFractal << "\n";
       for(int ni=0;ni<=binmax;ni++)
 	FileFractal << "\t" << ni << "\t" << (int)(27.0*pow(1.5,ni)+0.001) << "\t" << ngroups[ni] << 
-	  "\t" << npoints[ni] << endl;
+	  "\t" << npoints[ni] << "\n";
     }
 }

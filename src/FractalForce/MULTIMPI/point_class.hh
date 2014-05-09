@@ -35,6 +35,9 @@ namespace FractalSpace
     ofstream* p_FILE;
     vector <Particle*> list_particles;
     vector <Particle*> list_other_particles;
+    vector <int>ghosts_FR;
+    vector <int>ghosts_group_number;
+    vector <int>ghosts_point_number;
     static Point* nothing;
     static int number_points;
     static bool calc_candidates;
@@ -268,6 +271,42 @@ namespace FractalSpace
     {
       really_passive=value;
     }
+    void clear_ghosts()
+    {
+      ghosts_FR.clear();
+      ghosts_group_number.clear();
+      ghosts_point_number.clear();
+    }
+    void add_ghost(int& FR,int& group_number,int& point_number)
+    {
+      ghosts_FR.push_back(FR);
+      ghosts_group_number.push_back(group_number);
+      ghosts_point_number.push_back(point_number);
+    }
+    void get_ghosts(vector <int>& fr,vector <int>& gn,vector <int>& pn)
+    {
+      fr=ghosts_FR;
+      gn=ghosts_group_number;
+      pn=ghosts_point_number;
+    }
+      bool get_ghost(int& fr,int& gn,int& pn,int& which)
+    {
+      if(which < 0 || which >= ghosts_FR.size())
+	{
+	  fr=-1;
+	  gn=-1;
+	  pn=-1;
+	  return false;
+	}
+      fr=ghosts_FR[which];
+      gn=ghosts_group_number[which];
+      pn=ghosts_point_number[which];
+      return true;
+    }
+    bool any_ghosts()
+    {
+      return !ghosts_FR.empty();
+    }
     void set_ij_number(const int& count)
     {
       ij_number=count;
@@ -275,6 +314,11 @@ namespace FractalSpace
     int get_ij_number()
     {
       return ij_number;
+    }
+    void really_clear(vector <Point*>& die)
+    {
+      vector <Point*>temp;
+      die.swap(temp);
     }
     void set_ij_neighbors()
     {
@@ -907,7 +951,7 @@ namespace FractalSpace
     void subtract_dens_at_point(const double& d)
     {
       density_point-=d;
-      //      *p_FILE << " subtract " << pos_point[0] << " " << pos_point[1] << " " << pos_point[2] << " " << inside << endl;
+      //      *p_FILE << " subtract " << pos_point[0] << " " << pos_point[1] << " " << pos_point[2] << " " << inside << "\n";
     }
     void scale_density_point(const double& s)
     {
@@ -1064,7 +1108,7 @@ namespace FractalSpace
       *p_FILE << real_pointer << " ";
       *p_FILE << pos_point[0] << " ";
       *p_FILE << pos_point[1] << " ";
-      *p_FILE << pos_point[2] << endl;
+      *p_FILE << pos_point[2] << "\n";
     }
     void dumpd()
     {
@@ -1077,7 +1121,7 @@ namespace FractalSpace
       *p_FILE << edge_point << " ";
       *p_FILE << buffer_point << " ";
       *p_FILE << passive_point << " ";
-      *p_FILE << density_point << endl;
+      *p_FILE << density_point << "\n";
     }
     void dumpp()
     {
@@ -1091,7 +1135,7 @@ namespace FractalSpace
       *p_FILE << pos_point[1] << " ";
       *p_FILE << pos_point[2] << " ";
       *p_FILE << density_point << " ";
-      *p_FILE << potential_point << endl;
+      *p_FILE << potential_point << "\n";
     }
     void dumpp(ofstream& FF)
     {
@@ -1105,7 +1149,7 @@ namespace FractalSpace
       FF << pos_point[1] << " ";
       FF << pos_point[2] << " ";
       FF << density_point << " ";
-      FF << potential_point << endl;
+      FF << potential_point << "\n";
     }
     void dumppf()
     {
@@ -1122,7 +1166,7 @@ namespace FractalSpace
       *p_FILE << potential_point << " ";
       *p_FILE << force_point[0] << " ";
       *p_FILE << force_point[1] << " ";
-      *p_FILE << force_point[2] << endl;
+      *p_FILE << force_point[2] << "\n";
     }
     void dump()
     {
@@ -1135,14 +1179,14 @@ namespace FractalSpace
       *p_FILE << edge_point << " ";
       *p_FILE << buffer_point << " ";
       *p_FILE << passive_point << " ";
-      *p_FILE << real_pointer << endl;
+      *p_FILE << real_pointer << "\n";
       //
       for(int ni=0;ni<6;ni++)
 	{
 	  *p_FILE << ni << "\t" << point_ud[ni] << "\t";
 	  if(point_ud[ni] != 0) 
 	    *p_FILE << point_ud[ni]->pos_point[0] << "\t" << point_ud[ni]->pos_point[1] << "\t" << point_ud[ni]->pos_point[2];
-	  *p_FILE << endl;
+	  *p_FILE << "\n";
 	}
     } 
     void get_field_values(double& pot,double& fx,double& fy,double& fz)
@@ -1166,11 +1210,11 @@ namespace FractalSpace
       d_z=(pos[2]*scale-pos_point[2])*d_inv;
       if(abs(d_x-0.5) > 0.5 || abs(d_y-0.5) > 0.5 || abs(d_z-0.5) > 0.5)
       	{
-	  *p_FILE << " this " << this << endl;
-      	  *p_FILE << "deltax " << pos[0] << " " << pos_point[0] << " " << scale << " " << d_inv << endl;
-      	  *p_FILE << "deltay " << pos[1] << " " << pos_point[1] << " " << scale << " " << d_inv << endl;
-      	  *p_FILE << "deltaz " << pos[2] << " " << pos_point[2] << " " << scale << " " << d_inv << endl;
-      	  *p_FILE << "dxyz " << d_x << " " << d_y << " " << d_z <<endl;
+	  *p_FILE << " this " << this << "\n";
+      	  *p_FILE << "deltax " << pos[0] << " " << pos_point[0] << " " << scale << " " << d_inv << "\n";
+      	  *p_FILE << "deltay " << pos[1] << " " << pos_point[1] << " " << scale << " " << d_inv << "\n";
+      	  *p_FILE << "deltaz " << pos[2] << " " << pos_point[2] << " " << scale << " " << d_inv << "\n";
+      	  *p_FILE << "dxyz " << d_x << " " << d_y << " " << d_z <<"\n";
 	}
       assert(abs(d_x-0.5) <= 0.5);
       assert(abs(d_y-0.5) <= 0.5);

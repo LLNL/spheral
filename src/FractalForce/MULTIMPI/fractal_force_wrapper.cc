@@ -5,16 +5,19 @@ namespace FractalSpace
 {
   int fractal_force_wrapper(Fractal_Memory* PFM,Fractal* PF)
   {
-    cout << "starting wrapper " << endl;
+    cout << "starting wrapper " << "\n";
     //    fractal_force_init(PFM,PF);
     PFM->p_fractal=PF;
-    ofstream& FileFractal=PFM->p_file->FileFractal;
-    FileFractal << " hahaa " << PFM << " " << PF << endl;
+    ofstream& FileFractal=PFM->p_file->DUMPS;
+    //    ofstream& FileFractal=PFM->p_file->FileFractal;
+    vector <int>BOXA=PFM->Boxes[PFM->p_mess->FractalRank];
+    FileFractal << " BOXA " << BOXA[0] << " " << BOXA[1] << " " << BOXA[2] << " " << BOXA[3] << " " << BOXA[4] << " " << BOXA[5] << "\n";
+    FileFractal << " hahaa " << PFM << " " << PF << "\n";
     Fractal_Memory& FM=*PFM;
-    FileFractal << " hahab " << PFM<< endl;
+    FileFractal << " hahab " << PFM<< "\n";
     Fractal& FR=*PF;
-    FileFractal << " hahac " << PF << " " << PF->p_file << endl;
-    FileFractal << FM.p_mess->FractalRank << " starting out " << endl;
+    FileFractal << " hahac " << PF << " " << PF->p_file << "\n";
+    FileFractal << FM.p_mess->FractalRank << " starting out " << "\n";
     vector <int> Box(6);
     FR.getBox(Box);
     FileFractal << " Box wrapper ";
@@ -25,7 +28,7 @@ namespace FractalSpace
     if(FM.periodic)
       {
 	double m=0.375*FM.omega_start/pi/(double)FM.p_mess->number_particles_total;
-	FileFractal << "m= " << m << endl;
+	FileFractal << "m= " << m << "\n";
 	PFM->base_mass=m;
 	PF->set_base_mass(m);
 	bool zel_predict=FM.crash_levels > 0 && FM.max_particles > FM.number_particles; 
@@ -42,16 +45,16 @@ namespace FractalSpace
 	      {
 		FR.rad[i]=i*drad+1.0;
 		FR.grow[i]=Growth(FM.omega_start,FM.lambda_start,1.0/FR.rad[i]-1.0);
-		FileFractal << i << " " << FR.rad[i] << " " << FR.grow[i] << endl;
+		FileFractal << i << " " << FR.rad[i] << " " << FR.grow[i] << "\n";
 	      }
 	  }
 	int count=0;
 	make_particles(FM,FR,count,m,false);
-	FileFractal << "size " << count << endl;
+	FileFractal << "size " << count << "\n";
 	FM.number_particles=count;
 	FR.set_number_particles(count);
 	update_rv(FR,0,0.0,0.0);
-	FileFractal << "make parts " << count << endl;
+	FileFractal << "make parts " << count << "\n";
 	double delta_z=Growth(FM.omega_0,FM.omega_lambda,FM.redshift_start);
 	double vfratio=1.0/(1.5*FM.omega_start)*dGrowthdT(FM.omega_start,FM.lambda_start,0.0);
 	double omega_fraction=1.0/(1.5*FM.omega_start);
@@ -60,10 +63,11 @@ namespace FractalSpace
 	FR.timing(-2,0);
 	FR.timing(-1,49);
 	fractal_force(FR,FM);
+	FM.p_file->FlushAll();
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
-	FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
+	FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << "\n";
 	if(zel_predict)
 	  {
 	    FM.splits=splits_tmp;
@@ -71,11 +75,11 @@ namespace FractalSpace
 	    srand(FM.random_gen+FM.p_mess->FractalRank);
 	    int count=0;
 	    make_particles(FM,FR,count,m,true);
-	    FileFractal << "size " << count << endl;
+	    FileFractal << "size " << count << "\n";
 	    FM.number_particles=count;
 	    FR.set_number_particles(count);
 	    update_rv(FR,0,0.0,0.0);
-	    FileFractal << "make parts " << count << endl;
+	    FileFractal << "make parts " << count << "\n";
 	    double delta_z=Growth(FM.omega_0,FM.omega_lambda,FM.redshift_start);
 	    double vfratio=1.0/(1.5*FM.omega_start)*dGrowthdT(FM.omega_start,FM.lambda_start,0.0);
 	    double omega_fraction=1.0/(1.5*FM.omega_start);
@@ -84,10 +88,11 @@ namespace FractalSpace
 	    FR.timing(-2,0);
 	    FR.timing(-1,49);
 	    fractal_force(FR,FM);
+	    FM.p_file->FlushAll();
 	    FR.timing(1,49);
 	    FR.timing(0,0);
 	    FR.timing_lev(0,0);
-	    FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << endl;
+	    FileFractal << "initial " << delta_z << " " << vfratio << " " << omega_fraction << "\n";
 	    //	    write_rv(-6,FR);
 	  }
 	if(FM.norm_what == 1)omega_fraction/=vfratio;
@@ -98,6 +103,7 @@ namespace FractalSpace
 	FR.timing(-2,0);
 	FR.timing(-1,49);
 	fractal_force(FR,FM);
+	FM.p_file->FlushAll();
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
@@ -114,20 +120,21 @@ namespace FractalSpace
     else
       {
 	int count=0;
-	FileFractal << " making particles a " << endl;
+	FileFractal << " making particles a " << "\n";
 	double m=FM.total_mass/FM.p_mess->number_particles_total;      
-	FileFractal << " making particles b " << m << endl;
+	FileFractal << " making particles b " << m << "\n";
 	make_particles(FM,FR,count,m,false);
-	FileFractal << "size " << count << endl;
+	FileFractal << "size " << count << "\n";
 	FM.number_particles=count;
 	FR.set_number_particles(count);
-	FileFractal << "make parts " << count << endl;
+	FileFractal << "make parts " << count << "\n";
 	FM.start_up=false;
 	FM.calc_density_particle=false;
 	FM.calc_shear=false;
 	FR.timing(-2,0);
 	FR.timing(-1,49);
 	fractal_force(FR,FM);
+	FM.p_file->FlushAll();
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
@@ -145,6 +152,7 @@ namespace FractalSpace
 	FR.timing(-2,0);
 	FR.timing(-1,49);
 	fractal_force(FR,FM);
+	FM.p_file->FlushAll();
 	FR.timing(1,49);
 	FR.timing(0,0);
 	FR.timing_lev(0,0);
@@ -154,7 +162,7 @@ namespace FractalSpace
       {
 	if(FM.steps == -1) energy_simple(FM,FR);
 	FM.steps=step;
-	FileFractal << "step = " << step << " " << FM.arad << endl;
+	FileFractal << "step = " << step << " " << FM.arad << "\n";
 	if(FM.periodic && step % FM.number_steps_out == 0)
 	  {
 	    FM.calc_density_particle=true;

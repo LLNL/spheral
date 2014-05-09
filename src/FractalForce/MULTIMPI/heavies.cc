@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void heavies(Fractal& fractal,Fractal& fractal_ghost)
   {
-    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
     int n_ghost=0;
     fractal_ghost.set_number_particles(n_ghost);
     if(fractal.get_force_max() <= 0.0) return;
@@ -31,7 +32,7 @@ namespace FractalSpace
 	if(h_p < lev)
 	  {
 	    n_ghost+=Misc::pow(8,lev-h_p)+1;
-	    FileFractal << "n_ghost " << n_ghost << " " << p << endl;
+	    FileFractal << "n_ghost " << n_ghost << " " << p << "\n";
 	  }
       }
     //    assert(n_ghost < fractal.get_number_particles());
@@ -40,7 +41,16 @@ namespace FractalSpace
     if(n_ghost == 0) return;
 
     //
-    Particle* ph=new (nothrow) Particle[n_ghost];
+    Particle* ph;
+    try
+      {
+	ph=new Particle[n_ghost];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " Bad Ghost " << n_ghost << " " << ba.what() << endl;
+	exit(0);
+      }
     int n_h=0; 
     for(int p=0;p< fractal.get_number_particles();++p)
       {

@@ -10,7 +10,8 @@ namespace FractalSpace
 				     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     ofstream& FileEnergy=PFM->p_file->FileEnergy;
-    ofstream& FileMom=PFM->p_file->FileMom;
+    ofstream& FileMom=PFM->p_file->DUMPS;
+    //    ofstream& FileMom=PFM->p_file->FileMom;
     //    ofstream& FileP=PFM->p_file->FileParticle;
     int stride=100;
     int NP=PFM->number_particles;
@@ -65,9 +66,9 @@ namespace FractalSpace
     sums[5]=p2;
     PFM->p_mess->Find_Sum_DOUBLE(sums,6);
     FileEnergy << scientific << PFM->time <<  "\t " << PFM->steps << "\t " << 
-      te << "\t " << pe << "\t " << ke << "\t " << sums[0] << "\t" << sums[1] << "\t" << sums[2] << endl;
+      te << "\t " << pe << "\t " << ke << "\t " << sums[0] << "\t" << sums[1] << "\t" << sums[2] << "\n";
     FileMom << scientific << PFM->time << "\t " << PFM->steps << "\t " << 
       p0 << "\t " << p1 << "\t " << p2 << "\t " <<
-      sums[3] << "\t" << sums[4] << "\t" << sums[5] << "\t" << endl;
+      sums[3] << "\t" << sums[4] << "\t" << sums[5] << "\t" << "\n";
   }
 }

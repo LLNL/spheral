@@ -8,17 +8,17 @@ namespace FractalSpace
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
     double rand_max=(double)RAND_MAX;
-    double rmax=20.0;
+    double rmax=30.0;
     double x_off=1.0;
     double y_off=-2.0;
     double z_off=3.0;
-    double slope=-0.5;
-    double velratio=0.5;
+    double slope=-1.05;
+    double velratio=1.0;
     velratio*=sqrt(G);
     double slope3=slope+3.0;
     double expo=1.0/(3.0+slope);
     double twopi=8.0*atan(1.0);
-    double m=total_mass/static_cast<double>(numbers);
+    //    double m=total_mass/static_cast<double>(numbers);
     for(int ni=0;ni<numbers;ni++)
       {
 	double r1=Fractal::my_rand(rand_max);

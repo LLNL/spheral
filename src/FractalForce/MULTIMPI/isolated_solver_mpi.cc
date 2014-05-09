@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void isolated_solver(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
-    ofstream& FileFFT=frac.p_file->FileFFT;
-    FileFFT << "entering isolated " << endl;
+    ofstream& FileFFT=frac.p_file->DUMPS;
+    //    ofstream& FileFFT=frac.p_file->FileFFT;
+    FileFFT << "entering isolated " << "\n";
     const int length_1=frac.get_grid_length();
     const int length_11=length_1+1;
     const int length_2=2*length_1;
@@ -16,14 +17,14 @@ namespace FractalSpace
 	return;
       }
     mem.p_mess->create_potRC();
-    mem.p_mess->zeroR();
+    mem.p_mess->zeroR(-frac.get_density_0());
     Full_Stop(mem,34);
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
     frac.timing(1,24);
     mem.p_mess->fftw_real_to_complex();
     if(mem.p_mess->FractalRank == 0)
-      FileFFT << " zero power " << mem.p_mess->potC[0][0] << " " << mem.p_mess->potC[0][1] << endl;
+      FileFFT << " zero power " << mem.p_mess->potC[0][0] << " " << mem.p_mess->potC[0][1] << "\n";
     //
     for(int n_x=mem.p_mess->start_x;n_x < mem.p_mess->start_x+mem.p_mess->length_x;++n_x)
       {
@@ -48,6 +49,6 @@ namespace FractalSpace
     slices_to_potf(group,mem,frac);
     frac.timing(1,24);
     mem.p_mess->free_potRC();
-    FileFFT << "exiting isolated " << endl;
+    FileFFT << "exiting isolated " << "\n";
   }
 }

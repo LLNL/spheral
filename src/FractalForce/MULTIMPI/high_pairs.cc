@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void high_pairs(Group& group)
   {
-    //  cout << " entering high pairs " << endl;
+    //  cout << " entering high pairs " << "\n";
     int num_high_points=group.get_number_high_points();
     group.list_high.resize(num_high_points);
     group.list_pair_1.reserve(3*num_high_points);

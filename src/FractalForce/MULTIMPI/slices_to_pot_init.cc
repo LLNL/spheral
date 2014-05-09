@@ -37,9 +37,6 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=2;
     int doubles=1;
-    frac.timing(-1,40);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,40);
     mem.p_file->note(true," slices to pot init a ");
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," slices to pot init b ");
@@ -63,7 +60,7 @@ namespace FractalSpace
 	    number_group=dataI_in[counterI];
 	    number_point=dataI_in[counterI+1];
 	    potential=dataR_in[counterR];
-	    //	    mem.p_file->FileFractal << " check it " << lev << " " << FR << " " << c << " " << number_group << " " << number_point << endl;
+	    //	    mem.p_file->FileFractal << " check it " << lev << " " << FR << " " << c << " " << number_group << " " << number_point << "\n";
 	    p_point=mem.all_groups[lev][number_group]->list_points[number_point];
 	    if(lev != 0)
 	      potential+=p_point->get_potential_point();

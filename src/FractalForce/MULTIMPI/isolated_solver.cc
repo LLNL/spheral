@@ -66,12 +66,12 @@ namespace FractalSpace
 	greenR=0;
 	greenC=0;
 	fftw_destroy_plan(plan_green_rc);
-	FileFractal << "isolated what " << endl;
+	FileFractal << "isolated what " << "\n";
 	Fractal::first_time_solver=false;
 	return;
       }
     //
-    FileFractal << "isol 0 " << endl;
+    FileFractal << "isol 0 " << "\n";
     double* potR;
     fftw_complex* potC;
     potR=(double*) fftw_malloc(sizeR*2*length_11*length_2*length_2);
@@ -101,7 +101,7 @@ namespace FractalSpace
 	      }
 	  }
       }
-    FileFractal << "isol a " << endl;
+    FileFractal << "isol a " << "\n";
     fftw_execute(plan_rc);
     //
     for(int n_x=0;n_x < length_2;++n_x)
@@ -120,9 +120,9 @@ namespace FractalSpace
 	      }
 	  }
       }
-    FileFractal << "isol b " << endl;
+    FileFractal << "isol b " << "\n";
     fftw_execute(plan_cr);
-    FileFractal << "isol c " << endl;
+    FileFractal << "isol c " << "\n";
     for (int n_x=0;n_x < length_11;++n_x)
       {
 	for (int n_y=0;n_y < length_11;++n_y)

@@ -1,4 +1,7 @@
 /*
+***  Rasmus Villumsen
+***   In Honor to the forgotten polar explorer.
+
 ***  Mr. Garibaldi to hapless Engineer: 
 ***  It is a prototype, it does not have to be perfect,
 ***   it just has to work.
@@ -37,30 +40,28 @@
 ***   Eight orders of magnitude.
 ***  On an observing trip in Chile I was interrogated at gun-point, in Spanish, about my suspected involvement
 ***   in an armed bank robbery.
+***  In Brazil I took a picture of the Danish flag on the building housing the Danish consulate.
+***   This building also housed Chase Manhattan offices, so I was detained by security for an hour.
 ***  On my honeymoon our delicious meal was interrupted by a shooting in the restaurant.
 ***   The owner limped over to our table and explained that he had been shot by the cook.
 ***   He apologized for the incident, said he was going to the hospital, but asked us to please enjoy our meal.
 ***  I need to find out where I can get a Pan Galactic Gargle Blaster.
+***  In customs at JFK they became suspicious of me, so I was given an astronomy quiz. I passed.
+
 ***  TC Villumsen at 13 y.o.:
 ***   Mom, Dad does not do any work, all he does is read magazines, play on the computer and talk with his friends.
 
 ***  Mike Owen:
-***  Our simulations are better than reality.
+***  Our simulations are better than reality..
 ***  As soon as you get a program to work 
 ***   you should rewrite it from scratch.
 
-***  Sheldon Cooper:
+***  Big Bang Theory: Sheldon Cooper:
 ***  I am a Physicist,
 ***   I have a working Knowledge of the Universe and Everything in it.
 
-***  Bomb #20: Intriguing. I wish I had more time to discuss this.
-***  Doolittle: [frantic] Why don't you have more time?
-***  Bomb #20: Because I must explode in 75 seconds. 
-
-***  Bomb, this is Lt. Doolittle. You are *not* to detonate in the bomb bay. I repeat, you are NOT to detonate in the bomb bay! 
-
-***  KISS
-***  Keep It Simple Stupid
+***  Big Bang Theory: Stuart:
+***  Like shooting nerds in a barrel
 
 *** The Big Bang Theory
 *** Our whole universe was in a hot dense state,
@@ -93,6 +94,18 @@
 *** Music and mythology, Einstein and astrology
 *** It all started with the big bang!
 *** It all started with the big ... BANG! 
+
+***  Bomb #20: Intriguing. I wish I had more time to discuss this.
+***  Doolittle: [frantic] Why don't you have more time?
+***  Bomb #20: Because I must explode in 75 seconds. 
+
+***  Bomb, this is Lt. Doolittle. You are *not* to detonate in the bomb bay. I repeat, you are NOT to detonate in the bomb bay! 
+
+***  KISS
+***  Keep It Simple Stupid
+
+***  TopGun
+***  I feel the need, the urgent need for speed
 
 *** Curiosity Rover
 ***  Tango Delta Nominal
@@ -166,15 +179,22 @@ namespace FractalSpace
   void fractal_force(Fractal& fractal,Fractal_Memory& fractal_memory)
   {
     Full_Stop(fractal_memory,-1);
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    FileFractal << "here in fractal_force " << endl;
-    FileFractal << "number of everything entering fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
-    FileFractal << " Total number of particles entering Fractal " << Particle::number_particles << endl;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    FileFractal << "here in fractal_force " << "\n";
+    FileFractal << "number of everything entering fractal "  << " " << Group::number_groups << " " << Point::number_points << "\n";
+    FileFractal << " Total number of particles entering Fractal " << Particle::number_particles << "\n";
     //    write_rv(-16,fractal);
     Full_Stop(fractal_memory,33);
     fractal.timing_lev(-1,0);
     fractal.timing(-1,27);
     scatter_particles(fractal_memory,fractal);
+    vector <int> PBoxLength(3);
+    fractal.getPBoxLength(PBoxLength);
+    int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
+    cout << " particles after scatter " << fractal_memory.p_mess->FractalRank << " " << fractal.get_number_particles() << " " << volume << "\n";
+    //    fractal.print_list_world(0);
+    //    fractal.print_list(0);
     fractal.timing(1,27);
     fractal.timing_lev(1,0);
     //    write_rv(-15,fractal);
@@ -190,7 +210,7 @@ namespace FractalSpace
     bool debug=fractal.get_debug();
     misc.set_debug(debug);
     fractal_memory.p_misc=p_misc;
-    FileFractal << "startup " << fractal_memory.start_up << endl;
+    FileFractal << "startup " << fractal_memory.start_up << "\n";
     misc.zoom=Misc::pow(2,fractal.get_level_max());
     misc.grid_multiply=misc.zoom*fractal.get_grid_length();  
     misc.set_debug(fractal_memory.debug);
@@ -201,7 +221,7 @@ namespace FractalSpace
     if(fractal.get_periodic())
       {
 	d_0=fractal.get_omega_start()*0.375/(4.0*atan(1.0));
-	FileFractal << "density 0 " << fractal.get_omega_start() << " " << d_0 << endl;
+	FileFractal << "density 0 " << fractal.get_omega_start() << " " << d_0 << "\n";
       }
     fractal.set_density_0(d_0);
     //--------------------------------------------------------------------------
@@ -213,7 +233,7 @@ namespace FractalSpace
     group.set_level(0);
     group.p_file=fractal.p_file;
     misc.p_group_0=p_group; 
-    FileFractal << "group f " << p_group << " " << misc.p_group_0 << endl;
+    FileFractal << "group f " << p_group << " " << misc.p_group_0 << "\n";
     fractal_memory.all_groups.resize(fractal.get_level_max()+1);
     fractal_memory.all_groups[0].push_back(p_group);
     fractal_memory.all_buffer_groups.resize(fractal.get_level_max()+1);
@@ -237,9 +257,70 @@ namespace FractalSpace
     fractal.timing(-1,46);
     fractal.timing_lev(-2,0);
     fractal.timing(-1,1);
-    tree_start(group,fractal,fractal_memory,misc);   
+    if(fractal.get_periodic())
+      tree_start(group,fractal,fractal_memory,misc);   
+    else
+      tree_start_mini(group,fractal,fractal_memory,misc);   
     fractal.timing(1,1);
     fractal.timing_lev(2,0);
+    // *****
+    if(!fractal_memory.start_up)
+      {
+	// *****
+	fractal.timing(-1,47);
+	// solve level zero by first assigning density then use either periodic or isolated FFTW
+	// to find potential at the points. Find forces at points and then at particles.
+	fractal.timing_lev(-1,0);
+	Group& group=*misc.p_group_0;
+	if(misc.get_debug())
+	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
+	group.set_set_scaling(true);
+	group.set_set_dens(true);
+	//--------------------------------------------------------------------------
+	// use all particles to assign density to the points using cic. For edge points, density
+	//  will be wrong, but this density is never used. Also add the density from any split ghost particles
+	//--------------------------------------------------------------------------
+	fractal.timing(-1,3);
+	assign_density(group,fractal); 
+	fractal.timing(1,3);
+	if(fractal.get_periodic())
+	  {
+	    //--------------------------------------------------------------------------
+	    // For periodic BC use periodic FFTW solver for head group
+	    //--------------------------------------------------------------------------
+	    fractal.timing(-1,4);
+	    periodic_solver(group,fractal_memory,fractal); 
+	    fractal.timing(1,4);
+	  }
+	else
+	  {
+	    //--------------------------------------------------------------------------
+	    // For isolated BC use isolated FFTW solver for head group
+	    //--------------------------------------------------------------------------
+	    fractal.timing(-1,5);
+	    isolated_solver(group,fractal_memory,fractal); 
+	    fractal.timing(1,5);
+	  }
+	//
+	//--------------------------------------------------------------------------
+	// For inside points diff potential to get forces at points. For all other points
+	// use values from mother group
+	//--------------------------------------------------------------------------
+	fractal.timing(-1,7);
+	force_at_point(group,fractal); 		   
+	fractal.timing(1,7);
+	//--------------------------------------------------------------------------
+	// If this group is the highest level group for this particle use cic interpolation
+	// to find potential and forces at the particle
+	//--------------------------------------------------------------------------
+	fractal.timing(-1,8);
+	force_at_particle(group,fractal,fractal_memory.momentum_conserve);
+	group.set_done_group(true);
+	fractal.timing(1,8);
+	fractal.timing_lev(1,0);
+	// *****
+      }
+    // *****
     //--------------------------------------------------------------------------
     // Generate tree of groups, if depth of tree greater than zero
     //--------------------------------------------------------------------------
@@ -251,13 +332,13 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     for(int level=0;level < fractal.get_level_max();level++)
       {
-	FileFractal << "a level=  " << level << endl;
+	FileFractal << "a level=  " << level << "\n";
 	fractal.timing_lev(-2,level+1);
 	for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	  {
 	    Group& group=**group_itr;
-	    //	    FileFractal << "a group=  " << *group_itr << endl;
+	    //	    FileFractal << "a group=  " << *group_itr << "\n";
 	    assert(group.get_number_high_groups() <= 0);
 	    if(group.get_number_high_groups() == 0) continue;
 	    //--------------------------------------------------------------------------
@@ -270,7 +351,7 @@ namespace FractalSpace
 	    //--------------------------------------------------------------------------
 	    // If there are any high_points, go on
 	    //--------------------------------------------------------------------------
-	    //	    FileFractal << "aa group=  " << *group_itr << " " << group.get_number_high_points() << endl;
+	    //	    FileFractal << "aa group=  " << *group_itr << " " << group.get_number_high_points() << "\n";
 	    if(group.get_number_high_points() == 0) continue;
 	    //--------------------------------------------------------------------------
 	    // If padding or buffering allowed, padding has priority, add buffer points
@@ -282,7 +363,7 @@ namespace FractalSpace
 	    //--------------------------------------------------------------------------
 	    fractal.timing(-1,10);
 	    buffer_points(group,fractal,misc);
-	    if(misc.get_debug()) FileFractal << "out of buff_points" << endl;
+	    //	    if(misc.get_debug()) FileFractal << "out of buff_points" << "\n";
 	    fractal.timing(1,10);
 	  }
 	//
@@ -291,7 +372,7 @@ namespace FractalSpace
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	  {
 	    Group& group=**group_itr;
-	    FileFractal << "b group=  " << *group_itr << " " << group.get_number_high_groups() << endl;
+	    //	    FileFractal << "b group=  " << *group_itr << " " << group.get_number_high_groups() << "\n";
 	    assert(group.get_number_high_groups() <= 0);
 	    if(group.get_number_high_groups() == 0) continue;
 	    //--------------------------------------------------------------------------
@@ -299,27 +380,29 @@ namespace FractalSpace
 	    // A point generates a max of three pairs.
 	    //--------------------------------------------------------------------------
 	    fractal.timing(-1,11);
-	    FileFractal << "into high_pairs" << endl;
+	    //	    FileFractal << "into high_pairs" << "\n";
 	    high_pairs(group); 
-	    FileFractal << "out of high_pairs" << endl;
+	    //	    FileFractal << "out of high_pairs" << "\n";
 	    fractal.timing(1,11);
 	    //--------------------------------------------------------------------------
 	    // Find equivalence classes of high_points
 	    //--------------------------------------------------------------------------
 	    fractal.timing(-1,12);
-	    if(misc.get_debug()) FileFractal << "into eq class" << endl;
+	    //	    if(misc.get_debug()) FileFractal << "into eq class" << "\n";
 	    equivalence_class(group);
-	    if(misc.get_debug()) FileFractal << "out of eq class" << endl;
+	    //	    if(misc.get_debug()) FileFractal << "out of eq class" << "\n";
 	    fractal.timing(1,12);
 	    //--------------------------------------------------------------------------
 	    // Groups of high_points make high_groups as equivalence classes of high_points
 	    //--------------------------------------------------------------------------
 	    fractal.timing(-1,13);
-	    if(misc.get_debug()) FileFractal << "into high_groups" << endl;
+	    //	    if(misc.get_debug()) FileFractal << "into high_groups" << "\n";
 	    high_groups(group);
-	    if(misc.get_debug()) FileFractal << "out of high_groups" << group.list_high_groups.size() << endl;
+	    //	    if(misc.get_debug()) FileFractal << "out of high_groups" << group.list_high_groups.size() << "\n";
 	    group.head_number.resize(0);
 	    group.list_high.resize(0);  	
+	    //	    really_clear(group.head_number);
+	    //	    really_clear(group.list_high);  	
 	    fractal.timing(1,13);
 	    //--------------------------------------------------------------------------
 	    // Loop over all high_groups
@@ -340,9 +423,9 @@ namespace FractalSpace
 		// Generate the points in the new group, get rid of duplicates, find the six nearest
 		// neighbor points, if they exist. Decide if a point is "inside", assign particles to points
 		//--------------------------------------------------------------------------
-		if(misc.get_debug()) FileFractal << "into daughter" << endl;
+		//		if(misc.get_debug()) FileFractal << "into daughter" << "\n";
 		daughter_group_nina(new_group,high_group,fractal,fractal_memory,misc);
-		if(misc.get_debug()) FileFractal << "out of daughter" << endl;
+		//		if(misc.get_debug()) FileFractal << "out of daughter" << "\n";
 		//--------------------------------------------------------------------------
 		// High_group no longer needed, no memory leaks please
 		// Never instantiate "point.p_in_high_group", it is only a label.
@@ -369,41 +452,45 @@ namespace FractalSpace
     //    dump_tree(fractal_memory,fractal);
     fractal.timing(-1,16);
     bool badd=test_tree(fractal_memory,fractal);
-    FileFractal << " not badd " << badd << endl;
+    FileFractal << " not badd " << badd << "\n";
     assert(!badd);
     fractal.timing(1,16);
+    FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
+    FileFractal << " Total number of particles after the tree " << Particle::number_particles << "\n";
     //--------------------------------------------------------------------------
     // If force_max > 0 find ghost particles that need to split to soften the force
     //--------------------------------------------------------------------------
     fractal.timing(-1,17);
-    FileFractal << " not badd0 " << badd << endl;
+    FileFractal << " not badd0 " << badd << "\n";
     Fractal* p_fractal_ghost=new (nothrow) Fractal;
     assert(p_fractal_ghost);
     Fractal& fractal_ghost=*p_fractal_ghost;
-    FileFractal << " not badda " << badd << endl;
+    FileFractal << " not badda " << badd << "\n";
     heavies(fractal,fractal_ghost);
-    FileFractal << " not baddb " << badd << endl;
+    FileFractal << " not baddb " << badd << "\n";
     fractal.timing(1,17);
     //--------------------------------------------------------------------------
     // Each ghost particle, if any, is assigned to a point in each group it belongs to
     //--------------------------------------------------------------------------
     fractal.timing(-1,18);
-    FileFractal << " not baddc " << badd << endl;
+    FileFractal << " not baddc " << badd << "\n";
     particle_lists(fractal_memory.all_groups,fractal,fractal_ghost,misc);
-    FileFractal << " not baddd " << badd << endl;
+    FileFractal << " not baddd " << badd << "\n";
     fractal.timing(1,18);
     fractal.timing(1,46);
     //    fractal_memory.p_mess->TreeTime=fractal.get_delta_time(46);
-    FileFractal << "start up " << fractal_memory.start_up << endl;
+    FileFractal << "start up " << fractal_memory.start_up << "\n";
     if(!fractal_memory.start_up)
       {
+	// *****
+	/*
 	fractal.timing(-1,47);
 	// solve level zero by first assigning density then use either periodic or isolated FFTW
 	// to find potential at the points. Find forces at points and then at particles.
 	fractal.timing_lev(-1,0);
 	Group& group=*misc.p_group_0;
 	if(misc.get_debug())
-	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  endl;
+	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
 	group.set_set_scaling(true);
 	group.set_set_dens(true);
 	//--------------------------------------------------------------------------
@@ -433,6 +520,7 @@ namespace FractalSpace
 	  }
 	Full_Stop(fractal_memory,41);
 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
+	//
 	//--------------------------------------------------------------------------
 	// For inside points diff potential to get forces at points. For all other points
 	// use values from mother group
@@ -449,6 +537,11 @@ namespace FractalSpace
 	group.set_done_group(true);
 	fractal.timing(1,8);
 	fractal.timing_lev(1,0);
+	*/
+	Full_Stop(fractal_memory,41);
+	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
+	//	fractal_memory.global_level_max=2;
+	// *****
 	// loop over all levels > 0 
 	for(int level=1;level <= fractal_memory.global_level_max;level++)
 	  {
@@ -457,8 +550,8 @@ namespace FractalSpace
 		group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	      {
 		Group& group=**group_itr;
-		if(misc.get_debug())
-		  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  endl;
+		//		if(misc.get_debug())
+		//		  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
 		group.set_set_scaling(true);
 		group.set_set_dens(true);
 		//--------------------------------------------------------------------------
@@ -513,14 +606,14 @@ namespace FractalSpace
       }
     if(fractal_memory.momentum_conserve)
       {
-	FileFractal << " going to mom conserve " << endl;
+	FileFractal << " going to mom conserve " << "\n";
 	force_test(fractal);
-	FileFractal << " leaving mom conserve " << endl;
+	FileFractal << " leaving mom conserve " << "\n";
       }
     if(fractal_memory.start_up)
       {
 	fractal.timing(-1,45);
-	FileFractal << " going to particle_initial " << endl;
+	FileFractal << " going to particle_initial " << "\n";
 	initial_forces_sharp(fractal_memory,fractal);
 	fractal.timing(1,45);
       }
@@ -528,23 +621,25 @@ namespace FractalSpace
       {
 	for(int level=0;level <= fractal_memory.global_level_max;level++)
 	  {
-	    FileFractal << "level = " << level << endl;
+	    FileFractal << "level = " << level << "\n";
 	    for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
 		group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	      {
 		force_shear_at_point(**group_itr,fractal);
 	      }
 	  }
-	FileFractal << "enter shear at part " << endl;
+	//	FileFractal << "enter shear at part " << "\n";
 	force_shear_at_particle(fractal_memory,fractal);
-	FileFractal << "exit shear at part " << endl;
+	//	FileFractal << "exit shear at part " << "\n";
       }
     //--------------------------------------------------------------------------
     // Clean up all dynamically allocated memory except fractal
     //--------------------------------------------------------------------------
     groups_level(fractal,fractal_memory.all_groups);
-    if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
-      tree_dump(fractal_memory);
+    fractal.timing(-1,44);
+    //    if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
+    //      tree_dump(fractal_memory);
+    fractal.timing(1,44);
     fractal.timing(-1,26);
     clean_up(fractal_memory,misc,fractal_ghost);
     fractal.timing(1,26);
@@ -565,10 +660,13 @@ namespace FractalSpace
     //    if(!fractal.get_periodic() && debug)
     //          test_gal(fractal_memory,fractal);
     //    assert(0);
+    //    fractal.print_list_world(1);
+    //    fractal.print_list(1);
     Full_Stop(fractal_memory,-1);
-    FileFractal << "number of everything exiting Fractal "  << " " << Group::number_groups << " " << Point::number_points << endl;
-    FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << endl;
-    FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << endl;
+    FileFractal << "number of everything exiting Fractal "  << " " << Group::number_groups << " " << Point::number_points << "\n";
+    FileFractal << " Total number of particles exiting Fractal " << Particle::number_particles << "\n";
+    FileFractal << " Made It fractal_force " << fractal_memory.steps << " " << fractal_memory.p_mess->Clock()-fractal_memory.p_mess->WallTime << "\n";
+    fractal_memory.p_file->FlushAll();
   }
   void Full_Stop(Fractal_Memory& mem,int number)
     {
@@ -576,6 +674,15 @@ namespace FractalSpace
       if(number >= 0)
       	pf->timing(-1,number);
       mem.p_mess->Full_Stop();
+      if(number >= 0)
+      	pf->timing(1,number);
+    }
+  void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number)
+    {
+      Fractal* pf=mem.p_fractal;
+      if(number >= 0)
+      	pf->timing(-1,number);
+      mem.p_mess->Full_Stop(Comm);
       if(number >= 0)
       	pf->timing(1,number);
     }

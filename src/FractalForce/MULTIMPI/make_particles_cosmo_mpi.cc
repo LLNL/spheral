@@ -7,7 +7,8 @@ namespace FractalSpace
   //
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crashcrash)
   {
-    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
+    ofstream& FileFractal=mem.p_fractal->p_file->DUMPS;
+    //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     vector <int> Box(6);
     frac.getBox(Box);
     vector <int> BoxLength(3);
@@ -21,6 +22,7 @@ namespace FractalSpace
     double x0,y0,z0;
     if(!crashcrash)
       {
+	FileFractal << " Boxfrac " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
 	frac.particle_list.resize(mem.number_particles);
 	for(int nx=Box[0];nx<=Box[1];nx++)
 	  {
@@ -31,7 +33,9 @@ namespace FractalSpace
 		for(int nz=Box[4];nz<=Box[5];nz++)
 		  {
 		    z0=(static_cast<double>(nz)+mem.off_z)*delta;
+		    //		    FileFractal << " makeb " << nx << " " << ny << " " << nz << " " << count << "\n";
 		    int many=split_particle(mem,frac,x0,y0,z0,count,m,1,true);
+		    //		    FileFractal << " makec " << nx << " " << ny << " " << nz << " " << many << " " << count << "\n";
 		    assert(many > 0);
 		  }
 	      }
@@ -42,6 +46,7 @@ namespace FractalSpace
 	int iimax=200;
 	double crash_0=mem.redshift_start+1.0;
 	double scale_crash=pow(crash_0,1.0/(double)(iimax+1));
+	bool breakA=false;
 	for(int ii=0;ii<=iimax;ii++)
 	  {
 	    int n=0;
@@ -65,12 +70,19 @@ namespace FractalSpace
 			n++;
 			int many=split_particle(mem,frac,x0,y0,z0,count,m,split_to,false);
 			assert(many > 0);
-			if(count > mem.max_particles) break;
+			breakA = count > mem.max_particles;
+			if(breakA)
+			  break;
 		      }
+		    if(breakA)
+		      break;
 		  }
+		if(breakA)
+		  break;
 	      }
-	    FileFractal << "iimax " << ii << " " << crash_0 << " " << count << endl;
-	    if(count <= mem.max_particles) break;
+	    FileFractal << "iimax " << ii << " " << crash_0 << " " << count << "\n";
+	    if(!breakA)
+	      break;
 	    crash_0/=scale_crash;
 	  }
 	vector <double> crash(mem.number_particles);
@@ -110,7 +122,7 @@ namespace FractalSpace
 	      }
 	  }
 	crash.clear();
-	FileFractal << "startit " << count << " " << crash_0 << " " << mem.crash_levels << endl;
+	FileFractal << "startit " << count << " " << crash_0 << " " << mem.crash_levels << "\n";
 	mem.number_particles=count;
       }
   }
