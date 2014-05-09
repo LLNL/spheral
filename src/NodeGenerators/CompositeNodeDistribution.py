@@ -29,7 +29,7 @@ class CompositeNodeDistribution(NodeGeneratorBase):
                 self.globalIDs.append(offset + g.globalIDs[i])
             offset += g.globalNumNodes()
 
-        NodeGeneratorBase.__init__(self, False)
+        NodeGeneratorBase.__init__(self, False, self.positions, self.m, self.rho, self.H)
 
         return
 

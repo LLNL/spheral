@@ -24,6 +24,13 @@ class NodeGeneratorBase:
             self.globalIDs = range(minGlobalID, maxGlobalID)
             self._cullVars(minGlobalID, maxGlobalID, *vars)
 
+        else:
+            ntot = 0
+            for proc in xrange(mpi.procs):
+                if mpi.rank == proc:
+                    self.globalIDs = range(ntot, ntot + len(vars[0]))
+                ntot += mpi.bcast(len(vars[0]), proc)
+
         return
 
     #---------------------------------------------------------------------------

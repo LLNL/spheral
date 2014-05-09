@@ -74,7 +74,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         self.m = [self.m0]*n
         self.H = [self.H0]*n
         self.rho = [self.rho0]*n
-        NodeGeneratorBase.__init__(self, False)
+        NodeGeneratorBase.__init__(self, False, self.m)
         return
 
     #-------------------------------------------------------------------------------
