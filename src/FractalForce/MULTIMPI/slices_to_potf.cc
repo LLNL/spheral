@@ -41,9 +41,6 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=1;
-    frac.timing(-1,35);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,35);
     mem.p_file->note(true," slices to potf a ");
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," slices to potf b ");

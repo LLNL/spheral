@@ -6,9 +6,10 @@ namespace FractalSpace
   void force_at_point_initial(Group& group, Fractal& fractal)
   {
     using namespace std;
-    ofstream& FileFractal=fractal.p_file->FileFractal;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
     // worry about group 1 at the edge for isolated BC.
-    FileFractal << " enter force at point initial" << endl;
+    FileFractal << " enter force at point initial" << "\n";
     //
     for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
       {
@@ -47,6 +48,6 @@ namespace FractalSpace
 	if(rp == 13)
 	  point.copy_force_point_6();
       }
-    FileFractal << " exit force at point " << endl;
+    FileFractal << " exit force at point " << "\n";
   }
 }

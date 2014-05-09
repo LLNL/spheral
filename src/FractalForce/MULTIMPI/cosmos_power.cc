@@ -9,7 +9,7 @@ namespace FractalSpace
   {
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     double amplitude=pow(q,fractal_memory.power_slope)*exp(-pow(q/fractal_memory.cut_off,2));
-    //    FileFractal << "cosmo " << q << " " << fractal_memory.cut_off << " " << fractal_memory.power_slope << " " << amplitude << endl;
+    //    FileFractal << "cosmo " << q << " " << fractal_memory.cut_off << " " << fractal_memory.power_slope << " " << amplitude << "\n";
     if(fractal_memory.spectrum_number == 0)
       {
 	return amplitude;

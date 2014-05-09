@@ -7,7 +7,8 @@ namespace FractalSpace
   {
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
-    ofstream& FF=mem.p_file->FileFractal;
+    ofstream& FF=mem.p_file->DUMPS;
+    //    ofstream& FF=mem.p_file->FileFractal;
     int zoom=Misc::pow(2,frac.get_level_max());
     int length_1=frac.get_grid_length();
     int length_S=length_1;
@@ -17,7 +18,6 @@ namespace FractalSpace
 	length_1++;
 	length_S*=2;
       }
-    int length_2=length_1*length_1;
     vector <int> counts_out(FractalNodes);
     counts_out.assign(FractalNodes,0);
     vector <vector <int> > dataI_out(FractalNodes);
@@ -32,12 +32,12 @@ namespace FractalSpace
 	int ny=(pos_point[1]/zoom+length_1) % length_1;
 	int nz=(pos_point[2]/zoom+length_1) % length_1;
 	int S=mem.p_mess->WhichSlice[nx];
-	int global_pos=nx+(ny+nz*length_1)*length_1;
+	int slice_point=frac.where(nx,ny,nz,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]);
 	if(pass)
-	  global_pos=-global_pos-1;
+	  slice_point=-slice_point-1;
 	int numberFR=p_point->get_number_in_list();
 	double density=p_point->get_density_point();
-	dataI_out[S].push_back(global_pos);
+	dataI_out[S].push_back(slice_point);
 	dataI_out[S].push_back(numberFR);
 	dataR_out[S].push_back(density);
 	counts_out[S]++;
@@ -49,15 +49,12 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=2;
     int doubles=1;
-    frac.timing(-1,34);
-    mem.p_mess->Full_Stop();
-    frac.timing(1,34);
     mem.p_file->note(true," dens to slices a ");
-    FF << " countsa " << counts_out[0] << " " << counts_out[1] << endl;
+    FF << " countsa " << counts_out[0] << " " << counts_out[1] << "\n";
     mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
     mem.p_file->note(true," dens to slices b ");
-    FF << " countsb " << counts_out[0] << " " << counts_out[1] << endl;
-    FF << " countsc " << counts_in[0] << " " << counts_in[1] << endl;
+    FF << " countsb " << counts_out[0] << " " << counts_out[1] << "\n";
+    FF << " countsc " << counts_in[0] << " " << counts_in[1] << "\n";
     mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
 				    dataI_out,dataI_in,how_manyI,
 				    dataR_out,dataR_in,how_manyR);
@@ -69,10 +66,8 @@ namespace FractalSpace
     BoxS=mem.p_mess->BoxS[Slice];
     vector <int> BoxSL;
     BoxSL=mem.p_mess->BoxSL[Slice];
-    int nx,ny,nz;
     int counterR=0;
     int counterI=0;
-    int number=-1;
     mem.p_mess->return_point.resize(how_manyR);
     mem.p_mess->return_node.resize(how_manyR);
     mem.p_mess->what_Slice_point.resize(how_manyR);
@@ -84,17 +79,13 @@ namespace FractalSpace
 	    bool pass=n < 0;
 	    if(pass)
 	      n=-n-1;
-	    nx=n % length_1;
-	    ny=(n/length_1) % length_1;
-	    nz=n/length_2;
-	    number=frac.where(nx,ny,nz,BoxS,BoxSL);
 	    if(!pass)
-	      mem.p_mess->potR[number]=dataR_in[counterR];
+	      mem.p_mess->potR[n]=dataR_in[counterR];
 	    mem.p_mess->return_point[counterR]=dataI_in[counterI+1];
 	    mem.p_mess->return_node[counterR]=FR;
-	    mem.p_mess->what_Slice_point[counterR]=number;
+	    mem.p_mess->what_Slice_point[counterR]=n;
 	    //	    bool something=dataR_in[counterR] != 0.0;
-	    //	    cout << " slice " << Slice << " " << something << " " << nx << " " << ny << " " << nz << " " << n << " " << number << " " << counterR << " " << dataR_in[counterR] << " " << mem.p_mess->potR[number] << endl;
+	    //	    cout << " slice " << Slice << " " << something << " " << nx << " " << ny << " " << nz << " " << n << " " << counterR << " " << dataR_in[counterR] << " " << mem.p_mess->potR[number] << "\n";
 	    counterR++;
 	    counterI+=2;
 	  }

@@ -6,12 +6,10 @@ namespace FractalSpace
   void daughter_group_nina(Group& new_group,Group& high_group,Fractal& fractal,
 			   Fractal_Memory& mem,Misc& misc)
   { 
-    ofstream& FileDau=fractal.p_file->FileDau;
-    ofstream& FilePoint=fractal.p_file->FilePoint;
+    FILE* PFDau=fractal.p_file->PFDau;
+    ofstream& FilePoint=fractal.p_file->DUMPS;
     ofstream* p_FilePoint=&FilePoint;
     fractal.timing(-1,14);
-    if(misc.get_debug())
-      FileDau << "enter daughter " << &new_group << " " << new_group.get_level() << " " << Group::number_groups << " " << Point::number_points << endl;
     vector <Point*> p_point_tmp(27); 
     vector <Point*>adj(27);
     vector <bool> go_ahead(27);
@@ -46,7 +44,7 @@ namespace FractalSpace
     for(vector<Point*>::const_iterator high_point_itr=high_group.list_high_points.begin();
 	high_point_itr != high_group.list_high_points.end();++high_point_itr)
       {
-	//	FilePoint << " first try a " << endl;
+	//	FilePoint << " first try a " << "\n";
 	Point& high_point=**high_point_itr;
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// Do a search for the 26 neighbor high_points of the high_point
@@ -57,7 +55,7 @@ namespace FractalSpace
 	// Check if any 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	go_ahead_points(adj,ins,go_ahead);
-	//	FilePoint << " first try b " << endl;
+	//	FilePoint << " first try b " << "\n";
 	int h_x,h_y,h_z;
 	high_point.get_pos_point(h_x,h_y,h_z);
 	high_point.set_eureka_dau(go_ahead);
@@ -73,13 +71,22 @@ namespace FractalSpace
 	    //--------------------------------------------------------------------------------------------------------------------------------
 	    if(mem.total_points_used ==mem.total_points_generated)
 	      {
-		new_points=new (nothrow) Point[new_points_gen];
-		assert(new_points);
+		try
+		  {
+		    new_points=new Point[new_points_gen];
+		  }
+		catch(bad_alloc& ba)
+		  {
+		    cerr << " bad allocation in daughter group " << mem.p_mess->FractalRank;
+		    cerr << " " << mem.total_points_generated;
+		    cerr << ba.what() << endl;
+		    exit(0);
+		  }
 		mem.total_points_generated+=new_points_gen;
 		new_group.list_new_points.push_back(new_points);
 		new_counter=0;
 	      }
-	    //	    FilePoint << " first try c " << p << endl;
+	    //	    FilePoint << " first try c " << p << "\n";
 	    p_point=&new_points[new_counter];
 	    new_counter++;
 	    assert(p_point);
@@ -92,7 +99,7 @@ namespace FractalSpace
 	    int y=h_y+((p/3) %3)*d_point;
 	    int z=h_z+(p/9)*d_point; 
 	    point.set_pos_point(x,y,z);
-	    //	    FileDau << " pos " << x << " " << y << " " << z << endl;
+	    //	    FileDau << " pos " << x << " " << y << " " << z << "\n";
 	    point.set_real_pointer(p);
 	    point.set_point_pointer(0);
 	    point.set_p_in_group(p_new);
@@ -113,12 +120,12 @@ namespace FractalSpace
 		  point.set_inside(false);
 	      }
 	    point.set_edge_buffer_passive_really_point(edge,buff,pass,really);
-	    //	    FilePoint << "info dau " << p_point << " " << new_level << " " << x << " " << y << " " << z << " " << p << " " << ins[p] << " " << edge << " " << buff << " " << pass << " " << endl;
+	    //	    FilePoint << "info dau " << p_point << " " << new_level << " " << x << " " << y << " " << z << " " << p << " " << ins[p] << " " << edge << " " << buff << " " << pass << " " << "\n";
 	    point_counter++;
 	  }
-	//	FilePoint << " first try d " << endl;
+	//	FilePoint << " first try d " << "\n";
 	neighbor_easy(p_point_tmp);
-	//	FilePoint << " first try e " << endl;
+	//	FilePoint << " first try e " << "\n";
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// Splitting the particles from the mother point into the eight points that can have particles
 	//--------------------------------------------------------------------------------------------------------------------------------
@@ -158,7 +165,7 @@ namespace FractalSpace
 	      point.set_point_up_z(try_harder(point,22,false));
 	  }
       }
-    //    FilePoint << " first try f " << new_level << " " << buff_group << endl;
+    //    FilePoint << " first try f " << new_level << " " << buff_group << "\n";
     fractal.timing(1,15);
     fractal.timing(-1,14);
     for(vector <Point*>::const_iterator point_itr=new_group.list_points.begin();point_itr != new_group.list_points.end();++point_itr)
@@ -169,7 +176,7 @@ namespace FractalSpace
 	Point& point=**point_itr;
 	point.down_from_up();
       }
-    //    FilePoint << " first try g " << endl;
+    //    FilePoint << " first try g " << "\n";
     for(vector<Point*>::const_iterator high_point_itr=high_group.list_high_points.begin();
 	high_point_itr != high_group.list_high_points.end();++high_point_itr)
       {
@@ -178,22 +185,28 @@ namespace FractalSpace
 	//--------------------------------------------------------------------------------------------------------------------------------
 	Point* p_high_point=*high_point_itr;
 	if(p_high_point == 0)
-	  FileDau << "high point wrong " << endl;
+	  //	  FileDau << "high point wrong " << "\n";
+	  fprintf(PFDau,"high point wrong \n");
 	Point* p_point=p_high_point->get_p_daughter_point();
 	if(p_point == 0)
-	  FileDau << "daughter wrong " << endl;
+	  //	  FileDau << "daughter wrong " << "\n";
+	  fprintf(PFDau,"daughter wrong \n");
 	p_point->point_pointers_all(*p_high_point);
       }
-    //    FilePoint << " first try i " << endl;
+    //    FilePoint << " first try i " << "\n";
     fractal.timing(1,14);
     fractal.timing(-1,16);
 	//
-    if(test_group(new_group)) FileDau << "badd group " << &new_group << new_group.get_level() << endl;
+    if(test_group(new_group)) 
+      //      FileDau << "badd group " << &new_group << new_group.get_level() << "\n";
+      fprintf(PFDau,"badd group %p %d \n",&new_group,new_group.get_level());
     fractal.timing(1,16);
     if(misc.get_debug())
       {
-	FileDau << " " << "points generated " << new_points_gen << " " << mem.total_points_used << " " << mem.total_points_generated << endl;
-	FileDau << "leaving daughter " << &new_group << " " << new_group.get_level() << " " << Group::number_groups << " " << Point::number_points << endl;
+	//	FileDau << " " << "points generated " << new_points_gen << " " << mem.total_points_used << " " << mem.total_points_generated << "\n";
+	//	fprintf(PFDau,"points generated %d %d %d \n",new_points_gen, mem.total_points_used,mem.total_points_generated);
+	//	FileDau << "leaving daughter " << &new_group << " " << new_group.get_level() << " " << Group::number_groups << " " << Point::number_points << "\n";
+	//	fprintf(PFDau,"leaving daughter %p %d %d %d \n",&new_group,new_group.get_level(),Group::number_groups,Point::number_points);
       }
   }
 }

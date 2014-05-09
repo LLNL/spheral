@@ -49,7 +49,7 @@ namespace FractalSpace
       force_sum.assign(3,0.0);
       mass_sum=1.0e-30;
       number_groups++;
-      //    cout << "Making Group " << this << " " << number_groups << endl;
+      //    cout << "Making Group " << this << " " << number_groups << "\n";
     };
     Group(Group& mother_group){
       assert(this);
@@ -68,12 +68,12 @@ namespace FractalSpace
       force_sum.assign(3,0.0);
       mass_sum=1.0e-30;
       number_groups++;
-      //    cout << "Making Group from Mother" << this << " " << number_groups << endl;
+      //    cout << "Making Group from Mother" << this << " " << number_groups << "\n";
     };
     ~Group()
     {
       number_groups--;
-      //    cout << "Ending Group " << this << " " << number_groups << endl;
+      //    cout << "Ending Group " << this << " " << number_groups << "\n";
     };
     //
     void set_group_number(const int& gn)

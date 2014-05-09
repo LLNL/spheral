@@ -5,8 +5,9 @@ namespace FractalSpace
 {
   void force_at_particle_sharp(Group& group, Fractal& fractal)
   { 
-    ofstream& FileFractal=fractal.p_file->FileFractal;
-    FileFractal << " enter force at particle sharp" << endl;
+    ofstream& FileFractal=fractal.p_file->DUMPS;
+    //    ofstream& FileFractal=fractal.p_file->FileFractal;
+    //    FileFractal << " enter force at particle sharp" << "\n";
     vector <double> weights_p(8);
     vector <double> weights_x(8);
     vector <double> weights_y(8);
@@ -42,7 +43,7 @@ namespace FractalSpace
 			point.get_field_values(pott);
 			not_yet=false;
 		      }
-		    //		    FileFractal << "sharp " << &group << " " << &point << " " << &particle <<endl;
+		    //		    FileFractal << "sharp " << &group << " " << &point << " " << &particle <<"\n";
 		    particle.get_pos(pos);
 		    point.get_deltas(pos,d_x,d_y,d_z,scale,d_inv);
 		    Misc::set_weights(weights_p,weights_x,weights_y,weights_z,d_x,d_y,d_z);
@@ -60,6 +61,6 @@ namespace FractalSpace
 	      }
 	  }
       }
-    FileFractal << " exit force at particle sharp" << endl;
+    //    FileFractal << " exit force at particle sharp" << "\n";
   }
 }

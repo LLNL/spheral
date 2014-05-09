@@ -9,10 +9,12 @@ namespace FractalSpace
   {
     //    if(!mem.p_mess->IAmAnFFTNode)
     //      return;
-    ofstream& FilePow=mem.p_fractal->p_file->FilePow;
-    ofstream& FileVar=mem.p_fractal->p_file->FileVar;
-    FilePow << "sizes b " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << endl;
-    FilePow << "enter power_spectrum " << length << endl;
+    ofstream& FilePow=mem.p_fractal->p_file->DUMPS;
+    //    ofstream& FilePow=mem.p_fractal->p_file->FilePow;
+    ofstream& FileVar=mem.p_fractal->p_file->DUMPS;
+    //    ofstream& FileVar=mem.p_fractal->p_file->FileVar;
+    FilePow << "sizes b " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
+    FilePow << "enter power_spectrum " << length << "\n";
     vector <double> green_2(length+1);
     vector <double> force_1(length+1);
     vector <double> force_2(length+1);
@@ -23,14 +25,14 @@ namespace FractalSpace
     double d_step_wave=pow(2.0,lev);
     int i_step_wave=Misc::pow(2,lev);
     double spam_6=2.0/pow((double)(length),6);
-    FilePow << "spam_6= " << spam_6 << endl;
+    FilePow << "spam_6= " << spam_6 << "\n";
     for (int k=0;k <length;++k)
       {
 	double aa=pi*(double)(k)/(double)(length);
 	force_1[k]=(double)(length)*sin(2.0*aa);
 	force_2[k]=2.0*(double)(length)*sin(aa);
 	green_2[k]=pow(2.0*sin(aa),2);
-	//      FilePow << "initial scalings " << k << " " << force_1[k] << " " << force_2[k] << endl;
+	//      FilePow << "initial scalings " << k << " " << force_1[k] << " " << force_2[k] << "\n";
       }
     const int nyq=length/2;
     int length_c=nyq+1;
@@ -58,7 +60,7 @@ namespace FractalSpace
 		int n_s=n*i_step_wave;
 		int holy_grail=mem.fftw_where(kx,ky,kz,length,length_c);
 		double square=pow(rhoC[holy_grail][0],2)+pow(rhoC[holy_grail][1],2);
-		//		FilePow << "power " << kx << " " << ky << " " << kz << " " << square << endl;
+		//		FilePow << "power " << kx << " " << ky << " " << kz << " " << square << "\n";
 		if(square > 0.0)
 		  {
 		    sum_0[n_s]+=1.0;
@@ -95,19 +97,19 @@ namespace FractalSpace
 	mem.p_mess->Find_Sum_DOUBLE(variance_force,how_long);
 	mem.p_mess->Find_Sum_DOUBLE(variance_force_s,how_long);
       }
-    FilePow << "count power " << counts << endl;
-    FilePow << "var zero " << variance_rho[0] << endl;
+    FilePow << "count power " << counts << "\n";
+    FilePow << "var zero " << variance_rho[0] << "\n";
     for(int n=0;n <=nyq*i_step_wave;n+=i_step_wave)
       {
 	int nv=n/i_step_wave;
 	sum_1[n]/=sum_0[n];
 	power[n]/=sum_0[n];
-	//	FilePow << "pow and var " << lev << " " << n << " " << power[n] << " " << variance_rho[n] << endl;
-	FilePow << n << "\t " << scientific << sum_1[n] << "\t " << power[n] << endl;
+	//	FilePow << "pow and var " << lev << " " << n << " " << power[n] << " " << variance_rho[n] << "\n";
+	FilePow << n << "\t " << scientific << sum_1[n] << "\t " << power[n] << "\n";
 	if(do_var) FileVar << scientific << (double)(nv)/(double)length << "\t " << variance_rho[nv] << "\t " << variance_pot[nv] << "\t " 
-			   << variance_force[nv] << "\t " << variance_force_s[nv] << endl;
+			   << variance_force[nv] << "\t " << variance_force_s[nv] << "\n";
       }
-    FilePow << "leaving power " << lev << endl;
+    FilePow << "leaving power " << lev << "\n";
     //    assert(0);
   }
 }

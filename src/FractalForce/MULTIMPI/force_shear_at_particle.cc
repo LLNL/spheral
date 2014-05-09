@@ -5,7 +5,8 @@ namespace FractalSpace
 {
   void force_shear_at_particle(Fractal_Memory& fractal_memory,Fractal& fractal)
   { 
-    ofstream& FileFractal=fractal_memory.p_fractal->p_file->FileFractal;
+    ofstream& FileFractal=fractal_memory.p_fractal->p_file->DUMPS;
+    //    ofstream& FileFractal=fractal_memory.p_fractal->p_file->FileFractal;
     vector <double> dens(8);
     vector <double> weights(8);
     vector <double> f_xx(8);
@@ -34,39 +35,39 @@ namespace FractalSpace
 		//		if(point.get_buffer_point()) continue;
 		bool not_yet=true;
 		//
-		//	FileFractal << "doing point " << *point_itr << endl;
+		//	FileFractal << "doing point " << *point_itr << "\n";
 		for(vector<Particle*>::const_iterator particle_itr=point.list_particles.begin();particle_itr !=point.list_particles.end();++particle_itr)
 		  {
 		    Particle& particle=**particle_itr;
 		    if(!particle.get_real_particle())
 		      continue;
-		    // FileFractal << "doing particle " << *particle_itr << endl;
-		    // FileFractal << "p group " << p_group << " " << particle.get_p_highest_level_group() << endl;
+		    // FileFractal << "doing particle " << *particle_itr << "\n";
+		    // FileFractal << "p group " << p_group << " " << particle.get_p_highest_level_group() << "\n";
 		    if(p_group == particle.get_p_highest_level_group())
 		      {
 			if(not_yet)
 			  {
-			    // FileFractal << " not yet a " << &point << endl;
+			    // FileFractal << " not yet a " << &point << "\n";
 			    point.get_field_shear_values(f_xx,f_xy,f_xz,f_yy,f_yz,f_zz);
 			    not_yet=false;
-			    // FileFractal << " not yet b " << endl;
+			    // FileFractal << " not yet b " << "\n";
 			  }
 			//
 			double d_x,d_y,d_z;
 			vector <double> pos(3);
-			// FileFractal << "pos a" << endl;
+			// FileFractal << "pos a" << "\n";
 			particle.get_pos(pos);
-			// FileFractal << "pos b" << endl;
+			// FileFractal << "pos b" << "\n";
 			point.get_deltas(pos,d_x,d_y,d_z,scale,d_inv);
-			// FileFractal << "delta a" << endl;
+			// FileFractal << "delta a" << "\n";
 			Misc::set_weights(weights,d_x,d_y,d_z);
 			Misc::sum_prod<double>(0,7,1,shear,weights,f_xx,f_xy,f_xz,f_yy,f_yz,f_zz);
 			//			particle.dump(FileFractal);
 			if(fractal_memory.calc_density_particle)
 			  {
-			    // FileFractal << "shear densa " << endl;
+			    // FileFractal << "shear densa " << "\n";
 			    particle.set_density(-(shear[0]+shear[3]+shear[5])*fourpiinv);
-			    // FileFractal << "shear densb " << endl;
+			    // FileFractal << "shear densb " << "\n";
 			  }
 			if(fractal_memory.calc_shear)
 			  {
@@ -76,9 +77,9 @@ namespace FractalSpace
 			    max_predict(fractal_memory,fractal,shear,r);
 			    if(fractal_memory.start_up) 
 			      {
-				// FileFractal << "sheara " << r << endl;
+				// FileFractal << "sheara " << r << "\n";
 				particle.set_rad_max(r);
-				// FileFractal << "shearb " << r << endl;
+				// FileFractal << "shearb " << r << "\n";
 			      }
 			  }
 		      }
@@ -109,7 +110,7 @@ namespace FractalSpace
 	FileFractal << shear2[3]/spam << " " ;
 	FileFractal << shear2[4]/spam << " " ;
 	FileFractal << shear2[5]/spam << " " ;
-	FileFractal << endl;
+	FileFractal << "\n";
 	//    assert(0);
       }
   }

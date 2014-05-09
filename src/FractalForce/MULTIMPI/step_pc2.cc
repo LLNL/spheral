@@ -10,6 +10,7 @@ namespace FractalSpace
     fractal.timing(-2,0);
     fractal.timing(-1,49);
     fractal_force(fractal,mem);
+    mem.p_file->FlushAll();
     fractal.timing(1,49);
     fractal.timing(0,0);
     //
