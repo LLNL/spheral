@@ -5,7 +5,6 @@ namespace FractalSpace
   struct mini_Point{
     bool realpoint;
     bool it_is_a_point;
-    int numbers;
     Point* pmyself;
   };
 }

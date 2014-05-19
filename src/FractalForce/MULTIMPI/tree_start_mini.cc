@@ -47,7 +47,34 @@ namespace FractalSpace
     fractal.getPBoxLength(PBoxLength);
     Misc::vector_print(PBoxLength,FileFractal);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
-    mini_Point* mP=new mini_Point[volume];
+    mini_Point* mP=0;
+    cout << " SIZE of MINI POINT " << sizeof(mini_Point) << "\n";
+    try
+      {
+	mP=new mini_Point[volume];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " bad mini allocation in tree start mini " << mem.p_mess->FractalRank;
+	cerr << " " << volume << " ";
+	cerr << ba.what() << "\n";
+	mem.p_file->FlushAll();
+	cerr << " generated points bad in treestart mini " << mem.p_mess->FractalRank << " " << volume << " " << fractal.get_number_particles() << "\n";
+	int FR=mem.p_mess->FractalRank;
+	cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+	cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
+	for(int FR=0;FR < mem.p_mess->FractalNodes;FR++)
+	  {
+	    cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+	    cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
+	  }
+	cerr << " BOXESA " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << endl;
+	cerr << " BOXESB " << BBox[0] << " " << BBox[1] << " " << BBox[2] << " " << BBox[3] << " " << BBox[4] << " " << BBox[5] << endl;
+	cerr << " BOXESC " << PBox[0] << " " << PBox[1] << " " << PBox[2] << " " << PBox[3] << " " << PBox[4] << " " << PBox[5] << endl;
+	cerr << " VOLUMEA " << volume << endl;	
+	cerr.flush();
+	assert(0);
+      }
     if(dumpit)
       {
 	cerr << " BOXESA " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << endl;
@@ -63,7 +90,6 @@ namespace FractalSpace
 	    mini_Point* pmP=&mP[n];
 	    pmP->realpoint=false;
 	    pmP->it_is_a_point=false;
-	    pmP->numbers=0;
 	    pmP->pmyself=0;
 	  }
     vector <double> pos(3);
@@ -88,7 +114,6 @@ namespace FractalSpace
 	assert(n>=0);
 	(&mP[n])->realpoint=true;
 	(&mP[n])->it_is_a_point=true;
-	(&mP[n])->numbers++;
       }
     int na=0;
     for(int nz=PBox[4];nz <= PBox[5];nz++)
@@ -260,7 +285,7 @@ namespace FractalSpace
       }
     catch(bad_alloc& ba)
       {
-	cerr << " bad allocation in tree start mini " << mem.p_mess->FractalRank;
+	cerr << " bad Point allocation in tree start mini " << mem.p_mess->FractalRank;
 	cerr << " " << total_points << " ";
 	cerr << ba.what() << "\n";
 	mem.p_file->FlushAll();

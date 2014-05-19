@@ -12,7 +12,8 @@ namespace FractalSpace
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     string sa="/p/lscratch";
-    string sb="c";
+    //    string sb="c";
+    string sb="e";
     if(_inteL_ == 0)
       sb="v";
     string sc="/jensv/cosmo/";
@@ -41,6 +42,7 @@ namespace FractalSpace
     // makes sense
     mem.FFTNodes=9876543;
     mem.FFTNodes=min(mem.FFTNodes,mem.FractalNodes);
+    mem.FFTNodes=min(mem.FFTNodes,mem.grid_length/2);
     // max number of nodes for FFTW
     mem.periodic = true ;
     //true for periodic BC and false for isolated BC
@@ -71,8 +73,8 @@ namespace FractalSpace
     // maximum number of iterations in SOR or Hypre Solver
     mem.epsilon_sor = 1.0e-7;
     //convergence criterion in SOR or Hypre Solver
-    //    mem.hypre_load_balance=true;
-    mem.hypre_load_balance=false;
+    mem.hypre_load_balance=true;
+    //    mem.hypre_load_balance=false;
     mem.debug=true;
     // Does extra testing and prints out a bunch of diagnostics
     mem.new_points_gen=9;
