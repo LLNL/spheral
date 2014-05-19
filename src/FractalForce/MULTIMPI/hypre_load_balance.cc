@@ -29,25 +29,42 @@ namespace FractalSpace
     bool spread_even = average >= mem.hypre_max_average_load;
     bool OOM = count_max >= mem.hypre_max_node_load;
 
-    //    FH << " Hypre on Nodes " << average << " " << count_max << " " << nodes_eff << "\n";
+    mem.ij_countsB=mem.ij_counts;
     fprintf(PFH," Hypre on Nodes %d %d %d \n",average,count_max,nodes_eff);
-    //    FH << " Hypre Load Balance " << spread_even << OOM << "\n";
     fprintf(PFH," Hypre Load Balance %d %d \n",spread_even,OOM);
     if(!mem.hypre_load_balance)
       return 0;
-    if(!spread_even && !OOM)
+    if(!OOM)
       return 0;
     load_balance=true;
-    double aHypreNodes=HypreNodes;
-    for(int HR=0;HR<HypreNodes;HR++)
+    vector <int> countsC=mem.ij_countsB;
+    bool too_many=true;
+    int trySmooth=0;
+    int maxload=mem.hypre_max_node_load;
+    int maxload9=(maxload*9)/10;
+    while(too_many && trySmooth < 40)
       {
-	double aHR=HR;
-	int sumb=((aHR+1.0)*total)/aHypreNodes;
-	int suma=(aHR*total)/aHypreNodes;
-	if(HR == HypreNodes-1)
-	  sumb=total;
-	mem.ij_countsB[HR]=sumb-suma;
-	fprintf(PFH," test load \t %d \t %d \t %d \t %d \n",HR,suma,sumb,mem.ij_countsB[HR]);
+	too_many=false;
+	for(int HR=0;HR<HypreNodes;HR++)
+	  {
+	    if(countsC[HR] > mem.hypre_max_node_load)
+	      {
+		too_many=true;
+		int off=(countsC[HR]-maxload9)/5;
+		//		int off=countsC[HR]/20;
+		mem.ij_countsB[HR]-=2*off;
+		if(HR > 0)
+		  mem.ij_countsB[HR-1]+=off;
+		else
+		  mem.ij_countsB[HR]+=off;
+		if(HR < HypreNodes-1)
+		  mem.ij_countsB[HR+1]+=off;
+		else
+		  mem.ij_countsB[HR]+=off;
+	      }
+	  }
+	countsC=mem.ij_countsB;
+	trySmooth++;
       }
     mem.ij_offsetsB[0]=0;
     fprintf(PFH," offsets balance %d \t %d \t %d \n",0,mem.ij_offsetsB[0],mem.ij_countsB[0]);

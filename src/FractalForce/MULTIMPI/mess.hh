@@ -178,27 +178,40 @@ namespace FractalSpace
     }
     void MPIStartup(bool PR,int& FR0,int& FR1,int& FR2)
     {
-      cout << " Into MPIStartup " << "\n";
+      //      int ranky;
+      //      MPI_Comm_rank(FractalWorld,&ranky);
+      //      cout << " Into MPIStartup A " << ranky << "\n";
       int knights;
       MPI_Initialized(&knights);
       if(!knights)
 	MPI_Init(NULL,NULL);
+      //      cout << " Into MPIStartup B " << ranky << "\n";
       int dims[]={FR0,FR1,FR2};
       int periods[]={PR,PR,PR};
       //      int periods[]={true,true,true};
       MPI_Cart_create(MPI_COMM_WORLD,3,dims,periods,true,&FractalWorld);
+      //      cout << " Into MPIStartup C " << ranky << "\n";
       FFTWorld=FractalWorld;
+      //      cout << " Into MPIStartup D " << ranky << "\n";
       HypreWorld=FractalWorld;
+      //      cout << " Into MPIStartup E " << ranky << "\n";
       MPI_Comm_group(FractalWorld,&FractalGroup);
+      //      cout << " Into MPIStartup F " << ranky << "\n";
       MPI_Comm_group(FFTWorld,&FFTGroup);
       //      MPI_Comm_group(HypreWorld,&HypreGroup);
+      //      cout << " Into MPIStartup G " << ranky << "\n";
       FractalRank=what_is_my_rank(); 
+      //      cout << " Into MPIStartup H " << ranky << "\n";
       FractalNodes=how_many_nodes();
+      //      cout << " Into MPIStartup I " << ranky << "\n";
       FFTRank=FractalRank;
+      //      cout << " Into MPIStartup J " << ranky << "\n";
       FFTNodes=min(FFTNodes,FractalNodes);
+      //      cout << " Into MPIStartup K " << ranky << "\n";
       HypreRank=FractalRank;
+      //      cout << " Into MPIStartup L " << ranky << "\n";
       HypreNodes=FractalNodes;
-      cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
+      //      cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
     }
     void MPIFinal()
     {
@@ -212,6 +225,18 @@ namespace FractalSpace
       int rank;
       MPI_Comm_rank(FractalWorld,&rank);
       return rank;
+    }
+    int what_is_my_rank(MPI_Comm& World)
+    {
+      int rank;
+      MPI_Comm_rank(World,&rank);
+      return rank;
+    }
+    int how_many_nodes(MPI_Comm& World)
+    {
+      int size;
+      MPI_Comm_size(World,&size);
+      return size;
     }
     int how_many_nodes()
     {
@@ -1176,6 +1201,27 @@ namespace FractalSpace
       MPI_Group_free(&HypreGroup);
       MPI_Comm_free(&HypreWorld);
       HypreWorld=FractalWorld;
+    }
+    void createFractalWorld(MPI_Comm& World,vector <int>& dims)
+    {
+      MPI_Group_free(&FractalGroup);
+      MPI_Comm_free(&FractalWorld);
+      FractalNodes=how_many_nodes(World);
+      int* Ranks=new int[FractalNodes];
+      for(int ni=0;ni<FractalNodes;ni++)
+	Ranks[ni]=ni;
+      MPI_Group WorldGroup;
+      MPI_Comm_group(World,&WorldGroup);
+      MPI_Group_incl(WorldGroup, FractalNodes, Ranks, &FractalGroup);
+      MPI_Comm_create(World, FractalGroup, &FractalWorld);
+      delete [] Ranks;
+      dims[0]=max(dims[0],0);
+      dims[1]=max(dims[1],0);
+      dims[2]=max(dims[2],0);
+      MPI_Dims_create(FractalNodes,3,&(*dims.begin()));
+      FractalNodes0=dims[0];
+      FractalNodes1=dims[1];
+      FractalNodes2=dims[2];
     }
   };
 }
