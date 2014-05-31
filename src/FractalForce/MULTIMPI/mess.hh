@@ -970,11 +970,6 @@ namespace FractalSpace
     {
       if(test == MPI_SUCCESS)
       	return;
-      //      ofstream& FFM=p_file->FileFractalMemory;
-      //      FFM << " MPI Error " << which << " " << test;
-      //      FFM << " " << MPI_ERR_COMM << " " << MPI_ERR_TYPE;
-      //      FFM << " " << MPI_ERR_COUNT << " " << MPI_ERR_TAG;
-      //      FFM << " " << MPI_ERR_RANK << " " << MPI_SUCCESS << "\n";
       fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	      MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
     }

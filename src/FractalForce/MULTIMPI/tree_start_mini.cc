@@ -47,51 +47,9 @@ namespace FractalSpace
     fractal.getPBoxLength(PBoxLength);
     Misc::vector_print(PBoxLength,FileFractal);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
-    mini_Point* mP=0;
-    cout << " SIZE of MINI POINT " << sizeof(mini_Point) << "\n";
-    try
-      {
-	mP=new mini_Point[volume];
-      }
-    catch(bad_alloc& ba)
-      {
-	cerr << " bad mini allocation in tree start mini " << mem.p_mess->FractalRank;
-	cerr << " " << volume << " ";
-	cerr << ba.what() << "\n";
-	mem.p_file->FlushAll();
-	cerr << " generated points bad in treestart mini " << mem.p_mess->FractalRank << " " << volume << " " << fractal.get_number_particles() << "\n";
-	int FR=mem.p_mess->FractalRank;
-	cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
-	cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
-	for(int FR=0;FR < mem.p_mess->FractalNodes;FR++)
-	  {
-	    cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
-	    cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
-	  }
-	cerr << " BOXESA " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << endl;
-	cerr << " BOXESB " << BBox[0] << " " << BBox[1] << " " << BBox[2] << " " << BBox[3] << " " << BBox[4] << " " << BBox[5] << endl;
-	cerr << " BOXESC " << PBox[0] << " " << PBox[1] << " " << PBox[2] << " " << PBox[3] << " " << PBox[4] << " " << PBox[5] << endl;
-	cerr << " VOLUMEA " << volume << endl;	
-	cerr.flush();
-	assert(0);
-      }
-    if(dumpit)
-      {
-	cerr << " BOXESA " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << endl;
-	cerr << " BOXESB " << BBox[0] << " " << BBox[1] << " " << BBox[2] << " " << BBox[3] << " " << BBox[4] << " " << BBox[5] << endl;
-	cerr << " BOXESC " << PBox[0] << " " << PBox[1] << " " << PBox[2] << " " << PBox[3] << " " << PBox[4] << " " << PBox[5] << endl;
-	cerr << " VOLUMEA " << volume << endl;
-      }
-    for(int nz=PBox[4];nz <= PBox[5];nz++)
-      for(int ny=PBox[2];ny <= PBox[3];ny++)
-	for(int nx=PBox[0];nx <= PBox[1];nx++)
-	  {
-	    int n=fractal.where_1(nx,ny,nz);
-	    mini_Point* pmP=&mP[n];
-	    pmP->realpoint=false;
-	    pmP->it_is_a_point=false;
-	    pmP->pmyself=0;
-	  }
+    vector <bool>real_point(volume,false);
+    vector <bool>it_is_a_point(volume,false);
+    vector <Point*> pmyself(volume,Point::nothing);
     vector <double> pos(3);
     //
     for(int particle=0; particle < fractal.get_number_particles(); ++particle)
@@ -112,32 +70,16 @@ namespace FractalSpace
 	  nz=-static_cast<int>(-a_nz+1.0);
 	int n=fractal.where_1(nx,ny,nz);
 	assert(n>=0);
-	(&mP[n])->realpoint=true;
-	(&mP[n])->it_is_a_point=true;
+	real_point[n]=true;
       }
-    int na=0;
+    it_is_a_point=real_point;
     for(int nz=PBox[4];nz <= PBox[5];nz++)
       {
 	for(int ny=PBox[2];ny <= PBox[3];ny++)
 	  {
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
-		if(!(&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
-		  continue;
-		na++;
-		if(dumpit)
-		  cerr << " dumpA " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
-	      }
-	  }
-      }
-    //
-    for(int nz=PBox[4];nz <= PBox[5];nz++)
-      {
-	for(int ny=PBox[2];ny <= PBox[3];ny++)
-	  {
-	    for(int nx=PBox[0];nx <= PBox[1];nx++)
-	      {
-		if((&mP[fractal.where_1(nx,ny,nz)])->realpoint)
+		if(real_point[fractal.where_1(nx,ny,nz)])
 		  {
 		    for(int dz=0;dz<=1;dz++)
 		      {
@@ -146,9 +88,8 @@ namespace FractalSpace
 			    for(int dx=0;dx<=1;dx++)
 			      {
 				int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
-				if(n < 0) 
-				  continue;
-				(&mP[n])->it_is_a_point=true;
+				if(n>= 0) 
+				  it_is_a_point[n]=true;
 			      }
 			  }
 		      }
@@ -156,23 +97,7 @@ namespace FractalSpace
 	      }
 	  }
       }
-    na=0;
-    for(int nz=PBox[4];nz <= PBox[5];nz++)
-      {
-	for(int ny=PBox[2];ny <= PBox[3];ny++)
-	  {
-	    for(int nx=PBox[0];nx <= PBox[1];nx++)
-	      {
-		int n=fractal.where_1(nx,ny,nz);
-		if(!(&mP[n])->it_is_a_point)
-		  continue;
-		(&mP[n])->realpoint=true;
-		na++;
-		if(dumpit)
-		  cerr << " dumpB " << nx << " " << ny << " " << nz << " " << n << " " << na << endl;
-	      }
-	  }
-      }
+    real_point=it_is_a_point;
     if(fractal.get_padding() != 0)
       {
 	for(int nz=PBox[4];nz <= PBox[5];nz++)
@@ -182,7 +107,7 @@ namespace FractalSpace
 		for(int nx=PBox[0];nx <= PBox[1];nx++)
 		  {
 		    int n=fractal.where_1(nx,ny,nz);
-		    if((&mP[n])->realpoint)
+		    if(real_point[n])
 		      {
 			for(int dz=-1;dz<=1;dz++)
 			  {
@@ -191,32 +116,15 @@ namespace FractalSpace
 				for(int dx=-1;dx<=1;dx++)
 				  {
 				    int n=fractal.where_1(nx+dx,ny+dy,nz+dz);
-				    if(n < 0)
-				      continue;
-				    (&mP[n])->it_is_a_point=true;
+				    if(n >= 0)
+				      it_is_a_point[n]=true;
 				  }			      }
 			  }
 		      }
 		  }
 	      }
 	  }
-	na=0;
-	for(int nz=PBox[4];nz <= PBox[5];nz++)
-	  {
-	    for(int ny=PBox[2];ny <= PBox[3];ny++)
-	      {
-		for(int nx=PBox[0];nx <= PBox[1];nx++)
-		  {
-		    int n=fractal.where_1(nx,ny,nz);
-		    if(!(&mP[n])->it_is_a_point)
-		      continue;
-		    (&mP[n])->realpoint=true;
-		    na++;
-		    if(dumpit)
-		      cerr << " dumpC " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
-		  }
-	      }
-	  }
+	real_point=it_is_a_point;
       }
 
     for(int nz=PBox[4];nz <= PBox[5];nz++)
@@ -225,41 +133,26 @@ namespace FractalSpace
 	  {
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
-		if(!(&mP[fractal.where_1(nx,ny,nz)])->realpoint)
+		if(!real_point[fractal.where_1(nx,ny,nz)])
 		  continue;
 		int n=fractal.where_1(nx-1,ny,nz);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
+		  it_is_a_point[n]=true;
 		n=fractal.where_1(nx+1,ny,nz);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
+		  it_is_a_point[n]=true;
 		n=fractal.where_1(nx,ny-1,nz);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
+		  it_is_a_point[n]=true;
 		n=fractal.where_1(nx,ny+1,nz);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
+		  it_is_a_point[n]=true;
 		n=fractal.where_1(nx,ny,nz-1);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
+		  it_is_a_point[n]=true;
 		n=fractal.where_1(nx,ny,nz+1);
 		if(n >= 0)
-		  (&mP[n])->it_is_a_point=true;
-	      }
-	  }
-      }
-    na=0;
-    for(int nz=PBox[4];nz <= PBox[5];nz++)
-      {
-	for(int ny=PBox[2];ny <= PBox[3];ny++)
-	  {
-	    for(int nx=PBox[0];nx <= PBox[1];nx++)
-	      {
-		if(!(&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
-		  continue;
-		na++;
-		if(dumpit)
-		  cerr << " dumpD " << nx << " " << ny << " " << nz << " " << fractal.where_1(nx,ny,nz) << " " << na << endl;
+		  it_is_a_point[n]=true;
 	      }
 	  }
       }
@@ -270,10 +163,8 @@ namespace FractalSpace
 	  {
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
-		if((&mP[fractal.where_1(nx,ny,nz)])->it_is_a_point)
-		  {
-		    total_points++;
-		  }
+		if(it_is_a_point[fractal.where_1(nx,ny,nz)])
+		  total_points++;
 	      }
 	  }
       }
@@ -320,10 +211,10 @@ namespace FractalSpace
 	      {
 		grid[0]=gridx;
 		int n=fractal.where_1(gridx,gridy,gridz);
-		if(!(&mP[n])->it_is_a_point)
+		if(!it_is_a_point[n])
 		  continue;
 		p_point=&new_points[new_counter];
-		(&mP[n])->pmyself=p_point;
+		pmyself[n]=p_point;
 		new_counter++;
 		mem.total_points_used++;
 		Point& point=*p_point;
@@ -335,7 +226,7 @@ namespace FractalSpace
 		point.set_p_in_group(misc.p_group_0);
 		point.set_p_in_high_group(0);
 		fractal.inside_edge_buffer_pass(grid,inside,edge,buff,pass);
-		inside=inside && (&mP[n])->realpoint;
+		inside=inside && real_point[n];
 		point.set_inside(inside);
 		point.set_edge_buffer_passive_point(edge,buff,pass);
 		point.set_number_in_list(point_counter);
@@ -355,17 +246,16 @@ namespace FractalSpace
 	    for(int grid_x=PBox[0];grid_x <= PBox[1];grid_x++)
 	      {
 		int n=fractal.where_1(grid_x,grid_y,grid_z);
-		if(!(&mP[n])->it_is_a_point)
+		if(!it_is_a_point[n])
 		  continue;
 		ud.assign(6,Point::nothing);
 		fractal.where_6(grid_x,grid_y,grid_z,Boxu);
 		for(int ni=0;ni<6;ni++)
 		  {
-		    if(Boxu[ni] < 0)
-		      continue;
-		    ud[ni]=(&mP[Boxu[ni]])->pmyself;
+		    if(Boxu[ni] >= 0)
+		      ud[ni]=pmyself[Boxu[ni]];
 		  }
-		(&mP[n])->pmyself->set_point_ud(ud);
+		pmyself[n]->set_point_ud(ud);
 	      }
 	  }
       }
@@ -397,10 +287,6 @@ namespace FractalSpace
 	  grid_y=-static_cast<int>(-a_grid_y+1.0);
 	if(a_grid_z < 0.0)
 	  grid_z=-static_cast<int>(-a_grid_z+1.0);
-	//
-	//	int grid_x=static_cast<int>(floor(pos[0]*a_grid_length));
-	//	int grid_y=static_cast<int>(floor(pos[1]*a_grid_length));
-	//	int grid_z=static_cast<int>(floor(pos[2]*a_grid_length));
 	bool do_it=
 	  grid_x >= PBox[0] && grid_x < PBox[1] &&
 	  grid_y >= PBox[2] && grid_y < PBox[3] &&
@@ -416,9 +302,9 @@ namespace FractalSpace
 	  {
 	    int grid=fractal.where_1(grid_x,grid_y,grid_z);
 	    assert(grid >= 0);
-	    Point* p_point=(&mP[grid])->pmyself;
+	    Point* p_point=pmyself[grid];
 	    assert(p_point);
-	    assert((&mP[grid])->realpoint);
+	    assert(real_point[grid]);
 	    p_point->list_particles.push_back(p);
 	    partsin++;
 	    //	    FileFractal << " doit " << particle << " " << p << " " << p_point << " " << grid << " " << grid_x << " " << grid_y << " " << grid_z << "\n";
@@ -432,8 +318,6 @@ namespace FractalSpace
 	    FileFractal << pos[0] << "\t" << pos[1] << "\t" << pos[2] << "\t"  << "\n";
 	  }
       }
-    delete [] mP;
-    mP=0;
     FileFractal << "total number of particles in and out " << partsin << "\t" << partsout << "\n";
     FileFractal << "end tree " << "\t" << group.list_points.size() << "\n";
     if(fractal.get_level_max() > 0)
@@ -444,5 +328,4 @@ namespace FractalSpace
     t3=fractal.p_mess->Clock();
     FileFractal << "tree time " << t1-t0 << "\t" << t2-t1 << "\t" << t3-t2 << "\n";
   }
-  //
 }

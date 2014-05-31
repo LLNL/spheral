@@ -3,10 +3,14 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void make_me_a_galaxy(int numbers,double total_mass,vector <double>& masses,double G,
+  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		     vector <double>& velx,vector <double>& vely,vector <double>& velz)
   {
+    int seed=9973+256*FractalRank;
+    srand(seed);
+    //    std::default_random_engine generator(seed);
+    //    std::uniform_real_distribution<double> distribution(0.0,1.0);
     double rand_max=(double)RAND_MAX;
     double rmax=30.0;
     double x_off=1.0;
@@ -21,9 +25,12 @@ namespace FractalSpace
     //    double m=total_mass/static_cast<double>(numbers);
     for(int ni=0;ni<numbers;ni++)
       {
+	//	double r1=std::distribution(generator);
 	double r1=Fractal::my_rand(rand_max);
 	r1=pow(r1,expo);
+	//	double ctheta=2.0*std::distribution(generator)-1.0;
 	double ctheta=2.0*Fractal::my_rand(rand_max)-1.0;
+	//	double phi=twopi*std::distribution(generator);
 	double phi=twopi*Fractal::my_rand(rand_max);
 	double r=rmax*r1;
 	posz[ni]=r*ctheta+z_off;

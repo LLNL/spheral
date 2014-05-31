@@ -50,7 +50,8 @@ int main(int argc, char* argv[])
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
   string sa="/p/lscratch";
-  string sb="c";
+  //  string sb="c";
+  string sb="e";
   if(!_inteL_)
     sb="v";
   string sc="/jensv/galaxy/";
@@ -97,14 +98,14 @@ int main(int argc, char* argv[])
   PFM->hypre_load_balance=true;
   PFM->hypre_max_node_load=80000;
   PFM->hypre_max_average_load=20000;
-  PFM->number_steps_total=603;
+  PFM->number_steps_total=1603;
   //  PFM->number_steps_total=13;
-  PFM->number_steps_out=20;
+  PFM->number_steps_out=40;
   //  PFM->number_steps_out=200000;
-  PFM->step_length=2.0e-5;
+  PFM->step_length=4.0e-5;
   //  PFM->step_length=2.0e-40;
   PFM->time=0.0;
-  make_me_a_galaxy(NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
+  make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   //  ofstream& FFM=PFM->p_file->FileFractalMemory;
   //  FFM << " info " << NumberParticles << " " << m << " " << total_mass << " " << PFM->time << " " << PFM->step_length << "\n";
   FILE* PFFM=PFM->p_file->PFFractalMemory;

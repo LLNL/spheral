@@ -7,8 +7,12 @@ namespace FractalSpace
   void initial_forces_sharp(Fractal_Memory& mem,Fractal& frac)
   {
     ofstream& FileFractal=mem.p_fractal->p_file->DUMPS;
-    //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     FileFractal << "enter initial_forces " << "\n";
+    int seed=mem.random_gen+mem.p_mess->FractalRank;
+    srand(seed);
+    //    std::default_random_engine generator(seed);
+    //    std::normal_distribution<double> distributionG(1.0,0.0);
+    double sq2=sqrt(2.0);
     int highest_level_used=-1;
     for(int level=0;level <= frac.get_level_max();level++)
       {
@@ -79,21 +83,8 @@ namespace FractalSpace
 		    if(k > 0.001 && !shorty)
 		      amplitude_raw=sqrt(boost_power*cosmos_power(k/mem.scaling,mem));
 		    double angle=0.0;
-		    if(nyquist)
-		      {
-			angle=0.0;
-			amplitude_raw*=0.5;
-		      }
-		    else
-		      {
-			angle=twopi*Fractal::my_rand(rand_max);
-		      }
-		    //
-		    //		    if(kz != 1 || ky != 0 || kx != 0) 
-		    //		      amplitude_raw=1.0e-30;
-		    //		    else
-		    //		      angle=pi*0.5;
-		    //
+		    if(!nyquist)
+		      angle=twopi*Fractal::my_rand(rand_max);
 		    double norwegian_blue=Fractal::my_rand_not_zero(rand_max);
 		    double amplitude_random=amplitude_raw*sqrt(-2.0*log(norwegian_blue));
 		    double pot_k=amplitude_random*step_wave;
@@ -101,8 +92,17 @@ namespace FractalSpace
 		    //
 		    mem.p_mess->potC[holy_grail][0]=pot_k*cos(angle);
 		    mem.p_mess->potC[holy_grail][1]=pot_k*sin(angle);
-		    //		    FileFractal << " power " << aa << " "  << bb << " "  << cc << " "  << dd << " " ;
-		    //		    FileFractal << mem.p_mess->potC[holy_grail][0] << " " << mem.p_mess->potC[holy_grail][1] << "\n";
+		    /*
+		    double pot_k=amplitude_raw*step_wave;
+		    int holy_grail=mem.fftw_where(kx,ky,kz,length,length_c);
+		    mem.p_mess->potC[holy_grail][0]=pot_k*distributionG(generator);
+		    mem.p_mess->potC[holy_grail][1]=pot_k*distributionG(generator);
+		    if(nyquist)
+		      {
+			mem.p_mess->potC[holy_grail][0]*=sq2;
+			mem.p_mess->potC[holy_grail][1]=0.0;
+		      }
+		    */
 		  }
 	      }
 	  }
