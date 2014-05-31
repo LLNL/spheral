@@ -94,7 +94,7 @@ namespace FractalSpace
   void left_right(Fractal& frac,vector <double>& pos_left,vector <double>& pos_right);
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
-  void make_me_a_galaxy(int numbers,double total_mass,vector <double>& masses,double G,
+  void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,vector <double>& masses,double G,
 		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
 		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_me_some_particles(int rank,int numbers,double total_mass,vector <double>& masses,double G,

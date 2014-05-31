@@ -6,13 +6,11 @@ namespace FractalSpace
   void binary_balancing(vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <int>& lowers,vector <int>& uppers)
   {
+    int too_few=3;
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     static int COUNTS=0;
-    static bool initialize=true;
-    if(initialize)
-      srand(5700);
-    initialize=false;
+    srand(5700+rank);
     double ANodes=Nodes;
     double sum_total=std::accumulate(numbers.begin(),numbers.end(),0.0);
     double aver=sum_total/length;
@@ -44,7 +42,7 @@ namespace FractalSpace
 	for(int N=0;N<Nodes;N++)
 	  {
 	    int many=uppers[N]-lowers[N];
-	    if(many < 3)
+	    if(many < too_few)
 	      {
 		//		cout << " NARROW " << rank << " " << Nodes << " "  << N << " " << lowers[N] << " " << many << " ";
 		spreading=true;
@@ -106,7 +104,7 @@ namespace FractalSpace
 	int labely=-1;
 	for(int N=0;N<Nodes;N++)
 	  {
-	    if(uppers[N]-lowers[N] < 3)
+	    if(uppers[N]-lowers[N] < too_few)
 	      continue;
 	    int lower=max(lowers[N]-2,0);
 	    int upper=min(uppers[N]+1,length-1);
