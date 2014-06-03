@@ -12,7 +12,6 @@ namespace FractalSpace
     srand(seed);
     //    std::default_random_engine generator(seed);
     //    std::normal_distribution<double> distributionG(1.0,0.0);
-    double sq2=sqrt(2.0);
     int highest_level_used=-1;
     for(int level=0;level <= frac.get_level_max();level++)
       {
@@ -109,6 +108,7 @@ namespace FractalSpace
 	FileFractal << "calling power_spectrum from initial_forces " << length << "\n";
 	FileFractal << "sizes a " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
 	power_spectrum(mem.p_mess->potC,length,variance_rho,variance_pot,variance_force,variance_force_s,lev,frac.get_density_0(),true,mem);
+	//	power_spectrum(mem.p_mess->potC,length,variance_rho,variance_pot,variance_force,variance_force_s,lev,frac.get_density_0(),true,mem);
 	//
 	FileFractal << "back from power " << lev << "\n";
 	if(lev == 0)
