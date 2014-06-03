@@ -3,8 +3,11 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void balance_by_particles(Fractal_Memory* PFM)
+  void balance_by_particles_cosmo(Fractal_Memory* PFM)
   {
+    bool period=PFM->periodic;
+    if(!period)
+      return;
     double time0=PFM->p_mess->Clock();
     Fractal* PF=PFM->p_fractal;
     FILE* PFFM=PFM->p_file->PFFractalMemory;
@@ -20,18 +23,41 @@ namespace FractalSpace
     int real_length=PFM->grid_length;
     double alength=real_length;
     vector <double> numbersz(real_length,0.0);
-    vector <double> pos(3);
+    int length=real_length;
+    int rlm1=length-1;
+    double Rdelta=1.0/static_cast<double>(length);
+    double Rlow=-2.0*Rdelta;
+    double Rhigh=1.0+Rdelta;
+    vector <double>pos(3);
+    vector <double> boxouter(6);
+    boxouter[0]=Rlow;
+    boxouter[1]=Rhigh;
+    boxouter[2]=Rlow;
+    boxouter[3]=Rhigh;
+    boxouter[4]=Rlow;
+    boxouter[5]=Rhigh;
+    vector <double> posp(3);
+    PF->wrap();
     for(int ni=0;ni < PF->get_number_particles();++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
-	if(pos[0] < 0.0 || pos[0] >= 1.0 ||
-	   pos[1] < 0.0 || pos[1] >= 1.0 ||
-	   pos[2] < 0.0 || pos[2] >= 1.0)
-	  continue;
-	int nz=pos[2]*alength;
-	assert(nz >= 0);
-	assert(nz < real_length);
-	numbersz[nz]+=scalepart;
+	for(int n2=-1;n2<=1;n2++)
+	  {
+	    posp[2]=pos[2]+n2;
+	    for(int n1=-1;n1<=1;n1++)
+	      {
+		posp[1]=pos[1]+n1;
+		for(int n0=-1;n0<=1;n0++)
+		  {
+		    posp[0]=pos[0]+n0;
+		    if(!vector_in_box(posp,boxouter))
+		      continue;
+		    int nz=pos[2]*alength;
+		    nz=min(max(0,nz),rlm1);
+		    numbersz[nz]+=scalepart;
+		  }
+	      }
+	  }
       }
 
     vector <int>lowerz(FractalNodes2);
@@ -70,30 +96,31 @@ namespace FractalSpace
 	numbersx[FRZ].resize(FractalNodes1);
 	//	cout << " lower upper Z " << FractalRank << " " << FRZ << " " << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
       }
-    vector <int>numbert(FractalNodes2,0);
     for(int ni=0;ni < PF->get_number_particles();++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
-	if(pos[0] < 0.0 || pos[0] >= 1.0 ||
-	   pos[1] < 0.0 || pos[1] >= 1.0 ||
-	   pos[2] < 0.0 || pos[2] >= 1.0)
-	  continue;
 	double anz=1.0e-30+pos[2]*alength;
 	int FRZ=std::lower_bound(alowerz.begin(),alowerz.end(),anz)-alowerz.begin()-1;
 	assert(FRZ >= 0);
 	assert(FRZ < FractalNodes2);
-	int ny=pos[1]*alength;
-	assert(ny >= 0);
-	assert(ny < real_length);
-	numbersy[FRZ][ny]+=scalepart;
-	numbert[FRZ]++;
+	for(int n2=-1;n2<=1;n2++)
+	  {
+	    posp[2]=pos[2]+n2;
+	    for(int n1=-1;n1<=1;n1++)
+	      {
+		posp[1]=pos[1]+n1;
+		for(int n0=-1;n0<=1;n0++)
+		  {
+		    posp[0]=pos[0]+n0;
+		    if(!vector_in_box(posp,boxouter))
+		      continue;
+		    int ny=pos[1]*alength;
+		    ny=min(max(0,ny),rlm1);
+		    numbersy[FRZ][ny]+=scalepart;
+		  }
+	      }
+	  }
       }
-    /*
-    cout << " numberT " << FractalRank << " ";
-    for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-      cout << FRZ << " " << numbert[FRZ];
-    cout << "" << endl;
-    */
     const int ROOTY=ROOTZ-FractalNodes2/2;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTY+FRZ);
@@ -131,10 +158,6 @@ namespace FractalSpace
     for(int ni=0;ni < PF->get_number_particles();++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
-	if(pos[0] < 0.0 || pos[0] >= 1.0 ||
-	   pos[1] < 0.0 || pos[1] >= 1.0 ||
-	   pos[2] < 0.0 || pos[2] >= 1.0)
-	  continue;
 	double anz=1.0e-30+pos[2]*alength;
 	int FRZ=std::lower_bound(alowerz.begin(),alowerz.end(),anz)-alowerz.begin()-1;
 	assert(FRZ >= 0);
@@ -143,10 +166,23 @@ namespace FractalSpace
 	int FRY=std::lower_bound(alowery[FRZ].begin(),alowery[FRZ].end(),any)-alowery[FRZ].begin()-1;
 	assert(FRY >= 0);
 	assert(FRY < FractalNodes1);
-	int nx=pos[0]*alength;
-	assert(nx >= 0);
-	assert(nx < real_length);
-	numbersx[FRZ][FRY][nx]+=scalepart;
+	for(int n2=-1;n2<=1;n2++)
+	  {
+	    posp[2]=pos[2]+n2;
+	    for(int n1=-1;n1<=1;n1++)
+	      {
+		posp[1]=pos[1]+n1;
+		for(int n0=-1;n0<=1;n0++)
+		  {
+		    posp[0]=pos[0]+n0;
+		    if(!vector_in_box(posp,boxouter))
+		      continue;
+		    int nx=pos[0]*alength;
+		    nx=min(max(0,nx),rlm1);
+		    numbersx[FRZ][FRY][nx]+=scalepart;
+		  }
+	      }
+	  }
       }
     const int ROOTX=ROOTZ-FractalNodes2*FractalNodes1/2;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)

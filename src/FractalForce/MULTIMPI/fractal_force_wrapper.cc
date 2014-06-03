@@ -158,6 +158,7 @@ namespace FractalSpace
 	FR.timing_lev(0,0);
 	return 0;
       }
+    FM.balance=1;
     for(int step=0;step < FM.number_steps_total; ++step)
       {
 	if(FM.steps == -1) energy_simple(FM,FR);
