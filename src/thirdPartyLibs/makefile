@@ -295,8 +295,8 @@ POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
 POLYTOPEBUILDDATE = $(patsubst %.tbz, .%.date, $(POLYTOPEDIST))
 
 # OpenSubDiv
-OPENSUBDIVDIST = OpenSubdiv-master.zip
-OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/master.zip
+OPENSUBDIVDIST = OpenSubdiv-2_5_0.zip
+OPENSUBDIVURL = https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v2_5_0.zip
 OPENSUBDIVDIR = $(OPENSUBDIVDIST:.zip=)
 OPENSUBDIVBUILDDATE = $(patsubst %.zip, .%.date, $(OPENSUBDIVDIST))
 
@@ -1465,11 +1465,11 @@ $(OPENSUBDIVBUILDDATE):	$(OPENSUBDIVDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(SPHERALDIR)/bin $(SPHERALDIR)/man $(SPHERALDIR)/lib $(SPHERALDIR)/include
 	rm -fr $(OPENSUBDIVDIR)
 	$(UNZIP) $(OPENSUBDIVDIST)
-	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt OpenSubdiv-master-CMakeLists_txt.patch
-	$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt OpenSubdiv-master-opensubdiv-osd-CMakeLists_txt.patch
+	$(PATCH) $(OPENSUBDIVDIR)/CMakeLists.txt OpenSubdiv-2_5_0-CMakeLists_txt.patch
+	$(PATCH) $(OPENSUBDIVDIR)/opensubdiv/osd/CMakeLists.txt OpenSubdiv-2_5_0-opensubdiv-osd-CMakeLists_txt.patch
 	$(MKDIR) $(OPENSUBDIVDIR)/build
-	$(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
-	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(SPHERALDIR) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_CXX_FLAGS='$(CXXFLAGS)' -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_OMP=1 -DNO_GPU=1 .. ; \
+	env PATH=$(SPHERALDIR)/bin:$(PATH) $(SHELL) -ec "cd $(OPENSUBDIVDIR)/build; \
+	$(CMAKEEXE) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(SPHERALDIR) -DCMAKE_C_COMPILER='$(CC)' -DCMAKE_CXX_COMPILER='$(CXX)' -DCMAKE_C_FLAGS='$(CFLAGS)' -DCMAKE_CXX_FLAGS='$(CXXFLAGS)' -DNO_PYTHON=1 -DNO_EXAMPLES=1 -DNO_REGRESSION=1 -DNO_OMP=1 -DNO_CUDA=1 -DNO_OPENGL=1 -DNO_CLEW=1 .. ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libosdCPU.a -a \

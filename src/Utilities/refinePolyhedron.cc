@@ -63,7 +63,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   }
     
   // Initialize the OSD topology.
-  PxOsdUtilSubdivTopology topology0;
+  OpenSubdiv::OsdUtilSubdivTopology topology0;
   bool ok;
   std::string errorMessage;
   ok = topology0.Initialize(numVertices0, 
@@ -74,7 +74,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   VERIFY2(ok, errorMessage);
 
   // Create a uniform refinement thingus.
-  PxOsdUtilUniformEvaluator uniformEvaluator;
+  OpenSubdiv::OsdUtilUniformEvaluator uniformEvaluator;
   ok = uniformEvaluator.Initialize(topology0, &errorMessage);
   VERIFY2(ok, errorMessage);
 
@@ -86,7 +86,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   VERIFY2(ok, errorMessage);
 
   // Extract the refined topology and positions.
-  PxOsdUtilSubdivTopology topology1;
+  OpenSubdiv::OsdUtilSubdivTopology topology1;
   const float *positions1 = NULL;
   ok = uniformEvaluator.GetRefinedTopology(&topology1, &positions1, &errorMessage);
   VERIFY2(ok, errorMessage);

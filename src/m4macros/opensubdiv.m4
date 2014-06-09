@@ -16,7 +16,7 @@ AC_ARG_WITH(opensubdiv,
 ],
 [
     AC_MSG_RESULT(no)
-    OPENSUBDIVTARGETS=".OpenSubdiv-master.date"
+    OPENSUBDIVTARGETS=".OpenSubdiv-2_5_0.date"
     OPENSUBDIVLIBS="-losdCPU -losdutil"
     CXXFLAGS="$CXXFLAGS -DHAVE_OPENSUBDIV"
 ])
