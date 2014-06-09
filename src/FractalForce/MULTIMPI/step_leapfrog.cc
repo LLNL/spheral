@@ -7,6 +7,8 @@ namespace FractalSpace
   //
   template <class M> void step_simple(M& mem, Fractal& fractal)
   {
+    if(mem.balance > 0)
+      balance_by_particles(&mem);
     fractal.timing(-2,0);
     fractal.timing(-1,49);
     ofstream& FileFractal=fractal.p_file->DUMPS;

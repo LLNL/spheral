@@ -155,10 +155,6 @@ namespace FractalSpace
 	  grid_y=-static_cast<int>(-a_grid_y+1.0);
 	if(a_grid_z < 0.0)
 	  grid_z=-static_cast<int>(-a_grid_z+1.0);
-	//
-	//	int grid_x=static_cast<int>(floor(pos[0]*a_grid_length));
-	//	int grid_y=static_cast<int>(floor(pos[1]*a_grid_length));
-	//	int grid_z=static_cast<int>(floor(pos[2]*a_grid_length));
 	bool do_it=
 	  grid_x >= PBox[0] && grid_x < PBox[1] &&
 	  grid_y >= PBox[2] && grid_y < PBox[3] &&
@@ -188,7 +184,7 @@ namespace FractalSpace
 	    FileFractal << pos[0] << "\t" << pos[1] << "\t" << pos[2] << "\t"  << "\n";
 	  }
       }
-    FileFractal << "total number of particles in and out " << partsin << "\t" << partsout << "\n";
+    FileFractal << "total number of particles in and out " << mem.p_mess->FractalRank << " " << partsin << "\t" << partsout << "\n";
     FileFractal << "end tree " << "\t" << group.list_points.size() << "\n";
     if(fractal.get_level_max() > 0)
       group.set_number_high_groups(-1);
