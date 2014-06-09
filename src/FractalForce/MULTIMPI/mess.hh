@@ -522,22 +522,17 @@ namespace FractalSpace
     }
     void How_Many_Things_To_Send(vector <int>& counts_out_send,vector <int>& counts_in_send)
     {
-      assert(p_file);
-      //      cout << " into how many " << FractalNodes << " " << p_file << "\n";
-      //      ofstream& FF=p_file->FileFractal;
       int* counts_out=new int[FractalNodes];
       int* counts_in=new int[FractalNodes];
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_out[FR]=counts_out_send[FR];
-	  //	  FF << "sending a " << FractalRank << " " << FR << " " << counts_out[FR] << "\n";
 	}
       for(int FR=0;FR<FractalNodes;FR++)
 	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,FractalWorld);
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  counts_in_send[FR]=counts_in[FR];
-	  //	  FF << "sending b " << FractalRank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << "\n";
 	}
       delete [] counts_out;
       delete [] counts_in;
@@ -552,17 +547,91 @@ namespace FractalSpace
       for(int FR=0;FR<Nodes;FR++)
 	{
 	  counts_out[FR]=counts_out_send[FR];
-	  //	  FF << "sending a " << Rank << " " << FR << " " << counts_out[FR] << "\n";
 	}
       for(int FR=0;FR<Nodes;FR++)
 	MPI_Gather(&counts_out[FR],1,MPI_INT,counts_in,1,MPI_INT,FR,World);
       for(int FR=0;FR<Nodes;FR++)
 	{
 	  counts_in_send[FR]=counts_in[FR];
-	  //	  FF << "sending b " << Rank << " " << FR << " " << counts_out[FR] << " " << counts_in[FR] << "\n";
 	}
       delete [] counts_out;
       delete [] counts_in;
+    }
+    void How_Many_Things_To_Send_I(vector <int>& counts_out_send,vector <int>& counts_in_send)
+    {
+      How_Many_Things_To_Send_I(FractalWorld,counts_out_send,counts_in_send);
+    }
+    void How_Many_Things_To_Send_I(MPI_Comm& World,
+				   vector <int>& counts_out_send,vector <int>& counts_in_send)
+    {
+      int Nodes;
+      MPI_Comm_size(World,&Nodes);
+      vector <vector <int> > dataI_out(FractalNodes);
+      vector <vector <double> > dataR_out(FractalNodes);
+      vector <double> dataR_in;
+      vector <int> dataI_in;
+      int how_manyI=-1;
+      int how_manyR=-1;
+      vector <int>counts_out(Nodes,1);
+      vector <int> counts_in(Nodes,1);
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  dataI_out[FR].push_back(counts_out_send[FR]);
+	  //	  cout << " DATA OUT" << Nodes << " " << FR << " " << dataI_out[FR][0] << "\n";
+	}
+      Send_Data_Somewhere_No_Block(World,counts_out,counts_in,1,0,dataI_out,dataI_in,how_manyI,dataR_out,dataR_in,how_manyR);
+      counts_in_send=dataI_in;
+      //      for(int FR=0;FR<Nodes;FR++)
+      //	{
+      //	  cout << " DATA IN" << Nodes << " " << FR << " " << counts_in_send[FR] << "\n";
+      //	}
+    }
+    void How_Many_Things_To_Send_I_Know_Sym(MPI_Comm& World,
+				   vector <int>& counts_out_send,vector <int>& counts_in_send)
+    {
+      int Nodes;
+      MPI_Comm_size(World,&Nodes);
+      vector <vector <int> > dataI_out(FractalNodes);
+      vector <vector <double> > dataR_out(FractalNodes);
+      vector <double> dataR_in;
+      vector <int> dataI_in;
+      int how_manyI=-1;
+      int how_manyR=-1;
+      vector <int>counts_out(Nodes,0);
+      vector <int> counts_in(Nodes,0);
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  if(counts_out_send[FR] == 0)
+	    continue;
+	  dataI_out[FR].push_back(counts_out_send[FR]);
+	  counts_out[FR]=1;
+	  counts_in[FR]=1;
+	}
+      Send_Data_Somewhere_No_Block(World,counts_out,counts_in,1,0,dataI_out,dataI_in,how_manyI,dataR_out,dataR_in,how_manyR);
+      counts_in_send=dataI_in;
+    }
+    void How_Many_Things_To_Send_I_Know_Asym(MPI_Comm& World,
+				   vector <int>& counts_out_send,vector <int>& counts_in_send)
+    {
+      int Nodes;
+      MPI_Comm_size(World,&Nodes);
+      vector <vector <int> > dataI_out(FractalNodes);
+      vector <vector <double> > dataR_out(FractalNodes);
+      vector <double> dataR_in;
+      vector <int> dataI_in;
+      int how_manyI=-1;
+      int how_manyR=-1;
+      vector <int>counts_out(Nodes,0);
+      vector <int> counts_in(Nodes,1);
+      for(int FR=0;FR<Nodes;FR++)
+	{
+	  if(counts_out_send[FR] == 0)
+	    continue;
+	  dataI_out[FR].push_back(counts_out_send[FR]);
+	  counts_out[FR]=1;
+	}
+      Send_Data_Somewhere_No_Block(World,counts_out,counts_in,1,0,dataI_out,dataI_in,how_manyI,dataR_out,dataR_in,how_manyR);
+      counts_in_send=dataI_in;
     }
     void Send_Data_Somewhere(vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
 			     vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
