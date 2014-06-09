@@ -9,7 +9,7 @@ namespace FractalSpace
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
   void balance_by_particles(Fractal_Memory*PFM);
-  void balance_by_particles_smarter(Fractal_Memory* PFM);
+  void balance_by_particles_cosmo(Fractal_Memory* PFM);
   void binary_balancing(vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <int>& lowers,vector <int>& uppers);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
@@ -119,10 +119,11 @@ namespace FractalSpace
   void poisson_solver(Fractal& fractal,Fractal_Memory& mem,const int& level);
   void poisson_solver(Fractal& fractal,Fractal_Memory& mem,const int& level,int what_points);
   void potential_start(Group& group);
-  void power_spectrum(fftw_complex* rhoC,const int& length,vector <double>& variance_rho,vector <double>& variance_pot,
-		      vector <double>& variance_force,vector <double>& variance_force_s,const int& lev,const double& d0,const bool& start_up,
+  void power_spectrum(fftw_complex* rhoC,int length,vector <double>& variance_rho,vector <double>& variance_pot,
+		      vector <double>& variance_force,vector <double>& variance_force_s,int lev,double d0,bool do_var,
 		      Fractal_Memory& mem);
   bool rad_compare(Particle* par1,Particle* par2);
+  template <class GO_AWAY> void really_clear(vector <GO_AWAY>& die);
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
@@ -134,6 +135,7 @@ namespace FractalSpace
   void sort3_list(Group& group,int what);
   void sort3_list(vector <Point*>& list_points,int what);
   void sort_3(Fractal& fractal,Group& group);
+  int spawn(const vector <double>& pos, vector < vector <double> > ppos,const vector <double>& boxouter);
   void split_nodes(int FR,int& FR0,int& FR1,int& FR2);
   template <class M, class F> int split_particle(M& mem,F& frac,const double& x0,const double& y0,const double& z0,
 						 int& count,const double& m,const int& split_to,const bool& gen_part);

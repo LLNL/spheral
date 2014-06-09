@@ -627,9 +627,6 @@ namespace FractalSpace
 	delta_p[level]=p_mess->Clock()-time_p[level];
       else if(what ==0)
 	{
-	  //	  p_file->FileTimeLev.precision(2);
-	  //	  p_file->FileTimeLev << " " << "\n";
-	  //	  p_file->FileTimeLev << " steps " << steps << "\n";
 	  fprintf(p_file->PFTimeLev,"\n steps %5d \n",steps);
 	  for(int ni=0;ni<=level_max;ni++)
 	    {
@@ -639,9 +636,10 @@ namespace FractalSpace
 	      double dtp=delta_p[ni]/clocks_per_sec;
 	      double totalg=total_g[ni]/clocks_per_sec;
 	      double totalp=total_p[ni]/clocks_per_sec;
-	      //	      p_file->FileTimeLev << steps <<"\t" << ni << scientific << "\t" << dtg << "\t" << totalg << "\t" << dtp << "\t" << totalp << "\n";
 	      fprintf(p_file->PFTimeLev," %5d \t %3d \t %10.2E \t %10.2E \t %10.2E \t %10.2E \n",steps,ni,dtg,totalg,dtp,totalp);
 	    }
+	  if(FractalRank == 0)
+	    fflush(p_file->PFTimeLev);
 	}
       else
 	assert(0);
@@ -658,8 +656,6 @@ namespace FractalSpace
       else if(what == 0)
 	{
 	  steps++;
-	  //	  p_file->FileTime << " " << "\n";
-	  //	  p_file->FileTime << " steps " << steps << "\n";
 	  fprintf(p_file->PFTime,"\n steps %5d \n",steps);
 	  for(int i=0; i < 50; i++)
 	    total_time[i]+=delta_time[i];
@@ -675,11 +671,11 @@ namespace FractalSpace
 	    {
 	      double dt=delta_time[i]/clocks_per_sec;
 	      double dtt=total_time[i]/clocks_per_sec;
-	      //	      p_file->FileTime << "timing " << steps << "\t" << i << " \t" << scientific << dt << "\t"  << dtt << "\t" ;
 	      fprintf(p_file->PFTime,"timing %5d \t %3d \t %10.2E \t %10.2E \t",steps,i,dt,dtt);
-	      //	      p_file->FileTime << fixed << 100.0*dt/dt49 << "\t" << 100.0*dtt/dtt49 << "\t" << time_string[i] << "\n";
 	      fprintf(p_file->PFTime,"%10.2f \t %10.2f \t %s \n",100.0*dt/dt49,100.0*dtt/dtt49,time_string[i].c_str());
 	    }
+	  if(FractalRank == 0)
+	    fflush(p_file->PFTime);
 	}
       else if(what== -2)
 	delta_time.assign(50,0);

@@ -174,18 +174,18 @@ namespace FractalSpace
     mem.masks_center_x[2]=0.5;
     mem.masks_center_y[2]=0.5;
     mem.masks_center_z[2]=0.5;
-    mem.masks_rad_x[2]=0.25;
-    mem.masks_rad_y[2]=0.25;
-    mem.masks_rad_z[2]=0.25;
+    mem.masks_rad_x[2]=0.46;
+    mem.masks_rad_y[2]=0.46;
+    mem.masks_rad_z[2]=0.46;
     mem.masks_level[2]=6;
     mem.masks_square[2]=true;
     mem.masks_center_x[3]=0.5;
     mem.masks_center_y[3]=0.5;
     mem.masks_center_z[3]=0.5;
-    mem.masks_rad_x[3]=0.15;
-    mem.masks_rad_y[3]=0.15;
-    mem.masks_rad_z[3]=0.15;
-    mem.masks_level[3]=8;
+    mem.masks_rad_x[3]=0.44;
+    mem.masks_rad_y[3]=0.44;
+    mem.masks_rad_z[3]=0.44;
+    mem.masks_level[3]=10;
     mem.masks_square[3]=true;
   //
     mem.splits=0;
