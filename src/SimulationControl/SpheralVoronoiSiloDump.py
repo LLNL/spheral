@@ -223,8 +223,10 @@ def dumpPhysicsState(stateThingy,
                      fieldLists = None,
                      currentTime = None,
                      currentCycle = None,
+                     dumpGhosts = False,
                      dumpDerivatives = False,
                      boundaries = None):
+    assert not dumpGhosts
 
     # What did we get passed?
     if max([isinstance(stateThingy, x) for x in [Integrator1d, Integrator2d, Integrator3d]]):
