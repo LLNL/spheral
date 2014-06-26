@@ -94,7 +94,7 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
