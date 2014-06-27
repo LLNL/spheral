@@ -570,7 +570,7 @@ namespace FractalSpace
 		fractal.timing(1,20);
 	      }
 	    //--------------------------------------------------------------------------
-	    // Use SOR or some other Poisson solver for the potential
+	    // Use Hypre plus SOR Poisson solvers for the potential
 	    //--------------------------------------------------------------------------
 	    Full_Stop(fractal_memory,36);
 	    fractal.timing(-1,31);

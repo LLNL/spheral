@@ -29,7 +29,7 @@ namespace FractalSpace
 	dataR_out[HR].push_back(potH[ni]);	
 	mi++;
       }
-    mem.p_mess->How_Many_Things_To_Send(mem.p_mess->HypreWorld,counts_out,counts_in);
+    mem.p_mess->How_Many_Things_To_Send_I(mem.p_mess->HypreWorld,counts_out,counts_in);
     mem.p_mess->Send_Data_Somewhere_No_Block(mem.p_mess->HypreWorld,counts_out,counts_in,integers,doubles,
 				    dataI_out,dataI_in,how_manyI,
 				    dataR_out,dataR_in,how_manyR);

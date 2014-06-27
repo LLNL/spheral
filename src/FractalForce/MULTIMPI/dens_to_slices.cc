@@ -50,14 +50,9 @@ namespace FractalSpace
     int integers=2;
     int doubles=1;
     mem.p_file->note(true," dens to slices a ");
-    FF << " countsa " << counts_out[0] << " " << counts_out[1] << "\n";
-    mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
-    mem.p_file->note(true," dens to slices b ");
-    FF << " countsb " << counts_out[0] << " " << counts_out[1] << "\n";
-    FF << " countsc " << counts_in[0] << " " << counts_in[1] << "\n";
-    mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
-				    dataI_out,dataI_in,how_manyI,
-				    dataR_out,dataR_in,how_manyR);
+    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," dens to slices c ");
     dataI_out.clear();
     dataR_out.clear();      
