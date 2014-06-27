@@ -40,9 +40,9 @@ namespace FractalSpace
 	      }
 	    else
 	      mlevel=-1;
-	    fprintf(PFPos,"%4d",mlevel);
+	    fprintf(PFPos," M%d",mlevel);
 	  }
-	fprintf(PFPos,"%4d",plevel);
+	fprintf(PFPos," L%d",plevel);
 	if(nfield >= 4)
 	  particle.get_field_pf(pf);
 	else

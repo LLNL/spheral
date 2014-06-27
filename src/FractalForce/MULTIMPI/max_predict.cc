@@ -1,3 +1,4 @@
+
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
@@ -46,7 +47,7 @@ namespace FractalSpace
   }
   template <class T> T det(const vector <T>& m)
   {
-    return m[0]*m[3]*m[5]+2*m[1]*m[4]*m[2]-
+    return m[0]*m[3]*m[5]+2.0*m[1]*m[4]*m[2]-
       m[2]*m[2]*m[3]-m[0]*m[4]*m[4]-m[1]*m[1]*m[5];
   }
 }

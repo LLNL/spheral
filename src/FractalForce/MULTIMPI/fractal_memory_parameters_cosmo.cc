@@ -12,8 +12,7 @@ namespace FractalSpace
     // For the others you should use my values for now.
     //    ofstream& FileFractal=mem.p_fractal->p_file->FileFractal;
     string sa="/p/lscratch";
-    //    string sb="c";
-    string sb="e";
+    string sb="d";
     if(_inteL_ == 0)
       sb="v";
     string sc="/jensv/cosmo/";

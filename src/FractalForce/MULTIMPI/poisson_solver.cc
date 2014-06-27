@@ -11,7 +11,8 @@ namespace FractalSpace
     mem.hypre_max_node_load=4.0*gcells/FNO;
     // bool buffer_only (false everything, true buffer groups only)
     bool buffer_only=fractal.get_periodic();
-    buffer_only=true;
+    //    buffer_only=true;
+    buffer_only=false;
     FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     int m_size=mem.min_hypre_group_size;

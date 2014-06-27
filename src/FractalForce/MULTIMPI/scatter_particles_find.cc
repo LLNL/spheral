@@ -7,7 +7,6 @@ namespace FractalSpace
   {
     assert(mem.FractalNodes==mem.p_mess->FractalNodes);
     ofstream& FF=frac.p_file->DUMPS;
-    //    ofstream& FF=frac.p_file->FileFractal;
     FF << " entered scatter particles " << "\n";
     if(frac.get_periodic())
       {
@@ -33,10 +32,6 @@ namespace FractalSpace
     frac.particle_list_world=frac.particle_list;
     frac.set_number_particles_world(frac.get_number_particles());
     FF << "BIGBOX " << mem.BigBox[0] << " " << mem.BigBox[1] << " " << mem.BigBox[2] << " " << mem.BigBox[3] << " " << mem.BigBox[4] << " " << mem.BigBox[5] << "\n";
-    /*
-    for(int FR=0;FR<FractalNodes;FR++)
-      FF << " LEFT " << FR << " " << mem.LeftCorners[FR][0]<< " " << mem.LeftCorners[FR][1] << " " << mem.LeftCorners[FR][2] << "\n";
-    */
     int FNodesXY=FractalNodes0*FractalNodes1;
     vector <int> lowerZ(FractalNodes2);
     vector < vector <int> > lowerY(FractalNodes2);
@@ -53,7 +48,6 @@ namespace FractalSpace
 	    for(int FRX=0;FRX < FractalNodes0;FRX++)
 	      {
 		lowerX[FRZ][FRY][FRX]=mem.LeftCorners[FRZ*FNodesXY+FRY*FractalNodes0+FRX][0];
-		//		FF << " LOWER " << FRX << " " << FRY << " " << FRZ << " " << lowerX[FRZ][FRY][FRX]  << " " << lowerY[FRZ][FRY] << " " << lowerZ[FRZ] << "\n";
 	      }
 	  }
       }
@@ -64,10 +58,6 @@ namespace FractalSpace
     int DBI=0;
     if(mem.periodic)
       {
-	/*
-	DB=1.0/static_cast<double>(mem.grid_length);
-	DBI=1;
-	*/
 	DB=2.0/static_cast<double>(mem.grid_length);
 	DBI=2;
       }
@@ -75,13 +65,11 @@ namespace FractalSpace
       {
 	Particle* P=frac.particle_list_world[particle];
 	P->get_pos(pos);
-	//	FF << " pos " << particle << " " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
 	if(!(mem.periodic || vector_in_box(pos,mem.BigBox)))
 	  continue;
 	posI[0]=static_cast<int>((pos[0]+DB)*SCALE)-DBI;
 	posI[1]=static_cast<int>((pos[1]+DB)*SCALE)-DBI;
 	posI[2]=static_cast<int>((pos[2]+DB)*SCALE)-DBI;
-	//	FF << " posI " << particle << " " << posI[0] << " " << posI[1] << " " << posI[2] << "\n";
 	vector <int>::iterator itza=lowerZ.begin();
 	vector <int>::iterator itzb=lowerZ.end();
 	int FRZ=std::upper_bound(itza,itzb,posI[2])-itza-1;
@@ -92,16 +80,6 @@ namespace FractalSpace
 	vector <int>::iterator itxb=lowerX[FRZ][FRY].end();
 	int FRX=std::upper_bound(itxa,itxb,posI[0])-itxa-1;
 	int FR=FRX+(FRY+FRZ*FractalNodes1)*FractalNodes0;
-	/*
-	if(FR != FractalRank)
-	  {
-	    FF << " What FR " << FRX << " " << FRY << " " << FRZ << " " << FR << " " << posI[0] << " " << posI[1] << " " << posI[2] << " ";
-	    FF << lowerX[FRZ][FRY][FRX] << " " << lowerY[FRZ][FRY] << " " << lowerZ[FRZ] << "\n";
-	    FF << " " << FR << " " << mem.RealBoxes[FR][0] << " " << mem.RealBoxes[FR][1] << " " << mem.RealBoxes[FR][2] << " " << mem.RealBoxes[FR][3] << " " << mem.RealBoxes[FR][4] << " " << mem.RealBoxes[FR][5] << "\n";
-	    FF << " " << FR << " " << mem.Boxes[FR][0] << " " << mem.Boxes[FR][2] << " " << mem.Boxes[FR][4] << "\n";
-	    FF << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
-	  }
-	*/
 	int part=particle;
 	if(!vector_in_box(pos,mem.RealBoxes[FR]))
 	  part=-particle-1;
@@ -121,16 +99,15 @@ namespace FractalSpace
     int integers=1;
     int doubles=4;
     FF << "send stuff to other nodes a " << "\n";
-    mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
+    double time3=mem.p_mess->Clock();
     FF << "send stuff to other nodes b " << "\n";
-    mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
-				    dataI_out,dataI_in,how_manyI,
-				    dataR_out,dataR_in,how_manyR);
+    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
+    double time4=mem.p_mess->Clock();
     FF << "send stuff to other nodes c " << "\n";
     dataR_out.clear();
     dataI_out.clear();
-    //    really_clear(dataR_out);
-    //    really_clear(dataI_out);
     frac.particle_list.resize(how_manyI);
     Particle* particles_tmp;
     try
@@ -154,7 +131,6 @@ namespace FractalSpace
     Particle* P=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
-	//	FF << " testing a " << FR << "\n";
 	for(int c=0;c<counts_in[FR];c++)
 	  {
 	    P=&particles_tmp[particle];
@@ -168,7 +144,7 @@ namespace FractalSpace
 	  }
       }
     frac.set_number_particles(particle);
-    double time3=mem.p_mess->Clock();
+    double time5=mem.p_mess->Clock();
     dataR_in.clear();
     dataI_in.clear();
     //    really_clear(dataR_in);
@@ -186,7 +162,6 @@ namespace FractalSpace
 	if(overlap_boxes(mem.Boxes[FractalRank],mem.PBoxes[FR]))
 	  {
 	    mem.TouchWhichBoxes.push_back(FR);
-	    //	    FF << " touch a " << FR << "\n";
 	  }
       }
     int TBsize=mem.TouchWhichBoxes.size();
@@ -196,33 +171,29 @@ namespace FractalSpace
       {
 	Particle* P=frac.particle_list[particle];
 	P->get_pos(pos);
-	//	FF << " neighs a " << particle << " " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
 	if(vector_in_box(pos,mem.RealIBoxes[FractalRank]))
 	  continue;
-	//	FF << " neighs c " << particle << "\n";
-	//	int part=-particle-1;
 	double pm=P->get_mass();
 	for(int TB=0;TB<TBsize;TB++)
 	  {
 	    int FR=mem.TouchWhichBoxes[TB];
 	    if(!vector_in_box(pos,mem.RealPBoxes[FR]))
 	      continue;
-	    //	    FF << " neighs B " << particle << " " << TB << " FR" << FR << " " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
 	    dataR_out[FR].push_back(pos[0]);
 	    dataR_out[FR].push_back(pos[1]);
 	    dataR_out[FR].push_back(pos[2]);
 	    dataR_out[FR].push_back(pm);
-	    //	    dataI_out[FR].push_back(part);
 	    counts_out[FR]++;
 	  }
       }
-    double time4=mem.p_mess->Clock();
+    double time6=mem.p_mess->Clock();
     FF << "send stuff to other nodes d " << "\n";
-    mem.p_mess->How_Many_Things_To_Send(counts_out,counts_in);
+    double time7=mem.p_mess->Clock();
     FF << "send stuff to other nodes e " << "\n";
-    mem.p_mess->Send_Data_Somewhere_No_Block(counts_out,counts_in,integers,doubles,
-				    dataI_out,dataI_in,how_manyI,
-				    dataR_out,dataR_in,how_manyR);
+    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
+    double time8=mem.p_mess->Clock();
     FF << "send stuff to other nodes f " << "\n";
     dataR_out.clear();
     dataI_out.clear();
@@ -234,7 +205,6 @@ namespace FractalSpace
     particle=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
-	//	FF << " testing b " << FR << "\n";
 	for(int c=0;c<counts_in[FR];c++)
 	  {
 	    P=&particles_tmpp[particle];
@@ -248,8 +218,9 @@ namespace FractalSpace
 	  }
       }
     frac.set_number_particles(frac.particle_list.size());
-    double time5=mem.p_mess->Clock();
-    fprintf(mem.p_file->PFTime," scatter particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time5-time0);
+    double time9=mem.p_mess->Clock();
+    fprintf(mem.p_file->PFTime," scatter particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",
+	    time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time7-time6,time8-time7,time9-time8,time9-time0);
   }
   bool compare_vectorsZ(vector <int> veca,vector <int> vecb)
   {

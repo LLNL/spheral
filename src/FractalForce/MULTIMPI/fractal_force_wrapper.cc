@@ -27,7 +27,7 @@ namespace FractalSpace
     double pi=atan(1.0)*4.0;
     if(FM.periodic)
       {
-	double m=0.375*FM.omega_start/pi/(double)FM.p_mess->number_particles_total;
+	double m=0.375*FM.omega_start/pi/static_cast<double>(FM.p_mess->number_particles_total);
 	FileFractal << "m= " << m << "\n";
 	PFM->base_mass=m;
 	PF->set_base_mass(m);
@@ -121,7 +121,7 @@ namespace FractalSpace
       {
 	int count=0;
 	FileFractal << " making particles a " << "\n";
-	double m=FM.total_mass/FM.p_mess->number_particles_total;      
+	double m=FM.total_mass/static_cast<double>(FM.p_mess->number_particles_total);      
 	FileFractal << " making particles b " << m << "\n";
 	make_particles(FM,FR,count,m,false);
 	FileFractal << "size " << count << "\n";

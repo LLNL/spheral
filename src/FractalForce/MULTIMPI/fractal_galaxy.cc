@@ -50,8 +50,7 @@ int main(int argc, char* argv[])
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
   string sa="/p/lscratch";
-  //  string sb="c";
-  string sb="e";
+  string sb="d";
   if(!_inteL_)
     sb="v";
   string sc="/jensv/galaxy/";
@@ -86,7 +85,7 @@ int main(int argc, char* argv[])
   vector <double> xmax(3,50.0);
   double total_mass=1.0e9;
   double G=3.141592;
-  int TotalNumberParticles=PFM->p_mess->number_particles_total;
+  long int TotalNumberParticles=PFM->p_mess->number_particles_total;
   double m=total_mass/static_cast<double>(TotalNumberParticles);
   vector <double> posx(NumberParticles,0.0);
   vector <double> posy(NumberParticles,0.0);

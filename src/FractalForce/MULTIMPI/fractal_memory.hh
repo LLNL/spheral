@@ -486,6 +486,11 @@ namespace FractalSpace
     int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc)
     {
       return k+(j+(i-p_mess->start_x)*lb)*lc;
+      /*
+      int what_where=k+(j+(i-p_mess->start_x)*lb)*lc;
+      assert(what_where >= 0);
+      return what_where;
+      */
     }
     void Full_Stop()
     {

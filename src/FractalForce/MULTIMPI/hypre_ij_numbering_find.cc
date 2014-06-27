@@ -3,9 +3,9 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level)
+  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_only)
   {
-    //    double time0=mem.p_mess->Clock();
+    double time0=mem.p_mess->Clock();
     const int FractalRank=mem.p_mess->FractalRank;
     const int FractalNodes=mem.p_mess->FractalNodes;
     FILE* PFH=mem.p_file->PFHypre;
@@ -21,20 +21,21 @@ namespace FractalSpace
 	group_itr!=mem.all_groups[level].end();group_itr++)
       {
 	Group& group=**group_itr;
-	if(group.list_points.size() <= minsize && !group.get_buffer_group())
+	bool bg=group.get_buffer_group();
+	if(group.list_points.size() <= minsize && !bg)
 	  continue;
-	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	  hypre_points.push_back(*point_itr);
-	if(!group.get_buffer_group())
-	  continue;
-	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	  hypre_pointsB.push_back(*point_itr);
+	if(bg || !buffer_only)
+	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    hypre_points.push_back(*point_itr);
+	if(bg)
+	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	    hypre_pointsB.push_back(*point_itr);
       }
-    //    double time1=mem.p_mess->Clock();
+    double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
     mem.p_mess->How_Many_On_Nodes(count,mem.ij_counts);
-    //    double time2=mem.p_mess->Clock();
+    double time2=mem.p_mess->Clock();
     mem.ij_counts.resize(FractalNodes);
     mem.ij_offsets.assign(FractalNodes+1,0);
     mem.p_mess->Hranks.clear();
@@ -68,7 +69,7 @@ namespace FractalSpace
 	mem.ij_offsets[HR]=mem.ij_offsets[FR];
 	HR++;
       }
-    //    double time3=mem.p_mess->Clock();
+    double time3=mem.p_mess->Clock();
     mem.p_mess->HypreNodes=HypreNodes;
     mem.p_mess->HypreGroupCreate(mem.p_mess->Hranks);
     int HypreRank=mem.p_mess->MyHypreRank();
@@ -78,7 +79,6 @@ namespace FractalSpace
     mem.p_mess->HypreRank=mem.p_mess->MyHypreRank();
     assert(HypreRank == mem.p_mess->HypreRank);
     mem.ij_countsB=mem.ij_counts;
-    mem.ij_countsB.push_back(-1);
     mem.ij_offsetsB=mem.ij_offsets;
     if(!mem.p_mess->IAmAHypreNode)
       return true;
@@ -106,7 +106,7 @@ namespace FractalSpace
 	  receive_list.push_back(p);
       }
     sort3_list(receive_list,0);
-    //    double time4=mem.p_mess->Clock();
+    double time4=mem.p_mess->Clock();
     vector <int> pos_lefts(3);
     vector <int> pos_rights(3);
     left_right(send_list,pos_lefts,pos_rights);
@@ -140,7 +140,7 @@ namespace FractalSpace
 	  }
       }
     send_list.clear();
-    //    double time5=mem.p_mess->Clock();
+    double time5=mem.p_mess->Clock();
     vector <int> counts_in(HypreNodes);
     vector <double> dataR_in;
     vector <int> dataI_in;
@@ -148,16 +148,19 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=4;
     int doubles=0;
+    //    Full_Stop(mem,mem.p_mess->HypreWorld,42);
     mem.p_file->note(true," hypre numbering a ");
-    mem.p_mess->How_Many_Things_To_Send(mem.p_mess->HypreWorld,
-					counts_out,counts_in);
-    //    double time6=mem.p_mess->Clock();
+    mem.p_mess->How_Many_Things_To_Send_I(mem.p_mess->HypreWorld,
+					  counts_out,counts_in);
+    //    mem.p_mess->How_Many_Things_To_Send_I_Know_Sym(mem.p_mess->HypreWorld,
+    //					counts_out,counts_in);
+    double time6=mem.p_mess->Clock();
     mem.p_file->note(true," hypre numbering b ");
     mem.p_mess->Send_Data_Somewhere_No_Block(mem.p_mess->HypreWorld,
 					     counts_out,counts_in,integers,doubles,
 					     dataI_out,dataI_in,how_manyI,
 					     dataR_out,dataR_in,how_manyR);
-    //    double time7=mem.p_mess->Clock();
+    double time7=mem.p_mess->Clock();
     mem.p_file->note(true," hypre numbering c ");
     dataR_out.clear();
     dataI_out.clear();
@@ -188,21 +191,12 @@ namespace FractalSpace
 	    ni4+=4;
 	  }
       }
-    //    double time8=mem.p_mess->Clock();
+    double time8=mem.p_mess->Clock();
     delete psend;
     //    FH << "found connections " << FractalRank << " " << level << " " << found << "\n";
     fprintf(PFH,"found connections %d %d %d \n",FractalRank,level,found);
-    /*
-    cout << " search timing " << FractalRank << " ";
-    cout << time1-time0 << " ";
-    cout << time2-time1 << " ";
-    cout << time3-time2 << " ";
-    cout << time4-time3 << " ";
-    cout << time5-time4 << " ";
-    cout << time6-time5 << " ";
-    cout << time7-time6 << " ";
-    cout << time8-time7 << "\n";
-    */
+    fprintf(mem.p_file->PFTime," Hypre Find %3d %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",
+	    level,time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time7-time6,time8-time7,time8-time0);
     return true;
   }
 }

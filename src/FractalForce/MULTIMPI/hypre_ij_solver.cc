@@ -23,7 +23,7 @@ namespace FractalSpace
     mem.p_mess->IAmAHypreNode=false;;
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=-1;
-    cout << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << "\n";
+    cout << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << sizeof(HYPRE_Int) << " Hypre_Int" << "\n";
     FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     fprintf(PFH," enter hypre solver %d %d \n",level,mem.steps);

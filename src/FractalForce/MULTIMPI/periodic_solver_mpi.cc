@@ -6,7 +6,6 @@ namespace FractalSpace
   void periodic_solver(Group& group, Fractal_Memory& mem,Fractal& frac)
   {
     ofstream& FileFFT=frac.p_file->DUMPS;
-    //    ofstream& FileFFT=frac.p_file->FileFFT;
     FileFFT << "entering periodic " << "\n";
     const int length_1=frac.get_grid_length();  
     const int length_c=(length_1+2)/2;
