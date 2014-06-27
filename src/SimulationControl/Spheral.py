@@ -57,10 +57,11 @@ from FluidNodeLists import *
 from VoidNodeLists import *
 
 # ------------------------------------------------------------------------------
-# Import SPH & SVPH
+# Import SPH, SVPH, and CSPH
 # ------------------------------------------------------------------------------
 from SPHHydros import *
 from SVPHHydros import *
+from CSPHHydros import *
 from SPHUtilities import *
 
 # ------------------------------------------------------------------------------

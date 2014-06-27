@@ -1,5 +1,6 @@
 from SpheralModules.Spheral.CSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
+from SpheralModules.Spheral.PhysicsSpace import *
 
 #-------------------------------------------------------------------------------
 # The generic CSPHHydro pattern.

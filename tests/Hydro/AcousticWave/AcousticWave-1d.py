@@ -42,6 +42,7 @@ commandLine(nx1 = 100,
             nTensile = 4,
 
             SVPH = False,
+            CSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 5.0,
@@ -188,6 +189,13 @@ if SVPH:
                              HUpdate = HEvolution,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
+elif CSPH:
+    hydro = CSPHHydro(WT, WTPi, q,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HEvolution)
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,
@@ -289,7 +297,7 @@ if graphics == "gnu":
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    else:
+    elif not CSPH:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)

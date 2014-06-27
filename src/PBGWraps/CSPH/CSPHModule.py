@@ -185,6 +185,8 @@ class CSPH:
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH")])
 
         # Methods.
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+
         x.add_method("registerState", None, [refparam(database, "dataBase"),
                                              refparam(state, "state")],
                      is_virtual=True)
@@ -224,7 +226,7 @@ class CSPH:
                      is_virtual = True)
         
         # Attributes.
-        x.add_instance_attribute("sumForMassDensity", "MassDensityType", getter="sumForMassDensity", setter="sumForMassDensity")
+        x.add_instance_attribute("densityUpdate", "MassDensityType", getter="densityUpdate", setter="densityUpdate")
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")

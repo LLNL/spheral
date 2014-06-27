@@ -8,16 +8,16 @@ namespace CSPHSpace {
 template<typename Dimension>
 inline
 PhysicsSpace::MassDensityType
-CSPHHydroBase<Dimension>::sumForMassDensity() const {
-  return mSumForMassDensity;
+CSPHHydroBase<Dimension>::densityUpdate() const {
+  return mDensityUpdate;
 }
 
 template<typename Dimension>
 inline
 void
 CSPHHydroBase<Dimension>::
-sumForMassDensity(const PhysicsSpace::MassDensityType type) {
-  mSumForMassDensity = type;
+densityUpdate(const PhysicsSpace::MassDensityType type) {
+  mDensityUpdate = type;
 }
 
 //------------------------------------------------------------------------------
