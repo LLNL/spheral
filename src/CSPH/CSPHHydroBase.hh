@@ -6,17 +6,9 @@
 #ifndef __Spheral_CSPHHydroBase_hh__
 #define __Spheral_CSPHHydroBase_hh__
 
-#include <float.h>
 #include <string>
-#ifndef __GCCXML__
-#include <vector>
-#include "DataOutput/registerWithRestart.hh"
-#else
-#include "fakestl.hh"
-#endif
 
 #include "Physics/GenericHydro.hh"
-#include "SPH/SPHHydroBase.hh"
 
 namespace Spheral {
   template<typename Dimension> class State;
@@ -71,6 +63,10 @@ public:
 
   // Destructor.
   virtual ~CSPHHydroBase();
+
+  // Tasks we do once on problem startup.
+  virtual
+  void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -127,8 +123,8 @@ public:
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
-  PhysicsSpace::MassDensityType sumForMassDensity() const;
-  void sumForMassDensity(const PhysicsSpace::MassDensityType type);
+  PhysicsSpace::MassDensityType densityUpdate() const;
+  void densityUpdate(const PhysicsSpace::MassDensityType type);
 
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.
@@ -181,18 +177,17 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "CSPHHydroBase"; }
-  virtual void dumpState(FileIOSpace::FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIOSpace::FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
   // The method defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
-  PhysicsSpace::MassDensityType mSumForMassDensity;
+  PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
 
@@ -230,7 +225,6 @@ private:
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
-#endif
 
   // No default constructor, copying, or assignment.
   CSPHHydroBase();
