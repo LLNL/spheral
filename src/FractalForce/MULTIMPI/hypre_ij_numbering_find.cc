@@ -150,16 +150,20 @@ namespace FractalSpace
     int doubles=0;
     //    Full_Stop(mem,mem.p_mess->HypreWorld,42);
     mem.p_file->note(true," hypre numbering a ");
-    mem.p_mess->How_Many_Things_To_Send_I(mem.p_mess->HypreWorld,
-					  counts_out,counts_in);
-    //    mem.p_mess->How_Many_Things_To_Send_I_Know_Sym(mem.p_mess->HypreWorld,
-    //					counts_out,counts_in);
+    //    mem.p_mess->How_Many_Things_To_Send_I(mem.p_mess->HypreWorld,
+    //					  counts_out,counts_in);
     double time6=mem.p_mess->Clock();
     mem.p_file->note(true," hypre numbering b ");
+    /*
     mem.p_mess->Send_Data_Somewhere_No_Block(mem.p_mess->HypreWorld,
 					     counts_out,counts_in,integers,doubles,
 					     dataI_out,dataI_in,how_manyI,
 					     dataR_out,dataR_in,how_manyR);
+    */
+    mem.p_mess->Send_Data_Some_How(mem.p_mess->HypreWorld,
+				   counts_out,counts_in,integers,doubles,
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
     double time7=mem.p_mess->Clock();
     mem.p_file->note(true," hypre numbering c ");
     dataR_out.clear();
