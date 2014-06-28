@@ -40,6 +40,8 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 
+#include "SPH/computeSPHSumMassDensity.hh"
+
 namespace Spheral {
 namespace CSPHSpace {
 
@@ -642,6 +644,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Vector deltaDvDti = weightj*rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) + Qacci + Qaccj;
               const Vector deltaDvDtj = weighti*rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci + Qaccj;
+              // const Vector deltaDvDti = -weightj*Pj*gradWj/rhoi + Qaccj;
+              // const Vector deltaDvDtj = weighti*Pi*gradWi/rhoj + Qacci;
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
@@ -680,7 +684,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
       // Finish the mass density sum.
-      rhoSumi = Ai*(rhoSumi + mi*W(0.0, Hdeti));
+      // rhoSumi = Ai*(rhoSumi + mi*W(0.0, Hdeti));
+      rhoSumi += mi*W(0.0, Hdeti);
 
       // Finish the velocity gradient.
       CHECK(rhoi > 0.0);
@@ -799,7 +804,8 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, A, massDensity);
+    // computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, A, massDensity);
+    SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
