@@ -599,6 +599,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector gradWi, gradWj;
               CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
+              const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -628,10 +630,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWj);
-              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWi);
-              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
+              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
               // const Scalar workQi = vij.dot(Qacci);
               // const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
@@ -642,17 +644,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration.
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = weightj*rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) + Qacci + Qaccj;
-              const Vector deltaDvDtj = weighti*rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci + Qaccj;
-              // const Vector deltaDvDti = -weightj*Pj*gradWj/rhoi + Qaccj;
-              // const Vector deltaDvDtj = weighti*Pi*gradWi/rhoj + Qacci;
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
+              const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
+              // const Vector deltaDvDti = -Pj*gradWj/rhoi + Qaccj;
+              // const Vector deltaDvDtj =  Pi*gradWi/rhoj - Qacci;
+              DvDti += weightj*deltaDvDti;
+              DvDtj += weighti*deltaDvDtj;
+
+              // // Uncomment the following to use the standard SPH acceleration.
+              // CHECK(rhoi > 0.0);
+              // CHECK(rhoj > 0.0);
+              // const double Prhoi = Pi/(rhoi*rhoi);
+              // const double Prhoj = Pj/(rhoj*rhoj);
+              // const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
+              // DvDti -= mj*deltaDvDt;
+              // DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(deltaDvDti);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back(deltaDvDtj);
+                if (i < firstGhostNodei) pairAccelerationsi.push_back(weighti*deltaDvDti);
+                if (j < firstGhostNodej) pairAccelerationsj.push_back(weightj*deltaDvDtj);
+                // // SPH forms.
+                // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
+                // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Velocity gradient.
