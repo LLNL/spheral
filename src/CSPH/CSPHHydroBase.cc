@@ -331,15 +331,17 @@ initialize(const typename Dimension::Scalar time,
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, Scalar> weight = mass/rho;
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, mass, position, H, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, weight, position, H, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -504,7 +506,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = mi;
+      const Scalar weighti = mi/rhoi;
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -566,7 +568,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = mj;
+              const Scalar weightj = mj/rhoj;
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -619,12 +621,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 rhoSumj += mi*W.kernelValue(etaMagj, Hdetj);
               }
 
-              // Mass density evolution.
+              // Velocity gradient.
               const Vector vij = vi - vj;
-              const double deltaDrhoDti = weightj*rhoj*vij.dot(gradWj);
-              const double deltaDrhoDtj = weighti*rhoi*vij.dot(gradWi);
-              DrhoDti += deltaDrhoDti;
-              DrhoDtj += deltaDrhoDtj;
+              const Tensor deltaDvDxi = mj*rhoj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj = mi*rhoi*vij.dyad(gradWi);
+              DvDxi -= deltaDvDxi;
+              DvDxj -= deltaDvDxj;
+              if (nodeListi == nodeListj) {
+                localDvDxi -= deltaDvDxi;
+                localDvDxj -= deltaDvDxj;
+              }
+
+              // Mass density evolution.
+              DrhoDti += deltaDvDxi.Trace();
+              DrhoDtj += deltaDvDxj.Trace();
 
               // Compute the pair-wise artificial viscosity.
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
@@ -641,42 +651,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
-              // Acceleration.
-              CHECK(rhoi > 0.0);
-              CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
-              const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
-              // const Vector deltaDvDti = -Pj*gradWj/rhoi + Qaccj;
-              // const Vector deltaDvDtj =  Pi*gradWi/rhoj - Qacci;
-              DvDti += weightj*deltaDvDti;
-              DvDtj += weighti*deltaDvDtj;
-
-              // // Uncomment the following to use the standard SPH acceleration.
+              // // Acceleration (CSPH form).
               // CHECK(rhoi > 0.0);
               // CHECK(rhoj > 0.0);
-              // const double Prhoi = Pi/(rhoi*rhoi);
-              // const double Prhoj = Pj/(rhoj*rhoj);
-              // const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
-              // DvDti -= mj*deltaDvDt;
-              // DvDtj += mi*deltaDvDt;
+              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
+              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
+              // // const Vector deltaDvDti = -Pj*gradWj/rhoi + Qaccj;
+              // // const Vector deltaDvDtj =  Pi*gradWi/rhoj - Qacci;
+              // DvDti += weightj*deltaDvDti;
+              // DvDtj += weighti*deltaDvDtj;
+              // if (mCompatibleEnergyEvolution) {
+              //   if (i < firstGhostNodei) pairAccelerationsi.push_back(weighti*deltaDvDti);
+              //   if (j < firstGhostNodej) pairAccelerationsj.push_back(weightj*deltaDvDtj);
+              // }
 
-              // Specific thermal energy evolution.
+              // Acceleration (SPH form).
+              CHECK(rhoi > 0.0);
+              CHECK(rhoj > 0.0);
+              const double Prhoi = Pi/(rhoi*rhoi);
+              const double Prhoj = Pj/(rhoj*rhoj);
+              const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
+              DvDti -= mj*deltaDvDt;
+              DvDtj += mi*deltaDvDt;
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(weighti*deltaDvDti);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back(weightj*deltaDvDtj);
-                // // SPH forms.
-                // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
-                // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
-              }
-
-              // Velocity gradient.
-              const Tensor deltaDvDxi = weightj*rhoj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj = weighti*rhoi*vij.dyad(gradWi);
-              DvDxi -= deltaDvDxi;
-              DvDxj -= deltaDvDxj;
-              if (nodeListi == nodeListj) {
-                localDvDxi -= deltaDvDxi;
-                localDvDxj -= deltaDvDxj;
+                if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
+                if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Estimate of delta v (for XSPH).
@@ -707,7 +706,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       localDvDxi /= rhoi;
 
       // The specific thermal energy evolution.
-//     DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
+      // DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
       DepsDti = -Pi/rhoi * DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
