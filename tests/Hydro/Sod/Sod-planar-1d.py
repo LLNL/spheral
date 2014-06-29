@@ -43,6 +43,7 @@ commandLine(nx1 = 400,
             hourglassLimiter = 1,
 
             SVPH = False,
+            CSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
@@ -174,6 +175,13 @@ if SVPH:
                              HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
+elif CSPH:
+    hydro = CSPHHydro(WT, WTPi, q,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate)
 else:
     hydro = SPHHydro(WT,
                      WTPi,
