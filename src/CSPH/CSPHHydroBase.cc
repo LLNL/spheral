@@ -661,8 +661,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DvDti += weightj*deltaDvDti;
               // DvDtj += weighti*deltaDvDtj;
               // if (mCompatibleEnergyEvolution) {
-              //   if (i < firstGhostNodei) pairAccelerationsi.push_back(weighti*deltaDvDti);
-              //   if (j < firstGhostNodej) pairAccelerationsj.push_back(weightj*deltaDvDtj);
+              //   pairAccelerationsi.push_back(weighti*deltaDvDti);
+              //   pairAccelerationsj.push_back(weightj*deltaDvDtj);
               // }
 
               // Acceleration (SPH form).
@@ -674,8 +674,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
               if (mCompatibleEnergyEvolution) {
-                if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
-                if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
+                // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
+                // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
+                pairAccelerationsi.push_back(-mj*deltaDvDt);
+                pairAccelerationsj.push_back( mi*deltaDvDt);
               }
 
               // Estimate of delta v (for XSPH).
