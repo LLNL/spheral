@@ -106,6 +106,7 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
