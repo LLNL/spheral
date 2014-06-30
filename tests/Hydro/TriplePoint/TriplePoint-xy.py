@@ -85,7 +85,7 @@ commandLine(
     dtGrowth = 2.0,
     maxSteps = None,
     statsStep = 10,
-    HEvolution = IdealH,
+    HUpdate = IdealH,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
@@ -197,19 +197,19 @@ if restoreCycle is None:
                                                xmin = (x0, y0),
                                                xmax = (x1, y2),
                                                nNodePerh = nPerh,
-                                               SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
+                                               SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
     generatorTop = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                               distributionType = "lattice",
                                               xmin = (x1, y1),
                                               xmax = (x2, y2),
                                               nNodePerh = nPerh,
-                                              SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
+                                              SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
     generatorBottom = GenerateNodeDistribution2d(nx3, ny3, rho3,
                                                  distributionType = "lattice",
                                                  xmin = (x1, y0),
                                                  xmax = (x2, y1),
                                                  nNodePerh = nPerh,
-                                                 SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
+                                                 SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -270,13 +270,20 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              generateVoid = False,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
                              xmin = Vector(x0 - (x2 - x0), y0 - (y2 - y0)),
                              xmax = Vector(x2 + (x2 - x0), y2 + (y2 - y0)))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif HydroConstructor in (ACSPHHydro, CSPHHydro):
+    hydro = CSPHHydro(WT, WTPi, q,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,
@@ -286,7 +293,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
