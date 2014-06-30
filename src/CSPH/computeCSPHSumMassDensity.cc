@@ -25,18 +25,21 @@ using NodeSpace::NodeList;
 template<typename Dimension>
 void
 computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
-                         const TableKernel<Dimension>& W,
-                         const FieldList<Dimension, typename Dimension::Vector>& position,
-                         const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         const FieldList<Dimension, typename Dimension::Scalar>& A,
-                         FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+                          const TableKernel<Dimension>& W,
+                          const FieldList<Dimension, typename Dimension::Vector>& position,
+                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                          const FieldList<Dimension, typename Dimension::Scalar>& A,
+                          const FieldList<Dimension, typename Dimension::Vector>& B,
+                          FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
   const size_t numNodeLists = massDensity.size();
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(A.size() == numNodeLists);
+  REQUIRE(B.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -62,6 +65,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
+      const Vector& Bi = B(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Self-contribution.
@@ -84,6 +88,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar& mj = mass(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
           const Scalar Hdetj = Hj.Determinant();
+          const Vector& Bj = B(nodeListi, j);
 
           // Kernel weighting and gradient.
           const Vector rij = ri - rj;
@@ -93,8 +98,8 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*Wi;
-          massDensity(nodeListi, j) += mi*Wj;
+          massDensity(nodeListi, i) += mj*(1.0 + Bi.dot(rij))*Wi;
+          massDensity(nodeListi, j) += mi*(1.0 - Bj.dot(rij))*Wj;
         }
       }
       
