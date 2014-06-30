@@ -626,8 +626,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = mj*rhoj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj = mi*rhoi*vij.dyad(gradWi);
+              const Tensor deltaDvDxi = mj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj = mi*vij.dyad(gradWi);
               DvDxi -= deltaDvDxi;
               DvDxj -= deltaDvDxj;
               if (nodeListi == nodeListj) {
