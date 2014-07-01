@@ -42,6 +42,7 @@ from SpheralModules.Spheral.IntegratorSpace import *
 from SpheralModules.Spheral.SPHSpace import *
 from SpheralModules.Spheral.CSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
+from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
 
 # ------------------------------------------------------------------------------
@@ -62,6 +63,7 @@ from VoidNodeLists import *
 from SPHHydros import *
 from SVPHHydros import *
 from CSPHHydros import *
+from TaylorSPHHydros import *
 from SPHUtilities import *
 
 # ------------------------------------------------------------------------------
