@@ -52,8 +52,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_54_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.54.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_55_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.55.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -211,8 +211,8 @@ MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.10-patch1.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.10-patch1/src/$(HDF5DIST)
+HDF5DIST = hdf5-1.8.13.tar.bz2
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
