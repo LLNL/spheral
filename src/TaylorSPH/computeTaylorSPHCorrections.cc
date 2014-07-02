@@ -97,13 +97,13 @@ computeTaylorSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             const Vector etaj = Hj*rij;
             const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
             const Scalar& Wi = WWi.first;
-            const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+            const Vector gradWi = (Hi*etai.unitVector())*WWi.second;
             const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
             const Scalar& Wj = WWj.first;
             const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
-            D(nodeListi, i) += wj*rij.dyad(gradWj);
-            D(nodeListj, j) += wi*rij.dyad(gradWi);
+            D(nodeListi, i) -= wj*rij.dyad(gradWj);
+            D(nodeListj, j) -= wi*rij.dyad(gradWi);
           }
         }
       }
