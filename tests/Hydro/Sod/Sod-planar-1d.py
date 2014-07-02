@@ -44,6 +44,7 @@ commandLine(nx1 = 400,
 
             SVPH = False,
             CSPH = False,
+            TSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
@@ -182,6 +183,12 @@ elif CSPH:
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
                       HUpdate = HUpdate)
+elif TSPH:
+    hydro = TaylorSPHHydro(WT, q,
+                           cfl = cfl,
+                           compatibleEnergyEvolution = compatibleEnergy,
+                           XSPH = XSPH,
+                           HUpdate = HUpdate)
 else:
     hydro = SPHHydro(WT,
                      WTPi,

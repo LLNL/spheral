@@ -605,8 +605,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (SPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)*mj/(rhoi*rhoj)*gradWRj + Qaccj;
-              const Vector deltaDvDtj = (Pi - Pj)*mi/(rhoi*rhoj)*gradWRi + Qacci;
+              const Vector deltaDvDti = mj*((Pi - Pj)/(rhoi*rhoj)*gradWRj - Qaccj);
+              const Vector deltaDvDtj = mi*((Pi - Pj)/(rhoi*rhoj)*gradWRi + Qacci);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
