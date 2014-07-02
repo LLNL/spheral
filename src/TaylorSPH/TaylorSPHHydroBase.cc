@@ -554,14 +554,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Wi = WWi.first;
               const Scalar gWi = WWi.second;
               const Vector gradWi = gWi*Hetai;
-              const Vector gradWRi = Di*gradWi;
+              const Vector gradWRi = Dj*gradWi;
 
               const Vector Hetaj = Hj*etaj.unitVector();
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
               const Scalar Wj = WWj.first;
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
-              const Vector gradWRj = Dj*gradWj;
+              const Vector gradWRj = Di*gradWj;
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -605,13 +605,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (SPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)/(rhoi*rhoj)*gradWRj + Qaccj;
-              const Vector deltaDvDtj = (Pi - Pj)/(rhoi*rhoj)*gradWRi + Qacci;
-              DvDti += mj*deltaDvDti;
-              DvDtj -= mi*deltaDvDtj;
+              const Vector deltaDvDti = (Pi - Pj)*mj/(rhoi*rhoj)*gradWRj + Qaccj;
+              const Vector deltaDvDtj = (Pi - Pj)*mi/(rhoi*rhoj)*gradWRi + Qacci;
+              DvDti += deltaDvDti;
+              DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back( mj*deltaDvDti);
-                pairAccelerationsj.push_back(-mi*deltaDvDtj);
+                pairAccelerationsi.push_back(deltaDvDti);
+                pairAccelerationsj.push_back(deltaDvDtj);
               }
 
               // Estimate of delta v (for XSPH).

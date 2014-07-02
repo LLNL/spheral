@@ -635,9 +635,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj -= deltaDvDxj;
               }
 
-              // Mass density evolution.
+              // Mass density evolution (CSPH).
               DrhoDti += deltaDvDxi.Trace();
               DrhoDtj += deltaDvDxj.Trace();
+
+              // // Mass density evolution (SPH).
+              // const double deltaDrhoDti = vij.dot(gradWi);
+              // const double deltaDrhoDtj = vij.dot(gradWj);
+              // DrhoDti += mi*deltaDrhoDti;
+              // DrhoDtj += mj*deltaDrhoDtj;
 
               // Compute the pair-wise artificial viscosity.
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
@@ -645,10 +651,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         rj, etaj, vj, rhoj, cj, Hj);
               const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
               const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
-              const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
-              const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
-              // const Scalar workQi = vij.dot(Qacci);
-              // const Scalar workQj = vij.dot(Qaccj);
+              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
+              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
