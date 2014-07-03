@@ -151,6 +151,7 @@ public:
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
@@ -213,6 +214,8 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+
+  FieldSpace::FieldList<Dimension, Scalar>    mVolume;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 

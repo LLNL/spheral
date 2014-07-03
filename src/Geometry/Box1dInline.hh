@@ -42,6 +42,29 @@ Box1d(const std::vector<Box1d::Vector>& points):
 
 inline
 Box1d::
+Box1d(const std::vector<Box1d::Vector>& points,
+      const std::vector<std::vector<unsigned> >& facetIndices):
+  mCenter(),
+  mExtent(0.0) {
+  REQUIRE(points.size() >= 2);
+  REQUIRE(facetIndices.size() == 2);
+  REQUIRE(facetIndices[0].size() == 1);
+  REQUIRE(facetIndices[1].size() == 1);
+  REQUIRE(facetIndices[0][0] < points.size());
+  REQUIRE(facetIndices[1][0] < points.size());
+
+  const unsigned i = facetIndices[0][0],
+                 j = facetIndices[1][0];
+  const double xmin = std::min(points[i].x(), points[j].x()),
+               xmax = std::max(points[i].x(), points[j].x());
+  mCenter = 0.5*(xmin + xmax);
+  mExtent = 0.5*(xmax - xmin);
+  mVertices.push_back(mCenter - mExtent);
+  mVertices.push_back(mCenter + mExtent);
+}
+
+inline
+Box1d::
 Box1d(const GeomVector<1>& center,
       const double extent):
   mCenter(center),
@@ -224,6 +247,19 @@ const std::vector<GeomVector<1> >&
 Box1d::
 vertices() const {
   return mVertices;
+}
+
+//------------------------------------------------------------------------------
+// The vertex indices for each "facet".
+//------------------------------------------------------------------------------
+inline
+std::vector<std::vector<unsigned> >
+Box1d::
+facetVertices() const {
+  std::vector<std::vector<unsigned> > result(2);
+  result[0] = std::vector<unsigned>(1, 0);
+  result[1] = std::vector<unsigned>(1, 1);
+  return result;
 }
 
 //------------------------------------------------------------------------------

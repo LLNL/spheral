@@ -28,6 +28,8 @@ public:
   //----------------------------------------------------------------------------
   Box1d();
   Box1d(const std::vector<Vector>& points);
+  Box1d(const std::vector<Vector>& points,
+        const std::vector<std::vector<unsigned> >& facetIndices);
   Box1d(const Vector& center, const double extent);
   Box1d(const Box1d& rhs);
   Box1d& operator=(const Box1d& rhs);
@@ -60,6 +62,7 @@ public:
   const Vector& xmax() const;
 
   const std::vector<Vector>& vertices() const;
+  std::vector<std::vector<unsigned> > facetVertices() const;
 
   // Compute the volume.
   double volume() const;
