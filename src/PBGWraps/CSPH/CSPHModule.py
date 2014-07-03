@@ -215,6 +215,9 @@ class CSPH:
                                         refparam(database, "dataBase"),
                                         refparam(state, "state"),
                                         refparam(derivatives, "derivatives")], is_virtual=True)
+        x.add_method("postStateUpdate", None, [constrefparam(database, "dataBase"),
+                                               refparam(state, "state"),
+                                               constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("enforceBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("label", "std::string", [], is_const=True, is_virtual=True)

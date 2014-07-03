@@ -153,6 +153,45 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
+
+  // We need to start out with volumes and CSPH corrections properly computed.
+  // This involves the complication of getting boundary conditions established as well!
+  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+       nodeListItr != dataBase.fluidNodeListEnd(); 
+       ++nodeListItr) {
+    (*nodeListItr)->numGhostNodes(0);
+    (*nodeListItr)->neighbor().updateNodes();
+  }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->setAllGhostNodes(dataBase);
+    (*boundaryItr)->finalizeGhostBoundary();
+    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+         nodeListItr != dataBase.fluidNodeListEnd(); 
+         ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
+    }
+  }
+
+  // Compute the volumes.
+  const TableKernel<Dimension>& W = this->kernel();
+  FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  dataBase.updateConnectivityMap();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  computeHullVolumes(connectivityMap, position, mVolume);
+
+  // We need boundary conditions enforced on the volume before we can compute corrections.
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mVolume);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+  // Compute the kernel correction fields.
+  computeCSPHCorrections(connectivityMap, W, mVolume, position, H, mA, mB, mC, mD, mGradA, mGradB);
 }
 
 //------------------------------------------------------------------------------
@@ -326,7 +365,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Initialize the hydro.
+// Initialize the hydro before evaluating derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -337,33 +376,8 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  // Compute the kernel correction fields.
-  const TableKernel<Dimension>& W = this->kernel();
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-  FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeHullVolumes(connectivityMap, position, vol);
-  computeCSPHCorrections(connectivityMap, W, vol, position, H, A, B, C, D, gradA, gradB);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(A);
-    (*boundItr)->applyFieldListGhostBoundary(B);
-    (*boundItr)->applyFieldListGhostBoundary(C);
-    (*boundItr)->applyFieldListGhostBoundary(D);
-    (*boundItr)->applyFieldListGhostBoundary(gradA);
-    (*boundItr)->applyFieldListGhostBoundary(gradB);
-  }
-
   // Get the artificial viscosity and initialize it.
+  const TableKernel<Dimension>& W = this->kernel();
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
   Q.initialize(dataBase, 
                state,
@@ -801,7 +815,6 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
-
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
   if (compatibleEnergyEvolution()) {
@@ -813,6 +826,59 @@ finalizeDerivatives(const typename Dimension::Scalar time,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
+}
+
+//------------------------------------------------------------------------------
+// Finalize the state after state has been updated and boundary conditions 
+//  enforced.  For CSPH this is where we update the volumes and RPKM corrections.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CSPHHydroBase<Dimension>::
+postStateUpdate(const DataBase<Dimension>& dataBase,
+                State<Dimension>& state,
+                const StateDerivatives<Dimension>& derivs) const {
+
+  // Grab state we're going to use.
+  const TableKernel<Dimension>& W = this->kernel();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+
+  // Compute the volume per node.
+  FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  computeHullVolumes(connectivityMap, position, vol);
+
+  // We need boundary conditions enforced on the volume before we can compute corrections.
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+  // Compute the kernel correction fields.
+  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
+  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
+  FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  computeCSPHCorrections(connectivityMap, W, vol, position, H, A, B, C, D, gradA, gradB);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(A);
+    (*boundItr)->applyFieldListGhostBoundary(B);
+    (*boundItr)->applyFieldListGhostBoundary(C);
+    (*boundItr)->applyFieldListGhostBoundary(D);
+    (*boundItr)->applyFieldListGhostBoundary(gradA);
+    (*boundItr)->applyFieldListGhostBoundary(gradB);
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
 }
 
 //------------------------------------------------------------------------------
