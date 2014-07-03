@@ -640,8 +640,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDtj += deltaDvDxj.Trace();
 
               // // Mass density evolution (SPH).
-              // const double deltaDrhoDti = vij.dot(gradWi);
-              // const double deltaDrhoDtj = vij.dot(gradWj);
+              // const double deltaDrhoDti = vij.dot(gradWSPHi);
+              // const double deltaDrhoDtj = vij.dot(gradWSPHj);
               // DrhoDti += mi*deltaDrhoDti;
               // DrhoDtj += mj*deltaDrhoDtj;
 
