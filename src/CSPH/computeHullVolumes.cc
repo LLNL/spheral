@@ -79,16 +79,6 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
       // And now we have the volume.
       volume(nodeListi, i) = hulli.volume();
-
-      // if (i == 0) {
-      //   cerr << "Positions:  ";
-      //   std::copy(positions.begin(), positions.end(), std::ostream_iterator<Vector>(std::cerr, " "));
-      //   cerr << endl
-      //        << "Inverse  :  ";
-      //   std::copy(positionsInv.begin(), positionsInv.end(), std::ostream_iterator<Vector>(std::cerr, " "));
-      //   std::cerr << endl
-      //             << "Hull: " << hulli.xmin() << " " << hulli.xmax() << std::endl;
-      // }
     }
   }
 }
