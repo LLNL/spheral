@@ -290,13 +290,6 @@ if graphics == "gnu":
     EPlot = plotEHistory(control.conserve)
 
     # Plot the correction terms.
-    # APlot = plotFieldList(db.fluidA,
-    #                       winTitle = "A",
-    #                       colorNodeLists = False)
-    # BPlot = plotFieldList(db.fluidB,
-    #                       yFunction = "%s.x",
-    #                       winTitle = "B",
-    #                       colorNodeLists = False)
 
     # Plot the grad h correction term (omega)
 
@@ -304,7 +297,19 @@ if graphics == "gnu":
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif not CSPH:
+    elif CSPH:
+        APlot = plotFieldList(hydro.A(),
+                              winTitle = "A",
+                              colorNodeLists = False)
+        BPlot = plotFieldList(hydro.B(),
+                              yFunction = "%s.x",
+                              winTitle = "B",
+                              colorNodeLists = False)
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                colorNodeLists = False)
+
+    else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
