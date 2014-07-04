@@ -360,6 +360,18 @@ if graphics in ("gnu", "matplot"):
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
 
+    if CSPH:
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                colorNodeLists = False)
+        APlot = plotFieldList(hydro.A(),
+                              winTitle = "A",
+                              colorNodeLists = False)
+        BPlot = plotFieldList(hydro.B(),
+                              yFunction = "%s.x",
+                              winTitle = "B",
+                              colorNodeLists = False)
+
     cs = db.newFluidScalarFieldList(0.0, "sound speed")
     db.fluidSoundSpeed(cs)
     csPlot = plotFieldList(cs, winTitle="Sound speed")

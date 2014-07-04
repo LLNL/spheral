@@ -298,6 +298,9 @@ if graphics == "gnu":
                                 winTitle = "volume",
                                 colorNodeLists = False)
     elif CSPH:
+        volPlot = plotFieldList(hydro.volume(),
+                                winTitle = "volume",
+                                colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
@@ -305,9 +308,6 @@ if graphics == "gnu":
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                colorNodeLists = False)
 
     else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
