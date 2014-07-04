@@ -236,9 +236,9 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mass);
 
   // Volume.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  PolicyPointer volumePolicy(new HullVolumePolicy<Dimension>(connectivityMap));
-  state.enroll(mVolume, volumePolicy);
+  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  // PolicyPointer volumePolicy(new HullVolumePolicy<Dimension>(connectivityMap));
+  state.enroll(mVolume);
 
   // We need to build up CompositeFieldListPolicies for the mass density and H fields
   // in order to enforce NodeList dependent limits.
@@ -532,7 +532,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = mi/rhoi; // vol(nodeListi, i);
+      const Scalar weighti = vol(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -595,7 +595,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = mj/rhoj; // vol(nodeListj, j);
+              const Scalar weightj = vol(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -651,8 +651,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = mj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj = mi*vij.dyad(gradWi);
+              const Tensor deltaDvDxi = weightj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj = weighti*vij.dyad(gradWi);
               DvDxi -= deltaDvDxi;
               DvDxj -= deltaDvDxj;
               if (nodeListi == nodeListj) {
@@ -734,7 +734,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Finish the mass density sum.
       // rhoSumi = Ai*(rhoSumi + mi*W(0.0, Hdeti));
-      rhoSumi += mi*W(0.0, Hdeti);
+      // rhoSumi += mi*W(0.0, Hdeti);
 
       // Finish the velocity gradient.
       CHECK(rhoi > 0.0);
@@ -830,7 +830,7 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 
 //------------------------------------------------------------------------------
 // Finalize the state after state has been updated and boundary conditions 
-//  enforced.  For CSPH this is where we update the volumes and RPKM corrections.
+// enforced.  For CSPH this is where we update the volumes and RPKM corrections.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
