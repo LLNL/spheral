@@ -47,7 +47,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
       const Vector& ri = position(nodeListi, i);
 
       // Collect the positions of all neighbors.
-      vector<Vector> positions(1, Vector::zero), positionsInv(1, Vector::zero);
+      vector<Vector> positionsInv(1, Vector::zero);
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -59,7 +59,6 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
           const Vector& rj = position(nodeListj, j);
           const Vector rji = rj - ri,
                        rjiHat = rji.unitVector();
-          positions.push_back(rji);
           positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
         }
       }
@@ -69,10 +68,27 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Use the vertices selected by the inverse hull to construct the
       // volume of the node.
+      vector<Vector> positions;
+      const vector<Vector>& vertsInv = hullInv.vertices();
+      for (typename std::vector<Vector>::const_iterator itr = vertsInv.begin();
+           itr != vertsInv.end();
+           ++itr) {
+        positions.push_back(1.0/sqrt(itr->magnitude2() + 1.0e-30) * itr->unitVector());
+      }
       const FacetedVolume hulli(positions, hullInv.facetVertices());
 
       // And now we have the volume.
       volume(nodeListi, i) = hulli.volume();
+
+      // if (i == 0) {
+      //   cerr << "Positions:  ";
+      //   std::copy(positions.begin(), positions.end(), std::ostream_iterator<Vector>(std::cerr, " "));
+      //   cerr << endl
+      //        << "Inverse  :  ";
+      //   std::copy(positionsInv.begin(), positionsInv.end(), std::ostream_iterator<Vector>(std::cerr, " "));
+      //   std::cerr << endl
+      //             << "Hull: " << hulli.xmin() << " " << hulli.xmax() << std::endl;
+      // }
     }
   }
 }
