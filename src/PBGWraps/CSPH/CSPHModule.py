@@ -104,6 +104,7 @@ class CSPH:
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(scalarfieldlist, "volume"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
