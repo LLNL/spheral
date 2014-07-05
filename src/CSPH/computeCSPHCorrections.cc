@@ -34,6 +34,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
                        const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& A0,
                        FieldList<Dimension, typename Dimension::Scalar>& A,
                        FieldList<Dimension, typename Dimension::Vector>& B,
                        FieldList<Dimension, typename Dimension::Vector>& C,
@@ -46,6 +47,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(A0.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(C.size() == numNodeLists);
   REQUIRE(D.size() == numNodeLists);
@@ -59,6 +61,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Zero out the result.
+  A0 = 0.0;
   A = 0.0;
   B = Vector::zero;
   C = Vector::zero;
@@ -169,6 +172,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const Vector m2invm1 = m2inv*m1(i);
         const Scalar Ainv = m0(i) - m2invm1.dot(m1(i));
         CHECK(Ainv != 0.0);
+        A0(nodeListi, i) = 1.0/m0(i);
         A(nodeListi, i) = 1.0/Ainv;
         B(nodeListi, i) = -m2invm1;
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*

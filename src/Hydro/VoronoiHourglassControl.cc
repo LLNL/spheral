@@ -286,7 +286,7 @@ finalize(const typename Dimension::Scalar time,
     dataBase.updateConnectivityMap();
     const ConnectivityMap<Dimension>& cm = dataBase.connectivityMap();
     CSPHSpace::computeCSPHCorrections(cm, mW, mWeight, position, H, 
-                                      mA, mB, mC, mD, mGradA, mGradB);
+                                      mA, mA, mB, mC, mD, mGradA, mGradB);
 
     // Find the gradient of the density.
     for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

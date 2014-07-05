@@ -26,6 +26,7 @@ namespace Spheral {
                            const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
                            const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                            const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A0,
                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& C,

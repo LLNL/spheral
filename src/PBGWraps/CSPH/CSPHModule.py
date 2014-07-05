@@ -106,19 +106,21 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(scalarfieldlist, "volume"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A0"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
 
-        # CSPH grad h correction factor (omega).
+        # CSPH corrections.
         self.space.add_function("computeCSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "A0"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "C"),
@@ -257,6 +259,7 @@ class CSPH:
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
+        const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
         const_ref_return_value(x, me, "%s::C" % me, vectorfieldlist, [], "C")
