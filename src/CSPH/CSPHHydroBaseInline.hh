@@ -243,6 +243,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CSPHHydroBase<Dimension>::
+A0() const {
+  return mA0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CSPHHydroBase<Dimension>::
 A() const {
   return mA;
 }

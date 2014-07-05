@@ -301,6 +301,9 @@ if graphics == "gnu":
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
+        A0Plot = plotFieldList(hydro.A0(),
+                               winTitle = "A0",
+                               colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
