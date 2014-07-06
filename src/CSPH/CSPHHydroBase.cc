@@ -721,8 +721,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              // const Vector Qacci = 0.25*(QPiij.first + QPiij.second)*gradWi;
+              // const Vector Qaccj = 0.25*(QPiij.first + QPiij.second)*gradWj;
+              const Vector Qacci = 0.5*(QPiij.first *gradWi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWj);
               // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
               // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
               const Scalar workQi = vij.dot(Qacci);
@@ -732,34 +734,38 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
-              // // Acceleration (CSPH form).
-              // CHECK(rhoi > 0.0);
-              // CHECK(rhoj > 0.0);
-              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
-              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
-              // // const Vector deltaDvDti = -Pj*gradWj/rhoi + Qaccj;
-              // // const Vector deltaDvDtj =  Pi*gradWi/rhoj - Qacci;
-              // DvDti += weightj*deltaDvDti;
-              // DvDtj += weighti*deltaDvDtj;
-              // if (mCompatibleEnergyEvolution) {
-              //   pairAccelerationsi.push_back(weighti*deltaDvDti);
-              //   pairAccelerationsj.push_back(weightj*deltaDvDtj);
-              // }
-
-              // Acceleration (SPH form).
+              // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const double Prhoi = Pi/(rhoi*rhoi);
-              const double Prhoj = Pj/(rhoj*rhoj);
-              const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
-              DvDti -= mj*deltaDvDt;
-              DvDtj += mi*deltaDvDt;
+              const Vector deltaDvDti = (Pi - Pj)*gradWj/rhoi - Qaccj;
+              const Vector deltaDvDtj = (Pi - Pj)*gradWi/rhoj + Qaccj;
+              // const Vector deltaDvDti = rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - Qaccj;
+              // const Vector deltaDvDtj = rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci;
+              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
+              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
+              // const Vector deltaDvDti = -Pj*gradWj/rhoi - Qaccj;
+              // const Vector deltaDvDtj =  Pi*gradWi/rhoj + Qacci;
+              DvDti += weightj*deltaDvDti;
+              DvDtj += weighti*deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
-                // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
-                pairAccelerationsi.push_back(-mj*deltaDvDt);
-                pairAccelerationsj.push_back( mi*deltaDvDt);
+                pairAccelerationsi.push_back(weighti*deltaDvDti);
+                pairAccelerationsj.push_back(weightj*deltaDvDtj);
               }
+
+              // // Acceleration (SPH form).
+              // CHECK(rhoi > 0.0);
+              // CHECK(rhoj > 0.0);
+              // const double Prhoi = Pi/(rhoi*rhoi);
+              // const double Prhoj = Pj/(rhoj*rhoj);
+              // const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
+              // DvDti -= mj*deltaDvDt;
+              // DvDtj += mi*deltaDvDt;
+              // if (mCompatibleEnergyEvolution) {
+              //   // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
+              //   // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
+              //   pairAccelerationsi.push_back(-mj*deltaDvDt);
+              //   pairAccelerationsj.push_back( mi*deltaDvDt);
+              // }
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
