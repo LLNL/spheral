@@ -21,6 +21,7 @@ namespace Spheral {
   void
   computeHullVolumes(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                     FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& polvol,
                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
 }
 

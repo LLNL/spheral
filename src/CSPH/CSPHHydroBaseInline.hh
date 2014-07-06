@@ -85,6 +85,24 @@ smoothingScaleMethod() const {
 }
 
 //------------------------------------------------------------------------------
+// Fraction of the centroidal filtering to apply.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+CSPHHydroBase<Dimension>::filter() const {
+  return mfilter;
+}
+
+template<typename Dimension>
+inline
+void
+CSPHHydroBase<Dimension>::filter(const double val) {
+  VERIFY(val >= 0.0 and val <= 1.0);
+  mfilter = val;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -293,6 +311,14 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 CSPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>&
+CSPHHydroBase<Dimension>::
+polyvols() const {
+  return mPolyvols;
 }
 
 }

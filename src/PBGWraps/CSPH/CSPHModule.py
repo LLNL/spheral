@@ -181,6 +181,7 @@ class CSPH:
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
                            refparam(artificialviscosity, "Q"),
+                           param("double", "filter", default_value="0.1"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
@@ -237,6 +238,7 @@ class CSPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
+        x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")

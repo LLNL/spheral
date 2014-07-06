@@ -40,6 +40,7 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
+            filter = 0.5,
 
             SVPH = False,
             CSPH = False,
@@ -192,6 +193,7 @@ if SVPH:
                              xmax = Vector( 100.0))
 elif CSPH:
     hydro = CSPHHydro(WT, WTPi, q,
+                      filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
