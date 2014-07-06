@@ -61,6 +61,8 @@ public:
   const Vector& xmin() const;
   const Vector& xmax() const;
 
+  Vector centroid() const { return mCenter; }
+
   const std::vector<Vector>& vertices() const;
   std::vector<std::vector<unsigned> > facetVertices() const;
 
