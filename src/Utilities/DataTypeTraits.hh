@@ -225,6 +225,11 @@ struct DataTypeTraits<Dim<1>::ThirdRankTensor> {
 #endif
 };
 
+template<>
+struct DataTypeTraits<Dim<1>::FacetedVolume> {
+  static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
+};
+
 //------------------------------------------------------------------------------
 template<>
 struct DataTypeTraits<Dim<2>::Vector> {
@@ -270,6 +275,11 @@ struct DataTypeTraits<Dim<2>::ThirdRankTensor> {
 #endif
 };
 
+template<>
+struct DataTypeTraits<Dim<2>::FacetedVolume> {
+  static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
+};
+
 //------------------------------------------------------------------------------
 template<>
 struct DataTypeTraits<Dim<3>::Vector> {
@@ -313,6 +323,11 @@ struct DataTypeTraits<Dim<3>::ThirdRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_ThirdRankTensor3d; }
 #endif
+};
+
+template<>
+struct DataTypeTraits<Dim<3>::FacetedVolume> {
+  static Dim<3>::FacetedVolume zero() { return Dim<3>::FacetedVolume(); }
 };
 
 }
