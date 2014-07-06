@@ -46,6 +46,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::FacetedVolume FacetedVolume;
 
   typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
@@ -54,6 +55,7 @@ public:
                 const KernelSpace::TableKernel<Dimension>& W,
                 const KernelSpace::TableKernel<Dimension>& WPi,
                 ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,
@@ -153,6 +155,10 @@ public:
   // The object defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
+  // Fraction of centroidal filtering to apply.
+  double filter() const;
+  void filter(const double val);
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -182,6 +188,8 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
 
+  const FieldSpace::FieldList<Dimension, FacetedVolume>& polyvols() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "CSPHHydroBase"; }
@@ -198,6 +206,7 @@ private:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
+  double mfilter;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
@@ -233,6 +242,8 @@ private:
   FieldSpace::FieldList<Dimension, Tensor>    mD;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
+
+  FieldSpace::FieldList<Dimension, FacetedVolume> mPolyvols;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

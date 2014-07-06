@@ -21,6 +21,7 @@ template<typename Dimension>
 void
 computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
                    const FieldList<Dimension, typename Dimension::Vector>& position,
+                   FieldList<Dimension, typename Dimension::FacetedVolume>& polyvol,
                    FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
@@ -75,10 +76,10 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
            ++itr) {
         positions.push_back(1.0/sqrt(itr->magnitude2() + 1.0e-30) * itr->unitVector());
       }
-      const FacetedVolume hulli(positions, hullInv.facetVertices());
 
-      // And now we have the volume.
-      volume(nodeListi, i) = hulli.volume();
+      // And we have it.
+      polyvol(nodeListi, i) = FacetedVolume(positions, hullInv.facetVertices());
+      volume(nodeListi, i) = polyvol(nodeListi, i).volume();
     }
   }
 }
