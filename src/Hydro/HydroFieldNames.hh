@@ -53,6 +53,7 @@ struct HydroFieldNames {
   static const std::string faceForce;
   static const std::string faceMass;
   static const std::string polyvols;
+  static const std::string massDensityGradient;
 };
 
 }

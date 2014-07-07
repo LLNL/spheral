@@ -178,6 +178,7 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    DmassDensityDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
@@ -230,6 +231,7 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldSpace::FieldList<Dimension, Vector>    mDmassDensityDx;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
 

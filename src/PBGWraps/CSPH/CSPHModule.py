@@ -71,6 +71,9 @@ class CSPH:
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        polyvol = {1: "Box1d", 
+                   2: "Polygon",
+                   3: "Polyhedron"}[ndim]
 
         # Helper to compute the CSPH kernel.
         self.space.add_function("CSPHKernel", "double", [constrefparam(tablekernel, "W"),
@@ -129,6 +132,12 @@ class CSPH:
                                  refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHCorrections%id" % ndim)
+
+        # Center of mass with linear density gradient.
+        self.space.add_function("centerOfMass", vector,
+                                [constrefparam(polyvol, "polyvol"),
+                                 constrefparam(vector, "gradRhoi")],
+                                docstring = "Compute the center of mass for a %s assuming a linear density field." % polyvol)
 
         return
 

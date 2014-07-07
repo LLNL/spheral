@@ -40,7 +40,7 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
-            filter = 0.5,
+            filter = 0.01,
 
             SVPH = False,
             CSPH = False,

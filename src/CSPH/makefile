@@ -8,6 +8,7 @@ SRCTARGETS = \
 	computeCSPHSumMassDensityInst.cc \
 	computeCSPHCorrectionsInst.cc \
 	computeHullVolumesInst.cc \
+	centerOfMass.cc \
 	CSPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
