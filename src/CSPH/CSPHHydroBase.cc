@@ -15,6 +15,7 @@
 #include "computeCSPHSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
 #include "computeHullVolumes.hh"
+#include "centerOfMass.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -103,6 +104,7 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldSpace::Copy),
   mDvDx(FieldSpace::Copy),
   mInternalDvDx(FieldSpace::Copy),
+  mDmassDensityDx(FieldSpace::Copy),
   mPairAccelerations(FieldSpace::Copy),
   mA0(FieldSpace::Copy),
   mA(FieldSpace::Copy),
@@ -150,6 +152,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
+  mDmassDensityDx = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
 
   mA0 = dataBase.newFluidFieldList(0.0,             HydroFieldNames::A0_CSPH);
@@ -317,6 +320,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
+  dataBase.resizeFluidFieldList(mDmassDensityDx, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   derivs.enroll(mHideal);
@@ -337,6 +341,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
+  derivs.enroll(mDmassDensityDx);
   derivs.enroll(mPairAccelerations);
 }
 
@@ -471,6 +476,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  FieldList<Dimension, Vector> DrhoDx = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -484,6 +490,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
+  CHECK(DrhoDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
@@ -560,6 +567,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Scalar& DepsDti = DepsDt(nodeListi, i);
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
+      Vector& DrhoDxi = DrhoDx(nodeListi, i);
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
@@ -623,6 +631,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
               Tensor& localDvDxj = localDvDx(nodeListj, j);
+              Vector& DrhoDxj = DrhoDx(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
@@ -674,6 +683,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj -= deltaDvDxj;
               }
 
+              // Mass density gradient.
+              const Scalar rhoji = rhoj - rhoi;
+              const Vector deltaDrhoDxi = weightj*rhoji*gradWj;
+              const Vector deltaDrhoDxj = weighti*rhoji*gradWi;
+              DrhoDxi += deltaDrhoDxi;
+              DrhoDxj += deltaDrhoDxj;
+
               // Mass density evolution (CSPH).
               DrhoDti += deltaDvDxi.Trace();
               DrhoDtj += deltaDvDxj.Trace();
@@ -704,10 +720,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltaDvDti = (Pi - Pj)*gradWj/rhoi - Qaccj;
-              const Vector deltaDvDtj = (Pi - Pj)*gradWi/rhoj + Qaccj;
-              // const Vector deltaDvDti = rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - Qaccj;
-              // const Vector deltaDvDtj = rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci;
+              // const Vector deltaDvDti = (Pi - Pj)*gradWj/rhoi - Qaccj;
+              // const Vector deltaDvDtj = (Pi - Pj)*gradWi/rhoj + Qaccj;
+              const Vector deltaDvDti = rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - Qaccj;
+              const Vector deltaDvDtj = rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci;
               // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
               // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
               // const Vector deltaDvDti = -Pj*gradWj/rhoi - Qaccj;
@@ -760,6 +776,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(rhoi > 0.0);
       DvDxi /= rhoi;
       localDvDxi /= rhoi;
+
+      // Finish the velocity gradient.
+      DrhoDxi /= rhoi;
 
       // The specific thermal energy evolution.
       // DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
@@ -949,6 +968,7 @@ finalize(const typename Dimension::Scalar time,
     // Note that the FacetedVolumes are in coordinates with the node at the origin already!
     if (mfilter > 0.0) {
       const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+      const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
       size_t nodeListi = 0;
       for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
            itr != dataBase.fluidNodeListEnd();
@@ -959,12 +979,12 @@ finalize(const typename Dimension::Scalar time,
           const int i = *iItr;
           Vector& ri = position(nodeListi, i);
           const Vector& DxDti = DxDt(nodeListi, i);
+          const Vector& DrhoDxi = DrhoDx(nodeListi, i);
           const Scalar mag0 = DxDti.magnitude();
           if (mag0 > 0.0) {
-            const Vector centroid = polyvol(nodeListi, i).centroid(),
-                         delta = centroid,
-                         dhat = delta.unitVector();
-            const Scalar deltamag = delta.magnitude();
+            const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi),
+                         dhat = com.unitVector();
+            const Scalar deltamag = com.magnitude();
             ri += std::min(mfilter*mag0, deltamag)*dhat;
           }
         }

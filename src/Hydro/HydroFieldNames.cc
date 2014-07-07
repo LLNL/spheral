@@ -48,3 +48,4 @@ const std::string Spheral::HydroFieldNames::faceVelocity = "face velocity";
 const std::string Spheral::HydroFieldNames::faceForce = "face force";
 const std::string Spheral::HydroFieldNames::faceMass = "face mass";
 const std::string Spheral::HydroFieldNames::polyvols = "poly faceted volumes";
+const std::string Spheral::HydroFieldNames::massDensityGradient = "mass density gradient";

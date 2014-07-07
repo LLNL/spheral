@@ -41,6 +41,7 @@ commandLine(nx1 = 400,
             hourglass = None,
             hourglassOrder = 1,
             hourglassLimiter = 1,
+            filter = 0.01,
 
             SVPH = False,
             CSPH = False,
@@ -178,6 +179,7 @@ if SVPH:
                              xmax = Vector( 100.0))
 elif CSPH:
     hydro = CSPHHydro(WT, WTPi, q,
+                      filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,

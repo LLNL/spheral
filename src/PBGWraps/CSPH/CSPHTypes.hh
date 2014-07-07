@@ -6,6 +6,7 @@
 #include "CSPH/CSPHHydroBase.hh"
 #include "CSPH/computeCSPHSumMassDensity.hh"
 #include "CSPH/computeCSPHCorrections.hh"
+#include "CSPH/centerOfMass.hh"
 
 namespace Spheral {
 namespace CSPHSpace {
