@@ -659,12 +659,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
-              const Vector gradWiSPH = Hi*etai.unitVector() * gWi;
-              const Vector gradWjSPH = Hj*etaj.unitVector() * gWj;
               weightedNeighborSumi += fweightij*std::abs(gWi);
               weightedNeighborSumj += fweightij*std::abs(gWj);
-              massSecondMomenti += fweightij*gradWiSPH.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWjSPH.magnitude2()*thpt;
+              massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
+              massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
 
               // Contribution to the sum density (only if the same material).
               if (nodeListi == nodeListj) {
@@ -706,12 +704,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         rj, etaj, vj, rhoj, cj, Hj);
               // const Vector Qacci = 0.25*(QPiij.first + QPiij.second)*gradWi;
               // const Vector Qaccj = 0.25*(QPiij.first + QPiij.second)*gradWj;
-              const Vector Qacci = 0.5*(QPiij.first *gradWi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              // const Vector Qacci = 0.5*(QPiij.second*gradWi);
+              // const Vector Qaccj = 0.5*(QPiij.first *gradWj);
               // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
               // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
+              // const Scalar workQi = vij.dot(Qacci);
+              // const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -722,17 +722,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               // const Vector deltaDvDti = (Pi - Pj)*gradWj/rhoi - Qaccj;
               // const Vector deltaDvDtj = (Pi - Pj)*gradWi/rhoj + Qaccj;
-              const Vector deltaDvDti = rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - Qaccj;
-              const Vector deltaDvDtj = rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + Qacci;
-              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi - Qj)*gradWj/(rhoi*rhoi);
-              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi - Qj)*gradWi/(rhoj*rhoj);
+              const Vector deltaDvDti = weightj*rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - mj*(Qacci + Qaccj);
+              const Vector deltaDvDtj = weighti*rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + mi*(Qacci + Qaccj);
+              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi + Qj)*gradWj/(rhoi*rhoi);
+              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi + Qj)*gradWi/(rhoj*rhoj);
               // const Vector deltaDvDti = -Pj*gradWj/rhoi - Qaccj;
               // const Vector deltaDvDtj =  Pi*gradWi/rhoj + Qacci;
-              DvDti += weightj*deltaDvDti;
-              DvDtj += weighti*deltaDvDtj;
+              // const Vector deltaDvDti = -weightj*Pj/rhoi*gradWj - mj*(Qacci + Qaccj);
+              // const Vector deltaDvDtj =  weighti*Pi/rhoj*gradWi + mi*(Qacci + Qaccj);
+              DvDti += deltaDvDti;
+              DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(weightj*deltaDvDti);
-                pairAccelerationsj.push_back(weighti*deltaDvDtj);
+                pairAccelerationsi.push_back(deltaDvDti);
+                pairAccelerationsj.push_back(deltaDvDtj);
               }
 
               // // Acceleration (SPH form).
