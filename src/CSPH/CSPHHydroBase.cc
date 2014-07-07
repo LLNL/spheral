@@ -731,8 +731,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti += weightj*deltaDvDti;
               DvDtj += weighti*deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(weighti*deltaDvDti);
-                pairAccelerationsj.push_back(weightj*deltaDvDtj);
+                pairAccelerationsi.push_back(weightj*deltaDvDti);
+                pairAccelerationsj.push_back(weighti*deltaDvDtj);
               }
 
               // // Acceleration (SPH form).
