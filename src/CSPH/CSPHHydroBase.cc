@@ -730,6 +730,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector deltaDvDtj =  Pi*gradWi/rhoj + Qacci;
               // const Vector deltaDvDti = -weightj*Pj/rhoi*gradWj - mj*(Qacci + Qaccj);
               // const Vector deltaDvDtj =  weighti*Pi/rhoj*gradWi + mi*(Qacci + Qaccj);
+              // const Vector deltaDvDti = weightj*(Pi - Pj)/(rhoi)*gradWj - mj*(Qacci + Qaccj);
+              // const Vector deltaDvDtj = weighti*(Pi - Pj)/(rhoj)*gradWi + mi*(Qacci + Qaccj);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
