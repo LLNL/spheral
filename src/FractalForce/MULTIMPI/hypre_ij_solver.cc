@@ -23,11 +23,11 @@ namespace FractalSpace
     mem.p_mess->IAmAHypreNode=false;;
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=-1;
-    cout << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << sizeof(HYPRE_Int) << " Hypre_Int" << "\n";
+    cout << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << " " << sizeof(HYPRE_Int) << " Hypre_Int" << "\n";
     FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     fprintf(PFH," enter hypre solver %d %d \n",level,mem.steps);
-    //    cout << " enter hypre solver " << level << " " << mem.steps << " " << FractalRank << "\n";
+    cout << " enter hypre solver " << level << " " << mem.steps << " " << FractalRank << "\n";
     Hypre_total_time=-mem.p_mess->Clock();
     Hypre_search_time=-mem.p_mess->Clock();
     vector <Point*>hypre_points;
@@ -35,7 +35,7 @@ namespace FractalSpace
     if(!hypre_ij_numbering(mem,frac,hypre_points,level,buffer_only))
       {
 	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
-	//	cout << " nothing here hypre solver " << level << " " << mem.p_mess->HypreRank << " " << FractalRank << "\n";
+	cout << " nothing here hypre solver " << level << " " << mem.p_mess->HypreRank << " " << FractalRank << "\n";
 	frac.timing(1,32);
 	return;
       }
@@ -49,6 +49,7 @@ namespace FractalSpace
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time Buffer" << "\n";
     int total=0;
     fprintf(PFH," Am I a Hypre Node %d %d %d \n",mem.p_mess->IAmAHypreNode,HypreRank,FractalRank);
+    cout << " Am I a Hypre Node " << mem.p_mess->IAmAHypreNode << " " << HypreRank << " " << FractalRank << "\n";
     if(mem.p_mess->IAmAHypreNode)
       {
 	Hypre_gen_time=-mem.p_mess->Clock();
