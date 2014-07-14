@@ -48,6 +48,8 @@ namespace FractalSpace
     vector <int>Hranks;
     vector <int>IHranks;
     vector <MPI_Comm> MComms;
+    vector <MPI_Comm> HComms;
+    vector <MPI_Group> HG;
     bool time_trial;
     bool standalone;
     File* p_file;
@@ -175,7 +177,7 @@ namespace FractalSpace
 	MPI_Init(NULL,NULL);
       FractalWorld=MPI_COMM_WORLD;
       FFTWorld=FractalWorld;
-      HypreWorld=FractalWorld;
+      HypreWorld=MPI_COMM_NULL;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Comm_group(FFTWorld,&FFTGroup);
       //      MPI_Comm_group(HypreWorld,&HypreGroup);
@@ -202,7 +204,7 @@ namespace FractalSpace
       //      int periods[]={true,true,true};
       MPI_Cart_create(MPI_COMM_WORLD,3,dims,periods,true,&FractalWorld);
       FFTWorld=FractalWorld;
-      HypreWorld=FractalWorld;
+      HypreWorld=MPI_COMM_NULL;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Comm_group(FFTWorld,&FFTGroup);
       FractalRank=what_is_my_rank(); 
@@ -1016,46 +1018,103 @@ namespace FractalSpace
 	}
       FF << " how many " << Rank << " " << how_manyI << " " << how_manyR << "\n";
     }
-    /*
-    void make_MPI_Groups()
+    void make_MPI_Hypre_Groups()
     {
-      vector <MPI_Group> MG;
-      MComms.resize(3);
-      vector <int>Ranks(FractalNodes2);
-      for(int FR1=0;FR1<FractalNodes1;FR1++)
-	for(int FR0=0;FR0<FractalNodes0;FR0++)
-	  {
-	    for(int FR2=0;FR2<FractalNodes2;FR2++)
-	      Ranks[FR2]=FR0+(FR1+FR2*FractalNodes1)*FractalNodes0;
-	    MComms[2].push_back(MPI_Comm());
-	    MG.push_back(MPI_Group());
-	    MPI_Group_incl(FractalGroup,FractalNodes2,&(*Ranks.begin()),&MG.back());
-	    MPI_Comm_create(FractalWorld,MG.back(),&MComms[2].back());
-	  }
-      Ranks.resize(FractalNodes1);
-      for(int FR2=0;FR2<FractalNodes2;FR2++)
-	for(int FR0=0;FR0<FractalNodes0;FR0++)
-	  {
-	    for(int FR1=0;FR1<FractalNodes1;FR1++)
-	      Ranks[FR1]=FR0+(FR1+FR2*FractalNodes1)*FractalNodes0;
-	    MComms[1].push_back(MPI_Comm());
-	    MG.push_back(MPI_Group());
-	    MPI_Group_incl(FractalGroup,FractalNodes1,&(*Ranks.begin()),&MG.back());
-	    MPI_Comm_create(FractalWorld,MG.back(),&MComms[1].back());
-	  }
-      Ranks.resize(FractalNodes0);
-      for(int FR2=0;FR2<FractalNodes2;FR2++)
-	for(int FR1=0;FR1<FractalNodes1;FR1++)
-	  {
-	    for(int FR0=0;FR0<FractalNodes0;FR0++)
-	      Ranks[FR0]=FR0+(FR1+FR2*FractalNodes1)*FractalNodes0;
-	    MComms[0].push_back(MPI_Comm());
-	    MG.push_back(MPI_Group());
-	    MPI_Group_incl(FractalGroup,FractalNodes0,&(*Ranks.begin()),&MG.back());
-	    MPI_Comm_create(FractalWorld,MG.back(),&MComms[0].back());
-	  }
+      cout << " making hypre " << FractalRank << " " << HypreRank << "\n";
+      HG.resize(3);
+      HComms.clear();
+      HComms.resize(3);
+      double aNodes=HypreNodes;
+      int HypreNodes0=pow(aNodes-0.5,1.0/3.0)+1.0;
+      double a12=HypreNodes/HypreNodes0;
+      int HypreNodes1=sqrt(a12-0.5)+1.0;
+      int HypreNodes01=HypreNodes0*HypreNodes1;
+      int HypreNodes2=HypreNodes/HypreNodes01;
+      int HypreRank0=HypreRank % HypreNodes0;
+      int HypreRank1=(HypreRank/HypreNodes0) % HypreNodes1;
+      int HypreRank2=HypreRank/HypreNodes01;
+      int HypreNodesBox=HypreNodes01*HypreNodes2;
+      int extras=HypreNodes-HypreNodesBox;
+      int ExtraLines=extras/HypreNodes0;
+      int ExtraNodes=extras % HypreNodes0;
+      if(HypreRank == 0)
+	{
+	  cout << " MAKE HGD " << HypreNodes << " " << HypreNodes0 << " " << HypreNodes1 << " " << HypreNodes2 << " " << HypreNodes01;
+	  cout << " " << HypreRank0 <<  " " << HypreRank1 <<  " " << HypreRank2 << " " << ExtraLines << " " << ExtraNodes << "\n";
+	}
+      vector < vector <int> > RanksH;
+      RanksH.clear();
+      RanksH.resize(3);
+      int rr=HypreRank % HypreNodes01;
+      while(rr < HypreNodes)
+	{
+	  RanksH[2].push_back(rr);
+	  rr+=HypreNodes01;
+	}
+      if(HypreRank2 < HypreNodes2)
+	{
+	  int ni=0;
+	  int rr=HypreRank0+HypreRank2*HypreNodes01;
+	  while(ni < HypreNodes1)
+	    {
+	      RanksH[1].push_back(rr);
+	      rr+=HypreNodes0;
+	      ni++;
+	    }
+	}
+      if(HypreRank2 < HypreNodes2 || HypreRank1 < ExtraLines)
+	{
+	  int ni=0;
+	  rr=HypreRank1*HypreNodes0+HypreRank2*HypreNodes01;
+	  while(ni < HypreNodes0)
+	    {
+	      RanksH[0].push_back(rr);
+	      rr++;
+	      ni++;
+	    }
+	}
+      if(HypreRank2 == HypreNodes2)
+	{
+	  int rr=HypreRank0+HypreRank2*HypreNodes01;
+	  int ni=0;
+	  while(ni < ExtraLines)
+	    {
+	      RanksH[1].push_back(rr);
+	      rr+=HypreNodes0;
+	      ni++;
+	    }
+	  if(HypreRank0 < ExtraNodes)
+	    RanksH[1].push_back(rr);
+	  if(ExtraNodes > 0 && ((HypreRank1 == ExtraLines && ExtraLines > 0)|| ExtraLines == 0)) 
+	    {
+	      int ni=0;
+	      rr=HypreRank1*HypreNodes0+HypreRank2*HypreNodes01;
+	      while(ni < ExtraNodes)
+		{
+		  RanksH[0].push_back(rr);
+		  rr++;
+		  ni++;
+		}
+	    }
+	}
+      /*
+      for(int ni=0;ni<RanksH[2].size();ni++)
+	cout << " MAKE HGC " << FractalRank << " " << HypreRank << " " << RanksH[2][ni] << "\n";
+      for(int ni=0;ni<RanksH[1].size();ni++)
+	cout << " MAKE HGB " << FractalRank << " " << HypreRank << " " << RanksH[1][ni] << "\n";
+      for(int ni=0;ni<RanksH[0].size();ni++)
+	cout << " MAKE HGA " << FractalRank << " " << HypreRank << " " << RanksH[0][ni] << "\n";
+      */
+      MPI_Group_incl(HypreGroup,RanksH[2].size(),&(*RanksH[2].begin()),&HG[2]);
+      MPI_Comm_create(HypreWorld,HG[2],&HComms[2]);
+      //      cout << " MADE HGC " << FractalRank << " " << HypreRank << "\n";
+      MPI_Group_incl(HypreGroup,RanksH[1].size(),&(*RanksH[1].begin()),&HG[1]);
+      MPI_Comm_create(HypreWorld,HG[1],&HComms[1]);
+      //      cout << " MADE HGB " << FractalRank << " " << HypreRank << "\n";
+      MPI_Group_incl(HypreGroup,RanksH[0].size(),&(*RanksH[0].begin()),&HG[0]);
+      MPI_Comm_create(HypreWorld,HG[0],&HComms[0]);
+      //      cout << " MADE HGA " << FractalRank << " " << HypreRank << "\n";
     }
-    */
     void make_MPI_Groups()
     {
       if(FractalNodes <= MPI_SWITCH)
@@ -1104,17 +1163,35 @@ namespace FractalSpace
 			    vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
 			    vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
     {
-      if(World == FractalWorld && FractalNodes > MPI_SWITCH)
+      int Nodes=how_many_nodes(World);
+      bool small=Nodes <= MPI_SWITCH;
+      bool foreign=World != FractalWorld && World != HypreWorld;
+      cout << " SOMEWHOW " << FractalRank << " " << Nodes << " " << MPI_SWITCH << " " << small << foreign << " ";
+      if(small || foreign)
 	{
+	  cout << "A" << "\n";
+	  How_Many_Things_To_Send_I(World,counts_out,counts_in);
+	  Send_Data_Somewhere_No_Block(World,counts_out,counts_in,integers,doubles,
+				       dataI_out,dataI_in_send,how_manyI,
+				       dataR_out,dataR_in_send,how_manyR);
+	  cout << "AA" << "\n";
+	}
+      else if(World == HypreWorld)
+	{
+	  cout << "B" << "\n";
+	  Send_Data_Hypre_Directions(counts_out,counts_in,integers,doubles,
+				     dataI_out,dataI_in_send,how_manyI,
+				     dataR_out,dataR_in_send,how_manyR);
+	  cout << "BB" << "\n";
+	}
+      else
+	{
+	  cout << "C" << "\n";
 	  Send_Data_One_Directions(counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in_send,how_manyI,
 				   dataR_out,dataR_in_send,how_manyR);
-	  return;
+	  cout << "CC" << "\n";
 	}
-      How_Many_Things_To_Send_I(World,counts_out,counts_in);
-      Send_Data_Somewhere_No_Block(World,counts_out,counts_in,integers,doubles,
-				   dataI_out,dataI_in_send,how_manyI,
-				   dataR_out,dataR_in_send,how_manyR);
     }
     void Send_Data_One_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
 				  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
@@ -1318,6 +1395,268 @@ namespace FractalSpace
 	  how_manyR+=countR;
 	}
       //      cout << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+    }
+    void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
+				  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
+				  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR)
+    {
+      double aNodes=HypreNodes;
+      int HypreNodes0=pow(aNodes-0.5,1.0/3.0)+1.0;
+      double a12=HypreNodes/HypreNodes0;
+      int HypreNodes1=sqrt(a12-0.5)+1.0;
+      int HypreNodes01=HypreNodes0*HypreNodes1;
+      int HypreNodes2=HypreNodes/HypreNodes01;
+      int HypreRank0=HypreRank % HypreNodes0;
+      int HypreRank1=(HypreRank/HypreNodes0) % HypreNodes1;
+      int HypreRank2=HypreRank/HypreNodes01;
+      //      int HypreNodesBox=HypreNodes01*HypreNodes2;
+      //      int extras=HypreNodes-HypreNodesBox;
+      //      int ExtraLines=extras/HypreNodes0;
+      //      int ExtraNodes=extras % HypreNodes0;
+      int HypreLong2=how_many_nodes(HComms[2]);
+      int HypreLong1=how_many_nodes(HComms[1]);
+      int HypreLong0=how_many_nodes(HComms[0]);
+      cout << " AHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      vector < vector <int> > dataIa_out(HypreLong2);
+      vector < vector <double> > dataRa_out(HypreLong2);
+      vector <int>dataIa_in;
+      vector <double>dataRa_in;
+      vector <int>countsa_out(HypreLong2,0);
+      vector <int>countsa_in(HypreLong2);
+      int H2start=0;
+      for(int HR=0;HR<HypreNodes;HR++)
+	{
+	  int HR2=HR/HypreNodes01;
+	  if(HR2 == HypreNodes2)
+	    {
+	      H2start=(H2start+1) % HypreNodes2;
+	      HR2=H2start;
+	    }
+	  countsa_out[HR2]+=counts_out[HR];
+	  int nIdata=0;
+	  int nRdata=0;
+	  for(int ni=0;ni<counts_out[HR];ni++)
+	    {
+	      dataIa_out[HR2].push_back(HR);
+	      for(int ints=0;ints<integers;ints++)
+		{
+		  dataIa_out[HR2].push_back(dataI_out[HR][nIdata]);
+		  nIdata++;
+		}
+	      for(int reals=0;reals<doubles;reals++)
+		{
+		  dataRa_out[HR2].push_back(dataR_out[HR][nRdata]);
+		  nRdata++;
+		}
+	    }
+	}
+      //      cout << " BHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataI_out.clear();
+      dataR_out.clear();
+      How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
+      //      cout << " CHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+
+      dataIa_in.clear();
+      dataRa_in.clear();
+
+      Send_Data_Somewhere_No_Block(HComms[2],countsa_out,countsa_in,
+				   integers+1,doubles,
+				   dataIa_out,dataIa_in,how_manyI,
+				   dataRa_out,dataRa_in,how_manyR);
+      //      cout << " DHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataIa_out.clear();
+      dataRa_out.clear();
+      dataIa_out.resize(HypreLong1);
+      dataRa_out.resize(HypreLong1);
+      countsa_out.assign(HypreLong1,0);
+      int countI=0;
+      int countR=0;
+      for(int HR2=0;HR2<HypreLong2;HR2++)
+	{
+	  int HRFrom=HypreRank+(HR2-HypreRank2)*HypreNodes01;
+	  for(int c=0;c<countsa_in[HR2];c++)
+	    {
+	      int HR=dataIa_in[countI];
+	      countI++;
+	      int HR1=(HR/HypreNodes0) % HypreNodes1;
+	      countsa_out[HR1]++;
+	      dataIa_out[HR1].push_back(HR);
+	      dataIa_out[HR1].push_back(HRFrom);
+	      for(int nI=0;nI<integers;nI++)
+		{
+		  dataIa_out[HR1].push_back(dataIa_in[countI]);
+		  countI++;
+		}
+	      for(int nR=0;nR<doubles;nR++)
+		{
+		  dataRa_out[HR1].push_back(dataRa_in[countR]);
+		  countR++;
+		}
+	    }
+	}
+      //      cout << " EHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      countsa_in.assign(HypreLong1,0);
+      How_Many_Things_To_Send_I(HComms[1],countsa_out,countsa_in);
+      dataIa_in.clear();
+      dataRa_in.clear();
+      //      cout << " FHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+
+      Send_Data_Somewhere_No_Block(HComms[1],countsa_out,countsa_in,
+				   integers+2,doubles,
+				   dataIa_out,dataIa_in,how_manyI,
+				   dataRa_out,dataRa_in,how_manyR);
+      //      cout << " GHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+
+      dataIa_out.clear();
+      dataRa_out.clear();
+      dataIa_out.resize(HypreLong0);
+      dataRa_out.resize(HypreLong0);
+      countsa_out.assign(HypreLong0,0);
+      countI=0;
+      countR=0;
+      for(int HR1=0;HR1<HypreLong1;HR1++)
+	{
+	  for(int c=0;c<countsa_in[HR1];c++)
+	    {
+	      int HR=dataIa_in[countI];
+	      countI++;
+	      int HR0=HR % HypreNodes0;
+	      countsa_out[HR0]++;
+	      int HRFrom=dataIa_in[countI];
+	      countI++;
+	      dataIa_out[HR0].push_back(HR);
+	      dataIa_out[HR0].push_back(HRFrom);
+	      for(int nI=0;nI<integers;nI++)
+		{
+		  dataIa_out[HR0].push_back(dataIa_in[countI]);
+		  countI++;
+		}
+	      for(int nR=0;nR<doubles;nR++)
+		{
+		  dataRa_out[HR0].push_back(dataRa_in[countR]);
+		  countR++;
+		}
+	    }
+	}
+      //      cout << " HHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      countsa_in.assign(HypreLong0,0);
+      How_Many_Things_To_Send_I(HComms[0],countsa_out,countsa_in);
+      //      cout << " IHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataIa_in.clear();
+      dataRa_in.clear();
+      Send_Data_Somewhere_No_Block(HComms[0],countsa_out,countsa_in,
+				   integers+2,doubles,
+				   dataIa_out,dataIa_in,how_manyI,
+				   dataRa_out,dataRa_in,how_manyR);
+      //      cout << " JHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataIa_out.clear();
+      dataRa_out.clear();
+      dataIa_out.resize(HypreLong2);
+      dataRa_out.resize(HypreLong2);
+      countsa_out.assign(HypreLong2,0);
+      countI=0;
+      countR=0;
+      for(int HR0=0;HR0<HypreLong0;HR0++)
+	{
+	  for(int c=0;c<countsa_in[HR0];c++)
+	    {
+	      int HR=dataIa_in[countI];
+	      countI++;
+	      int HR2=HR/HypreNodes01;
+	      countsa_out[HR2]++;
+	      int HRFrom=dataIa_in[countI];
+	      countI++;
+	      dataIa_out[HR2].push_back(HRFrom);
+	      for(int nI=0;nI<integers;nI++)
+		{
+		  dataIa_out[HR2].push_back(dataIa_in[countI]);
+		  countI++;
+		}
+	      for(int nR=0;nR<doubles;nR++)
+		{
+		  dataRa_out[HR2].push_back(dataRa_in[countR]);
+		  countR++;
+		}
+	    }
+	}
+      //      cout << " KHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      countsa_in.assign(HypreLong2,0);
+      How_Many_Things_To_Send_I(HComms[2],countsa_out,countsa_in);
+      //      cout << " LHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataIa_in.clear();
+      dataRa_in.clear();
+      Send_Data_Somewhere_No_Block(HComms[2],countsa_out,countsa_in,
+				   integers+1,doubles,
+				   dataIa_out,dataIa_in,how_manyI,
+				   dataRa_out,dataRa_in,how_manyR);
+      //      cout << " MHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataIa_out.clear();
+      dataRa_out.clear();
+      dataIa_out.resize(HypreNodes);
+      dataRa_out.resize(HypreNodes);
+      counts_in.assign(HypreNodes,0);
+      countI=0;
+      countR=0;
+      for(int HR2=0;HR2<HypreLong2;HR2++)
+	{
+	  for(int c=0;c<countsa_in[HR2];c++)
+	    {
+	      int HRFrom=dataIa_in[countI];
+	      countI++;
+	      counts_in[HRFrom]++;
+	      for(int nI=0;nI<integers;nI++)
+		{
+		  dataIa_out[HRFrom].push_back(dataIa_in[countI]);
+		  countI++;
+		}
+	      for(int nR=0;nR<doubles;nR++)
+		{
+		  dataRa_out[HRFrom].push_back(dataRa_in[countR]);
+		  countR++;
+		}
+	    }
+	}
+      //      cout << " KHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
+      dataI_in.clear();
+      dataR_in.clear();
+      how_manyI=0;
+      how_manyR=0;
+      for(int HR=0;HR<HypreNodes;HR++)
+	{
+	  countI=0;
+	  countR=0;
+	  for(int c=0;c<counts_in[HR];c++)
+	    {
+	      for(int nI=0;nI<integers;nI++)
+		{
+		  dataI_in.push_back(dataIa_out[HR][countI]);
+		  countI++;
+		}
+	      for(int nR=0;nR<doubles;nR++)
+		{
+		  dataR_in.push_back(dataRa_out[HR][countR]);
+		  countR++;
+		}
+	    }
+	  how_manyI+=countI;
+	  how_manyR+=countR;
+	}
+      //      cout << " LHyp " << FractalRank << " " << HypreRank << " "  << HypreRank0 << " "  << HypreRank1 << " "  << HypreRank2;;
+      //      cout << " " << HypreLong0 << " " << HypreLong1 << " " << HypreLong2 << " " << HypreNodes << "\n";
     }
     void MPI_MYTest(int which,int test)
     {
@@ -1549,13 +1888,21 @@ namespace FractalSpace
     }
     void HypreGroupCreate(vector <int>& ranks)
     {
-      int* Ranks=new int[HypreNodes];
-      for(int ni=0;ni<HypreNodes;ni++)
-	Ranks[ni]=ranks[ni];
+      //      cout << " INTO HYPRE CREATEA " << IAmAHypreNode << " " <<  FractalRank << " " << HypreNodes << "\n";
+      //      cout << " INTO HYPRE CREATEB " << IAmAHypreNode << " " <<  FractalRank << " " << HypreNodes << "\n";
       MPI_Comm_group(FractalWorld,&FractalGroup);
-      MPI_Group_incl(FractalGroup, HypreNodes, Ranks, &HypreGroup);
+      MPI_Group_incl(FractalGroup, HypreNodes, &(*(ranks.begin())), &HypreGroup);
       MPI_Comm_create(FractalWorld, HypreGroup, &HypreWorld);
-      delete [] Ranks;
+      HypreRank=MyHypreRank();
+      /*
+      cout << " INTO HYPRE CREATEC " << IAmAHypreNode << " " <<  FractalRank << " " << HypreNodes << " " << HypreRank << "\n";
+      for(int ni=0;ni < HypreNodes;ni++)
+	cout << " MAKEHYPRE " << FractalRank << " " << HypreRank << " " << ni << " " << ranks[ni] << "\n";
+      cout << " Going to make hypre " << FractalRank << " " << HypreRank << "\n";
+      */
+      if(!IAmAHypreNode)
+	return;
+      make_MPI_Hypre_Groups();
     }
     void HypreGroupFree()
     {
@@ -1563,7 +1910,19 @@ namespace FractalSpace
       	return;
       MPI_Group_free(&HypreGroup);
       MPI_Comm_free(&HypreWorld);
-      HypreWorld=FractalWorld;
+      HypreWorld=MPI_COMM_NULL;
+      HypreGroups3Free();
+    }
+    void HypreGroups3Free()
+    {
+      if(!IAmAHypreNode)
+      	return;
+      for(int ni=0;ni<3;ni++)
+	{
+	  MPI_Group_free(&HG[ni]);
+	  MPI_Comm_free(&HComms[ni]);
+	  HComms[ni]=MPI_COMM_NULL;
+	}
     }
     void createFractalWorld(MPI_Comm& World,vector <int>& dims)
     {
