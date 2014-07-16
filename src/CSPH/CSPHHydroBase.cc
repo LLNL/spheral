@@ -784,6 +784,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the velocity gradient.
       DrhoDxi /= rhoi;
 
+///* 
+      //const Scalar mag0 = DxDti.magnitude();
+      const Scalar mag0 = vi.magnitude();
+      //printf("MAG0=%10.3e",mag0);
+      
+      if (dt > 0.0 && mag0>0.0) {
+         FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
+         const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
+         const Vector dhat = com.unitVector();
+         //const Vector delPos=com - ri;
+         const Vector delPos=com;
+         //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
+         //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
+         const Vector accel=2*delPos/(dt*dt);
+         const Scalar deltamag = com.magnitude();
+         const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+         //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
+         //const Vector accel=2*delPos/(dt*dt*mi);
+         printf("DVDT=%10.3e, accell=%10.3e\n",DvDti[0],accel[0]);
+         printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+         DvDti += accel;
+         
+      }
+//*/
+
       // The specific thermal energy evolution.
       // DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
       DepsDti = -Pi/rhoi * DvDxi.Trace();
