@@ -284,7 +284,7 @@ TRIANGLEDIR = $(TRIANGLEDIST:.zip=)
 
 # Tetgen (needed by polytope)
 TETGENDIST = tetgen1.4.3.tar.gz
-TETGENURL = http://tetgen.org/files/$(TETGENDIST)
+TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
@@ -1173,7 +1173,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
+	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
