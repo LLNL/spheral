@@ -498,20 +498,6 @@ namespace FractalSpace
 	if(FFTRank == 0) cout << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << "\n";
       assert(allok);
     }
-    /*
-    void How_Many_On_Nodes(const int& count,vector <int>& counts)
-    {
-      counts.resize(FractalNodes);
-      int* counts_out=new int[1];
-      int* counts_in=new int[FractalNodes];
-      counts_out[0]=count;
-      MPI_Allgather(counts_out,1,MPI_INT,counts_in,1,MPI_INT,FractalWorld);
-      for(int ni=0;ni<FractalNodes;ni++)
-	counts[ni]=counts_in[ni];
-      delete [] counts_out;
-      delete [] counts_in; 
-    }
-    */
     template <class T> void How_Many_On_Nodes(T count,vector <T>& counts)
     {
       counts.resize(FractalNodes);
@@ -1667,83 +1653,57 @@ namespace FractalSpace
     }
     void calc_total_particles(const int& NP)
     {
-      long int particles[1]={NP};
+      //      long int particles[1]={NP};
+      vector <long int> particles(1);
+      particles[0]=NP;
       Find_Sum_LONG_INT(particles,1);
       number_particles_total=particles[0];
     }
     void Find_Max_INT(vector <int>& integers,int how_long)
     {
-      //      int* maxy=new int[how_long];
-      vector <int> maxy(how_long);
-      MPI_Allreduce(&(*integers.begin()),&(*maxy.begin()),how_long,MPI_INT,MPI_MAX,FractalWorld);
-      integers=maxy;
+      int ROOT=FractalNodes/2;
+      Find_Max_INT_to_ROOT(integers,how_long,ROOT);
+      Send_INT_from_ROOT(integers,how_long,ROOT);
     }
-    void Find_Max_INT(int* integers,const int& how_long)
+    void Find_Max_DOUBLE(vector <double>& doubles,int how_long)
     {
-      int* maxy=new int[how_long];
-      MPI_Allreduce(integers,maxy,how_long,MPI_INT,MPI_MAX,FractalWorld);
-      //      std::copy(maxy,maxy+how_long,integers);
-      for(int ni=0;ni<how_long;ni++)
-	integers[ni]=maxy[ni];
-      delete [] maxy;
+      int ROOT=FractalNodes/2;
+      Find_Max_DOUBLE_to_ROOT(doubles,how_long,ROOT);
+      Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
     }
-    void Find_Max_DOUBLE(double* doubles,const int& how_long)
+    void Find_Sum_LONG_INT(vector <long int>& integers,int how_long)
     {
-      double* maxy=new double[how_long];
-      MPI_Allreduce(doubles,maxy,how_long,MPI_DOUBLE,MPI_MAX,FractalWorld);
-      //      std::copy(maxy,maxy+how_long,doubles);
-      for(int ni=0;ni<how_long;ni++)
-	doubles[ni]=maxy[ni];
-      delete [] maxy;
+      int ROOT=FractalNodes/2;
+      Find_Sum_LONG_INT_to_ROOT(integers,how_long,ROOT);
+      Send_LONG_INT_from_ROOT(integers,how_long,ROOT);
     }
     void Find_Sum_INT(vector <int>& integers,int how_long)
     {
-      vector <int>sumup(how_long);
-      MPI_Allreduce(&(*integers.begin()),&(*sumup.begin()),how_long,MPI_INT,MPI_SUM,FractalWorld);
-      integers=sumup;
+      int ROOT=FractalNodes/2;
+      Find_Sum_INT_to_ROOT(integers,how_long,ROOT);
+      Send_INT_from_ROOT(integers,how_long,ROOT);
     }
-    void Find_Sum_LONG_INT(vector <long int>& integers,long int how_long)
+    void Find_Sum_DOUBLE(vector <double>& doubles,int how_long)
     {
-      vector <long int>sumup(how_long);
-      MPI_Allreduce(&(*integers.begin()),&(*sumup.begin()),how_long,MPI_LONG,MPI_SUM,FractalWorld);
-      integers=sumup;
+      int ROOT=FractalNodes/2;
+      Find_Sum_DOUBLE_to_ROOT(doubles,how_long,ROOT);
+      Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
     }
-    void Find_Sum_INT(int* integers,const int& how_long)
+    void Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT)
     {
-      int* sumup=new int[how_long];
-      MPI_Allreduce(integers,sumup,how_long,MPI_INT,MPI_SUM,FractalWorld);
-      //      std::copy(sumup,sumup+how_long,integers);
-      for(int ni=0;ni<how_long;ni++)
-	integers[ni]=sumup[ni];
-      delete [] sumup;
+      MPI_Bcast(numbers,how_long,MPI_INT,ROOT,FractalWorld);
     }
-    void Find_Sum_LONG_INT(long int* integers,const int& how_long)
+    void Find_Max_INT_to_ROOT(vector <int>& numbers,int how_long,int ROOT)
     {
-      long int* sumup=new long int[how_long];
-      MPI_Allreduce(integers,sumup,how_long,MPI_LONG,MPI_SUM,FractalWorld);
-      //      std::copy(sumup,sumup+how_long,integers);
-      for(int ni=0;ni<how_long;ni++)
-	integers[ni]=sumup[ni];
-      delete [] sumup;
+      vector <int> maxi(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*maxi.begin()),how_long,MPI_INT,MPI_MAX,ROOT,FractalWorld);
+      numbers=maxi;
     }
-    void Find_Sum_DOUBLE(vector <double>& doubles,const int& how_long)
+    void Find_Max_DOUBLE_to_ROOT(vector <double>& numbers,int how_long,int ROOT)
     {
-      double* doublesa=new double[how_long];
-      for(int ni=0;ni<how_long;ni++)
-	doublesa[ni]=doubles[ni];
-      double* doublesb=new double[how_long];
-      MPI_Allreduce(doublesa,doublesb,how_long,MPI_DOUBLE,MPI_SUM,FractalWorld);
-      //      std::copy(doublesb,doublesb+how_long,doubles.begin());
-      for(int ni=0;ni<how_long;ni++)
-	doubles[ni]=doublesb[ni];
-      delete [] doublesa;
-      delete [] doublesb;
-    }
-    void Find_Sum_DOUBLE_to_ROOT(vector <double>& numbers,int how_long,int ROOT)
-    {
-      vector <double> sumup(how_long);
-      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,FractalWorld);
-      numbers=sumup;
+      vector <double> maxr(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*maxr.begin()),how_long,MPI_DOUBLE,MPI_MAX,ROOT,FractalWorld);
+      numbers=maxr;
     }
     void Find_Sum_INT_to_ROOT(vector <int>& numbers,int how_long,int ROOT)
     {
@@ -1751,33 +1711,29 @@ namespace FractalSpace
       MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_INT,MPI_SUM,ROOT,FractalWorld);
       numbers=sumup;
     }
-    void Find_Sum_INT_to_ROOT(int* numbers,const int& how_long,const int& ROOT)
+    void Find_Sum_LONG_INT_to_ROOT(vector <long int>& numbers,int how_long,int ROOT)
     {
-      int* sumup=new int[how_long];
-      MPI_Reduce(numbers,sumup,how_long,MPI_INT,MPI_SUM,ROOT,FractalWorld);
-      //      std::copy(sumup,sumup+how_long,numbers);
-      for(int ni=0;ni<how_long;ni++)
-	numbers[ni]=sumup[ni];
-      delete [] sumup;
+      vector <long int> sumup(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_LONG,MPI_SUM,ROOT,FractalWorld);
+      numbers=sumup;
+    }
+    void Find_Sum_DOUBLE_to_ROOT(vector <double>& numbers,int how_long,int ROOT)
+    {
+      vector <double> sumup(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,FractalWorld);
+      numbers=sumup;
     }
     void Send_INT_from_ROOT(vector <int>& numbers,int how_long,int ROOT)
     {
-      /*
-	int *numbersa= new int[how_long];
-	for(int ni=0;ni<how_long;ni++)
-	numbersa[ni]=numbers[ni];
-	MPI_Bcast(numbersa,how_long,MPI_INT,ROOT,FractalWorld);
-      */
       MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT,FractalWorld);
-      /*
-	for(int ni=0;ni<how_long;ni++)
-	numbers[ni]=numbersa[ni];
-	delete [] numbersa;
-      */
     }
-    void Send_INT_from_ROOT(int* numbers,const int& how_long,const int& ROOT)
+    void Send_LONG_INT_from_ROOT(vector <long int>& numbers,int how_long,int ROOT)
     {
-      MPI_Bcast(numbers,how_long,MPI_INT,ROOT,FractalWorld);
+      MPI_Bcast(&(*numbers.begin()),how_long,MPI_LONG,ROOT,FractalWorld);
+    }
+    void Send_DOUBLE_from_ROOT(vector <double>& numbers,int how_long,int ROOT)
+    {
+      MPI_Bcast(&(*numbers.begin()),how_long,MPI_DOUBLE,ROOT,FractalWorld);
     }
     void Full_Stop()
     {
