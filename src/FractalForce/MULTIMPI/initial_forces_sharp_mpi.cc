@@ -18,11 +18,12 @@ namespace FractalSpace
 	if(mem.all_groups[level].size() > 0)
 	  highest_level_used=level;
       }
-    int* used= new int[1];
+    //    int* used= new int[1];
+    vector <int>used(1);
     used[0]=highest_level_used;
     mem.p_mess->Find_Max_INT(used,1);
     highest_level_used=used[0];
-    delete [] used;
+    //    delete [] used;
     int length=frac.get_grid_length();
     double length_5=pow(static_cast<double>(length),-5);
     assert(length >0);
