@@ -127,6 +127,9 @@ namespace FractalSpace
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
+  void shrink_cube(vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
+		   int number_particles,vector <double>& xmini,vector <double>& xmaxy);
   void slices_to_potf(Group& group,Fractal_Memory& mem,Fractal& frac);
   void slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,const int& lev);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
