@@ -32,8 +32,11 @@ int main(int argc, char* argv[])
   int NumberParticles=100000;
   if(argc >= 7)
     NumberParticles=atoi(argv[6]);
+  bool SHRINK=false;
+  if(argc >= 8)
+    SHRINK=atoi(argv[7]) != 0;
   cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-  cout << " " << NumberParticles << "\n";
+  cout << " " << NumberParticles << " " << SHRINK << "\n";
 
   Fractal_Memory* PFM=fractal_memory_create();
   int balance=1;
@@ -83,6 +86,8 @@ int main(int argc, char* argv[])
   std::srand(9973+256*FractalRank);
   vector <double> xmin(3,-60.0);
   vector <double> xmax(3,50.0);
+  vector <double> xmini(3);
+  vector <double> xmaxy(3);
   double total_mass=1.0e9;
   double G=3.141592;
   long int TotalNumberParticles=PFM->p_mess->number_particles_total;
@@ -111,15 +116,19 @@ int main(int argc, char* argv[])
   fprintf(PFFM," info %d %13.4E %13.4E %10.2E %10.2E \n",NumberParticles,m,total_mass,PFM->time,PFM->step_length);
   for(int step=0;step<PFM->number_steps_total;step++)
     {
+      xmini=xmin;
+      xmaxy=xmax;
+      if(SHRINK)
+	shrink_cube(xmin,xmax,PFM,posx,posy,posz,NumberParticles,xmini,xmaxy);
       fractal_create(PFM);
-      add_particles(PFM,0,NumberParticles,xmin,xmax,posx,posy,posz,masses);
+      add_particles(PFM,0,NumberParticles,xmini,xmaxy,posx,posy,posz,masses);
       if(PFM->balance > 0)
 	balance_by_particles(PFM);
       do_fractal_force(PFM);
-      take_a_leap_isol(PFM,masses,G,xmin,xmax,posx,posy,posz,velx,vely,velz);
-      am_I_conservative_enough_isol(PFM,masses,G,xmin,xmax,-0.5,posx,posy,posz,velx,vely,velz);
+      take_a_leap_isol(PFM,masses,G,xmini,xmaxy,posx,posy,posz,velx,vely,velz);
+      am_I_conservative_enough_isol(PFM,masses,G,xmini,xmaxy,-0.5,posx,posy,posz,velx,vely,velz);
       if(step % PFM->number_steps_out == 0)
-	start_writing(PFM,NumberParticles,G,xmin,xmax,posx,posy,posz,velx,vely,velz,masses);
+	start_writing(PFM,NumberParticles,G,xmini,xmaxy,posx,posy,posz,velx,vely,velz,masses);
       fractal_delete(PFM);
       //      PFM->p_file->FlushAll();
     }

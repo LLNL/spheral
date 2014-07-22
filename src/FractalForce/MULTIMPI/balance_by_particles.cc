@@ -6,6 +6,8 @@ namespace FractalSpace
   void balance_by_particles(Fractal_Memory* PFM)
   {
     double time0=PFM->p_mess->Clock();
+    PFM->p_mess->Full_Stop();
+    double time1=PFM->p_mess->Clock();
     Fractal* PF=PFM->p_fractal;
     FILE* PFFM=PFM->p_file->PFFractalMemory;
     int FractalRank=PFM->p_mess->FractalRank;
@@ -56,7 +58,7 @@ namespace FractalSpace
     PFM->p_mess->Send_INT_from_ROOT(upperz,FractalNodes2,ROOTZ);
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       alowerz[FRZ]=lowerz[FRZ];	  
-    double time1=PFM->p_mess->Clock();
+    double time2=PFM->p_mess->Clock();
 
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -115,7 +117,7 @@ namespace FractalSpace
 	  alowery[FRZ][FRY]=lowery[FRZ][FRY];
       }
 
-    double time2=PFM->p_mess->Clock();
+    double time3=PFM->p_mess->Clock();
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
@@ -175,7 +177,7 @@ namespace FractalSpace
 	  }
       }
 
-    double time3=PFM->p_mess->Clock();
+    double time4=PFM->p_mess->Clock();
     int FR=0;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -224,7 +226,7 @@ namespace FractalSpace
 	      }
 	  }
       }
-    double time4=PFM->p_mess->Clock();
+    double time5=PFM->p_mess->Clock();
     PFM->p_file->note(true," made new Boxes with equal smart particles ");
     PFM->calc_Buffers_and_more();
     PFM->p_file->note(true," made new Buffers with equal smart particles ");
@@ -232,7 +234,7 @@ namespace FractalSpace
     PFM->p_file->note(true," made new RealBoxes with equal smart particles ");
     PF->redo(PFM);
     PFM->p_file->note(true," redo fractal ");
-    double time5=PFM->p_mess->Clock();
-    fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time5-time0);
+    double time6=PFM->p_mess->Clock();
+    fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time6-time1);
   }
 }
