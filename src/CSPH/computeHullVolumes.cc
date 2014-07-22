@@ -58,7 +58,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
              ++jItr) {
           const int j = *jItr;
           const Vector& rj = position(nodeListj, j);
-          const Vector rji = rj - ri,
+          const Vector rji = 0.5*(rj - ri),
                        rjiHat = rji.unitVector();
           positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
         }

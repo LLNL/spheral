@@ -451,6 +451,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
+
   CHECK(vol.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -789,22 +791,28 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar mag0 = vi.magnitude();
       //printf("MAG0=%10.3e",mag0);
       
-      if (dt > 0.0 && mag0>0.0) {
-         FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
+      if (dt > 0.0) {
          const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
          const Vector dhat = com.unitVector();
          //const Vector delPos=com - ri;
+         const Scalar a0 = DvDti.magnitude();
          const Vector delPos=com;
          //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
          //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
-         const Vector accel=2*delPos/(dt*dt);
          const Scalar deltamag = com.magnitude();
+         //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
+         const Vector accel=2*delPos/(dt*dt);
+         const Scalar a1 = accel.magnitude();
+         const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
+         //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
+
          const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
          //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
          //const Vector accel=2*delPos/(dt*dt*mi);
-         printf("DVDT=%10.3e, accell=%10.3e\n",DvDti[0],accel[0]);
+         printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
          printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
-         DvDti += accel;
+         //DvDti += accel;
+         DvDti += delta;
          
       }
 //*/
@@ -1014,7 +1022,7 @@ finalize(const typename Dimension::Scalar time,
             const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi),
                          dhat = com.unitVector();
             const Scalar deltamag = com.magnitude();
-            ri += std::min(mfilter*mag0, deltamag)*dhat;
+            //ri += std::min(mfilter*mag0, deltamag)*dhat;
           }
         }
       }
