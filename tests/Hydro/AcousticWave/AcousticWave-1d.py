@@ -10,6 +10,8 @@ from SpheralTestUtilities import *
 import mpi
 import numpy as np
 
+from CSPH_mod_package import *
+
 def smooth(x,window_len=11,window='hanning'):
         if x.ndim != 1:
                 raise ValueError, "smooth only accepts 1 dimension arrays."
@@ -217,6 +219,8 @@ elif CSPH:
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
                       HUpdate = HEvolution)
+    CSPH_mod = CSPH_mod_package()
+
 elif TSPH:
     hydro = TaylorSPHHydro(WT, q,
                            cfl = cfl,
@@ -248,6 +252,8 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 integrator.appendPhysicsPackage(hydro)
+if CSPH:
+   integrator.appendPhysicsPackage(CSPH_mod)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
