@@ -722,18 +722,40 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              // const Vector deltaDvDti = (Pi - Pj)*gradWj/rhoi - Qaccj;
-              // const Vector deltaDvDtj = (Pi - Pj)*gradWi/rhoj + Qaccj;
-              const Vector deltaDvDti = weightj*rhoj*(Pi - Pj)*gradWj/(rhoi*rhoi) - mj*(Qacci + Qaccj);
-              const Vector deltaDvDtj = weighti*rhoi*(Pi - Pj)*gradWi/(rhoj*rhoj) + mi*(Qacci + Qaccj);
-              // const Vector deltaDvDti = rhoj*(Pi - Pj + Qi + Qj)*gradWj/(rhoi*rhoi);
-              // const Vector deltaDvDtj = rhoi*(Pi - Pj + Qi + Qj)*gradWi/(rhoj*rhoj);
-              // const Vector deltaDvDti = -Pj*gradWj/rhoi - Qaccj;
-              // const Vector deltaDvDtj =  Pi*gradWi/rhoj + Qacci;
-              // const Vector deltaDvDti = -weightj*Pj/rhoi*gradWj - mj*(Qacci + Qaccj);
-              // const Vector deltaDvDtj =  weighti*Pi/rhoj*gradWi + mi*(Qacci + Qaccj);
-              // const Vector deltaDvDti = weightj*(Pi - Pj)/(rhoi)*gradWj - mj*(Qacci + Qaccj);
-              // const Vector deltaDvDtj = weighti*(Pi - Pj)/(rhoj)*gradWi + mi*(Qacci + Qaccj);
+
+              // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
+
+              Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
+              Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+
+              // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
+              // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
+
+              // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
+
+              // Vector deltaDvDti = -(Pj + Pi*FastMath::square(weightj/weighti))/(weighti*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // Vector deltaDvDtj =  (Pi + Pj*FastMath::square(weighti/weightj))/(weightj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
+
+              // Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
+              // Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+
+              // const Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj - mj*(Qacci + Qaccj);
+              // const Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + mi*(Qacci + Qaccj);
+
+              // const Tensor Qii = rhoi*rhoi*QPiij.first;
+              // const Tensor Qjj = rhoj*rhoj*QPiij.second;
+              // const Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj + weightj*weightj/(weighti*rhoi)*(Qii - Qjj)*gradWj;
+              // const Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + weighti*weighti/(weightj*rhoj)*(Qii - Qjj)*gradWi;
+
+              // const Vector deltaDvDti = mj*weightj/(mi*rhoi)*(Pi - Pj)*gradWj - mj*(Qacci + Qaccj);
+              // const Vector deltaDvDtj = mi*weighti/(mj*rhoj)*(Pi - Pj)*gradWi + mi*(Qacci + Qaccj);
+
+              const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
+              deltaDvDti = deltaDvDtij;
+              deltaDvDtj = -mi/mj*deltaDvDtij;
+              
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
@@ -786,7 +808,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the velocity gradient.
       DrhoDxi /= rhoi;
 
-///* 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
       //printf("MAG0=%10.3e",mag0);
@@ -806,16 +827,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
          //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
 
-         const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+         // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
          //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
          //const Vector accel=2*delPos/(dt*dt*mi);
-         printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
-         printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+         // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
+         // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
          //DvDti += accel;
          DvDti += delta;
-         
+      
       }
-//*/
 
       // The specific thermal energy evolution.
       // DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
@@ -1003,30 +1023,30 @@ finalize(const typename Dimension::Scalar time,
 
     // Add any filtering component to the node movement.
     // Note that the FacetedVolumes are in coordinates with the node at the origin already!
-    if (mfilter > 0.0) {
-      const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-      const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-      size_t nodeListi = 0;
-      for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-           itr != dataBase.fluidNodeListEnd();
-           ++itr, ++nodeListi) {
-        for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-             iItr != connectivityMap.end(nodeListi);
-             ++iItr) {
-          const int i = *iItr;
-          Vector& ri = position(nodeListi, i);
-          const Vector& DxDti = DxDt(nodeListi, i);
-          const Vector& DrhoDxi = DrhoDx(nodeListi, i);
-          const Scalar mag0 = DxDti.magnitude();
-          if (mag0 > 0.0) {
-            const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi),
-                         dhat = com.unitVector();
-            const Scalar deltamag = com.magnitude();
-            //ri += std::min(mfilter*mag0, deltamag)*dhat;
-          }
-        }
-      }
-    }
+    // if (mfilter > 0.0) {
+    //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+    //   const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+    //   size_t nodeListi = 0;
+    //   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+    //        itr != dataBase.fluidNodeListEnd();
+    //        ++itr, ++nodeListi) {
+    //     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+    //          iItr != connectivityMap.end(nodeListi);
+    //          ++iItr) {
+    //       const int i = *iItr;
+    //       Vector& ri = position(nodeListi, i);
+    //       const Vector& DxDti = DxDt(nodeListi, i);
+    //       const Vector& DrhoDxi = DrhoDx(nodeListi, i);
+    //       const Scalar mag0 = DxDti.magnitude();
+    //       if (mag0 > 0.0) {
+    //         const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi),
+    //                      dhat = com.unitVector();
+    //         const Scalar deltamag = com.magnitude();
+    //         ri += std::min(mfilter*mag0, deltamag)*dhat;
+    //       }
+    //     }
+    //   }
+    // }
 
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
