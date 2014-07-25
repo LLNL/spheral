@@ -652,8 +652,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-              CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Vector::zero, gradAi, Tensor::zero, Wj, gWj, gradWj);
+              CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, Aj, Vector::zero, gradAj, Tensor::zero, Wi, gWi, gradWi);
               const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
 

@@ -11,53 +11,57 @@ title("Interpolation tests")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
-            # Parameters for seeding nodes.
-            nx1 = 100,
-            rho1 = 1.0,
-            eps1 = 0.0,
-            x0 = 0.0,
-            x1 = 1.0,
-            nPerh = 1.25,
-            hmin = 0.0001, 
-            hmax = 10.0,
+    # Parameters for seeding nodes.
+    nx1 = 50,     
+    nx2 = 50,
+    rho1 = 1.0,
+    rho2 = 1.0,
+    eps1 = 0.0,
+    eps2 = 0.0,
+    x0 = 0.0,
+    x1 = 0.5,
+    x2 = 1.0,
+    nPerh = 1.25,
+    hmin = 0.0001, 
+    hmax = 10.0,
 
-            # Should we randomly perturb the positions?
-            ranfrac = 0.2,
-            seed = 14892042,
+    # Should we randomly perturb the positions?
+    ranfrac = 0.2,
+    seed = 14892042,
 
-            # What test problem are we doing?
-            testDim = "1d",
-            testCase = "linear",
+    # What test problem are we doing?
+    testDim = "1d",
+    testCase = "linear",
 
-            # The fields we're going to interpolate.
-            # Linear coefficients: y = y0 + m0*x
-            y0 = 1.0,
-            m0 = 1.0,
+    # The fields we're going to interpolate.
+    # Linear coefficients: y = y0 + m0*x
+    y0 = 1.0,
+    m0 = 1.0,
 
-            # Quadratic coefficients: y = y2 + m2*x^2
-            y2 = 1.0,
-            m2 = 0.5,
+    # Quadratic coefficients: y = y2 + m2*x^2
+    y2 = 1.0,
+    m2 = 0.5,
 
-            gamma = 5.0/3.0,
-            mu = 1.0,
+    gamma = 5.0/3.0,
+    mu = 1.0,
 
-            numGridLevels = 20,
-            topGridCellSize = 20.0,
+    numGridLevels = 20,
+    topGridCellSize = 20.0,
 
-            # Parameters for iterating H.
-            iterateH = True,
-            maxHIterations = 200,
-            Htolerance = 1.0e-8,
+    # Parameters for iterating H.
+    iterateH = True,
+    maxHIterations = 200,
+    Htolerance = 1.0e-8,
 
-            # Parameters for passing the test
-            interpolationTolerance = 5.0e-7,
-            derivativeTolerance = 5.0e-5,
+    # Parameters for passing the test
+    interpolationTolerance = 5.0e-7,
+    derivativeTolerance = 5.0e-5,
 
-            graphics = True,
-            plotKernels = False,
-            )
+    graphics = True,
+    plotKernels = False,
+)
 
-assert testCase in ("linear", "quadratic")
+assert testCase in ("linear", "quadratic", "step")
 assert testDim in ("1d", "2d", "3d")
 
 #-------------------------------------------------------------------------------
@@ -104,19 +108,28 @@ output("nodes1.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))], nPerh = nPerh)
+distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)),
+                                    (nx2, rho2, (x1, x2))])], nPerh = nPerh)
 output("nodes1.numNodes")
 
-# Set node specific thermal energies
-nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
+# Set node properties.
+eps = nodes1.specificThermalEnergy()
+for i in xrange(nx1):
+    eps[i] = eps1
+for i in xrange(nx2):
+    eps[i + nx1] = eps2
 
 #-------------------------------------------------------------------------------
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
-dx = (x1 - x0)/nx1
+dx1 = (x1 - x0)/nx1
+dx2 = (x2 - x1)/nx2
 for i in xrange(nodes1.numInternalNodes):
-    nodes1.positions()[i].x += ranfrac * rangen.uniform(-1.0, 1.0)
+    if i < nx1:
+        dx = dx1
+    else:
+        dx = dx2
+    nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -150,6 +163,11 @@ for i in xrange(nodes1.numInternalNodes):
         f[i] = y0 + m0*x
     elif testCase == "quadratic":
         f[i] = y2 + m2*x*x
+    elif testCase == "step":
+        if x < x1:
+            f[i] = y0
+        else:
+            f[i] = 2*y0
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
@@ -159,6 +177,7 @@ fCSPH = ScalarField("CSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
 dfCSPH = VectorField("CSPH derivative values", nodes1)
 
+A0_fl = db.newFluidScalarFieldList(0.0, "A0")
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
 C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
@@ -172,8 +191,30 @@ position_fl = db.fluidPosition
 weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
+# Compute the volumes to use as weighting.
+polyvol_fl = db.newFluidFacetedVolumeFieldList(Box1d(), "polyvols")
+weight_fl = db.newFluidScalarFieldList(0.0, "volume")
+computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
+
+# We have to correct the volumes of the end points.
+for i in xrange(nodes1.numInternalNodes):
+    ri = position_fl[0][i]
+    polyvoli = polyvol_fl[0][i]
+    if polyvoli.xmin.x < x0:
+        vv = vector_of_Vector()
+        vv.append(Vector(x0))
+        vv.append(polyvoli.xmax)
+        polyvoli = Box1d(vv)
+        weight_fl[0][i] = polyvoli.volume
+    elif polyvoli.xmax.x > x2:
+        vv = vector_of_Vector()
+        vv.append(polyvoli.xmin)
+        vv.append(Vector(x2))
+        polyvoli = Box1d(vv)
+        weight_fl[0][i] = polyvoli.volume
+
 computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl,
-                       A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
+                       A0_fl, A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
@@ -262,6 +303,9 @@ if testCase == "linear":
 elif testCase == "quadratic":
     yans = [y2 + m2*x*x for x in xans]
     dyans = [2*m2*x for x in xans]
+elif testCase == "step":
+    yans = [y0 for i in xrange(nx1)] + [2*y0 for i in xrange(nx2)]
+    dyans = [0.0 for x in xans]
 
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.

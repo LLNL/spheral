@@ -44,9 +44,9 @@ class CSPH:
         self.generateCSPHHydroBaseBindings(self.CSPHHydroBase2d, 2)
         self.generateCSPHHydroBaseBindings(self.CSPHHydroBase3d, 3)
         
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        self.generateDimBindings(mod, 1)
+        self.generateDimBindings(mod, 2)
+        self.generateDimBindings(mod, 3)
 
         return
 
@@ -59,7 +59,7 @@ class CSPH:
     #---------------------------------------------------------------------------
     # Add the types per dimension.
     #---------------------------------------------------------------------------
-    def generateDimBindings(self, ndim):
+    def generateDimBindings(self, mod, ndim):
 
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
@@ -69,6 +69,7 @@ class CSPH:
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
         polyvol = {1: "Box1d", 
@@ -138,6 +139,15 @@ class CSPH:
                                 [constrefparam(polyvol, "polyvol"),
                                  constrefparam(vector, "gradRhoi")],
                                 docstring = "Compute the center of mass for a %s assuming a linear density field." % polyvol)
+
+        # Compute the hull volume for each point.
+        Spheral = mod.add_cpp_namespace("Spheral")
+        Spheral.add_function("computeHullVolumes", None,
+                             [constrefparam(connectivitymap, "connectivityMap"),
+                              constrefparam(vectorfieldlist, "position"),
+                              refparam(polyvolfieldlist, "polyvol"),
+                              refparam(scalarfieldlist, "volume")],
+                             docstring = "Compute the hull volume for each point in a FieldList of positions.")
 
         return
 

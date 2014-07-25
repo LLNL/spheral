@@ -572,6 +572,7 @@ class Geometry:
         x.add_instance_attribute("extent", "double", getter = "extent", setter = "extent")
         x.add_instance_attribute("xmin", "Vector1d", getter = "xmin", is_const = True)
         x.add_instance_attribute("xmax", "Vector1d", getter = "xmax", is_const = True)
+        x.add_instance_attribute("volume", "double", getter="volume", is_const=True)
     
         # Methods.
         x.add_method("contains", "bool", [constrefparam("Vector1d", "point"),
