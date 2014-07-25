@@ -252,8 +252,8 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 integrator.appendPhysicsPackage(hydro)
-if CSPH:
-   integrator.appendPhysicsPackage(CSPH_mod)
+#if CSPH:
+#   integrator.appendPhysicsPackage(CSPH_mod)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
