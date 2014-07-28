@@ -294,6 +294,15 @@ for i in xrange(nodes1.numInternalNodes):
     dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
+# We also check the C++ gradient method.
+#-------------------------------------------------------------------------------
+f_fl = ScalarFieldList()
+f_fl.appendField(f)
+dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
+                         A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,
+                         cm, WT)
+
+#-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
@@ -407,6 +416,11 @@ if graphics:
     p4.replot(errdCSPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
+
+    p5 = plotFieldList(dfCSPH_fl, 
+                       yFunction = "%s.x",
+                       winTitle = "C++ grad CSPH",
+                       colorNodeLists = False)
 
 if plotKernels:
     import Gnuplot

@@ -8,6 +8,7 @@
 #include "CSPH/computeCSPHCorrections.hh"
 #include "CSPH/centerOfMass.hh"
 #include "CSPH/computeHullVolumes.hh"
+#include "CSPH/gradientCSPH.hh"
 
 namespace Spheral {
 namespace CSPHSpace {

@@ -9,7 +9,8 @@ SRCTARGETS = \
 	computeCSPHCorrectionsInst.cc \
 	computeHullVolumesInst.cc \
 	centerOfMass.cc \
-	CSPHHydroBaseInst.cc
+	CSPHHydroBaseInst.cc \
+	gradientCSPHInst.cc
 
 PYTHONTARGETS = \
 	CSPHHydros.py

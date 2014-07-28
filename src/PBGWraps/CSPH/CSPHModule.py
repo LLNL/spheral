@@ -134,6 +134,40 @@ class CSPH:
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHCorrections%id" % ndim)
 
+        # Scalar gradient.
+        self.space.add_function("gradientCSPH", vectorfieldlist,
+                                [constrefparam(scalarfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(vectorfieldlist, "C"),
+                                 constrefparam(tensorfieldlist, "D"),
+                                 constrefparam(vectorfieldlist, "gradA"),
+                                 constrefparam(tensorfieldlist, "gradB"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, "double"],
+                                custom_name = "gradientCSPH")
+
+        # Vector gradient.
+        self.space.add_function("gradientCSPH", tensorfieldlist,
+                                [constrefparam(vectorfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(vectorfieldlist, "C"),
+                                 constrefparam(tensorfieldlist, "D"),
+                                 constrefparam(vectorfieldlist, "gradA"),
+                                 constrefparam(tensorfieldlist, "gradB"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, vector],
+                                custom_name = "gradientCSPH")
+
         # Center of mass with linear density gradient.
         self.space.add_function("centerOfMass", vector,
                                 [constrefparam(polyvol, "polyvol"),
