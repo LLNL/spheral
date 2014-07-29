@@ -231,7 +231,7 @@ update(const KeyType& key,
       const Vector& ai = acceleration(nodeListi, i);
       const Vector vi12 = vi + ai*hdt;
       const vector<Vector>& pacci = pairAccelerations(nodeListi, i);
-      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+      CHECK(pacci.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i) + 1);
 
       // Get the connectivity (neighbor set) for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -261,7 +261,7 @@ update(const KeyType& key,
               const Vector& aj = acceleration(nodeListj, j);
               const Vector vj12 = vj + aj*hdt;
               const vector<Vector>& paccj = pairAccelerations(nodeListj, j);
-              CHECK(j >= firstGhostNodej or paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
+              CHECK(j >= firstGhostNodej or paccj.size() == connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j) + 1);
 
               CHECK(offset(nodeListi, i) < pacci.size());
               const Vector& pai = pacci[offset(nodeListi, i)];
@@ -283,6 +283,13 @@ update(const KeyType& key,
           }
         }
       }
+
+      // Add the self-interaction term.
+      CHECK(offset(nodeListi, i) < pacci.size());
+      const Vector pai = pacci[offset(nodeListi, i)];
+      ++offset(nodeListi, i);
+      const Scalar duii = -vi12.dot(pai);
+      DepsDti += duii;
 
       // Now we can update the energy.
       CHECK(offset(nodeListi, i) == pacci.size());
