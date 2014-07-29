@@ -43,6 +43,7 @@
 #include "FileIO/FileIO.hh"
 
 #include "SPH/computeSPHSumMassDensity.hh"
+#include "gradientCSPH.hh"
 
 namespace Spheral {
 namespace CSPHSpace {
@@ -582,6 +583,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
+      // Bizarrely, in CSPH there is a self-contribution to gradients.  We need this 
+      // term to compute those.
+      const Scalar W0 = W.kernelValue(0.0, Hdeti);
+      const Vector selfGradContrib = W0*(Ai*Bi + gradAi);
+
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
 
@@ -653,7 +659,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
               CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-              CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
 
@@ -674,24 +680,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = weightj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj = weighti*vij.dyad(gradWi);
-              DvDxi -= deltaDvDxi;
-              DvDxj -= deltaDvDxj;
+              const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
+              const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
+              // const Tensor deltaDvDxi = weightj*vij.dyad(gradWj);
+              // const Tensor deltaDvDxj = weighti*vij.dyad(gradWi);
+              DvDxi += deltaDvDxi;
+              DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
-                localDvDxi -= deltaDvDxi;
-                localDvDxj -= deltaDvDxj;
+                localDvDxi += deltaDvDxi;
+                localDvDxj += deltaDvDxj;
               }
 
               // Mass density gradient.
-              const Vector deltaDrhoDxi =  weightj*rhoj*gradWj;
-              const Vector deltaDrhoDxj = -weighti*rhoi*gradWi;
+              const Vector deltaDrhoDxi = weightj*rhoj*gradWj;
+              const Vector deltaDrhoDxj = weighti*rhoi*gradWi;
               DrhoDxi += deltaDrhoDxi;
               DrhoDxj += deltaDrhoDxj;
-
-              // Mass density evolution (CSPH).
-              DrhoDti -= -rhoi*deltaDvDxi.Trace();
-              DrhoDtj -= -rhoj*deltaDvDxj.Trace();
 
               // // Mass density evolution (SPH).
               // const double deltaDrhoDti = vij.dot(gradWSPHi);
@@ -726,7 +730,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
 
               Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
-              Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+              Vector deltaDvDtj = -weighti*Pi*gradWi/rhoj - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
 
               // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
               // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
@@ -751,9 +755,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector deltaDvDti = mj*weightj/(mi*rhoi)*(Pi - Pj)*gradWj - mj*(Qacci + Qaccj);
               // const Vector deltaDvDtj = mi*weighti/(mj*rhoj)*(Pi - Pj)*gradWi + mi*(Qacci + Qaccj);
 
-              const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
-              deltaDvDti = deltaDvDtij;
-              deltaDvDtj = -mi/mj*deltaDvDtij;
+              // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
+              // deltaDvDti = deltaDvDtij;
+              // deltaDvDtj = -mi/mj*deltaDvDtij;
               
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
@@ -780,10 +784,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
                 XSPHDeltaVi -= weightj*Wj*vij;
-                XSPHDeltaVj += weighti*Wi*vij;
+		XSPHDeltaVj += weighti*Wi*vij;
               }
 
-            }
+	    }
           }
         }
       }
@@ -799,13 +803,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
       // rhoSumi += mi*W(0.0, Hdeti);
 
-      // // Finish the velocity gradient.
-      // CHECK(rhoi > 0.0);
-      // DvDxi /= rhoi;
-      // localDvDxi /= rhoi;
+      // Finish the velocity gradient.
+      DvDxi += weighti*vi*selfGradContrib;
+      localDvDxi += weighti*vi*selfGradContrib;
 
-      // // Finish the velocity gradient.
-      // DrhoDxi /= rhoi;
+      // Time evolution of the mass density.
+      DrhoDti = -rhoi*DvDxi.Trace();
+
+      // Finish the acceleration.
+      const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
+      DvDti += deltaDvDtii;
+      pairAccelerationsi.push_back(deltaDvDtii);
 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
@@ -896,6 +904,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
+
+  // BLAGO!
+  // {
+  //   FieldList<Dimension, Tensor> DvDx_check = gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+  //   FieldList<Dimension, Vector> gradP_check = gradientCSPH(pressure, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+  //   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     for (size_t i = 0; i != DvDx[nodeListi]->numInternalElements(); ++i) {
+  // 	if (std::abs(DvDx(nodeListi, i).xx() - DvDx_check(nodeListi, i).xx()) > 1e-6)
+  // 	  cerr << "DVDX fail: (" << i << " " << DvDx(nodeListi, i) << " " << DvDx_check(nodeListi, i) << ") " << endl;
+  // 	const Vector DvDti_check = -gradP_check(nodeListi, i)/massDensity(nodeListi, i);
+  // 	if (std::abs(DvDt(nodeListi, i).x() - DvDti_check.x()) > 1.0e-6)
+  // 	  cerr << "DVDT fail: (" << i << " " << DvDt(nodeListi, i) << " " << DvDti_check << ") " << endl;
+  //     }
+  //   }
+  // }
+  // BLAGO!
+
 }
 
 //------------------------------------------------------------------------------
