@@ -284,15 +284,32 @@ update(const KeyType& key,
         }
       }
 
-      // Add the self-interaction term.
-      CHECK(offset(nodeListi, i) < pacci.size());
-      const Vector pai = pacci[offset(nodeListi, i)];
-      ++offset(nodeListi, i);
-      const Scalar duii = -vi12.dot(pai);
+      // Add the self-contribution.
+      const Scalar duii = -vi12.dot(pacci.back());
       DepsDti += duii;
 
+      // // Grab the self-interaction term.  We will distribute this amongst our neighbors.
+      // const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
+      // const Scalar dEii = -mi*vi12.dot(pacci.back())/numNeighbors;
+      // for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
+      //   const vector<int>& connectivity = fullConnectivity[nodeListj];
+      //   if (connectivity.size() > 0) {
+      // 	  const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+      //     for (vector<int>::const_iterator jitr = connectivity.begin();
+      //          jitr != connectivity.end();
+      //          ++jitr) {
+      //       const int j = *jitr;
+      // 	    Scalar& DepsDtj = DepsDt(nodeListj, j);
+      // 	    const Scalar& mj = mass(nodeListj, j);
+      // 	    DepsDtj += 0.5*dEii;
+      // 	    DepsDti += 0.5*dEii;
+      // 	  }
+      // 	}
+      // }
+      //      DepsDti += dEii;
+
       // Now we can update the energy.
-      CHECK(offset(nodeListi, i) == pacci.size());
+      CHECK(offset(nodeListi, i) == pacci.size() - 1);
       eps(nodeListi, i) += DepsDti*multiplier;
     }
   }
