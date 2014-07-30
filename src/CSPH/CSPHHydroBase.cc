@@ -813,7 +813,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the acceleration.
       const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
       DvDti += deltaDvDtii;
-      pairAccelerationsi.push_back(deltaDvDtii);
+      const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
+      pairAccelerationsi.push_back(deltaDvDtii/numNeighbors);
 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
