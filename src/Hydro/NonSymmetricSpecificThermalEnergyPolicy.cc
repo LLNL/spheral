@@ -271,7 +271,8 @@ update(const KeyType& key,
               const Vector& paj = paccj[offset(nodeListj, j)];
               ++offset(nodeListj, j);
 
-              const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
+              const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj) +
+                                    mi*vi12.dot(pacci.back()) + mj*vj12.dot(paccj.back()));
               const Scalar duij = dEij/mi;
               const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
@@ -284,9 +285,9 @@ update(const KeyType& key,
         }
       }
 
-      // Add the self-contribution.
-      const Scalar duii = -vi12.dot(pacci.back());
-      DepsDti += duii;
+      // // Add the self-contribution.
+      // const Scalar duii = -vi12.dot(pacci.back());
+      // DepsDti += duii;
 
       // // Grab the self-interaction term.  We will distribute this amongst our neighbors.
       // const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
