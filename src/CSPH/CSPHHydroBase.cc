@@ -620,6 +620,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar& cj = soundSpeed(nodeListj, j);
+              const Scalar& A0j = A0(nodeListj, j);
               const Scalar& Aj = A(nodeListj, j);
               const Vector& Bj = B(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
@@ -762,8 +763,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                pairAccelerationsi.push_back(deltaDvDti);
-                pairAccelerationsj.push_back(deltaDvDtj);
+                const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                const unsigned numNeighborsj = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
+                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
               }
 
               // // Acceleration (SPH form).
@@ -813,8 +820,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the acceleration.
       const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
       DvDti += deltaDvDtii;
-      const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
-      pairAccelerationsi.push_back(deltaDvDtii/numNeighbors);
 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
