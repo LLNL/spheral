@@ -271,8 +271,8 @@ update(const KeyType& key,
               const Vector& paj = paccj[offset(nodeListj, j)];
               ++offset(nodeListj, j);
 
-              const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj) +
-                                    mi*vi12.dot(pacci.back()) + mj*vj12.dot(paccj.back()));
+              const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
+                                    // mi*vi12.dot(pacci.back()) + mj*vj12.dot(paccj.back()));
               const Scalar duij = dEij/mi;
               const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
@@ -310,7 +310,7 @@ update(const KeyType& key,
       //      DepsDti += dEii;
 
       // Now we can update the energy.
-      CHECK(offset(nodeListi, i) == pacci.size() - 1);
+      CHECK(offset(nodeListi, i) == pacci.size());
       eps(nodeListi, i) += DepsDti*multiplier;
     }
   }
