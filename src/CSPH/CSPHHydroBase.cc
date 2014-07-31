@@ -739,23 +739,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
               Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
 
-              // Vector deltaDvDti = -(Pj + Pi*FastMath::square(weightj/weighti))/(weighti*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj =  (Pi + Pj*FastMath::square(weighti/weightj))/(weightj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
-
-              // Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
-              // Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
-
-              // const Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj - mj*(Qacci + Qaccj);
-              // const Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + mi*(Qacci + Qaccj);
-
-              // const Tensor Qii = rhoi*rhoi*QPiij.first;
-              // const Tensor Qjj = rhoj*rhoj*QPiij.second;
-              // const Vector deltaDvDti = weightj*weightj/(weighti*rhoi)*(Pi - Pj)*gradWj + weightj*weightj/(weighti*rhoi)*(Qii - Qjj)*gradWj;
-              // const Vector deltaDvDtj = weighti*weighti/(weightj*rhoj)*(Pi - Pj)*gradWi + weighti*weighti/(weightj*rhoj)*(Qii - Qjj)*gradWi;
-
-              // const Vector deltaDvDti = mj*weightj/(mi*rhoi)*(Pi - Pj)*gradWj - mj*(Qacci + Qaccj);
-              // const Vector deltaDvDtj = mi*weighti/(mj*rhoj)*(Pi - Pj)*gradWi + mi*(Qacci + Qaccj);
-
               // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
               // deltaDvDti = deltaDvDtij;
               // deltaDvDtj = -mi/mj*deltaDvDtij;
