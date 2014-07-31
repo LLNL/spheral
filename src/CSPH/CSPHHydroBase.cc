@@ -681,10 +681,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
-              const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
-              // const Tensor deltaDvDxi = weightj*vij.dyad(gradWj);
-              // const Tensor deltaDvDxj = weighti*vij.dyad(gradWi);
+              const Tensor deltaDvDxi = -weightj*mj/mi*vij.dyad(gradWj);
+              const Tensor deltaDvDxj =  weighti*mi/mj*vij.dyad(gradWi);
+              // const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
+              // const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
               DvDxi += deltaDvDxi;
               DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
@@ -728,16 +728,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
 
               // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
+              // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
 
-              Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
-              Vector deltaDvDtj = -weighti*Pi*gradWi/rhoj - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+              // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
+              // Vector deltaDvDtj = -weighti*Pi*gradWi/rhoj - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
 
               // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
               // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
 
-              // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+              Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
 
               // Vector deltaDvDti = -(Pj + Pi*FastMath::square(weightj/weighti))/(weighti*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
               // Vector deltaDvDtj =  (Pi + Pj*FastMath::square(weighti/weightj))/(weightj*rhoj)*gradWi + weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
@@ -769,8 +769,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 const unsigned numNeighborsj = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
                 const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
                 const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+                pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
               }
 
               // // Acceleration (SPH form).
@@ -810,16 +810,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
       // rhoSumi += mi*W(0.0, Hdeti);
 
-      // Finish the velocity gradient.
-      DvDxi += weighti*vi*selfGradContrib;
-      localDvDxi += weighti*vi*selfGradContrib;
+      // // Finish the velocity gradient.
+      // DvDxi += weighti*vi*selfGradContrib;
+      // localDvDxi += weighti*vi*selfGradContrib;
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
 
-      // Finish the acceleration.
-      const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
-      DvDti += deltaDvDtii;
+      // // Finish the acceleration.
+      // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
+      // DvDti += deltaDvDtii;
 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
