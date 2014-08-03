@@ -160,6 +160,7 @@ namespace FractalSpace
 			  PFM->FFTNodes,
 			  PFM->FractalWorld);
     PFM->p_mess=p_mess;
+    PFM->FFTNodes=PFM->p_mess->FFTNodes;
     p_mess->time_trial=PFM->time_trial;
     
     // Construct a File object. 
