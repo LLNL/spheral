@@ -28,6 +28,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
+#include "CSPHSpecificThermalEnergyPolicy.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -256,6 +257,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
     PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    // PolicyPointer thermalEnergyPolicy(new CSPHSpecificThermalEnergyPolicy<Dimension>(dataBase, this->kernel()));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
@@ -746,12 +748,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                const unsigned numNeighborsj = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
-                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                // const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                // const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                // const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                // const unsigned numNeighborsj = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
+                // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                // const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
                 pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
                 pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
               }

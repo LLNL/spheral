@@ -35,7 +35,8 @@ commandLine(KernelConstructor = BSplineKernel,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            HydroConstructor = SPHHydro,
+            SVPH = False,
+            CSPH = False,
             #Qconstructor = MonaghanGingoldViscosity,
             Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -56,6 +57,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassOrder = 0,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
+            filter = 0.01,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -69,7 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -200,26 +202,34 @@ output("q.limiter")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
-    hydro = HydroConstructor(WT, q,
+if SVPH:
+    hydro = SVPHFacetedHydro(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              generateVoid = False,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
+elif CSPH:
+    hydro = CSPHHydro(WT, WTPi, q,
+                      filter = filter,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              XSPH = XSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
