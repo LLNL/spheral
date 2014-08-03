@@ -161,13 +161,13 @@ namespace FractalSpace
 	      }
 	    FileFractal << " after var b " << mem.p_mess->FractalRank << " " << kx << "\n";
 	  }
-	FileFractal << " after var c " << mem.p_mess->FractalRank <<  endl;
+	//	FileFractal << " after var c " << mem.p_mess->FractalRank <<  endl;
 	mem.p_mess->fftw_complex_to_real();
-	FileFractal << " after var d " << mem.p_mess->FractalRank <<  endl;
+	//	FileFractal << " after var d " << mem.p_mess->FractalRank <<  endl;
 	Full_Stop(mem,39);
-	FileFractal << " after var e " << mem.p_mess->FractalRank <<  endl;
+	//	FileFractal << " after var e " << mem.p_mess->FractalRank <<  endl;
 	info_to_slices(mem,frac,lev);
-	FileFractal << " after var f " << mem.p_mess->FractalRank <<  endl;
+	//	FileFractal << " after var f " << mem.p_mess->FractalRank <<  endl;
 	if(!lev==0)
 	  {
 	    for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();

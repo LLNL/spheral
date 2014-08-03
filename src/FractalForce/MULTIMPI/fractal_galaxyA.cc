@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   if(argc >= 8)
     SHRINK=atoi(argv[7]) != 0;
   cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-  cout << " " << NumberParticles << " " << SHRINK << "\n";
+  cout << " " << NumberParticles << "\n";
 
   Fractal_Memory* PFM=fractal_memory_create();
   int balance=1;
@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
     sb="v";
   string sc="/jensv/galaxy/";
   string BaseDirectory=sa+sb+sc;
+  //  string BaseDirectory="/p/lscratchc/jensv/galaxy/";
   string RunIdentifier="NerdsRule";
   bool TimeTrial=true;
 
@@ -80,18 +81,8 @@ int main(int argc, char* argv[])
   PFM->setTimeTrial(TimeTrial);
   fractal_memory_setup(PFM);
 
-  int FractalNodes=PFM->p_mess->FractalNodes;
-  FFTNodes=PFM->p_mess->FFTNodes;
+  //  int FractalNodes=PFM->p_mess->FractalNodes;
   int FractalRank=PFM->p_mess->FractalRank;
-  if(FFTNodes < FractalNodes)
-    {
-      if(FractalRank < FFTNodes)
-	{
-	  NumberParticles*=0.1;
-	  PFM->setNumberParticles(NumberParticles);
-	}
-      PFM->p_mess->calc_total_particles(NumberParticles);
-    }
   std::srand(9973+256*FractalRank);
   vector <double> xmin(3,-60.0);
   vector <double> xmax(3,50.0);
@@ -132,7 +123,7 @@ int main(int argc, char* argv[])
       fractal_create(PFM);
       add_particles(PFM,0,NumberParticles,xmini,xmaxy,posx,posy,posz,masses);
       if(PFM->balance > 0)
-	balance_by_particles(PFM,true);
+	balance_by_particles(PFM);
       do_fractal_force(PFM);
       take_a_leap_isol(PFM,masses,G,xmini,xmaxy,posx,posy,posz,velx,vely,velz);
       am_I_conservative_enough_isol(PFM,masses,G,xmini,xmaxy,-0.5,posx,posy,posz,velx,vely,velz);

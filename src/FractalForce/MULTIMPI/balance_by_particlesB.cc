@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void balance_by_particles(Fractal_Memory* PFM)
+  void balance_by_particles(Fractal_Memory* PFM,bool withparts)
   {
     double time0=PFM->p_mess->Clock();
     PFM->p_mess->Full_Stop();
@@ -15,6 +15,10 @@ namespace FractalSpace
     const int FractalNodes1=PFM->FractalNodes1;
     const int FractalNodes2=PFM->FractalNodes2;
     const int FractalNodes=PFM->FractalNodes;
+
+    int how_many_particles=0;
+    if(withparts)
+      how_many_particles=PF->get_number_particles();
 
     double SHRINK=0.2;
     vector <double>targets(FractalNodes2+1);
@@ -50,7 +54,7 @@ namespace FractalSpace
     double alength=real_length;
     vector <double> numbersz(real_length,0.0);
     vector <double> pos(3);
-    for(int ni=0;ni < PF->get_number_particles();++ni)
+    for(int ni=0;ni < how_many_particles;++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
 	if(pos[0] < 0.0 || pos[0] >= 1.0 ||
@@ -100,7 +104,7 @@ namespace FractalSpace
 	//	cout << " lower upper Z " << FractalRank << " " << FRZ << " " << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
       }
     vector <int>numbert(FractalNodes2,0);
-    for(int ni=0;ni < PF->get_number_particles();++ni)
+    for(int ni=0;ni < how_many_particles;++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
 	if(pos[0] < 0.0 || pos[0] >= 1.0 ||
@@ -165,7 +169,7 @@ namespace FractalSpace
 	    //	    cout << " "   << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
 	  }
       }
-    for(int ni=0;ni < PF->get_number_particles();++ni)
+    for(int ni=0;ni < how_many_particles;++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
 	if(pos[0] < 0.0 || pos[0] >= 1.0 ||

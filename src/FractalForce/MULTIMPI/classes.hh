@@ -11,7 +11,7 @@ namespace FractalSpace
 }
 #include "file_class.hh"
 #include "misc_class.hh"
-#include "mess.hh"
+#include "messA.hh"
 #include "point_class.hh"
 #include "fractal_memory.hh"
 #include "group_class.hh"
