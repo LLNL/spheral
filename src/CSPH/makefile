@@ -10,7 +10,8 @@ SRCTARGETS = \
 	computeHullVolumesInst.cc \
 	centerOfMass.cc \
 	CSPHHydroBaseInst.cc \
-	gradientCSPHInst.cc
+	gradientCSPHInst.cc \
+#	CSPHSpecificThermalEnergyPolicyInst.cc
 
 PYTHONTARGETS = \
 	CSPHHydros.py
