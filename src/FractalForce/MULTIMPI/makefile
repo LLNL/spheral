@@ -518,8 +518,8 @@ add_pseudo_particles.o \
 adj_nina.o \
 am_I_conservative_enough_isol.o \
 assign_density.o \
-balance_by_particlesB.o \
-binary_balancingA.o \
+balance_by_particles.o \
+binary_balancing.o \
 buffer_points.o \
 candidate_points.o \
 check_for_edge_trouble.o \
