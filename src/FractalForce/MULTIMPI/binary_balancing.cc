@@ -4,7 +4,7 @@
 namespace FractalSpace
 {
   void binary_balancing(vector <double>& numbers,double minimum,
-			int Nodes,int length,vector <int>& lowers,vector <int>& uppers)
+			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers)
   {
     int too_few=3;
     int rank;
@@ -24,8 +24,8 @@ namespace FractalSpace
     snumbers.resize(length);
     for(int N=1;N<Nodes;N++)
       {
-	double aN=N;
-	double target=(sum_total*aN)/ANodes;
+	//	double aN=N;
+	double target=sum_total*targets[N];
 	lowers[N]=std::lower_bound(snumbers.begin(),snumbers.end(),target)-snumbers.begin();
 	uppers[N-1]=lowers[N];
 	//	cout << " SEARCH " << rank << " " << Nodes << " " << N << " " << target << " " << sum_total << " " << lowers[N] << "\n";
