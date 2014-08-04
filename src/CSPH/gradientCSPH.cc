@@ -43,7 +43,6 @@ gradientCSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-  REQUIRE(A0.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(C.size() == numNodeLists);
   REQUIRE(D.size() == numNodeLists);
