@@ -51,7 +51,7 @@ commandLine(
     # Parameters for iterating H.
     iterateH = True,
     maxHIterations = 200,
-    Htolerance = 1.0e-8,
+    Htolerance = 1.0e-4,
 
     # Parameters for passing the test
     interpolationTolerance = 5.0e-7,
@@ -107,9 +107,31 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)),
-                                    (nx2, rho2, (x1, x2))])], nPerh = nPerh)
+if testDim == "1d":
+    from DistributeNodes import distributeNodesInRange1d
+    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)),
+                                        (nx2, rho2, (x1, x2))])], nPerh = nPerh)
+elif testDim == "2d":
+    from DistributeNodes import distributeNodes2d
+    from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen1 = GenerateNodeDistribution2d(nx1, nx1, rho1,
+                                      distributionType = "lattice",
+                                      xmin = (x0, x0),
+                                      xmax = (x1, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen2 = GenerateNodeDistribution2d(nx2, nx2, rho2,
+                                      distributionType = "lattice",
+                                      xmin = (x1, x0),
+                                      xmax = (x2, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen = CompositeNodeDistribution(gen1, gen2)
+    distributeNodes2d((nodes1, gen))
+else:
+    raise ValueError, "3D test case not implemented yet."
+
 output("nodes1.numNodes")
 
 # Set node properties.
@@ -192,7 +214,12 @@ weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-polyvol_fl = db.newFluidFacetedVolumeFieldList(Box1d(), "polyvols")
+if testDim == "1d":
+    polyvol_fl = db.newFluidFacetedVolumeFieldList(Box1d(), "polyvols")
+elif testDim == "2d":
+    polyvol_fl = db.newFluidFacetedVolumeFieldList(Polygon(), "polyvols")
+else:
+    polyvol_fl = db.newFluidFacetedVolumeFieldList(Polyhedron(), "polyvols")
 weight_fl = db.newFluidScalarFieldList(0.0, "volume")
 computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
 
