@@ -64,6 +64,10 @@ commandLine(
 assert testCase in ("linear", "quadratic", "step")
 assert testDim in ("1d", "2d", "3d")
 
+FacetedVolume = {"1d" : Box1d,
+                 "2d" : Polygon,
+                 "3d" : Polyhedron}[testDim]
+
 #-------------------------------------------------------------------------------
 # Appropriately set generic object names based on the test dimensionality.
 #-------------------------------------------------------------------------------
@@ -214,32 +218,9 @@ weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
-if testDim == "1d":
-    polyvol_fl = db.newFluidFacetedVolumeFieldList(Box1d(), "polyvols")
-elif testDim == "2d":
-    polyvol_fl = db.newFluidFacetedVolumeFieldList(Polygon(), "polyvols")
-else:
-    polyvol_fl = db.newFluidFacetedVolumeFieldList(Polyhedron(), "polyvols")
+polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 weight_fl = db.newFluidScalarFieldList(0.0, "volume")
 computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-
-# We have to correct the volumes of the end points.
-for i in xrange(nodes1.numInternalNodes):
-    ri = position_fl[0][i]
-    polyvoli = polyvol_fl[0][i]
-    if polyvoli.xmin.x < x0:
-        vv = vector_of_Vector()
-        vv.append(Vector(x0))
-        vv.append(polyvoli.xmax)
-        polyvoli = Box1d(vv)
-        weight_fl[0][i] = polyvoli.volume
-    elif polyvoli.xmax.x > x2:
-        vv = vector_of_Vector()
-        vv.append(polyvoli.xmin)
-        vv.append(Vector(x2))
-        polyvoli = Box1d(vv)
-        weight_fl[0][i] = polyvoli.volume
-
 computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl,
                        A0_fl, A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
 
