@@ -61,8 +61,8 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(SPHERALDIR)/bin/cmake
-CMAKEDIST = cmake-2.8.11.tar.gz
-CMAKEURL = http://www.cmake.org/files/v2.8/$(CMAKEDIST)
+CMAKEDIST = cmake-3.0.1.tar.gz
+CMAKEURL = http://www.cmake.org/files/v3.0/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Gccxml
