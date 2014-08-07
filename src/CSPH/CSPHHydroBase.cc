@@ -806,19 +806,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
-                                                             nPerh,
-                                                             maxNumNeighbors);
+                                                             nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
                                                         ri,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
-                                                        numNeighborsi,
                                                         W,
                                                         hmin,
                                                         hmax,
                                                         hminratio,
                                                         nPerh,
-                                                        maxNumNeighbors);
+                                                        connectivityMap,
+                                                        nodeListi,
+                                                        i);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());

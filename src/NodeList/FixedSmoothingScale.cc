@@ -64,8 +64,7 @@ smoothingScaleDerivative(const SymTensor& H,
                          const Scalar hmin,
                          const Scalar hmax,
                          const Scalar hminratio,
-                         const Scalar nPerh,
-                         const int maxNumNeighbors) const {
+                         const Scalar nPerh) const {
   return SymTensor::zero;
 }
 
@@ -79,13 +78,14 @@ newSmoothingScale(const SymTensor& H,
                   const Vector& pos,
                   const Scalar zerothMoment,
                   const SymTensor& secondMoment,
-                  const int numNeighbors,
                   const TableKernel<Dimension>& W,
                   const Scalar hmin,
                   const Scalar hmax,
                   const Scalar hminratio,
                   const Scalar nPerh,
-                  const int maxNumNeighbors) const {
+                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const unsigned nodeListi,
+                  const unsigned i) const {
   return H;
 }
 
@@ -99,13 +99,14 @@ idealSmoothingScale(const SymTensor& H,
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const {
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const {
   return H;
 }
 

@@ -70,8 +70,7 @@ smoothingScaleDerivative(const SymTensor& H,
                          const Scalar hmin,
                          const Scalar hmax,
                          const Scalar hminratio,
-                         const Scalar nPerh,
-                         const int maxNumNeighbors) const {
+                         const Scalar nPerh) const {
   return -H/(Dimension::nDim)*DvDx.Trace();
 }
 
@@ -85,18 +84,18 @@ idealSmoothingScale(const SymTensor& H,
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const {
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const {
 
   // Pre-conditions.
   REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
   REQUIRE2(zerothMoment >= 0.0, zerothMoment);
-  REQUIRE2(numNeighbors >= 0, numNeighbors);
 
   // Determine the current effective number of nodes per smoothing scale.
   Scalar currentNodesPerSmoothingScale;
@@ -149,24 +148,26 @@ newSmoothingScale(const SymTensor& H,
                   const Vector& pos,
                   const Scalar zerothMoment,
                   const SymTensor& secondMoment,
-                  const int numNeighbors,
                   const TableKernel<Dimension>& W,
                   const Scalar hmin,
                   const Scalar hmax,
                   const Scalar hminratio,
                   const Scalar nPerh,
-                  const int maxNumNeighbors) const {
+                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const unsigned nodeListi,
+                  const unsigned i) const {
   return idealSmoothingScale(H, 
                              pos,
                              zerothMoment,
                              secondMoment,
-                             numNeighbors,
                              W,
                              hmin,
                              hmax,
                              hminratio,
                              nPerh,
-                             maxNumNeighbors);
+                             connectivityMap,
+                             nodeListi,
+                             i);
 }
 
 //------------------------------------------------------------------------------
