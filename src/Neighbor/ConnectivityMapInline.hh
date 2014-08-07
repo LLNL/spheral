@@ -133,6 +133,16 @@ numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
   return result;
 }
 
+template<typename Dimension>
+inline
+int
+ConnectivityMap<Dimension>::
+numNeighborsForNode(const int nodeListID,
+                    const int nodeID) const {
+  REQUIRE(nodeListID < mNodeLists.size());
+  return this->numNeighborsForNode(mNodeLists[nodeListID], nodeID);
+}
+
 //------------------------------------------------------------------------------
 // A single point to determine if in looping over nodes and neighbors the given
 // pair should be calculated or not when we are doing pairs simultaneously.
