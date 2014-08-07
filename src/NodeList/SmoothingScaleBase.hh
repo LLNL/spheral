@@ -57,7 +57,6 @@ public:
                                       const Scalar hmax,
                                       const Scalar hminratio,
                                       const Scalar nPerh,
-                                      const int maxNumNeighbors,
                                       FieldSpace::Field<Dimension, SymTensor>& DHDt,
                                       FieldSpace::Field<Dimension, SymTensor>& Hideal) const;
 
@@ -71,8 +70,7 @@ public:
                            const Scalar hmin,
                            const Scalar hmax,
                            const Scalar hminratio,
-                           const Scalar nPerh,
-                           const int maxNumNeighbors) const = 0;
+                           const Scalar nPerh) const = 0;
   
   // Return a new H, with limiting based on the old value.
   virtual SymTensor
@@ -80,13 +78,14 @@ public:
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const = 0;
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const = 0;
 
   // Determine an "ideal" H for the given moments.
   virtual SymTensor
@@ -94,13 +93,14 @@ public:
                       const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
-                      const int numNeighbors,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const int maxNumNeighbors) const = 0;
+                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const unsigned nodeListi,
+                      const unsigned i) const = 0;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor

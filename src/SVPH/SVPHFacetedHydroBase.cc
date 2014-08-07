@@ -820,8 +820,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
-                                                             nPerh,
-                                                             maxNumNeighbors);
+                                                             nPerh);
       Hideali = mSmoothingScaleMethod.idealSmoothingScale(Hi,
                                                           mesh,
                                                           zonei,

@@ -171,8 +171,7 @@ smoothingScaleDerivative(const Dim<1>::SymTensor& H,
                          const Dim<1>::Scalar hmin,
                          const Dim<1>::Scalar hmax,
                          const Dim<1>::Scalar hminratio,
-                         const Dim<1>::Scalar nPerh,
-                         const int maxNumNeighbors) const {
+                         const Dim<1>::Scalar nPerh) const {
   return -H*DvDx.Trace();
 }
 
@@ -186,8 +185,7 @@ smoothingScaleDerivative(const Dim<2>::SymTensor& H,
                          const Dim<2>::Scalar hmin,
                          const Dim<2>::Scalar hmax,
                          const Dim<2>::Scalar hminratio,
-                         const Dim<2>::Scalar nPerh,
-                         const int maxNumNeighbors) const {
+                         const Dim<2>::Scalar nPerh) const {
   REQUIRE(H.Trace() > 0.0);
   const Scalar thetaDot = 
     (H.xx()*DvDx.xy() - H.yy()*DvDx.yx() - H.yx()*(DvDx.xx() - DvDx.yy()))/
@@ -209,8 +207,7 @@ smoothingScaleDerivative(const Dim<3>::SymTensor& H,
                          const Dim<3>::Scalar hmin,
                          const Dim<3>::Scalar hmax,
                          const Dim<3>::Scalar hminratio,
-                         const Dim<3>::Scalar nPerh,
-                         const int maxNumNeighbors) const {
+                         const Dim<3>::Scalar nPerh) const {
   REQUIRE(H.Trace() > 0.0);
   const double AA = H.xx()*DvDx.xy() - H.xy()*(DvDx.xx() - DvDx.yy()) + 
     H.xz()*DvDx.zy() - H.yy()*DvDx.yx() - H.yz()*DvDx.zx();
@@ -278,18 +275,18 @@ idealSmoothingScale(const SymTensor& H,
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const {
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const {
 
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
-  REQUIRE(numNeighbors >= 0);
 //   REQUIRE(secondMoment.Determinant() > 0.0);
 
   const double tiny = 1.0e-50;
@@ -381,13 +378,14 @@ newSmoothingScale(const SymTensor& H,
                   const Vector& pos,
                   const Scalar zerothMoment,
                   const SymTensor& secondMoment,
-                  const int numNeighbors,
                   const TableKernel<Dimension>& W,
                   const Scalar hmin,
                   const Scalar hmax,
                   const Scalar hminratio,
                   const Scalar nPerh,
-                  const int maxNumNeighbors) const {
+                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const unsigned nodeListi,
+                  const unsigned i) const {
 
   const double tiny = 1.0e-50;
   const double tolerance = 1.0e-5;
@@ -397,13 +395,14 @@ newSmoothingScale(const SymTensor& H,
                                                pos,
                                                zerothMoment,
                                                secondMoment,
-                                               numNeighbors,
                                                W,
                                                hmin,
                                                hmax,
                                                hminratio,
                                                nPerh,
-                                               maxNumNeighbors);
+                                               connectivityMap,
+                                               nodeListi,
+                                               i);
 
   const double Hidealscale = Dimension::rootnu(Hideal.Determinant());
   const SymTensor Hidealhatinv = Hideal.Inverse() * Hidealscale;
