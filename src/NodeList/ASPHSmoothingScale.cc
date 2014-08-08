@@ -11,6 +11,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Field/FieldList.hh"
+#include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 
 namespace Spheral {
@@ -22,8 +23,38 @@ using std::max;
 using std::abs;
 
 using KernelSpace::TableKernel;
+using NeighborSpace::ConnectivityMap;
+using FieldSpace::Field;
 using FieldSpace::FieldList;
 using MeshSpace::Mesh;
+
+namespace {
+
+//------------------------------------------------------------------------------
+// Convert a given number of neighbors to the equivalent 1D "radius" in nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension> double equivalentRadius(const double n);
+
+// 1D
+template<>
+double
+equivalentRadius<Dim<1> >(const double n) {
+  return 0.5*n;
+}
+
+// 2D
+template<>
+double
+equivalentRadius<Dim<2> >(const double n) {
+  return std::sqrt(n/M_PI);
+}
+
+// 3D
+template<>
+double
+equivalentRadius<Dim<3> >(const double n) {
+  return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
+}
 
 //------------------------------------------------------------------------------
 // Apply a distortion to a symmetric tensor, returning a new symmetric tensor.
@@ -89,37 +120,37 @@ Hdifference(const typename Dimension::SymTensor& H1,
   return result;
 }
 
-// template<typename Dimension> 
-// inline
-// double
-// Hdifference(const typename Dimension::SymTensor& H1,
-//             const typename Dimension::SymTensor& H2) {
+//------------------------------------------------------------------------------
+// Compute the new symmetric H inverse from the non-symmetric "A" tensor.
+//------------------------------------------------------------------------------
+Dim<1>::SymTensor
+computeHinvFromA(const Dim<1>::Tensor& A) {
+  return Dim<1>::SymTensor::one;
+}
 
-//   typedef typename Dimension::Vector Vector;
-//   typedef typename Dimension::SymTensor SymTensor;
-//   typedef typename SymTensor::EigenStructType EigenStruct;
+Dim<2>::SymTensor
+computeHinvFromA(const Dim<2>::Tensor& A) {
+  REQUIRE(fuzzyEqual(A.Determinant(), 1.0, 1.0e-8));
+  typedef Dim<2>::Tensor Tensor;
+  typedef Dim<2>::SymTensor SymTensor;
+  const double A11 = A.xx();
+  const double A12 = A.xy();
+  const double A21 = A.yx();
+  const double A22 = A.yy();
+  const SymTensor Hinv2(A11*A11 + A12*A12, A11*A21 + A12*A22,
+                        A11*A21 + A12*A22, A21*A21 + A22*A22);
+  CHECK(distinctlyGreaterThan(Hinv2.Determinant(), 0.0));
+  const SymTensor result = Hinv2.sqrt() / sqrt(sqrt(Hinv2.Determinant()));
+  ENSURE(fuzzyEqual(result.Determinant(), 1.0, 1.0e-8));
+  return result;
+}
 
-//   // Pre-conditions.
-//   REQUIRE(distinctlyGreaterThan(H1.Determinant(), 0.0, 1.0e-5));
-//   REQUIRE(distinctlyGreaterThan(H2.Determinant(), 0.0, 1.0e-5));
+Dim<3>::SymTensor
+computeHinvFromA(const Dim<3>::Tensor& A) {
+  return Dim<3>::SymTensor::one;
+}
 
-//   const double nDimInv = 1.0/Dimension::nDim;
-
-//   // Compute a symmetric product of the tensors.
-//   const SymTensor H1i = H1.Inverse();
-//   SymTensor K = (H1i*(H2.square())*H1i).Symmetric();
-//   CHECK(distinctlyGreaterThan(K.Determinant(), 0.0, 1.0e-5));
-//   K /= pow(K.Determinant(), nDimInv);
-//   CHECK(fuzzyEqual(K.Determinant(), 1.0, 1.0e-5));
-
-//   // Compute the difference in shapes.
-//   const Vector Keigen = K.eigenValues();
-//   CHECK(abs(Keigen.maxElement()) > 0.0);
-//   const double shapeWeight = 2.0*max(sqrt(abs(Keigen.minElement()/Keigen.maxElement())) - 0.5, 0.0);
-//   CHECK(shapeWeight >= 0.0 && shapeWeight <= 1.0);
-
-//   return shapeWeight;
-// }
+}  // anonymous namespace
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -236,36 +267,6 @@ smoothingScaleDerivative(const Dim<3>::SymTensor& H,
 }
 
 //------------------------------------------------------------------------------
-// Compute the new symmetric H inverse from the non-symmetric "A" tensor.
-//------------------------------------------------------------------------------
-Dim<1>::SymTensor
-computeHinvFromA(const Dim<1>::Tensor& A) {
-  return Dim<1>::SymTensor::one;
-}
-
-Dim<2>::SymTensor
-computeHinvFromA(const Dim<2>::Tensor& A) {
-  REQUIRE(fuzzyEqual(A.Determinant(), 1.0, 1.0e-8));
-  typedef Dim<2>::Tensor Tensor;
-  typedef Dim<2>::SymTensor SymTensor;
-  const double A11 = A.xx();
-  const double A12 = A.xy();
-  const double A21 = A.yx();
-  const double A22 = A.yy();
-  const SymTensor Hinv2(A11*A11 + A12*A12, A11*A21 + A12*A22,
-                        A11*A21 + A12*A22, A21*A21 + A22*A22);
-  CHECK(distinctlyGreaterThan(Hinv2.Determinant(), 0.0));
-  const SymTensor result = Hinv2.sqrt() / sqrt(sqrt(Hinv2.Determinant()));
-  ENSURE(fuzzyEqual(result.Determinant(), 1.0, 1.0e-8));
-  return result;
-}
-
-Dim<3>::SymTensor
-computeHinvFromA(const Dim<3>::Tensor& A) {
-  return Dim<3>::SymTensor::one;
-}
-
-//------------------------------------------------------------------------------
 // Compute an idealized new H based on the given moments.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -292,6 +293,28 @@ idealSmoothingScale(const SymTensor& H,
   const double tiny = 1.0e-50;
   const double tolerance = 1.0e-5;
 
+  // Count how many neighbors we currently sample by gather.
+  unsigned n0 = 0;
+  const double kernelExtent = W.kernelExtent();
+  const vector<const NodeList<Dimension>*> nodeLists = connectivityMap.nodeLists();
+  const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  const unsigned numNodeLists = nodeLists.size();
+  for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+    const Field<Dimension, Vector>& posj = nodeLists[nodeListj]->positions();
+    for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+         jItr != fullConnectivity[nodeListj].end();
+         ++jItr) {
+      const unsigned j = *jItr;
+      const double etai = (H*(pos - posj[j])).magnitude();
+      if (etai <= kernelExtent) ++n0;
+    }
+  }
+
+  // We compute an upper-bound for h depending on if we're getting too many neighbors.
+  const double targetRadius = kernelExtent*nPerh;
+  double currentActualRadius = equivalentRadius<Dimension>(double(n0));  // This is radius in number of nodes.
+  const double maxNeighborLimit = 1.25*targetRadius/(currentActualRadius + 1.0e-30);
+
   // Determine the current effective number of nodes per smoothing scale.
   Scalar currentNodesPerSmoothingScale;
   if (fuzzyEqual(zerothMoment, 0.0)) {
@@ -308,13 +331,9 @@ idealSmoothingScale(const SymTensor& H,
   }
   CHECK(currentNodesPerSmoothingScale > 0.0);
 
-  // // Determine if we should limit the new h by the total number of neighbors.
-  // // number of neighbors.
-  // const Scalar maxNeighborLimit = Dimension::rootnu(double(maxNumNeighbors)/double(max(1, numNeighbors)));
-  // const Scalar s = min(maxNeighborLimit, min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
-
   // The (limited) ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+  const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
+  CHECK(s > 0.0);
 
   // Determine a weighting factor for how confident we are in the second
   // moment measurement, as a function of the effective number of nodes we're 

@@ -5,9 +5,14 @@
 //
 // Created by JMO, Wed Sep 14 13:50:49 PDT 2005
 //----------------------------------------------------------------------------//
+#include <cmath>
+#include <vector>
+
 #include "SPHSmoothingScale.hh"
+#include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
+#include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 
 namespace Spheral {
@@ -16,10 +21,43 @@ namespace NodeSpace {
 using std::min;
 using std::max;
 using std::abs;
+using std::vector;
 
 using KernelSpace::TableKernel;
+using NeighborSpace::ConnectivityMap;
+using FieldSpace::Field;
 using FieldSpace::FieldList;
 using MeshSpace::Mesh;
+
+namespace {
+
+//------------------------------------------------------------------------------
+// Convert a given number of neighbors to the equivalent 1D "radius" in nodes.
+//------------------------------------------------------------------------------
+template<typename Dimension> double equivalentRadius(const double n);
+
+// 1D
+template<>
+double
+equivalentRadius<Dim<1> >(const double n) {
+  return 0.5*n;
+}
+
+// 2D
+template<>
+double
+equivalentRadius<Dim<2> >(const double n) {
+  return std::sqrt(n/M_PI);
+}
+
+// 3D
+template<>
+double
+equivalentRadius<Dim<3> >(const double n) {
+  return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
+}
+
+}
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -97,6 +135,28 @@ idealSmoothingScale(const SymTensor& H,
   REQUIRE2(fuzzyEqual(H.Trace(), Dimension::nDim*H.xx(), 1.0e-5), H << " : " << H.Trace() << " " << Dimension::nDim*H.xx());
   REQUIRE2(zerothMoment >= 0.0, zerothMoment);
 
+  // Count how many neighbors we currently sample by gather.
+  unsigned n0 = 0;
+  const double kernelExtent = W.kernelExtent();
+  const vector<const NodeList<Dimension>*> nodeLists = connectivityMap.nodeLists();
+  const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  const unsigned numNodeLists = nodeLists.size();
+  for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+    const Field<Dimension, Vector>& posj = nodeLists[nodeListj]->positions();
+    for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+         jItr != fullConnectivity[nodeListj].end();
+         ++jItr) {
+      const unsigned j = *jItr;
+      const double etai = (H*(pos - posj[j])).magnitude();
+      if (etai <= kernelExtent) ++n0;
+    }
+  }
+
+  // We compute an upper-bound for h depending on if we're getting too many neighbors.
+  const double targetRadius = kernelExtent*nPerh;
+  double currentActualRadius = equivalentRadius<Dimension>(double(n0));  // This is radius in number of nodes.
+  const double maxNeighborLimit = 1.25*targetRadius/(currentActualRadius + 1.0e-30);
+
   // Determine the current effective number of nodes per smoothing scale.
   Scalar currentNodesPerSmoothingScale;
   if (fuzzyEqual(zerothMoment, 0.0)) {
@@ -113,13 +173,8 @@ idealSmoothingScale(const SymTensor& H,
   }
   CHECK(currentNodesPerSmoothingScale > 0.0);
 
-  // // Determine if we should limit the new h by the total number of neighbors.
-  // // number of neighbors.
-  // const Scalar maxNeighborLimit = Dimension::rootnu(double(maxNumNeighbors)/double(max(1, numNeighbors)));
-  // const Scalar s = min(maxNeighborLimit, min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
-
   // The ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+  const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
   CHECK(s > 0.0);
 
   // Now determine how to scale the current H to the desired value.
@@ -130,11 +185,12 @@ idealSmoothingScale(const SymTensor& H,
     a = 0.4*(1.0 + 1.0/(s*s*s));
   }
   CHECK(1.0 - a + a*s > 0.0);
-  const Scalar hi0 = 1.0/H.xx();
-  const Scalar hi = min(hmax, max(hmin, hi0*(1.0 - a + a*s)));
-  CHECK(hi > 0.0);
+  const double hi0 = 1.0/H.xx();
+  const double hi1 = min(hmax, max(hmin, hi0*(1.0 - a + a*s)));
 
-  return 1.0/hi * SymTensor::one;
+  // Turn the new vote into the SPH tensor and we're done.
+  CHECK(hi1 > 0.0);
+  return 1.0/hi1 * SymTensor::one;
 }
 
 //------------------------------------------------------------------------------
