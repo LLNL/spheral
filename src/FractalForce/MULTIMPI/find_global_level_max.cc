@@ -13,11 +13,12 @@ namespace FractalSpace
       }
     if(!mem.MPIrun)
       return highest_level_global;
-    int* highest= new int[1];
+    //    int* highest= new int[1];
+    vector <int>highest(1);
     highest[0]=highest_level_global;
     mem.p_mess->Find_Max_INT(highest,1);
     highest_level_global=highest[0];
-    delete [] highest;
+    //    delete [] highest;
     return highest_level_global;
   }
 }

@@ -59,7 +59,6 @@ newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
                                const Scalar hmax,
                                const Scalar hminratio,
                                const Scalar nPerh,
-                               const int maxNumNeighbors,
                                FieldSpace::Field<Dimension, SymTensor>& DHDt,
                                FieldSpace::Field<Dimension, SymTensor>& Hideal) const {
   const NodeList<Dimension>& nodeList = H.nodeList();
@@ -68,27 +67,28 @@ newSmoothingScaleAndDerivative(const FieldSpace::Field<Dimension, SymTensor>& H,
   REQUIRE(secondMoment.nodeListPtr() == &nodeList);
   REQUIRE(DHDt.nodeListPtr() == &nodeList);
   REQUIRE(Hideal.nodeListPtr() == &nodeList);
-  const int n = nodeList.numInternalNodes();
-  for (int i = 0; i != n; ++i) {
+  const unsigned nodeListi = connectivityMap.nodeListIndex(&nodeList);
+  const unsigned n = nodeList.numInternalNodes();
+  for (unsigned i = 0; i != n; ++i) {
     DHDt(i) = smoothingScaleDerivative(H(i),
                                        position(i),
                                        DvDx(i),
                                        hmin,
                                        hmax,
                                        hminratio,
-                                       nPerh,
-                                       maxNumNeighbors);
+                                       nPerh);
     Hideal(i) = newSmoothingScale(H(i), 
                                   position(i),
                                   zerothMoment(i),
                                   secondMoment(i),
-                                  connectivityMap.numNeighborsForNode(&nodeList, i), 
                                   W,
                                   hmin,
                                   hmax,
                                   hminratio,
                                   nPerh,
-                                  maxNumNeighbors);
+                                  connectivityMap,
+                                  nodeListi,
+                                  i);
   }
 }
 

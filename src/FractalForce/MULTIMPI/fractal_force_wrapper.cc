@@ -14,6 +14,7 @@ namespace FractalSpace
     FileFractal << " BOXA " << BOXA[0] << " " << BOXA[1] << " " << BOXA[2] << " " << BOXA[3] << " " << BOXA[4] << " " << BOXA[5] << "\n";
     FileFractal << " hahaa " << PFM << " " << PF << "\n";
     Fractal_Memory& FM=*PFM;
+    FM.balance=1;
     FileFractal << " hahab " << PFM<< "\n";
     Fractal& FR=*PF;
     FileFractal << " hahac " << PF << " " << PF->p_file << "\n";
@@ -48,13 +49,17 @@ namespace FractalSpace
 		FileFractal << i << " " << FR.rad[i] << " " << FR.grow[i] << "\n";
 	      }
 	  }
+	if(FM.balance > 0)
+	  balance_by_particles(&FM,false);
+	int _mulT_=FM.max_particles/FM.number_particles;
 	int count=0;
 	make_particles(FM,FR,count,m,false);
 	FileFractal << "size " << count << "\n";
 	FM.number_particles=count;
 	FR.set_number_particles(count);
+	FM.max_particles=FM.number_particles*_mulT_;
 	update_rv(FR,0,0.0,0.0);
-	FileFractal << "make parts " << count << "\n";
+	FileFractal << "make parts " << FM.number_particles << " " << FM.max_particles << "\n";
 	double delta_z=Growth(FM.omega_0,FM.omega_lambda,FM.redshift_start);
 	double vfratio=1.0/(1.5*FM.omega_start)*dGrowthdT(FM.omega_start,FM.lambda_start,0.0);
 	double omega_fraction=1.0/(1.5*FM.omega_start);
@@ -116,9 +121,11 @@ namespace FractalSpace
 	//	write_rv(-4,FR);
 	FM.arad=1.0;
 	FM.time=Age_of_the_universe(FM.omega_start,FM.lambda_start,0.0);
+	// END PERIODIC
       }
     else
       {
+	// START ISOLATED
 	int count=0;
 	FileFractal << " making particles a " << "\n";
 	double m=FM.total_mass/static_cast<double>(FM.p_mess->number_particles_total);      
@@ -133,6 +140,8 @@ namespace FractalSpace
 	FM.calc_shear=false;
 	FR.timing(-2,0);
 	FR.timing(-1,49);
+	if(FM.balance > 0)
+	  balance_by_particles(&FM,true);
 	fractal_force(FR,FM);
 	FM.p_file->FlushAll();
 	FR.timing(1,49);
@@ -151,6 +160,8 @@ namespace FractalSpace
 	fix_memory(FR,iphase,jfield);
 	FR.timing(-2,0);
 	FR.timing(-1,49);
+	if(FM.balance > 0)
+	  balance_by_particles(&FM,true);
 	fractal_force(FR,FM);
 	FM.p_file->FlushAll();
 	FR.timing(1,49);
@@ -158,7 +169,6 @@ namespace FractalSpace
 	FR.timing_lev(0,0);
 	return 0;
       }
-    FM.balance=1;
     for(int step=0;step < FM.number_steps_total; ++step)
       {
 	if(FM.steps == -1) energy_simple(FM,FR);

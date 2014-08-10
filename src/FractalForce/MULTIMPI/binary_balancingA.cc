@@ -24,7 +24,7 @@ namespace FractalSpace
     snumbers.resize(length);
     for(int N=1;N<Nodes;N++)
       {
-	//	double aN=N;
+	double aN=N;
 	double target=sum_total*targets[N];
 	lowers[N]=std::lower_bound(snumbers.begin(),snumbers.end(),target)-snumbers.begin();
 	uppers[N-1]=lowers[N];

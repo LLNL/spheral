@@ -18,11 +18,12 @@ namespace FractalSpace
 	if(mem.all_groups[level].size() > 0)
 	  highest_level_used=level;
       }
-    int* used= new int[1];
+    //    int* used= new int[1];
+    vector <int>used(1);
     used[0]=highest_level_used;
     mem.p_mess->Find_Max_INT(used,1);
     highest_level_used=used[0];
-    delete [] used;
+    //    delete [] used;
     int length=frac.get_grid_length();
     double length_5=pow(static_cast<double>(length),-5);
     assert(length >0);
@@ -144,6 +145,7 @@ namespace FractalSpace
 	  }
 	for(pint kx=mem.p_mess->start_x;kx < mem.p_mess->start_x+mem.p_mess->length_x ; kx++)
 	  {
+	    FileFractal << " after var a " << mem.p_mess->FractalRank << " " << kx << "\n";
 	    int ka=min(kx,length-kx);
 	    for(int ky=0;ky < length ; ky++)
 	      {
@@ -157,10 +159,15 @@ namespace FractalSpace
 		    mem.p_mess->potC[brian][1]*=g2;
 		  }
 	      }
+	    FileFractal << " after var b " << mem.p_mess->FractalRank << " " << kx << "\n";
 	  }
+	//	FileFractal << " after var c " << mem.p_mess->FractalRank <<  endl;
 	mem.p_mess->fftw_complex_to_real();
+	//	FileFractal << " after var d " << mem.p_mess->FractalRank <<  endl;
 	Full_Stop(mem,39);
+	//	FileFractal << " after var e " << mem.p_mess->FractalRank <<  endl;
 	info_to_slices(mem,frac,lev);
+	//	FileFractal << " after var f " << mem.p_mess->FractalRank <<  endl;
 	if(!lev==0)
 	  {
 	    for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
