@@ -715,19 +715,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                             hmin,
                                                             hmax,
                                                             hminratio,
-                                                            nPerh,
-                                                            maxNumNeighbors);
+                                                            nPerh);
       Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
                                                        ri,
                                                        weightedNeighborSumi,
                                                        massSecondMomenti,
-                                                       numNeighborsi,
                                                        W,
                                                        hmin,
                                                        hmax,
                                                        hminratio,
                                                        nPerh,
-                                                       maxNumNeighbors);
+                                                       connectivityMap,
+                                                       nodeListi,
+                                                       i);
 
       // Determine the deviatoric stress evolution.
       const SymTensor deformation = localDvDxi.Symmetric();

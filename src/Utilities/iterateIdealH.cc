@@ -156,7 +156,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       const Scalar hmax = (**nodeListItr).hmax();
       const Scalar hminratio = (**nodeListItr).hminratio();
       const Scalar nPerh = (**nodeListItr).nodesPerSmoothingScale();
-      const int maxNumNeighbors = (**nodeListItr).maxNumNeighbors();
 
       // Iterate over the internal nodes of this NodeList.
       for (int i = 0; i != (**nodeListItr).numInternalNodes(); ++i) {
@@ -172,7 +171,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           // Prepare to accumulate the zeroth and second moments for this node.
           Scalar zerothMoment = 0.0;
           SymTensor secondMoment;
-          int numNeighbors = 0;
 
           // Iterate over the neighbor NodeLists.
           for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -193,8 +191,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
               const SymTensor thpt = rij.selfdyad()/(rij.magnitude2() + 1.0e-10);
               zerothMoment += fweightij*Wi;
               secondMoment += fweightij*FastMath::square(Wi/Dimension::pownu1(etai + 1.0e-10))*thpt;
-              ++numNeighbors;
-
             }
           }
 
@@ -204,13 +200,14 @@ iterateIdealH(DataBase<Dimension>& dataBase,
                                                                     ri,
                                                                     zerothMoment,
                                                                     secondMoment,
-                                                                    numNeighbors,
                                                                     W,
                                                                     hmin,
                                                                     hmax,
                                                                     hminratio,
                                                                     nPerh,
-                                                                    maxNumNeighbors);
+                                                                    connectivityMap,
+                                                                    nodeListi,
+                                                                    i);
 
           // If we are preserving the determinant, do it.
           if (fixDeterminant) {

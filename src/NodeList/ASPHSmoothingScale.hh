@@ -39,8 +39,7 @@ public:
                            const Scalar hmin,
                            const Scalar hmax,
                            const Scalar hminratio,
-                           const Scalar nPerh,
-                           const int maxNumNeighbors) const;
+                           const Scalar nPerh) const;
   
   // Return a new H, with limiting based on the old value.
   virtual
@@ -49,13 +48,14 @@ public:
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const;
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const;
 
   // Determine an "ideal" H for the given moments.
   virtual
@@ -64,13 +64,14 @@ public:
                       const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
-                      const int numNeighbors,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const int maxNumNeighbors) const;
+                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const unsigned nodeListi,
+                      const unsigned i) const;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
@@ -92,8 +93,7 @@ ASPHSmoothingScale<Dim<1> >::smoothingScaleDerivative(const Dim<1>::SymTensor&,
                                                       const Dim<1>::Scalar hmin,
                                                       const Dim<1>::Scalar hmax,
                                                       const Dim<1>::Scalar hminratio,
-                                                      const Dim<1>::Scalar nPerh,
-                                                      const int maxNumNeighbors) const;
+                                                      const Dim<1>::Scalar nPerh) const;
 template<>
 Dim<2>::SymTensor
 ASPHSmoothingScale<Dim<2> >::smoothingScaleDerivative(const Dim<2>::SymTensor&, 
@@ -102,8 +102,7 @@ ASPHSmoothingScale<Dim<2> >::smoothingScaleDerivative(const Dim<2>::SymTensor&,
                                                       const Dim<2>::Scalar hmin,
                                                       const Dim<2>::Scalar hmax,
                                                       const Dim<2>::Scalar hminratio,
-                                                      const Dim<2>::Scalar nPerh,
-                                                      const int maxNumNeighbors) const;
+                                                      const Dim<2>::Scalar nPerh) const;
 template<>
 Dim<3>::SymTensor
 ASPHSmoothingScale<Dim<3> >::smoothingScaleDerivative(const Dim<3>::SymTensor&, 
@@ -112,8 +111,7 @@ ASPHSmoothingScale<Dim<3> >::smoothingScaleDerivative(const Dim<3>::SymTensor&,
                                                       const Dim<3>::Scalar hmin,
                                                       const Dim<3>::Scalar hmax,
                                                       const Dim<3>::Scalar hminratio,
-                                                      const Dim<3>::Scalar nPerh,
-                                                      const int maxNumNeighbors) const;
+                                                      const Dim<3>::Scalar nPerh) const;
 
 }
 }

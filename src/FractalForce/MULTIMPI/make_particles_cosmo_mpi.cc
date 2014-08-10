@@ -43,9 +43,9 @@ namespace FractalSpace
       }
     else
       {
-	int iimax=200;
+	int iimax=400;
 	double crash_0=mem.redshift_start+1.0;
-	double scale_crash=pow(crash_0,1.0/(double)(iimax+1));
+	double scale_crash=pow(crash_0,2.0/(double)(iimax+1));
 	bool breakA=false;
 	for(int ii=0;ii<=iimax;ii++)
 	  {
@@ -69,6 +69,7 @@ namespace FractalSpace
 			  }
 			n++;
 			int many=split_particle(mem,frac,x0,y0,z0,count,m,split_to,false);
+			//			FileFractal << " RAD " << crash_0 << " " << mem.max_particles << " " << n-1 << " " << count << " " << particle.get_rad_max() << " " << split_to << "\n";
 			assert(many > 0);
 			breakA = count > mem.max_particles;
 			if(breakA)
@@ -80,7 +81,7 @@ namespace FractalSpace
 		if(breakA)
 		  break;
 	      }
-	    FileFractal << "iimax " << ii << " " << crash_0 << " " << count << "\n";
+	    FileFractal << "iimax " << ii << " " << crash_0 << " " << count << " " << n << "\n";
 	    if(!breakA)
 	      break;
 	    crash_0/=scale_crash;

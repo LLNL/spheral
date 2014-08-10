@@ -74,6 +74,9 @@ public:
   int numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
                           const int nodeID) const;
 
+  int numNeighborsForNode(const int nodeListID,
+                          const int nodeID) const;
+
   // Return the connectivity in terms of global node IDs.
   std::map<int, std::vector<int> > globalConnectivity(std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries) const;
 

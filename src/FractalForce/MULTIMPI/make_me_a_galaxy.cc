@@ -16,7 +16,7 @@ namespace FractalSpace
     double x_off=1.0;
     double y_off=-2.0;
     double z_off=3.0;
-    double slope=-1.05;
+    double slope=-0.65;
     double velratio=1.0;
     velratio*=sqrt(G);
     double slope3=slope+3.0;

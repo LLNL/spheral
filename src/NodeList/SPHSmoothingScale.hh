@@ -40,8 +40,7 @@ public:
                            const Scalar hmin,
                            const Scalar hmax,
                            const Scalar hminratio,
-                           const Scalar nPerh,
-                           const int maxNumNeighbors) const;
+                           const Scalar nPerh) const;
   
   // Return a new H, with limiting based on the old value.
   virtual
@@ -50,13 +49,14 @@ public:
                     const Vector& pos,
                     const Scalar zerothMoment,
                     const SymTensor& secondMoment,
-                    const int numNeighbors,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const int maxNumNeighbors) const;
+                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const;
 
   // Determine an "ideal" H for the given moments.
   virtual
@@ -65,13 +65,14 @@ public:
                       const Vector& pos,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
-                      const int numNeighbors,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const int maxNumNeighbors) const;
+                      const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const unsigned nodeListi,
+                      const unsigned i) const;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor

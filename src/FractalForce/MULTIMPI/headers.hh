@@ -8,10 +8,10 @@ namespace FractalSpace
 			     vector <double>& posx,vector <double>& posy,vector <double>& posz,
 			     vector <double>& velx,vector <double>& vely,vector <double>& velz);
   void assign_density(Group& group, Fractal& fractal);
-  void balance_by_particles(Fractal_Memory*PFM);
-  void balance_by_particles_cosmo(Fractal_Memory* PFM);
+  //  void balance_by_particles(Fractal_Memory* PFM);
+  void balance_by_particles(Fractal_Memory* PFM,bool withparts);
   void binary_balancing(vector <double>& numbers,double minimum,
-			int Nodes,int length,vector <int>& lowers,vector <int>& uppers);
+			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);
@@ -127,6 +127,9 @@ namespace FractalSpace
   bool right_diff(vector <int>& Va,vector <int>& Vb,vector <int>& VD);
   void remove_pseudo_particles(Fractal_Memory& mem,Fractal& frac);
   void scatter_particles(Fractal_Memory& mem,Fractal& frac);
+  void shrink_cube(vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
+		   int number_particles,vector <double>& xmini,vector <double>& xmaxy);
   void slices_to_potf(Group& group,Fractal_Memory& mem,Fractal& frac);
   void slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,const int& lev);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);

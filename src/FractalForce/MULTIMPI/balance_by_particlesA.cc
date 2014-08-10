@@ -6,6 +6,8 @@ namespace FractalSpace
   void balance_by_particles(Fractal_Memory* PFM)
   {
     double time0=PFM->p_mess->Clock();
+    PFM->p_mess->Full_Stop();
+    double time1=PFM->p_mess->Clock();
     Fractal* PF=PFM->p_fractal;
     FILE* PFFM=PFM->p_file->PFFractalMemory;
     int FractalRank=PFM->p_mess->FractalRank;
@@ -13,6 +15,33 @@ namespace FractalSpace
     const int FractalNodes1=PFM->FractalNodes1;
     const int FractalNodes2=PFM->FractalNodes2;
     const int FractalNodes=PFM->FractalNodes;
+
+    double SHRINK=0.2;
+    vector <double>targets(FractalNodes2+1);
+    int LEVELS=PFM->FFTNodes/(FractalNodes0*FractalNodes1);
+    if(PFM->FFTNodes % (FractalNodes0*FractalNodes1) > 0)
+      LEVELS++;
+    double add=1.0;
+    targets[0]=0.0;
+    for(int FR=0;FR<FractalNodes2;FR++)
+      {
+	double add=1.0;
+	if(FR < LEVELS)
+	  add=SHRINK;
+	targets[FR+1]=targets[FR]+add;
+	if(FractalRank == 0)
+	  {
+	    cout << " Target2A " << FR << " " << targets[FR] << " " << add << " " << LEVELS << " ";
+	    cout << FractalNodes0 << " " << FractalNodes1 << " " << PFM->FFTNodes << "\n";
+	  }
+      }
+    for(int FR=0;FR<FractalNodes2;FR++)
+      {
+	targets[FR]/=targets[FractalNodes2];
+	if(FractalRank == 0)
+	  cout << " Target2 " << FR << " " << targets[FR] << "\n";
+      }
+
     double scalepoint=1.0e-10;
     double scalepart=1.0;
     int steps=PFM->steps;
@@ -50,13 +79,13 @@ namespace FractalSpace
     if(FractalRank == ROOTZ)
       {
 	double minimumz=alength*alength*scalepoint;
-	binary_balancing(numbersz,minimumz,FractalNodes2,real_length,lowerz,upperz);
+	binary_balancing(numbersz,minimumz,FractalNodes2,real_length,targets,lowerz,upperz);
       }
     PFM->p_mess->Send_INT_from_ROOT(lowerz,FractalNodes2,ROOTZ);
     PFM->p_mess->Send_INT_from_ROOT(upperz,FractalNodes2,ROOTZ);
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       alowerz[FRZ]=lowerz[FRZ];	  
-    double time1=PFM->p_mess->Clock();
+    double time2=PFM->p_mess->Clock();
 
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -98,13 +127,21 @@ namespace FractalSpace
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTY+FRZ);
 
+    targets.resize(FractalNodes1+1);
+    add=1.0/static_cast<double>(FractalNodes1);
+    for(int FR=0;FR<=FractalNodes1;FR++)
+      {
+	targets[FR]=add*FR;
+	if(FractalRank == 0)
+	  cout << " Target1 " << FR << " " << targets[FR] << "\n";
+      }
 
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	if(FractalRank == ROOTY+FRZ)
 	  {
 	    double minimumy=static_cast<double>(upperz[FRZ]-lowerz[FRZ])*real_length*scalepoint;
-	    binary_balancing(numbersy[FRZ],minimumy,FractalNodes1,real_length,lowery[FRZ],uppery[FRZ]);
+	    binary_balancing(numbersy[FRZ],minimumy,FractalNodes1,real_length,targets,lowery[FRZ],uppery[FRZ]);
 	  }
       }
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
@@ -115,7 +152,7 @@ namespace FractalSpace
 	  alowery[FRZ][FRY]=lowery[FRZ][FRY];
       }
 
-    double time2=PFM->p_mess->Clock();
+    double time3=PFM->p_mess->Clock();
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
@@ -153,6 +190,14 @@ namespace FractalSpace
       for(int FRY=0;FRY<FractalNodes1;FRY++)
 	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersx[FRZ][FRY],real_length,ROOTX+FRZ*FractalNodes1+FRY);
 
+    targets.resize(FractalNodes0+1);
+    add=1.0/static_cast<double>(FractalNodes0);
+    for(int FR=0;FR<=FractalNodes0;FR++)
+      {
+	targets[FR]=add*FR;
+	if(FractalRank == 0)
+	  cout << " Target0 " << FR << " " << targets[FR] << "\n";
+      }
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
@@ -160,7 +205,7 @@ namespace FractalSpace
 	    if(FractalRank == ROOTX+FRZ*FractalNodes1+FRY)
 	      {
 		double minimumx=static_cast<double>((upperz[FRZ]-lowerz[FRZ])*(uppery[FRZ][FRY]-lowery[FRZ][FRY]))*scalepoint;
-		binary_balancing(numbersx[FRZ][FRY],minimumx,FractalNodes0,real_length,lowerx[FRZ][FRY],upperx[FRZ][FRY]);
+		binary_balancing(numbersx[FRZ][FRY],minimumx,FractalNodes0,real_length,targets,lowerx[FRZ][FRY],upperx[FRZ][FRY]);
 	      }
 	  }
       }
@@ -175,7 +220,7 @@ namespace FractalSpace
 	  }
       }
 
-    double time3=PFM->p_mess->Clock();
+    double time4=PFM->p_mess->Clock();
     int FR=0;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -192,7 +237,7 @@ namespace FractalSpace
 		FR++;
 		//		cout << " lower upper X Y Z " << FractalRank << " " << FRX << " " << FRY << " " << FRZ << " " << lowerx[FRZ][FRY][FRX] << " " << upperx[FRZ][FRY][FRX];
 		//		cout << " " << lowery[FRZ][FRY] << " " << uppery[FRZ][FRY] << " " << lowerz[FRZ] << " " << upperz[FRZ] << "\n" ;
-	      }
+	      } 
 	  }
       }
     FR=0;
@@ -217,14 +262,14 @@ namespace FractalSpace
 		assert(VOL > 0);
 		VOL*=(PFM->Boxes[FR][5]-PFM->Boxes[FR][4]);
 		assert(VOL > 0);
-		fprintf(PFFM," BOXES %d \t %d \t %d \t %d \t %d ",FR,FRX,FRY,FRZ,VOL);
-		fprintf(PFFM," \t %d \t %d \t %d ",PFM->Boxes[FR][0],PFM->Boxes[FR][1],PFM->Boxes[FR][2]);
-		fprintf(PFFM," \t %d \t %d \t %d \n",PFM->Boxes[FR][3],PFM->Boxes[FR][4],PFM->Boxes[FR][5]);
+		fprintf(PFFM," BOXES %5d %5d %5d %5d %7d ",FR,FRX,FRY,FRZ,VOL);
+		fprintf(PFFM," %5d %5d %5d ",PFM->Boxes[FR][0],PFM->Boxes[FR][1],PFM->Boxes[FR][2]);
+		fprintf(PFFM," %5d %5d %5d \n",PFM->Boxes[FR][3],PFM->Boxes[FR][4],PFM->Boxes[FR][5]);
 		FR++;
 	      }
 	  }
       }
-    double time4=PFM->p_mess->Clock();
+    double time5=PFM->p_mess->Clock();
     PFM->p_file->note(true," made new Boxes with equal smart particles ");
     PFM->calc_Buffers_and_more();
     PFM->p_file->note(true," made new Buffers with equal smart particles ");
@@ -232,7 +277,7 @@ namespace FractalSpace
     PFM->p_file->note(true," made new RealBoxes with equal smart particles ");
     PF->redo(PFM);
     PFM->p_file->note(true," redo fractal ");
-    double time5=PFM->p_mess->Clock();
-    fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time5-time0);
+    double time6=PFM->p_mess->Clock();
+    fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time6-time1);
   }
 }

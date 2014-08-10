@@ -48,9 +48,14 @@ namespace FractalSpace
     if(mem.grid_length < 64)
       mem.grid_length = 256;
     // length of fundamental grid, must be even
-    mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
+    long int really_longGL=mem.grid_length;
+    long int really_longFN=mem.FractalNodes;
+    long int really_longGLFN=(really_longGL*really_longGL*really_longGL)/really_longFN;
+    mem.number_particles=really_longGLFN;
+    //    mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
     mem.max_particles=mem.number_particles*_mulT_;
+    //    cout << " EARLY NUMBERS " << mem.FractalRank  << " " << mem.number_particles << " " << mem.max_particles << "\n";
     //    mem.max_particles=1;
     //The max number of particles the initial conditions code can generate through particle splitting
     mem.level_max = 10 ; 
