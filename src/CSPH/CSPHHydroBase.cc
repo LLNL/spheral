@@ -397,7 +397,7 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, mass, position, H, A0, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, vol, position, H, A0, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -559,7 +559,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = mass(nodeListi, i);
+      const Scalar weighti = vol(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -629,7 +629,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = mass(nodeListj, j);
+              const Scalar weightj = vol(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -733,8 +733,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
               // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
 
-              // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj;
-              // Vector deltaDvDtj = -weighti*Pi*gradWi/rhoj - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+              Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
 
               // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
               // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
@@ -742,11 +742,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
               // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
 
-              const Scalar Pij = 0.5*(Pi + Pj);
-              const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-              const Vector gradWij = 0.5*(-gradWi + gradWj);
-              Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
-              Vector deltaDvDtj = -mi/mj*deltaDvDti;
+              // const Scalar Pij = 0.5*(Pi + Pj);
+              // const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+              // const Vector gradWij = 0.5*(-gradWi + gradWj);
+              // Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
+              // Vector deltaDvDtj = -mi/mj*deltaDvDti;
               // Vector deltaDvDti = -weightj*(1.0/rhoi)*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
               // Vector deltaDvDtj = -weighti*(1.0/rhoj)*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
 
