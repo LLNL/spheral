@@ -374,6 +374,7 @@ initialize(const typename Dimension::Scalar time,
 
   // Compute the volumes.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
   FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
@@ -396,7 +397,7 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, vol, position, H, A0, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, mass, position, H, A0, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -558,7 +559,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = vol(nodeListi, i);
+      const Scalar weighti = mass(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -628,7 +629,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = vol(nodeListj, j);
+              const Scalar weightj = mass(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -738,8 +739,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
               // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
 
-              Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+              // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+
+              const Scalar Pij = 0.5*(Pi + Pj);
+              const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+              const Vector gradWij = 0.5*(-gradWi + gradWj);
+              Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
+              Vector deltaDvDtj = -mi/mj*deltaDvDti;
+              // Vector deltaDvDti = -weightj*(1.0/rhoi)*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // Vector deltaDvDtj = -weighti*(1.0/rhoj)*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
 
               // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
               // deltaDvDti = deltaDvDtij;
@@ -748,14 +757,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                // const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                // const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                // const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                // const unsigned numNeighborsj = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j));
-                // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                // const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
+                const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                const unsigned numNeighborsj = (j < firstGhostNodej ? 
+                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+                                                1);
+                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
               }
 
               // // Acceleration (SPH form).
@@ -802,9 +813,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
 
-      // // Finish the acceleration.
-      // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
-      // DvDti += deltaDvDtii;
+      // Finish the acceleration.
+      const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
+      DvDti += deltaDvDtii;
 
       //const Scalar mag0 = DxDti.magnitude();
       const Scalar mag0 = vi.magnitude();
