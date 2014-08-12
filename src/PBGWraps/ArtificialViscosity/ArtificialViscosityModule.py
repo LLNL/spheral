@@ -17,10 +17,16 @@ class ArtificialViscosity:
 
         # Includes.
         mod.add_include('"ArtificialViscosity/ArtificialViscosityTypes.hh"')
+        mod.add_include('"Physics/Physics.hh"')
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("ArtificialViscositySpace")
+        physics = Spheral.add_cpp_namespace("PhysicsSpace")
+        
+        Physics1d = physics.add_cpp_namespace("PhysicsSpace.Physics1d")
+        Physics2d = physics.add_cpp_namespace("PhysicsSpace.Physics2d")
+        Physics3d = physics.add_cpp_namespace("PhysicsSpace.Physics3d")
 
         # Expose types.
         self.dimSet = (1, 2, 3)
@@ -28,6 +34,7 @@ class ArtificialViscosity:
             exec('''
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=[Physics%(dim)id,self.ArtificialViscosity%(dim)id)]
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
@@ -42,6 +49,7 @@ self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
