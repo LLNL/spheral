@@ -192,7 +192,7 @@ namespace FractalSpace
     vector <int> PBoxLength(3);
     fractal.getPBoxLength(PBoxLength);
     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
-    cout << " particles after scatter " << fractal_memory.p_mess->FractalRank << " " << fractal.get_number_particles() << " " << volume << "\n";
+    FileFractal << " particles after scatter " << fractal_memory.p_mess->FractalRank << " " << fractal.get_number_particles() << " " << volume << "\n";
     //    fractal.print_list_world(0);
     //    fractal.print_list(0);
     fractal.timing(1,27);

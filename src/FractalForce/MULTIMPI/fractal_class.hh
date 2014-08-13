@@ -84,7 +84,7 @@ namespace FractalSpace
     static string vel;
     Fractal()
     {
-      cout << " made ghost fractal" << "\n";
+      //      cout << " made ghost fractal" << "\n";
     }
     template <class M> Fractal(M& mem):
       density_0(0.0),
@@ -92,7 +92,7 @@ namespace FractalSpace
       highest_level_used(0),
       omega_fraction(2.0/3.0)
     {
-      cout << " starting fractal " << "\n";
+      //      cout << " starting fractal " << "\n";
       //      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
       clocks_per_sec=1.0;
       steps=0;
@@ -123,10 +123,10 @@ namespace FractalSpace
       FractalNodes0=mem.FractalNodes0;
       FractalNodes1=mem.FractalNodes1;
       FractalNodes2=mem.FractalNodes2;
-      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
-      cout << " fractal start c " << p_mess << " " << p_file << "\n";
+      //      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
+      //      cout << " fractal start c " << p_mess << " " << p_file << "\n";
       FractalRank=get_FractalRank();
-      cout << FractalRank << "\n";
+      //      cout << FractalRank << "\n";
       assert(FractalRank<FractalNodes);
       Box=mem.Boxes[FractalRank];
       BBox=mem.BBoxes[FractalRank];
@@ -212,11 +212,11 @@ namespace FractalSpace
       masks_square=mem.masks_square;
       rad.assign(101,0.0);
       grow.assign(101,0.0);
-      cout << "Making Fractal " << this << "\n";
+      //      cout << "Making Fractal " << this << "\n";
     }
     ~Fractal()
     {    
-      cout << "Ending Fractal " << this << "\n";
+      //      cout << "Ending Fractal " << this << "\n";
     };
     void redo(Fractal_Memory* PFM)
     {

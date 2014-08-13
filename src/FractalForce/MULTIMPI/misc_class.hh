@@ -16,10 +16,11 @@ namespace FractalSpace
     {
       assert(this);
       debug=false;
-      cout << "Making Misc " << this << "\n";
+      //      cout << "Making Misc " << this << "\n";
     }
-    ~Misc(){
-      cout << "Ending Misc " << this << "\n";
+    ~Misc()
+    {
+      //      cout << "Ending Misc " << this << "\n";
     }
     bool get_debug()
     {
