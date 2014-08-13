@@ -99,9 +99,10 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar mj = mass(nodeListi, j);
           const Scalar Vj = volume(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
+          const Scalar A0j = A0(nodeListi, j);
           const Scalar Aj = A(nodeListi, j);
           const Vector& Bj = B(nodeListi, j);
+          const Scalar Hdetj = Hj.Determinant();
 
           // Kernel weighting and gradient.
           const Vector rij = ri - rj;
@@ -109,6 +110,8 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar etaj = (Hj*rij).magnitude();
           const Scalar Wi = CSPHKernel(W, rij, etaj, Hdetj, Ai, Bi);
           const Scalar Wj = CSPHKernel(W, rij, etai, Hdeti, Aj, Bj);
+          // const Scalar Wi = CSPHKernel(W, rij, etaj, Hdetj, A0i, Vector::zero);
+          // const Scalar Wj = CSPHKernel(W, rij, etai, Hdeti, A0j, Vector::zero);
           // const Scalar Wi = W.kernelValue(etaj, Hdetj);
           // const Scalar Wj = W.kernelValue(etai, Hdeti);
 
