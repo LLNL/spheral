@@ -38,9 +38,9 @@ class Hydro:
         self.ThirdMomentHourglassControl2d = addObject(space, "ThirdMomentHourglassControl2d", allow_subclassing=True, parent=physics2d)
         self.ThirdMomentHourglassControl3d = addObject(space, "ThirdMomentHourglassControl3d", allow_subclassing=True, parent=physics3d)
 
-        self.VoronoiHourglassControl1d = addObject(space, "VoronoiHourglassControl1d", allow_subclassing=True, parent=physics1d)
-        self.VoronoiHourglassControl2d = addObject(space, "VoronoiHourglassControl2d", allow_subclassing=True, parent=physics2d)
-        self.VoronoiHourglassControl3d = addObject(space, "VoronoiHourglassControl3d", allow_subclassing=True, parent=physics3d)
+        # self.VoronoiHourglassControl1d = addObject(space, "VoronoiHourglassControl1d", allow_subclassing=True, parent=physics1d)
+        # self.VoronoiHourglassControl2d = addObject(space, "VoronoiHourglassControl2d", allow_subclassing=True, parent=physics2d)
+        # self.VoronoiHourglassControl3d = addObject(space, "VoronoiHourglassControl3d", allow_subclassing=True, parent=physics3d)
 
         return
 
@@ -58,9 +58,9 @@ class Hydro:
         self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl2d, 2)
         self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl3d, 3)
 
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl1d, 1)
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl2d, 2)
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl3d, 3)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl1d, 1)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl2d, 2)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl3d, 3)
 
         return
 
