@@ -34,6 +34,9 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
                        const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       FieldList<Dimension, typename Dimension::Scalar>& m0,
+                       FieldList<Dimension, typename Dimension::Vector>& m1,
+                       FieldList<Dimension, typename Dimension::SymTensor>& m2,
                        FieldList<Dimension, typename Dimension::Scalar>& A0,
                        FieldList<Dimension, typename Dimension::Scalar>& A,
                        FieldList<Dimension, typename Dimension::Vector>& B,
@@ -47,6 +50,9 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(m0.size() == numNodeLists);
+  REQUIRE(m1.size() == numNodeLists);
+  REQUIRE(m2.size() == numNodeLists);
   REQUIRE(A0.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(C.size() == numNodeLists);
@@ -61,6 +67,9 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Zero out the result.
+  m0 = 0.0;
+  m1 = Vector::zero;
+  m2 = SymTensor::zero;
   A0 = 0.0;
   A = 0.0;
   B = Vector::zero;
@@ -76,9 +85,9 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
     // We can derive everything in terms of the zeroth, first, and second moments 
     // of the local positions.
-    Field<Dimension, Scalar> m0("zeroth moment", nodeList);
-    Field<Dimension, Vector> m1("first moment", nodeList);
-    Field<Dimension, SymTensor> m2("second moment", nodeList);
+    // Field<Dimension, Scalar> m0("zeroth moment", nodeList);
+    // Field<Dimension, Vector> m1("first moment", nodeList);
+    // Field<Dimension, SymTensor> m2("second moment", nodeList);
     Field<Dimension, Vector> gradm0("gradient of the zeroth moment", nodeList);
     Field<Dimension, Tensor> gradm1("gradient of the first moment", nodeList);
     Field<Dimension, ThirdRankTensor> gradm2("gradient of the second moment", nodeList);
@@ -97,7 +106,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Self contribution.
       const Scalar wwi = wi*W(0.0, Hdeti);
-      m0(i) += wwi;
+      m0(nodeListi, i) += wwi;
       gradm1(i) += wwi;
 
       // Neighbors!
@@ -136,21 +145,21 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           // Zeroth moment. 
           const Scalar wwi = wi*Wi;
           const Scalar wwj = wj*Wj;
-          m0(i) += wwj;
-          m0(j) += wwi;
+          m0(nodeListi, i) += wwj;
+          m0(nodeListi, j) += wwi;
           gradm0(i) += wj*gradWj;
           gradm0(j) += wi*gradWi;
 
           // First moment. 
-          m1(i) += wwj * rij;
-          m1(j) -= wwi * rij;
+          m1(nodeListi, i) += wwj * rij;
+          m1(nodeListi, j) -= wwi * rij;
           gradm1(i) += wj*( rij*gradWj + Tensor::one*Wj);
           gradm1(j) += wi*(-rij*gradWi + Tensor::one*Wi);
 
           // Second moment.
           const SymTensor thpt = rij.selfdyad();
-          m2(i) += wwj*thpt;
-          m2(j) += wwi*thpt;
+          m2(nodeListi, i) += wwj*thpt;
+          m2(nodeListi, j) += wwi*thpt;
           gradm2(i) += wj*outerProduct<Dimension>(thpt, gradWj);
           gradm2(j) += wi*outerProduct<Dimension>(thpt, gradWi);
           for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
@@ -167,18 +176,18 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Based on the moments we can calculate the CSPH corrections terms and their gradients.
       if (i < firstGhostNodei) {
-        CHECK2(abs(m2(i).Determinant()) > 1.0e-30, i << " " << m0(i) << " " << m2(i).Determinant());
-        const SymTensor m2inv = m2(i).Inverse();
-        const Vector m2invm1 = m2inv*m1(i);
-        const Scalar Ainv = m0(i) - m2invm1.dot(m1(i));
+        CHECK2(abs(m2(nodeListi, i).Determinant()) > 1.0e-30, i << " " << m0(nodeListi, i) << " " << m2(nodeListi, i).Determinant());
+        const SymTensor m2inv = m2(nodeListi, i).Inverse();
+        const Vector m2invm1 = m2inv*m1(nodeListi, i);
+        const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
         CHECK(Ainv != 0.0);
-        A0(nodeListi, i) = 1.0/m0(i);
+        A0(nodeListi, i) = 1.0/m0(nodeListi, i);
         A(nodeListi, i) = 1.0/Ainv;
         B(nodeListi, i) = -m2invm1;
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
-          (gradm0(i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(i)).dot(m1(i)) -
-           innerProduct<Dimension>(m1(i), m2inv*gradm1(i)) - innerProduct<Dimension>(m2inv*m1(i), gradm1(i)));
-        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(i)) - gradm1(i));
+          (gradm0(i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
+           innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)));
+        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(nodeListi, i)) - gradm1(i));
       }
     }
   }

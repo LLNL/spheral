@@ -16,7 +16,7 @@ SRCTARGETS = \
 	SumVoronoiMassDensityPolicyInst.cc \
 	SecondMomentHourglassControlInst.cc \
 	ThirdMomentHourglassControlInst.cc \
-	VoronoiHourglassControlInst.cc
+#	VoronoiHourglassControlInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

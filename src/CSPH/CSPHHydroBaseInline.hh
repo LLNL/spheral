@@ -269,6 +269,30 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CSPHHydroBase<Dimension>::
+m0() const {
+  return mM0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CSPHHydroBase<Dimension>::
+m1() const {
+  return mM1;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+CSPHHydroBase<Dimension>::
+m2() const {
+  return mM2;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CSPHHydroBase<Dimension>::
 A0() const {
   return mA0;
 }
@@ -319,14 +343,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 CSPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>&
-CSPHHydroBase<Dimension>::
-polyvols() const {
-  return mPolyvols;
 }
 
 }

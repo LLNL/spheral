@@ -124,6 +124,9 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "m0"),
+                                 refparam(vectorfieldlist, "m1"),
+                                 refparam(symtensorfieldlist, "m2"),
                                  refparam(scalarfieldlist, "A0"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
@@ -314,6 +317,9 @@ class CSPH:
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
+        const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
+        const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
+        const_ref_return_value(x, me, "%s::m2" % me, symtensorfieldlist, [], "m2")
         const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")

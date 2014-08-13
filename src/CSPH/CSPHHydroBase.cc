@@ -109,6 +109,9 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInternalDvDx(FieldSpace::Copy),
   mDmassDensityDx(FieldSpace::Copy),
   mPairAccelerations(FieldSpace::Copy),
+  mM0(FieldSpace::Copy),
+  mM1(FieldSpace::Copy),
+  mM2(FieldSpace::Copy),
   mA0(FieldSpace::Copy),
   mA(FieldSpace::Copy),
   mB(FieldSpace::Copy),
@@ -116,7 +119,6 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mD(FieldSpace::Copy),
   mGradA(FieldSpace::Copy),
   mGradB(FieldSpace::Copy),
-  mPolyvols(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -158,6 +160,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDmassDensityDx = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
 
+  mM0 = dataBase.newFluidFieldList(0.0,             HydroFieldNames::m0_CSPH);
+  mM1 = dataBase.newFluidFieldList(Vector::zero,    HydroFieldNames::m1_CSPH);
+  mM2 = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::m2_CSPH);
   mA0 = dataBase.newFluidFieldList(0.0,             HydroFieldNames::A0_CSPH);
   mA = dataBase.newFluidFieldList(0.0,              HydroFieldNames::A_CSPH);
   mB = dataBase.newFluidFieldList(Vector::zero,     HydroFieldNames::B_CSPH);
@@ -165,7 +170,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mD = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::D_CSPH);
   mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CSPH);
   mGradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CSPH);
-  mPolyvols = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::polyvols);
 
   // Compute the volumes.
   const TableKernel<Dimension>& W = this->kernel();
@@ -205,14 +209,16 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.resizeFluidFieldList(mA0,    0.0,          HydroFieldNames::A0_CSPH);
-  dataBase.resizeFluidFieldList(mA,     0.0,          HydroFieldNames::A_CSPH);
-  dataBase.resizeFluidFieldList(mB,     Vector::zero, HydroFieldNames::B_CSPH);
-  dataBase.resizeFluidFieldList(mC,     Vector::zero, HydroFieldNames::C_CSPH);
-  dataBase.resizeFluidFieldList(mD,     Tensor::zero, HydroFieldNames::D_CSPH);
-  dataBase.resizeFluidFieldList(mGradA, Vector::zero, HydroFieldNames::gradA_CSPH);
-  dataBase.resizeFluidFieldList(mGradB, Tensor::zero, HydroFieldNames::gradB_CSPH);
-  dataBase.resizeFluidFieldList(mPolyvols, FacetedVolume(), HydroFieldNames::polyvols);
+  dataBase.resizeFluidFieldList(mM0,    0.0,             HydroFieldNames::m0_CSPH);
+  dataBase.resizeFluidFieldList(mM1,    Vector::zero,    HydroFieldNames::m1_CSPH);
+  dataBase.resizeFluidFieldList(mM2,    SymTensor::zero, HydroFieldNames::m2_CSPH);
+  dataBase.resizeFluidFieldList(mA0,    0.0,             HydroFieldNames::A0_CSPH);
+  dataBase.resizeFluidFieldList(mA,     0.0,             HydroFieldNames::A_CSPH);
+  dataBase.resizeFluidFieldList(mB,     Vector::zero,    HydroFieldNames::B_CSPH);
+  dataBase.resizeFluidFieldList(mC,     Vector::zero,    HydroFieldNames::C_CSPH);
+  dataBase.resizeFluidFieldList(mD,     Tensor::zero,    HydroFieldNames::D_CSPH);
+  dataBase.resizeFluidFieldList(mGradA, Vector::zero,    HydroFieldNames::gradA_CSPH);
+  dataBase.resizeFluidFieldList(mGradB, Tensor::zero,    HydroFieldNames::gradB_CSPH);
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
@@ -303,6 +309,9 @@ registerState(DataBase<Dimension>& dataBase,
   // during CSPHHydroBase::initialize, not as part of our usual state update.
   // This is necessary 'cause we need boundary conditions *and* the current set of
   // neighbors before we compute these suckers.
+  state.enroll(mM0);
+  state.enroll(mM1);
+  state.enroll(mM2);
   state.enroll(mA0);
   state.enroll(mA);
   state.enroll(mB);
@@ -310,7 +319,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mD);
   state.enroll(mGradA);
   state.enroll(mGradB);
-  state.enroll(mPolyvols);
 }
 
 //------------------------------------------------------------------------------
@@ -397,6 +405,9 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
+  FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CSPH, SymTensor::zero);
   FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
@@ -404,7 +415,7 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, vol, position, H, A0, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -455,6 +466,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
   const FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
   const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
@@ -462,7 +475,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  // FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
 
   CHECK(vol.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
@@ -473,6 +485,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(m0.size() == numNodeLists);
+  CHECK(m1.size() == numNodeLists);
   CHECK(A0.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
@@ -560,6 +574,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
+      const Scalar& m0i = m0(nodeListi, i);
+      const Vector& m1i = m1(nodeListi, i);
       const Scalar& A0i = A0(nodeListi, i);
       const Scalar& Ai = A(nodeListi, i);
       const Vector& Bi = B(nodeListi, i);
@@ -828,6 +844,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar mag0 = vi.magnitude();
       //printf("MAG0=%10.3e",mag0);
       
+      if (dt > 0.0) {
+        CHECK(m0i > 0.0);
+        const Vector com = -m1i/m0i;
+        const Vector dhat = com.unitVector();
+        //const Vector delPos=com - ri;
+        const Scalar a0 = DvDti.magnitude();
+        const Vector delPos=com;
+        //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
+        //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
+        const Scalar deltamag = com.magnitude();
+        //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
+        const Vector accel=2*delPos/(dt*dt);
+        const Scalar a1 = accel.magnitude();
+        const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
+        //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
+
+        // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+        //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
+        //const Vector accel=2*delPos/(dt*dt*mi);
+        // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
+        // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+        //DvDti += accel;
+        DvDti += delta;
+      }
+
       // if (dt > 0.0) {
       //    const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
       //    const Vector dhat = com.unitVector();
@@ -1033,8 +1074,10 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    // FieldList<Dimension, FacetedVolume> polyvol = state.fields(HydroFieldNames::polyvols, FacetedVolume());
     FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+    FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+    FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
+    FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CSPH, SymTensor::zero);
     FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
     FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
     FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
@@ -1050,7 +1093,7 @@ finalize(const typename Dimension::Scalar time,
     // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
     //      boundaryItr != this->boundaryEnd();
     //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCSPHCorrections(connectivityMap, W, vol, position, H, A0, A, B, C, D, gradA, gradB);
+    computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
     computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, A0, A, B, massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
 
@@ -1186,6 +1229,10 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
+  file.write(mVolume, pathName + "/volume");
+  file.write(mM0, pathName + "/m0");
+  file.write(mM1, pathName + "/m1");
+  file.write(mM2, pathName + "/m2");
   file.write(mA0, pathName + "/A0");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
@@ -1209,6 +1256,10 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
+  file.read(mVolume, pathName + "/volume");
+  file.read(mM0, pathName + "/m0");
+  file.read(mM1, pathName + "/m1");
+  file.read(mM2, pathName + "/m2");
   file.read(mA0, pathName + "/A0");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
