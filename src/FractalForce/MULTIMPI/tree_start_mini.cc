@@ -169,7 +169,7 @@ namespace FractalSpace
 	  }
       }
     //
-    cout << " To generate point OK in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
+    FileFractal << " To generate point OK in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
     try
       {    
 	new_points=new Point[total_points];
