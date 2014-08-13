@@ -840,60 +840,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
       DvDti += deltaDvDtii;
 
-      //const Scalar mag0 = DxDti.magnitude();
-      const Scalar mag0 = vi.magnitude();
-      //printf("MAG0=%10.3e",mag0);
-      
-      if (dt > 0.0) {
-        CHECK(m0i > 0.0);
-        const Vector com = -m1i/m0i;
-        const Vector dhat = com.unitVector();
-        //const Vector delPos=com - ri;
-        const Scalar a0 = DvDti.magnitude();
-        const Vector delPos=com;
-        //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
-        //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
-        const Scalar deltamag = com.magnitude();
-        //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
-        const Vector accel=2*delPos/(dt*dt);
-        const Scalar a1 = accel.magnitude();
-        const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
-        //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
-
-        // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
-        //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
-        //const Vector accel=2*delPos/(dt*dt*mi);
-        // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
-        // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
-        //DvDti += accel;
-        DvDti += delta;
-      }
-
-      // if (dt > 0.0) {
-      //    const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
-      //    const Vector dhat = com.unitVector();
-      //    //const Vector delPos=com - ri;
-      //    const Scalar a0 = DvDti.magnitude();
-      //    const Vector delPos=com;
-      //    //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
-      //    //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
-      //    const Scalar deltamag = com.magnitude();
-      //    //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
-      //    const Vector accel=2*delPos/(dt*dt);
-      //    const Scalar a1 = accel.magnitude();
-      //    const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
-      //    //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
-
-      //    // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
-      //    //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
-      //    //const Vector accel=2*delPos/(dt*dt*mi);
-      //    // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
-      //    // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
-      //    //DvDti += accel;
-      //    DvDti += delta;
-      
-      // }
-
       // The specific thermal energy evolution.
       DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
       // DepsDti = -Pi/rhoi * DvDxi.Trace();
@@ -929,6 +875,63 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         connectivityMap,
                                                         nodeListi,
                                                         i);
+
+      //const Scalar mag0 = DxDti.magnitude();
+      const Scalar mag0 = vi.magnitude();
+      //printf("MAG0=%10.3e",mag0);
+      
+      if (dt > 0.0) {
+        CHECK(m0i > 0.0);
+        const Vector com = -m1i/m0i;
+        const Vector dhat = com.unitVector();
+        //const Vector delPos=com - ri;
+        const Scalar a0 = DvDti.magnitude();
+        const Vector delPos=com;
+        //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
+        //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
+        const Scalar deltamag = com.magnitude();
+        //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
+        const Vector accel=2*delPos/(dt*dt);
+        const Scalar a1 = accel.magnitude();
+        const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
+        //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
+
+        // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+        //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
+        //const Vector accel=2*delPos/(dt*dt*mi);
+        // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
+        // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+        //DvDti += accel;
+        DvDti += delta;
+
+        // Account for the work done as well.
+        // DepsDti -= (vi + 0.5*dt*DvDti).dot(DvDti);
+      }
+
+      // if (dt > 0.0) {
+      //    const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
+      //    const Vector dhat = com.unitVector();
+      //    //const Vector delPos=com - ri;
+      //    const Scalar a0 = DvDti.magnitude();
+      //    const Vector delPos=com;
+      //    //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
+      //    //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
+      //    const Scalar deltamag = com.magnitude();
+      //    //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
+      //    const Vector accel=2*delPos/(dt*dt);
+      //    const Scalar a1 = accel.magnitude();
+      //    const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
+      //    //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
+
+      //    // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+      //    //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
+      //    //const Vector accel=2*delPos/(dt*dt*mi);
+      //    // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
+      //    // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+      //    //DvDti += accel;
+      //    DvDti += delta;
+      
+      // }
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
