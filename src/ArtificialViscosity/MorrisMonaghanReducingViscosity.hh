@@ -18,7 +18,7 @@ namespace Spheral {
 namespace ArtificialViscositySpace {
     
 template<typename Dimension>
-    class MorrisMonaghanReducingViscosity: public ArtificialViscosity<Dimension> , public PhysicsSpace::Physics<Dimension>{
+    class MorrisMonaghanReducingViscosity: public PhysicsSpace::Physics<Dimension>{
 public:
     //--------------------------- Public Interface ---------------------------//
     typedef typename Dimension::Scalar Scalar;
@@ -28,12 +28,10 @@ public:
     typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
     
     // Constructors & Destructors
-    MorrisMonaghanReducingViscosity(const Scalar nh,
-                                    const Scalar aStar,
-                                    const Scalar Clinear,
-                                    const Scalar Cquadratic,
-                                    const bool linearInExpansion,
-                                    const bool quadraticInExpansion);
+    MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
+                                    const Scalar nh,
+                                    const Scalar aMin,
+                                    const Scalar aMax);
     virtual ~MorrisMonaghanReducingViscosity();
     
     //............................................................................
@@ -64,42 +62,29 @@ public:
     virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
     //............................................................................
     
-    // The required method to compute the artificial viscous P/rho^2.
-    virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i,
-                                           const unsigned nodeListj, const unsigned j,
-                                           const Vector& xi,
-                                           const Vector& etai,
-                                           const Vector& vi,
-                                           const Scalar rhoi,
-                                           const Scalar csi,
-                                           const SymTensor& Hi,
-                                           const Vector& xj,
-                                           const Vector& etaj,
-                                           const Vector& vj,
-                                           const Scalar rhoj,
-                                           const Scalar csj,
-                                           const SymTensor& Hj) const;
-    
-    // Access the switches for acting in expansion.
-    bool linearInExpansion() const;
-    void linearInExpansion(const bool x);
-    
-    bool quadraticInExpansion() const;
-    void quadraticInExpansion(const bool x);
-    
     // Restart methods.
     virtual std::string label() const { return "MorrisMonaghanReducingViscosity"; }
+        
+        
+    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDt() const;
+    Scalar nh() const;
+    Scalar aMin() const;
+    Scalar aMax() const;
+    
+    void aMin(Scalar val);
+    void aMax(Scalar val);
+    void nh(Scalar val);
     
 private:
     //--------------------------- Private Interface ---------------------------//
-    bool mLinearInExpansion, mQuadraticInExpansion;
     
     MorrisMonaghanReducingViscosity();
     MorrisMonaghanReducingViscosity(const MorrisMonaghanReducingViscosity&);
     MorrisMonaghanReducingViscosity& operator=(const MorrisMonaghanReducingViscosity&) const;
     
-    Scalar mnh,maStar;
-    FieldSpace::FieldList<Dimension, Scalar> mrvAlpha, mDrvAlphaDt;
+    Scalar mnh,maMin,maMax;
+    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDt;
+    ArtificialViscosity<Dimension>& myq;
 };
     
 }
