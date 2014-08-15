@@ -82,7 +82,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
   const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
-  FieldSpace::FieldList<Dimension, Scalar>& rvAlpha = this->reducingViscosityMultiplier();
+  const FieldSpace::FieldList<Dimension, Scalar> rvAlpha = this->mReducingViscosityMultiplier;
 
   // Are we applying the shear corrections?
   const Vector vij = vi - vj;
