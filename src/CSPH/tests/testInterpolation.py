@@ -203,6 +203,9 @@ fCSPH = ScalarField("CSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
 dfCSPH = VectorField("CSPH derivative values", nodes1)
 
+m0_fl = db.newFluidScalarFieldList(0.0, "m0")
+m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
+m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
 A0_fl = db.newFluidScalarFieldList(0.0, "A0")
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
@@ -222,6 +225,7 @@ polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 weight_fl = db.newFluidScalarFieldList(0.0, "volume")
 computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
 computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl,
+                       m0_fl, m1_fl, m2_fl,
                        A0_fl, A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
