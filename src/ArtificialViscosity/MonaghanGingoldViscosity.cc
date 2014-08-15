@@ -82,7 +82,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const double Cq = this->mCquadratic;
   const double eps2 = this->mEpsilon2;
   const bool balsaraShearCorrection = this->mBalsaraShearCorrection;
-  const FieldSpace::FieldList<Dimension, Scalar> rvAlpha = this->mReducingViscosityMultiplier;
+  const FieldSpace::FieldList<Dimension, Scalar>& rvAlpha = this->reducingViscosityMultiplier();
 
   // Are we applying the shear corrections?
   const Vector vij = vi - vj;
@@ -119,6 +119,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
+    std::printf("%3.2f\n",rvAlpha(nodeListi, i));
   // The artificial internal energy.
   const Scalar ei = fshear*(-Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
                             Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))))*rvAlpha(nodeListi,i);
