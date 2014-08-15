@@ -44,6 +44,8 @@ ArtificialViscosity():
   mCquadratic(1.0),
   mBalsaraShearCorrection(false),
   mShearMultiplier(FieldSpace::Copy),
+  mReducingViscosityCorrection(false),
+  mReducingViscosityMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -65,6 +67,8 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic):
   mCquadratic(Cquadratic),
   mBalsaraShearCorrection(false),
   mShearMultiplier(FieldSpace::Copy),
+  mReducingViscosityCorrection(false),
+  mReducingViscosityMultiplier(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-4),
@@ -95,61 +99,71 @@ initialize(const DataBase<Dimension>& dataBase,
            const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar time,
+           const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
 
-  // If needed, calculate grad v and grad div v.
-  if (calculateSigma() or limiter()) calculateSigmaAndGradDivV(dataBase,
+    // If needed, calculate grad v and grad div v.
+    if (calculateSigma() or limiter()) calculateSigmaAndGradDivV(dataBase,
                                                                state,
                                                                derivs,
                                                                W,
                                                                boundaryBegin,
                                                                boundaryEnd);
 
-  // If we are applying the Balsara shear flow correction term, calculate the 
-  // per node multiplier.
-  if (balsaraShearCorrection()) {
+    // add rvAlpha to the FluidFieldList if it doesn't already exist
+    if (reducingViscosityCorrection())
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplier, 0.1, HydroFieldNames::reducingViscosityMultiplier);
+    else
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplier, 1.0, HydroFieldNames::reducingViscosityMultiplier);
 
-    // Begin by verifying that the internal FieldList mQultiplier is correctly 
-    // sized.
-    dataBase.resizeFluidFieldList(mShearMultiplier, 0.0, "sigmaShear");
+  
+    
+    // If we are applying the Balsara shear flow correction term, calculate the
+    // per node multiplier.
+    if (balsaraShearCorrection()) {
 
-    // State we need.
-    const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+        // Begin by verifying that the internal FieldList mQultiplier is correctly
+        // sized.
+        dataBase.resizeFluidFieldList(mShearMultiplier, 0.0, "sigmaShear");
 
-    // Calculate the shear Q suppression term for all internal fluid nodes.
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const int numNodeLists = connectivityMap.nodeLists().size();
-    for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const int i = *iItr;
-        const Scalar div = fabs(DvDx(nodeListi, i).Trace());
-        const Scalar curl = curlVelocityMagnitude(DvDx(nodeListi, i));
-        const Scalar hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
-        const Scalar cs = max(negligibleSoundSpeed(), soundSpeed(nodeListi, i));
-        CHECK(div >= 0.0);
-        CHECK(curl >= 0.0);
-        CHECK(hmaxinverse > 0.0);
-        CHECK(cs > 0.0);
-        mShearMultiplier(nodeListi, i) = div/(div + curl + epsilon2()*cs*hmaxinverse);
-        CHECK(mShearMultiplier(nodeListi, i) >= 0.0 and mShearMultiplier(nodeListi, i) <= 1.0);
-      }
+        // State we need.
+        const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+        const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+        const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+
+        // Calculate the shear Q suppression term for all internal fluid nodes.
+        const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+        const int numNodeLists = connectivityMap.nodeLists().size();
+        for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+          for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+               iItr != connectivityMap.end(nodeListi);
+               ++iItr) {
+            const int i = *iItr;
+            const Scalar div = fabs(DvDx(nodeListi, i).Trace());
+            const Scalar curl = curlVelocityMagnitude(DvDx(nodeListi, i));
+            const Scalar hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
+            const Scalar cs = max(negligibleSoundSpeed(), soundSpeed(nodeListi, i));
+            CHECK(div >= 0.0);
+            CHECK(curl >= 0.0);
+            CHECK(hmaxinverse > 0.0);
+            CHECK(cs > 0.0);
+            mShearMultiplier(nodeListi, i) = div/(div + curl + epsilon2()*cs*hmaxinverse);
+            CHECK(mShearMultiplier(nodeListi, i) >= 0.0 and mShearMultiplier(nodeListi, i) <= 1.0);
+          }
+        }
+
+        // Apply boundary conditions to fill out the shear corrections on ghost nodes.
+        // We deliberately do not finalize the boundaries here, depending on the calling environment
+        // to know when to do this efficiently.
+        for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+             boundItr != boundaryEnd;
+             ++boundItr) {
+          (*boundItr)->applyFieldListGhostBoundary(mShearMultiplier);
+        }
+          
+        
     }
-
-    // Apply boundary conditions to fill out the shear corrections on ghost nodes.
-    // We deliberately do not finalize the boundaries here, depending on the calling environment
-    // to know when to do this efficiently.
-    for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-         boundItr != boundaryEnd;
-         ++boundItr) {
-      (*boundItr)->applyFieldListGhostBoundary(mShearMultiplier);
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
