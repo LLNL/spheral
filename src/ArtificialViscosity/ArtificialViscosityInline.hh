@@ -113,6 +113,14 @@ ArtificialViscosity<Dimension>::
 reducingViscosityMultiplier() {
     return mReducingViscosityMultiplier;
 }
+    
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplier() const {
+    return mReducingViscosityMultiplier;
+}
 
 //------------------------------------------------------------------------------
 // Calculate the curl of the velocity given the stress tensor.

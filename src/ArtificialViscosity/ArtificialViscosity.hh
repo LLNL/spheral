@@ -124,6 +124,7 @@ public:
 
     // Access the FieldList of Reducing Viscosity multiplicative correction.
     FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplier();
+    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplier() const;
 
     // Access the internally computed estimate of sigma:
     // sig^ab = \partial v^a / \partial x^b.
