@@ -915,18 +915,18 @@ namespace FractalSpace
 				  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 				  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR)
     {
+      ofstream& FF=p_file->DUMPS;
       int FractalNodes01=FractalNodes0*FractalNodes1;
       //      int FractalRank0=FractalRank % FractalNodes0;
       //      int FractalRank1=(FractalRank/FractalNodes0) % FractalNodes1;
       int FractalRank2=FractalRank/FractalNodes01;
       vector < vector <int> > dataIa_out(FractalNodes2);
       vector < vector <double> > dataRa_out(FractalNodes2);
-      vector <int>dataIa_in;
-      vector <double>dataRa_in;
+      vector <int>& dataIa_in=dataI_in;
+      vector <double>& dataRa_in=dataR_in;
       vector <int>countsa_out(FractalNodes2,0);
       vector <int>countsa_in(FractalNodes2);
-      if(FractalRank == 0)
-	cout << " Send AA " << FractalRank << "\n";
+      FF << " Send AA " << FractalRank << "\n";
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  int FR2=FR/FractalNodes01;
@@ -935,29 +935,45 @@ namespace FractalSpace
 	  int nRdata=0;
 	  for(int ni=0;ni<counts_out[FR];ni++)
 	    {
-	      dataIa_out[FR2].push_back(FR);
+	      try
+		{
+		  dataIa_out[FR2].push_back(FR);
+		}
+	      catch(bad_alloc& ba)
+		{
+		  cerr << " bad One_Direction allocation A " << FractalRank << " " << ba.what() << endl;
+		}
 	      for(int ints=0;ints<integers;ints++)
 		{
-		  dataIa_out[FR2].push_back(dataI_out[FR][nIdata]);
+		  try
+		    {
+		      dataIa_out[FR2].push_back(dataI_out[FR][nIdata]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation B " << FractalRank << " " << ba.what() << endl;
+		    }
 		  nIdata++;
 		}
 	      for(int reals=0;reals<doubles;reals++)
 		{
-		  dataRa_out[FR2].push_back(dataR_out[FR][nRdata]);
+		  try
+		    {
+		      dataRa_out[FR2].push_back(dataR_out[FR][nRdata]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation C " << FractalRank << " " << ba.what() << endl;
+		    }
 		  nRdata++;
 		}
 	    }
 	}
-      if(FractalRank == 0)
-	cout << " Send BB " << FractalRank << "\n";
+      FF << " Send BB " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
 
-      //      cout << " aaa " << FractalRank << " ";
-      //      for(int FR2=0;FR2<FractalNodes2;FR2++)
-      //	cout << FR2 << " " << countsa_out[FR2] << " " << countsa_in[FR2] << " ";
-      //      cout << "\n";
       dataIa_in.clear();
       dataRa_in.clear();
 
@@ -965,8 +981,7 @@ namespace FractalSpace
 				   integers+1,doubles,
 				   dataIa_out,dataIa_in,how_manyI,
 				   dataRa_out,dataRa_in,how_manyR);
-      if(FractalRank == 0)
-	cout << " Send CC " << FractalRank << "\n";
+      FF << " Send CC " << FractalRank << "\n";
       dataIa_out.clear();
       dataRa_out.clear();
       dataIa_out.resize(FractalNodes1);
@@ -983,40 +998,55 @@ namespace FractalSpace
 	      countI++;
 	      int FR1=(FR/FractalNodes0) % FractalNodes1;
 	      countsa_out[FR1]++;
-	      dataIa_out[FR1].push_back(FR);
-	      dataIa_out[FR1].push_back(FRFrom);
+	      try
+		{
+		  dataIa_out[FR1].push_back(FR);
+		  dataIa_out[FR1].push_back(FRFrom);
+		}
+	      catch(bad_alloc& ba)
+		{
+		  cerr << " bad One_Direction allocation D " << FractalRank << " " << ba.what() << endl;
+		}
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  dataIa_out[FR1].push_back(dataIa_in[countI]);
+		  try
+		    {
+		      dataIa_out[FR1].push_back(dataIa_in[countI]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation E " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  dataRa_out[FR1].push_back(dataRa_in[countR]);
+		  try
+		    {
+		      dataRa_out[FR1].push_back(dataRa_in[countR]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation F " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countR++;
 		}
 	    }
 	}
       Full_Stop_Do_Not_Argue(MComms[2]);
       Full_Stop_Do_Not_Argue(MComms[1]);
-      if(FractalRank == 0)
-	cout << " Send DD " << FractalRank << "\n";
+      FF << " Send DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
       dataIa_in.clear();
       dataRa_in.clear();
-      //      cout << " bbb " << FractalRank << " ";
-      //      for(int FR1=0;FR1<FractalNodes1;FR1++)
-      //	cout << FR1 << " " << countsa_out[FR1] << " " << countsa_in[FR1] << " ";
-      //      cout << "\n";
 
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
 				   dataIa_out,dataIa_in,how_manyI,
 				   dataRa_out,dataRa_in,how_manyR);
 
-      if(FractalRank == 0)
-	cout << " Send EE " << FractalRank << "\n";
+      FF << " Send EE " << FractalRank << "\n";
       dataIa_out.clear();
       dataRa_out.clear();
       dataIa_out.resize(FractalNodes0);
@@ -1034,39 +1064,53 @@ namespace FractalSpace
 	      countsa_out[FR0]++;
 	      int FRFrom=dataIa_in[countI];
 	      countI++;
-	      dataIa_out[FR0].push_back(FRFrom);
+	      try
+		{
+		  dataIa_out[FR0].push_back(FRFrom);
+		}
+	      catch(bad_alloc& ba)
+		{
+		  cerr << " bad One_Direction allocation G " << FractalRank << " " << ba.what() << endl;
+		}
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  dataIa_out[FR0].push_back(dataIa_in[countI]);
+		  try
+		    {
+		      dataIa_out[FR0].push_back(dataIa_in[countI]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation H " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  dataRa_out[FR0].push_back(dataRa_in[countR]);
+		  try
+		    {
+		      dataRa_out[FR0].push_back(dataRa_in[countR]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation I " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countR++;
 		}
 	    }
 	}
       Full_Stop_Do_Not_Argue(MComms[1]);
       Full_Stop_Do_Not_Argue(MComms[0]);
-      if(FractalRank == 0)
-	cout << " Send FF " << FractalRank << "\n";
+      FF << " Send FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes0,0);
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
       dataIa_in.clear();
       dataRa_in.clear();
-      //      cout << " Send FFF " << FractalRank << "\n";
-      //      cout << " fff " << FractalRank << " ";
-      //      for(int FR0=0;FR0<FractalNodes0;FR0++)
-      //	cout << FR0 << " " << countsa_out[FR0] << " " << countsa_in[FR0] << " ";
-      //      cout << "\n";
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataIa_out,dataIa_in,how_manyI,
 				   dataRa_out,dataRa_in,how_manyR);
 
-      if(FractalRank == 0)
-	cout << " Send GG " << FractalRank << "\n";
+      FF << " Send GG " << FractalRank << "\n";
       dataIa_out.clear();
       dataRa_out.clear();
       dataIa_out.resize(FractalNodes);
@@ -1083,25 +1127,33 @@ namespace FractalSpace
 	      counts_in[FRFrom]++;
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  dataIa_out[FRFrom].push_back(dataIa_in[countI]);
+		  try
+		    {
+		      dataIa_out[FRFrom].push_back(dataIa_in[countI]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation J " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  dataRa_out[FRFrom].push_back(dataRa_in[countR]);
+		  try
+		    {
+		      dataRa_out[FRFrom].push_back(dataRa_in[countR]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation K " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countR++;
 		}
 	    }
 	}
       dataI_in.clear();
       dataR_in.clear();
-      if(FractalRank == 0)
-	cout << " Send HH " << FractalRank <<  "\n";
-      //      for(int FR=0;FR<FractalNodes;FR++)
-      //	{
-      //	  cout << " HHH " << FractalRank << " ";
-      //	  cout << FR << " " << counts_out[FR] << " " << counts_in[FR] << "\n";
-      //	}
+      FF << " Send HH " << FractalRank <<  "\n";
       how_manyI=0;
       how_manyR=0;
       for(int FR=0;FR<FractalNodes;FR++)
@@ -1112,12 +1164,26 @@ namespace FractalSpace
 	    {
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  dataI_in.push_back(dataIa_out[FR][countI]);
+		  try
+		    {
+		      dataI_in.push_back(dataIa_out[FR][countI]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation L " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  dataR_in.push_back(dataRa_out[FR][countR]);
+		  try
+		    {
+		      dataR_in.push_back(dataRa_out[FR][countR]);
+		    }
+		  catch(bad_alloc& ba)
+		    {
+		      cerr << " bad One_Direction allocation M " << FractalRank << " " << ba.what() << endl;
+		    }
 		  countR++;
 		}
 	    }
@@ -1125,8 +1191,7 @@ namespace FractalSpace
 	  how_manyR+=countR;
 	}
       Full_Stop_Do_Not_Argue();
-      if(FractalRank == 0)
-	cout << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+      FF << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
     }
     void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
 				    vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
