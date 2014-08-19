@@ -26,10 +26,13 @@ public:
     typedef typename Dimension::Tensor Tensor;
     typedef typename Dimension::SymTensor SymTensor;
     typedef typename PhysicsSpace::Physics<Dimension>::TimeStepType TimeStepType;
+        
+    typedef typename PhysicsSpace::Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
     
     // Constructors & Destructors
     MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
-                                    const Scalar nh,
+                                    const Scalar nhQ,
+                                    const Scalar nhL,
                                     const Scalar aMin,
                                     const Scalar aMax);
     virtual ~MorrisMonaghanReducingViscosity();
@@ -43,6 +46,13 @@ public:
                              const DataBaseSpace::DataBase<Dimension>& dataBase,
                              const State<Dimension>& state,
                              StateDerivatives<Dimension>& derivatives) const;
+        
+    void applyGhostBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs);
+    
+    void enforceBoundaries(State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivs);
+
     
     // Vote on a time step.
     virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
@@ -64,26 +74,35 @@ public:
     
     // Restart methods.
     virtual std::string label() const { return "MorrisMonaghanReducingViscosity"; }
+    virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
+    virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
         
         
-    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDt() const;
-    Scalar nh() const;
+    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtQ() const;
+    const FieldSpace::FieldList<Dimension, Scalar>& DrvAlphaDtL() const;
+    Scalar nhQ() const;
+    Scalar nhL() const;
     Scalar aMin() const;
     Scalar aMax() const;
     
     void aMin(Scalar val);
     void aMax(Scalar val);
-    void nh(Scalar val);
+    void nhQ(Scalar val);
+    void nhL(Scalar val);
     
 private:
     //--------------------------- Private Interface ---------------------------//
-    
+    // The restart registration.
+    DataOutput::RestartRegistrationType mRestart;
+        
+        
     MorrisMonaghanReducingViscosity();
     MorrisMonaghanReducingViscosity(const MorrisMonaghanReducingViscosity&);
     MorrisMonaghanReducingViscosity& operator=(const MorrisMonaghanReducingViscosity&) const;
     
-    Scalar mnh,maMin,maMax;
-    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDt;
+    Scalar mnhQ,mnhL,maMin,maMax;
+    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDtQ;
+    FieldSpace::FieldList<Dimension, Scalar> mDrvAlphaDtL;
     ArtificialViscosity<Dimension>& myq;
 };
     
