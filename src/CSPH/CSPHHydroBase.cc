@@ -685,7 +685,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
+              CSPHKernelAndGradient(W,  rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
@@ -1156,6 +1156,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
 
+  FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
@@ -1174,6 +1175,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    (*boundaryItr)->applyFieldListGhostBoundary(A0);
     (*boundaryItr)->applyFieldListGhostBoundary(A);
     (*boundaryItr)->applyFieldListGhostBoundary(B);
     (*boundaryItr)->applyFieldListGhostBoundary(C);
@@ -1204,6 +1206,14 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
 
+  FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
+  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
+  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
+  FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -1215,6 +1225,13 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    (*boundaryItr)->enforceFieldListBoundary(A0);
+    (*boundaryItr)->enforceFieldListBoundary(A);
+    (*boundaryItr)->enforceFieldListBoundary(B);
+    (*boundaryItr)->enforceFieldListBoundary(C);
+    (*boundaryItr)->enforceFieldListBoundary(D);
+    (*boundaryItr)->enforceFieldListBoundary(gradA);
+    (*boundaryItr)->enforceFieldListBoundary(gradB);
   }
 }
 
@@ -1242,7 +1259,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mC, pathName + "/C");
   file.write(mD, pathName + "/D");
   file.write(mGradA, pathName + "/gradA");
-  file.write(mGradA, pathName + "/gradB");
+  file.write(mGradB, pathName + "/gradB");
 }
 
 //------------------------------------------------------------------------------
@@ -1269,7 +1286,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mC, pathName + "/C");
   file.read(mD, pathName + "/D");
   file.read(mGradA, pathName + "/gradA");
-  file.read(mGradA, pathName + "/gradB");
+  file.read(mGradB, pathName + "/gradB");
 }
 
 }
