@@ -14,6 +14,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedFieldList.hh"
+#include "FileIO/FileIO.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -22,6 +23,7 @@ using namespace std;
 using std::min;
 using std::max;
 using std::abs;
+using FileIOSpace::FileIO;
 
 using PhysicsSpace::Physics;
 using DataOutput::Restart;
@@ -37,15 +39,19 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 MorrisMonaghanReducingViscosity<Dimension>::
     MorrisMonaghanReducingViscosity(ArtificialViscosity<Dimension>& q,
-                                    const Scalar nh,
+                                    const Scalar nhQ,
+                                    const Scalar nhL,
                                     const Scalar aMin,
                                     const Scalar aMax):
     Physics<Dimension>(),
-    mDrvAlphaDt(FieldSpace::Copy),
-    mnh(nh),
+    mDrvAlphaDtQ(FieldSpace::Copy),
+    mDrvAlphaDtL(FieldSpace::Copy),
+    mnhQ(nhQ),
+    mnhL(nhL),
     maMin(aMin),
     maMax(aMax),
-    myq(q){
+    myq(q),
+    mRestart(DataOutput::registerWithRestart(*this)){
         myq.reducingViscosityCorrection(true);
 }
 
@@ -76,9 +82,16 @@ MorrisMonaghanReducingViscosity<Dimension>::
     template<typename Dimension>
     void
     MorrisMonaghanReducingViscosity<Dimension>::
-    nh(Scalar val)
+    nhQ(Scalar val)
     {
-        mnh = val;
+        mnhQ = val;
+    }
+    template<typename Dimension>
+    void
+    MorrisMonaghanReducingViscosity<Dimension>::
+    nhL(Scalar val)
+    {
+        mnhL = val;
     }
     
     template<typename Dimension>
@@ -94,12 +107,22 @@ MorrisMonaghanReducingViscosity<Dimension>::
     template<typename Dimension>
     typename Dimension::Scalar
     MorrisMonaghanReducingViscosity<Dimension>::
-    nh() const{ return mnh;}
+    nhQ() const{ return mnhQ;}
+    
+    template<typename Dimension>
+    typename Dimension::Scalar
+    MorrisMonaghanReducingViscosity<Dimension>::
+    nhL() const{ return mnhL;}
     
     template<typename Dimension>
     const FieldList<Dimension, typename Dimension::Scalar>&
     MorrisMonaghanReducingViscosity<Dimension>::
-    DrvAlphaDt() const{ return mDrvAlphaDt;}
+    DrvAlphaDtQ() const{ return mDrvAlphaDtQ;}
+    
+    template<typename Dimension>
+    const FieldList<Dimension, typename Dimension::Scalar>&
+    MorrisMonaghanReducingViscosity<Dimension>::
+    DrvAlphaDtL() const{ return mDrvAlphaDtL;}
     
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -108,8 +131,10 @@ template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-    mDrvAlphaDt = dataBase.newFluidFieldList(0.0, IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplier);
-    dataBase.resizeFluidFieldList(myq.reducingViscosityMultiplier(), 1.0, HydroFieldNames::reducingViscosityMultiplier);
+    mDrvAlphaDtQ = dataBase.newFluidFieldList(0.0, IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplierQ);
+    mDrvAlphaDtL = dataBase.newFluidFieldList(0.0, IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplierL);
+    dataBase.resizeFluidFieldList(myq.reducingViscosityMultiplierQ(), 1.0, HydroFieldNames::reducingViscosityMultiplierQ);
+    dataBase.resizeFluidFieldList(myq.reducingViscosityMultiplierL(), 1.0, HydroFieldNames::reducingViscosityMultiplierL);
 }
     
 
@@ -124,9 +149,11 @@ void
         typedef typename State<Dimension>::PolicyPointer PolicyPointer;
         
         // Create local storage for rvAlpha
-        FieldList<Dimension, Scalar>& rvAlpha = myq.reducingViscosityMultiplier();
+        FieldList<Dimension, Scalar>& rvAlphaQ = myq.reducingViscosityMultiplierQ();
+        FieldList<Dimension, Scalar>& rvAlphaL = myq.reducingViscosityMultiplierL();
         PolicyPointer reducingViscosityMultiplierPolicy(new IncrementBoundedFieldList<Dimension, Scalar>(maMin,maMax));
-        state.enroll(rvAlpha, reducingViscosityMultiplierPolicy);
+        state.enroll(rvAlphaQ, reducingViscosityMultiplierPolicy);
+        state.enroll(rvAlphaL, reducingViscosityMultiplierPolicy);
     }
     
 //------------------------------------------------------------------------------
@@ -137,7 +164,8 @@ void
 MorrisMonaghanReducingViscosity<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-    derivs.enroll(mDrvAlphaDt);
+    derivs.enroll(mDrvAlphaDtQ);
+    derivs.enroll(mDrvAlphaDtL);
 }
 
 //------------------------------------------------------------------------------
@@ -156,16 +184,20 @@ MorrisMonaghanReducingViscosity<Dimension>::
     const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
     const FieldList<Dimension, SymTensor> Hsmooth = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> reducingViscosityMultiplier = state.fields(HydroFieldNames::reducingViscosityMultiplier, 0.0);
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
     
     // Derivative FieldLists
     const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-    FieldList<Dimension, Scalar> DrvAlphaDt = derivs.fields(IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplier, 0.0);
+    FieldList<Dimension, Scalar> DrvAlphaDtQ = derivs.fields(IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    FieldList<Dimension, Scalar> DrvAlphaDtL = derivs.fields(IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::reducingViscosityMultiplierL, 0.0);
     
     unsigned int numNodeLists = pressure.numFields();
     CHECK(soundSpeed.size() == numNodeLists);
-    CHECK(reducingViscosityMultiplier.size() == numNodeLists);
-    CHECK(DrvAlphaDt.size() == numNodeLists);
+    CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
+    CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
+    CHECK(DrvAlphaDtQ.size() == numNodeLists);
+    CHECK(DrvAlphaDtL.size() == numNodeLists);
     CHECK(DvDx.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
     CHECK(Hsmooth.size() == numNodeLists);
@@ -174,22 +206,83 @@ MorrisMonaghanReducingViscosity<Dimension>::
     for (unsigned i = 0; i < numNodeLists; ++i){
         unsigned int numNodes = pressure[i]->numInternalElements();
         for (unsigned int j = 0; j < numNodes; j++){
-            Scalar rv = reducingViscosityMultiplier(i,j);
+            Scalar rvQ = reducingViscosityMultiplierQ(i,j);
+            Scalar rvL = reducingViscosityMultiplierL(i,j);
             const Scalar source = max(-DvDx(i,j).Trace(),0.0);
             const Scalar adiabatIndex = soundSpeed(i,j)*soundSpeed(i,j)*massDensity(i,j)/pressure(i,j);
-            const Scalar decayConst = (1.0/mnh)*sqrt((adiabatIndex-1.0)/(2.0*adiabatIndex));
+            const Scalar decayConstQ = (1.0/mnhQ)*sqrt((adiabatIndex-1.0)/(2.0*adiabatIndex));
+            const Scalar decayConstL = (1.0/mnhL)*sqrt((adiabatIndex-1.0)/(2.0*adiabatIndex));
             const Scalar h = 1.0/(Dimension::rootnu(Hsmooth(i,j).Determinant()));
-            const Scalar decayTime = h/(decayConst*soundSpeed(i,j));
+            const Scalar decayTimeQ = h/(decayConstQ*soundSpeed(i,j));
+            const Scalar decayTimeL = h/(decayConstL*soundSpeed(i,j));
             
 
             
-            DrvAlphaDt(i,j) = (maMax-rv)*source - (rv - maMin)/decayTime;
+            DrvAlphaDtQ(i,j) = (maMax-rvQ)*source - (rvQ - maMin)/decayTimeQ;
+            DrvAlphaDtL(i,j) = (maMax-rvL)*source - (rvL - maMin)/decayTimeL;
             
             // shock detection switch
-            if (DrvAlphaDt(i,j) > 0){
-                //myq.reducingViscosityMultiplier(i,j) = maMax;
-            }
+
         }
+    }
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+MorrisMonaghanReducingViscosity<Dimension>::
+dumpState(FileIO& file, string pathName) const {
+    file.write(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
+    file.write(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
+}
+    
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+MorrisMonaghanReducingViscosity<Dimension>::
+restoreState(const FileIO& file, string pathName) {
+    file.read(mDrvAlphaDtQ, pathName + "/DrvAlphaDtQ");
+    file.read(mDrvAlphaDtL, pathName + "/DrvAlphaDtL");
+}
+    
+//------------------------------------------------------------------------------
+// Boundaries
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+MorrisMonaghanReducingViscosity<Dimension>::
+    applyGhostBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs)
+{
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+    
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) {
+        (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierQ);
+        (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierL);
+    }
+}
+    
+template<typename Dimension>
+void
+MorrisMonaghanReducingViscosity<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs)
+{
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+    
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) {
+        (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierQ);
+        (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierL);
     }
 }
     

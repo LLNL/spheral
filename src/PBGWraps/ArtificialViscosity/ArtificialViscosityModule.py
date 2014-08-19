@@ -143,7 +143,8 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         x.add_method("calculateSigma", "bool", [], is_const=True, visibility="protected")
         x.add_method("calculateSigma", None, [param("bool", "value")], visibility="protected")
         
-        x.add_method("reducingViscosityMultiplier", scalarfieldlist, [])
+        x.add_method("reducingViscosityMultiplierQ", scalarfieldlist, [])
+        x.add_method("reducingViscosityMultiplierL", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)
@@ -181,7 +182,8 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         
         # Constructors.
         x.add_constructor([refparam(artificialviscosity,"q"),
-                           param("double", "nh", default_value="5.0"),
+                           param("double", "nhQ", default_value="5.0"),
+                           param("double", "nhL", default_value="10.0"),
                            param("double", "aMin", default_value="0.1"),
                            param("double", "aMax", default_value="2.0")])
                            
@@ -189,12 +191,14 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         generatePhysicsVirtualBindings(x, ndim, False)
 
         # Attributes
-        x.add_instance_attribute("nh", "double", getter="nh", setter="nh")
+        x.add_instance_attribute("nhQ", "double", getter="nhQ", setter="nhQ")
+        x.add_instance_attribute("nhL", "double", getter="nhL", setter="nhL")
         x.add_instance_attribute("aMin", "double", getter="aMin", setter="aMin")
         x.add_instance_attribute("aMax", "double", getter="aMax", setter="aMax")
         
         # Methods.
-        const_ref_return_value(x, me, "%s::DrvAlphaDt" % me, scalarfieldlist, [], "DrvAlphaDt")
+        const_ref_return_value(x, me, "%s::DrvAlphaDtQ" % me, scalarfieldlist, [], "DrvAlphaDtQ")
+        const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
     
         return
 

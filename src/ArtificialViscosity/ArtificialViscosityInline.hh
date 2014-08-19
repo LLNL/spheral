@@ -110,16 +110,32 @@ template<typename Dimension>
 inline
 FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
-reducingViscosityMultiplier() {
-    return mReducingViscosityMultiplier;
+reducingViscosityMultiplierQ() {
+    return mReducingViscosityMultiplierQ;
 }
     
 template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialViscosity<Dimension>::
-reducingViscosityMultiplier() const {
-    return mReducingViscosityMultiplier;
+reducingViscosityMultiplierQ() const {
+    return mReducingViscosityMultiplierQ;
+}
+    
+template<typename Dimension>
+inline
+FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierL() {
+    return mReducingViscosityMultiplierL;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierL() const {
+    return mReducingViscosityMultiplierL;
 }
 
 //------------------------------------------------------------------------------

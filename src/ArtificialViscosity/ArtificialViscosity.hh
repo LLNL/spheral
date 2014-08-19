@@ -123,8 +123,10 @@ public:
     void reducingViscosityCorrection(bool value);
 
     // Access the FieldList of Reducing Viscosity multiplicative correction.
-    FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplier();
-    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplier() const;
+    FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierQ();
+    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierQ() const;
+    FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierL();
+    const FieldSpace::FieldList<Dimension, Scalar>& reducingViscosityMultiplierL() const;
 
     // Access the internally computed estimate of sigma:
     // sig^ab = \partial v^a / \partial x^b.
@@ -220,7 +222,9 @@ protected:
     
   // Parameters for Reducing Q correction after shocks
     bool mReducingViscosityCorrection;
-    FieldSpace::FieldList<Dimension, Scalar> mReducingViscosityMultiplier;
+    FieldSpace::FieldList<Dimension, Scalar> mReducingViscosityMultiplierQ;
+    FieldSpace::FieldList<Dimension, Scalar> mReducingViscosityMultiplierL;
+
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

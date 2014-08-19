@@ -45,7 +45,8 @@ ArtificialViscosity():
   mBalsaraShearCorrection(false),
   mShearMultiplier(FieldSpace::Copy),
   mReducingViscosityCorrection(false),
-  mReducingViscosityMultiplier(FieldSpace::Copy),
+  mReducingViscosityMultiplierQ(FieldSpace::Copy),
+  mReducingViscosityMultiplierL(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-2),
@@ -68,7 +69,8 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic):
   mBalsaraShearCorrection(false),
   mShearMultiplier(FieldSpace::Copy),
   mReducingViscosityCorrection(false),
-  mReducingViscosityMultiplier(FieldSpace::Copy),
+  mReducingViscosityMultiplierQ(FieldSpace::Copy),
+  mReducingViscosityMultiplierL(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
   mEpsilon2(1.0e-4),
@@ -113,9 +115,15 @@ initialize(const DataBase<Dimension>& dataBase,
 
     // add rvAlpha to the FluidFieldList if it doesn't already exist
     if (reducingViscosityCorrection())
-        dataBase.resizeFluidFieldList(mReducingViscosityMultiplier, 0.1, HydroFieldNames::reducingViscosityMultiplier);
+    {
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplierQ, 0.1, HydroFieldNames::reducingViscosityMultiplierQ, false);
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplierL, 0.1, HydroFieldNames::reducingViscosityMultiplierL, false);
+    }
     else
-        dataBase.resizeFluidFieldList(mReducingViscosityMultiplier, 1.0, HydroFieldNames::reducingViscosityMultiplier);
+    {
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplierQ, 1.0, HydroFieldNames::reducingViscosityMultiplierQ, false);
+        dataBase.resizeFluidFieldList(mReducingViscosityMultiplierL, 1.0, HydroFieldNames::reducingViscosityMultiplierL, false);
+    }
 
   
     
@@ -190,6 +198,8 @@ dumpState(FileIO& file, const string& pathName) const {
   if (calculateSigma()) file.write(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.write(gradDivVelocity(), pathName + "/gradDivVelocity");
   if (mBalsaraShearCorrection) file.write(mShearMultiplier, pathName + "/shearMultiplier");
+  if (mReducingViscosityCorrection) file.write(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
+  if (mReducingViscosityCorrection) file.write(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
 }  
 
 //------------------------------------------------------------------------------
@@ -216,6 +226,8 @@ restoreState(const FileIO& file, const string& pathName) {
   if (calculateSigma()) file.read(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.read(mGradDivVelocity, pathName + "/gradDivVelocity");
   if (mBalsaraShearCorrection) file.read(mShearMultiplier, pathName + "/shearMultiplier");
+  if (mReducingViscosityCorrection) file.read(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
+  if (mReducingViscosityCorrection) file.read(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
 }
 
 //------------------------------------------------------------------------------
