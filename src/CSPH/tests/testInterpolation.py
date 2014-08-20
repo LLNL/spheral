@@ -441,14 +441,23 @@ if graphics:
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":
-        from siloPointmeshDump import siloPointmeshDump
-        siloPointmeshDump("testInterpolation_%s_2d" % testCase,
-                          fields = [fSPH, fCSPH, dfSPH, dfCSPH,
-                                    yans, dyans,
-                                    errySPH, erryCSPH, errdySPH, errdyCSPH],
-                          fieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
-                                        A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
-                                        dfCSPH_fl])
+        from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+        dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
+                                        listOfFields = [fSPH, fCSPH, dfSPH, dfCSPH,
+                                                        yans, dyans,
+                                                        errySPH, erryCSPH, errdySPH, errdyCSPH],
+                                        listOfFieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+                                                            A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+                                                            dfCSPH_fl])
+        dumper.dump(0.0, 0)
+        # from siloPointmeshDump import siloPointmeshDump
+        # siloPointmeshDump("testInterpolation_%s_2d" % testCase,
+        #                   fields = [fSPH, fCSPH, dfSPH, dfCSPH,
+        #                             yans, dyans,
+        #                             errySPH, erryCSPH, errdySPH, errdyCSPH],
+        #                   fieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+        #                                 A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+        #                                 dfCSPH_fl])
 
 if plotKernels:
     import Gnuplot
