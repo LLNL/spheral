@@ -161,13 +161,13 @@ maxViscousPressure() const {
   return mMaxViscousPressure;
 }
 
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CSPHHydroBase<Dimension>::
-massDensitySum() const {
-  return mMassDensitySum;
-}
+// template<typename Dimension>
+// inline
+// const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+// CSPHHydroBase<Dimension>::
+// massDensitySum() const {
+//   return mMassDensitySum;
+// }
 
 template<typename Dimension>
 inline

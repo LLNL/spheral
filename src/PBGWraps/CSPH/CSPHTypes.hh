@@ -74,6 +74,25 @@ CSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
   return CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
 }
 
+//------------------------------------------------------------------------------
+// compputeCSPHSumMassDensity with a std::vector<Boundary> rather than iterators.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+computeCSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                          const KernelSpace::TableKernel<Dimension>& W,
+                          const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                          const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+                          const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume,
+                          const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                          const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+                          FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+  computeCSPHSumMassDensity(connectivityMap, W, position, mass, volume, H, 
+                            boundaries.begin(), boundaries.end(),
+                            massDensity);
+}
+
 }
 }
 
