@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Compute the CSPH grad h correction due to Springel et al.
+// Compute the CSPH corrections.
 //------------------------------------------------------------------------------
 #include "computeCSPHCorrections.hh"
 #include "Field/Field.hh"
