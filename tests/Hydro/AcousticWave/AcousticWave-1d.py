@@ -310,9 +310,12 @@ answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, two
 #-------------------------------------------------------------------------------
 if graphics == "gnu":
     from SpheralGnuPlotUtilities import *
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+    state = State(db, integrator.physicsPackages())
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
     if mpi.rank == 0:
         plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
+    cs = state.scalarFields(HydroFieldNames.soundSpeed)
+    csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False, plotGhosts=True)
     EPlot = plotEHistory(control.conserve)
 
     # Plot the correction terms.
@@ -346,17 +349,21 @@ if graphics == "gnu":
         #ret=smooth(A,11,'hamming')
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
-                                colorNodeLists = False)
+                                colorNodeLists = False,
+                                plotGhosts = True)
         A0Plot = plotFieldList(hydro.A0(),
                                winTitle = "A0",
-                               colorNodeLists = False)
+                               colorNodeLists = False,
+                                plotGhosts = True)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
-                              colorNodeLists = False)
+                              colorNodeLists = False,
+                                plotGhosts = True)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
-                              colorNodeLists = False)
+                              colorNodeLists = False,
+                                plotGhosts = True)
 
     else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
