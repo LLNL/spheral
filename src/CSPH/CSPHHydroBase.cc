@@ -96,7 +96,7 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSpecificThermalEnergy0(FieldSpace::Copy),
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
-  mMassDensitySum(FieldSpace::Copy),
+  // mMassDensitySum(FieldSpace::Copy),
   mWeightedNeighborSum(FieldSpace::Copy),
   mMassSecondMoment(FieldSpace::Copy),
   mXSPHDeltaV(FieldSpace::Copy),
@@ -146,7 +146,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-  mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
+  // mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
@@ -187,7 +187,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // // Compute the kernel correction fields.
   // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   // const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  // computeCSPHCorrections(connectivityMap, W, mVolume, position, H, mA0, mA, mB, mC, mD, mGradA, mGradB);
+  // computeCSPHCorrections(connectivityMap, W, mVolume, position, H, mM0, mM1, mM2, mA0, mA, mB, mC, mD, mGradA, mGradB);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -207,18 +207,20 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and correction fields.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.resizeFluidFieldList(mM0,    0.0,             HydroFieldNames::m0_CSPH);
-  dataBase.resizeFluidFieldList(mM1,    Vector::zero,    HydroFieldNames::m1_CSPH);
-  dataBase.resizeFluidFieldList(mM2,    SymTensor::zero, HydroFieldNames::m2_CSPH);
-  dataBase.resizeFluidFieldList(mA0,    0.0,             HydroFieldNames::A0_CSPH);
-  dataBase.resizeFluidFieldList(mA,     0.0,             HydroFieldNames::A_CSPH);
-  dataBase.resizeFluidFieldList(mB,     Vector::zero,    HydroFieldNames::B_CSPH);
-  dataBase.resizeFluidFieldList(mC,     Vector::zero,    HydroFieldNames::C_CSPH);
-  dataBase.resizeFluidFieldList(mD,     Tensor::zero,    HydroFieldNames::D_CSPH);
-  dataBase.resizeFluidFieldList(mGradA, Vector::zero,    HydroFieldNames::gradA_CSPH);
-  dataBase.resizeFluidFieldList(mGradB, Tensor::zero,    HydroFieldNames::gradB_CSPH);
+  // dataBase.fluidPressure(mPressure);
+  // dataBase.fluidSoundSpeed(mSoundSpeed);
+  dataBase.resizeFluidFieldList(mPressure, 0.0,          HydroFieldNames::pressure, false);
+  dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,        HydroFieldNames::soundSpeed, false);
+  dataBase.resizeFluidFieldList(mM0,    0.0,             HydroFieldNames::m0_CSPH, false);
+  dataBase.resizeFluidFieldList(mM1,    Vector::zero,    HydroFieldNames::m1_CSPH, false);
+  dataBase.resizeFluidFieldList(mM2,    SymTensor::zero, HydroFieldNames::m2_CSPH, false);
+  dataBase.resizeFluidFieldList(mA0,    0.0,             HydroFieldNames::A0_CSPH, false);
+  dataBase.resizeFluidFieldList(mA,     0.0,             HydroFieldNames::A_CSPH, false);
+  dataBase.resizeFluidFieldList(mB,     Vector::zero,    HydroFieldNames::B_CSPH, false);
+  dataBase.resizeFluidFieldList(mC,     Vector::zero,    HydroFieldNames::C_CSPH, false);
+  dataBase.resizeFluidFieldList(mD,     Tensor::zero,    HydroFieldNames::D_CSPH, false);
+  dataBase.resizeFluidFieldList(mGradA, Vector::zero,    HydroFieldNames::gradA_CSPH, false);
+  dataBase.resizeFluidFieldList(mGradB, Tensor::zero,    HydroFieldNames::gradB_CSPH, false);
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
@@ -340,7 +342,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // the ArtificialVisocisity::initialize step).
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
+  // dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
@@ -356,7 +358,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mMassDensitySum);
+  // derivs.enroll(mMassDensitySum);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
   derivs.enroll(mXSPHDeltaV);
@@ -415,7 +417,7 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, vol, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -427,6 +429,21 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
   }
+
+  // // If we're doing the RigorousSumDensity update, now is a good time to do it
+  // // since we have the boundary conditions and corrections all ready to go.
+  // if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  //   computeCSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A0, A, B, massDensity);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  // }
+
 }
 
 //------------------------------------------------------------------------------
@@ -466,15 +483,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
-  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
-  const FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
-  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-  const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
+  FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
+  FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
+  FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
+  FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
 
   CHECK(vol.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
@@ -495,8 +512,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
 
+  // // BLAGO!  As a sanity check recompute all the CSPH corrections now.
+  // computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, const_cast<FieldList<Dimension, SymTensor>&>(mM2), A0, A, B, C, D, gradA, gradB);
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) {
+  //   (*boundItr)->applyFieldListGhostBoundary(A0);
+  //   (*boundItr)->applyFieldListGhostBoundary(A);
+  //   (*boundItr)->applyFieldListGhostBoundary(B);
+  //   (*boundItr)->applyFieldListGhostBoundary(C);
+  //   (*boundItr)->applyFieldListGhostBoundary(D);
+  //   (*boundItr)->applyFieldListGhostBoundary(gradA);
+  //   (*boundItr)->applyFieldListGhostBoundary(gradB);
+  // }
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // // BLAGO!
+
   // Derivative FieldLists.
-  FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
+  // FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
   FieldList<Dimension, Scalar> DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
@@ -511,7 +546,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  CHECK(rhoSum.size() == numNodeLists);
+  // CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -589,7 +624,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(Hdeti > 0.0);
       CHECK(weighti > 0.0);
 
-      Scalar& rhoSumi = rhoSum(nodeListi, i);
+      // Scalar& rhoSumi = rhoSum(nodeListi, i);
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
       Vector& DvDti = DvDt(nodeListi, i);
@@ -659,7 +694,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(Hdetj > 0.0);
               CHECK(weightj > 0.0);
 
-              Scalar& rhoSumj = rhoSum(nodeListj, j);
+              // Scalar& rhoSumj = rhoSum(nodeListj, j);
               Vector& DxDtj = DxDt(nodeListj, j);
               Scalar& DrhoDtj = DrhoDt(nodeListj, j);
               Vector& DvDtj = DvDt(nodeListj, j);
@@ -699,11 +734,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
               massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
 
-              // Contribution to the sum density (only if the same material).
-              if (nodeListi == nodeListj) {
-                rhoSumi += mj*Wj; // W.kernelValue(etaMagi, Hdeti);
-                rhoSumj += mi*Wi; // W.kernelValue(etaMagj, Hdetj);
-              }
+              // // Contribution to the sum density (only if the same material).
+              // if (nodeListi == nodeListj) {
+              //   rhoSumi += mj*Wj; // W.kernelValue(etaMagi, Hdeti);
+              //   rhoSumj += mi*Wi; // W.kernelValue(etaMagj, Hdetj);
+              // }
 
               // Velocity gradient.
               const Vector vij = vi - vj;
@@ -825,9 +860,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
-      // Finish the mass density sum.
-      rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
-      // rhoSumi += mi*W(0.0, Hdeti);
+      // // Finish the mass density sum.
+      // rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
+      // // rhoSumi += mi*W(0.0, Hdeti);
 
       // // Finish the velocity gradient.
       // DvDxi += weighti*vi*selfGradContrib;
@@ -932,6 +967,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       //    DvDti += delta;
       
       // }
+
+      // // BLAGO!
+      // if (i == 0 or i == 50) {
+      //   cerr.precision(13);
+      //   cerr << " --> " << i;
+      //   if (i == 0) {
+      //     cerr << "  ";
+      //   } else {
+      //     cerr << " ";
+      //   }
+      //   cerr << " " << Ai
+      //        << " " << Bi
+      //        << " " << rhoi
+      //        // << " " << rhoSumi 
+      //        << " " << DxDti 
+      //        << " " << DrhoDti 
+      //        << " " << DvDti
+      //        << " " << DepsDti 
+      //        << " " << DvDxi 
+      //        << " " << DrhoDxi
+      //        << " " << DHDti
+      //        << " " << Hideali
+      //        << " " << maxViscousPressurei
+      //        << endl;
+      // }
+      // // BLAGO!
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
@@ -1078,27 +1139,15 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
-    FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
-    FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
-    FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CSPH, SymTensor::zero);
-    FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
-    FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-    FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-    FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-    FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-    FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-    FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    // computeHullVolumes(connectivityMap, position, polyvol, vol);
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, A0, A, B, massDensity);
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
     // // Add any filtering component to the node movement.
     // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
@@ -1127,11 +1176,11 @@ finalize(const typename Dimension::Scalar time,
     //   }
     // }
 
-  } else if (densityUpdate() == PhysicsSpace::SumDensity) {
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                                                HydroFieldNames::massDensity, 0.0);
-    massDensity.assignFields(massDensitySum);
+  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                                               HydroFieldNames::massDensity, 0.0);
+  //   massDensity.assignFields(massDensitySum);
   }
 }
 
@@ -1156,6 +1205,8 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
 
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
   FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
@@ -1175,6 +1226,8 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
+    (*boundaryItr)->applyFieldListGhostBoundary(m0);
+    (*boundaryItr)->applyFieldListGhostBoundary(m1);
     (*boundaryItr)->applyFieldListGhostBoundary(A0);
     (*boundaryItr)->applyFieldListGhostBoundary(A);
     (*boundaryItr)->applyFieldListGhostBoundary(B);
@@ -1206,6 +1259,8 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
 
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CSPH, Vector::zero);
   FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CSPH, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
@@ -1225,6 +1280,8 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
+    (*boundaryItr)->enforceFieldListBoundary(m0);
+    (*boundaryItr)->enforceFieldListBoundary(m1);
     (*boundaryItr)->enforceFieldListBoundary(A0);
     (*boundaryItr)->enforceFieldListBoundary(A);
     (*boundaryItr)->enforceFieldListBoundary(B);
