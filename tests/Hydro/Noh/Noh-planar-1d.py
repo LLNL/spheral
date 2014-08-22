@@ -36,8 +36,8 @@ commandLine(KernelConstructor = BSplineKernel,
             mu = 1.0,
 
             HydroConstructor = SPHHydro,
-            Qconstructor = MonaghanGingoldViscosity,
-            #Qconstructor = TensorMonaghanGingoldViscosity,
+            #Qconstructor = MonaghanGingoldViscosity,
+            Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nhQ = 5.0,
             nhL = 10.0,
@@ -62,7 +62,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
 
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = SynchronousRK2Integrator,
             goalTime = 0.6,
             steps = None,
             dt = 0.0001,
@@ -404,6 +404,8 @@ elif graphics == "gnu":
     Aplot.replot(AansData)
     Aplot.title("Specific entropy")
     Aplot.refresh()
+    
+    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),

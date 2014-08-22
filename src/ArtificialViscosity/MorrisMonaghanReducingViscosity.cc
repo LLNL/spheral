@@ -201,6 +201,8 @@ MorrisMonaghanReducingViscosity<Dimension>::
     CHECK(DvDx.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
     CHECK(Hsmooth.size() == numNodeLists);
+        
+    const Scalar ngs = myq.negligibleSoundSpeed();
     
     //Walk the nodes
     for (unsigned i = 0; i < numNodeLists; ++i){
@@ -208,14 +210,18 @@ MorrisMonaghanReducingViscosity<Dimension>::
         for (unsigned int j = 0; j < numNodes; j++){
             Scalar rvQ = reducingViscosityMultiplierQ(i,j);
             Scalar rvL = reducingViscosityMultiplierL(i,j);
+            const Scalar cs = soundSpeed(i,j);
+            const Scalar csSafe = (cs*cs + ngs*ngs)/cs;
+            const Scalar pmin = max(ngs*ngs*massDensity(i,j),abs(pressure(i,j)));
             const Scalar source = max(-DvDx(i,j).Trace(),0.0);
-            const Scalar adiabatIndex = soundSpeed(i,j)*soundSpeed(i,j)*massDensity(i,j)/pressure(i,j);
+            const Scalar adiabatIndex = max(cs*cs*massDensity(i,j)/pmin,1.0+ngs);
             const Scalar decayConstQ = (1.0/mnhQ)*sqrt((adiabatIndex-1.0)/(2.0*adiabatIndex));
             const Scalar decayConstL = (1.0/mnhL)*sqrt((adiabatIndex-1.0)/(2.0*adiabatIndex));
             const Scalar h = 1.0/(Dimension::rootnu(Hsmooth(i,j).Determinant()));
-            const Scalar decayTimeQ = h/(decayConstQ*soundSpeed(i,j));
-            const Scalar decayTimeL = h/(decayConstL*soundSpeed(i,j));
+            const Scalar decayTimeQ = h/(decayConstQ*csSafe);
+            const Scalar decayTimeL = h/(decayConstL*csSafe);
             
+            // safeInverse instead of forcing cs != 0
 
             
             DrvAlphaDtQ(i,j) = (maMax-rvQ)*source - (rvQ - maMin)/decayTimeQ;
