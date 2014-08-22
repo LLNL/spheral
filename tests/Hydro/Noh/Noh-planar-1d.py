@@ -224,15 +224,15 @@ elif CSPH:
                       densityUpdate = densityUpdate,
                       HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPHHydro(WT, WTPi, q,
+                     cfl = cfl,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     gradhCorrection = gradhCorrection,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HUpdate,
+                     XSPH = XSPH,
+                     epsTensile = epsilonTensile,
+                     nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")

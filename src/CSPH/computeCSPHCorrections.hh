@@ -34,6 +34,7 @@ namespace Spheral {
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& C,
                            FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& D,
+                           FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA0,
                            FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
                            FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB);
   }
