@@ -236,6 +236,7 @@ class DataBase:
         vectorpkgs = "vector_of_Physics%id" % ndim
 
         # Constructors.
+        x.add_constructor([])
         x.add_constructor([refparam(database, "dataBase"),
                            refparam(vectorpkgs, "packages")])
         x.add_constructor([constrefparam(me, "rhs")])

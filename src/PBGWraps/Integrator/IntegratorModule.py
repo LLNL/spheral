@@ -31,6 +31,7 @@ self.SynchronousRK1Integrator%(dim)id = addObject(space, "SynchronousRK1Integrat
 self.SynchronousRK2Integrator%(dim)id = addObject(space, "SynchronousRK2Integrator%(dim)id", parent=self.Integrator%(dim)id)
 self.SynchronousRK4Integrator%(dim)id = addObject(space, "SynchronousRK4Integrator%(dim)id", parent=self.Integrator%(dim)id)
 self.CheapSynchronousRK2Integrator%(dim)id = addObject(space, "CheapSynchronousRK2Integrator%(dim)id", parent=self.Integrator%(dim)id)
+self.VerletIntegrator%(dim)id = addObject(space, "VerletIntegrator%(dim)id", parent=self.Integrator%(dim)id)
 ''' % {"dim" : dim + 1})
 
         return
@@ -48,6 +49,7 @@ self.generateIntegratorDescendentBindings(self.SynchronousRK1Integrator%(dim)id,
 self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator%(dim)id, %(dim)i)
 self.generateIntegratorDescendentBindings(self.SynchronousRK4Integrator%(dim)id, %(dim)i)
 self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator%(dim)id, %(dim)i)
+self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i)
 ''' % {"dim" : dim + 1})
 
         return
