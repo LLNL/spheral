@@ -11,6 +11,7 @@ SRCTARGETS = \
 	SynchronousRK2Inst.cc \
 	SynchronousRK4Inst.cc \
 	CheapSynchronousRK2Inst.cc \
+	VerletInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

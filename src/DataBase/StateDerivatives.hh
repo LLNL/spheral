@@ -42,6 +42,7 @@ public:
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
+  StateDerivatives();
   StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase, PackageList& physicsPackage);
   StateDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                    PackageIterator physicsPackageBegin,
@@ -84,9 +85,6 @@ private:
   typedef std::map<NodeIteratorBase<Dimension>, int> SignificantNeighborMapType;
 
   SignificantNeighborMapType mNumSignificantNeighbors;
-
-  // No default constructor.
-  StateDerivatives();
 
   using typename StateBase<Dimension>::StorageType;
   using StateBase<Dimension>::mStorage;

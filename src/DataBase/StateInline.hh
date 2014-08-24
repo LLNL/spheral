@@ -63,6 +63,19 @@ enroll(FieldSpace::FieldListBase<Dimension>& fieldList) {
 }
 
 //------------------------------------------------------------------------------
+// Return the policy for the specified field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename Value>
+inline
+typename State<Dimension>::PolicyPointer
+State<Dimension>::
+policy(const FieldSpace::Field<Dimension, Value>& field) const {
+  const KeyType key = StateBase<Dimension>::key(field);
+  return this->policy(key);
+}
+  
+//------------------------------------------------------------------------------
 // Optionally trip a flag indicating policies should time advance only -- no replacing state!
 // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
 //------------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 #include "Integrator/SynchronousRK2.hh"
 #include "Integrator/SynchronousRK4.hh"
 #include "Integrator/CheapSynchronousRK2.hh"
+#include "Integrator/Verlet.hh"
 
 namespace Spheral {
 namespace IntegratorSpace {
@@ -38,6 +39,10 @@ typedef SynchronousRK4<Dim<3> > SynchronousRK4Integrator3d;
 typedef CheapSynchronousRK2<Dim<1> > CheapSynchronousRK2Integrator1d;
 typedef CheapSynchronousRK2<Dim<2> > CheapSynchronousRK2Integrator2d;
 typedef CheapSynchronousRK2<Dim<3> > CheapSynchronousRK2Integrator3d;
+
+typedef Verlet<Dim<1> > VerletIntegrator1d;
+typedef Verlet<Dim<2> > VerletIntegrator2d;
+typedef Verlet<Dim<3> > VerletIntegrator3d;
 
 }
 }
