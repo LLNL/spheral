@@ -3,10 +3,14 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void shrink_cube(vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
+  void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		   int number_particles,vector <double>& xmini,vector <double>& xmaxy)
   {
+    SHRINK=max(SHRINK,0.0);
+    SHRINK=min(SHRINK,1.0);
+    if(SHRINK < 1.0e-5)
+      return;
     vector <double>minimax(6,-DBL_MAX);
     for(int ni=0;ni<number_particles;ni++)
       {
@@ -26,16 +30,16 @@ namespace FractalSpace
     center[0]=(minimax[3]+minimax[0])*0.5;
     center[1]=(minimax[4]+minimax[1])*0.5;
     center[2]=(minimax[5]+minimax[2])*0.5;
-    dmaxy[0]=minimax[3]-minimax[0];
-    dmaxy[1]=minimax[4]-minimax[1];
-    dmaxy[2]=minimax[5]-minimax[2];
-    double dmax=max(max(dmaxy[0],dmaxy[1]),dmaxy[2]);
+    double dmax=minimax[3]-minimax[0];
+    dmax=max(minimax[4]-minimax[1],dmax);
+    dmax=max(minimax[5]-minimax[2],dmax);
     if(dmax >=xmax[0]-xmin[0])
       {
 	xmini=xmin;
 	xmaxy=xmax;
 	return;
       }
+    dmax=dmax*SHRINK+(xmax[0]-xmin[0])*(1.0-SHRINK);
     xmini[0]=center[0]-dmax*0.51;
     xmini[1]=center[1]-dmax*0.51;
     xmini[2]=center[2]-dmax*0.51;
