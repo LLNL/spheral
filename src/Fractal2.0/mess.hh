@@ -911,22 +911,20 @@ namespace FractalSpace
 	    cout << "CC" << "\n";
 	}
     }
-    void Send_Data_One_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
+    //
+    void Send_Data_One_Directions(vector <int>& counts_out,vector <int>& counts_in,int integers,int doubles,
 				  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 				  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR)
     {
       ofstream& FF=p_file->DUMPS;
       int FractalNodes01=FractalNodes0*FractalNodes1;
-      //      int FractalRank0=FractalRank % FractalNodes0;
-      //      int FractalRank1=(FractalRank/FractalNodes0) % FractalNodes1;
       int FractalRank2=FractalRank/FractalNodes01;
-      vector < vector <int> > dataIa_out(FractalNodes2);
-      vector < vector <double> > dataRa_out(FractalNodes2);
-      vector <int>& dataIa_in=dataI_in;
-      vector <double>& dataRa_in=dataR_in;
+      dataI_in.clear();
+      dataR_in.clear();
       vector <int>countsa_out(FractalNodes2,0);
       vector <int>countsa_in(FractalNodes2);
       FF << " Send AA " << FractalRank << "\n";
+      int totals=0;
       for(int FR=0;FR<FractalNodes;FR++)
 	{
 	  int FR2=FR/FractalNodes01;
@@ -935,57 +933,58 @@ namespace FractalSpace
 	  int nRdata=0;
 	  for(int ni=0;ni<counts_out[FR];ni++)
 	    {
-	      try
-		{
-		  dataIa_out[FR2].push_back(FR);
-		}
-	      catch(bad_alloc& ba)
-		{
-		  cerr << " bad One_Direction allocation A " << FractalRank << " " << ba.what() << endl;
-		}
+	      dataI_in.push_back(FR);
 	      for(int ints=0;ints<integers;ints++)
 		{
-		  try
-		    {
-		      dataIa_out[FR2].push_back(dataI_out[FR][nIdata]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation B " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataI_in.push_back(dataI_out[FR][nIdata]);
 		  nIdata++;
 		}
 	      for(int reals=0;reals<doubles;reals++)
 		{
-		  try
-		    {
-		      dataRa_out[FR2].push_back(dataR_out[FR][nRdata]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation C " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataR_in.push_back(dataR_out[FR][nRdata]);
 		  nRdata++;
 		}
+	      totals++;
 	    }
 	}
-      FF << " Send BB " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
+      dataI_out.resize(FractalNodes2);
+      dataR_out.resize(FractalNodes2);
+      int counterI=0;
+      int counterR=0;
+      for(int ni=0;ni<totals;ni++)
+	{
+	  int FR=dataI_in[counterI];
+	  int FR2=FR/FractalNodes01;
+	  counterI++;
+	  dataI_out[FR2].push_back(FR);
+	  for(int niI=0;niI<integers;niI++)
+	    {
+	      dataI_out[FR2].push_back(dataI_in[counterI]);
+	      counterI++;
+	    }
+	  for(int niR=0;niR<doubles;niR++)
+	    {
+	      dataR_out[FR2].push_back(dataR_in[counterR]);
+	      counterR++;
+	    }
+	}
+      dataI_in.clear();
+      dataR_in.clear();
+      FF << " Send BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
 
-      dataIa_in.clear();
-      dataRa_in.clear();
 
       Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				   integers+1,doubles,
-				   dataIa_out,dataIa_in,how_manyI,
-				   dataRa_out,dataRa_in,how_manyR);
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
       FF << " Send CC " << FractalRank << "\n";
-      dataIa_out.clear();
-      dataRa_out.clear();
-      dataIa_out.resize(FractalNodes1);
-      dataRa_out.resize(FractalNodes1);
+      dataI_out.clear();
+      dataR_out.clear();
+      dataI_out.resize(FractalNodes1);
+      dataR_out.resize(FractalNodes1);
       countsa_out.assign(FractalNodes1,0);
       int countI=0;
       int countR=0;
@@ -994,41 +993,20 @@ namespace FractalSpace
 	  int FRFrom=FractalRank+(FR2-FractalRank2)*FractalNodes01;
 	  for(int c=0;c<countsa_in[FR2];c++)
 	    {
-	      int FR=dataIa_in[countI];
+	      int FR=dataI_in[countI];
 	      countI++;
 	      int FR1=(FR/FractalNodes0) % FractalNodes1;
 	      countsa_out[FR1]++;
-	      try
-		{
-		  dataIa_out[FR1].push_back(FR);
-		  dataIa_out[FR1].push_back(FRFrom);
-		}
-	      catch(bad_alloc& ba)
-		{
-		  cerr << " bad One_Direction allocation D " << FractalRank << " " << ba.what() << endl;
-		}
+	      dataI_out[FR1].push_back(FR);
+	      dataI_out[FR1].push_back(FRFrom);
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  try
-		    {
-		      dataIa_out[FR1].push_back(dataIa_in[countI]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation E " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataI_out[FR1].push_back(dataI_in[countI]);
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  try
-		    {
-		      dataRa_out[FR1].push_back(dataRa_in[countR]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation F " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataR_out[FR1].push_back(dataR_in[countR]);
 		  countR++;
 		}
 	    }
@@ -1038,19 +1016,19 @@ namespace FractalSpace
       FF << " Send DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
-      dataIa_in.clear();
-      dataRa_in.clear();
+      dataI_in.clear();
+      dataR_in.clear();
 
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
-				   dataIa_out,dataIa_in,how_manyI,
-				   dataRa_out,dataRa_in,how_manyR);
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
 
       FF << " Send EE " << FractalRank << "\n";
-      dataIa_out.clear();
-      dataRa_out.clear();
-      dataIa_out.resize(FractalNodes0);
-      dataRa_out.resize(FractalNodes0);
+      dataI_out.clear();
+      dataR_out.clear();
+      dataI_out.resize(FractalNodes0);
+      dataR_out.resize(FractalNodes0);
       countsa_out.assign(FractalNodes0,0);
       countI=0;
       countR=0;
@@ -1058,42 +1036,21 @@ namespace FractalSpace
 	{
 	  for(int c=0;c<countsa_in[FR1];c++)
 	    {
-	      int FR=dataIa_in[countI];
+	      int FR=dataI_in[countI];
 	      countI++;
 	      int FR0=FR % FractalNodes0;
 	      countsa_out[FR0]++;
-	      int FRFrom=dataIa_in[countI];
+	      int FRFrom=dataI_in[countI];
 	      countI++;
-	      try
-		{
-		  dataIa_out[FR0].push_back(FRFrom);
-		}
-	      catch(bad_alloc& ba)
-		{
-		  cerr << " bad One_Direction allocation G " << FractalRank << " " << ba.what() << endl;
-		}
+	      dataI_out[FR0].push_back(FRFrom);
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  try
-		    {
-		      dataIa_out[FR0].push_back(dataIa_in[countI]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation H " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataI_out[FR0].push_back(dataI_in[countI]);
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  try
-		    {
-		      dataRa_out[FR0].push_back(dataRa_in[countR]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation I " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataR_out[FR0].push_back(dataR_in[countR]);
 		  countR++;
 		}
 	    }
@@ -1103,18 +1060,18 @@ namespace FractalSpace
       FF << " Send FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes0,0);
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
-      dataIa_in.clear();
-      dataRa_in.clear();
+      dataI_in.clear();
+      dataR_in.clear();
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
-				   dataIa_out,dataIa_in,how_manyI,
-				   dataRa_out,dataRa_in,how_manyR);
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
 
       FF << " Send GG " << FractalRank << "\n";
-      dataIa_out.clear();
-      dataRa_out.clear();
-      dataIa_out.resize(FractalNodes);
-      dataRa_out.resize(FractalNodes);
+      dataI_out.clear();
+      dataR_out.clear();
+      dataI_out.resize(FractalNodes);
+      dataR_out.resize(FractalNodes);
       counts_in.assign(FractalNodes,0);
       countI=0;
       countR=0;
@@ -1122,31 +1079,17 @@ namespace FractalSpace
 	{
 	  for(int c=0;c<countsa_in[FR0];c++)
 	    {
-	      int FRFrom=dataIa_in[countI];
+	      int FRFrom=dataI_in[countI];
 	      countI++;
 	      counts_in[FRFrom]++;
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  try
-		    {
-		      dataIa_out[FRFrom].push_back(dataIa_in[countI]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation J " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataI_out[FRFrom].push_back(dataI_in[countI]);
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  try
-		    {
-		      dataRa_out[FRFrom].push_back(dataRa_in[countR]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation K " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataR_out[FRFrom].push_back(dataR_in[countR]);
 		  countR++;
 		}
 	    }
@@ -1164,26 +1107,12 @@ namespace FractalSpace
 	    {
 	      for(int nI=0;nI<integers;nI++)
 		{
-		  try
-		    {
-		      dataI_in.push_back(dataIa_out[FR][countI]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation L " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataI_in.push_back(dataI_out[FR][countI]);
 		  countI++;
 		}
 	      for(int nR=0;nR<doubles;nR++)
 		{
-		  try
-		    {
-		      dataR_in.push_back(dataRa_out[FR][countR]);
-		    }
-		  catch(bad_alloc& ba)
-		    {
-		      cerr << " bad One_Direction allocation M " << FractalRank << " " << ba.what() << endl;
-		    }
+		  dataR_in.push_back(dataR_out[FR][countR]);
 		  countR++;
 		}
 	    }
@@ -1193,6 +1122,8 @@ namespace FractalSpace
       Full_Stop_Do_Not_Argue();
       FF << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
     }
+    //
+    //
     void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,
 				    vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 				    vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR)
