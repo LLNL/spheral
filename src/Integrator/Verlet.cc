@@ -98,13 +98,10 @@ step(typename Dimension::Scalar maxTime) {
   this->initialize(state, derivs);
 
   // Extract velocity into its own State as a copy.
-  // We also remove the velocity update policy from the main state object, which 
-  // prevents that copy of the velocity from being updated.
   State<Dimension> velocityState;
   FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
   const typename State<Dimension>::KeyType velKey = State<Dimension>::key(vel);
   PolicyPointer velPolicy = state.policy(velKey);
-  // state.removePolicy(velKey);
   velocityState.enroll(vel, velPolicy);
   velocityState.copyState();
 
@@ -119,7 +116,7 @@ step(typename Dimension::Scalar maxTime) {
   this->evaluateDerivatives(t, hdt0, db, state, derivs);
   this->finalizeDerivatives(t, hdt0, db, state, derivs);
 
-  // Advance all state (except the velocity) to the mid-point.
+  // Predict state to the mid-point.
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
