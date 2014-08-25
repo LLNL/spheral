@@ -8,7 +8,8 @@ int main(int argc, char* argv[])
   MPI_Init(NULL,NULL);
   int FRN;
   MPI_Comm_size(MPI_COMM_WORLD,&FRN);
-
+  int Ranky;
+  MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
   bool _inteL_=true;
   if(argc >= 2)
     _inteL_=atoi(argv[1]) != 0;
@@ -32,12 +33,21 @@ int main(int argc, char* argv[])
   int NumberParticles=100000;
   if(argc >= 7)
     NumberParticles=atoi(argv[6]);
-  bool SHRINK=false;
+  double SHRINK=0.0;
   if(argc >= 8)
-    SHRINK=atoi(argv[7]) != 0;
-  cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-  cout << " " << NumberParticles << " " << SHRINK << "\n";
-
+    SHRINK=atof(argv[7]);
+  if(Ranky==0)
+    {
+      cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
+      cout << " " << NumberParticles << " " << SHRINK << "\n";
+      int ar=0;
+      while(ar < argc)
+	{
+	  cout << " " << argv[ar];
+	  ar++;
+	}
+      cout << "\n";
+    }
   Fractal_Memory* PFM=fractal_memory_create();
   int balance=1;
   int FFTNodes=9876543;
@@ -127,8 +137,7 @@ int main(int argc, char* argv[])
     {
       xmini=xmin;
       xmaxy=xmax;
-      if(SHRINK)
-	shrink_cube(xmin,xmax,PFM,posx,posy,posz,NumberParticles,xmini,xmaxy);
+      shrink_cube(SHRINK,xmin,xmax,PFM,posx,posy,posz,NumberParticles,xmini,xmaxy);
       fractal_create(PFM);
       add_particles(PFM,0,NumberParticles,xmini,xmaxy,posx,posy,posz,masses);
       if(PFM->balance > 0)
