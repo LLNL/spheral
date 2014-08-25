@@ -68,6 +68,8 @@ commandLine(nx1 = 100,
             restartBaseName = "dumps-AcousticWave-1d",
 
             graphics = "gnu",
+
+            checkReversibility = False,
             )
 
 #-------------------------------------------------------------------------------
@@ -261,6 +263,10 @@ output("control")
 if steps is None:
     if control.time() < goalTime:
         control.advance(goalTime, maxSteps)
+    if checkReversibility:
+        for i in xrange(nodes1.numNodes):
+            vel[i] = -vel[i]
+        control.advance(2*goalTime, maxSteps)
 else:
     control.step(steps)
 
