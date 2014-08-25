@@ -329,11 +329,15 @@ State<Dimension>::
 removePolicy(const typename State<Dimension>::KeyType& key) {
   KeyType fieldKey, nodeKey;
   this->splitFieldKey(key, fieldKey, nodeKey);
-  VERIFY2(mPolicyMap.find(fieldKey) != mPolicyMap.end() and
-          mPolicyMap[fieldKey].find(nodeKey) != mPolicyMap[fieldKey].end(),
+  typename PolicyMapType::iterator outerItr = mPolicyMap.find(fieldKey);
+  VERIFY2(outerItr != mPolicyMap.end(),
           "State ERROR: attempted to remove non-existent policy for key " << key);
-  mPolicyMap[fieldKey].erase(nodeKey);
-  if (mPolicyMap[fieldKey].size() == 0) mPolicyMap.erase(fieldKey);
+  std::map<KeyType, PolicyPointer>& policies = outerItr->second;
+  typename std::map<KeyType, PolicyPointer>::iterator innerItr = policies.find(key);
+  VERIFY2(innerItr != policies.end(),
+          "State ERROR: attempted to remove non-existent policy for key " << key);
+  policies.erase(innerItr);
+  if (policies.size() == 0) mPolicyMap.erase(outerItr);
 }
 
 }
