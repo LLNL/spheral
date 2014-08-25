@@ -52,6 +52,7 @@ commandLine(nx1 = 100,
             dtMin = 1.0e-5, 
             dtMax = 0.1,
             dtGrowth = 2.0,
+            dtverbose = False,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -235,6 +236,7 @@ integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
