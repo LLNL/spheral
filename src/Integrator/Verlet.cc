@@ -86,6 +86,8 @@ void
 Verlet<Dimension>::
 step(typename Dimension::Scalar maxTime) {
 
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+
   // Get the current time and data base.
   Scalar t = this->currentTime();
   DataBase<Dimension>& db = this->accessDataBase();
@@ -95,32 +97,30 @@ step(typename Dimension::Scalar maxTime) {
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   this->initialize(state, derivs);
 
+  // Extract velocity into its own State as a copy.
+  // We also remove the velocity update policy from the main state object, which 
+  // prevents that copy of the velocity from being updated.
+  State<Dimension> velocityState;
+  FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const typename State<Dimension>::KeyType velKey = State<Dimension>::key(vel);
+  PolicyPointer velPolicy = state.policy(velKey);
+  // state.removePolicy(velKey);
+  velocityState.enroll(vel, velPolicy);
+  velocityState.copyState();
+
   // Determine the minimum timestep across all packages.
   const Scalar dtMin = min(this->dtMin(), maxTime - t);
   const Scalar dtMax = min(this->dtMax(), maxTime - t);
   const Scalar dt0 = this->selectDt(dtMin, dtMax, state, derivs);
-
-  // Zero out the derivatives.
-  derivs.Zero();
+  const Scalar hdt0 = 0.5*dt0;
 
   // Evaluate the beginning of step derivatives.
-  const double hdt0 = 0.5*dt0;
+  derivs.Zero();
   this->evaluateDerivatives(t, hdt0, db, state, derivs);
   this->finalizeDerivatives(t, hdt0, db, state, derivs);
 
-  // Extract velocity into its own State.
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  State<Dimension> velocityState;
-  {
-    FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
-    // const typename State<Dimension>::KeyType velKey = 
-    PolicyPointer velPolicy = state.policy(State<Dimension>::key(vel));
-    velocityState.enroll(vel, velPolicy);
-    velocityState.copyState();
-  }
-
-  // Advance all state to the mid-point.
-  state.update(derivs, hdt0, t, hdt0);
+  // Advance all state (except the velocity) to the mid-point.
+  state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(db, state, derivs);
@@ -134,37 +134,37 @@ step(typename Dimension::Scalar maxTime) {
 
   // Update the independent velocity from the beginning of step to the midpoint using
   // the midpoint derivatives.
-  velocityState.update(derivs, hdt0, t, hdt0);
-  this->enforceBoundaries(velocityState, derivs);
-  this->applyGhostBoundaries(velocityState, derivs);
-  this->finalizeGhostBoundaries();
+  velocityState.update(derivs, hdt0, t, dt0);
 
   // Copy the new mid-point velocity estimate back into the main state.  We also assign DxDt
   // in the derivatives to be the new velocity.  Note this is inconsistent with XSPH type
   // approximations!
   FieldList<Dimension, Vector> velCopy = velocityState.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Vector> vel = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
   vel.assignFields(velCopy);
   DxDt.assignFields(velCopy);
+  this->enforceBoundaries(state, derivs);
+  this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
 
   // Figure out the new time-step for the second half of our advance.
   const Scalar dt12 = this->selectDt(dtMin, dtMax, state, derivs);
-  const Scalar dt1 = min(dtMax, max(dtMin, 1.0/(1.0/dt0 + 2.0/dt12)));
+  const Scalar dt1 = min(dtMax, max(dtMin, 1.0/(2.0/dt12 - 1.0/dt0)));
   const Scalar hdt1 = min(0.5*dt1, maxTime - t - hdt0);
+  const Scalar dt = hdt0 + hdt1;
 
   // Advance the velocity to the end of step.
-  velocityState.update(derivs, hdt1, t, hdt1);
-  this->enforceBoundaries(velocityState, derivs);
-  this->applyGhostBoundaries(velocityState, derivs);
-  this->finalizeGhostBoundaries();
+  velocityState.update(derivs, hdt1, t + hdt0, dt1);
 
-  // Copy the new final velocity back into the main state.
+  // Copy the new final velocity into the main state.
   vel.assignFields(velCopy);
   DxDt.assignFields(velCopy);
+  this->enforceBoundaries(state, derivs);
+  this->applyGhostBoundaries(state, derivs);
+  this->finalizeGhostBoundaries();
 
   // Now advance everything to the end of step.
-  state.update(derivs, hdt1, t, hdt1);
+  state.update(derivs, hdt1, t, dt1);
 
   // Reset the velocity back to t1 values.
   vel.assignFields(velCopy);
@@ -179,7 +179,6 @@ step(typename Dimension::Scalar maxTime) {
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
-  const Scalar dt = hdt0 + hdt1;
   this->finalize(t + dt, dt, state, derivs);
 
   // Set the new current time and last time step.
