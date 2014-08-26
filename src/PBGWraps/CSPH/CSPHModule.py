@@ -132,6 +132,7 @@ class CSPH:
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "C"),
                                  refparam(tensorfieldlist, "D"),
+                                 refparam(vectorfieldlist, "gradA0"),
                                  refparam(vectorfieldlist, "gradA"),
                                  refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],

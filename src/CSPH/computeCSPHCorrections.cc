@@ -43,6 +43,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        FieldList<Dimension, typename Dimension::Vector>& B,
                        FieldList<Dimension, typename Dimension::Vector>& C,
                        FieldList<Dimension, typename Dimension::Tensor>& D,
+                       FieldList<Dimension, typename Dimension::Vector>& gradA0,
                        FieldList<Dimension, typename Dimension::Vector>& gradA,
                        FieldList<Dimension, typename Dimension::Tensor>& gradB) {
 
@@ -197,6 +198,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         A0(nodeListi, i) = 1.0/m0(nodeListi, i);
         A(nodeListi, i) = 1.0/Ainv;
         B(nodeListi, i) = -m2invm1;
+        gradA0(nodeListi, i) = -FastMath::square(A0(nodeListi, i))*gradm0(i);
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
           (gradm0(nodeListi, i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(nodeListi, i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
            innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(nodeListi, i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(nodeListi, i)));
