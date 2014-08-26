@@ -72,6 +72,7 @@ class CSPH:
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        vector_of_boundary = "vector_of_Boundary%id" % ndim
         polyvol = {1: "Box1d", 
                    2: "Polygon",
                    3: "Polyhedron"}[ndim]
@@ -110,9 +111,7 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(scalarfieldlist, "volume"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "A0"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
@@ -124,6 +123,7 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
                                  refparam(symtensorfieldlist, "m2"),
@@ -305,7 +305,7 @@ class CSPH:
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
-        const_ref_return_value(x, me, "%s::massDensitySum" % me, scalarfieldlist, [], "massDensitySum")
+        #const_ref_return_value(x, me, "%s::massDensitySum" % me, scalarfieldlist, [], "massDensitySum")
         const_ref_return_value(x, me, "%s::weightedNeighborSum" % me, scalarfieldlist, [], "weightedNeighborSum")
         const_ref_return_value(x, me, "%s::massSecondMoment" % me, symtensorfieldlist, [], "massSecondMoment")
         const_ref_return_value(x, me, "%s::XSPHDeltaV" % me, vectorfieldlist, [], "XSPHDeltaV")

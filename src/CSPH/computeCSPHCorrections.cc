@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Compute the CSPH grad h correction due to Springel et al.
+// Compute the CSPH corrections.
 //------------------------------------------------------------------------------
 #include "computeCSPHCorrections.hh"
 #include "Field/Field.hh"
@@ -34,6 +34,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                        const FieldList<Dimension, typename Dimension::Scalar>& weight,
                        const FieldList<Dimension, typename Dimension::Vector>& position,
                        const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                       const bool coupleNodeLists,
                        FieldList<Dimension, typename Dimension::Scalar>& m0,
                        FieldList<Dimension, typename Dimension::Vector>& m1,
                        FieldList<Dimension, typename Dimension::SymTensor>& m2,
@@ -79,19 +80,25 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   gradA = Vector::zero;
   gradB = Tensor::zero;
 
+  // We can derive everything in terms of the zeroth, first, and second moments 
+  // of the local positions.
+  // Field<Dimension, Scalar> m0("zeroth moment", nodeList);
+  // Field<Dimension, Vector> m1("first moment", nodeList);
+  // Field<Dimension, SymTensor> m2("second moment", nodeList);
+  FieldList<Dimension, Vector> gradm0(FieldSpace::Copy);
+  FieldList<Dimension, Tensor> gradm1(FieldSpace::Copy);
+  FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = A[nodeListi]->nodeList();
+    gradm0.appendNewField("grad zeroth moment", nodeList, Vector::zero);
+    gradm1.appendNewField("grad first moment", nodeList, Tensor::zero);
+    gradm2.appendNewField("grad second moment", nodeList, ThirdRankTensor::zero);
+  }
+
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = A[nodeListi]->nodeList();
     const int firstGhostNodei = nodeList.firstGhostNode();
-
-    // We can derive everything in terms of the zeroth, first, and second moments 
-    // of the local positions.
-    // Field<Dimension, Scalar> m0("zeroth moment", nodeList);
-    // Field<Dimension, Vector> m1("first moment", nodeList);
-    // Field<Dimension, SymTensor> m2("second moment", nodeList);
-    Field<Dimension, Vector> gradm0("gradient of the zeroth moment", nodeList);
-    Field<Dimension, Tensor> gradm1("gradient of the first moment", nodeList);
-    Field<Dimension, ThirdRankTensor> gradm2("gradient of the second moment", nodeList);
 
     // Iterate over the nodes in this node list.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -108,68 +115,74 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       // Self contribution.
       const Scalar wwi = wi*W(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
-      gradm1(i) += wwi;
+      gradm1(nodeListi, i) += wwi;
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
-      const vector<int>& connectivity = fullConnectivity[nodeListi];
 
-      // Iterate over the neighbors for in this NodeList.
-      for (vector<int>::const_iterator jItr = connectivity.begin();
-           jItr != connectivity.end();
-           ++jItr) {
-        const int j = *jItr;
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        if (coupleNodeLists or nodeListi == nodeListj) {
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
-        // Check if this node pair has already been calculated.
-        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                     nodeListi, j,
-                                                     firstGhostNodei)) {
+          // Iterate over the neighbors for in this NodeList.
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
 
-          // State of node j.
-          const Scalar wj = weight(nodeListi, j);
-          const Vector& rj = position(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
+            // Check if this node pair has already been calculated.
+            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                         nodeListj, j,
+                                                         firstGhostNodej)) {
 
-          // Kernel weighting and gradient.
-          const Vector rij = ri - rj;
-          const Vector etai = Hi*rij;
-          const Vector etaj = Hj*rij;
-          const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-          const Scalar& Wi = WWi.first;
-          const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
-          const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-          const Scalar& Wj = WWj.first;
-          const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+              // State of node j.
+              const Scalar wj = weight(nodeListj, j);
+              const Vector& rj = position(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
 
-          // Zeroth moment. 
-          const Scalar wwi = wi*Wi;
-          const Scalar wwj = wj*Wj;
-          m0(nodeListi, i) += wwj;
-          m0(nodeListi, j) += wwi;
-          gradm0(i) += wj*gradWj;
-          gradm0(j) += wi*gradWi;
+              // Kernel weighting and gradient.
+              const Vector rij = ri - rj;
+              const Vector etai = Hi*rij;
+              const Vector etaj = Hj*rij;
+              const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+              const Scalar& Wi = WWi.first;
+              const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+              const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
+              const Scalar& Wj = WWj.first;
+              const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
-          // First moment. 
-          m1(nodeListi, i) += wwj * rij;
-          m1(nodeListi, j) -= wwi * rij;
-          gradm1(i) += wj*( rij*gradWj + Tensor::one*Wj);
-          gradm1(j) += wi*(-rij*gradWi + Tensor::one*Wi);
+              // Zeroth moment. 
+              const Scalar wwi = wi*Wi;
+              const Scalar wwj = wj*Wj;
+              m0(nodeListi, i) += wwj;
+              m0(nodeListj, j) += wwi;
+              gradm0(nodeListi, i) += wj*gradWj;
+              gradm0(nodeListj, j) += wi*gradWi;
 
-          // Second moment.
-          const SymTensor thpt = rij.selfdyad();
-          m2(nodeListi, i) += wwj*thpt;
-          m2(nodeListi, j) += wwi*thpt;
-          gradm2(i) += wj*outerProduct<Dimension>(thpt, gradWj);
-          gradm2(j) += wi*outerProduct<Dimension>(thpt, gradWi);
-          for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-            for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-              gradm2(i)(ii, jj, jj) += wwj*rij(ii);
-              gradm2(j)(ii, jj, jj) -= wwi*rij(ii);
+              // First moment. 
+              m1(nodeListi, i) += wwj * rij;
+              m1(nodeListj, j) -= wwi * rij;
+              gradm1(nodeListi, i) += wj*( rij*gradWj + Tensor::one*Wj);
+              gradm1(nodeListj, j) += wi*(-rij*gradWi + Tensor::one*Wi);
 
-              gradm2(i)(ii, jj, ii) += wwj*rij(jj);
-              gradm2(j)(ii, jj, ii) -= wwi*rij(jj);
+              // Second moment.
+              const SymTensor thpt = rij.selfdyad();
+              m2(nodeListi, i) += wwj*thpt;
+              m2(nodeListj, j) += wwi*thpt;
+              gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
+              gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
+              for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                  gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
+                  gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
+
+                  gradm2(nodeListi, i)(ii, jj, ii) += wwj*rij(jj);
+                  gradm2(nodeListj, j)(ii, jj, ii) -= wwi*rij(jj);
+                }
+              }
             }
           }
         }
@@ -187,9 +200,18 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         B(nodeListi, i) = -m2invm1;
         gradA0(nodeListi, i) = -FastMath::square(A0(nodeListi, i))*gradm0(i);
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
-          (gradm0(i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
-           innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)));
-        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(i), m2inv), m1(nodeListi, i)) - gradm1(i));
+          (gradm0(nodeListi, i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(nodeListi, i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
+           innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(nodeListi, i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(nodeListi, i)));
+        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i), m2inv), m1(nodeListi, i)) - gradm1(nodeListi, i));
+
+        // // BLAGO!
+        // // Force only zeroth corrections.
+        // A(nodeListi, i) = A0(nodeListi, i);
+        // B(nodeListi, i) = Vector::zero;
+        // gradA(nodeListi, i) = -FastMath::square(A(nodeListi, i))*gradm0(nodeListi, i);
+        // gradB(nodeListi, i) = Tensor::zero;
+        // // BLAGO!
+
       }
     }
   }

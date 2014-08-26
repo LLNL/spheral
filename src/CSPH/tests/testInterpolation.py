@@ -318,35 +318,39 @@ dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
-if testCase == "linear":
-    yans = [y0 + m0*x for x in xans]
-    dyans = [m0]*len(xans)
-elif testCase == "quadratic":
-    yans = [y2 + m2*x*x for x in xans]
-    dyans = [2*m2*x for x in xans]
-elif testCase == "step":
-    yans = [y0 for i in xrange(nx1)] + [2*y0 for i in xrange(nx2)]
-    dyans = [0.0 for x in xans]
+yans = ScalarField("interpolation answer", nodes1)
+dyans = ScalarField("derivative answer", nodes1)
+for i in xrange(nodes1.numInternalNodes):
+    if testCase == "linear":
+        yans[i] = y0 + m0*xans[i]
+        dyans[i] = m0
+    elif testCase == "quadratic":
+        yans[i] = y2 + m2*xans[i]*xans[i]
+        dyans[i] = 2*m2*xans[i]
+    elif testCase == "step":
+        if i < nx1:
+            yans[i] = y0
+        else:
+            yans[i] = 2*y0
+        dyans[i] = 0.0
 
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-ySPH = fSPH.internalValues()
-yCSPH = fCSPH.internalValues()
+errySPH =   ScalarField("SPH interpolation error", nodes1)
+erryCSPH =  ScalarField("CSPH interpolation error", nodes1)
+errdySPH =  ScalarField("SPH derivative error", nodes1)
+errdyCSPH = ScalarField("CSPH derivative error", nodes1)
+for i in xrange(nodes1.numInternalNodes):
+    errySPH[i] =   fSPH[i] - yans[i]
+    erryCSPH[i] =  fCSPH[i] - yans[i]
+    errdySPH[i] =  dfSPH[i].x - dyans[i]
+    errdyCSPH[i] = dfCSPH[i].x - dyans[i]
 
-dySPH = [x.x for x in dfSPH.internalValues()]
-dyCSPH = [x.x for x in dfCSPH.internalValues()]
-
-errySPH = [y - z for y, z in zip(ySPH, yans)]
-erryCSPH = [y - z for y, z in zip(yCSPH, yans)]
-maxySPHerror = max([abs(x) for x in errySPH])
-maxyCSPHerror = max([abs(x) for x in erryCSPH])
-
-errdySPH = [y - z for y, z in zip(dySPH, dyans)]
-errdyCSPH = [y - z for y, z in zip(dyCSPH, dyans)]
-maxdySPHerror = max([abs(x) for x in errdySPH])
-maxdyCSPHerror = max([abs(x) for x in errdyCSPH])
-
+maxySPHerror = errySPH.max()
+maxyCSPHerror = erryCSPH.max()
+maxdySPHerror = errdySPH.max()
+maxdyCSPHerror = errdyCSPH.max()
 print "Maximum errors (interpolation): SPH = %g, CSPH = %g" % (maxySPHerror, maxyCSPHerror)
 print "Maximum errors   (derivatives): SPH = %g, CSPH = %g" % (maxdySPHerror, maxdyCSPHerror)
 
@@ -356,25 +360,26 @@ print "Maximum errors   (derivatives): SPH = %g, CSPH = %g" % (maxdySPHerror, ma
 if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
+    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
 
     # Interpolated values.
-    ansdata = Gnuplot.Data(xans, yans,
+    ansdata = Gnuplot.Data(xans, yans.internalValues(),
                            with_ = "lines",
                            title = "Answer",
                            inline = True)
-    SPHdata = Gnuplot.Data(xans, ySPH,
+    SPHdata = Gnuplot.Data(xans, fSPH.internalValues(),
                            with_ = "points",
                            title = "SPH",
                            inline = True)
-    CSPHdata = Gnuplot.Data(xans, yCSPH,
+    CSPHdata = Gnuplot.Data(xans, fCSPH.internalValues(),
                             with_ = "points",
                             title = "CSPH",
                             inline = True)
-    errSPHdata = Gnuplot.Data(xans, errySPH,
+    errSPHdata = Gnuplot.Data(xans, errySPH.internalValues(),
                               with_ = "points",
                               title = "SPH",
                               inline = True)
-    errCSPHdata = Gnuplot.Data(xans, erryCSPH,
+    errCSPHdata = Gnuplot.Data(xans, erryCSPH.internalValues(),
                                with_ = "points",
                                title = "CSPH",
                                inline = True)
@@ -394,23 +399,23 @@ if graphics:
     p2.refresh()
 
     # Derivative values.
-    dansdata = Gnuplot.Data(xans, dyans,
+    dansdata = Gnuplot.Data(xans, dyans.internalValues(),
                             with_ = "lines",
                             title = "Answer",
                             inline = True)
-    dSPHdata = Gnuplot.Data(xans, dySPH,
+    dSPHdata = Gnuplot.Data(xans, [x.x for x in dfSPH.internalValues()],
                             with_ = "points",
                             title = "SPH",
                             inline = True)
-    dCSPHdata = Gnuplot.Data(xans, dyCSPH,
+    dCSPHdata = Gnuplot.Data(xans, [x.x for x in dfCSPH.internalValues()],
                              with_ = "points",
                              title = "CSPH",
                              inline = True)
-    errdSPHdata = Gnuplot.Data(xans, errdySPH,
+    errdSPHdata = Gnuplot.Data(xans, errdySPH.internalValues(),
                                with_ = "points",
                                title = "SPH",
                               inline = True)
-    errdCSPHdata = Gnuplot.Data(xans, errdyCSPH,
+    errdCSPHdata = Gnuplot.Data(xans, errdyCSPH.internalValues(),
                                 with_ = "points",
                                 title = "CSPH",
                                 inline = True)
@@ -433,6 +438,26 @@ if graphics:
                        yFunction = "%s.x",
                        winTitle = "C++ grad CSPH",
                        colorNodeLists = False)
+
+    # If we're in 2D dump a silo file too.
+    if testDim == "2d":
+        from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+        dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
+                                        listOfFields = [fSPH, fCSPH, dfSPH, dfCSPH,
+                                                        yans, dyans,
+                                                        errySPH, erryCSPH, errdySPH, errdyCSPH],
+                                        listOfFieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+                                                            A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+                                                            dfCSPH_fl])
+        dumper.dump(0.0, 0)
+        # from siloPointmeshDump import siloPointmeshDump
+        # siloPointmeshDump("testInterpolation_%s_2d" % testCase,
+        #                   fields = [fSPH, fCSPH, dfSPH, dfCSPH,
+        #                             yans, dyans,
+        #                             errySPH, erryCSPH, errdySPH, errdyCSPH],
+        #                   fieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+        #                                 A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+        #                                 dfCSPH_fl])
 
 if plotKernels:
     import Gnuplot
