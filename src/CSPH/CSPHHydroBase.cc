@@ -30,6 +30,7 @@
 #include "DataBase/CompositeFieldListPolicy.hh"
 #include "CSPHSpecificThermalEnergyPolicy.hh"
 #include "HVolumePolicy.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -161,13 +162,13 @@ kernelIntersect(const TableKernel<Dimension>& WT,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
 
-  // Blago!
-  x1 = 0.5*(xi + xj);
-  dA1 = (xj - xi).unitVector();
-  x2 = Vector::zero;
-  dA2 = Vector::zero;
-  return 1;
-  // Blago!
+  // // Blago!
+  // x1 = 0.5*(xi + xj);
+  // dA1 = (xj - xi).unitVector();
+  // x2 = Vector::zero;
+  // dA2 = Vector::zero;
+  // return 1;
+  // // Blago!
 
   // Build the kernel functor we use for calling into the Newton-Raphson root finder.
   KernelFunctor<Dimension> Wfunc(WT, 
@@ -233,24 +234,26 @@ pairWiseForce(const TableKernel<Dimension>& WT,
   // This defines the surface for the volumes of the two points.
   Vector x1, x2, dA1, dA2;
   const int nsurf = kernelIntersect(WT, 
-                                    xi, Hi, Hdeti, A0i, gradA0i, weighti,
-                                    xj, Hj, Hdetj, A0j, gradA0j, weightj,
+                                    xi, Hi, Hdeti, A0i*weightj, gradA0i, weighti,
+                                    xj, Hj, Hdetj, A0j*weighti, gradA0j, weightj,
                                     x1, dA1, x2, dA2);
   CHECK(nsurf == 1 or nsurf == 2);
 
   // Sum the pressure at the effective face.
   const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
   const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
-  const Scalar P1 = wj1*Pj + wi1*Pi;
-  const Tensor Q1 = wj1*Qj + wi1*Qi;
+  const Scalar wij1 = 0.5*(wj1 + wi1);
+  const Scalar P1 = wij1*(wj1*Pj + wi1*Pi);
+  const Tensor Q1 = wij1*(wj1*Qj + wi1*Qi);
   Vector result = -(P1*dA1 + Q1*dA1);
 
   // Is there a second intersection?
   if (nsurf == 2) {
     const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
     const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
-    const Scalar P2 = wj2*Pj + wi2*Pi;
-    const Tensor Q2 = wj2*Qj + wi2*Qi;
+    const Scalar wij2 = 0.5*(wj2 + wi2);
+    const Scalar P2 = wij2*(wj2*Pj + wi2*Pi);
+    const Tensor Q2 = wij2*(wj2*Qj + wi2*Qi);
     result -= P2*dA2 + Q2*dA2;
   }
 
@@ -518,7 +521,8 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
+    // PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
     // PolicyPointer thermalEnergyPolicy(new CSPHSpecificThermalEnergyPolicy<Dimension>(dataBase, this->kernel()));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
@@ -961,6 +965,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(etaMagi >= 0.0);
               CHECK(etaMagj >= 0.0);
 
+              // if (i == 0) {
+              //   cerr << j << " " << rj << " " << Pj << " " << -rij << " " << -etaj << endl;
+              // }
+
               // Symmetrized kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
@@ -1028,11 +1036,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
+              // // Acceleration (SPH form).
+              // {
+              //   CHECK(rhoi > 0.0);
+              //   CHECK(rhoj > 0.0);
+              //   const double Prhoi = Pi/(rhoi*rhoi);
+              //   const double Prhoj = Pj/(rhoj*rhoj);
+              //   const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
+              //   if (i == 0) cerr << "    SPH: " << -mj*deltaDvDt << endl;
+              //   // DvDti -= mj*deltaDvDt;
+              //   // DvDtj += mi*deltaDvDt;
+              //   // if (mCompatibleEnergyEvolution) {
+              //   //   // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
+              //   //   // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
+              //   //   pairAccelerationsi.push_back(-mj*deltaDvDt);
+              //   //   pairAccelerationsj.push_back( mi*deltaDvDt);
+              //   // }
+              // }
+
               // Acceleration (pair-wise area form).
               // This is a punt on the Q for now -- do something better later.
               const Vector forceij = pairWiseForce(W,
                                                    ri, Hi, Hdeti, A0i, gradA0i, weighti, Pi, rhoi*rhoi*QPiij.first,
                                                    rj, Hj, Hdetj, A0j, gradA0j, weightj, Pj, rhoj*rhoj*QPiij.second);
+              // if (i == 0) {
+              //   cerr << "   CSPH: " << forceij/mi << " " << weightj*Wj*forceij/mi << " " << forceij << endl;
+              // }
               DvDti += forceij/mi;
               DvDtj -= forceij/mj;
               if (mCompatibleEnergyEvolution) {
@@ -1083,28 +1112,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //   pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
               // }
 
-              // // Acceleration (SPH form).
-              // CHECK(rhoi > 0.0);
-              // CHECK(rhoj > 0.0);
-              // const double Prhoi = Pi/(rhoi*rhoi);
-              // const double Prhoj = Pj/(rhoj*rhoj);
-              // const Vector deltaDvDt = Prhoi*gradWSPHi + Prhoj*gradWSPHj + Qacci + Qaccj;
-              // DvDti -= mj*deltaDvDt;
-              // DvDtj += mi*deltaDvDt;
-              // if (mCompatibleEnergyEvolution) {
-              //   // if (i < firstGhostNodei) pairAccelerationsi.push_back(-mj*deltaDvDt);
-              //   // if (j < firstGhostNodej) pairAccelerationsj.push_back( mi*deltaDvDt);
-              //   pairAccelerationsi.push_back(-mj*deltaDvDt);
-              //   pairAccelerationsj.push_back( mi*deltaDvDt);
-              // }
-
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
                 XSPHDeltaVi -= weightj*Wj*vij;
 		XSPHDeltaVj += weighti*Wi*vij;
               }
 
-	    }
+            }
           }
         }
       }
