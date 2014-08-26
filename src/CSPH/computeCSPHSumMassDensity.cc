@@ -44,9 +44,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(volume.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-  REQUIRE(A0.size() == numNodeLists);
-  REQUIRE(A.size() == numNodeLists);
-  REQUIRE(B.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -65,6 +62,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   FieldList<Dimension, Vector> B(FieldSpace::Copy);
   FieldList<Dimension, Vector> C(FieldSpace::Copy);
   FieldList<Dimension, Tensor> D(FieldSpace::Copy);
+  FieldList<Dimension, Vector> gradA0(FieldSpace::Copy);
   FieldList<Dimension, Vector> gradA(FieldSpace::Copy);
   FieldList<Dimension, Tensor> gradB(FieldSpace::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -78,6 +76,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     B.appendNewField(HydroFieldNames::B_CSPH, nodeList, Vector::zero);
     C.appendNewField(HydroFieldNames::C_CSPH, nodeList, Vector::zero);
     D.appendNewField(HydroFieldNames::D_CSPH, nodeList, Tensor::zero);
+    gradA0.appendNewField(HydroFieldNames::gradA0_CSPH, nodeList, Vector::zero);
     gradA.appendNewField(HydroFieldNames::gradA_CSPH, nodeList, Vector::zero);
     gradB.appendNewField(HydroFieldNames::gradB_CSPH, nodeList, Tensor::zero);
   }
@@ -86,7 +85,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   // correction A0.  We also force the CSPH corrections to *not* couple across NodeLists -- each NodeList
   // acts as though it is isolated.
   computeCSPHCorrections(connectivityMap, W, volume, position, H, false,
-                         m0, m1, m2, A0, A, B, C, D, gradA, gradB);
+                         m0, m1, m2, A0, A, B, C, D, gradA0, gradA, gradB);
 
   // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
   for (ConstBoundaryIterator boundItr = boundaryBegin;
