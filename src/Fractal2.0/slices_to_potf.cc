@@ -42,7 +42,7 @@ namespace FractalSpace
     int integers=1;
     int doubles=1;
     mem.p_file->note(true," slices to potf a ");
-    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(8,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," slices to potf c ");

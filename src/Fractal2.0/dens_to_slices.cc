@@ -50,7 +50,7 @@ namespace FractalSpace
     int integers=2;
     int doubles=1;
     mem.p_file->note(true," dens to slices a ");
-    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(0,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," dens to slices c ");
@@ -79,8 +79,6 @@ namespace FractalSpace
 	    mem.p_mess->return_point[counterR]=dataI_in[counterI+1];
 	    mem.p_mess->return_node[counterR]=FR;
 	    mem.p_mess->what_Slice_point[counterR]=n;
-	    //	    bool something=dataR_in[counterR] != 0.0;
-	    //	    cout << " slice " << Slice << " " << something << " " << nx << " " << ny << " " << nz << " " << n << " " << counterR << " " << dataR_in[counterR] << " " << mem.p_mess->potR[number] << "\n";
 	    counterR++;
 	    counterI+=2;
 	  }

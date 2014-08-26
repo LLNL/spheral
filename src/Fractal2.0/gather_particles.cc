@@ -53,7 +53,7 @@ namespace FractalSpace
     if(sendrad)
       doubles=5;
     mem.p_file->note(true," gather particles a ");
-    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(1,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," gather particles c ");
