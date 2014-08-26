@@ -244,6 +244,10 @@ pairWiseForce(const TableKernel<Dimension>& WT,
                                     x1, dA1, x2, dA2);
   CHECK(nsurf == 1 or nsurf == 2);
 
+  // Weight at each point.
+  const Scalar wj = weightj*A0i*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
+  const Scalar wi = weighti*A0j*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
+
   // // Determine the etas, gradP, and gradQ.
   // const Vector etai = Hi*(xj - xi);
   // const Vector Pgrad = (Pj - Pi)*etai/std::max(1.0e-30, etai.magnitude2());
@@ -252,19 +256,19 @@ pairWiseForce(const TableKernel<Dimension>& WT,
   // // Linearly interpolate the pressure to the intersection points, and sum
   // // the force.
   // const Scalar P1 = Pi + Pgrad.dot(Hi*(x1 - xi));
-  // const Tensor Q1 = Qi + innerProduct<Dimension>(Qgrad, x1 - xi);
-  // const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
-  // const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
-  // const Scalar wij1 = 0.5*(wj1 + wi1);
+  // const Tensor Q1 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x1 - xi));
+  // // const Scalar wj1 = weightj*A0i*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
+  // // const Scalar wi1 = weighti*A0j*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
+  // const Scalar wij1 = 0.5*(wj + wi);
   // Vector result = -wij1*(P1*dA1 + Q1*dA1);
 
   // // Is there a second intersection?
   // if (nsurf == 2) {
   //   const Scalar P2 = Pi + Pgrad.dot(Hi*(x2 - xi));
-  //   const Tensor Q2 = Qi + innerProduct<Dimension>(Qgrad, x2 - xi);
-  //   const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
-  //   const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
-  //   const Scalar wij2 = 0.5*(wj2 + wi2);
+  //   const Tensor Q2 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x2 - xi));
+  //   // const Scalar wj2 = weightj*A0i*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
+  //   // const Scalar wi2 = weighti*A0j*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
+  //   const Scalar wij2 = 0.5*(wj + wi);
   //   result -= wij2*(P2*dA2 + Q2*dA2);
   // }
 
