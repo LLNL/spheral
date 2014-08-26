@@ -101,7 +101,7 @@ namespace FractalSpace
     FF << "send stuff to other nodes a " << "\n";
     double time3=mem.p_mess->Clock();
     FF << "send stuff to other nodes b " << "\n";
-    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(5,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     double time4=mem.p_mess->Clock();
@@ -190,7 +190,7 @@ namespace FractalSpace
     FF << "send stuff to other nodes d " << "\n";
     double time7=mem.p_mess->Clock();
     FF << "send stuff to other nodes e " << "\n";
-    mem.p_mess->Send_Data_Some_How(counts_out,counts_in,integers,doubles,
+    mem.p_mess->Send_Data_Some_How(6,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     double time8=mem.p_mess->Clock();

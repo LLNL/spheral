@@ -150,7 +150,7 @@ namespace FractalSpace
     int doubles=0;
     double time6=mem.p_mess->Clock();
     mem.p_file->note(true," hypre numbering b ");
-    mem.p_mess->Send_Data_Some_How(mem.p_mess->HypreWorld,
+    mem.p_mess->Send_Data_Some_How(2,mem.p_mess->HypreWorld,
 				   counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
