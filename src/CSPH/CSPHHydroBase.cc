@@ -49,6 +49,8 @@
 
 #include "SPH/computeSPHSumMassDensity.hh"
 #include "gradientCSPH.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/outerProduct.hh"
 
 namespace Spheral {
 namespace CSPHSpace {
@@ -65,6 +67,8 @@ using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
+using Geometry::innerProduct;
+using Geometry::outerProduct;
 
 using PhysicsSpace::MassDensityType;
 using PhysicsSpace::HEvolutionType;
@@ -229,72 +233,52 @@ pairWiseForce(const TableKernel<Dimension>& WT,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   // Find the point(s) and area(s) where the kernels of the two points are equal.
   // This defines the surface for the volumes of the two points.
   Vector x1, x2, dA1, dA2;
   const int nsurf = kernelIntersect(WT, 
-                                    xi, Hi, Hdeti, A0i*weightj, gradA0i, weighti,
-                                    xj, Hj, Hdetj, A0j*weighti, gradA0j, weightj,
+                                    xi, Hi, Hdeti, A0i, gradA0i, weighti,
+                                    xj, Hj, Hdetj, A0j, gradA0j, weightj,
                                     x1, dA1, x2, dA2);
   CHECK(nsurf == 1 or nsurf == 2);
 
+  // // Determine the etas, gradP, and gradQ.
+  // const Vector etai = Hi*(xj - xi);
+  // const Vector Pgrad = (Pj - Pi)*etai/std::max(1.0e-30, etai.magnitude2());
+  // const ThirdRankTensor Qgrad = outerProduct<Dimension>(Qj - Qi, etai/std::max(1.0e-30, etai.magnitude2()));
+
+  // // Linearly interpolate the pressure to the intersection points, and sum
+  // // the force.
+  // const Scalar P1 = Pi + Pgrad.dot(Hi*(x1 - xi));
+  // const Tensor Q1 = Qi + innerProduct<Dimension>(Qgrad, x1 - xi);
+  // const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
+  // const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
+  // const Scalar wij1 = 0.5*(wj1 + wi1);
+  // Vector result = -wij1*(P1*dA1 + Q1*dA1);
+
+  // // Is there a second intersection?
+  // if (nsurf == 2) {
+  //   const Scalar P2 = Pi + Pgrad.dot(Hi*(x2 - xi));
+  //   const Tensor Q2 = Qi + innerProduct<Dimension>(Qgrad, x2 - xi);
+  //   const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
+  //   const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
+  //   const Scalar wij2 = 0.5*(wj2 + wi2);
+  //   result -= wij2*(P2*dA2 + Q2*dA2);
+  // }
+
   // Sum the pressure at the effective face.
-  const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
-  const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
-  const Scalar wij1 = 0.5*(wj1 + wi1);
-  const Scalar P1 = wij1*(wj1*Pj + wi1*Pi);
-  const Tensor Q1 = wij1*(wj1*Qj + wi1*Qi);
-  Vector result = -(P1*dA1 + Q1*dA1);
+  const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
+  const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
+  Vector result = -(wi1*Pi + wj1*Pj)*dA1 - (wi1*Qi + wj1*Qj)*dA1;
 
   // Is there a second intersection?
   if (nsurf == 2) {
-    const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
-    const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
-    const Scalar wij2 = 0.5*(wj2 + wi2);
-    const Scalar P2 = wij2*(wj2*Pj + wi2*Pi);
-    const Tensor Q2 = wij2*(wj2*Qj + wi2*Qi);
-    result -= P2*dA2 + Q2*dA2;
+    const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
+    const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
+    result -= (wi2*Pi + wj2*Pj)*dA2 + (wi2*Qi + wj2*Qj)*dA2;
   }
-
-  // // Linearly interpolate the pressure to the intersection points, and sum
-  // // the force.
-  // const Vector etai = Hi*(xj - xi);
-  // const Vector etaj = Hj*(xi - xj);
-  // const Scalar Wi = A0j*weighti*WT.kernelValue(etai.magnitude(), Hdeti);
-  // const Scalar Wj = A0i*weightj*WT.kernelValue(etaj.magnitude(), Hdetj);
-  // const Scalar Wij = 0.5*(Wi + Wj);
-  // const Scalar Pij = 0.5*(Pi + Pj);
-  // const Tensor Qij = 0.5*(Qi + Qj);
-  // const Vector dA = dA1 + dA2;
-  // return -Wij*(Pij*dA + Qij*dA);
-
-  // // const Scalar Wi1 = A0j*weighti*WT.kernelValue(etai.magnitude(), Hdeti);
-
-
-  // // Vector result = deltaP*dA1;
-  // // return result;
-
-  // // Linearly interpolate the pressure to the intersection points, and sum
-  // // the force.
-  // const Vector Pgrad = (Pj - Pi)*etai/std::max(1.0e-30, etai.magnitude2());
-  // const Scalar Pij_plus = (Hi*(x1 - xi)).dot(Pgrad);
-  // const Scalar Wi1 = A0j*weighti*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
-  // // Vector result = Wi1 * deltaP*dA1;
-  // Vector result = -Wi1 * (Pij_plus*dA1 + Qij*dA1);
-
-  // // cerr << " --> " << xi << " " << xj << " : [" 
-  // //      << x1 << " " << A0i*weightj*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj) << " " << A0j*weighti*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti) << " " << dA1 << "]";
-
-  // // If there's another intersection point, count it!
-  // if (nsurf == 2) {
-  //   const Scalar Pij_minus = (Hi*(x2 - xi)).dot(Pgrad);
-  //   const Scalar Wi2 = A0j*weighti*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
-  //   // result += Wi2 * deltaP*dA2;
-  //   result -= Wi2 * (Pij_minus*dA2 + Qij*dA2);
-  //   // cerr << " [" << x2 << " " << A0i*weightj*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj) << " " << A0j*weighti*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti) << " " << dA2 << "]";
-  // }
-  // // cerr << endl;
 
   // That's it.
   return result;
@@ -1062,6 +1046,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // if (i == 0) {
               //   cerr << "   CSPH: " << forceij/mi << " " << weightj*Wj*forceij/mi << " " << forceij << endl;
               // }
+              const Scalar Wij = 0.5*(weightj*Wj + weighti*Wi);
               DvDti += forceij/mi;
               DvDtj -= forceij/mj;
               if (mCompatibleEnergyEvolution) {
