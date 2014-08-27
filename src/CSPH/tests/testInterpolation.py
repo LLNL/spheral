@@ -211,6 +211,7 @@ A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
 C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
 D_fl = db.newFluidTensorFieldList(Tensor.zero, "D")
+gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 
@@ -224,9 +225,9 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 weight_fl = db.newFluidScalarFieldList(0.0, "volume")
 computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl,
+computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
                        m0_fl, m1_fl, m2_fl,
-                       A0_fl, A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
+                       A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
