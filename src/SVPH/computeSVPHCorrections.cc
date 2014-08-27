@@ -131,7 +131,7 @@ computeSVPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
     // Self contribution.
     A(i) += Vi*W(0.0, Hdeti);
-    gradm1(i) += Vi*W(0.0, Hdeti);
+    gradm1(i) += Vi*W(0.0, Hdeti) * Tensor::one;
 
     // Neighbors!
     const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
