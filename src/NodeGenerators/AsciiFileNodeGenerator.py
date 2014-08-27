@@ -1,5 +1,4 @@
 from math import *
-import gzip
 
 from NodeGeneratorBase import *
 #from Spheral import generateCylDistributionFromRZ
@@ -48,12 +47,13 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
 
         if mpi.rank == 0:
             f = open(filename,'r')
-            if readFileToMemory:
+            self.f = f
+            #if readFileToMemory:
                 #self.f = f.readlines()
                 #f.close()
                 # i don't want to build in this functionality right now
-            else:
-                self.f = f
+                #else:
+                # self.f = f
         else:
             self.f = None
             
@@ -65,6 +65,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         self.z = []
         self.m = []
         self.rho = []
+        self.eps = []
         self.vx = []
         self.vy = []
         self.vz = []
@@ -77,20 +78,20 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         n = len(vals) - 1
         for i in range(n):
             j = i + 1
-            self.x.append(vals[j][0])
-            self.y.append(vals[j][1])
-            self.z.append(vals[j][2])
-            # (1/h)* [[1 0 0][0 1 0][0 0 1]]
+            self.x.append(float(vals[j][0]))
+            self.y.append(float(vals[j][1]))
+            self.z.append(float(vals[j][2]))
+            # (1/h) * [[1 0 0][0 1 0][0 0 1]]
             H = (1.0/float(vals[j][3])) * SymTensor3d.one
             self.H.append(H)
             
-            self.m.append(vals[j][4])
-            self.rho.append(vals[j][5])
+            self.m.append(float(vals[j][4]))
+            self.rho.append(float(vals[j][5]))
             #pressure
-            #internal energy
-            self.vx.append(vals[j][8])
-            self.vy.append(vals[j][9])
-            self.vz.append(vals[j][10])
+            self.eps.append(float(vals[j][7]))
+            self.vx.append(float(vals[j][8]))
+            self.vy.append(float(vals[j][9]))
+            self.vz.append(float(vals[j][10]))
             #temperature
             #abund array
             
