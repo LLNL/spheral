@@ -105,17 +105,30 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
       const int i = *iItr;
+      const int testNode=0;
+      bool debug=false;
 
       // Get the state for node i.
       const Scalar wi = weight(nodeListi, i);
+      //const Scalar wi = 1.0;
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
+      if(i==testNode && debug){
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+           printf("ri(%lu)=%16.10f,",ii,ri(ii));
+        }
+        printf("\n");
+       }
 
       // Self contribution.
       const Scalar wwi = wi*W(0.0, Hdeti);
+      if(i==testNode && debug){
+        printf("self wi=%16.10f\n",wwi);
+      }
       m0(nodeListi, i) += wwi;
-      gradm1(nodeListi, i) += wwi;
+      //gradm1(nodeListi, i) += wwi;
+      gradm1(nodeListi, i) += Tensor::one*wwi;
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -139,10 +152,10 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
               // State of node j.
               const Scalar wj = weight(nodeListj, j);
+              //const Scalar wj = 1.0;
               const Vector& rj = position(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-
               // Kernel weighting and gradient.
               const Vector rij = ri - rj;
               const Vector etai = Hi*rij;
@@ -153,7 +166,24 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
               const Scalar& Wj = WWj.first;
               const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
-
+              if(i==testNode && debug){
+                 printf("j=%d\n",j);
+                for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                   printf("rj(%lu)=%16.10f,",ii,rj(ii));
+                }
+                printf("\n");
+                for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                   printf("rij(%lu)=%16.10f,",ii,rij(ii));
+                }
+                printf("\n");
+                for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                   printf("gradWj(%lu)=%16.10f,",ii,gradWj(ii));
+                }
+                printf("\n");
+                //printf("wi=%16.10f, wj=%16.10f\n",wi,wj);
+                 printf("Wi(%d)=%16.10f\n",i,Wi);
+                 printf("Wj(%d)=%16.10f\n",j,Wj);
+              }
               // Zeroth moment. 
               const Scalar wwi = wi*Wi;
               const Scalar wwj = wj*Wj;
@@ -161,12 +191,20 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               m0(nodeListj, j) += wwi;
               gradm0(nodeListi, i) += wj*gradWj;
               gradm0(nodeListj, j) += wi*gradWi;
+              if(i==testNode && debug){
+                for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                   printf("gradw(%lu)=%16.10f,",ii,gradWj(ii));
+                }
+                printf("\n");
+               }
 
               // First moment. 
               m1(nodeListi, i) += wwj * rij;
               m1(nodeListj, j) -= wwi * rij;
-              gradm1(nodeListi, i) += wj*( rij*gradWj + Tensor::one*Wj);
-              gradm1(nodeListj, j) += wi*(-rij*gradWi + Tensor::one*Wi);
+              //gradm1(nodeListi, i) += wj*( rij*gradWj + Tensor::one*Wj);
+              //gradm1(nodeListj, j) += wi*(-rij*gradWi + Tensor::one*Wi);
+              gradm1(nodeListi, i) += wj*(outerProduct<Dimension>(rij,gradWj) + Tensor::one*Wj);
+              gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij,gradWi) + Tensor::one*Wi);
 
               // Second moment.
               const SymTensor thpt = rij.selfdyad();
@@ -202,7 +240,42 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
           (gradm0(nodeListi, i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(nodeListi, i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
            innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(nodeListi, i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(nodeListi, i)));
+
+        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
+          (gradm0(nodeListi,i) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,m1(nodeListi, i)),gradm1(nodeListi, i)) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,gradm1(nodeListi, i)),m1(nodeListi, i)) +
+	  innerProduct<Dimension>(innerProduct<Dimension>(m2inv,innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i),m2inv),m1(nodeListi, i))),m1(nodeListi, i)));
+        
+        //gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*(gradm0(i));
+
+       // gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
+          //(gradm0(i) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,gradm1(i)),m1(nodeListi, i)) +
+          //(gradm0(i) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)) - innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(i)) +
+          //(gradm0(i) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)) - innerProduct<Dimension>(m1(nodeListi, i), innerProduct<Dimension>(m2inv,gradm1(i))) +
+          //(gradm0(i) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(i)) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,gradm1(i)),m1(nodeListi, i)) +
+	  //innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)));
+
+
         gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i), m2inv), m1(nodeListi, i)) - gradm1(nodeListi, i));
+
+
+        if(i==testNode && debug){
+              printf("M0(i)=%16.10f\n", m0(nodeListi, i));
+              printf("A(i)=%16.10f\n", A(nodeListi, i));
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+	    printf("ii=%lu, m1(i)=%16.10f\n",ii,m1(nodeListi, i)(ii));
+              printf("Gradm0(%lu)= %16.10f\n",ii,gradm0(nodeListi, i)(ii));
+              printf("GradA(%lu)= %16.10f\n",ii,gradA(nodeListi, i)(ii));
+              printf("ii=%lu, B(i)=%16.10f\n", ii,B(nodeListi, i)(ii));
+            for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+              printf("ii=%lu, jj=%lu, m2=%16.10f, m2inv=%16.10f\n", ii,jj,m2(nodeListi, i)(ii,jj),m2inv(ii,jj));
+              printf("ii=%lu, jj=%lu, GradB=%16.10f\n", ii,jj,gradB(nodeListi, i)(ii,jj));
+              printf("ii=%lu, jj=%lu, gradm1=%16.10f\n", ii,jj,gradm1(nodeListi, i)(ii,jj));
+              for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                 printf("ii=%lu, jj=%lu, kk=%lu, gradm2=%16.10f\n", ii,jj,kk,gradm2(nodeListi, i)(ii,jj,kk));
+              }
+            }
+          }
+        }
 
         // // BLAGO!
         // // Force only zeroth corrections.
