@@ -225,7 +225,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             #temperature
             #abund array
             
-                
+        # Read in extra fields
+        # maybe later...
 
         
         # Initialize the base class.
