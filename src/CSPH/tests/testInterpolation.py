@@ -307,10 +307,12 @@ for i in xrange(nodes1.numInternalNodes):
     dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
-# We also check the C++ gradient method.
+# We also check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
+fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
+                           cm, WT)
 dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
                          A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,
                          cm, WT)
@@ -435,7 +437,11 @@ if graphics:
     p4.title("Error in derivatives")
     p4.refresh()
 
-    p5 = plotFieldList(dfCSPH_fl, 
+    p5 = plotFieldList(fCSPH_fl, 
+                       winTitle = "C++ CSPH interpolation",
+                       colorNodeLists = False)
+
+    p6 = plotFieldList(dfCSPH_fl, 
                        yFunction = "%s.x",
                        winTitle = "C++ grad CSPH",
                        colorNodeLists = False)
