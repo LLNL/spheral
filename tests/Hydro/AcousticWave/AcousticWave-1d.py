@@ -13,21 +13,21 @@ import numpy as np
 from CSPH_mod_package import *
 
 def smooth(x,window_len=11,window='hanning'):
-        if x.ndim != 1:
-                raise ValueError, "smooth only accepts 1 dimension arrays."
-        if x.size < window_len:
-                raise ValueError, "Input vector needs to be bigger than window size."
-        if window_len<3:
-                return x
-        if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-                raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
-        s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
-        if window == 'flat': #moving average
-                w=np.ones(window_len,'d')
-        else:
-                w=eval('np.'+window+'(window_len)')
-        y=np.convolve(w/w.sum(),s,mode='same')
-        return y[window_len:-window_len+1]
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays."
+    if x.size < window_len:
+        raise ValueError, "Input vector needs to be bigger than window size."
+    if window_len<3:
+        return x
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+    s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+    y=np.convolve(w/w.sum(),s,mode='same')
+    return y[window_len:-window_len+1]
 
 title("Acoustic wave propagation test.")
 
@@ -311,11 +311,11 @@ answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, two
 if graphics == "gnu":
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
     if mpi.rank == 0:
         plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
-    csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False, plotGhosts=True)
+    csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
 
     # Plot the correction terms.
@@ -349,21 +349,17 @@ if graphics == "gnu":
         #ret=smooth(A,11,'hamming')
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
-                                colorNodeLists = False,
-                                plotGhosts = True)
+                                colorNodeLists = False)
         A0Plot = plotFieldList(hydro.A0(),
                                winTitle = "A0",
-                               colorNodeLists = False,
-                                plotGhosts = True)
+                               colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
-                              colorNodeLists = False,
-                                plotGhosts = True)
+                              colorNodeLists = False)
         BPlot = plotFieldList(hydro.B(),
                               yFunction = "%s.x",
                               winTitle = "B",
-                              colorNodeLists = False,
-                                plotGhosts = True)
+                              colorNodeLists = False)
 
     else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),
