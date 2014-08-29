@@ -23,8 +23,14 @@ namespace Spheral {
         HelmholtzEquationOfState(const PhysicalConstants& constants,
                                  const double minimumPressure,
                                  const double maximumPressure,
-                                 const MaterialPressureMinType minPressureType):
-        EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType)
+                                 const MaterialPressureMinType minPressureType,
+                                 const Scalar abar0,
+                                 const Scalar zbar0):
+        EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+        mzbar(nullptr),
+        mabar(nullptr),
+        mabar0(abar0),
+        mzbar0(zbar0)
         {
             
         }
@@ -36,6 +42,10 @@ namespace Spheral {
         HelmholtzEquationOfState<Dimension>::
         ~HelmholtzEquationOfState() {
         }
+        
+        
+        /* check mzbar != nullptr?? */
+        
         
         //------------------------------------------------------------------------------
         // Set the pressure.

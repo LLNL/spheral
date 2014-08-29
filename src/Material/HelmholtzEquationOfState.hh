@@ -28,7 +28,9 @@ namespace Spheral {
             HelmholtzEquationOfState(const PhysicalConstants& constants,
                                      const double minimumPressure,
                                      const double maximumPressure,
-                                     const MaterialPressureMinType minPressureType);
+                                     const MaterialPressureMinType minPressureType,
+                                     const Scalar abar0,
+                                     const Scalar zbar0);
             ~HelmholtzEquationOfState();
             
             // We require any equation of state to define the following properties.
@@ -90,8 +92,10 @@ namespace Spheral {
         private:
             //--------------------------- Private Interface ---------------------------//
             
-            FieldSpace::FieldList<Dimension, Scalar>& mabar;
-            FieldSpace::FieldList<Dimension, Scalar>& mzbar;
+            const FieldSpace::FieldList<Dimension, Scalar>* mabarPtr;
+            const FieldSpace::FieldList<Dimension, Scalar>* mzbarPtr;
+            
+            Scalar mabar0, mzbar0;
             
 
         };
@@ -101,9 +105,9 @@ namespace Spheral {
 #else
         
 namespace Spheral {
-    namespace ArtificialViscositySpace {
+    namespace Material {
         // Forward declaration.
-        template<typename Dimension> class MorrisMonaghanReducingViscosity;
+        template<typename Dimension> class HelmholtzEquationOfState;
     }
 }
 
