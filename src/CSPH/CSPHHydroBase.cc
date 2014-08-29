@@ -1127,6 +1127,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // DvDxi += weighti*vi*selfGradContrib;
       // localDvDxi += weighti*vi*selfGradContrib;
 
+      // Finish the density gradient.
+      DrhoDxi += weighti*rhoi*selfGradContrib;
+
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
 
@@ -1174,33 +1177,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar mag0 = vi.magnitude();
       //printf("MAG0=%10.3e",mag0);
       
-      if (dt > 0.0) {
-        CHECK(m0i > 0.0);
-        const Vector com = -m1i/m0i;
-        const Vector dhat = com.unitVector();
-        //const Vector delPos=com - ri;
-        const Scalar a0 = DvDti.magnitude();
-        const Vector delPos=com;
-        //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
-        //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
-        const Scalar deltamag = com.magnitude();
-        //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
-        const Vector accel=2*delPos/(dt*dt);
-        const Scalar a1 = accel.magnitude();
-        const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
-        //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
+      // if (dt > 0.0) {
+      //   CHECK(m0i > 0.0);
+      //   const Vector com = -m1i/m0i;
+      //   const Vector dhat = com.unitVector();
+      //   //const Vector delPos=com - ri;
+      //   const Scalar a0 = DvDti.magnitude();
+      //   const Vector delPos=com;
+      //   //const Vector accel=2*delPos/(dt*dt)-2*vi/dt;
+      //   //const Vector accel=2*delPos/(dt*dt)-2*DxDti/dt;
+      //   const Scalar deltamag = com.magnitude();
+      //   //const Vector accel=std::min(0.01*mag0, deltamag)*2*delPos/(dt*dt);
+      //   const Vector accel=2*delPos/(dt*dt);
+      //   const Scalar a1 = accel.magnitude();
+      //   const Vector delta = mfilter*std::min(a0, a1)*accel.unitVector();
+      //   //const Vector delta = 0.01*std::min(a0, a1)*accel.unitVector();
 
-        // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
-        //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
-        //const Vector accel=2*delPos/(dt*dt*mi);
-        // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
-        // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
-        //DvDti += accel;
-        DvDti += delta;
+      //   // const Vector delPos2=std::min(0.01*mag0, deltamag)*dhat;
+      //   //const Vector accel=2*delPos2/(dt*dt)-2*vi/dt;
+      //   //const Vector accel=2*delPos/(dt*dt*mi);
+      //   // printf("DVDT=%10.3e, accell=%10.3e, delta=%10.3e\n",DvDti[0],accel[0],delta[0]);
+      //   // printf("COM=%10.3e, ri=%10.3e, del=%10.3e dt=%10.3e vi=%10.3e\n",com[0],ri[0],delPos[0],dt,vi[0]);
+      //   //DvDti += accel;
+      //   DvDti += delta;
 
-        // Account for the work done as well.
-        // DepsDti -= (vi + 0.5*dt*DvDti).dot(DvDti);
-      }
+      //   // Account for the work done as well.
+      //   // DepsDti -= (vi + 0.5*dt*DvDti).dot(DvDti);
+      // }
 
       // if (dt > 0.0) {
       //    const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi);
@@ -1389,6 +1392,73 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
+  // Add any filtering component to the node movement.
+  // Note that the FacetedVolumes are in coordinates with the node at the origin already!
+  if (mfilter > 0.0) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+    const unsigned numNodeLists = mass.size();
+    const Scalar W0 = W.kernelValue(0.0, 1.0);
+    FieldList<Dimension, Vector> delta = dataBase.newFluidFieldList(Vector::zero, "delta position");
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+           iItr != connectivityMap.end(nodeListi);
+           ++iItr) {
+        const int i = *iItr;
+        const Vector& ri = position(nodeListi, i);
+        const Scalar mi = mass(nodeListi, i);
+        const Scalar rhoi = massDensity(nodeListi, i);
+        const Vector DrhoDxi = DrhoDx(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (typename vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const unsigned j = *jItr;
+            const Vector& rj = position(nodeListj, j);
+            const Scalar mj = mass(nodeListj, j);
+            const Scalar rhoj = massDensity(nodeListj, j);
+            const Vector DrhoDxj = DrhoDx(nodeListj, j);
+            const Vector rji = rj - ri;
+            const Vector rjihat = rji.unitVector();
+            const Scalar rhoij = rhoi + 0.25*DrhoDxi.dot(rji);
+            const Scalar rhoji = rhoj - 0.25*DrhoDxj.dot(rji);
+            const Scalar deltaj = max(0.0, 0.5*(mi/rhoij + mj/rhoji) - rji.magnitude());
+            const Scalar etai = (Hi*rji).magnitude();
+            const Scalar weight = W.kernelValue(etai, 1.0)/W0;
+            delta(nodeListi, i) -= weight*deltaj*rjihat;
+          }
+        }
+      }
+    }
+
+    // Apply the filtering.
+    const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = position[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+        if (mag0 > 0.0) {
+          const Scalar deltamag = delta(nodeListi, i).magnitude();
+          const Scalar effmag = min(mfilter*mag0, deltamag);
+          position(nodeListi, i) += effmag*delta(nodeListi, i).unitVector();
+        }
+      }
+    }
+
+    // Check for any boundary violations.
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+    this->enforceBoundaries(state, derivs);
+  }
+
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
@@ -1411,39 +1481,13 @@ finalize(const typename Dimension::Scalar time,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-    // // Add any filtering component to the node movement.
-    // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
-    // if (mfilter > 0.0) {
-    //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-    //   const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
-    //   size_t nodeListi = 0;
-    //   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-    //        itr != dataBase.fluidNodeListEnd();
-    //        ++itr, ++nodeListi) {
-    //     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-    //          iItr != connectivityMap.end(nodeListi);
-    //          ++iItr) {
-    //       const int i = *iItr;
-    //       Vector& ri = position(nodeListi, i);
-    //       const Vector& DxDti = DxDt(nodeListi, i);
-    //       const Vector& DrhoDxi = DrhoDx(nodeListi, i);
-    //       const Scalar mag0 = DxDti.magnitude();
-    //       if (mag0 > 0.0) {
-    //         const Vector com = centerOfMass(polyvol(nodeListi, i), DrhoDxi),
-    //                      dhat = com.unitVector();
-    //         const Scalar deltamag = com.magnitude();
-    //         ri += std::min(mfilter*mag0, deltamag)*dhat;
-    //       }
-    //     }
-    //   }
-    // }
-
   // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
   //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
   //                                                               HydroFieldNames::massDensity, 0.0);
   //   massDensity.assignFields(massDensitySum);
   }
+
 }
 
 //------------------------------------------------------------------------------
