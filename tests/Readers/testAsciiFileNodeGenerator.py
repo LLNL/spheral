@@ -40,6 +40,17 @@ output("nodes.nodesPerSmoothingScale")
 generator = AsciiFileNodeGenerator3D(filename = "ic.sdf.ascii",
                                 materialName = "Default",
                                 nNodePerh = nPerh)
+nodes.numInternalNodes = generator.localNumNodes()
+vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
+abund = []
+
+for i in xrange(nodes.numInternalNodes):
+    vel[i].x = generator.vx[i]
+    vel[i].y = generator.vy[i]
+    vel[i].z = generator.vz[i]
+    eps[i] = generator.eps[i]
+
 distributeNodes((nodes, generator),)
 
 #-------------------------------------------------------------------------------
@@ -53,6 +64,7 @@ vizfile = SpheralVisitDump(baseFileName = "Ascii_file_test",
                            listOfFields = [nodes.massDensity(),
                                            nodes.mass(),
                                            nodes.velocity(),
+                                           nodes.specificThermalEnergy(),
                                            Hfield,
                                            HfieldInv],
                            )
