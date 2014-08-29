@@ -1429,7 +1429,7 @@ finalize(const typename Dimension::Scalar time,
             const Vector rjihat = rji.unitVector();
             const Scalar rhoij = rhoi + 0.25*DrhoDxi.dot(rji);
             const Scalar rhoji = rhoj - 0.25*DrhoDxj.dot(rji);
-            const Scalar deltaj = max(0.0, 0.5*(mi/rhoij + mj/rhoji) - rji.magnitude());
+            const Scalar deltaj = max(0.0, 0.5*(Dimension::rootnu(mi/rhoij) + Dimension::rootnu(mj/rhoji)) - rji.magnitude());
             const Scalar etai = (Hi*rji).magnitude();
             const Scalar weight = W.kernelValue(etai, 1.0)/W0;
             delta(nodeListi, i) -= weight*deltaj*rjihat;
