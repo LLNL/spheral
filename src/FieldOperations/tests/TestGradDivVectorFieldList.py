@@ -150,10 +150,10 @@ boundaryConditions = [xbc0, xbc1]
 for i in xrange(10):
     for bc in boundaryConditions:
         bc.setGhostNodes(db)
-        bc.applyScalarFieldListGhostBoundary(fluidWeight)
-        bc.applyScalarFieldListGhostBoundary(fluidMass)
-        bc.applyScalarFieldListGhostBoundary(fluidRho)
-        bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+        bc.applyFieldListGhostBoundary(fluidWeight)
+        bc.applyFieldListGhostBoundary(fluidMass)
+        bc.applyFieldListGhostBoundary(fluidRho)
+        bc.applyFieldListGhostBoundary(fluidHfield)
     db.updateFluidMassDensity()
     for nodes in [nodes1, nodes2]:
         nodes.numGhostNodes = 0
@@ -161,10 +161,10 @@ for i in xrange(10):
         nodes.updateWeight()
 for bc in boundaryConditions:
     bc.setGhostNodes(db)
-    bc.applyScalarFieldListGhostBoundary(fluidWeight)
-    bc.applyScalarFieldListGhostBoundary(fluidMass)
-    bc.applyScalarFieldListGhostBoundary(fluidRho)
-    bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+    bc.applyFieldListGhostBoundary(fluidWeight)
+    bc.applyFieldListGhostBoundary(fluidMass)
+    bc.applyFieldListGhostBoundary(fluidRho)
+    bc.applyFieldListGhostBoundary(fluidHfield)
 for nodes in [nodes1, nodes2]:
     nodes.neighbor.updateNodes()
     for i in xrange(nodes.firstGhostNode, nodes.numNodes):

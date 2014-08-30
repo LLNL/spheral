@@ -21,6 +21,7 @@ namespace Spheral {
                                          FieldList<Dim<1>, Dim<1>::Vector>&,
                                          FieldList<Dim<1>, Dim<1>::Tensor>&,
                                          FieldList<Dim<1>, Dim<1>::Vector>&,
+                                         FieldList<Dim<1>, Dim<1>::Vector>&,
                                          FieldList<Dim<1>, Dim<1>::Tensor>&);
     template void computeCSPHCorrections(const ConnectivityMap<Dim<2> >&, 
                                          const TableKernel<Dim<2> >&, 
@@ -37,6 +38,7 @@ namespace Spheral {
                                          FieldList<Dim<2>, Dim<2>::Vector>&,
                                          FieldList<Dim<2>, Dim<2>::Tensor>&,
                                          FieldList<Dim<2>, Dim<2>::Vector>&,
+                                         FieldList<Dim<2>, Dim<2>::Vector>&,
                                          FieldList<Dim<2>, Dim<2>::Tensor>&);
     template void computeCSPHCorrections(const ConnectivityMap<Dim<3> >&, 
                                          const TableKernel<Dim<3> >&, 
@@ -52,6 +54,7 @@ namespace Spheral {
                                          FieldList<Dim<3>, Dim<3>::Vector>&,
                                          FieldList<Dim<3>, Dim<3>::Vector>&,
                                          FieldList<Dim<3>, Dim<3>::Tensor>&,
+                                         FieldList<Dim<3>, Dim<3>::Vector>&,
                                          FieldList<Dim<3>, Dim<3>::Vector>&,
                                          FieldList<Dim<3>, Dim<3>::Tensor>&);
   }
