@@ -119,13 +119,13 @@ elif testDim == "2d":
     from DistributeNodes import distributeNodes2d
     from GenerateNodeDistribution2d import GenerateNodeDistribution2d
     from CompositeNodeDistribution import CompositeNodeDistribution
-    gen1 = GenerateNodeDistribution2d(nx1, nx1, rho1,
+    gen1 = GenerateNodeDistribution2d(nx1, 2*nx1, rho1,
                                       distributionType = "lattice",
                                       xmin = (x0, x0),
                                       xmax = (x1, x2),
                                       nNodePerh = nPerh,
                                       SPH = True)
-    gen2 = GenerateNodeDistribution2d(nx2, nx2, rho2,
+    gen2 = GenerateNodeDistribution2d(nx2, 2*nx2, rho2,
                                       distributionType = "lattice",
                                       xmin = (x1, x0),
                                       xmax = (x2, x2),
@@ -254,12 +254,29 @@ for i in xrange(nodes1.numInternalNodes):
     gradBi = gradB[i]
     fi = f[i]
 
+    # First do our independent corrected estimate of the gradient based on
+    # the correction pointed out in Randles & Libersky (1996) on up to 
+    # Speith (2006).
+    Mi = Tensor()
+    neighbors = cm.connectivityForNode(nodes1, i)
+    assert len(neighbors) == 1
+    for j in neighbors[0]:
+        rj = positions[j]
+        Hj = H[j]
+        Hdetj = H[j].Determinant()
+        wj = weight[j]
+        rij = ri - rj
+        etaj = Hj*rij
+        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+        Mi -= wj*rij.dyad(gradWj)
+    Mi = Mi.Inverse()
+    #print i, ri, epsi, Li
+
     # Self contribution.
     W0 = WT.kernelValue(0.0, Hdeti)
     fSPH[i] = wi*W0 * fi
     fCSPH[i] = wi*W0*Ai * fi
-    dfCSPH[i] = fi * wi*(Ai*Bi*W0 +
-                         gradAi*W0)
 
     # Go over them neighbors.
     neighbors = cm.connectivityForNode(nodes1, i)
@@ -269,8 +286,6 @@ for i in xrange(nodes1.numInternalNodes):
         Hj = H[j]
         Hdetj = H[j].Determinant()
         wj = weight[j]
-        Aj = A[j]
-        Bj = B[j]
         fj = f[j]
 
         # The standard SPH kernel and it's gradient.
@@ -295,16 +310,72 @@ for i in xrange(nodes1.numInternalNodes):
                                            gradWRj)
         assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
 
+        WRj = Ai*(1.0 + Bi.dot(rij))*Wj
+        gradWRj = Mi*gradWj
+
         # Increment our interpolated values.
         fSPH[i] += fj * wj*Wj
         fCSPH[i] += fj * wj*WRj
 
         # Increment the derivatives.
         dfSPH[i] += fj * wj*gradWj
-        dfCSPH[i] += fj * wj*gradWRj
+        dfCSPH[i] += (fj - fi) * wj*gradWRj
 
-    # We can now apply the integration correction (C) for CSPH.
-    dfCSPH[i] += Ci*(fi - fCSPH[i])
+    # # Self contribution.
+    # W0 = WT.kernelValue(0.0, Hdeti)
+    # fSPH[i] = wi*W0 * fi
+    # fCSPH[i] = wi*W0*Ai * fi
+    # #dfCSPH[i] = fi * wi*(Ai*Bi*W0 + gradAi*W0)
+
+    # # Go over them neighbors.
+    # neighbors = cm.connectivityForNode(nodes1, i)
+    # assert len(neighbors) == 1
+    # for j in neighbors[0]:
+    #     rj = positions[j]
+    #     Hj = H[j]
+    #     Hdetj = H[j].Determinant()
+    #     wj = weight[j]
+    #     Aj = A[j]
+    #     Bj = B[j]
+    #     fj = f[j]
+
+    #     # The standard SPH kernel and it's gradient.
+    #     rij = ri - rj
+    #     etaj = Hj*rij
+    #     Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+    #     gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+
+    #     # The corrected kernel and it's gradient.
+    #     WRj = 0.0
+    #     dummy = 0.0
+    #     gradWRj = Vector()
+    #     WRj, dummy = CSPHKernelAndGradient(WT,
+    #                                        rij,
+    #                                        etaj,
+    #                                        Hj,
+    #                                        Hdetj,
+    #                                        Ai,
+    #                                        Bi,
+    #                                        gradAi,
+    #                                        gradBi,
+    #                                        gradWRj)
+    #     assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
+
+    #     WRj = Ai*(1.0 + Bi.dot(rij))*Wj
+    #     gradWRj = (Ai*(1 + Bi.dot(rij))*gradWj + 
+    #                gradAi*(1.0 + Bi.dot(rij))*Wj +
+    #                (Bi + gradBi*rij)*Ai*Wj)
+
+    #     # Increment our interpolated values.
+    #     fSPH[i] += fj * wj*Wj
+    #     fCSPH[i] += fj * wj*WRj
+
+    #     # Increment the derivatives.
+    #     dfSPH[i] += fj * wj*gradWj
+    #     dfCSPH[i] += (fj - fi) * wj*gradWRj
+
+    # # # We can now apply the integration correction (C) for CSPH.
+    # # dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
 # We also check the C++ interpolation and gradient methods.
