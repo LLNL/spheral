@@ -109,7 +109,6 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Scalar wi = weight(nodeListi, i);
-      //const Scalar wi = 1.0;
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -151,7 +150,6 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
               // State of node j.
               const Scalar wj = weight(nodeListj, j);
-              //const Scalar wj = 1.0;
               const Vector& rj = position(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
@@ -213,11 +211,17 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
               for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
                 for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                  gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
-                  gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
+                  //gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
+                  gradm2(nodeListi, i)(jj, jj, ii) += wwj*rij(ii);
 
-                  gradm2(nodeListi, i)(ii, jj, ii) += wwj*rij(jj);
-                  gradm2(nodeListj, j)(ii, jj, ii) -= wwi*rij(jj);
+                  gradm2(nodeListj, j)(jj, jj, ii) -= wwi*rij(ii);
+                  //gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
+
+                  //gradm2(nodeListi, i)(ii, jj, ii) += wwj*rij(jj);
+                  gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
+
+                  gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
+                  //gradm2(nodeListj, j)(ii, jj, ii) -= wwi*rij(jj);
                 }
               }
             }
