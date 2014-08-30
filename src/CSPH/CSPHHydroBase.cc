@@ -248,41 +248,43 @@ pairWiseForce(const TableKernel<Dimension>& WT,
   const Scalar wj = weightj*A0i*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
   const Scalar wi = weighti*A0j*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
 
-  // // Determine the etas, gradP, and gradQ.
-  // const Vector etai = Hi*(xj - xi);
-  // const Vector Pgrad = (Pj - Pi)*etai/std::max(1.0e-30, etai.magnitude2());
-  // const ThirdRankTensor Qgrad = outerProduct<Dimension>(Qj - Qi, etai/std::max(1.0e-30, etai.magnitude2()));
+  // Determine the etas, gradP, and gradQ.
+  const Vector etai = Hi*(xj - xi);
+  const Vector Pgrad = (Pj - Pi)*etai/std::max(1.0e-30, etai.magnitude2());
+  const ThirdRankTensor Qgrad = outerProduct<Dimension>(Qj - Qi, etai/std::max(1.0e-30, etai.magnitude2()));
 
-  // // Linearly interpolate the pressure to the intersection points, and sum
-  // // the force.
-  // const Scalar P1 = Pi + Pgrad.dot(Hi*(x1 - xi));
-  // const Tensor Q1 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x1 - xi));
-  // // const Scalar wj1 = weightj*A0i*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
-  // // const Scalar wi1 = weighti*A0j*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
+  // Linearly interpolate the pressure to the intersection points, and sum
+  // the force.
+  const Scalar P1 = Pi + Pgrad.dot(Hi*(x1 - xi));
+  const Tensor Q1 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x1 - xi));
+  const Scalar wj1 = A0i*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
+  // const Scalar wi1 = weighti*A0j*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
   // const Scalar wij1 = 0.5*(wj + wi);
-  // Vector result = -wij1*(P1*dA1 + Q1*dA1);
-
-  // // Is there a second intersection?
-  // if (nsurf == 2) {
-  //   const Scalar P2 = Pi + Pgrad.dot(Hi*(x2 - xi));
-  //   const Tensor Q2 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x2 - xi));
-  //   // const Scalar wj2 = weightj*A0i*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
-  //   // const Scalar wi2 = weighti*A0j*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
-  //   const Scalar wij2 = 0.5*(wj + wi);
-  //   result -= wij2*(P2*dA2 + Q2*dA2);
-  // }
-
-  // Sum the pressure at the effective face.
-  const Scalar wj1 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
-  const Scalar wi1 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
-  Vector result = -(wi1*Pi + wj1*Pj)*dA1 - (wi1*Qi + wj1*Qj)*dA1;
+  Vector result = -wj1*(P1*dA1 + Q1*dA1);
 
   // Is there a second intersection?
   if (nsurf == 2) {
-    const Scalar wj2 = A0i*weightj*WT.kernelValue((Hj*(xi - xj)).magnitude(), Hdetj);
-    const Scalar wi2 = A0j*weighti*WT.kernelValue((Hi*(xj - xi)).magnitude(), Hdeti);
-    result -= (wi2*Pi + wj2*Pj)*dA2 + (wi2*Qi + wj2*Qj)*dA2;
+    const Scalar P2 = Pi + Pgrad.dot(Hi*(x2 - xi));
+    const Tensor Q2 = Qi + innerProduct<Dimension>(Qgrad, Hi*(x2 - xi));
+    const Scalar wj2 = A0i*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
+    // const Scalar wi2 = weighti*A0j*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
+    // const Scalar wij2 = 0.5*(wj + wi);
+    result -= wj2*(P2*dA2 + Q2*dA2);
   }
+
+  // // Sum the pressure at the effective face.
+  // const Scalar wj1 = A0i*WT.kernelValue((Hj*(x1 - xj)).magnitude(), Hdetj);
+  // const Scalar wi1 = A0j*WT.kernelValue((Hi*(x1 - xi)).magnitude(), Hdeti);
+  // Vector result = -wj1*0.5*((Pi + Pj)*dA1 - (Qi + Qj)*dA1);
+  // // Vector result = -(wi1*Pi + wj1*Pj)*dA1 - (wi1*Qi + wj1*Qj)*dA1;
+
+  // // Is there a second intersection?
+  // if (nsurf == 2) {
+  //   const Scalar wj2 = A0i*WT.kernelValue((Hj*(x2 - xj)).magnitude(), Hdetj);
+  //   const Scalar wi2 = A0j*WT.kernelValue((Hi*(x2 - xi)).magnitude(), Hdeti);
+  //   result -= wj2*0.5*((Pi + Pj)*dA2 + (Qi + Qj)*dA2);
+  //   // result -= (wi2*Pi + wj2*Pj)*dA2 + (wi2*Qi + wj2*Qj)*dA2;
+  // }
 
   // That's it.
   return result;
@@ -1042,64 +1044,64 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //   // }
               // }
 
-              // // Acceleration (pair-wise area form).
-              // // This is a punt on the Q for now -- do something better later.
-              // const Vector forceij = pairWiseForce(W,
-              //                                      ri, Hi, Hdeti, A0i, gradA0i, weighti, Pi, rhoi*rhoi*QPiij.first,
-              //                                      rj, Hj, Hdetj, A0j, gradA0j, weightj, Pj, rhoj*rhoj*QPiij.second);
+              // Acceleration (pair-wise area form).
+              // This is a punt on the Q for now -- do something better later.
+              const Vector forceij = pairWiseForce(W,
+                                                   ri, Hi, Hdeti, A0i, gradA0i, weighti, Pi, rhoi*rhoi*QPiij.first,
+                                                   rj, Hj, Hdetj, A0j, gradA0j, weightj, Pj, rhoj*rhoj*QPiij.second);
               // if (i == 0) {
               //   cerr << "   CSPH: " << forceij/mi << " " << weightj*Wj*forceij/mi << " " << forceij << endl;
               // }
-              // const Scalar Wij = 0.5*(weightj*Wj + weighti*Wi);
-              // DvDti += forceij/mi;
-              // DvDtj -= forceij/mj;
-              // if (mCompatibleEnergyEvolution) {
-              //   pairAccelerationsi.push_back( forceij/mi);
-              //   pairAccelerationsj.push_back(-forceij/mj);
-              // }
-
-              // Acceleration (CSPH form).
-              CHECK(rhoi > 0.0);
-              CHECK(rhoj > 0.0);
-
-              // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
-
-              Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-
-              // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
-              // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
-
-              // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
-
-              // const Scalar Pij = 0.5*(Pi + Pj);
-              // const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-              // const Vector gradWij = 0.5*(-gradWi + gradWj);
-              // Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
-              // Vector deltaDvDtj = -mi/mj*deltaDvDti;
-              // Vector deltaDvDti = -weightj*(1.0/rhoi)*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              // Vector deltaDvDtj = -weighti*(1.0/rhoj)*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-
-              // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
-              // deltaDvDti = deltaDvDtij;
-              // deltaDvDtj = -mi/mj*deltaDvDtij;
-              
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              const Scalar Wij = 0.5*(weightj*Wj + weighti*Wi);
+              DvDti += Wij*forceij/mi;
+              DvDtj -= Wij*forceij/mj;
               if (mCompatibleEnergyEvolution) {
-                const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                const unsigned numNeighborsj = (j < firstGhostNodej ? 
-                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-                                                1);
-                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+                pairAccelerationsi.push_back( forceij/mi);
+                pairAccelerationsj.push_back(-forceij/mj);
               }
+
+              // // Acceleration (CSPH form).
+              // CHECK(rhoi > 0.0);
+              // CHECK(rhoj > 0.0);
+
+              // // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
+
+              // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+
+              // // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
+              // // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
+
+              // // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
+              // // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
+
+              // // const Scalar Pij = 0.5*(Pi + Pj);
+              // // const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
+              // // const Vector gradWij = 0.5*(-gradWi + gradWj);
+              // // Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
+              // // Vector deltaDvDtj = -mi/mj*deltaDvDti;
+              // // Vector deltaDvDti = -weightj*(1.0/rhoi)*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // // Vector deltaDvDtj = -weighti*(1.0/rhoj)*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+
+              // // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
+              // // deltaDvDti = deltaDvDtij;
+              // // deltaDvDtj = -mi/mj*deltaDvDtij;
+              
+              // DvDti += deltaDvDti;
+              // DvDtj += deltaDvDtj;
+              // if (mCompatibleEnergyEvolution) {
+              //   const Scalar W0j = W.kernelValue(0.0, Hdetj);
+              //   const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+              //   const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+              //   const unsigned numNeighborsj = (j < firstGhostNodej ? 
+              //                                   max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+              //                                   1);
+              //   const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+              //   const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+              //   pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+              //   pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+              // }
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
@@ -1133,9 +1135,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
 
-      // Finish the acceleration.
-      const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
-      DvDti += deltaDvDtii;
+      // // Finish the acceleration.
+      // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
+      // DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
       DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
