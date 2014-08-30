@@ -1,16 +1,14 @@
 #-------------------------------------------------------------------------------
 # A 1-D acoustic wave test.  Here we propogate a simple sound wave round and
-# round in a periodic box.  This specific example is based on the test case
-# described in D.J. Price's dissertation as an example of the effect of the
-# grad h terms.
+# round in a periodic box.  
+# This version has been adapted as a 1D test bed for some hourglass control
+# ideas for use with CSPH.
 #-------------------------------------------------------------------------------
+import sys, mpi
 from math import *
 from Spheral1d import *
 from SpheralTestUtilities import *
-import mpi
 import numpy as np
-
-from CSPH_mod_package import *
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
@@ -48,6 +46,8 @@ commandLine(nx1 = 100,
 
             nPerh = 2.01,
 
+            ranfrac = 0.01,  # How much to randomly perturb intial condition
+
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             Cl = 0.0,
@@ -63,7 +63,7 @@ commandLine(nx1 = 100,
             filter = 0.01,
 
             SVPH = False,
-            CSPH = False,
+            CSPH = True,
             TSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -77,10 +77,12 @@ commandLine(nx1 = 100,
             statsStep = 1,
             smoothIters = 0,
             HEvolution = IdealH,
-            densityUpdate = RigorousSumDensity,
-            compatibleEnergy = True,
+            densityUpdate = IntegrateDensity,
+            compatibleEnergy = False,
             gradhCorrection = True,
             linearConsistent = False,
+
+            hourglassIters = 100,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -154,6 +156,9 @@ class MassFunctor(NewtonRaphsonFunction):
                                   -rho1*(1.0 + A*sin(twopi*kfreq*x)))
 
 # Set the node positions, velocities, and densities.
+dx = 1.0/nx1
+import random
+rangen = random.Random()
 from newtonRaphson import *
 cs = sqrt(cs2)
 pos = nodes1.positions()
@@ -165,7 +170,7 @@ for i in xrange(nodes1.numInternalNodes):
     xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
     xi1 = newtonRaphsonFindRoot(func1, 0.0, 1.0, 1.0e-15, 1.0e-15)
     xi = x0 + (x1 - x0)*0.5*(xi0 + xi1)
-    pos[i].x = xi
+    pos[i].x = xi + ranfrac*dx*rangen.uniform(-1.0, 1.0)
     vel[i].x = 0.5*(A*cs*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)) +
                     A*cs*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     rho[i] = rho1*0.5*((1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0))) +
@@ -219,7 +224,6 @@ elif CSPH:
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
                       HUpdate = HEvolution)
-    CSPH_mod = CSPH_mod_package()
 
 elif TSPH:
     hydro = TaylorSPHHydro(WT, q,
@@ -252,8 +256,6 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 integrator.appendPhysicsPackage(hydro)
-#if CSPH:
-#   integrator.appendPhysicsPackage(CSPH_mod)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
@@ -289,6 +291,7 @@ else:
 #-------------------------------------------------------------------------------
 # Compute the analytic answer.
 #-------------------------------------------------------------------------------
+sys.path.append("../../../tests/Hydro/AcousticWave")
 import AcousticWaveSolution
 xlocal = [pos.x for pos in nodes1.positions().internalValues()]
 xglobal = mpi.reduce(xlocal, mpi.SUM)
@@ -309,6 +312,14 @@ answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, two
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics == "gnu":
+
+    from momentHourglass import *
+    from positionHourglass import *
+    for i in xrange(hourglassIters):
+        print "Iteration %i: %i" % (i, positionHourglass(db, WT, integrator.uniqueBoundaryConditions(), minfrac=0.0, maxfrac=1.0))
+        control.iterateIdealH()
+    control.step()
+
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
@@ -360,6 +371,21 @@ if graphics == "gnu":
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
+
+        db.updateConnectivityMap()
+        cm = db.connectivityMap()
+        m0 = hydro.m0()
+        for bc in (xbc,):
+            bc.applyFieldListGhostBoundary(m0)
+            bc.finalizeGhostBoundary()
+        m0smooth = interpolateCSPH(m0, db.fluidPosition, db.fluidMass, db.fluidHfield,
+                                   hydro.A(), hydro.B(), cm, WT)
+        m0var = db.newFluidScalarFieldList(0.0, "m0 variation")
+        for i in xrange(nodes1.numInternalNodes):
+            m0var[0][i] = abs(m0smooth[0][i] - m0[0][i])/m0[0][i]
+        m0varPlot = plotFieldList(m0var,
+                                  winTitle = "abs(<m0> - m0)/m0",
+                                  plotStyle = "lines")
 
     else:
         omegaPlot = plotFieldList(hydro.omegaGradh(),

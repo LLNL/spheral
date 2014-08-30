@@ -418,7 +418,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
       // Complete the sigma calculation for i.
       CHECK(*std::min_element(sigNormalizationi.begin(), sigNormalizationi.end()) >= 0.0);
-      tensorElementWiseDivide<Tensor>(sigmai, sigNormalizationi + tiny);
+      tensorElementWiseDivide<Tensor>(sigmai, sigNormalizationi + tiny*Tensor::one);
 
       // Now limit to just negative eigen-values.  This is 'cause we only
       // care about convergent geometries for the Q.

@@ -127,11 +127,11 @@ boundaryConditions = [xbc0, ybc0]
 for bc in boundaryConditions:
     bc.setGhostNodes(db)
     nodes1.neighbor.updateNodes()
-    bc.applyScalarFieldListGhostBoundary(fluidWeight)
-    bc.applyScalarFieldListGhostBoundary(fluidMass)
-    bc.applyScalarFieldListGhostBoundary(fluidRho)
-    bc.applyVectorFieldListGhostBoundary(velocity)
-    bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+    bc.applyFieldListGhostBoundary(fluidWeight)
+    bc.applyFieldListGhostBoundary(fluidMass)
+    bc.applyFieldListGhostBoundary(fluidRho)
+    bc.applyFieldListGhostBoundary(velocity)
+    bc.applyFieldListGhostBoundary(fluidHfield)
 
 ################################################################################
 # Generate the analytic answer.

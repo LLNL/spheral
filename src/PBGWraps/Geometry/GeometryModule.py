@@ -337,8 +337,8 @@ class Geometry:
         x.add_inplace_numeric_operator("+=")
         x.add_inplace_numeric_operator("-=")
     
-        x.add_inplace_numeric_operator("+=", right = "double")
-        x.add_inplace_numeric_operator("-=", right = "double")
+        #x.add_inplace_numeric_operator("+=", right = "double")
+        #x.add_inplace_numeric_operator("-=", right = "double")
         x.add_inplace_numeric_operator("*=", right = "double")
         x.add_inplace_numeric_operator("/=", right = "double")
     
@@ -351,8 +351,8 @@ class Geometry:
         x.add_binary_numeric_operator("*", result_cppclass = tenType, right = symten)
         x.add_binary_numeric_operator("*", result_cppclass = vecType, right = vec)
     
-        x.add_binary_numeric_operator("+", right = "double")
-        x.add_binary_numeric_operator("-", right = "double")
+        #x.add_binary_numeric_operator("+", right = "double")
+        #x.add_binary_numeric_operator("-", right = "double")
         x.add_binary_numeric_operator("*", right = "double")
         x.add_binary_numeric_operator("/", right = "double")
     
