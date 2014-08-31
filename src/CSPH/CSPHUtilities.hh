@@ -45,6 +45,23 @@ CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
                       typename Dimension::Scalar& gradWSPH,
                       typename Dimension::Vector& gradWCSPH);
 
+// Compute the corrected kernel value, uncorrected and corrected gradients.
+// Returned as the last three arguments.
+// This variant applies the "M" independent correction to the gradient.
+template<typename Dimension>
+void
+CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
+                      const typename Dimension::Vector& rij,
+                      const typename Dimension::Vector& etaj,
+                      const typename Dimension::SymTensor& Hj,
+                      const typename Dimension::Scalar& Hdetj,
+                      const typename Dimension::Scalar& Ai,
+                      const typename Dimension::Vector& Bi,
+                      const typename Dimension::Tensor& Mi,
+                      typename Dimension::Scalar& WCSPH,
+                      typename Dimension::Scalar& gradWSPH,
+                      typename Dimension::Vector& gradWCSPH);
+
 }
 }
 

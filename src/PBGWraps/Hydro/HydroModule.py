@@ -109,6 +109,7 @@ class Hydro:
         x.add_static_attribute("D_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradA_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradB_CSPH", "std::string",  is_const=True)
+        x.add_static_attribute("M_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("volume", "std::string",  is_const=True)
         x.add_static_attribute("linearMomentum", "std::string",  is_const=True)
         x.add_static_attribute("totalEnergy", "std::string",  is_const=True)
