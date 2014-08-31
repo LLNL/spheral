@@ -960,8 +960,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector Qaccj = 0.5*(QPiij.first *gradWj);
               // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
               // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
-              // const Scalar workQi = vij.dot(Qacci);
-              // const Scalar workQj = vij.dot(Qaccj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -1015,6 +1015,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 pairAccelerationsj.push_back(deltaDvDtj);
               }
 
+              // Specific thermal energy evolution.
+              DepsDti += mj*workQi;
+              DepsDtj += mi*workQj;
+
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
                 XSPHDeltaVi -= weightj*Wj*vij;
@@ -1052,7 +1056,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
-      DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
+      DepsDti += Pi/(rhoi*rhoi)*DrhoDti;
       // DepsDti = -Pi/rhoi * DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
