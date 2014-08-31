@@ -549,7 +549,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mB);
   state.enroll(mC);
   state.enroll(mD);
-  state.enroll(mGradA0);
   state.enroll(mGradA);
   state.enroll(mGradB);
 }
@@ -647,10 +646,9 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, mass, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA0, gradA, gradB);
+  computeCSPHCorrections(connectivityMap, W, mass, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -659,7 +657,6 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(B);
     (*boundItr)->applyFieldListGhostBoundary(C);
     (*boundItr)->applyFieldListGhostBoundary(D);
-    (*boundItr)->applyFieldListGhostBoundary(gradA0);
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
   }
@@ -724,7 +721,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
   const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
 
@@ -744,7 +740,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(B.size() == numNodeLists);
   CHECK(C.size() == numNodeLists);
   CHECK(D.size() == numNodeLists);
-  CHECK(gradA0.size() == numNodeLists);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
 
@@ -850,7 +845,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& A0i = A0(nodeListi, i);
       const Scalar& Ai = A(nodeListi, i);
       const Vector& Bi = B(nodeListi, i);
-      const Vector& gradA0i = gradA0(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -921,7 +915,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& A0j = A0(nodeListj, j);
               const Scalar& Aj = A(nodeListj, j);
               const Vector& Bj = B(nodeListj, j);
-              const Vector& gradA0j = gradA0(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
@@ -1047,8 +1040,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (pair-wise area form).
               // This is a punt on the Q for now -- do something better later.
               const Vector forceij = pairWiseForce(W,
-                                                   ri, Hi, Hdeti, A0i, gradA0i, weighti, Pi, rhoi*rhoi*QPiij.first,
-                                                   rj, Hj, Hdetj, A0j, gradA0j, weightj, Pj, rhoj*rhoj*QPiij.second);
+                                                   ri, Hi, Hdeti, A0i, gradAi, weighti, Pi, rhoi*rhoi*QPiij.first,
+                                                   rj, Hj, Hdetj, A0j, gradAj, weightj, Pj, rhoj*rhoj*QPiij.second);
               // if (i == 0) {
               //   cerr << "   CSPH: " << forceij/mi << " " << weightj*Wj*forceij/mi << " " << forceij << endl;
               // }
@@ -1520,7 +1513,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
 
@@ -1542,7 +1534,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(B);
     (*boundaryItr)->applyFieldListGhostBoundary(C);
     (*boundaryItr)->applyFieldListGhostBoundary(D);
-    (*boundaryItr)->applyFieldListGhostBoundary(gradA0);
     (*boundaryItr)->applyFieldListGhostBoundary(gradA);
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
   }
@@ -1576,7 +1567,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
   FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
 
@@ -1598,7 +1588,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(B);
     (*boundaryItr)->enforceFieldListBoundary(C);
     (*boundaryItr)->enforceFieldListBoundary(D);
-    (*boundaryItr)->enforceFieldListBoundary(gradA0);
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
   }
@@ -1627,7 +1616,6 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mB, pathName + "/B");
   file.write(mC, pathName + "/C");
   file.write(mD, pathName + "/D");
-  file.write(mGradA0, pathName + "/gradA0");
   file.write(mGradA, pathName + "/gradA");
   file.write(mGradB, pathName + "/gradB");
 }
@@ -1655,7 +1643,6 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mB, pathName + "/B");
   file.read(mC, pathName + "/C");
   file.read(mD, pathName + "/D");
-  file.read(mGradA0, pathName + "/gradA0");
   file.read(mGradA, pathName + "/gradA");
   file.read(mGradB, pathName + "/gradB");
 }

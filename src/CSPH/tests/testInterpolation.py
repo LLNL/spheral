@@ -203,17 +203,10 @@ fCSPH = ScalarField("CSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
 dfCSPH = VectorField("CSPH derivative values", nodes1)
 
-m0_fl = db.newFluidScalarFieldList(0.0, "m0")
-m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
-m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
 A0_fl = db.newFluidScalarFieldList(0.0, "A0")
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
-C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
-D_fl = db.newFluidTensorFieldList(Tensor.zero, "D")
-gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
-gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
-gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
+M_fl = db.newFluidTensorFieldList(Tensor.zero, "M")
 
 db.updateConnectivityMap()
 cm = db.connectivityMap()
@@ -225,9 +218,8 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 weight_fl = db.newFluidScalarFieldList(0.0, "volume")
 computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
-                       m0_fl, m1_fl, m2_fl,
-                       A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
+computeCSPHCorrections2(cm, WT, weight_fl, position_fl, H_fl, True,
+                        A0_fl, A_fl, B_fl, M_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
@@ -235,9 +227,7 @@ weight = weight_fl[0]
 H = H_fl[0]
 A = A_fl[0]
 B = B_fl[0]
-C = C_fl[0]
-gradA = gradA_fl[0]
-gradB = gradB_fl[0]
+M = M_fl[0]
 
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
@@ -249,83 +239,32 @@ for i in xrange(nodes1.numInternalNodes):
     wi = weight[i]
     Ai = A[i]
     Bi = B[i]
-    Ci = C[i]
-    gradAi = gradA[i]
-    gradBi = gradB[i]
+    Mi = M[i]
     fi = f[i]
 
-    # First do our independent corrected estimate of the gradient based on
-    # the correction pointed out in Randles & Libersky (1996) on up to 
-    # Speith (2006).
-    Mi = Tensor()
-    neighbors = cm.connectivityForNode(nodes1, i)
-    assert len(neighbors) == 1
-    for j in neighbors[0]:
-        rj = positions[j]
-        Hj = H[j]
-        Hdetj = H[j].Determinant()
-        wj = weight[j]
-        rij = ri - rj
-        etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
-        Mi -= wj*rij.dyad(gradWj)
-    Mi = Mi.Inverse()
-    #print i, ri, epsi, Li
-
-    # Self contribution.
-    W0 = WT.kernelValue(0.0, Hdeti)
-    fSPH[i] = wi*W0 * fi
-    fCSPH[i] = wi*W0*Ai * fi
-
-    # Go over them neighbors.
-    neighbors = cm.connectivityForNode(nodes1, i)
-    assert len(neighbors) == 1
-    for j in neighbors[0]:
-        rj = positions[j]
-        Hj = H[j]
-        Hdetj = H[j].Determinant()
-        wj = weight[j]
-        fj = f[j]
-
-        # The standard SPH kernel and it's gradient.
-        rij = ri - rj
-        etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
-
-        # The corrected kernel and it's gradient.
-        WRj = 0.0
-        dummy = 0.0
-        gradWRj = Vector()
-        WRj, dummy = CSPHKernelAndGradient(WT,
-                                           rij,
-                                           etaj,
-                                           Hj,
-                                           Hdetj,
-                                           Ai,
-                                           Bi,
-                                           gradAi,
-                                           gradBi,
-                                           gradWRj)
-        assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
-
-        WRj = Ai*(1.0 + Bi.dot(rij))*Wj
-        gradWRj = Mi*gradWj
-
-        # Increment our interpolated values.
-        fSPH[i] += fj * wj*Wj
-        fCSPH[i] += fj * wj*WRj
-
-        # Increment the derivatives.
-        dfSPH[i] += fj * wj*gradWj
-        dfCSPH[i] += (fj - fi) * wj*gradWRj
+    # # First do our independent corrected estimate of the gradient based on
+    # # the correction pointed out in Randles & Libersky (1996) on up to 
+    # # Speith (2006).
+    # Mi = Tensor()
+    # neighbors = cm.connectivityForNode(nodes1, i)
+    # assert len(neighbors) == 1
+    # for j in neighbors[0]:
+    #     rj = positions[j]
+    #     Hj = H[j]
+    #     Hdetj = H[j].Determinant()
+    #     wj = weight[j]
+    #     rij = ri - rj
+    #     etaj = Hj*rij
+    #     Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+    #     gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+    #     Mi -= wj*rij.dyad(gradWj)
+    # Mi = Mi.Inverse()
+    # #print i, ri, epsi, Li
 
     # # Self contribution.
     # W0 = WT.kernelValue(0.0, Hdeti)
     # fSPH[i] = wi*W0 * fi
     # fCSPH[i] = wi*W0*Ai * fi
-    # #dfCSPH[i] = fi * wi*(Ai*Bi*W0 + gradAi*W0)
 
     # # Go over them neighbors.
     # neighbors = cm.connectivityForNode(nodes1, i)
@@ -335,8 +274,6 @@ for i in xrange(nodes1.numInternalNodes):
     #     Hj = H[j]
     #     Hdetj = H[j].Determinant()
     #     wj = weight[j]
-    #     Aj = A[j]
-    #     Bj = B[j]
     #     fj = f[j]
 
     #     # The standard SPH kernel and it's gradient.
@@ -362,9 +299,7 @@ for i in xrange(nodes1.numInternalNodes):
     #     assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
 
     #     WRj = Ai*(1.0 + Bi.dot(rij))*Wj
-    #     gradWRj = (Ai*(1 + Bi.dot(rij))*gradWj + 
-    #                gradAi*(1.0 + Bi.dot(rij))*Wj +
-    #                (Bi + gradBi*rij)*Ai*Wj)
+    #     gradWRj = Mi*gradWj
 
     #     # Increment our interpolated values.
     #     fSPH[i] += fj * wj*Wj
@@ -374,9 +309,56 @@ for i in xrange(nodes1.numInternalNodes):
     #     dfSPH[i] += fj * wj*gradWj
     #     dfCSPH[i] += (fj - fi) * wj*gradWRj
 
-    # # # We can now apply the integration correction (C) for CSPH.
-    # # dfCSPH[i] += Ci*(fi - fCSPH[i])
- 
+    # Self contribution.
+    W0 = WT.kernelValue(0.0, Hdeti)
+    fSPH[i] = wi*W0 * fi
+    fCSPH[i] = wi*W0*Ai * fi
+    #dfCSPH[i] = fi * wi*(Ai*Bi*W0 + gradAi*W0)
+
+    # Go over them neighbors.
+    neighbors = cm.connectivityForNode(nodes1, i)
+    assert len(neighbors) == 1
+    for j in neighbors[0]:
+        rj = positions[j]
+        Hj = H[j]
+        Hdetj = H[j].Determinant()
+        wj = weight[j]
+        Aj = A[j]
+        Bj = B[j]
+        fj = f[j]
+
+        # The standard SPH kernel and it's gradient.
+        rij = ri - rj
+        etaj = Hj*rij
+        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
+        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+
+        # The corrected kernel and it's gradient.
+        gradWRj = Vector()
+        WRj, gWj = CSPH2KernelAndGradient(WT,
+                                          rij,
+                                          etaj,
+                                          Hj,
+                                          Hdetj,
+                                          Ai,
+                                          Bi,
+                                          Mi,
+                                          gradWRj)
+        assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
+
+        # WRj = Ai*(1.0 + Bi.dot(rij))*Wj
+        # gradWRj = (Ai*(1 + Bi.dot(rij))*gradWj + 
+        #            gradAi*(1.0 + Bi.dot(rij))*Wj +
+        #            (Bi + gradBi*rij)*Ai*Wj)
+
+        # Increment our interpolated values.
+        fSPH[i] += fj * wj*Wj
+        fCSPH[i] += fj * wj*WRj
+
+        # Increment the derivatives.
+        dfSPH[i] += fj * wj*gradWj
+        dfCSPH[i] += (fj - fi) * wj*gradWRj
+
 #-------------------------------------------------------------------------------
 # We also check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
@@ -384,9 +366,9 @@ f_fl = ScalarFieldList()
 f_fl.appendField(f)
 fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
                            cm, WT)
-dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
-                         A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,
-                         cm, WT)
+# dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
+#                          A_fl, B_fl, B_fl, gradB_fl, gradA_fl, gradB_fl,
+#                          cm, WT)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
@@ -512,10 +494,10 @@ if graphics:
                        winTitle = "C++ CSPH interpolation",
                        colorNodeLists = False)
 
-    p6 = plotFieldList(dfCSPH_fl, 
-                       yFunction = "%s.x",
-                       winTitle = "C++ grad CSPH",
-                       colorNodeLists = False)
+    # p6 = plotFieldList(dfCSPH_fl, 
+    #                    yFunction = "%s.x",
+    #                    winTitle = "C++ grad CSPH",
+    #                    colorNodeLists = False)
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":
@@ -524,9 +506,7 @@ if graphics:
                                         listOfFields = [fSPH, fCSPH, dfSPH, dfCSPH,
                                                         yans, dyans,
                                                         errySPH, erryCSPH, errdySPH, errdyCSPH],
-                                        listOfFieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
-                                                            A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
-                                                            dfCSPH_fl])
+                                        listOfFieldLists = [weight_fl, A0_fl, A_fl, B_fl, M_fl])
         dumper.dump(0.0, 0)
         # from siloPointmeshDump import siloPointmeshDump
         # siloPointmeshDump("testInterpolation_%s_2d" % testCase,

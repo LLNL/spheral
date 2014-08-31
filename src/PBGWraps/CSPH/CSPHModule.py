@@ -105,6 +105,20 @@ class CSPH:
                                                                           refparam(vector, "gradWCSPH")],
                                 docstring = "Evaluate the CSPH corrected kernel and gradient simultaneously.")
 
+        # Simultaneously evaluate the CSPH kernel and it's gradient.
+        self.space.add_function("CSPH2KernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
+                                                                           constrefparam(vector, "rij"),
+                                                                           constrefparam(vector, "etaj"),
+                                                                           constrefparam(symtensor, "Hj"),
+                                                                           param("double", "Hdetj"),
+                                                                           param("double", "Ai"),
+                                                                           constrefparam(vector, "Bi"),
+                                                                           constrefparam(tensor, "Mi"),
+                                                                           Parameter.new("double*", "WCSPH", direction=Parameter.DIRECTION_OUT),
+                                                                           Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                           refparam(vector, "gradWCSPH")],
+                                docstring = "Evaluate the CSPH corrected kernel and gradient simultaneously.")
+
         # CSPH sum density.
         self.space.add_function("computeCSPHSumMassDensity", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
@@ -134,11 +148,25 @@ class CSPH:
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "C"),
                                  refparam(tensorfieldlist, "D"),
-                                 refparam(vectorfieldlist, "gradA0"),
                                  refparam(vectorfieldlist, "gradA"),
                                  refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHCorrections%id" % ndim)
+
+        # CSPH corrections (variant).
+        self.space.add_function("computeCSPHCorrections2", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
+                                 refparam(scalarfieldlist, "A0"),
+                                 refparam(scalarfieldlist, "A"),
+                                 refparam(vectorfieldlist, "B"),
+                                 refparam(tensorfieldlist, "M")],
+                                template_parameters = [dim],
+                                custom_name = "computeCSPHCorrections2%id" % ndim)
 
         # CSPH Scalar interpolation.
         self.space.add_function("interpolateCSPH", scalarfieldlist,
