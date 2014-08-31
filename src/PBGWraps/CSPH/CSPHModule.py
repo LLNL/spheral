@@ -413,16 +413,10 @@ class CSPH:
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
-        const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
-        const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
-        const_ref_return_value(x, me, "%s::m2" % me, symtensorfieldlist, [], "m2")
         const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
-        const_ref_return_value(x, me, "%s::C" % me, vectorfieldlist, [], "C")
-        const_ref_return_value(x, me, "%s::D" % me, tensorfieldlist, [], "D")
-        const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
-        const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
+        const_ref_return_value(x, me, "%s::M" % me, tensorfieldlist, [], "M")
 
         return
 

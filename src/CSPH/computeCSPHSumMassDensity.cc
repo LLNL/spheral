@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 
 #include "computeCSPHSumMassDensity.hh"
-#include "computeCSPHCorrections.hh"
+#include "computeCSPHCorrections2.hh"
 #include "CSPHUtilities.hh"
 #include "interpolateCSPH.hh"
 #include "Field/FieldList.hh"
@@ -55,36 +55,23 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   // Zero out the result, and prepare a FieldList to hold the effective volume.
   massDensity = 0.0;
   FieldList<Dimension, Scalar> Veff(FieldSpace::Copy);
-  FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
-  FieldList<Dimension, Vector> m1(FieldSpace::Copy);
-  FieldList<Dimension, SymTensor> m2(FieldSpace::Copy);
   FieldList<Dimension, Scalar> A0(FieldSpace::Copy);
   FieldList<Dimension, Scalar> A(FieldSpace::Copy);
   FieldList<Dimension, Vector> B(FieldSpace::Copy);
-  FieldList<Dimension, Vector> C(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> D(FieldSpace::Copy);
-  FieldList<Dimension, Vector> gradA(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> gradB(FieldSpace::Copy);
+  FieldList<Dimension, Tensor> M(FieldSpace::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     Veff.appendNewField("effective volume", nodeList, 0.0);
-    m0.appendNewField(HydroFieldNames::m0_CSPH, nodeList, 0.0);
-    m1.appendNewField(HydroFieldNames::m1_CSPH, nodeList, Vector::zero);
-    m2.appendNewField(HydroFieldNames::m2_CSPH, nodeList, SymTensor::zero);
     A0.appendNewField(HydroFieldNames::A0_CSPH, nodeList, 0.0);
     A.appendNewField(HydroFieldNames::A_CSPH, nodeList, 0.0);
     B.appendNewField(HydroFieldNames::B_CSPH, nodeList, Vector::zero);
-    C.appendNewField(HydroFieldNames::C_CSPH, nodeList, Vector::zero);
-    D.appendNewField(HydroFieldNames::D_CSPH, nodeList, Tensor::zero);
-    gradA.appendNewField(HydroFieldNames::gradA_CSPH, nodeList, Vector::zero);
-    gradB.appendNewField(HydroFieldNames::gradB_CSPH, nodeList, Tensor::zero);
+    M.appendNewField(HydroFieldNames::M_CSPH, nodeList, Tensor::zero);
   }
 
   // First up we need to compute the CSPH corrections.  We're actually only going to use the constant 
   // correction A0.  We also force the CSPH corrections to *not* couple across NodeLists -- each NodeList
   // acts as though it is isolated.
-  computeCSPHCorrections(connectivityMap, W, volume0, position, H, false,
-                         m0, m1, m2, A0, A, B, C, D, gradA, gradB);
+  computeCSPHCorrections2(connectivityMap, W, volume0, position, H, false, A0, A, B, M);
 
   // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
   for (ConstBoundaryIterator boundItr = boundaryBegin;
