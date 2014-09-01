@@ -73,28 +73,22 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   // acts as though it is isolated.
   computeCSPHCorrections2(connectivityMap, W, volume0, position, H, false, A0, A, B, M);
 
-  // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(A0);
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(A0);
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // We take the smoothed volume information.
-  // FieldList<Dimension, Vector> Bzero(FieldSpace::Copy);
-  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-  //   const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
-  //   Bzero.appendNewField("B0", nodeList, Vector::zero);
-  // }
-  FieldList<Dimension, Scalar> volume1 = interpolateCSPH(volume0, position, volume0, H, A, B, connectivityMap, W);
-
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(volume1);
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // FieldList<Dimension, Scalar> volume1 = interpolateCSPH(volume0, position, volume0, H, A, B, connectivityMap, W);
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(volume1);
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -113,7 +107,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Vector& ri = position(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
       const Scalar& V0i = volume0(nodeListi, i);
-      const Scalar& V1i = volume1(nodeListi, i);
+      // const Scalar& V1i = volume1(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar A0i = A0(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -133,7 +127,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Vector& rj = position(nodeListi, j);
           const Scalar mj = mass(nodeListi, j);
           const Scalar V0j = volume0(nodeListi, j);
-          const Scalar V1j = volume1(nodeListi, j);
+          // const Scalar V1j = volume1(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
           const Scalar A0j = A0(nodeListi, j);
           const Scalar Hdetj = Hj.Determinant();
@@ -146,10 +140,10 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = CSPHKernel(W, rij, etaj, Hdetj, A0i, Vector::zero);
 
           // Sum the pair-wise contributions.
-          Veff(nodeListi, i) += V0j*V1j*Wj;
+          Veff(nodeListi, i) += V0j*V0j*Wj;
           massDensity(nodeListi, i) += V0j*mj*Wj;
 
-          Veff(nodeListi, j) += V0i*V1i*Wi;
+          Veff(nodeListi, j) += V0i*V0i*Wi;
           massDensity(nodeListi, j) += V0i*mi*Wi;
         }
       }
@@ -159,7 +153,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
                                           (massDensity(nodeListi, i) + V0i*mi*W0) * 
-                                          safeInv(A0i*(Veff(nodeListi, i) + V0i*V1i*W0))));
+                                          safeInv(A0i*(Veff(nodeListi, i) + V0i*V0i*W0))));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
