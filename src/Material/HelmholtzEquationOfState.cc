@@ -12,6 +12,41 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#define Fortran2(x) x##_
+
+extern "C" {
+	void Fortran(teos)();
+	void Fortran2(init_helm_table)();
+	
+	void Fortran2(get_helm_table)(double *f,double *fd,double *ft,double *fdd,
+								  double *ftt,double *fdt,double *fddt,
+								  double *fdtt,double *fddtt,double *dpdf,
+								  double *dpdfd,double *dpdft,double *dpdfdt,
+								  double *ef,double *efd,double *eft,double *efdt,
+								  double *xf,double *xfd,double *xft,double *xfdt);
+	
+	void Fortran2(wrapper_invert_helm_ed)(int *npart, double *density,
+										  double *energy, double *abar,
+										  double *zbar, double *temperature,
+										  double *pressure, double *small_temp, double *vsound);
+	
+	void Fortran2(wrapper_helmeos)(int *npart, double *den_row,
+								   double *etot_row, double *abar_row,
+								   double *zbar_row, double *temperature,
+								   double *pressure);
+	
+	void Fortran2(set_helm_table)(double *f, double *fd, double *ft, double *fdd,
+								  double *ftt, double *fdt, double *fddt,
+								  double *fdtt, double *fddtt, double *dpdf,
+								  double *dpdfd, double *dpdft, double *dpdfdt,
+								  double *ef, double *efd, double *eft,
+								  double *efdt, double *xf, double *xfd,
+								  double *xft, double *xfdt);
+	
+	void Fortran2(azbar)(double *xmass, double *aion, double *zion, int *ionmax,
+						 double *ymass, double *abar, double *zbar);
+}
+
 namespace Spheral {
     namespace Material {
         
@@ -23,6 +58,8 @@ namespace Spheral {
         HelmholtzEquationOfState(const PhysicalConstants& constants,
                                  const double minimumPressure,
                                  const double maximumPressure,
+                                 const double minimumTemperature,
+                                 const double maximumTemperature,
                                  const MaterialPressureMinType minPressureType,
                                  const Scalar abar0,
                                  const Scalar zbar0):
@@ -30,9 +67,13 @@ namespace Spheral {
         mzbar(nullptr),
         mabar(nullptr),
         mabar0(abar0),
-        mzbar0(zbar0)
+        mzbar0(zbar0),
+        mPMin(minimumPressure),
+        mPMax(maximumPressure),
+        mTmin(minimumTemperature),
+        mTmax(maximumTemperature)
         {
-            
+            needUpdate = 1; // flip this on and off later
         }
         
         //------------------------------------------------------------------------------
@@ -57,8 +98,20 @@ namespace Spheral {
                     const Field<Dimension, Scalar>& massDensity,
                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
-            for (size_t i = 0; i != massDensity.numElements(); ++i) {
-                Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+            int npart = massDensity.numElements();
+
+            /*
+            Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
+            */
+            
+            if(needUpdate){
+                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                                                 &myAbar[0], &myZbar[0], &myTemperature[0],
+                                                 &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            }
+            
+            for (size_t i = 0; i != npart; ++i) {
+                Pressure(i) = myPressure(i);
             }
         }
         
@@ -72,8 +125,20 @@ namespace Spheral {
                        const Field<Dimension, Scalar>& massDensity,
                        const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
+            int npart = massDensity.numElements();
+            
+            /*
+             Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
+             */
+            
+            if(needUpdate){
+                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                                                 &myAbar[0], &myZbar[0], &myTemperature[0],
+                                                 &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            }
+
             for (size_t i = 0; i != massDensity.numElements(); ++i) {
-                temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
+                temperature(i) = myTemperature(i);
             }
         }
         
@@ -87,8 +152,19 @@ namespace Spheral {
                                  const Field<Dimension, Scalar>& massDensity,
                                  const Field<Dimension, Scalar>& temperature) const {
             CHECK(valid());
-            for (size_t i = 0; i != massDensity.numElements(); ++i) {
-                specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
+            int npart = massDensity.numElements();
+            
+            /*
+             Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
+             */
+            if(needUpdate){
+                Fortran2(wrapper_helmeos)(&npart, &massDensity[0], &mySecificThermalEnergy[0],
+                                                 &myAbar[0], &myZbar[0], &temperature[0],
+                                                 &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            }
+            
+            for (size_t i = 0; i != npart; ++i) {
+                specificThermalEnergy(i) = mySpecificThermalEnergy(i);
             }
         }
         
@@ -118,8 +194,20 @@ namespace Spheral {
                       const Field<Dimension, Scalar>& massDensity,
                       const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
-            for (size_t i = 0; i != massDensity.numElements(); ++i) {
-                soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
+            int npart = massDensity.numElements();
+            
+            /*
+             Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
+             */
+            if(needUpdate){
+                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                                                 &myAbar[0], &myZbar[0], &myTemperature[0],
+                                                 &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            }
+            
+            for (size_t i = 0; i != npart; ++i) {
+                soundSpeed(i) = mySoundSpeed(i);
+                myGamma(i) = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure(i);
             }
         }
         
@@ -133,7 +221,7 @@ namespace Spheral {
                       const Field<Dimension, Scalar>& massDensity,
                       const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
-            gamma = mGamma;
+            gamma = mGamma; // hmmmm
         }
         
         //------------------------------------------------------------------------------
@@ -148,100 +236,8 @@ namespace Spheral {
                        const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
             setPressure(bulkModulus, massDensity, specificThermalEnergy);
-            bulkModulus += mExternalPressure;
+            //bulkModulus += mExternalPressure;
         }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual pressure.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        pressure(const Scalar massDensity,
-                 const Scalar specificThermalEnergy) const {
-            CHECK(valid());
-            return this->applyPressureLimits(mHelmholtzConstant*pow(massDensity, mGamma) - mExternalPressure);
-        }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual temperature.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        temperature(const Scalar massDensity,
-                    const Scalar specificThermalEnergy) const {
-            CHECK(valid());
-            const double kB = mConstants.kB();
-            const double mp = mConstants.protonMass();
-            return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
-        }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual specific thermal energy.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        specificThermalEnergy(const Scalar massDensity,
-                              const Scalar temperature) const {
-            CHECK(valid());
-            const double kB = mConstants.kB();
-            return kB/(mGamma1*mMolecularWeight)*temperature;
-        }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual specific heat.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        specificHeat(const Scalar massDensity,
-                     const Scalar temperature) const {
-            CHECK(valid());
-            const double kB = mConstants.kB();
-            const double mp = mConstants.protonMass();
-            return kB/(mGamma1*mMolecularWeight*mp);
-        }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual sound speed.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        soundSpeed(const Scalar massDensity,
-                   const Scalar specificThermalEnergy) const {
-            CHECK(valid());
-            const double c2 = mHelmholtzConstant*pow(massDensity, mGamma1);
-            CHECK(c2 >= 0.0);
-            return sqrt(c2);
-        }
-        
-        //------------------------------------------------------------------------------
-        // Get gamma.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        gamma(const Scalar massDensity,
-              const Scalar specificThermalEnergy) const {
-            return mGamma;
-        }
-        
-        //------------------------------------------------------------------------------
-        // Calculate an individual bulk modulus.  
-        // This is just the pressure for a Helmholtz gas.
-        //------------------------------------------------------------------------------
-        template<typename Dimension>
-        typename Dimension::Scalar
-        HelmholtzEquationOfState<Dimension>::
-        bulkModulus(const Scalar massDensity,
-                    const Scalar specificThermalEnergy) const {
-            CHECK(valid());
-            return pressure(massDensity, specificThermalEnergy) + mExternalPressure;
-        }
-        
         
         /* ACCESSORS */
         

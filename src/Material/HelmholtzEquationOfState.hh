@@ -28,10 +28,13 @@ namespace Spheral {
             HelmholtzEquationOfState(const PhysicalConstants& constants,
                                      const double minimumPressure,
                                      const double maximumPressure,
+                                     const double minimumTemperature,
+                                     const double maximumTemperature,
                                      const MaterialPressureMinType minPressureType,
                                      const Scalar abar0,
                                      const Scalar zbar0);
             ~HelmholtzEquationOfState();
+
             
             // We require any equation of state to define the following properties.
             virtual void setPressure(FieldSpace::Field<Dimension, Scalar>& Pressure,
@@ -62,27 +65,29 @@ namespace Spheral {
                                         const FieldSpace::Field<Dimension, Scalar>& massDensity,
                                         const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
             
-            // We also want the equivalent functions for individual calculations.
+            // Some of the following methods are disabled
             virtual Scalar pressure(const Scalar massDensity,
-                                    const Scalar specificThermalEnergy) const;
+                                    const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             virtual Scalar temperature(const Scalar massDensity,
-                                       const Scalar specificThermalEnergy) const;
+                                       const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                                 const Scalar temperature) const;
+                                                 const Scalar temperature) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             virtual Scalar specificHeat(const Scalar massDensity,
-                                        const Scalar temperature) const;
+                                        const Scalar temperature) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
             virtual Scalar soundSpeed(const Scalar massDensity,
-                                      const Scalar specificThermalEnergy) const;
+                                      const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
+            // Get the effective gamma (ratio of specific heats) for this eos.
             virtual Scalar gamma(const Scalar massDensity,
-                                 const Scalar specificThermalEnergy) const;
+                                 const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
             
+            // Get the bulk modulus.
             virtual Scalar bulkModulus(const Scalar massDensity,
-                                       const Scalar specificThermalEnergy) const;
+                                       const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
 
             
             const FieldSpace::FieldList<Dimension, Scalar>& abar() const;
@@ -95,8 +100,17 @@ namespace Spheral {
             const FieldSpace::FieldList<Dimension, Scalar>* mabarPtr;
             const FieldSpace::FieldList<Dimension, Scalar>* mzbarPtr;
             
-            Scalar mabar0, mzbar0;
+            FieldSpace::FieldList<Dimension, Scalar> myAbar;
+            FieldSpace::FieldList<Dimension, Scalar> myZbar;
+            FieldSpace::FieldList<Dimension, Scalar> mySpecificThermalEnergy;
+            FieldSpace::FieldList<Dimension, Scalar> myMassDensity;
+            FieldSpace::FieldList<Dimension, Scalar> myTemperature;
+            FieldSpace::FieldList<Dimension, Scalar> myPressure;
+            FieldSpace::FieldList<Dimension, Scalar> mySoundSpeed;
+            FieldSpace::FieldList<Dimension, Scalar> myGamma;
             
+            Scalar mabar0, mzbar0, mTmin, mTmax, mPmin, mPmax;
+            bool needUpdate;
 
         };
     }
