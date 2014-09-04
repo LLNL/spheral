@@ -15,7 +15,6 @@
 #define Fortran2(x) x##_
 
 extern "C" {
-	void Fortran(teos)();
 	void Fortran2(init_helm_table)();
 	
 	void Fortran2(get_helm_table)(double *f,double *fd,double *ft,double *fdd,
@@ -51,6 +50,7 @@ namespace Spheral {
     namespace Material {
         
         using FieldSpace::Field;
+		using NodeSpace::NodeList;
         
 
         template<typename Dimension>
@@ -62,18 +62,35 @@ namespace Spheral {
                                  const double maximumTemperature,
                                  const MaterialPressureMinType minPressureType,
                                  const Scalar abar0,
-                                 const Scalar zbar0):
+                                 const Scalar zbar0,
+								 const NodeList<Dimension>& myNodeList):
         EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
-        mzbar(nullptr),
-        mabar(nullptr),
         mabar0(abar0),
         mzbar0(zbar0),
-        mPMin(minimumPressure),
-        mPMax(maximumPressure),
+        mPmin(minimumPressure),
+        mPmax(maximumPressure),
         mTmin(minimumTemperature),
-        mTmax(maximumTemperature)
+        mTmax(maximumTemperature),
+		myAbar("helmAbar",myNodeList),
+		myZbar("helmZbar",myNodeList),
+		mySpecificThermalEnergy("helmSpecificThermalEnergy",myNodeList),
+		myMassDensity("helmMassDensity",myNodeList),
+		myTemperature("helmTemperature",myNodeList),
+		myPressure("helmPressure",myNodeList),
+		mySoundSpeed("helmSoundSpeed",myNodeList),
+		myGamma("helmGamma",myNodeList)
         {
             needUpdate = 1; // flip this on and off later
+            Fortran2(init_helm_table);
+			
+			for(unsigned int i; i < myAbar.numElements(); ++i)
+			{
+				/* for now, fill abar zbar with default values. later, when
+				 more code exists to modify these, i can write something to 
+				 do that */
+				myAbar(i) = mabar0;
+				myZbar(i) = mzbar0;
+			}
         }
         
         //------------------------------------------------------------------------------
@@ -103,9 +120,11 @@ namespace Spheral {
             /*
             Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
             */
-            
+			myMassDensity = massDensity;
+			mySpecificThermalEnergy = specificThermalEnergy;
+			
             if(needUpdate){
-                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
                                                  &myAbar[0], &myZbar[0], &myTemperature[0],
                                                  &myPressure[0], &mTmin, &mySoundSpeed[0]);
             }
@@ -131,8 +150,11 @@ namespace Spheral {
              Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
              */
             
+			myMassDensity = massDensity;
+			mySpecificThermalEnergy = specificThermalEnergy;
+			
             if(needUpdate){
-                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
                                                  &myAbar[0], &myZbar[0], &myTemperature[0],
                                                  &myPressure[0], &mTmin, &mySoundSpeed[0]);
             }
@@ -157,10 +179,14 @@ namespace Spheral {
             /*
              Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
              */
+			
+			myMassDensity = massDensity;
+			myTemperature = temperature;
+			
             if(needUpdate){
-                Fortran2(wrapper_helmeos)(&npart, &massDensity[0], &mySecificThermalEnergy[0],
-                                                 &myAbar[0], &myZbar[0], &temperature[0],
-                                                 &myPressure[0], &mTmin, &mySoundSpeed[0]);
+                Fortran2(wrapper_helmeos)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
+                                                 &myAbar[0], &myZbar[0], &myTemperature[0],
+                                                 &myPressure[0]);
             }
             
             for (size_t i = 0; i != npart; ++i) {
@@ -178,10 +204,10 @@ namespace Spheral {
                         const Field<Dimension, Scalar>& massDensity,
                         const Field<Dimension, Scalar>& temperature) const {
             CHECK(valid());
-            const double kB = mConstants.kB();
-            const double mp = mConstants.protonMass();
-            const double Cv = kB/(mGamma1*mMolecularWeight*mp);
-            specificHeat = Cv;
+            //const double kB = mConstants.kB();
+            //const double mp = mConstants.protonMass();
+            //const double Cv = kB/(mGamma1*mMolecularWeight*mp);
+            //specificHeat = Cv;
         }
         
         //------------------------------------------------------------------------------
@@ -199,8 +225,12 @@ namespace Spheral {
             /*
              Fortran2(azbar)(abund, aarray, zarray, &nion, molarabund, &abar, &zbar );
              */
+			
+			myMassDensity = massDensity;
+			mySpecificThermalEnergy = specificThermalEnergy;
+			
             if(needUpdate){
-                Fortran2(wrapper_invert_helm_ed)(&npart, &massDensity[0], &specificThermalEnergy[0],
+                Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
                                                  &myAbar[0], &myZbar[0], &myTemperature[0],
                                                  &myPressure[0], &mTmin, &mySoundSpeed[0]);
             }
@@ -221,7 +251,7 @@ namespace Spheral {
                       const Field<Dimension, Scalar>& massDensity,
                       const Field<Dimension, Scalar>& specificThermalEnergy) const {
             CHECK(valid());
-            gamma = mGamma; // hmmmm
+            //gamma = mGamma; // hmmmm
         }
         
         //------------------------------------------------------------------------------
@@ -246,20 +276,22 @@ namespace Spheral {
         // Access abar
         //------------------------------------------------------------------------------
         template<typename Dimension>
-        const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+        const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
         HelmholtzEquationOfState<Dimension>::
         abar() const {
-            return mabar;
+            //return mabar;
+			return myAbar;
         }
         
         //------------------------------------------------------------------------------
         // Access zbar
         //------------------------------------------------------------------------------
         template<typename Dimension>
-        const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+        const FieldSpace::Field<Dimension, typename Dimension::Scalar>&
         HelmholtzEquationOfState<Dimension>::
         zbar() const {
-            return mzbar;
+            //return mzbar;
+			return myZbar;
         }
         
     }
