@@ -7,7 +7,6 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	computeCSPHSumMassDensityInst.cc \
 	computeCSPHCorrectionsInst.cc \
-	computeCSPHCorrections2Inst.cc \
 	computeHullVolumesInst.cc \
 	computeHVolumesInst.cc \
 	centerOfMass.cc \
