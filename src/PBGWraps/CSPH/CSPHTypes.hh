@@ -9,6 +9,7 @@
 #include "CSPH/centerOfMass.hh"
 #include "CSPH/computeHullVolumes.hh"
 #include "CSPH/gradientCSPH.hh"
+#include "CSPH/interpolateCSPH.hh"
 
 namespace Spheral {
 namespace CSPHSpace {

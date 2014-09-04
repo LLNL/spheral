@@ -164,18 +164,18 @@ xbc0.setGhostNodes(sphDb)
 xbc1.setGhostNodes(sphDb)
 
 for bc in [xbc0, xbc1]:
-    bc.applyScalarFieldListGhostBoundary(sphMass)
-    bc.applyScalarFieldListGhostBoundary(sphMassDensity)
-    bc.applyScalarFieldListGhostBoundary(sphWeight)
-    bc.applySymTensorFieldListGhostBoundary(sphHfield)
-    bc.applyScalarFieldListGhostBoundary(sphPressure)
+    bc.applyFieldListGhostBoundary(sphMass)
+    bc.applyFieldListGhostBoundary(sphMassDensity)
+    bc.applyFieldListGhostBoundary(sphWeight)
+    bc.applyFieldListGhostBoundary(sphHfield)
+    bc.applyFieldListGhostBoundary(sphPressure)
 
 sphDb.updateFluidMassDensity()
 sphNodes.updateWeight()
 
 for bc in [xbc0, xbc1]:
-    bc.applyScalarFieldListGhostBoundary(sphMassDensity)
-    bc.applyScalarFieldListGhostBoundary(sphWeight)
+    bc.applyFieldListGhostBoundary(sphMassDensity)
+    bc.applyFieldListGhostBoundary(sphWeight)
 
 sphNodes.neighbor.updateNodes()
 
@@ -216,11 +216,11 @@ mashWeight = mashDb.fluidWeight
 mashHfield = mashDb.fluidHfield
 
 for bc in [xbc0, xbc1]:
-    bc.applyScalarFieldListGhostBoundary(mashMass)
-    bc.applyScalarFieldListGhostBoundary(mashMassDensity)
-    bc.applyScalarFieldListGhostBoundary(mashWeight)
-    bc.applySymTensorFieldListGhostBoundary(mashHfield)
-    bc.applyScalarFieldListGhostBoundary(mashPressure)
+    bc.applyFieldListGhostBoundary(mashMass)
+    bc.applyFieldListGhostBoundary(mashMassDensity)
+    bc.applyFieldListGhostBoundary(mashWeight)
+    bc.applyFieldListGhostBoundary(mashHfield)
+    bc.applyFieldListGhostBoundary(mashPressure)
 
 mashNodes.neighbor.updateNodes()
 
