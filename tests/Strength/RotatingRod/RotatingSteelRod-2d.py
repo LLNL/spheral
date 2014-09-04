@@ -2,6 +2,7 @@
 # A rod of stainless steel undergoing rotation.
 #-------------------------------------------------------------------------------
 import mpi
+import os
 from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
@@ -70,13 +71,15 @@ commandLine(
     densityUpdate = IntegrateDensity, # HybridDensity # CorrectedSumDensity
 
     restartStep = 1000,
-    baseDir = "dumps-RotatingSteelRod-2d-%ix%i-nph=%4.2f",
+    baseDir = "dumps-RotatingSteelRod-2d-%ix%i",
     )
 
-dataDir = baseDir % (nx, ny, nPerh)
-restartDir = dataDir + "/restarts"
-visitDir = dataDir + "/visit"
-restartBaseName = restartDir + "/RotatingSteelRod-%ix%i" % (nx, ny)
+dataDir = os.path.join(baseDir % (nx, ny),
+                       "nPerh=%4.2f" % nPerh,
+                       "correctVelocityGradient=%s" % correctVelocityGradient)
+restartDir = os.path.join(dataDir, "restarts")
+visitDir = os.path.join(dataDir, "visit")
+restartBaseName = os.path.join(restartDir, "RotatingSteelRod-%ix%i" % (nx, ny))
 
 xmin = (-0.5*xlength, -0.5*ylength)
 xmax = ( 0.5*xlength,  0.5*ylength)
@@ -247,6 +250,7 @@ hydro = HydroConstructor(WT,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,
                          gradhCorrection = False,
+                         correctVelocityGradient = correctVelocityGradient,
                          densityUpdate = densityUpdate,
                          HUpdate = HEvolution,
                          XSPH = XSPH,
@@ -301,3 +305,4 @@ if steps is not None:
     control.step(steps)
 else:
     control.advance(goalTime)
+    control.conserve.writeHistory(os.path.join(dataDir, "conserve.txt"))
