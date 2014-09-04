@@ -290,7 +290,8 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             vizDir = visitDir,
                             vizBaseName = "RotatingSteelRod-2d",
-                            vizTime = dtSample)
+                            vizTime = dtSample,
+                            vizDerivs = True)
 output("control")
 
 #-------------------------------------------------------------------------------
