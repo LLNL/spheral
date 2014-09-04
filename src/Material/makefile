@@ -9,7 +9,12 @@ SRCTARGETS = \
 	EquationOfStateInst.cc \
 	GammaLawGasInst.cc \
 	PolytropicEquationOfStateInst.cc \
-	IsothermalEquationOfStateInst.cc
+	IsothermalEquationOfStateInst.cc \
+	HelmholtzEquationOfStateInst.cc
+
+F90SRCTARGETS = \
+	public_helm.f90 \
+	invert_helm.f90
 
 PYTHONTARGETS = \
 	MaterialUnits.py \

@@ -10,6 +10,7 @@
 #define ____HelmholtzEquationOfState_hh__
 
 #include "EquationOfState.hh"
+#include "Field/FieldList.hh"
 
 namespace Spheral {
     namespace Material {
@@ -32,7 +33,8 @@ namespace Spheral {
                                      const double maximumTemperature,
                                      const MaterialPressureMinType minPressureType,
                                      const Scalar abar0,
-                                     const Scalar zbar0);
+                                     const Scalar zbar0,
+									 const NodeSpace::NodeList<Dimension>& myNodeList);
             ~HelmholtzEquationOfState();
 
             
@@ -90,26 +92,24 @@ namespace Spheral {
                                        const Scalar specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support individual state calls."); }
 
             
-            const FieldSpace::FieldList<Dimension, Scalar>& abar() const;
-            const FieldSpace::FieldList<Dimension, Scalar>& zbar() const;
+            const FieldSpace::Field<Dimension, Scalar>& abar() const;
+            const FieldSpace::Field<Dimension, Scalar>& zbar() const;
             
             
         private:
             //--------------------------- Private Interface ---------------------------//
             
-            const FieldSpace::FieldList<Dimension, Scalar>* mabarPtr;
-            const FieldSpace::FieldList<Dimension, Scalar>* mzbarPtr;
+            mutable FieldSpace::Field<Dimension, Scalar> myAbar;
+            mutable FieldSpace::Field<Dimension, Scalar> myZbar;
+            mutable FieldSpace::Field<Dimension, Scalar> mySpecificThermalEnergy;
+            mutable FieldSpace::Field<Dimension, Scalar> myMassDensity;
+            mutable FieldSpace::Field<Dimension, Scalar> myTemperature;
+            mutable FieldSpace::Field<Dimension, Scalar> myPressure;
+            mutable FieldSpace::Field<Dimension, Scalar> mySoundSpeed;
+            mutable FieldSpace::Field<Dimension, Scalar> myGamma;
             
-            FieldSpace::FieldList<Dimension, Scalar> myAbar;
-            FieldSpace::FieldList<Dimension, Scalar> myZbar;
-            FieldSpace::FieldList<Dimension, Scalar> mySpecificThermalEnergy;
-            FieldSpace::FieldList<Dimension, Scalar> myMassDensity;
-            FieldSpace::FieldList<Dimension, Scalar> myTemperature;
-            FieldSpace::FieldList<Dimension, Scalar> myPressure;
-            FieldSpace::FieldList<Dimension, Scalar> mySoundSpeed;
-            FieldSpace::FieldList<Dimension, Scalar> myGamma;
-            
-            Scalar mabar0, mzbar0, mTmin, mTmax, mPmin, mPmax;
+            Scalar mabar0, mzbar0, mTmax, mPmin, mPmax;
+			mutable Scalar mTmin;
             bool needUpdate;
 
         };

@@ -77,7 +77,7 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
-OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o)
+OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o)
 
 TAULIBS = # @TAULIBS@
 LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
@@ -235,6 +235,9 @@ force_build:
 %.o: %.f
 	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
 
+%.o: %.f90
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+
 # %.C: %.py # $(MODPKGS)
 # 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
 
@@ -283,6 +286,10 @@ include $(SRCTOP)/helpers/@DEPENDRULES@
 #-------------------------------------------------------------------------------
 ifneq "$(SRCTARGETS)" ""
 -include $(SRCTARGETS:.cc=.d)
+endif
+
+ifneq "$(F90SRCTARGETS)" ""
+-include $(F90SRCTARGETS:.f90=.d)
 endif
 
 ifneq "$(FSRCTARGETS)" ""
@@ -412,7 +419,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:
