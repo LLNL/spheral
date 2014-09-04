@@ -55,7 +55,7 @@ public:
   // Assignment.
   GeomTensor& operator=(const GeomTensor& rhs);
   GeomTensor& operator=(const GeomSymmetricTensor<nDim>& rhs);
-  GeomTensor& operator=(const double rhs);
+  // GeomTensor& operator=(const double rhs);
 
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
@@ -109,8 +109,8 @@ public:
   GeomTensor operator*(const GeomSymmetricTensor<nDim>& rhs) const;
 
   GeomVector<nDim> operator*(const GeomVector<nDim>& rhs) const;
-  GeomTensor operator+(const double val) const;
-  GeomTensor operator-(const double val) const;
+  // GeomTensor operator+(const double val) const;
+  // GeomTensor operator-(const double val) const;
   GeomTensor operator*(const double val) const;
   GeomTensor operator/(const double val) const;
 
@@ -122,8 +122,8 @@ public:
   GeomTensor& operator-=(const GeomSymmetricTensor<nDim>& rhs);
   GeomTensor& operator*=(const GeomSymmetricTensor<nDim>& rhs);
 
-  GeomTensor& operator+=(const double rhs);
-  GeomTensor& operator-=(const double rhs);
+  // GeomTensor& operator+=(const double rhs);
+  // GeomTensor& operator-=(const double rhs);
   GeomTensor& operator*=(const double rhs);
   GeomTensor& operator/=(const double rhs);
 
@@ -141,12 +141,12 @@ public:
   bool operator<=(const GeomSymmetricTensor<nDim>& rhs) const;
   bool operator>=(const GeomSymmetricTensor<nDim>& rhs) const;
 
-  bool operator==(const double rhs) const;
-  bool operator!=(const double rhs) const;
-  bool operator<(const double rhs) const;
-  bool operator>(const double rhs) const;
-  bool operator<=(const double rhs) const;
-  bool operator>=(const double rhs) const;
+  // bool operator==(const double rhs) const;
+  // bool operator!=(const double rhs) const;
+  // bool operator<(const double rhs) const;
+  // bool operator>(const double rhs) const;
+  // bool operator<=(const double rhs) const;
+  // bool operator>=(const double rhs) const;
 
   GeomSymmetricTensor<nDim> Symmetric() const;
   GeomTensor SkewSymmetric() const;
@@ -269,13 +269,13 @@ template<> GeomTensor<1> GeomTensor<1>::operator-() const;
 template<> GeomTensor<2> GeomTensor<2>::operator-() const;
 template<> GeomTensor<3> GeomTensor<3>::operator-() const;
 
-template<> GeomTensor<1> GeomTensor<1>::operator+(const double) const;
-template<> GeomTensor<2> GeomTensor<2>::operator+(const double) const;
-template<> GeomTensor<3> GeomTensor<3>::operator+(const double) const;
+// template<> GeomTensor<1> GeomTensor<1>::operator+(const double) const;
+// template<> GeomTensor<2> GeomTensor<2>::operator+(const double) const;
+// template<> GeomTensor<3> GeomTensor<3>::operator+(const double) const;
 
-template<> GeomTensor<1> GeomTensor<1>::operator-(const double) const;
-template<> GeomTensor<2> GeomTensor<2>::operator-(const double) const;
-template<> GeomTensor<3> GeomTensor<3>::operator-(const double) const;
+// template<> GeomTensor<1> GeomTensor<1>::operator-(const double) const;
+// template<> GeomTensor<2> GeomTensor<2>::operator-(const double) const;
+// template<> GeomTensor<3> GeomTensor<3>::operator-(const double) const;
 
 template<> GeomTensor<1> GeomTensor<1>::operator*(const double) const;
 template<> GeomTensor<2> GeomTensor<2>::operator*(const double) const;
@@ -306,13 +306,13 @@ template<> GeomTensor<1>& GeomTensor<1>::operator*=(const GeomSymmetricTensor<1>
 template<> GeomTensor<2>& GeomTensor<2>::operator*=(const GeomSymmetricTensor<2>&);
 template<> GeomTensor<3>& GeomTensor<3>::operator*=(const GeomSymmetricTensor<3>&);
 
-template<> GeomTensor<1>& GeomTensor<1>::operator+=(const double);
-template<> GeomTensor<2>& GeomTensor<2>::operator+=(const double);
-template<> GeomTensor<3>& GeomTensor<3>::operator+=(const double);
+// template<> GeomTensor<1>& GeomTensor<1>::operator+=(const double);
+// template<> GeomTensor<2>& GeomTensor<2>::operator+=(const double);
+// template<> GeomTensor<3>& GeomTensor<3>::operator+=(const double);
 
-template<> GeomTensor<1>& GeomTensor<1>::operator-=(const double);
-template<> GeomTensor<2>& GeomTensor<2>::operator-=(const double);
-template<> GeomTensor<3>& GeomTensor<3>::operator-=(const double);
+// template<> GeomTensor<1>& GeomTensor<1>::operator-=(const double);
+// template<> GeomTensor<2>& GeomTensor<2>::operator-=(const double);
+// template<> GeomTensor<3>& GeomTensor<3>::operator-=(const double);
 
 template<> GeomTensor<1>& GeomTensor<1>::operator*=(const double);
 template<> GeomTensor<2>& GeomTensor<2>::operator*=(const double);

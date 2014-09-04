@@ -11,6 +11,7 @@ SRCTARGETS = \
 	computeHVolumesInst.cc \
 	centerOfMass.cc \
 	CSPHHydroBaseInst.cc \
+	interpolateCSPHInst.cc \
 	gradientCSPHInst.cc \
 	HVolumePolicyInst.cc \
 #	CSPHSpecificThermalEnergyPolicyInst.cc

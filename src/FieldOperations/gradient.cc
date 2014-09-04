@@ -267,7 +267,7 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
             const Scalar Wi = kernel(etai.magnitude(), 1.0)/W0;
             CHECK(Wi >= 0.0 and Wi <= 1.0);
             weightSum += Wi;
-            phii += Wi*phiij/(phiij*phiij + tiny);
+            phii += Wi*phiij/(phiij*phiij + tiny) * SymTensor::one;
             phimin = min(phimin, Wi*phiij + (1.0 - Wi)*phimin);
           }
 

@@ -65,10 +65,12 @@ class CSPH:
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        thirdranktensor = "ThirdRankTensor%id" % ndim
         scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
         vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+        thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
@@ -132,12 +134,78 @@ class CSPH:
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "C"),
                                  refparam(tensorfieldlist, "D"),
+                                 refparam(vectorfieldlist, "gradA0"),
                                  refparam(vectorfieldlist, "gradA"),
                                  refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHCorrections%id" % ndim)
 
-        # Scalar gradient.
+        # CSPH Scalar interpolation.
+        self.space.add_function("interpolateCSPH", scalarfieldlist,
+                                [constrefparam(scalarfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, "double"],
+                                custom_name = "interpolateCSPH")
+
+        # CSPH Vector interpolation.
+        self.space.add_function("interpolateCSPH", vectorfieldlist,
+                                [constrefparam(vectorfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, vector],
+                                custom_name = "interpolateCSPH")
+
+        # CSPH Tensor interpolation.
+        self.space.add_function("interpolateCSPH", tensorfieldlist,
+                                [constrefparam(tensorfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, tensor],
+                                custom_name = "interpolateCSPH")
+
+        # CSPH SymTensor interpolation.
+        self.space.add_function("interpolateCSPH", symtensorfieldlist,
+                                [constrefparam(symtensorfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, symtensor],
+                                custom_name = "interpolateCSPH")
+
+        # CSPH ThirdRankTensor interpolation.
+        self.space.add_function("interpolateCSPH", thirdranktensorfieldlist,
+                                [constrefparam(thirdranktensorfieldlist, "fieldList"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "A"),
+                                 constrefparam(vectorfieldlist, "B"),
+                                 constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W")],
+                                template_parameters = [dim, thirdranktensor],
+                                custom_name = "interpolateCSPH")
+
+        # CSPH Scalar gradient.
         self.space.add_function("gradientCSPH", vectorfieldlist,
                                 [constrefparam(scalarfieldlist, "fieldList"),
                                  constrefparam(vectorfieldlist, "position"),
@@ -154,7 +222,7 @@ class CSPH:
                                 template_parameters = [dim, "double"],
                                 custom_name = "gradientCSPH")
 
-        # Vector gradient.
+        # CSPH Vector gradient.
         self.space.add_function("gradientCSPH", tensorfieldlist,
                                 [constrefparam(vectorfieldlist, "fieldList"),
                                  constrefparam(vectorfieldlist, "position"),

@@ -40,6 +40,7 @@ const std::string Spheral::HydroFieldNames::A_CSPH = "A CSPH correction";
 const std::string Spheral::HydroFieldNames::B_CSPH = "B CSPH correction";
 const std::string Spheral::HydroFieldNames::C_CSPH = "C CSPH correction";
 const std::string Spheral::HydroFieldNames::D_CSPH = "D CSPH correction";
+const std::string Spheral::HydroFieldNames::gradA0_CSPH = "grad A0 CSPH correction";
 const std::string Spheral::HydroFieldNames::gradA_CSPH = "grad A CSPH correction";
 const std::string Spheral::HydroFieldNames::gradB_CSPH = "grad B CSPH correction";
 const std::string Spheral::HydroFieldNames::volume = "node volume";
