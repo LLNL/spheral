@@ -148,6 +148,7 @@ class SPH:
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
+                           param("int", "correctVelocityGradient", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("double", "epsTensile", default_value="0.3"),
@@ -228,6 +229,8 @@ class SPH:
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
+        const_ref_return_value(x, me, "%s::M" % me, tensorfieldlist, [], "M")
+        const_ref_return_value(x, me, "%s::localM" % me, tensorfieldlist, [], "localM")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
         return

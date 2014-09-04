@@ -91,6 +91,23 @@ SPHHydroBase<Dimension>::XSPH(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're using the XSPH algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SPHHydroBase<Dimension>::correctVelocityGradient() const {
+  return mCorrectVelocityGradient;
+}
+
+template<typename Dimension>
+inline
+void
+SPHHydroBase<Dimension>::correctVelocityGradient(const bool val) {
+  mCorrectVelocityGradient = val;
+}
+
+//------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -278,6 +295,22 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 SPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+SPHHydroBase<Dimension>::
+M() const {
+  return mM;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+SPHHydroBase<Dimension>::
+localM() const {
+  return mLocalM;
 }
 
 template<typename Dimension>
