@@ -26,15 +26,15 @@ namespace Spheral {
             typedef typename Dimension::SymTensor SymTensor;
             
             // Constructors, destructors.
-            HelmholtzEquationOfState(const PhysicalConstants& constants,
+            HelmholtzEquationOfState(const NodeSpace::NodeList<Dimension>& myNodeList,
+                                     const PhysicalConstants& constants,
                                      const double minimumPressure,
                                      const double maximumPressure,
                                      const double minimumTemperature,
                                      const double maximumTemperature,
                                      const MaterialPressureMinType minPressureType,
                                      const Scalar abar0,
-                                     const Scalar zbar0,
-									 const NodeSpace::NodeList<Dimension>& myNodeList);
+                                     const Scalar zbar0);
             ~HelmholtzEquationOfState();
 
             
@@ -61,8 +61,8 @@ namespace Spheral {
             
             virtual void setGammaField(FieldSpace::Field<Dimension, Scalar>& gamma,
                                        const FieldSpace::Field<Dimension, Scalar>& massDensity,
-                                       const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
-            
+                                       const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const { VERIFY2(false, "HelmholtzEquationOfState does not support this function."); }
+			
             virtual void setBulkModulus(FieldSpace::Field<Dimension, Scalar>& bulkModulus,
                                         const FieldSpace::Field<Dimension, Scalar>& massDensity,
                                         const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
@@ -94,7 +94,11 @@ namespace Spheral {
             
             const FieldSpace::Field<Dimension, Scalar>& abar() const;
             const FieldSpace::Field<Dimension, Scalar>& zbar() const;
+			
+			const bool getUpdateStatus() const;
+			void setUpdateStatus(bool bSet);
             
+            virtual bool valid() const;
             
         private:
             //--------------------------- Private Interface ---------------------------//
@@ -111,6 +115,8 @@ namespace Spheral {
             Scalar mabar0, mzbar0, mTmax, mPmin, mPmax;
 			mutable Scalar mTmin;
             bool needUpdate;
+			
+			const PhysicalConstants& mConstants;
 
         };
     }
