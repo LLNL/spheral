@@ -71,8 +71,8 @@ namespace Spheral {
         mPmax(maximumPressure),
         mTmin(minimumTemperature),
         mTmax(maximumTemperature),
-		myAbar("helmAbar",myNodeList),
-		myZbar("helmZbar",myNodeList),
+		myAbar("helmAbar",myNodeList,abar0),
+		myZbar("helmZbar",myNodeList,zbar0),
 		mySpecificThermalEnergy("helmSpecificThermalEnergy",myNodeList),
 		myMassDensity("helmMassDensity",myNodeList),
 		myTemperature("helmTemperature",myNodeList),
@@ -82,15 +82,6 @@ namespace Spheral {
         {
             needUpdate = 1; // flip this on and off later
             Fortran2(init_helm_table);
-			
-			for(unsigned int i; i < myAbar.numElements(); ++i)
-			{
-				/* for now, fill abar zbar with default values. later, when
-				 more code exists to modify these, i can write something to 
-				 do that */
-				myAbar(i) = mabar0;
-				myZbar(i) = mzbar0;
-			}
         }
         
         //------------------------------------------------------------------------------
@@ -293,6 +284,10 @@ namespace Spheral {
             //return mzbar;
 			return myZbar;
         }
+		
+		//------------------------------------------------------------------------------
+        //
+        //------------------------------------------------------------------------------
         
     }
 }
