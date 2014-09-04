@@ -679,6 +679,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 XSPHDeltaVj += fXSPH*mi/rhoi*Wj*vij;
               }
 
+              // Linear gradient correction term.
+              Mi -= mj/rhoj*rij.dyad(gradWi);
+              Mj -= mi/rhoi*rij.dyad(gradWj);
+              if (sameMatij) {
+                localMi -= mj/rhoj*rij.dyad(gradWi);
+                localMj -= mi/rhoi*rij.dyad(gradWj);
+              }
             }
           }
         }
