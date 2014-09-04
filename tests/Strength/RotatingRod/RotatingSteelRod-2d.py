@@ -1,16 +1,13 @@
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing rotation.
 #-------------------------------------------------------------------------------
-from SolidSpheral import *
+import mpi
+from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from SpheralVisitDump import dumpPhysicsState
 from identifyFragments import identifyFragments, fragmentProperties
 from math import *
-
-# Load the mpi module if we're parallel.
-import loadmpi
-mpi, procID, numProcs = loadmpi.loadmpi()
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
@@ -22,7 +19,6 @@ title("2-D rotating steel rod strength test")
 # All CGS units.
 #-------------------------------------------------------------------------------
 commandLine(
-    SolidNodeListConstructor = SphSolidNodeList2d,
     seed = "lattice",
 
     xlength = 3.0,
@@ -39,7 +35,8 @@ commandLine(
     # 0.01 seconds, or 1e2 rps = 6000 rpm.
     omega0 = 2.0*pi/1.0e-2,
 
-    Qconstructor = MonaghanGingoldViscosity2d,
+    HydroConstructor = SolidASPHHydro,
+    Qconstructor = MonaghanGingoldViscosity,
     Cl = 1.0,
     Cq = 1.0,
     Qlimiter = False,
@@ -59,10 +56,6 @@ commandLine(
     gradhCorrection = True,
     correctVelocityGradient = True,
 
-    neighborSearchType = Neighbor2d.NeighborSearchType.GatherScatter,
-    numGridLevels = 20,
-    topGridCellSize = 10.0,
-
     goalTime = 0.01,
     steps = None,
     dtSample = 1e-5,
@@ -73,8 +66,8 @@ commandLine(
     maxSteps = None,
     statsStep = 10,
     smoothIters = 0,
-    HEvolution = Hydro2d.HEvolutionType.IdealH,
-    sumForMassDensity = Hydro2d.MassDensityType.IntegrateDensity, # HybridDensity # CorrectedSumDensity
+    HEvolution = IdealH,
+    densityUpdate = IntegrateDensity, # HybridDensity # CorrectedSumDensity
 
     restartStep = 1000,
     baseDir = "dumps-RotatingSteelRod-2d-%ix%i-nph=%4.2f",
@@ -91,7 +84,7 @@ xmax = ( 0.5*xlength,  0.5*ylength)
 dx = xlength/nx
 dy = ylength/ny
 
-origin = Vector2d(-xlength, -ylength)
+origin = Vector(-xlength, -ylength)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -112,16 +105,16 @@ restoreCycle = findLastRestart(restartBaseName)
 #-------------------------------------------------------------------------------
 # Stainless steel material properties.
 #-------------------------------------------------------------------------------
-eos = GruneisenEquationOfStateCGS2d(rho0,    # reference density  
-                                    etamin,  # etamin             
-                                    etamax,  # etamax             
-                                    0.457e6, # C0                 
-                                    1.49,    # S1                 
-                                    0.0,     # S2                 
-                                    0.0,     # S3                 
-                                    1.93,    # gamma0             
-                                    0.5,     # b                  
-                                    55.350)  # atomic weight
+eos = GruneisenEquationOfStateCGS(rho0,    # reference density  
+                                  etamin,  # etamin             
+                                  etamax,  # etamax             
+                                  0.457e6, # C0                 
+                                  1.49,    # S1                 
+                                  0.0,     # S2                 
+                                  0.0,     # S3                 
+                                  1.93,    # gamma0             
+                                  0.5,     # b                  
+                                  55.350)  # atomic weight
 coldFit = NinthOrderPolynomialFit(-1.06797724e10,
                                   -2.06872020e10,
                                    8.24893246e11,
@@ -142,63 +135,49 @@ meltFit = NinthOrderPolynomialFit(7.40464217e10,
                                   0.0,
                                   0.0,
                                   0.0)
-strengthModel = SteinbergGuinanStrengthCGS2d(eos,
-                                             7.700000e11,        # G0
-                                             2.2600e-12,         # A
-                                             4.5500e-04,         # B
-                                             3.4000e9,           # Y0
-                                             2.5e10,             # Ymax
-                                             1.0e-3,             # Yp
-                                             43.0000,            # beta
-                                             0.0,                # gamma0
-                                             0.35,               # nhard
-                                             coldFit,
-                                             meltFit)
+strengthModel = SteinbergGuinanStrengthCGS(eos,
+                                           7.700000e11,        # G0
+                                           2.2600e-12,         # A
+                                           4.5500e-04,         # B
+                                           3.4000e9,           # Y0
+                                           2.5e10,             # Ymax
+                                           1.0e-3,             # Yp
+                                           43.0000,            # beta
+                                           0.0,                # gamma0
+                                           0.35,               # nhard
+                                           coldFit,
+                                           meltFit)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel2d(BSplineKernel2d(), 1000)
-WTPi = TableKernel2d(BSplineKernel2d(), 1000)
+WT = TableKernel(BSplineKernel(), 1000)
+WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
 output("WTPi")
-kernelExtent = WT.kernelExtent()
+kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = SolidNodeListConstructor("Stainless steel", eos, strengthModel, WT, WTPi)
-nodes.nodesPerSmoothingScale = nPerh
-nodes.epsilonTensile = epsilonTensile
-nodes.nTensile = nTensile
-nodes.hmin = hmin
-nodes.hmax = hmax
-nodes.hminratio = hminratio
-nodes.XSPH = XSPH
-nodes.rhomin = etamin*rho0
-nodes.rhomax = etamax*rho0
-output("nodes.name()")
+nodes = makeSolidNodeList("Stainless steel", eos, strengthModel, 
+                          nPerh = nPerh,
+                          hmin = hmin,
+                          hmax = hmax,
+                          hminratio = hminratio,
+                          rhoMin = etamin*rho0,
+                          rhoMax = etamax*rho0,
+                          xmin = Vector(-10*xlength, -10*ylength),  # Box size for neighbor selection
+                          xmax = Vector( 10*xlength,  10*ylength))  # Box size for neighbor selection
+
+output("nodes.name")
 output("  nodes.nodesPerSmoothingScale")
-output("  nodes.epsilonTensile")
-output("  nodes.nTensile")
 output("  nodes.hmin")
 output("  nodes.hmax")
 output("  nodes.hminratio")
-output("  nodes.XSPH")
-output("  nodes.rhomin")
-output("  nodes.rhomax")
-
-#-------------------------------------------------------------------------------
-# Construct the neighbor objects and associate them with the node lists.
-#-------------------------------------------------------------------------------
-neighbor = NestedGridNeighbor2d(nodes,
-                                neighborSearchType,
-                                numGridLevels,
-                                topGridCellSize,
-                                origin,
-                                kernelExtent)
-nodes.registerNeighbor(neighbor)
+output("  nodes.rhoMin")
+output("  nodes.rhoMax")
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
@@ -221,20 +200,20 @@ if restoreCycle is None:
     output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
     # Set node specific thermal energies
-    nodes.specificThermalEnergy(ScalarField2d("tmp", nodes, eps0))
+    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
     # Set node velocites.
     for i in xrange(nodes.numInternalNodes):
         xi = nodes.positions()[i]
         r = xi.magnitude()
         runit = xi.unitVector()
-        vunit = Vector2d(-runit.y, runit.x)
+        vunit = Vector(-runit.y, runit.x)
         nodes.velocity()[i] = vunit*r*omega0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
-db = DataBase2d()
+db = DataBase()
 db.appendNodeList(nodes)
 output("db")
 output("db.numNodeLists")
@@ -261,43 +240,33 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro2d(WT,
-                WTPi,
-                q,
-                compatibleEnergyEvolution,
-                gradhCorrection,
-                correctVelocityGradient,
-                sumForMassDensity,
-                HEvolution,
-                hmin,
-                hmax)
-hydro.cfl = cfl
-hydro.useVelocityMagnitudeForDt = useVelocityMagnitudeForDt
+hydro = HydroConstructor(WT,
+                         WTPi,
+                         q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         gradhCorrection = False,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH,
+                         epsTensile = epsilonTensile,
+                         nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.correctVelocityGradient")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.sumForMassDensity")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.gradhCorrection")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
-output("hydro.postIterateHCycle")
-output("hydro.valid()")
-
-#-------------------------------------------------------------------------------
-# Construct a strength physics object.
-#-------------------------------------------------------------------------------
-strength = Strength2d()
-output("strength")
 
 #-------------------------------------------------------------------------------
 # Construct a predictor corrector integrator.
 #-------------------------------------------------------------------------------
-integrator = SynchronousRK2Integrator2d(db)
+integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
-integrator.appendPhysicsPackage(strength)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -306,8 +275,6 @@ if dtMax:
 integrator.dtGrowth = dtGrowth
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-output("integrator.havePhysicsPackage(strength)")
-output("integrator.valid()")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -317,32 +284,14 @@ output("integrator.dtGrowth")
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            restoreCycle = restoreCycle,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            initializeMassDensity = False)
+                            vizDir = visitDir,
+                            vizBaseName = "RotatingSteelRod-2d",
+                            vizTime = dtSample)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Smooth the initial conditions/restore state.
-#-------------------------------------------------------------------------------
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.smoothState(smoothIters)
-    control.iterateIdealH(hydro)
-
-    # Viz the initial conditions.
-    vx = ScalarField2d("x velocity", nodes)
-    vy = ScalarField2d("y velocity", nodes)
-    for i in xrange(nodes.numInternalNodes):
-        vx[i] = nodes.velocity()[i].x
-        vy[i] = nodes.velocity()[i].y
-    dumpPhysicsState(integrator,
-                     "RotatingSteelRod-2d-visit",
-                     visitDir,
-                     fields = [vx, vy]
-                     )
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -350,19 +299,4 @@ else:
 if steps is not None:
     control.step(steps)
 else:
-    while control.time() < goalTime:
-        nextGoalTime = min(control.time() + dtSample, goalTime)
-        control.advance(nextGoalTime, maxSteps)
-        control.dropRestartFile()
-
-        # Viz the current state.
-        vx = ScalarField2d("x velocity", nodes)
-        vy = ScalarField2d("y velocity", nodes)
-        for i in xrange(nodes.numInternalNodes):
-            vx[i] = nodes.velocity()[i].x
-            vy[i] = nodes.velocity()[i].y
-        dumpPhysicsState(integrator,
-                         "RotatingSteelRod-2d-visit",
-                         visitDir,
-                         fields = [vx, vy]
-                         )
+    control.advance(goalTime)
