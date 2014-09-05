@@ -1088,17 +1088,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
+
+              // Specific thermal energy evolution.
+              const Scalar workQi = weightj/rhoi*rhoj*rhoj*(vij.dot(gradWj));
+              const Scalar workQj = weighti/rhoj*rhoi*rhoi*(vij.dot(gradWi));
+              DepsDti -= workQi;
+              DepsDtj -= workQj;
               if (mCompatibleEnergyEvolution) {
-                const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                const unsigned numNeighborsj = (j < firstGhostNodej ? 
-                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-                                                1);
-                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+                // const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                // const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                // const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                // const unsigned numNeighborsj = (j < firstGhostNodej ? 
+                //                                 max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+                //                                 1);
+                // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                // const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
               }
 
               // Estimate of delta v (for XSPH).
@@ -1138,7 +1144,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
-      DepsDti = Pi/(rhoi*rhoi)*DrhoDti;
+      DepsDti += Pi/(rhoi*rhoi)*DrhoDti;
       // DepsDti = -Pi/rhoi * DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
