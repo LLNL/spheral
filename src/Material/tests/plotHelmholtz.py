@@ -1,4 +1,4 @@
-from SolidSpheral3d import *
+from Spheral3d import *
 import Gnuplot
 from SpheralTestUtilities import *
 
@@ -8,7 +8,9 @@ Pmin = 1e-6
 Pmax = 1e35
 Tmin = 100.0
 
-units = CGSUnits()
+units = PhysicalConstants(0.01,
+                          0.001,
+                          1.0e-6)
 nodes = SphNodeList3d(1)
 
 eos = HelmholtzEquationOfState(nodes, # !!!!
