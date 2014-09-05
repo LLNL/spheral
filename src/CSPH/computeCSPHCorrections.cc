@@ -199,8 +199,6 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               // First moment. 
               m1(nodeListi, i) += wwj * rij;
               m1(nodeListj, j) -= wwi * rij;
-              //gradm1(nodeListi, i) += wj*( rij*gradWj + Tensor::one*Wj);
-              //gradm1(nodeListj, j) += wi*(-rij*gradWi + Tensor::one*Wi);
               gradm1(nodeListi, i) += wj*(outerProduct<Dimension>(rij,gradWj) + Tensor::one*Wj);
               gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij,gradWi) + Tensor::one*Wi);
 
@@ -210,19 +208,17 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               m2(nodeListj, j) += wwi*thpt;
               gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
               gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
+
+              
               for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
                 for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-                  //gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
-                  gradm2(nodeListi, i)(jj, jj, ii) += wwj*rij(ii);
-
-                  gradm2(nodeListj, j)(jj, jj, ii) -= wwi*rij(ii);
-                  //gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
-
-                  //gradm2(nodeListi, i)(ii, jj, ii) += wwj*rij(jj);
+                  gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
                   gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
 
+                  gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
                   gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
-                  //gradm2(nodeListj, j)(ii, jj, ii) -= wwi*rij(jj);
+
+
                 }
               }
             }
@@ -241,13 +237,13 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         A(nodeListi, i) = 1.0/Ainv;
         B(nodeListi, i) = -m2invm1;
         gradA0(nodeListi, i) = -FastMath::square(A0(nodeListi, i))*gradm0(nodeListi, i);
-        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
-          (gradm0(nodeListi, i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(nodeListi, i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
-           innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(nodeListi, i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(nodeListi, i)));
+        //gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
+        //  (gradm0(nodeListi, i) + innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(nodeListi, i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)) -
+        //   innerProduct<Dimension>(m1(nodeListi, i), m2inv*gradm1(nodeListi, i)) - innerProduct<Dimension>(m2inv*m1(nodeListi, i), gradm1(nodeListi, i)));
 
-        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
-          (gradm0(nodeListi,i) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,m1(nodeListi, i)),gradm1(nodeListi, i)) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,gradm1(nodeListi, i)),m1(nodeListi, i)) +
-	  innerProduct<Dimension>(innerProduct<Dimension>(m2inv,innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i),m2inv),m1(nodeListi, i))),m1(nodeListi, i)));
+        //gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*
+        //  (gradm0(nodeListi,i) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,m1(nodeListi, i)),gradm1(nodeListi, i)) - innerProduct<Dimension>(innerProduct<Dimension>(m2inv,gradm1(nodeListi, i)),m1(nodeListi, i)) +
+	//  innerProduct<Dimension>(innerProduct<Dimension>(m2inv,innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i),m2inv),m1(nodeListi, i))),m1(nodeListi, i)));
         
         //gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*(gradm0(i));
 
@@ -259,8 +255,24 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 	  //innerProduct<Dimension>(innerProduct<Dimension>(innerProduct<Dimension>(m2inv, gradm2(i)), m2inv), m1(nodeListi, i)).dot(m1(nodeListi, i)));
 
 
-        gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i), m2inv), m1(nodeListi, i)) - gradm1(nodeListi, i));
+        //gradB(nodeListi, i) = m2inv*(innerProduct<Dimension>(innerProduct<Dimension>(gradm2(nodeListi, i), m2inv), m1(nodeListi, i)) - gradm1(nodeListi, i));
 
+        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*gradm0(nodeListi, i);
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+           for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+               for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                   gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*m1(nodeListi, i)(kk)*gradm1(nodeListi, i)(jj,ii);
+                   gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm1(nodeListi, i)(kk,ii)*m1(nodeListi, i)(jj);
+                   gradB(nodeListi, i)(ii,jj) -= m2inv(ii,kk)*gradm1(nodeListi, i)(kk,jj);
+                 for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
+                   for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+                     gradA(nodeListi, i)(ii) -= A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm2(nodeListi, i)(kk,ll,ii)*m2inv(ll,mm)*m1(nodeListi, i)(mm)*m1(nodeListi, i)(jj);
+                     gradB(nodeListi, i)(ii,jj) += m2inv(ii,kk)*gradm2(nodeListi, i)(kk,ll,jj)*m2inv(ll,mm)*m1(nodeListi, i)(mm);
+                   }
+                 }
+               }
+           }
+        }
 
         if(i==testNode && debug){
               printf("M0(i)=%16.10f\n", m0(nodeListi, i));
