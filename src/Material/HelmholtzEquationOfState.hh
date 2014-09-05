@@ -103,20 +103,23 @@ namespace Spheral {
         private:
             //--------------------------- Private Interface ---------------------------//
             
-            mutable FieldSpace::Field<Dimension, Scalar> myAbar;
-            mutable FieldSpace::Field<Dimension, Scalar> myZbar;
-            mutable FieldSpace::Field<Dimension, Scalar> mySpecificThermalEnergy;
-            mutable FieldSpace::Field<Dimension, Scalar> myMassDensity;
-            mutable FieldSpace::Field<Dimension, Scalar> myTemperature;
-            mutable FieldSpace::Field<Dimension, Scalar> myPressure;
-            mutable FieldSpace::Field<Dimension, Scalar> mySoundSpeed;
-            mutable FieldSpace::Field<Dimension, Scalar> myGamma;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myAbar;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myZbar;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySpecificThermalEnergy;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myMassDensity;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myTemperature;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myPressure;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySoundSpeed;
+            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myGamma;
             
             Scalar mabar0, mzbar0, mTmax, mPmin, mPmax;
 			mutable Scalar mTmin;
             bool needUpdate;
+            bool fieldsStored;
 			
 			const PhysicalConstants& mConstants;
+            
+            void storeFields(FieldSpace::Field<Dimension, Scalar>& thisField);
 
         };
     }
