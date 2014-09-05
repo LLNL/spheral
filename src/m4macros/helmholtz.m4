@@ -19,7 +19,7 @@ AC_ARG_WITH(helmholtz,
    HELMSRCS="HelmholtzEquationOfStateInst.cc"
    HELMFSRCS="public_helm.f90 invert_helm.f90"
    PYTHONPKGS+=" Helmholtz" #does something go here!??!
-   LDFLAGS+=" /sw/lib/gcc4.8/lib/libgfortran.a"
+   LDFLAGS+=" $FORTLINK"
 ],
 [
    AC_MSG_RESULT(no)
