@@ -55,12 +55,10 @@ namespace Material {
 
     template<typename Dimension>
     HelmholtzEquationOfState<Dimension>::
-    HelmholtzEquationOfState(const NodeList<Dimension>& myNodeList,
-                             const PhysicalConstants& constants,
+    HelmholtzEquationOfState(const PhysicalConstants& constants,
                              const double minimumPressure,
                              const double maximumPressure,
                              const double minimumTemperature,
-                             const double maximumTemperature,
                              const MaterialPressureMinType minPressureType,
                              const Scalar abar0,
                              const Scalar zbar0):
@@ -70,7 +68,8 @@ namespace Material {
     mPmin(minimumPressure),
     mPmax(maximumPressure),
     mTmin(minimumTemperature),
-    mTmax(maximumTemperature),
+    myAbar(),
+    //...
     mConstants(constants)
     {
         needUpdate = 1; // flip this on and off later
@@ -100,7 +99,7 @@ namespace Material {
                 const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
         
-        if(!fieldsStored) storeFields(Pressure);
+        storeFields(Pressure);
         
         int npart = massDensity.numElements();
         myMassDensity = massDensity;
@@ -128,7 +127,7 @@ namespace Material {
                    const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
 
-        if(!fieldsStored) storeFields(temperature);
+        storeFields(temperature);
         
         int npart = massDensity.numElements();
         myMassDensity = massDensity;
@@ -156,7 +155,7 @@ namespace Material {
                              const Field<Dimension, Scalar>& temperature) const {
         CHECK(valid());
         
-        if(!fieldsStored) storeFields(specificThermalEnergy);
+        storeFields(specificThermalEnergy);
         
         int npart = massDensity.numElements();
         myMassDensity = massDensity;
@@ -184,7 +183,7 @@ namespace Material {
                     const Field<Dimension, Scalar>& temperature) const {
         CHECK(valid());
         
-        if(!fieldsStored) storeFields(specificHeat);
+        storeFields(specificHeat);
         
         const double kB = mConstants.kB();
         const double mp = mConstants.protonMass();
@@ -207,7 +206,7 @@ namespace Material {
                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
 
-        if(!fieldsStored) storeFields(soundSpeed);
+        storeFields(soundSpeed);
         
         int npart = massDensity.numElements();
         myMassDensity = massDensity;
@@ -237,7 +236,7 @@ namespace Material {
                    const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
         
-        if(!fieldsStored) storeFields(bulkModulus);
+        storeFields(bulkModulus);
         
         setPressure(bulkModulus, massDensity, specificThermalEnergy);
     }
@@ -296,17 +295,18 @@ namespace Material {
     void
     HelmholtzEquationOfState::storeFields(Field<Dimension, Scalar>& thisField);
     {
-        NodeList myNodeList     = thisField.nodeList();
-        myMassDensity           = new Field<Dimension, Scalar>("helmMassDensity",myNodeList);
-        mySpecificThermalEnergy = new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList);
-        myTemperature           = new Field<Dimension, Scalar>("helmTemperature",myNodeList);
-        myPressure              = new Field<Dimension, Scalar>("helmPressure",myNodeList);
-        mySoundSpeed            = new Field<Dimension, Scalar>("helmSoundSpeed",myNodeList);
-        myGamma                 = new Field<Dimension, Scalar>("helmGamma",myNodeList);
-        myAbar                  = new Field<Dimension, Scalar>("helmAbar",myNodeList,mabar0);
-        myZbar                  = new Field<Dimension, Scalar>("helmZbar",myNodeList,mzbar0);
-        
-        fieldsStored = 1;
+        if(myMassdensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
+        {
+            NodeList myNodeList     = thisField.nodeList();
+            myMassDensity           = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
+            mySpecificThermalEnergy = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList));
+            myTemperature           = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",myNodeList));
+            myPressure              = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",myNodeList));
+            mySoundSpeed            = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",myNodeList));
+            myGamma                 = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",myNodeList));
+            myAbar                  = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",myNodeList,mabar0));
+            myZbar                  = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",myNodeList,mzbar0));
+        }
     }
 
 }

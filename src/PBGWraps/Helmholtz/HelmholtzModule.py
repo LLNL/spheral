@@ -60,12 +60,10 @@ self.generateHelmholtzEquationOfStateBindings(self.HelmholtzEquationOfState%(dim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
 
         # Constructor.
-        x.add_constructor([constrefparam(nodelist, "myNodeList"),
-                           constrefparam("PhysicalConstants", "constants"),
+        x.add_constructor([constrefparam("PhysicalConstants", "constants"),
                            param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
                            param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
                            param("double", "minimumTemperature", default_value="-std::numeric_limits<double>::min()"),
-                           param("double", "maximumTemperature", default_value="std::numeric_limits<double>::max()"),
                            param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor"),
                            param("double", "abar0", default_value="13.6"),
                            param("double", "zbar0", default_value="6.8")])
