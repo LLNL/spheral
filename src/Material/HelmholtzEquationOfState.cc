@@ -310,14 +310,14 @@ namespace Material {
         if(myMassdensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
         {
             NodeList myNodeList     = thisField.nodeList();
-            myMassDensity           = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
-            mySpecificThermalEnergy = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList));
-            myTemperature           = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",myNodeList));
-            myPressure              = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",myNodeList));
-            mySoundSpeed            = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",myNodeList));
-            myGamma                 = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",myNodeList));
-            myAbar                  = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",myNodeList,mabar0));
-            myZbar                  = std::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",myNodeList,mzbar0));
+            myMassDensity           = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
+            mySpecificThermalEnergy = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList));
+            myTemperature           = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",myNodeList));
+            myPressure              = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",myNodeList));
+            mySoundSpeed            = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",myNodeList));
+            myGamma                 = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",myNodeList));
+            myAbar                  = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",myNodeList,mabar0));
+            myZbar                  = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",myNodeList,mzbar0));
         }
     }
 
