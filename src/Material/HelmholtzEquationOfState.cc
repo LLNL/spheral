@@ -69,11 +69,23 @@ namespace Material {
     mPmax(maximumPressure),
     mTmin(minimumTemperature),
     myAbar(),
-    //...
+    myZbar(),
+    mySpecificThermalEnergy(),
+    myMassDensity(),
+    myTemperature(),
+    myPressure(),
+    mySoundSpeed(),
+    myGamma(),
     mConstants(constants)
     {
         needUpdate = 1; // flip this on and off later
         Fortran2(init_helm_table);
+        
+        /*
+         need to set constants here to use CGS no matter what
+         is passed in
+         */
+        
     }
 
     //------------------------------------------------------------------------------
