@@ -305,7 +305,7 @@ namespace Material {
     //------------------------------------------------------------------------------
     template<typename Dimension>
     void
-    HelmholtzEquationOfState::storeFields(Field<Dimension, Scalar>& thisField);
+    HelmholtzEquationOfState::storeFields(Field<Dimension, Scalar>& thisField)
     {
         if(myMassdensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
         {
