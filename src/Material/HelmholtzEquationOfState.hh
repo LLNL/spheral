@@ -101,14 +101,14 @@ namespace Spheral {
         private:
             //--------------------------- Private Interface ---------------------------//
             
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myAbar;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myZbar;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySpecificThermalEnergy;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myMassDensity;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myTemperature;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myPressure;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySoundSpeed;
-            mutable std::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myGamma;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myAbar;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myZbar;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySpecificThermalEnergy;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myMassDensity;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myTemperature;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myPressure;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySoundSpeed;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myGamma;
             
             Scalar mabar0, mzbar0, mPmin, mPmax;
 			mutable Scalar mTmin;
