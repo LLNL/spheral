@@ -93,8 +93,8 @@ namespace Spheral {
             const FieldSpace::Field<Dimension, Scalar>& abar() const;
             const FieldSpace::Field<Dimension, Scalar>& zbar() const;
 			
-			const bool getUpdateStatus() const;
-			void setUpdateStatus(bool bSet);
+	  const bool getUpdateStatus() const;
+	  void setUpdateStatus(bool bSet);
             
             virtual bool valid() const;
             
@@ -116,7 +116,7 @@ namespace Spheral {
 			
 			const PhysicalConstants& mConstants;
             
-            void storeFields(FieldSpace::Field<Dimension, Scalar>& thisField);
+            const void storeFields(FieldSpace::Field<Dimension, Scalar>& thisField) const;
 
         };
     }
