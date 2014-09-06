@@ -18,32 +18,32 @@ extern "C" {
 	void Fortran2(init_helm_table)();
 	
 	void Fortran2(get_helm_table)(double *f,double *fd,double *ft,double *fdd,
-								  double *ftt,double *fdt,double *fddt,
-								  double *fdtt,double *fddtt,double *dpdf,
-								  double *dpdfd,double *dpdft,double *dpdfdt,
-								  double *ef,double *efd,double *eft,double *efdt,
-								  double *xf,double *xfd,double *xft,double *xfdt);
+					  double *ftt,double *fdt,double *fddt,
+					  double *fdtt,double *fddtt,double *dpdf,
+					  double *dpdfd,double *dpdft,double *dpdfdt,
+					  double *ef,double *efd,double *eft,double *efdt,
+					  double *xf,double *xfd,double *xft,double *xfdt);
 	
 	void Fortran2(wrapper_invert_helm_ed)(int *npart, double *density,
-										  double *energy, double *abar,
-										  double *zbar, double *temperature,
-										  double *pressure, double *small_temp, double *vsound);
+						  double *energy, double *abar,
+						  double *zbar, double *temperature,
+						  double *pressure, double *small_temp, double *vsound);
 	
 	void Fortran2(wrapper_helmeos)(int *npart, double *den_row,
-								   double *etot_row, double *abar_row,
-								   double *zbar_row, double *temperature,
-								   double *pressure);
+					   double *etot_row, double *abar_row,
+					   double *zbar_row, double *temperature,
+					   double *pressure);
 	
 	void Fortran2(set_helm_table)(double *f, double *fd, double *ft, double *fdd,
-								  double *ftt, double *fdt, double *fddt,
-								  double *fdtt, double *fddtt, double *dpdf,
-								  double *dpdfd, double *dpdft, double *dpdfdt,
-								  double *ef, double *efd, double *eft,
-								  double *efdt, double *xf, double *xfd,
-								  double *xft, double *xfdt);
+					  double *ftt, double *fdt, double *fddt,
+					  double *fdtt, double *fddtt, double *dpdf,
+					  double *dpdfd, double *dpdft, double *dpdfdt,
+					  double *ef, double *efd, double *eft,
+					  double *efdt, double *xf, double *xfd,
+					  double *xft, double *xfdt);
 	
 	void Fortran2(azbar)(double *xmass, double *aion, double *zion, int *ionmax,
-						 double *ymass, double *abar, double *zbar);
+					 double *ymass, double *abar, double *zbar);
 }
 
 namespace Spheral {
@@ -118,13 +118,13 @@ namespace Material {
         mySpecificThermalEnergy = specificThermalEnergy;
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
-                                             &myAbar[0], &myZbar[0], &myTemperature[0],
-                                             &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            Fortran2(wrapper_invert_helm_ed)(&npart, myMassDensity, mySpecificThermalEnergy,
+                                             myAbar, myZbar, myTemperature,
+                                             myPressure, &mTmin, mySoundSpeed);
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            Pressure(i) = myPressure(i);
+            Pressure(i) = myPressure[i];
         }
     }
 
@@ -146,13 +146,13 @@ namespace Material {
         mySpecificThermalEnergy = specificThermalEnergy;
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
-                                             &myAbar[0], &myZbar[0], &myTemperature[0],
-                                             &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            Fortran2(wrapper_invert_helm_ed)(&npart, myMassDensity, mySpecificThermalEnergy,
+                                             myAbar, myZbar, myTemperature,
+                                             myPressure, &mTmin, mySoundSpeed);
         }
 
         for (size_t i = 0; i != massDensity.numElements(); ++i) {
-            temperature(i) = myTemperature(i);
+            temperature(i) = myTemperature[i];
         }
     }
 
@@ -174,13 +174,13 @@ namespace Material {
         myTemperature = temperature;
         
         if(needUpdate){
-            Fortran2(wrapper_helmeos)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
-                                             &myAbar[0], &myZbar[0], &myTemperature[0],
-                                             &myPressure[0]);
+            Fortran2(wrapper_helmeos)(&npart, myMassDensity, mySpecificThermalEnergy,
+                                             myAbar, myZbar, myTemperature,
+                                             myPressure);
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            specificThermalEnergy(i) = mySpecificThermalEnergy(i);
+            specificThermalEnergy(i) = mySpecificThermalEnergy[i];
         }
     }
 
@@ -199,11 +199,11 @@ namespace Material {
         
         const double kB = mConstants.kB();
         const double mp = mConstants.protonMass();
-        int npart = myGamma.numElements();
+        int npart = myGamma->numElements();
         double Cv;
         
         for (size_t i = 0; i != npart; ++i)
-            Cv += kB/(myGamma(i)*myAbar(i)*mp);
+            Cv += kB/(myGamma[i]*myAbar[i]*mp);
         specificHeat = Cv/npart;
     }
 
@@ -225,14 +225,14 @@ namespace Material {
         mySpecificThermalEnergy = specificThermalEnergy;
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, &myMassDensity[0], &mySpecificThermalEnergy[0],
-                                             &myAbar[0], &myZbar[0], &myTemperature[0],
-                                             &myPressure[0], &mTmin, &mySoundSpeed[0]);
+            Fortran2(wrapper_invert_helm_ed)(&npart, myMassDensity, mySpecificThermalEnergy,
+                                             myAbar, myZbar, myTemperature,
+                                             myPressure, &mTmin, mySoundSpeed);
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            soundSpeed(i) = mySoundSpeed(i);
-            myGamma(i) = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure(i);
+            soundSpeed(i) = mySoundSpeed[i];
+            myGamma[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure[i];
         }
     }
 
@@ -304,12 +304,13 @@ namespace Material {
     // Store Fields to local memory
     //------------------------------------------------------------------------------
     template<typename Dimension>
-    void
-    HelmholtzEquationOfState::storeFields(Field<Dimension, Scalar>& thisField)
+    const void
+    HelmholtzEquationOfState<Dimension>::
+    storeFields(Field<Dimension, Scalar>& thisField) const
     {
-        if(myMassdensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
+        if(myMassDensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
         {
-            NodeList myNodeList     = thisField.nodeList();
+	  NodeList<Dimension> myNodeList     = thisField.nodeList();
             myMassDensity           = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
             mySpecificThermalEnergy = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList));
             myTemperature           = boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",myNodeList));
