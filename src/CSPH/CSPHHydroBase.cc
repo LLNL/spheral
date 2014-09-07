@@ -957,13 +957,36 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //   cerr << j << " " << rj << " " << Pj << " " << -rij << " " << -etaj << endl;
               // }
 
+              // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
+              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                                        ri, etai, vi, rhoi, ci, Hi,
+                                                        rj, etaj, vj, rhoj, cj, Hj);
+              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              maxViscousPressurei = max(maxViscousPressurei, Qi);
+              maxViscousPressurej = max(maxViscousPressurej, Qj);
+
               // Symmetrized kernel weight and gradient.
-              Scalar Wi, gWi, Wj, gWj;
-              Vector gradWi, gradWj;
-              CSPHKernelAndGradient(W,  rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              Scalar gWi, gWj, W1i, W1j, W0i, W0j;
+              Vector gradW1i, gradW1j, gradW0i, gradW0j;
+              CSPHKernelAndGradient(W,  rij,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, W1j, gWj, gradW1j);
+              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, W1i, gWi, gradW1i);
+              CSPHKernelAndGradient(W,  rij,  etaj, Hj, Hdetj, A0i, Vector::zero, gradA0i, Tensor::zero, W0j, gWj, gradW0j);
+              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, W0i, gWi, gradW0i);
               const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
+
+              // Compute the limiter determining how much of the linear correction we allow.
+              const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
+                                                      max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
+              const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
+              const Scalar f = min(fQ, fg);
+              CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
+              const Scalar Wj = (1.0 - f)*W0j + f*W1j;
+              const Scalar Wi = (1.0 - f)*W0i + f*W1i;
+              const Vector gradWj = (1.0 - f)*gradW0j + f*gradW1j;
+              const Vector gradWi = (1.0 - f)*gradW0i + f*gradW1i;
+              CHECK(gradWj.dot(gradWi) <= 0.0);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -998,9 +1021,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DrhoDtj += mj*deltaDrhoDtj;
 
               // Compute the pair-wise artificial viscosity.
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
               Vector Qacci = -weightj/rhoi*rhoj*rhoj*(QPiij.second.Transpose())*gradWj;
               Vector Qaccj = -weighti/rhoj*rhoi*rhoi*(QPiij.first .Transpose())*gradWi;
               // Scalar Qworki = -vij.dot(Qacci);
@@ -1015,12 +1035,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 Qaccj.Zero();
                 Qworkj = 0.0;
               }
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
-              CHECK(Qworki >= 0.0);
-              CHECK(Qworkj >= 0.0);
+              CHECK2(Qworki >= 0.0, i << " " << j << " " << gradWSPHi << " " << gradWSPHj);
+              CHECK2(Qworkj >= 0.0, i << " " << j << " " << gradWSPHi << " " << gradWSPHj);
+
+              // SPH Q Variant.
+              // const Vector gradWSPHij = 0.5*(gradWSPHi + gradWSPHj);
+              // const Vector Qacci = -mj*0.5*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              // const Vector Qaccj =  mi*0.5*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              // Scalar Qworki = vij.dot(QPiij.first*gradWSPHi);
+              // Scalar Qworkj = vij.dot(QPiij.second*gradWSPHj);
+              // SPH Q Variant.
+
 
               // // Acceleration (SPH form).
               // {
