@@ -509,8 +509,8 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
-    PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
-    // PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    // PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dimension>(dataBase));
     // PolicyPointer thermalEnergyPolicy(new CSPHSpecificThermalEnergyPolicy<Dimension>(dataBase, this->kernel()));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy));
@@ -901,7 +901,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                ++jItr) {
             const int j = *jItr;
 
-            // Only proceed if this node pair has not been calculated yet.
+            // // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
@@ -974,18 +974,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
               massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
 
-              // // Contribution to the sum density (only if the same material).
-              // if (nodeListi == nodeListj) {
-              //   rhoSumi += mj*Wj; // W.kernelValue(etaMagi, Hdeti);
-              //   rhoSumj += mi*Wi; // W.kernelValue(etaMagj, Hdetj);
-              // }
-
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = -weightj*mj/mi*vij.dyad(gradWj);
-              const Tensor deltaDvDxj =  weighti*mi/mj*vij.dyad(gradWi);
-              // const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
-              // const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
+              const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
+              const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
               DvDxi += deltaDvDxi;
               DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
@@ -1009,20 +1001,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
-              // const Vector Qacci = 0.25*(QPiij.first + QPiij.second)*gradWi;
-              // const Vector Qaccj = 0.25*(QPiij.first + QPiij.second)*gradWj;
-              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
-              // const Vector Qacci = 0.5*(QPiij.second*gradWi);
-              // const Vector Qaccj = 0.5*(QPiij.first *gradWj);
-              // const Scalar workQi = 0.5*(QPiij.first *vij).dot(gradWSPHi);
-              // const Scalar workQj = 0.5*(QPiij.second*vij).dot(gradWSPHj);
-              // const Scalar workQi = vij.dot(Qacci);
-              // const Scalar workQj = vij.dot(Qaccj);
+              Vector Qacci = -weightj/rhoi*rhoj*rhoj*(QPiij.second.Transpose())*gradWj;
+              Vector Qaccj = -weighti/rhoj*rhoi*rhoi*(QPiij.first .Transpose())*gradWi;
+              // Scalar Qworki = -vij.dot(Qacci);
+              // Scalar Qworkj =  vij.dot(Qaccj);
+              Scalar Qworki =  weightj*rhoj*(QPiij.second*vij).dot(gradWj);
+              Scalar Qworkj = -weighti*rhoi*(QPiij.first *vij).dot(gradWi);
+              if (Qworki < 0.0) {
+                Qacci.Zero();
+                Qworki = 0.0;
+              }
+              if (Qworkj < 0.0) {
+                Qaccj.Zero();
+                Qworkj = 0.0;
+              }
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
+              CHECK(Qworki >= 0.0);
+              CHECK(Qworkj >= 0.0);
 
               // // Acceleration (SPH form).
               // {
@@ -1061,50 +1059,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-
-              // Vector deltaDvDti = weightj*rhoj*(Pi - Pj)/(rhoi*rhoi)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*rhoi*(Pj - Pi)/(rhoj*rhoj)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;  
-
-              Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-
-              // Vector deltaDvDti = -weightj*Pj*gradWj/rhoi - mj*(Qacci + Qaccj);
-              // Vector deltaDvDtj =  weighti*Pi*gradWi/rhoj + mi*(Qacci + Qaccj);
-
-              // Vector deltaDvDti = weightj*mj/(mi*rhoi)*(Pi - Pj)*gradWj - weightj*rhoj*rhoj/rhoi*QPiij.second*gradWj; 
-              // Vector deltaDvDtj = weighti*mi/(mj*rhoj)*(Pj - Pi)*gradWi - weighti*rhoi*rhoi/rhoj*QPiij.first*gradWi;
-
-              // const Scalar Pij = 0.5*(Pi + Pj);
-              // const Tensor Qij = 0.5*(rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second);
-              // const Vector gradWij = 0.5*(-gradWi + gradWj);
-              // Vector deltaDvDti = -0.5*weightj*(1.0/rhoi + 1.0/rhoj)*(Pij*gradWij + Qij*gradWij);
-              // Vector deltaDvDtj = -mi/mj*deltaDvDti;
-              // Vector deltaDvDti = -weightj*(1.0/rhoi)*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              // Vector deltaDvDtj = -weighti*(1.0/rhoj)*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-
-              // const Vector deltaDvDtij = (mi*deltaDvDti - mj*deltaDvDtj)/(mi + mj);
-              // deltaDvDti = deltaDvDtij;
-              // deltaDvDtj = -mi/mj*deltaDvDtij;
-              
+              Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
+              Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
+              // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
 
               // Specific thermal energy evolution.
-              const Scalar workQi = weightj/rhoi*rhoj*rhoj*(vij.dot(gradWj));
-              const Scalar workQj = weighti/rhoj*rhoi*rhoi*(vij.dot(gradWi));
-              DepsDti -= workQi;
-              DepsDtj -= workQj;
+              // CHECK2((QPiij.second*vij).dot(gradWj) >= 0.0, (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
+              // CHECK2((QPiij.first*vij).dot(gradWi) <= 0.0,  (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
+              // const Scalar Qwork = 0.5*(weightj*rhoj*(QPiij.second*vij).dot(gradWj) -
+              //                           weighti*rhoi*(QPiij.first*vij).dot(gradWi));
+              // CHECK(Qwork >= 0.0);
+              DepsDti += Qworki;
+              DepsDtj += Qworkj;
               if (mCompatibleEnergyEvolution) {
-                // const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                // const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                // const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                // const unsigned numNeighborsj = (j < firstGhostNodej ? 
-                //                                 max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-                //                                 1);
-                // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                // const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
+                const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                const unsigned numNeighborsj = (j < firstGhostNodej ? 
+                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+                                                1);
+                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
               }
 
               // Estimate of delta v (for XSPH).
@@ -1129,9 +1109,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
       // // rhoSumi += mi*W(0.0, Hdeti);
 
-      // // Finish the velocity gradient.
-      // DvDxi += weighti*vi*selfGradContrib;
-      // localDvDxi += weighti*vi*selfGradContrib;
+      // Finish the velocity gradient.
+      DvDxi += weighti*vi*selfGradContrib;
+      localDvDxi += weighti*vi*selfGradContrib;
 
       // Finish the density gradient.
       DrhoDxi += weighti*rhoi*selfGradContrib;
@@ -1140,12 +1120,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // Finish the acceleration.
-      const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib;
+      const Vector deltaDvDtii = -weighti/rhoi*Pi*selfGradContrib;
       DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
-      DepsDti += Pi/(rhoi*rhoi)*DrhoDti;
-      // DepsDti = -Pi/rhoi * DvDxi.Trace();
+      DepsDti -= Pi/rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
