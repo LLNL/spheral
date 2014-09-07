@@ -431,7 +431,7 @@ if graphics in ("gnu", "matplot"):
     drhodt = derivs.scalarFields("delta mass density")
     drhodx = derivs.vectorFields("mass density gradient")
     pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", colorNodeLists=False)
-    pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
+    #pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
