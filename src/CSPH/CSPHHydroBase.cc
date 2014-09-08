@@ -808,6 +808,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
+  // Find the mass density gradient.
+  DrhoDx = gradientCSPH(massDensity, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(DrhoDx);
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -977,10 +986,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
 
               // Compute the limiter determining how much of the linear correction we allow.
-              const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
-                                                      max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
+              // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
+              //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
+              const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
               const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = min(fQ, fg);
+              const Scalar f = min(fL, fg);
               CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
               const Scalar Wj = (1.0 - f)*W0j + f*W1j;
               const Scalar Wi = (1.0 - f)*W0i + f*W1i;
@@ -1008,11 +1018,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj += deltaDvDxj;
               }
 
-              // Mass density gradient.
-              const Vector deltaDrhoDxi = weightj*rhoj*gradWj;
-              const Vector deltaDrhoDxj = weighti*rhoi*gradWi;
-              DrhoDxi += deltaDrhoDxi;
-              DrhoDxj += deltaDrhoDxj;
+              // // Mass density gradient.
+              // const Vector deltaDrhoDxi = weightj*rhoj*gradWj;
+              // const Vector deltaDrhoDxj = weighti*rhoi*gradWi;
+              // DrhoDxi += deltaDrhoDxi;
+              // DrhoDxj += deltaDrhoDxj;
 
               // // Mass density evolution (SPH).
               // const double deltaDrhoDti = vij.dot(gradWSPHi);
@@ -1023,10 +1033,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the pair-wise artificial viscosity.
               Vector Qacci = -weightj/rhoi*rhoj*rhoj*(QPiij.second.Transpose())*gradWj;
               Vector Qaccj = -weighti/rhoj*rhoi*rhoi*(QPiij.first .Transpose())*gradWi;
-              // Scalar Qworki = -vij.dot(Qacci);
-              // Scalar Qworkj =  vij.dot(Qaccj);
-              Scalar Qworki =  weightj*rhoj*(QPiij.second*vij).dot(gradWj);
-              Scalar Qworkj = -weighti*rhoi*(QPiij.first *vij).dot(gradWi);
+              Scalar Qworki = -vij.dot(Qacci);
+              Scalar Qworkj =  vij.dot(Qaccj);
+              // Scalar Qworki =  weightj*rhoj*(QPiij.second*vij).dot(gradWj);
+              // Scalar Qworkj = -weighti*rhoi*(QPiij.first *vij).dot(gradWi);
               if (Qworki < 0.0) {
                 Qacci.Zero();
                 Qworki = 0.0;
@@ -1138,8 +1148,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DvDxi += weighti*vi*selfGradContrib;
       localDvDxi += weighti*vi*selfGradContrib;
 
-      // Finish the density gradient.
-      DrhoDxi += weighti*rhoi*selfGradContrib;
+      // // Finish the density gradient.
+      // DrhoDxi += weighti*rhoi*selfGradContrib;
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
