@@ -311,15 +311,15 @@ namespace Material {
     {
         if(myMassDensity->numElements() == 0 || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
         {
-            NodeList<Dimension> myNodeList = thisField.nodeList();
-            myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
-            mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",myNodeList));
-            myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",myNodeList));
-            myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",myNodeList));
-            mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",myNodeList));
-            myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",myNodeList));
-            myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",myNodeList,mabar0));
-            myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",myNodeList,mzbar0));
+            
+            myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",thisField.nodeList()));
+            mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",thisField.nodeList()));
+            myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisField.nodeList()));
+            myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisField.nodeList()));
+            mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisField.nodeList()));
+            myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisField.nodeList()));
+            myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisField.nodeList(),mabar0));
+            myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisField.nodeList(),mzbar0));
         }
     }
 
