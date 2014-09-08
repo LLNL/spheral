@@ -114,6 +114,8 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar& Vi = volume(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar A0i = A0(nodeListi, i);
+      const Scalar Ai = A(nodeListi, i);
+      const Vector& Bi = B(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Get the neighbors for this node (in this NodeList).  We use the approximation here
@@ -133,14 +135,16 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Vj = volume(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
           const Scalar A0j = A0(nodeListi, j);
+          const Scalar Aj = A(nodeListi, j);
+          const Vector& Bj = B(nodeListi, j);
           const Scalar Hdetj = Hj.Determinant();
 
           // Kernel weighting and gradient.
           const Vector rij = ri - rj;
           const Scalar etai = (Hi*rij).magnitude();
           const Scalar etaj = (Hj*rij).magnitude();
-          const Scalar Wi = CSPHKernel(W, rij, etai, Hdeti, A0j, Vector::zero);
-          const Scalar Wj = CSPHKernel(W, rij, etaj, Hdetj, A0i, Vector::zero);
+          const Scalar Wi = CSPHKernel(W, rij, etai, Hdeti, Aj, Bj);
+          const Scalar Wj = CSPHKernel(W, rij, etaj, Hdetj, Ai, Bi);
 
           // Sum the pair-wise contributions.
           Veff(nodeListi, i) += Vj*Vj*Wj;
@@ -152,7 +156,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       }
       
       // Finalize the density for node i.
-      const Scalar W0 = CSPHKernel(W, Vector::zero, 0.0, Hdeti, A0i, Vector::zero);
+      const Scalar W0 = CSPHKernel(W, Vector::zero, 0.0, Hdeti, Ai, Bi);
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
                                           (massDensity(nodeListi, i) + Vi*mi*W0) * 
