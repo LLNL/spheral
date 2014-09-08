@@ -125,7 +125,7 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            Pressure(i) = myPressure.get()[i];
+            Pressure(i) = myPressure->at(i);
         }
     }
 
@@ -153,7 +153,7 @@ namespace Material {
         }
 
         for (size_t i = 0; i != massDensity.numElements(); ++i) {
-            temperature(i) = myTemperature.get()[i];
+            temperature(i) = myTemperature->at(i);
         }
     }
 
@@ -181,7 +181,7 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            specificThermalEnergy(i) = mySpecificThermalEnergy.get()[i];
+            specificThermalEnergy(i) = mySpecificThermalEnergy->at(i);
         }
     }
 
@@ -204,7 +204,7 @@ namespace Material {
         double Cv;
         
         for (size_t i = 0; i != npart; ++i)
-            Cv += kB/(myGamma.get()[i]*myAbar.get()[i]*mp);
+            Cv += kB/(myGamma->at(i)*myAbar->at(i)*mp);
         specificHeat = Cv/npart;
     }
 
@@ -232,8 +232,8 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            soundSpeed(i) = mySoundSpeed[i];
-            myGamma.get()[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure.get()[i];
+            soundSpeed(i) = mySoundSpeed->at(i);
+            myGamma.get()[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
         }
     }
 
@@ -278,7 +278,7 @@ namespace Material {
     HelmholtzEquationOfState<Dimension>::
     abar() const {
         //return mabar;
-        return &myAbar;
+        return *myAbar;
     }
 
     //------------------------------------------------------------------------------
@@ -289,7 +289,7 @@ namespace Material {
     HelmholtzEquationOfState<Dimension>::
     zbar() const {
         //return mzbar;
-        return &myZbar;
+        return *myZbar;
     }
         
     //------------------------------------------------------------------------------
@@ -309,7 +309,7 @@ namespace Material {
     HelmholtzEquationOfState<Dimension>::
     storeFields(Field<Dimension, Scalar>& thisField) const
     {
-        if(myMassDensity.empty() || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
+        if(myMassDensity->numElements() == 0 || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
         {
             NodeList<Dimension> myNodeList = thisField.nodeList();
             myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",myNodeList));
