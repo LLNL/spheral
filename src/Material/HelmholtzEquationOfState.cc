@@ -147,9 +147,9 @@ namespace Material {
         mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(&specificThermalEnergy);
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, myMassDensity, mySpecificThermalEnergy,
-                                             myAbar, myZbar, myTemperature,
-                                             myPressure, &mTmin, mySoundSpeed);
+            Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
+                                             &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
+                                             &(myPressure->at(0)), &mTmin, &(mySoundSpeed->at(0)));
         }
 
         for (size_t i = 0; i != massDensity.numElements(); ++i) {
@@ -175,9 +175,9 @@ namespace Material {
         myTemperature   = shared_ptr<Field<Dimension, Scalar> >(&temperature);
         
         if(needUpdate){
-            Fortran2(wrapper_helmeos)(&npart, myMassDensity, mySpecificThermalEnergy,
-                                             myAbar, myZbar, myTemperature,
-                                             myPressure);
+            Fortran2(wrapper_helmeos)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
+                                             &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
+                                             &(myPressure->at(0)));
         }
         
         for (size_t i = 0; i != npart; ++i) {
@@ -226,9 +226,9 @@ namespace Material {
         mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(&specificThermalEnergy);
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, myMassDensity, mySpecificThermalEnergy,
-                                             myAbar, myZbar, myTemperature,
-                                             myPressure, &mTmin, mySoundSpeed);
+            Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
+                                             &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
+                                             &(myPressure->at(0)), &mTmin, &(mySoundSpeed->at(0)));
         }
         
         for (size_t i = 0; i != npart; ++i) {
