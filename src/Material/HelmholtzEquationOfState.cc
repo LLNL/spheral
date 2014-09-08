@@ -112,11 +112,9 @@ namespace Material {
                 const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
         
-        storeFields(Pressure);
+        storeFields(massDensity, specificThermalEnergy);
         
         int npart               = massDensity.numElements();
-        myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(&massDensity);
-        mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(&specificThermalEnergy);
         
         if(needUpdate){
 	  Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
@@ -140,11 +138,9 @@ namespace Material {
                    const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
 
-        storeFields(temperature);
+        storeFields(massDensity, specificThermalEnergy);
         
         int npart               = massDensity.numElements();
-        myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(&massDensity);
-        mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(&specificThermalEnergy);
         
         if(needUpdate){
             Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
@@ -160,15 +156,18 @@ namespace Material {
     //------------------------------------------------------------------------------
     // Set the specific thermal energy.
     //------------------------------------------------------------------------------
+    
     template<typename Dimension>
     void
     HelmholtzEquationOfState<Dimension>::
     setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                              const Field<Dimension, Scalar>& massDensity,
                              const Field<Dimension, Scalar>& temperature) const {
+       /*
+        
         CHECK(valid());
         
-        storeFields(specificThermalEnergy);
+        storeFields(massDensity, specificThermalEnergy);
         
         int npart       = massDensity.numElements();
         myMassDensity   = shared_ptr<Field<Dimension, Scalar> >(&massDensity);
@@ -183,7 +182,11 @@ namespace Material {
         for (size_t i = 0; i != npart; ++i) {
             specificThermalEnergy(i) = mySpecificThermalEnergy->at(i);
         }
+        */
+        
+        VERIFY2(false,"Helmhotlz EOS does not support this call.");
     }
+    
 
     //------------------------------------------------------------------------------
     // Set the specific heat.
@@ -196,7 +199,7 @@ namespace Material {
                     const Field<Dimension, Scalar>& temperature) const {
         CHECK(valid());
         
-        storeFields(specificHeat);
+        storeFields(massDensity, specificThermalEnergy);
         
         const double kB = mConstants.kB();
         const double mp = mConstants.protonMass();
@@ -219,11 +222,9 @@ namespace Material {
                   const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
 
-        storeFields(soundSpeed);
+        storeFields(massDensity, specificThermalEnergy);
         
         int npart               = massDensity.numElements();
-        myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(&massDensity);
-        mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(&specificThermalEnergy);
         
         if(needUpdate){
             Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
@@ -233,7 +234,7 @@ namespace Material {
         
         for (size_t i = 0; i != npart; ++i) {
             soundSpeed(i) = mySoundSpeed->at(i);
-            myGamma->at(i) = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
+            (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
         }
     }
 
@@ -248,8 +249,6 @@ namespace Material {
                    const Field<Dimension, Scalar>& massDensity,
                    const Field<Dimension, Scalar>& specificThermalEnergy) const {
         CHECK(valid());
-        
-        storeFields(bulkModulus);
         
         setPressure(bulkModulus, massDensity, specificThermalEnergy);
     }
@@ -307,20 +306,17 @@ namespace Material {
     template<typename Dimension>
     const void
     HelmholtzEquationOfState<Dimension>::
-    storeFields(Field<Dimension, Scalar>& thisField) const
+    storeFields(Field<Dimension, Scalar>& thisMassDensity, Field<Dimension, Scalar>& thisSpecificThermalEnergy) const
     {
-        if(myMassDensity->numElements() == 0 || myMassDensity->nodeListPtr() != thisField.nodeListPtr())
-        {
-            
-            myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmMassDensity",thisField.nodeList()));
-            mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSpecificThermalEnergy",thisField.nodeList()));
-            myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisField.nodeList()));
-            myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisField.nodeList()));
-            mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisField.nodeList()));
-            myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisField.nodeList()));
-            myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisField.nodeList(),mabar0));
-            myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisField.nodeList(),mzbar0));
-        }
+        
+        myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisMassDensity));
+        mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisSpecificThermalEnergy));
+        myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisField.nodeList()));
+        myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisField.nodeList()));
+        mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisField.nodeList()));
+        myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisField.nodeList()));
+        myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisField.nodeList(),mabar0));
+        myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisField.nodeList(),mzbar0));
     }
 
 }
