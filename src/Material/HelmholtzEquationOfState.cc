@@ -233,7 +233,7 @@ namespace Material {
         
         for (size_t i = 0; i != npart; ++i) {
             soundSpeed(i) = mySoundSpeed->at(i);
-            myGamma.get()[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
+            myGamma->at(i) = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
         }
     }
 
