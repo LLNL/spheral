@@ -121,10 +121,14 @@ Piij(const unsigned nodeListi, const unsigned i,
 
     //std::printf("%3.2f\n",rvAlpha(nodeListi, i));
   // The artificial internal energy.
+  // const Scalar ei = fshear*(-Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+  //                           Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  // const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+  //                           Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
                             Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                            Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))))*rvAlphaQ(nodeListj,j);
+                            Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
   CHECK(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
 

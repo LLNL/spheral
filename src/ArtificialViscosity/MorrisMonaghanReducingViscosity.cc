@@ -264,15 +264,15 @@ MorrisMonaghanReducingViscosity<Dimension>::
     applyGhostBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs)
 {
-    FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-    FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+    // FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    // FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
     
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-        (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierQ);
-        (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierL);
-    }
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) {
+    //     (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierQ);
+    //     (*boundaryItr)->applyFieldListGhostBoundary(reducingViscosityMultiplierL);
+    // }
 }
     
 template<typename Dimension>
@@ -281,15 +281,15 @@ MorrisMonaghanReducingViscosity<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs)
 {
-    FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-    FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
+    // FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
+    // FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
     
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-        (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierQ);
-        (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierL);
-    }
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) {
+    //     (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierQ);
+    //     (*boundaryItr)->enforceFieldListBoundary(reducingViscosityMultiplierL);
+    // }
 }
     
 //------------------------------------------------------------------------------
