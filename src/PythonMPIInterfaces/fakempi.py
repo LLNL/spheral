@@ -14,11 +14,11 @@ def reduce(var, op):
 def allreduce(var, op):
     return var
 
-def gather(obj, op):
-    return obj
+def gather(obj, root=0):
+    return [obj,]
 
 def allgather(obj, op):
-    return obj
+    return [obj,]
 
 def bcast(obj, root=0):
     return obj
