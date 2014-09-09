@@ -523,6 +523,7 @@ def plotNodePositions2d(thingy,
             pos = nodeList.positions().internalValues()
         xNodes.append([eval(xFunction % "x") for x in pos])
         yNodes.append([eval(yFunction % "x") for x in pos])
+    assert len(xNodes) == len(nodeLists)
     assert len(xNodes) == len(yNodes)
     
     globalXNodes = mpi.gather(xNodes)
@@ -562,13 +563,14 @@ def plotNodePositions2d(thingy,
         else:
             xlist, ylist = [[]], [[]]
             for xDomain, yDomain in zip(globalXNodes, globalYNodes):
+                print len(xDomain), len(nodeLists)
                 assert len(xDomain) == len(nodeLists)
                 assert len(yDomain) == len(nodeLists)
                 for i in xrange(len(nodeLists)):
                     xlist[0].extend(xDomain[i])
                     ylist[0].extend(yDomain[i])
 
-        plot = Gnuplot.Gnuplot(persist = persist)
+        plot = generateNewGnuPlot(persist = persist)
         plot("set size square")
         plot.title = title
         assert len(xlist) == len(ylist)
