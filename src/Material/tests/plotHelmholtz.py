@@ -64,7 +64,7 @@ Pplot.splot(Pdata, title="Pressure")
 
 csplot = Gnuplot.Gnuplot()
 csplot("set term x11")
-cslot("set logscale xy")
+csplot("set logscale xy")
 csplot.xlabel("rho/rho0")
 csplot.ylabel("eps (J/kg)")
 csdata = Gnuplot.Data(cs)
