@@ -221,15 +221,11 @@ class Geometry:
         x.add_inplace_numeric_operator("+=")
         x.add_inplace_numeric_operator("-=")
     
-        x.add_binary_numeric_operator("+", right = "double")
-        x.add_binary_numeric_operator("-", right = "double")
         x.add_binary_numeric_operator("*", right = "double")
         x.add_binary_numeric_operator("/", right = "double")
     
         x.add_binary_numeric_operator("*", left_cppclass = double)
     
-        x.add_inplace_numeric_operator("+=", right = "double")
-        x.add_inplace_numeric_operator("-=", right = "double")
         x.add_inplace_numeric_operator("*=", right = "double")
         x.add_inplace_numeric_operator("/=", right = "double")
     

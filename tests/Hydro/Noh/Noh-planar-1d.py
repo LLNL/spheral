@@ -62,7 +62,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
 
-            IntegratorConstructor = SynchronousRK2Integrator,
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
             steps = None,
             dt = 0.0001,

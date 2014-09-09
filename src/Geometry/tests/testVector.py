@@ -57,22 +57,6 @@ class VectorTestBase:
             assert result(i) == self.lhs(i) - self.rhs(i)
         return
 
-    def testScalarAddition(self):
-        val = 44.0
-        result = self.lhs + val
-        assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
-            assert result(i) == self.lhs(i) + val
-        return
-
-    def testScalarSubtraction(self):
-        val = 44.0
-        result = self.lhs - val
-        assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
-            assert result(i) == self.lhs(i) - val
-        return
-
     def testScalarMultiplication(self):
         val = 44.0
         result = self.lhs * val
@@ -103,24 +87,6 @@ class VectorTestBase:
         assert isinstance(result, self.VectorType)
         for i in xrange(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) - self.rhs(i)
-        return
-
-    def testInPlaceScalarAddition(self):
-        val = 44.0
-        result = self.VectorType(self.lhs)
-        result += val
-        assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
-            assert result(i) == self.lhs(i) + val
-        return
-
-    def testInPlaceScalarSubtraction(self):
-        val = 44.0
-        result = self.VectorType(self.lhs)
-        result -= val
-        assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
-            assert result(i) == self.lhs(i) - val
         return
 
     def testInPlaceScalarMultiplication(self):

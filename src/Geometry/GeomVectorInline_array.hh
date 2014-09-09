@@ -372,32 +372,6 @@ operator*(const GeomVector<nDim, otherMemory>& vec) const {
 }
 
 //------------------------------------------------------------------------------
-// Add a scalar to a vector.
-//------------------------------------------------------------------------------
-template<int nDim, bool ownMemory>
-inline
-GeomVector<nDim>
-GeomVector<nDim, ownMemory>::
-operator+(const double val) const {
-  GeomVector<nDim> result(*this);
-  result += val;
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a scalar from a vector.
-//------------------------------------------------------------------------------
-template<int nDim, bool ownMemory>
-inline
-GeomVector<nDim>
-GeomVector<nDim, ownMemory>::
-operator-(const double val) const {
-  GeomVector<nDim> result(*this);
-  result -= val;
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Multiply a vector by a scalar
 //------------------------------------------------------------------------------
 template<int nDim, bool ownMemory>
@@ -559,132 +533,6 @@ operator-=(const GeomVector<3, otherMemory>& vec) {
   mData[0] -= vec.mData[0];
   mData[1] -= vec.mData[1];
   mData[2] -= vec.mData[2];
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Add a scalar to this vector in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1, true>&
-GeomVector<1, true>::
-operator+=(const double val) {
-  mData[0] += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2, true>&
-GeomVector<2, true>::
-operator+=(const double val) {
-  mData[0] += val;
-  mData[1] += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3, true>&
-GeomVector<3, true>::
-operator+=(const double val) {
-  mData[0] += val;
-  mData[1] += val;
-  mData[2] += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<1, false>&
-GeomVector<1, false>::
-operator+=(const double val) {
-  mData[0] += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2, false>&
-GeomVector<2, false>::
-operator+=(const double val) {
-  mData[0] += val;
-  mData[1] += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3, false>&
-GeomVector<3, false>::
-operator+=(const double val) {
-  mData[0] += val;
-  mData[1] += val;
-  mData[2] += val;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a scalar from this vector in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1, true>&
-GeomVector<1, true>::
-operator-=(const double val) {
-  mData[0] -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2, true>&
-GeomVector<2, true>::
-operator-=(const double val) {
-  mData[0] -= val;
-  mData[1] -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3, true>&
-GeomVector<3, true>::
-operator-=(const double val) {
-  mData[0] -= val;
-  mData[1] -= val;
-  mData[2] -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<1, false>&
-GeomVector<1, false>::
-operator-=(const double val) {
-  mData[0] -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2, false>&
-GeomVector<2, false>::
-operator-=(const double val) {
-  mData[0] -= val;
-  mData[1] -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3, false>&
-GeomVector<3, false>::
-operator-=(const double val) {
-  mData[0] -= val;
-  mData[1] -= val;
-  mData[2] -= val;
   return *this;
 }
 
@@ -1589,26 +1437,6 @@ sumElements() const {
 //******************************************************************************
 // Global functions
 //******************************************************************************
-
-//------------------------------------------------------------------------------
-// Add a vector to a scalar.
-//------------------------------------------------------------------------------
-template<int nDim, bool ownMemory>
-inline
-GeomVector<nDim>
-operator+(const double val, const GeomVector<nDim, ownMemory>& vec) {
-  return vec + val;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a vector from a scalar.
-//------------------------------------------------------------------------------
-template<int nDim, bool ownMemory>
-inline
-GeomVector<nDim>
-operator-(const double val, const GeomVector<nDim, ownMemory>& vec) {
-  return -(vec - val);
-}
 
 //------------------------------------------------------------------------------
 // Multiply a scalar by a vector.
