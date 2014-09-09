@@ -13,14 +13,14 @@ units = PhysicalConstants(0.01,
                           1.0e-6)
 
 
-#eos = HelmholtzEquationOfState(units,
-#                               Pmin,
-#                               Pmax,
-#                               Tmin)
+eos = HelmholtzEquationOfState(units,
+                               Pmin,
+                               Pmax,
+                               Tmin)
 
-eos = GammaLawGas(4.0/3.0,
-                  13.6,
-                  units)
+#eos = GammaLawGas(4.0/3.0,
+#                  13.6,
+#                  units)
 
 hmin, hmax, nPerh = 1,1,1
 

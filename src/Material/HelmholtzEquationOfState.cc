@@ -197,7 +197,8 @@ namespace Material {
     setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                     const Field<Dimension, Scalar>& massDensity,
                     const Field<Dimension, Scalar>& temperature) const {
-        CHECK(valid());
+      /*  
+      CHECK(valid());
         
         storeFields(massDensity, specificThermalEnergy);
         
@@ -209,6 +210,9 @@ namespace Material {
         for (size_t i = 0; i != npart; ++i)
             Cv += kB/(myGamma->at(i)*myAbar->at(i)*mp);
         specificHeat = Cv/npart;
+
+      */
+      VERIFY2(false,"Helmholtz EOS does not support this call.");
     }
 
     //------------------------------------------------------------------------------
@@ -304,19 +308,19 @@ namespace Material {
     // Store Fields to local memory
     //------------------------------------------------------------------------------
     template<typename Dimension>
-    const void
+    void
     HelmholtzEquationOfState<Dimension>::
-    storeFields(Field<Dimension, Scalar>& thisMassDensity, Field<Dimension, Scalar>& thisSpecificThermalEnergy) const
+    storeFields(const Field<Dimension, Scalar>& thisMassDensity, const Field<Dimension, Scalar>& thisSpecificThermalEnergy) const
     {
         
         myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisMassDensity));
         mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisSpecificThermalEnergy));
-        myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisField.nodeList()));
-        myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisField.nodeList()));
-        mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisField.nodeList()));
-        myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisField.nodeList()));
-        myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisField.nodeList(),mabar0));
-        myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisField.nodeList(),mzbar0));
+        myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisMassDensity.nodeList()));
+        myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisMassDensity.nodeList()));
+        mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisMassDensity.nodeList()));
+        myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisMassDensity.nodeList()));
+        myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisMassDensity.nodeList(),mabar0));
+        myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisMassDensity.nodeList(),mzbar0));
     }
 
 }
