@@ -990,7 +990,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
               const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
               const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = min(fL, fg);
+              const Scalar f = 1.0; // min(fL, fg);
               CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
               const Scalar Wj = (1.0 - f)*W0j + f*W1j;
               const Scalar Wi = (1.0 - f)*W0i + f*W1i;
@@ -1091,15 +1091,45 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //   pairAccelerationsj.push_back(-forceij/mj);
               // }
 
-              // Acceleration (CSPH form).
-              CHECK(rhoi > 0.0);
-              CHECK(rhoj > 0.0);
-              Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
-              Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
-              // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-              DvDti += deltaDvDti;
-              DvDtj += deltaDvDtj;
+              // Acceleration (pair-wise area form).
+              // This is a punt on the Q for now -- do something better later.
+              const Vector rijhat = rij.unitVector();
+              const Vector forceij =  weightj*(Pj*Wj*rijhat + rhoj*rhoj*QPiij.second.dot(rijhat));
+              const Vector forceji =  weighti*(Pi*Wi*rijhat + rhoi*rhoi*QPiij.first.dot(rijhat));
+              // const Vector forceij = 0.5*(weightj*Pj*Wj + weighti*Pi*Wi)*rijhat;
+              // const Vector forceji = forceij;
+              // if (i == 0) {
+              //   cerr << "   CSPH: " << forceij/mi << endl;
+              // }
+              DvDti += forceij/mi;
+              DvDtj -= forceji/mj;
+              // DvDtj -= forceij/mj;
+              if (mCompatibleEnergyEvolution) {
+                pairAccelerationsi.push_back( forceij/mi);
+                pairAccelerationsj.push_back(-forceij/mj);
+              }
+
+              // // Acceleration (CSPH form).
+              // CHECK(rhoi > 0.0);
+              // CHECK(rhoj > 0.0);
+              // Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
+              // Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
+              // // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+              // DvDti += deltaDvDti;
+              // DvDtj += deltaDvDtj;
+              // if (mCompatibleEnergyEvolution) {
+              //   const Scalar W0j = W.kernelValue(0.0, Hdetj);
+              //   const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+              //   const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+              //   const unsigned numNeighborsj = (j < firstGhostNodej ? 
+              //                                   max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+              //                                   1);
+              //   const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+              //   const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+              //   pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+              //   pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+              // }
 
               // Specific thermal energy evolution.
               // CHECK2((QPiij.second*vij).dot(gradWj) >= 0.0, (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
@@ -1109,18 +1139,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // CHECK(Qwork >= 0.0);
               DepsDti += Qworki;
               DepsDtj += Qworkj;
-              if (mCompatibleEnergyEvolution) {
-                const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                const unsigned numNeighborsj = (j < firstGhostNodej ? 
-                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-                                                1);
-                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
-              }
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
@@ -1156,6 +1174,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Finish the acceleration.
       const Vector deltaDvDtii = -weighti/rhoi*Pi*selfGradContrib;
+      // const Vector deltaDvDtii = weighti*Pi*Ai*W0*Bi.unitVector();
       DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
