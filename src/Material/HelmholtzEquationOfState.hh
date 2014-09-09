@@ -116,7 +116,7 @@ namespace Spheral {
 			
 			const PhysicalConstants& mConstants;
             
-            const void storeFields(FieldSpace::Field<Dimension, Scalar>& thisField) const;
+	  void storeFields(const FieldSpace::Field<Dimension, Scalar>& thisMassDensity, const FieldSpace::Field<Dimension, Scalar>& thisSpecificThermalEnergy) const;
 
         };
     }
