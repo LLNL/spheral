@@ -14,9 +14,7 @@ title("White Dwarf pair test from ic readin file")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(gamma = 4.0/3.0,
-            mu = 1.0,
-            HydroConstructor = SPHHydro,
+commandLine(HydroConstructor = SPHHydro,
             Qconstructor = MonaghanGingoldViscosity3d,
             #Qconstructor = TensorMonaghanGingoldViscosity3d,
             Cl = 1.0,
@@ -94,7 +92,12 @@ restoreCycle = None
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS3d(gamma, mu)
+units = PhysicalConstants(0.01,0.001,1.0e-6)
+Pmin = 1e-6
+Pmax = 1e35
+Tmin = 100.0
+eos = HelmholtzEquationOfState(units,Pmin,Pmax,Tmin)
+#eos = GammaLawMKS3d(4.0/3.0,1.0)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -126,7 +129,7 @@ output("nodes.nodesPerSmoothingScale")
 # Generate them nodes.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator = AsciiFileNodeGenerator3D(filename = "ic.sdf.ascii",
+    generator = AsciiFileNodeGenerator3D(filename = "ic_1.0.sdf.ascii",
                                          materialName = "Default",
                                          nNodePerh = nPerh)
     nodes.numInternalNodes = generator.localNumNodes()
