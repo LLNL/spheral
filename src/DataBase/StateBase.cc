@@ -104,16 +104,17 @@ operator==(const StateBase<Dimension>& rhs) const {
   // Field::operator==(FieldBase) to do the right thing!
   // We are also relying here on the fact that std::map with a given
   // set of keys will always result in the same order.
+  bool result = true;
   typename StorageType::const_iterator lhsItr, rhsItr;
   for (rhsItr = rhs.mStorage.begin(), lhsItr = mStorage.begin();
        rhsItr != rhs.mStorage.end();
        ++rhsItr, ++lhsItr) {
     if (not (*(lhsItr->second) == *(rhsItr->second))) {
       cerr << "Fields for " << lhsItr->first <<  " don't match." << endl;
-      return false;
+      result = false;
     }
   }
-  return true;
+  return result;
 }
 
 //------------------------------------------------------------------------------

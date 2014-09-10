@@ -53,6 +53,10 @@ def identifyFragments(nodeList,
     numFragments = mpi.allreduce(max(list(result.internalValues()) + [0]), mpi.MAX)
     numFragments += 1
 
+    # To avoid confusion with the stored Field in SolidNodeList, we rename the result
+    # of this method.
+    result.name = "FRAGMENT INDEX"
+
     stopTime = time.time()
     print "identifyFragments: identified %i fragments." % numFragments
     print "                   Required %g seconds." % (stopTime - startTime)

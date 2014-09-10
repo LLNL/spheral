@@ -180,25 +180,11 @@ template<typename Dimension>
 void
 ArtificialViscosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-
-  // // Dump the linear and quadratic terms.
-  // file.write(Cl(), pathName + "/linearTerm");
-  // file.write(Cq(), pathName + "/quadraticTerm");
-
-  // // Dump info about the Balsara limiter.
-  // file.write(balsaraShearCorrection(), pathName + "/balsaraShearCorrection");
-
-  // // Dump the limiter information.
-  // file.write(mCalculateSigma, pathName + "/calculateSigma");
-  // file.write(mLimiterSwitch, pathName + "/limiter");
-  // file.write(epsilon2(), pathName + "/epsilon");
-  // file.write(negligibleSoundSpeed(), pathName + "/negligibleSoundSpeed");
-  // file.write(csMultiplier(), pathName + "/csMultiplier");
   if (calculateSigma()) file.write(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.write(gradDivVelocity(), pathName + "/gradDivVelocity");
   if (mBalsaraShearCorrection) file.write(mShearMultiplier, pathName + "/shearMultiplier");
-  if (mReducingViscosityCorrection) file.write(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
-  if (mReducingViscosityCorrection) file.write(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
+  file.write(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
+  file.write(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
 }  
 
 //------------------------------------------------------------------------------
@@ -208,25 +194,11 @@ template<typename Dimension>
 void
 ArtificialViscosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-
-  // Restore the linear and quadratic terms.
-//   file.read(mClinear, pathName + "/linearTerm");
-//   file.read(mCquadratic, pathName + "/quadraticTerm");
-
-  // Restore info about the Balsara limiter.
-//   file.read(mBalsaraShearCorrection, pathName + "/balsaraShearCorrection");
-
-  // Restore the limiter information.
-//   file.read(mCalculateSigma, pathName + "/calculateSigma");
-//   file.read(mLimiterSwitch, pathName + "/limiter");
-//   file.read(mEpsilon2, pathName + "/epsilon");
-//   file.read(mNegligibleSoundSpeed, pathName + "/negligibleSoundSpeed");
-//   file.read(mCsMultiplier, pathName + "/csMultiplier");
   if (calculateSigma()) file.read(mSigma, pathName + "/sigma");
   if (mLimiterSwitch) file.read(mGradDivVelocity, pathName + "/gradDivVelocity");
   if (mBalsaraShearCorrection) file.read(mShearMultiplier, pathName + "/shearMultiplier");
-  if (mReducingViscosityCorrection) file.read(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
-  if (mReducingViscosityCorrection) file.read(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
+  file.read(mReducingViscosityMultiplierQ, pathName + "/reducingViscosityMultiplierQ");
+  file.read(mReducingViscosityMultiplierL, pathName + "/reducingViscosityMultiplierL");
 }
 
 //------------------------------------------------------------------------------
