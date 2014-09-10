@@ -18,7 +18,7 @@ class %(classname)s%(dim)s(SPHHydroBase%(dim)s):
                  compatibleEnergyEvolution = True,
                  gradhCorrection = False,
                  XSPH = True,
-                 correctVelocityGradient = True,
+                 correctVelocityGradient = False,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.3,
