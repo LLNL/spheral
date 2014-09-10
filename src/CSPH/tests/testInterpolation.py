@@ -134,8 +134,28 @@ elif testDim == "2d":
                                       SPH = True)
     gen = CompositeNodeDistribution(gen1, gen2)
     distributeNodes2d((nodes1, gen))
+
+elif testDim == "3d":
+    from DistributeNodes import distributeNodes3d
+    from GenerateNodeDistribution3d import GenerateNodeDistribution3d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen1 = GenerateNodeDistribution3d(nx1, nx1, nx1, rho1,
+                                      distributionType = "lattice",
+                                      xmin = (x0, x0, x0),
+                                      xmax = (x1, x1, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen2 = GenerateNodeDistribution3d(nx2, nx2, nx2, rho2,
+                                      distributionType = "lattice",
+                                      xmin = (x1, x0, x0),
+                                      xmax = (x2, x1, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen = CompositeNodeDistribution(gen1, gen2)
+    distributeNodes3d((nodes1, gen))
+
 else:
-    raise ValueError, "3D test case not implemented yet."
+    raise ValueError, "Only tests cases for 1d,2d and 3d." 
 
 output("nodes1.numNodes")
 
@@ -224,8 +244,8 @@ H_fl = db.fluidHfield
 
 # Compute the volumes to use as weighting.
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
-weight_fl = db.newFluidScalarFieldList(0.0, "volume")
-computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
+#weight_fl = db.newFluidScalarFieldList(1.0, "volume")
+#computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
 computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
                        m0_fl, m1_fl, m2_fl,
                        A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
