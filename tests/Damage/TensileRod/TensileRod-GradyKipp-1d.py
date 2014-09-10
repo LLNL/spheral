@@ -143,7 +143,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20140404.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20140910.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -684,3 +684,4 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+
