@@ -61,6 +61,10 @@ commandLine(
     filter = 0.01,  # For CSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
+    boolReduceViscosity = False,
+    nh = 5.0,
+    aMin = 0.1,
+    aMax = 2.0,
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
@@ -326,6 +330,17 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    #q.reducingViscosityCorrection = True
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    
+    packages.append(evolveReducingViscosityMultiplier)
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

@@ -373,30 +373,6 @@ GeomVector<nDim>::operator*(const GeomVector<nDim>& vec) const {
 }
 
 //------------------------------------------------------------------------------
-// Add a scalar to a vector.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>
-GeomVector<nDim>::operator+(const double val) const {
-  GeomVector<nDim> result(*this);
-  result += val;
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a scalar from a vector.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>
-GeomVector<nDim>::operator-(const double val) const {
-  GeomVector<nDim> result(*this);
-  result -= val;
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Multiply a vector by a scalar
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -478,66 +454,6 @@ GeomVector<3>::operator-=(const GeomVector<3>& vec) {
   this->mx -= vec.mx;
   this->my -= vec.my;
   this->mz -= vec.mz;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Add a scalar to this vector in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator+=(const double val) {
-  this->mx += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator+=(const double val) {
-  this->mx += val;
-  this->my += val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator+=(const double val) {
-  this->mx += val;
-  this->my += val;
-  this->mz += val;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a scalar from this vector in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator-=(const double val) {
-  this->mx -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator-=(const double val) {
-  this->mx -= val;
-  this->my -= val;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator-=(const double val) {
-  this->mx -= val;
-  this->my -= val;
-  this->mz -= val;
   return *this;
 }
 
@@ -1103,26 +1019,6 @@ GeomVector<3>::sumElements() const {
 //******************************************************************************
 // Global functions
 //******************************************************************************
-
-//------------------------------------------------------------------------------
-// Add a vector to a scalar.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>
-operator+(const double val, const GeomVector<nDim>& vec) {
-  return vec + val;
-}
-
-//------------------------------------------------------------------------------
-// Subtract a vector from a scalar.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>
-operator-(const double val, const GeomVector<nDim>& vec) {
-  return -(vec - val);
-}
 
 //------------------------------------------------------------------------------
 // Multiply a scalar by a vector.

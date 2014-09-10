@@ -9,7 +9,11 @@ SRCTARGETS = \
 	EquationOfStateInst.cc \
 	GammaLawGasInst.cc \
 	PolytropicEquationOfStateInst.cc \
-	IsothermalEquationOfStateInst.cc
+	IsothermalEquationOfStateInst.cc \
+	$(HELMSRCS)
+
+F90SRCTARGETS = \
+	$(HELMFSRCS)
 
 PYTHONTARGETS = \
 	MaterialUnits.py \
@@ -19,6 +23,7 @@ LINKLIST = linklist
 PYFFLELIST = pyfflelist
 SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
+EXTRALIBS = $(HELMLIBS)
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

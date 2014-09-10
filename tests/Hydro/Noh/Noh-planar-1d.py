@@ -39,6 +39,11 @@ commandLine(KernelConstructor = BSplineKernel,
             CSPH = False,
             #Qconstructor = MonaghanGingoldViscosity,
             Qconstructor = TensorMonaghanGingoldViscosity,
+            boolReduceViscosity = False,
+            nhQ = 5.0,
+            nhL = 10.0,
+            aMin = 0.1,
+            aMax = 2.0,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
@@ -243,6 +248,17 @@ output("hydro.HEvolution")
 
 packages = [hydro]
 
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    #q.reducingViscosityCorrection = True
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    
+    packages.append(evolveReducingViscosityMultiplier)
+
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
@@ -398,6 +414,16 @@ elif graphics == "gnu":
     Aplot.replot(AansData)
     Aplot.title("Specific entropy")
     Aplot.refresh()
+    
+    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
+
+    if boolReduceViscosity:
+        alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                  winTitle = "rvAlphaQ",
+                                  colorNodeLists = False, plotGhosts = False)
+        alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
+                                   winTitle = "rvAlphaL",
+                                   colorNodeLists = False, plotGhosts = False)
 
     # # Plot the grad h correction term (omega)
     # omegaPlot = plotFieldList(hydro.omegaGradh(),

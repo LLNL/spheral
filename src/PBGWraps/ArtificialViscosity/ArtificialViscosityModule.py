@@ -5,6 +5,9 @@ sys.path.append("..")
 from PBGutils import *
 from ref_return_value import *
 
+sys.path.append("../Physics")
+from PhysicsModule import generatePhysicsVirtualBindings
+
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -21,6 +24,11 @@ class ArtificialViscosity:
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("ArtificialViscositySpace")
+        physics = Spheral.add_cpp_namespace("PhysicsSpace")
+        
+        Physics1d = findObject(physics,"Physics1d")
+        Physics2d = findObject(physics,"Physics2d")
+        Physics3d = findObject(physics,"Physics3d")
 
         # Expose types.
         self.dimSet = (1, 2, 3)
@@ -28,6 +36,7 @@ class ArtificialViscosity:
             exec('''
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
@@ -42,6 +51,7 @@ self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
@@ -59,7 +69,7 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
     #---------------------------------------------------------------------------
     def addArtificialViscosityMethods(self, x, ndim):
 
-        me = "ArtificialViscosity%id" % ndim
+        me = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
 
         # External objects.
         vector = "Vector%id" % ndim
@@ -87,6 +97,7 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("Cl", "double", getter="Cl", setter="Cl")
         x.add_instance_attribute("Cq", "double", getter="Cq", setter="Cq")
         x.add_instance_attribute("balsaraShearCorrection", "bool", getter="balsaraShearCorrection", setter="balsaraShearCorrection")
+        x.add_instance_attribute("reducingViscosityCorrection", "bool", getter="reducingViscosityCorrection", setter="reducingViscosityCorrection")
         x.add_instance_attribute("limiter", "bool", getter="limiter", setter="limiter")
         x.add_instance_attribute("epsilon2", "double", getter="epsilon2", setter="epsilon2")
         x.add_instance_attribute("negligibleSoundSpeed", "double", getter="negligibleSoundSpeed", setter="negligibleSoundSpeed")
@@ -131,6 +142,9 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
                      is_const = True)
         x.add_method("calculateSigma", "bool", [], is_const=True, visibility="protected")
         x.add_method("calculateSigma", None, [param("bool", "value")], visibility="protected")
+        
+        x.add_method("reducingViscosityMultiplierQ", scalarfieldlist, [])
+        x.add_method("reducingViscosityMultiplierL", scalarfieldlist, [])
 
         # Add the abstract methods.
         self.addArtificialViscosityVirtualMethods(x, ndim, True)
@@ -155,6 +169,37 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         x.add_instance_attribute("linearInExpansion", "bool", getter="linearInExpansion", setter="linearInExpansion")
         x.add_instance_attribute("quadraticInExpansion", "bool", getter="quadraticInExpansion", setter="quadraticInExpansion")
 
+        return
+    
+    #---------------------------------------------------------------------------
+    # Add methods to the MorrsMonaghanReducingViscosity.
+    #---------------------------------------------------------------------------
+    def addMorrisMonaghanReducingViscosityMethods(self, x, ndim):
+        
+        me = "Spheral::ArtificialViscositySpace::MorrisMonaghanReducingViscosity%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        
+        # Constructors.
+        x.add_constructor([refparam(artificialviscosity,"q"),
+                           param("double", "nhQ", default_value="5.0"),
+                           param("double", "nhL", default_value="10.0"),
+                           param("double", "aMin", default_value="0.1"),
+                           param("double", "aMax", default_value="2.0")])
+                           
+        # Add the abstract methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
+        # Attributes
+        x.add_instance_attribute("nhQ", "double", getter="nhQ", setter="nhQ")
+        x.add_instance_attribute("nhL", "double", getter="nhL", setter="nhL")
+        x.add_instance_attribute("aMin", "double", getter="aMin", setter="aMin")
+        x.add_instance_attribute("aMax", "double", getter="aMax", setter="aMax")
+        
+        # Methods.
+        const_ref_return_value(x, me, "%s::DrvAlphaDtQ" % me, scalarfieldlist, [], "DrvAlphaDtQ")
+        const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
+    
         return
 
     #---------------------------------------------------------------------------

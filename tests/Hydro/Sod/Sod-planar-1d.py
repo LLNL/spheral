@@ -26,7 +26,12 @@ commandLine(nx1 = 400,
 
             gammaGas = 5.0/3.0,
             mu = 1.0,
+            
             Qconstructor = MonaghanGingoldViscosity,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
             Qlimiter = False,
@@ -208,6 +213,16 @@ output("hydro")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    #q.reducingViscosityCorrection = True
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    
+    packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
 if hourglass:
@@ -373,6 +388,11 @@ if graphics in ("gnu", "matplot"):
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
+    
+    if boolReduceViscosity:
+        alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
+                                  winTitle = "rvAlpha",
+                                  colorNodeLists = False)
 
     cs = db.newFluidScalarFieldList(0.0, "sound speed")
     db.fluidSoundSpeed(cs)

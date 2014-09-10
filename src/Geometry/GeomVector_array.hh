@@ -76,15 +76,11 @@ public:
 
   template<bool otherMemory> GeomVector<nDim, true> operator+(const GeomVector<nDim, otherMemory>& vec) const;
   template<bool otherMemory> GeomVector<nDim, true> operator-(const GeomVector<nDim, otherMemory>& vec) const;
-  GeomVector<nDim, true> operator+(const double val) const;
-  GeomVector<nDim, true> operator-(const double val) const;
   GeomVector<nDim, true> operator*(const double val) const;
   GeomVector<nDim, true> operator/(const double val) const;
 
   template<bool otherMemory> GeomVector& operator+=(const GeomVector<nDim, otherMemory>& vec);
   template<bool otherMemory> GeomVector& operator-=(const GeomVector<nDim, otherMemory>& vec);
-  GeomVector& operator+=(const double val);
-  GeomVector& operator-=(const double val);
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -162,20 +158,6 @@ template<> template<bool otherMemory> GeomVector<3, true>& GeomVector<3, true>::
 template<> template<bool otherMemory> GeomVector<1, false>& GeomVector<1, false>::operator-=(const GeomVector<1, otherMemory>& vec);
 template<> template<bool otherMemory> GeomVector<2, false>& GeomVector<2, false>::operator-=(const GeomVector<2, otherMemory>& vec);
 template<> template<bool otherMemory> GeomVector<3, false>& GeomVector<3, false>::operator-=(const GeomVector<3, otherMemory>& vec);
-
-template<> GeomVector<1, true>& GeomVector<1, true>::operator+=(const double val);
-template<> GeomVector<2, true>& GeomVector<2, true>::operator+=(const double val);
-template<> GeomVector<3, true>& GeomVector<3, true>::operator+=(const double val);
-template<> GeomVector<1, false>& GeomVector<1, false>::operator+=(const double val);
-template<> GeomVector<2, false>& GeomVector<2, false>::operator+=(const double val);
-template<> GeomVector<3, false>& GeomVector<3, false>::operator+=(const double val);
-
-template<> GeomVector<1, true>& GeomVector<1, true>::operator-=(const double val);
-template<> GeomVector<2, true>& GeomVector<2, true>::operator-=(const double val);
-template<> GeomVector<3, true>& GeomVector<3, true>::operator-=(const double val);
-template<> GeomVector<1, false>& GeomVector<1, false>::operator-=(const double val);
-template<> GeomVector<2, false>& GeomVector<2, false>::operator-=(const double val);
-template<> GeomVector<3, false>& GeomVector<3, false>::operator-=(const double val);
 
 template<> GeomVector<1, true>& GeomVector<1, true>::operator*=(const double val);
 template<> GeomVector<2, true>& GeomVector<2, true>::operator*=(const double val);
@@ -255,10 +237,6 @@ template<> double GeomVector<2, false>::maxAbsElement() const;
 template<> double GeomVector<3, false>::maxAbsElement() const;
 
 // Forward declare the global functions.
-template<int nDim, bool ownMemory> GeomVector<nDim> operator+(const double val, const GeomVector<nDim, ownMemory>& vec);
-template<int nDim, bool ownMemory> GeomVector<nDim> operator-(const double val, const GeomVector<nDim, ownMemory>& vec);
-template<int nDim, bool ownMemory> GeomVector<nDim> operator*(const double val, const GeomVector<nDim, ownMemory>& vec);
-
 template<bool ownMemory, bool otherMemory> GeomVector<1> elementWiseMin(const GeomVector<1, ownMemory>& lhs,
                                                                         const GeomVector<1, otherMemory>& rhs);
 template<bool ownMemory, bool otherMemory> GeomVector<2> elementWiseMin(const GeomVector<2, ownMemory>& lhs,
