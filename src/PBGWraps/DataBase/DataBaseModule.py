@@ -262,6 +262,9 @@ class DataBase:
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim
         symtensor = "SymTensor%id" % ndim
+        polyvol = {1: "Box1d", 
+                   2: "Polygon",
+                   3: "Polyhedron"}[ndim]
         fieldbase = "Spheral::FieldSpace::FieldBase%id" % ndim
         intfield = "Spheral::FieldSpace::IntField%id" % ndim
         scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
@@ -269,6 +272,7 @@ class DataBase:
         vector3dfield = "Spheral::FieldSpace::Vector3dField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         thirdranktensorfield = "Spheral::FieldSpace::ThirdRankTensorField%id" % ndim
+        polyvolfield = "Spheral::FieldSpace::FacetedVolumeField%id" % ndim
         vectordoublefield = "Spheral::FieldSpace::VectorDoubleField%id" % ndim
         vectorvectorfield = "Spheral::FieldSpace::VectorVectorField%id" % ndim
         vectorsymtensorfield = "Spheral::FieldSpace::VectorSymTensorField%id" % ndim
@@ -280,6 +284,7 @@ class DataBase:
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         vectordoublefieldlist = "Spheral::FieldSpace::VectorDoubleFieldList%id" % ndim
         vectorvectorfieldlist = "Spheral::FieldSpace::VectorVectorFieldList%id" % ndim
         vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
@@ -341,7 +346,8 @@ class DataBase:
                                                    (scalarfieldlist, "double", "0.0", "Scalar"),
                                                    (vectorfieldlist, vector, "%s::zero" % vector, "Vector"),
                                                    (tensorfieldlist, tensor, "%s::zero" % tensor, "Tensor"),
-                                                   (symtensorfieldlist, symtensor, "%s::zero" % symtensor, "SymTensor")]:
+                                                   (symtensorfieldlist, symtensor, "%s::zero" % symtensor, "SymTensor"),
+                                                   (polyvolfieldlist, polyvol, "%s()" % polyvol, "FacetedVolume")]:
             exec("""
 x.add_method("newGlobalFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),
                                                   param("std::string", "name", default_value='"unnamed field list"')],

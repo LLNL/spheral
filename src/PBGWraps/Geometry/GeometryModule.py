@@ -333,8 +333,8 @@ class Geometry:
         x.add_inplace_numeric_operator("+=")
         x.add_inplace_numeric_operator("-=")
     
-        x.add_inplace_numeric_operator("+=", right = "double")
-        x.add_inplace_numeric_operator("-=", right = "double")
+        #x.add_inplace_numeric_operator("+=", right = "double")
+        #x.add_inplace_numeric_operator("-=", right = "double")
         x.add_inplace_numeric_operator("*=", right = "double")
         x.add_inplace_numeric_operator("/=", right = "double")
     
@@ -347,8 +347,8 @@ class Geometry:
         x.add_binary_numeric_operator("*", result_cppclass = tenType, right = symten)
         x.add_binary_numeric_operator("*", result_cppclass = vecType, right = vec)
     
-        x.add_binary_numeric_operator("+", right = "double")
-        x.add_binary_numeric_operator("-", right = "double")
+        #x.add_binary_numeric_operator("+", right = "double")
+        #x.add_binary_numeric_operator("-", right = "double")
         x.add_binary_numeric_operator("*", right = "double")
         x.add_binary_numeric_operator("/", right = "double")
     
@@ -568,6 +568,7 @@ class Geometry:
         x.add_instance_attribute("extent", "double", getter = "extent", setter = "extent")
         x.add_instance_attribute("xmin", "Vector1d", getter = "xmin", is_const = True)
         x.add_instance_attribute("xmax", "Vector1d", getter = "xmax", is_const = True)
+        x.add_instance_attribute("volume", "double", getter="volume", is_const=True)
     
         # Methods.
         x.add_method("contains", "bool", [constrefparam("Vector1d", "point"),

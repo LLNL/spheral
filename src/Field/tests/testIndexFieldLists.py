@@ -106,7 +106,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for nodes in dataBase.nodeLists():
             assert nodes1.numGhostNodes > 0
         for fieldlist in self.scalarfieldlists:
-            bc.applyScalarFieldListGhostBoundary(fieldlist)
+            bc.applyFieldListGhostBoundary(fieldlist)
             result = testIndexScalarFieldListByGhostNodeIterators2d(dataBase,
                                                                     fieldlist)
             self.failUnless(result == "OK", result)
@@ -122,7 +122,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for nodes in dataBase.nodeLists():
             assert nodes1.numGhostNodes > 0
         for fieldlist in self.vectorfieldlists:
-            bc.applyVectorFieldListGhostBoundary(fieldlist)
+            bc.applyFieldListGhostBoundary(fieldlist)
             result = testIndexVectorFieldListByGhostNodeIterators2d(dataBase,
                                                                     fieldlist)
             self.failUnless(result == "OK", result)

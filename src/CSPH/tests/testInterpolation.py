@@ -1,4 +1,5 @@
-#ATS:test(SELF, "--graphics False", label="CSPH interpolation test -- 1-D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CSPH interpolation test -- 1D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CSPH interpolation test -- 2D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
@@ -11,54 +12,62 @@ title("Interpolation tests")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
-            # Parameters for seeding nodes.
-            nx1 = 100,
-            rho1 = 1.0,
-            eps1 = 0.0,
-            x0 = 0.0,
-            x1 = 1.0,
-            nPerh = 1.25,
-            hmin = 0.0001, 
-            hmax = 10.0,
+    # Parameters for seeding nodes.
+    nx1 = 50,     
+    nx2 = 50,
+    rho1 = 1.0,
+    rho2 = 1.0,
+    eps1 = 0.0,
+    eps2 = 0.0,
+    x0 = 0.0,
+    x1 = 0.5,
+    x2 = 1.0,
+    nPerh = 1.25,
+    hmin = 0.0001, 
+    hmax = 10.0,
 
-            # Should we randomly perturb the positions?
-            ranfrac = 0.2,
-            seed = 14892042,
+    # Should we randomly perturb the positions?
+    ranfrac = 0.2,
+    seed = 14892042,
 
-            # What test problem are we doing?
-            testDim = "1d",
-            testCase = "linear",
+    # What test problem are we doing?
+    testDim = "1d",
+    testCase = "linear",
 
-            # The fields we're going to interpolate.
-            # Linear coefficients: y = y0 + m0*x
-            y0 = 1.0,
-            m0 = 1.0,
+    # The fields we're going to interpolate.
+    # Linear coefficients: y = y0 + m0*x
+    y0 = 1.0,
+    m0 = 1.0,
 
-            # Quadratic coefficients: y = y2 + m2*x^2
-            y2 = 1.0,
-            m2 = 0.5,
+    # Quadratic coefficients: y = y2 + m2*x^2
+    y2 = 1.0,
+    m2 = 0.5,
 
-            gamma = 5.0/3.0,
-            mu = 1.0,
+    gamma = 5.0/3.0,
+    mu = 1.0,
 
-            numGridLevels = 20,
-            topGridCellSize = 20.0,
+    numGridLevels = 20,
+    topGridCellSize = 20.0,
 
-            # Parameters for iterating H.
-            iterateH = True,
-            maxHIterations = 200,
-            Htolerance = 1.0e-8,
+    # Parameters for iterating H.
+    iterateH = True,
+    maxHIterations = 200,
+    Htolerance = 1.0e-4,
 
-            # Parameters for passing the test
-            interpolationTolerance = 5.0e-7,
-            derivativeTolerance = 5.0e-5,
+    # Parameters for passing the test
+    interpolationTolerance = 5.0e-7,
+    derivativeTolerance = 5.0e-5,
 
-            graphics = True,
-            plotKernels = False,
-            )
+    graphics = True,
+    plotKernels = False,
+)
 
-assert testCase in ("linear", "quadratic")
+assert testCase in ("linear", "quadratic", "step")
 assert testDim in ("1d", "2d", "3d")
+
+FacetedVolume = {"1d" : Box1d,
+                 "2d" : Polygon,
+                 "3d" : Polyhedron}[testDim]
 
 #-------------------------------------------------------------------------------
 # Appropriately set generic object names based on the test dimensionality.
@@ -103,20 +112,51 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))], nPerh = nPerh)
+if testDim == "1d":
+    from DistributeNodes import distributeNodesInRange1d
+    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)),
+                                        (nx2, rho2, (x1, x2))])], nPerh = nPerh)
+elif testDim == "2d":
+    from DistributeNodes import distributeNodes2d
+    from GenerateNodeDistribution2d import GenerateNodeDistribution2d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen1 = GenerateNodeDistribution2d(nx1, nx1, rho1,
+                                      distributionType = "lattice",
+                                      xmin = (x0, x0),
+                                      xmax = (x1, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen2 = GenerateNodeDistribution2d(nx2, nx2, rho2,
+                                      distributionType = "lattice",
+                                      xmin = (x1, x0),
+                                      xmax = (x2, x2),
+                                      nNodePerh = nPerh,
+                                      SPH = True)
+    gen = CompositeNodeDistribution(gen1, gen2)
+    distributeNodes2d((nodes1, gen))
+else:
+    raise ValueError, "3D test case not implemented yet."
+
 output("nodes1.numNodes")
 
-# Set node specific thermal energies
-nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
+# Set node properties.
+eps = nodes1.specificThermalEnergy()
+for i in xrange(nx1):
+    eps[i] = eps1
+for i in xrange(nx2):
+    eps[i + nx1] = eps2
 
 #-------------------------------------------------------------------------------
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
-dx = (x1 - x0)/nx1
+dx1 = (x1 - x0)/nx1
+dx2 = (x2 - x1)/nx2
 for i in xrange(nodes1.numInternalNodes):
-    nodes1.positions()[i].x += ranfrac * rangen.uniform(-1.0, 1.0)
+    if i < nx1:
+        dx = dx1
+    else:
+        dx = dx2
+    nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -150,6 +190,11 @@ for i in xrange(nodes1.numInternalNodes):
         f[i] = y0 + m0*x
     elif testCase == "quadratic":
         f[i] = y2 + m2*x*x
+    elif testCase == "step":
+        if x < x1:
+            f[i] = y0
+        else:
+            f[i] = 2*y0
 
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
@@ -159,10 +204,15 @@ fCSPH = ScalarField("CSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
 dfCSPH = VectorField("CSPH derivative values", nodes1)
 
+m0_fl = db.newFluidScalarFieldList(0.0, "m0")
+m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
+m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
+A0_fl = db.newFluidScalarFieldList(0.0, "A0")
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
 C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
 D_fl = db.newFluidTensorFieldList(Tensor.zero, "D")
+gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 
@@ -172,8 +222,13 @@ position_fl = db.fluidPosition
 weight_fl = db.fluidMass
 H_fl = db.fluidHfield
 
-computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl,
-                       A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl)
+# Compute the volumes to use as weighting.
+polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
+weight_fl = db.newFluidScalarFieldList(0.0, "volume")
+computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
+computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
+                       m0_fl, m1_fl, m2_fl,
+                       A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
@@ -253,35 +308,53 @@ for i in xrange(nodes1.numInternalNodes):
     dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
+# We also check the C++ interpolation and gradient methods.
+#-------------------------------------------------------------------------------
+f_fl = ScalarFieldList()
+f_fl.appendField(f)
+fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
+                           cm, WT)
+dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
+                         A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,
+                         cm, WT)
+
+#-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
-if testCase == "linear":
-    yans = [y0 + m0*x for x in xans]
-    dyans = [m0]*len(xans)
-elif testCase == "quadratic":
-    yans = [y2 + m2*x*x for x in xans]
-    dyans = [2*m2*x for x in xans]
+yans = ScalarField("interpolation answer", nodes1)
+dyans = ScalarField("derivative answer", nodes1)
+for i in xrange(nodes1.numInternalNodes):
+    if testCase == "linear":
+        yans[i] = y0 + m0*xans[i]
+        dyans[i] = m0
+    elif testCase == "quadratic":
+        yans[i] = y2 + m2*xans[i]*xans[i]
+        dyans[i] = 2*m2*xans[i]
+    elif testCase == "step":
+        if i < nx1:
+            yans[i] = y0
+        else:
+            yans[i] = 2*y0
+        dyans[i] = 0.0
 
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-ySPH = fSPH.internalValues()
-yCSPH = fCSPH.internalValues()
+errySPH =   ScalarField("SPH interpolation error", nodes1)
+erryCSPH =  ScalarField("CSPH interpolation error", nodes1)
+errdySPH =  ScalarField("SPH derivative error", nodes1)
+errdyCSPH = ScalarField("CSPH derivative error", nodes1)
+for i in xrange(nodes1.numInternalNodes):
+    errySPH[i] =   fSPH[i] - yans[i]
+    erryCSPH[i] =  fCSPH[i] - yans[i]
+    errdySPH[i] =  dfSPH[i].x - dyans[i]
+    errdyCSPH[i] = dfCSPH[i].x - dyans[i]
 
-dySPH = [x.x for x in dfSPH.internalValues()]
-dyCSPH = [x.x for x in dfCSPH.internalValues()]
-
-errySPH = [y - z for y, z in zip(ySPH, yans)]
-erryCSPH = [y - z for y, z in zip(yCSPH, yans)]
-maxySPHerror = max([abs(x) for x in errySPH])
-maxyCSPHerror = max([abs(x) for x in erryCSPH])
-
-errdySPH = [y - z for y, z in zip(dySPH, dyans)]
-errdyCSPH = [y - z for y, z in zip(dyCSPH, dyans)]
-maxdySPHerror = max([abs(x) for x in errdySPH])
-maxdyCSPHerror = max([abs(x) for x in errdyCSPH])
-
+maxySPHerror = errySPH.max()
+maxyCSPHerror = erryCSPH.max()
+maxdySPHerror = errdySPH.max()
+maxdyCSPHerror = errdyCSPH.max()
 print "Maximum errors (interpolation): SPH = %g, CSPH = %g" % (maxySPHerror, maxyCSPHerror)
 print "Maximum errors   (derivatives): SPH = %g, CSPH = %g" % (maxdySPHerror, maxdyCSPHerror)
 
@@ -291,25 +364,26 @@ print "Maximum errors   (derivatives): SPH = %g, CSPH = %g" % (maxdySPHerror, ma
 if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
+    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
 
     # Interpolated values.
-    ansdata = Gnuplot.Data(xans, yans,
+    ansdata = Gnuplot.Data(xans, yans.internalValues(),
                            with_ = "lines",
                            title = "Answer",
                            inline = True)
-    SPHdata = Gnuplot.Data(xans, ySPH,
+    SPHdata = Gnuplot.Data(xans, fSPH.internalValues(),
                            with_ = "points",
                            title = "SPH",
                            inline = True)
-    CSPHdata = Gnuplot.Data(xans, yCSPH,
+    CSPHdata = Gnuplot.Data(xans, fCSPH.internalValues(),
                             with_ = "points",
                             title = "CSPH",
                             inline = True)
-    errSPHdata = Gnuplot.Data(xans, errySPH,
+    errSPHdata = Gnuplot.Data(xans, errySPH.internalValues(),
                               with_ = "points",
                               title = "SPH",
                               inline = True)
-    errCSPHdata = Gnuplot.Data(xans, erryCSPH,
+    errCSPHdata = Gnuplot.Data(xans, erryCSPH.internalValues(),
                                with_ = "points",
                                title = "CSPH",
                                inline = True)
@@ -329,23 +403,23 @@ if graphics:
     p2.refresh()
 
     # Derivative values.
-    dansdata = Gnuplot.Data(xans, dyans,
+    dansdata = Gnuplot.Data(xans, dyans.internalValues(),
                             with_ = "lines",
                             title = "Answer",
                             inline = True)
-    dSPHdata = Gnuplot.Data(xans, dySPH,
+    dSPHdata = Gnuplot.Data(xans, [x.x for x in dfSPH.internalValues()],
                             with_ = "points",
                             title = "SPH",
                             inline = True)
-    dCSPHdata = Gnuplot.Data(xans, dyCSPH,
+    dCSPHdata = Gnuplot.Data(xans, [x.x for x in dfCSPH.internalValues()],
                              with_ = "points",
                              title = "CSPH",
                              inline = True)
-    errdSPHdata = Gnuplot.Data(xans, errdySPH,
+    errdSPHdata = Gnuplot.Data(xans, errdySPH.internalValues(),
                                with_ = "points",
                                title = "SPH",
                               inline = True)
-    errdCSPHdata = Gnuplot.Data(xans, errdyCSPH,
+    errdCSPHdata = Gnuplot.Data(xans, errdyCSPH.internalValues(),
                                 with_ = "points",
                                 title = "CSPH",
                                 inline = True)
@@ -363,6 +437,35 @@ if graphics:
     p4.replot(errdCSPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
+
+    p5 = plotFieldList(fCSPH_fl, 
+                       winTitle = "C++ CSPH interpolation",
+                       colorNodeLists = False)
+
+    p6 = plotFieldList(dfCSPH_fl, 
+                       yFunction = "%s.x",
+                       winTitle = "C++ grad CSPH",
+                       colorNodeLists = False)
+
+    # If we're in 2D dump a silo file too.
+    if testDim == "2d":
+        from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+        dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
+                                        listOfFields = [fSPH, fCSPH, dfSPH, dfCSPH,
+                                                        yans, dyans,
+                                                        errySPH, erryCSPH, errdySPH, errdyCSPH],
+                                        listOfFieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+                                                            A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+                                                            dfCSPH_fl])
+        dumper.dump(0.0, 0)
+        # from siloPointmeshDump import siloPointmeshDump
+        # siloPointmeshDump("testInterpolation_%s_2d" % testCase,
+        #                   fields = [fSPH, fCSPH, dfSPH, dfCSPH,
+        #                             yans, dyans,
+        #                             errySPH, erryCSPH, errdySPH, errdyCSPH],
+        #                   fieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
+        #                                 A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+        #                                 dfCSPH_fl])
 
 if plotKernels:
     import Gnuplot

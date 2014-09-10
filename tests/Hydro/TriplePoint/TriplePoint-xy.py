@@ -55,7 +55,10 @@ commandLine(
 
     nPerh = 1.51,
 
-    HydroConstructor = SPHHydro,
+    SVPH = False,
+    CSPH = False,
+    ASPH = False,
+    filter = 0.01,  # For CSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -104,6 +107,23 @@ commandLine(
     restartStep = 200,
     dataDir = "dumps-triplepoint-xy",
     )
+
+# Decide on our hydro algorithm.
+if SVPH:
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
+elif CSPH:
+    if ASPH:
+        HydroConstructor = ACSPHHydro
+    else:
+        HydroConstructor = CSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 # Build our directory paths.
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
@@ -201,19 +221,19 @@ if restoreCycle is None:
                                                xmin = (x0, y0),
                                                xmax = (x1, y2),
                                                nNodePerh = nPerh,
-                                               SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
+                                               SPH = True)
     generatorTop = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                               distributionType = "lattice",
                                               xmin = (x1, y1),
                                               xmax = (x2, y2),
                                               nNodePerh = nPerh,
-                                              SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
+                                              SPH = True)
     generatorBottom = GenerateNodeDistribution2d(nx3, ny3, rho3,
                                                  distributionType = "lattice",
                                                  xmin = (x1, y0),
                                                  xmax = (x2, y1),
                                                  nNodePerh = nPerh,
-                                                 SPH = True) #(HydroConstructor in (SPHHydro, SVPHFacetedHydro, CSPHHydro)))
+                                                 SPH = True)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -266,7 +286,7 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
+if SVPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -281,13 +301,14 @@ if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
                              xmax = Vector(x2 + (x2 - x0), y2 + (y2 - y0)))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
-elif HydroConstructor in (ACSPHHydro, CSPHHydro):
-    hydro = CSPHHydro(WT, WTPi, q,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+elif CSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

@@ -50,7 +50,13 @@ CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   WCSPH = Ai*(1.0 + Bi.dot(rij))*Wj;
   gradWSPH = WWj.second;
   const Vector gradWj = Hj*etaj.unitVector() * gradWSPH;
-  gradWCSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+  //gradWCSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+  gradWCSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+  for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+      for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+          gradWCSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
+      }
+  }
 }
 
 }
