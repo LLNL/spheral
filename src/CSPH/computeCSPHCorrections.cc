@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------
 // Compute the CSPH corrections.
 //------------------------------------------------------------------------------
+#include <stdio.h>
 #include "computeCSPHCorrections.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
