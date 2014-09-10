@@ -88,47 +88,24 @@ Piij(const unsigned nodeListi, const unsigned i,
   // Are we applying the shear corrections?
   const Vector vij = vi - vj;
   Scalar fshear = 1.0;
-
     
   if (balsaraShearCorrection) {
     fshear = abs(vij.unitVector().dot(vij.unitVector()));
-
-//     const Scalar hmax = max(Hi.Inverse().Trace(), Hj.Inverse().Trace())/Dimension::nDim;
-//     const Scalar hmaxinv = 1.0/hmax; 
-//     const Vector xij = xi - xj;
-//     Tensor DvDx;
-//     for (unsigned i = 0; i != Dimension::nDim; ++i) {
-//       for (unsigned j = 0; j != Dimension::nDim; ++j) {
-//         DvDx(i,j) = vij(i)/max(xij(j), 0.1*hmax);
-//       }
-//     }
-//     const Scalar div = abs(DvDx.Trace());
-//     const Scalar curl = curlVelocityMagnitude(DvDx);
-//     const Scalar cs = max(this->negligibleSoundSpeed(), max(csi, csj));
-//     fshear = div/(div + curl + this->epsilon2()*cs*hmaxinv);
   }
-
-//   const Scalar fsheari = (this->mBalsaraShearCorrection ? 
-//                           this->mShearMultiplier(nodeListi, i) :
-//                           1.0);
-//   const Scalar fshearj = (this->mBalsaraShearCorrection ? 
-//                           this->mShearMultiplier(nodeListj, j) :
-//                           1.0);
 
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
-    //std::printf("%3.2f\n",rvAlpha(nodeListi, i));
   // The artificial internal energy.
   // const Scalar ei = fshear*(-Cl*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-  //                           Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  //                            Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui))));
   // const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-  //                           Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+  //                            Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                            Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
+                             Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                            Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+                             Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
   CHECK(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
   CHECK(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
 
