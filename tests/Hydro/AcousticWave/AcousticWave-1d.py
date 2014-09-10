@@ -72,6 +72,7 @@ commandLine(nx1 = 100,
             dtMin = 1.0e-5, 
             dtMax = 0.1,
             dtGrowth = 2.0,
+            dtverbose = False,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -87,6 +88,8 @@ commandLine(nx1 = 100,
             restartBaseName = "dumps-AcousticWave-1d",
 
             graphics = "gnu",
+
+            checkReversibility = False,
             )
 
 #-------------------------------------------------------------------------------
@@ -259,6 +262,7 @@ integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
@@ -283,6 +287,10 @@ output("control")
 if steps is None:
     if control.time() < goalTime:
         control.advance(goalTime, maxSteps)
+    if checkReversibility:
+        for i in xrange(nodes1.numNodes):
+            vel[i] = -vel[i]
+        control.advance(2*goalTime, maxSteps)
 else:
     control.step(steps)
 

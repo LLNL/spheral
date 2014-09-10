@@ -83,6 +83,60 @@ ArtificialViscosity<Dimension>::
 shearMultiplier() const {
   return mShearMultiplier;
 }
+    
+//------------------------------------------------------------------------------
+// Toggle for the Reducing Viscosity correction.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+ArtificialViscosity<Dimension>::
+reducingViscosityCorrection() const {
+    return mReducingViscosityCorrection;
+}
+
+template<typename Dimension>
+inline
+void
+ArtificialViscosity<Dimension>::
+reducingViscosityCorrection(bool value) {
+    mReducingViscosityCorrection = value;
+}
+    
+//------------------------------------------------------------------------------
+// Access the list of Reducing Viscosity correction multiplier.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierQ() {
+    return mReducingViscosityMultiplierQ;
+}
+    
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierQ() const {
+    return mReducingViscosityMultiplierQ;
+}
+    
+template<typename Dimension>
+inline
+FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierL() {
+    return mReducingViscosityMultiplierL;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+ArtificialViscosity<Dimension>::
+reducingViscosityMultiplierL() const {
+    return mReducingViscosityMultiplierL;
+}
 
 //------------------------------------------------------------------------------
 // Calculate the curl of the velocity given the stress tensor.

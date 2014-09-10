@@ -46,6 +46,11 @@ commandLine(seed = "constantDTheta",
             HydroConstructor = ASPHHydro,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
+            boolReduceViscosity = False,
+            nhQ = 5.0,
+            nhL = 10.0,
+            aMin = 0.1,
+            aMax = 2.0,
             linearConsistent = False,
             Cl = 1.0, 
             Cq = 0.75,
@@ -277,6 +282,13 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
 if hourglass:
@@ -446,6 +458,17 @@ if graphics:
                epsPlot = epsPlot,
                PPlot = PPlot,
                HPlot = hrPlot)
+
+    if boolReduceViscosity:
+        alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
+                                   xFunction = "%s.magnitude()",
+                                   winTitle = "rvAlphaQ",
+                                   colorNodeLists = False, plotGhosts = False)
+        alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
+                                   xFunction = "%s.magnitude()",
+                                   winTitle = "rvAlphaL",
+                                   colorNodeLists = False, plotGhosts = False)
+
 
     if mpi.rank == 0:
         r, hrans, htans = answer.hrtsolution(control.time())

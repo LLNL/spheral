@@ -7,6 +7,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	ArtificialViscosityInst.cc \
 	MonaghanGingoldViscosityInst.cc \
+	MorrisMonaghanReducingViscosityInst.cc \
 	TensorMonaghanGingoldViscosityInst.cc \
 	FiniteVolumeViscosityInst.cc \
 	TensorSVPHViscosityInst.cc 

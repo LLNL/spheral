@@ -29,7 +29,8 @@ PYTHONTARGETS = \
 	AbaqusNodeGenerator.py \
 	CentroidalVoronoiRelaxation.py \
 	InteriorGenerator.py \
-	FacetedSurfaceGenerator.py
+	FacetedSurfaceGenerator.py \
+    AsciiFileNodeGenerator.py
 
 SPHERALTOP = ..
 

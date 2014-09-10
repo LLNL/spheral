@@ -81,15 +81,11 @@ public:
 
   GeomVector operator+(const GeomVector& vec) const;
   GeomVector operator-(const GeomVector& vec) const;
-  GeomVector operator+(const double val) const;
-  GeomVector operator-(const double val) const;
   GeomVector operator*(const double val) const;
   GeomVector operator/(const double val) const;
 
   GeomVector& operator+=(const GeomVector& vec);
   GeomVector& operator-=(const GeomVector& vec);
-  GeomVector& operator+=(const double val);
-  GeomVector& operator-=(const double val);
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -163,14 +159,6 @@ template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
 template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
 template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 
-template<> GeomVector<1>& GeomVector<1>::operator+=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator+=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator+=(const double val);
-
-template<> GeomVector<1>& GeomVector<1>::operator-=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator-=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator-=(const double val);
-
 template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator*=(const double val);
@@ -236,10 +224,6 @@ template<> double GeomVector<2>::sumElements() const;
 template<> double GeomVector<3>::sumElements() const;
 
 // Forward declare the global functions.
-template<int nDim> GeomVector<nDim> operator+(const double val, const GeomVector<nDim>& vec);
-template<int nDim> GeomVector<nDim> operator-(const double val, const GeomVector<nDim>& vec);
-template<int nDim> GeomVector<nDim> operator*(const double val, const GeomVector<nDim>& vec);
-
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
                                                    const GeomVector<nDim>& rhs);
 template<int nDim> GeomVector<nDim> elementWiseMax(const GeomVector<nDim>& lhs,

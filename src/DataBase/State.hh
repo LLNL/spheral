@@ -72,6 +72,9 @@ public:
   // Enroll a policy by itself.
   void enroll(const KeyType& key, PolicyPointer policy);
 
+  // Remove a policy.
+  void removePolicy(const KeyType& key);
+
   // Enroll the given Field and associated update policy
   void enroll(FieldSpace::FieldBase<Dimension>& field, PolicyPointer policy);
 

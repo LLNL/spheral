@@ -18,6 +18,17 @@ using FieldSpace::Field;
 using PhysicsSpace::Physics;
 
 //------------------------------------------------------------------------------
+// Default constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+StateDerivatives<Dimension>::
+StateDerivatives():
+  StateBase<Dimension>(),
+  mCalculatedNodePairs(),
+  mNumSignificantNeighbors() {
+}
+
+//------------------------------------------------------------------------------
 // Construct with the derivatives for the given set of Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
