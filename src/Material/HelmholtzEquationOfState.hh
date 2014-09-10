@@ -26,12 +26,10 @@ namespace Spheral {
             typedef typename Dimension::SymTensor SymTensor;
             
             // Constructors, destructors.
-            HelmholtzEquationOfState(const NodeSpace::NodeList<Dimension>& myNodeList,
-                                     const PhysicalConstants& constants,
+            HelmholtzEquationOfState(const PhysicalConstants& constants,
                                      const double minimumPressure,
                                      const double maximumPressure,
                                      const double minimumTemperature,
-                                     const double maximumTemperature,
                                      const MaterialPressureMinType minPressureType,
                                      const Scalar abar0,
                                      const Scalar zbar0);
@@ -95,28 +93,30 @@ namespace Spheral {
             const FieldSpace::Field<Dimension, Scalar>& abar() const;
             const FieldSpace::Field<Dimension, Scalar>& zbar() const;
 			
-			const bool getUpdateStatus() const;
-			void setUpdateStatus(bool bSet);
+	  const bool getUpdateStatus() const;
+	  void setUpdateStatus(bool bSet);
             
             virtual bool valid() const;
             
         private:
             //--------------------------- Private Interface ---------------------------//
             
-            mutable FieldSpace::Field<Dimension, Scalar> myAbar;
-            mutable FieldSpace::Field<Dimension, Scalar> myZbar;
-            mutable FieldSpace::Field<Dimension, Scalar> mySpecificThermalEnergy;
-            mutable FieldSpace::Field<Dimension, Scalar> myMassDensity;
-            mutable FieldSpace::Field<Dimension, Scalar> myTemperature;
-            mutable FieldSpace::Field<Dimension, Scalar> myPressure;
-            mutable FieldSpace::Field<Dimension, Scalar> mySoundSpeed;
-            mutable FieldSpace::Field<Dimension, Scalar> myGamma;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myAbar;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myZbar;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySpecificThermalEnergy;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myMassDensity;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myTemperature;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myPressure;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > mySoundSpeed;
+            mutable boost::shared_ptr<FieldSpace::Field<Dimension, Scalar> > myGamma;
             
-            Scalar mabar0, mzbar0, mTmax, mPmin, mPmax;
+            Scalar mabar0, mzbar0, mPmin, mPmax;
 			mutable Scalar mTmin;
             bool needUpdate;
 			
 			const PhysicalConstants& mConstants;
+            
+	  void storeFields(const FieldSpace::Field<Dimension, Scalar>& thisMassDensity, const FieldSpace::Field<Dimension, Scalar>& thisSpecificThermalEnergy) const;
 
         };
     }
