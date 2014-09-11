@@ -13,6 +13,7 @@
 #include "Utilities/DBC.hh"
 
 #define Fortran2(x) x##_
+#define NBLOCK 100
 
 extern "C" {
 	void Fortran2(init_helm_table)();
@@ -114,12 +115,31 @@ namespace Material {
         
         storeFields(massDensity, specificThermalEnergy);
         
-        int npart               = massDensity.numElements();
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
         
         if(needUpdate){
-	  Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
-					   &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
-					   &(myPressure->at(0)), &mTmin, &(mySoundSpeed->at(0)));
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            
         }
         
         for (size_t i = 0; i != npart; ++i) {
@@ -140,12 +160,31 @@ namespace Material {
 
         storeFields(massDensity, specificThermalEnergy);
         
-        int npart               = massDensity.numElements();
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
-                                             &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
-                                             &(myPressure->at(0)), &mTmin, &(mySoundSpeed->at(0)));
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            
         }
 
         for (size_t i = 0; i != massDensity.numElements(); ++i) {
@@ -228,12 +267,31 @@ namespace Material {
 
         storeFields(massDensity, specificThermalEnergy);
         
-        int npart               = massDensity.numElements();
+        /* what follows is a method of breaking up the input to the fortran routine into smaller chunks */
+        
+        int npart = massDensity.numElements();
+        int nblock = NBLOCK;
+        int nrest = npart % nblock;
+        int nloop = (npart - nrest)/nblock;
+        unsigned int k = 0;
         
         if(needUpdate){
-            Fortran2(wrapper_invert_helm_ed)(&npart, &(myMassDensity->at(0)), &(mySpecificThermalEnergy->at(0)),
-                                             &(myAbar->at(0)), &(myZbar->at(0)), &(myTemperature->at(0)),
-                                             &(myPressure->at(0)), &mTmin, &(mySoundSpeed->at(0)));
+            for (unsigned int j=0; j<nloop; ++j)
+            {
+                k = j*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            /* now do the rest */
+            if (nrest > 0)
+            {
+                k = nloop*nblock;
+                Fortran2(wrapper_invert_helm_ed)(&nrest, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
+                                                 &(myAbar->at(k)), &(myZbar->at(k)), &(myTemperature->at(k)),
+                                                 &(myPressure->at(k)), &mTmin, &(mySoundSpeed->at(k)));
+            }
+            
         }
         
         for (size_t i = 0; i != npart; ++i) {
