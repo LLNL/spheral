@@ -676,6 +676,8 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
+  file.write(mNewEffectiveDamage, pathName + "/newEffectiveDamage");
+  file.write(mNewDamageGradient, pathName + "/newDamageGradient");
 }
 
 //------------------------------------------------------------------------------
@@ -689,6 +691,8 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");
+  file.read(mNewEffectiveDamage, pathName + "/newEffectiveDamage");
+  file.read(mNewDamageGradient, pathName + "/newDamageGradient");
 }
 
 }
