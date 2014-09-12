@@ -3,7 +3,6 @@ from math import *
 import mpi
 rank = mpi.rank
 procs = mpi.procs
-import sys
 
 from Spheral import Vector2d, SymTensor2d, Vector3d, SymTensor3d, rotationMatrix2d, rotationMatrix3d
 
@@ -48,9 +47,6 @@ class NodeGeneratorBase:
             ndomain += 1
         minGlobalID = rank*ndomain0 + min(rank, remainder)
         maxGlobalID = minGlobalID + ndomain
-        
-        print >> sys.stderr, "rank, minid = " + str(rank) + ":" + str(minGlobalID) 
-        print >> sys.stderr, "rank, maxid = " + str(rank) + ":" + str(maxGlobalID)
 
         assert mpi.allreduce(minGlobalID, mpi.MIN) == 0
         assert mpi.allreduce(maxGlobalID, mpi.MAX) == ntot
