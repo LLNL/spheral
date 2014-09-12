@@ -159,6 +159,37 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
 }
 
 //------------------------------------------------------------------------------
+// Compute the common neighbors for a pair of nodes.  Note this method 
+// returns by value since this information is not stored by ConnectivityMap.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<vector<int> >
+ConnectivityMap<Dimension>::
+connectivityIntersectionForNodes(const int nodeListi, const int i,
+                                 const int nodeListj, const int j) const {
+
+  // First get the individual node connectivity.
+  const size_t numNodeLists = mNodeLists.size();
+  vector<vector<int> > neighborsi = this->connectivityForNode(nodeListi, i);
+  vector<vector<int> > neighborsj = this->connectivityForNode(nodeListj, j);
+  CHECK(neighborsi.size() == numNodeLists);
+  CHECK(neighborsj.size() == numNodeLists);
+
+  // Build the intersection for each NodeList.
+  vector<vector<int> > result(numNodeLists);
+  for (unsigned k = 0; k != numNodeLists; ++k) {
+    sort(neighborsi[k].begin(), neighborsi[k].end());
+    sort(neighborsj[k].begin(), neighborsj[k].end());
+    set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
+                     neighborsj[k].begin(), neighborsj[k].end(),
+                     back_inserter(result[k]));
+  }
+
+  // That's it.
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the connectivity in terms of global node IDs.
 //------------------------------------------------------------------------------
 template<typename Dimension>
