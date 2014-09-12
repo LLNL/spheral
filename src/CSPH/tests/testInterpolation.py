@@ -1,5 +1,6 @@
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 1d", label="CSPH interpolation test -- 1D (serial)")
 #ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 2d", label="CSPH interpolation test -- 2D (serial)")
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testDim 3d", label="CSPH interpolation test -- 3D (serial)")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
