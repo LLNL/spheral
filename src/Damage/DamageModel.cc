@@ -174,8 +174,10 @@ initialize(const Scalar time,
     typedef typename State<Dimension>::KeyType Key;
     const Key posKey = State<Dimension>::buildFieldKey(HydroFieldNames::position, mNodeList.name());
     const Key HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
+    const Key flawKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveFlaws, mNodeList.name());
     const Field<Dimension, Vector>& positions = state.field(posKey, Vector::zero);
     const Field<Dimension, SymTensor>& H = state.field(HKey, SymTensor::zero);
+    Field<Dimension, Scalar>& effectiveFlaws = state.field(flawKey, 0.0);
 
     // Iterate over the nodes and compute our effective flaws!
     for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
@@ -185,18 +187,18 @@ initialize(const Scalar time,
       switch(mEffectiveFlawAlgorithm) {
 
       case MinFlaw:
-        mEffectiveFlaws(i) = *min_element(flawsi.begin(), flawsi.end());
+        effectiveFlaws(i) = *min_element(flawsi.begin(), flawsi.end());
         break;
 
       case MaxFlaw:
-        mEffectiveFlaws(i) = *max_element(flawsi.begin(), flawsi.end());
+        effectiveFlaws(i) = *max_element(flawsi.begin(), flawsi.end());
         break;
 
       case InverseSumFlaws:
       case SampledFlaws:
-        mEffectiveFlaws(i) = 0.0;
-        for (typename vector<double>::const_iterator itr = flawsi.begin(); itr != flawsi.end(); ++itr) mEffectiveFlaws(i) += 1.0/(*itr);
-        mEffectiveFlaws(i) = flawsi.size()/mEffectiveFlaws(i);
+        effectiveFlaws(i) = 0.0;
+        for (typename vector<double>::const_iterator itr = flawsi.begin(); itr != flawsi.end(); ++itr) effectiveFlaws(i) += 1.0/(*itr);
+        effectiveFlaws(i) = flawsi.size()/effectiveFlaws(i);
         break;
 
       default:
@@ -216,18 +218,18 @@ initialize(const Scalar time,
       CHECK(nodeListi < numNodeLists);
 
       // Invert the flaws again, and remove the number of flaws normalization.
-      for (int i = 0; i != mNodeList.numInternalNodes(); ++i) mEffectiveFlaws(i) = mFlaws(i).size()/mEffectiveFlaws(i);
+      for (int i = 0; i != mNodeList.numInternalNodes(); ++i) effectiveFlaws(i) = mFlaws(i).size()/effectiveFlaws(i);
 
       // Apply ghost boundaries.
       for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
            boundaryItr != this->boundaryEnd();
-           ++boundaryItr) (*boundaryItr)->applyGhostBoundary(mEffectiveFlaws);
+           ++boundaryItr) (*boundaryItr)->applyGhostBoundary(effectiveFlaws);
       for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
            boundaryItr != this->boundaryEnd();
            ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
       // Make a copy of the inverse sum for each node.
-      Field<Dimension, Scalar> flawCopy("flaws copy", mEffectiveFlaws);
+      Field<Dimension, Scalar> flawCopy("flaws copy", effectiveFlaws);
 
       // Go over everybody again.
       for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
@@ -237,7 +239,7 @@ initialize(const Scalar time,
         const SymTensor& Hi = H(i);
         const Scalar Hdeti = Hi.Determinant();
         const Scalar Wi = mW(0.0, Hdeti);
-        mEffectiveFlaws(i) *= Wi;
+        effectiveFlaws(i) *= Wi;
         Scalar normalization = Wi;
 
         // Now everyone else's contribution.
@@ -247,12 +249,12 @@ initialize(const Scalar time,
           CHECK(j < mNodeList.numNodes());
           const Vector rij = ri - positions(j);
           const Scalar Wi = mW(Hi*rij, Hdeti);
-          mEffectiveFlaws(i) += Wi*flawCopy(j);
+          effectiveFlaws(i) += Wi*flawCopy(j);
           normalization += Wi;
         }
 
         // Normalize and we're done with this node.
-        mEffectiveFlaws(i) = normalization/mEffectiveFlaws(i);
+        effectiveFlaws(i) = normalization/effectiveFlaws(i);
       }
     }
   }
@@ -427,6 +429,9 @@ DamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.write(mFlaws, pathName + "/flaws");
+  file.write(mEffectiveFlaws, pathName + "/effectiveFlaws");
+  file.write(mYoungsModulus, pathName + "/youngsModulus");
+  file.write(mLongitudinalSoundSpeed, pathName + "/longitudinalSoundSpeed");
   file.write(mExcludeNode, pathName + "/excludeNode");
 }
 
@@ -439,6 +444,9 @@ DamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.read(mFlaws, pathName + "/flaws");
+  file.read(mEffectiveFlaws, pathName + "/effectiveFlaws");
+  file.read(mYoungsModulus, pathName + "/youngsModulus");
+  file.read(mLongitudinalSoundSpeed, pathName + "/longitudinalSoundSpeed");
   file.read(mExcludeNode, pathName + "/excludeNode");
 }
 
