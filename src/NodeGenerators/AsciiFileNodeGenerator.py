@@ -161,15 +161,14 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         assert min([x == filename for x in allfiles])
         self.serialfile = True
 
+        self.H = []
+        self.fieldNames = []
+        vals = []
+
         if mpi.rank == 0:
             f = open(filename,'r')
             self.f = f
-    
-            # create the field arrays
-            vals = []
-            self.H = []
             
-            fieldNames = []
             gotFieldNames = 0
             
             for line in self.f:
@@ -177,33 +176,27 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
                 if data[0][0] != "#" and gotFieldNames == 0:
-                    fieldNames.append(data)
+                    self.fieldNames.append(data)
                     gotFieldNames = 1
             
             self.f.close()
                 
-            print "in " + filename + " found " + str(len(fieldNames[0])) + " fields:"
-            for i in xrange(len(fieldNames[0])):
-                print fieldNames[0][i]
-                self.__dict__[fieldNames[0][i]] = []
+            print "in " + filename + " found " + str(len(self.fieldNames[0])) + " fields:"
+            for i in xrange(len(self.fieldNames[0])):
+                print self.fieldNames[0][i]
+
+        self.fieldNames = mpi.bcast(self.fieldNames, root=0)
 
 
-            n = len(vals)
-            for i in xrange(n):
-                for j in xrange(len(fieldNames[0])):
-                    self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
-                self.H.append((1.0/self.h[i]) * SymTensor3d.one)
-    
-        self.x = mpi.bcast(self.x, root=0)
-        self.y = mpi.bcast(self.y, root=0)
-        self.z = mpi.bcast(self.z, root=0)
-        self.m = mpi.bcast(self.m, root=0)
-        self.H = mpi.bcast(self.H, root=0)
-        self.vx = mpi.bcast(self.vx, root=0)
-        self.vy = mpi.bcast(self.vy, root=0)
-        self.vz = mpi.bcast(self.vz, root=0)
-        self.eps = mpi.bcast(self.eps, root=0)
-        self.rho = mpi.bcast(self.rho, root=0)
+        for i in xrange(len(fieldNames[0])):
+            self.__dict__[fieldNames[0][i]] = []
+
+
+        n = len(vals)
+        for i in xrange(n):
+            for j in xrange(len(self.fieldNames[0])):
+                self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
+            self.H.append((1.0/self.h[i]) * SymTensor3d.one)
 
     
         # Initialize the base class.
