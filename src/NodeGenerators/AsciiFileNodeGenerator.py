@@ -49,35 +49,35 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         if mpi.rank == 0:
             f = open(filename,'r')
             self.f = f
-        else:
-            self.f = None
-        
-        # create the field arrays
-        vals = []
-        self.H = []
-        
-        fieldNames = []
-        gotFieldNames = 0
-        
-        for line in self.f:
-            data = line.split(delimiter)
-            if data[0][0] != "#" and gotFieldNames == 1:
-                vals.append(data)
-            if data[0][0] != "#" and gotFieldNames == 0:
-                fieldNames.append(data)
-                gotFieldNames = 1
-        
-        print "in " + filename + " found " + str(len(fieldNames[0])) + " fields:"
-        for i in xrange(len(fieldNames[0])):
-            print fieldNames[0][i]
-            self.__dict__[fieldNames[0][i]] = []
-        
-        
-        n = len(vals)
-        for i in xrange(n):
-            for j in xrange(len(fieldNames[0])):
-                self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
-            self.H.append((1.0/self.h[i]) * SymTensor2d.one)
+    
+            # create the field arrays
+            vals = []
+            self.H = []
+            
+            fieldNames = []
+            gotFieldNames = 0
+            
+            for line in self.f:
+                data = line.split(delimiter)
+                if data[0][0] != "#" and gotFieldNames == 1:
+                    vals.append(data)
+                if data[0][0] != "#" and gotFieldNames == 0:
+                    fieldNames.append(data)
+                    gotFieldNames = 1
+            
+            self.f.close()
+    
+            print "in " + filename + " found " + str(len(fieldNames[0])) + " fields:"
+            for i in xrange(len(fieldNames[0])):
+                print fieldNames[0][i]
+                self.__dict__[fieldNames[0][i]] = []
+            
+            
+            n = len(vals)
+            for i in xrange(n):
+                for j in xrange(len(fieldNames[0])):
+                    self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
+                self.H.append((1.0/self.h[i]) * SymTensor2d.one)
         
         
         
@@ -87,9 +87,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             fields = tuple([self.x, self.y, self.m, self.rho, self.vx, self.vy, self.eps, self.H] +
                            [self.__dict__[x] for x in extraFields])
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
-        
-        if mpi.rank == 0:
-            self.f.close()
+
         
         # Apply the requested number of refinements.
         for i in xrange(refineNodes):
