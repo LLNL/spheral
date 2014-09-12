@@ -194,8 +194,18 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                     self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
                 self.H.append((1.0/self.h[i]) * SymTensor3d.one)
     
+        self.x = mpi.bcast(self.x, root=0)
+        self.y = mpi.bcast(self.y, root=0)
+        self.z = mpi.bcast(self.z, root=0)
+        self.m = mpi.bcast(self.m, root=0)
+        self.H = mpi.bcast(self.H, root=0)
+        self.vx = mpi.bcast(self.vx, root=0)
+        self.vy = mpi.bcast(self.vy, root=0)
+        self.vz = mpi.bcast(self.vz, root=0)
+        self.eps = mpi.bcast(self.eps, root=0)
+        self.rho = mpi.bcast(self.rho, root=0)
 
-        
+    
         # Initialize the base class.
         if initializeBase:
             fields = tuple([self.x, self.y, self.z, self.m, self.rho, self.vx, self.vy, self.vz, self.eps, self.H] +
