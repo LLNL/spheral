@@ -379,6 +379,8 @@ namespace Material {
         myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisMassDensity.nodeList()));
         myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisMassDensity.nodeList(),mabar0));
         myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisMassDensity.nodeList(),mzbar0));
+        
+        for(unsigned int i=0; i!=myMassDensity->numNodes(); ++i) (*myMassDensity)[i] = max((*myMassDensity)[i],1.0e-12);
     }
 
 }
