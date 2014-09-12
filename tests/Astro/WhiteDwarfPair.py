@@ -28,7 +28,7 @@ commandLine(HydroConstructor = SPHHydro,
             csMultiplier = 1e-4,
             energyMultiplier = 0.1,
             hmin = 1e-5,
-            hmax = 20.0,
+            hmax = 1e20,
             hminratio = 0.05,
             HsmoothFraction = 0.0,
             cfl = 0.5,
@@ -51,7 +51,7 @@ commandLine(HydroConstructor = SPHHydro,
             dtMin = 1.0e-5,
             dtMax = None,
             dtGrowth = 2.0,
-            dtSample = 0.1,
+            dtSample = 0.005,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -111,8 +111,6 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-hmin = 1e-5
-hmax = 1e6
 nPerh = 1.51
 nodes = makeFluidNodeList("nodes", eos,
                           hmin = hmin,
@@ -138,7 +136,10 @@ if restoreCycle is None:
     abund = []
 
     for i in xrange(nodes.numInternalNodes):
-        vel[i].x = generator.vx[i]
+        nodes.velocity()[i].x = generator.vx[i]
+        if(generator.vx[i] != 0):
+            print "velx = " + str(generator.vx[i])
+            print "stored velx = " + str(nodes.velocity()[i].x)
         vel[i].y = generator.vy[i]
         vel[i].z = generator.vz[i]
         eps[i] = generator.eps[i]
@@ -237,29 +238,25 @@ output("integrator.rigorousBoundaries")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            vizTime = dtSample,
+                            vizDir = visitDir,
+                            vizStep = 2,
+                            vizBaseName = "wd-pair-3d",
+                            restoreCycle = restoreCycle)
 output("control")
 
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH()
-    control.smoothState(smoothIters)
-    control.dropRestartFile()
-    dumpPhysicsState(integrator,
-                     "wd-pair-3d",
-                     visitDir)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 hstats([nodes])
-while control.time() < goalTime:
-    nextGoalTime = min(control.time() + dtSample, goalTime)
-    control.advance(nextGoalTime, maxSteps)
-    control.dropRestartFile()
-    dumpPhysicsState(integrator,
-                     "wd-pair-3d",
-                     visitDir)
-hstats([nodes])
+
+control.advance(goalTime)
+
+
+
+
+
+
+
