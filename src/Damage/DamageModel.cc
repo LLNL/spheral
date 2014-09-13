@@ -429,9 +429,6 @@ DamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.write(mFlaws, pathName + "/flaws");
-  file.write(mEffectiveFlaws, pathName + "/effectiveFlaws");
-  file.write(mYoungsModulus, pathName + "/youngsModulus");
-  file.write(mLongitudinalSoundSpeed, pathName + "/longitudinalSoundSpeed");
   file.write(mExcludeNode, pathName + "/excludeNode");
 }
 
@@ -444,9 +441,6 @@ DamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.read(mFlaws, pathName + "/flaws");
-  file.read(mEffectiveFlaws, pathName + "/effectiveFlaws");
-  file.read(mYoungsModulus, pathName + "/youngsModulus");
-  file.read(mLongitudinalSoundSpeed, pathName + "/longitudinalSoundSpeed");
   file.read(mExcludeNode, pathName + "/excludeNode");
 }
 
