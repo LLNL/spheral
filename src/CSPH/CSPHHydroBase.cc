@@ -1090,7 +1090,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               //   pairAccelerationsi.push_back( forceij/mi);
               //   pairAccelerationsj.push_back(-forceij/mj);
               // }
-
+/*
               // Acceleration (pair-wise area form).
               // This is a punt on the Q for now -- do something better later.
               const Vector rijhat = rij.unitVector();
@@ -1108,28 +1108,85 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 pairAccelerationsi.push_back( forceij/mi);
                 pairAccelerationsj.push_back(-forceij/mj);
               }
+*/
 
-              // // Acceleration (CSPH form).
-              // CHECK(rhoi > 0.0);
-              // CHECK(rhoj > 0.0);
-              // Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
-              // Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
-              // // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              // // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
-              // DvDti += deltaDvDti;
-              // DvDtj += deltaDvDtj;
-              // if (mCompatibleEnergyEvolution) {
-              //   const Scalar W0j = W.kernelValue(0.0, Hdetj);
-              //   const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-              //   const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-              //   const unsigned numNeighborsj = (j < firstGhostNodej ? 
-              //                                   max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-              //                                   1);
-              //   const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-              //   const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-              //   pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
-              //   pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
-              // }
+              // Acceleration (CSPH form).
+              CHECK(rhoi > 0.0);
+              CHECK(rhoj > 0.0);
+
+
+              Vector Aij=Vector::zero;
+   	      Vector Aji=Vector::zero;
+
+
+              //Self Contribution
+              Aij+=(mi/rhoi)*Ai*W0*gradW1j*weighti*weightj;
+              Aji+=(mi/rhoi)*W1j*(Ai*Bi*W0+gradAi*W0)*weighti*weightj;
+              //Here we reloop over all the neighbors of i. (We really want to loop over the intersection of the neighbors of i and j, but just doing all of i is fine
+              //as the kernel evaluations for points that are not in the neighbor set of j will be zero.)
+              //vector< vector<int> > intersecConnect= connectivityMap.connectivityIntersectionForNodes( nodeListi, i,  nodeListj,j);
+              for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
+                // Connectivity of this node with this NodeList.  We only need to proceed if
+                // there are some nodes in this list.
+                const vector<int>& connectivity2 = fullConnectivity[nodeListk];
+                //const vector<int>& connectivity2 = intersecConnect[nodeListk];
+                if (connectivity2.size() > 0) {
+//#pragma vector always
+                 for (vector<int>::const_iterator kItr = connectivity2.begin();
+                     kItr != connectivity2.end();
+                     ++kItr) {
+                     const int k = *kItr;
+
+                     const Scalar& mk = mass(nodeListk, k);
+                     const Scalar& rhok = massDensity(nodeListk, k);
+                     const Scalar& Ak = A(nodeListk, k);
+                     const Vector& Bk = B(nodeListk, k);
+                     const Vector& gradAk = gradA(nodeListk, k);
+                     const Tensor& gradBk = gradB(nodeListk, k);
+                     const Vector& rk = position(nodeListk, k);
+                     const Scalar volk = mk/rhok;
+                     const Vector rkj = rk - rj;
+                     const Vector rki = rk - ri;
+                     //const Vector etaj = Hj*rij;
+                     const Vector etajk = Hj*rkj;
+                     const Vector etaik = Hi*rki;
+                     Vector gradWjk, gradWik;
+                     Scalar Wjk, gWjk, Wik, gWik;
+                     CSPHKernelAndGradient(W,  rkj,  etajk, Hj, Hdetj, Ak, Bk, gradAk, gradBk, Wjk, gWjk, gradWjk);
+                     CSPHKernelAndGradient(W,  rki,  etaik, Hi, Hdeti, Ak, Bk, gradAk, gradBk, Wik, gWik, gradWik);
+                     Aij+=volk*Wik*gradWjk*weighti*weightj;
+  		     Aji+=volk*Wjk*gradWik*weighti*weightj;
+                     
+                 }
+                }
+              }
+              const Vector forceij= 0.5*(Pi+Pj)*(Aij-Aji);
+              const Vector forceji= -forceij;
+
+              //Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
+              //Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
+              Vector deltaDvDti = forceij/mi;
+              Vector deltaDvDtj = forceji/mj;
+              Vector tempi = -weightj/rhoi*Pj*gradWj + Qacci;
+              Vector tempj = -weighti/rhoj*Pi*gradWi + Qaccj;
+              printf("Pi=%15.5f, Pj=%15.5f, Aij=%15.5f, Aji=%15.5f, Oldi =%15.5f, Newi=%15.5f, Oldj=%15.5f, Newj=%15.5f\n",Pi,Pj,Aij(0), Aji(0), tempi(0),deltaDvDti(0),tempj(0),deltaDvDtj(0));
+               
+              // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
+              // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+              DvDti += deltaDvDti;
+              DvDtj += deltaDvDtj;
+              if (mCompatibleEnergyEvolution) {
+                const Scalar W0j = W.kernelValue(0.0, Hdetj);
+                const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
+                const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
+                const unsigned numNeighborsj = (j < firstGhostNodej ? 
+                                                max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
+                                                1);
+                const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
+                const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
+                pairAccelerationsi.push_back(deltaDvDti + deltaDvDtii);
+                pairAccelerationsj.push_back(deltaDvDtj + deltaDvDtjj);
+              }
 
               // Specific thermal energy evolution.
               // CHECK2((QPiij.second*vij).dot(gradWj) >= 0.0, (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
@@ -1175,7 +1232,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the acceleration.
       const Vector deltaDvDtii = -weighti/rhoi*Pi*selfGradContrib;
       // const Vector deltaDvDtii = weighti*Pi*Ai*W0*Bi.unitVector();
-      DvDti += deltaDvDtii;
+      // DvDti += deltaDvDtii;
 
       // The specific thermal energy evolution.
       DepsDti -= Pi/rhoi*DvDxi.Trace();
