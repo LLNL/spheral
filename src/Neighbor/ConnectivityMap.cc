@@ -159,6 +159,85 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
 }
 
 //------------------------------------------------------------------------------
+// Compute the common neighbors for a pair of nodes.  Note this method 
+// returns by value since this information is not stored by ConnectivityMap.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<vector<int> >
+ConnectivityMap<Dimension>::
+connectivityIntersectionForNodes(const int nodeListi, const int i,
+                                 const int nodeListj, const int j) const {
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  // Pre-conditions.
+  const unsigned numNodeLists = mNodeLists.size();
+  REQUIRE(nodeListi < numNodeLists and
+          nodeListj < numNodeLists);
+  const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
+  const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
+
+  // Prepare the result.
+  vector<vector<int> > result(numNodeLists);
+
+  // If both nodes are internal, we simply intersect their neighbor lists.
+  if (i < firstGhostNodei and j < firstGhostNodej) {
+    vector<vector<int> > neighborsi = this->connectivityForNode(nodeListi, i);
+    vector<vector<int> > neighborsj = this->connectivityForNode(nodeListj, j);
+    CHECK(neighborsi.size() == numNodeLists);
+    CHECK(neighborsj.size() == numNodeLists);
+    for (unsigned k = 0; k != numNodeLists; ++k) {
+      sort(neighborsi[k].begin(), neighborsi[k].end());
+      sort(neighborsj[k].begin(), neighborsj[k].end());
+      set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
+                       neighborsj[k].begin(), neighborsj[k].end(),
+                       back_inserter(result[k]));
+    }
+
+  } else {
+    // One of the points we're checking is a ghost node, which does not have stored
+    // connectivity.  We have to look for the subset of the internal nodes neighbors
+    // that are in range the hard way.
+    unsigned ii, jj, nodeListii, nodeListjj;
+    if (i <  firstGhostNodei) {
+      ii = i;
+      jj = j;
+      nodeListii = nodeListi;
+      nodeListjj = nodeListj;
+    } else {
+      ii = j;
+      jj = i;
+      nodeListii = nodeListj;
+      nodeListjj = nodeListi;
+    }
+    const vector<vector<int> >& neighborsii = this->connectivityForNode(nodeListii, ii);
+    const Vector& rjj = mNodeLists[nodeListjj]->positions()[jj];
+    const SymTensor& Hjj = mNodeLists[nodeListjj]->Hfield()[jj];
+    for (unsigned nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
+      const double kernelExtent2 = FastMath::square(mNodeLists[nodeListk]->neighbor().kernelExtent());
+      const Field<Dimension, Vector>& pos = mNodeLists[nodeListk]->positions();
+      for (vector<int>::const_iterator kItr = neighborsii[nodeListk].begin();
+           kItr != neighborsii[nodeListk].end();
+           ++kItr) {
+        const int k = *kItr;
+        if (nodeListk != nodeListjj or k != jj) {  // To match our convention that i & j are not in the neighbor set.
+          const Vector& rk = pos(k);
+          const Scalar etaj2 = (Hjj*(rk - rjj)).magnitude2();
+          if (etaj2 < kernelExtent2) result[nodeListk].push_back(k);
+        }
+      }
+    }
+  }
+
+  // That's it.
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the connectivity in terms of global node IDs.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -37,13 +37,18 @@ struct HydroFieldNames {
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
+  static const std::string m0_CSPH;
+  static const std::string m1_CSPH;
+  static const std::string m2_CSPH;
   static const std::string A0_CSPH;
   static const std::string A_CSPH;
   static const std::string B_CSPH;
   static const std::string C_CSPH;
   static const std::string D_CSPH;
+  static const std::string gradA0_CSPH;
   static const std::string gradA_CSPH;
   static const std::string gradB_CSPH;
+  static const std::string M_CSPH;
   static const std::string volume;
   static const std::string linearMomentum;
   static const std::string totalEnergy;

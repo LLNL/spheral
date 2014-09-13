@@ -59,6 +59,7 @@ public:
                const bool compatibleEnergyEvolution,
                const bool gradhCorrection,
                const bool XSPH,
+               const bool correctVelocityGradient,
                const PhysicsSpace::MassDensityType densityUpdate,
                const PhysicsSpace::HEvolutionType HUpdate,
                const double epsTensile,
@@ -154,6 +155,10 @@ public:
   bool XSPH() const;
   void XSPH(const bool val);
 
+  // Flag to determine if we're applying the linear correction for the velocity gradient.
+  bool correctVelocityGradient() const;
+  void correctVelocityGradient(const bool val);
+
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
   void epsilonTensile(const Scalar val);
@@ -186,6 +191,8 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    M() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    localM() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
@@ -210,7 +217,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
+  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient;
 
   // Tensile correction.
   Scalar mEpsTensile, mnTensile;
@@ -243,6 +250,8 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldSpace::FieldList<Dimension, Tensor>    mM;
+  FieldSpace::FieldList<Dimension, Tensor>    mLocalM;
 
   FieldSpace::FieldList<Dimension, Scalar>    mVolume;
 

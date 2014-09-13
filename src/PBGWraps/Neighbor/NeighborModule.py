@@ -401,6 +401,9 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                                  constrefparam(intfieldlist, "old2new")])
         x.add_method("connectivityForNode", "vector_of_vector_of_int", [param(ptr("const " + nodelist), "nodeList"), param("int", "nodeID")], is_const=True)
         x.add_method("connectivityForNode", "vector_of_vector_of_int", [param("int", "nodeListID"), param("int", "nodeID")], is_const=True)
+        x.add_method("connectivityIntersectionForNodes", "vector_of_vector_of_int", 
+                     [param("int", "nodeListi"), param("int", "i"),
+                      param("int", "nodeListj"), param("int", "j")], is_const=True)
         x.add_method("numNeighborsForNode", "int", [param(ptr("const " + nodelist), "nodeList"), param("int", "nodeID")], is_const=True)
         x.add_method("calculatePairInteraction", "bool", [param("int", "nodeListi"),
                                                           param("int", "i"),

@@ -105,6 +105,7 @@ class SolidSPH:
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
+                           param("int", "correctVelocityGradient", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("double", "epsTensile", default_value="0.3"),
