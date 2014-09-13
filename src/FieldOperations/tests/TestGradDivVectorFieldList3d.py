@@ -142,10 +142,10 @@ except:
 for bc in boundaryConditions:
     bc.setGhostNodes(db)
     nodes1.neighbor.updateNodes()
-    bc.applyScalarFieldListGhostBoundary(fluidWeight)
-    bc.applyScalarFieldListGhostBoundary(fluidMass)
-    bc.applyScalarFieldListGhostBoundary(fluidRho)
-    bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+    bc.applyFieldListGhostBoundary(fluidWeight)
+    bc.applyFieldListGhostBoundary(fluidMass)
+    bc.applyFieldListGhostBoundary(fluidRho)
+    bc.applyFieldListGhostBoundary(fluidHfield)
 db.updateFluidMassDensity()
 nodes1.numGhostNodes = 0
 nodes1.neighbor.updateNodes()
@@ -153,10 +153,10 @@ nodes1.updateWeight()
 for bc in boundaryConditions:
     bc.setGhostNodes(db)
     nodes1.neighbor.updateNodes()
-    bc.applyScalarFieldListGhostBoundary(fluidWeight)
-    bc.applyScalarFieldListGhostBoundary(fluidMass)
-    bc.applyScalarFieldListGhostBoundary(fluidRho)
-    bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+    bc.applyFieldListGhostBoundary(fluidWeight)
+    bc.applyFieldListGhostBoundary(fluidMass)
+    bc.applyFieldListGhostBoundary(fluidRho)
+    bc.applyFieldListGhostBoundary(fluidHfield)
 for i in xrange(nodes1.firstGhostNode, nodes1.numNodes):
     nodes1.velocity[i] = vFunction(nodes1.positions[i])
 
