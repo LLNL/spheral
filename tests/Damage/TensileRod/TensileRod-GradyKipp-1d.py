@@ -1,8 +1,8 @@
 #ATS:if SYS_TYPE.startswith('darwin'):
-#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140808.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
-#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140808.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
-#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140808.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt --restoreCycle 500' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140808.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
+#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
+#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt --restoreCycle 500' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #ATS:else:
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
@@ -549,10 +549,7 @@ if restoreCycle is not None:
 if not steps is None:
     control.step(steps)
 else:
-    while control.time() < goalTime:
-        nextGoalTime = min(control.time() + dtSample, goalTime)
-        control.advance(nextGoalTime, maxSteps)
-        control.dropRestartFile()
+    control.advance(goalTime)
 
 #-------------------------------------------------------------------------------
 # Plot the state.
