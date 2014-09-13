@@ -314,7 +314,7 @@ def plotFieldList(fieldList,
 # Plot the mass density, velocity, pressure, and smoothing scale for the fluid
 # node lists in the given data base.  Implicitly assuming 1-D.
 #-------------------------------------------------------------------------------
-def plotState(dataBase,
+def plotState(thingus,
               plotGhosts = False,
               colorNodeLists = True,
               plotStyle = "points",
@@ -323,7 +323,27 @@ def plotState(dataBase,
               tenyFunction = "%s.xx ** -1",
               lineTitle = "Simulation"):
 
-    rhoPlot = plotFieldList(dataBase.fluidMassDensity,
+    if (isinstance(thingus, State1d) or
+        isinstance(thingus, State2d) or
+        isinstance(thingus, State3d)):
+        rho = thingus.scalarFields(HydroFieldNames.massDensity)
+        vel = thingus.vectorFields(HydroFieldNames.velocity)
+        eps = thingus.scalarFields(HydroFieldNames.specificThermalEnergy)
+        P = thingus.scalarFields(HydroFieldNames.pressure)
+        H = thingus.symTensorFields(HydroFieldNames.H)
+
+    else:
+        assert (isinstance(thingus, DataBase1d) or
+                isinstance(thingus, DataBase2d) or
+                isinstance(thingus, DataBase3d))
+        rho = thingus.fluidMassDensity
+        vel = thingus.fluidVelocity
+        eps = thingus.fluidSpecificThermalEnergy
+        P = thingus.newFluidScalarFieldList(0.0, "pressure")
+        thingus.fluidPressure(P)
+        H = thingus.fluidHfield
+
+    rhoPlot = plotFieldList(rho,
                             xFunction = xFunction,
                             plotGhosts = plotGhosts,
                             colorNodeLists = colorNodeLists,
@@ -332,7 +352,7 @@ def plotState(dataBase,
                             lineTitle = lineTitle,
                             xlabel="x")
 
-    velPlot = plotFieldList(dataBase.fluidVelocity,
+    velPlot = plotFieldList(vel,
                             xFunction = xFunction,
                             yFunction = vecyFunction,
                             plotGhosts = plotGhosts,
@@ -342,7 +362,7 @@ def plotState(dataBase,
                             lineTitle = lineTitle,
                             xlabel="x")
 
-    epsPlot = plotFieldList(dataBase.fluidSpecificThermalEnergy,
+    epsPlot = plotFieldList(eps,
                             xFunction = xFunction,
                             plotGhosts = plotGhosts,
                             colorNodeLists = colorNodeLists,
@@ -351,9 +371,7 @@ def plotState(dataBase,
                             lineTitle = lineTitle,
                             xlabel="x")
 
-    fluidPressure = dataBase.newFluidScalarFieldList(0.0, "pressure")
-    dataBase.fluidPressure(fluidPressure)
-    PPlot = plotFieldList(fluidPressure,
+    PPlot = plotFieldList(P,
                           xFunction = xFunction,
                           plotGhosts = plotGhosts,
                           colorNodeLists = colorNodeLists,
@@ -362,7 +380,7 @@ def plotState(dataBase,
                           lineTitle = lineTitle,
                           xlabel="x")
 
-    HPlot = plotFieldList(dataBase.fluidHfield,
+    HPlot = plotFieldList(H,
                           xFunction = xFunction,
                           yFunction = tenyFunction,
                           plotGhosts = plotGhosts,
