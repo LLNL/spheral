@@ -69,6 +69,10 @@ typedef vector<Spheral::ThirdRankTensor3d> vector_of_ThirdRankTensor3d;
 
 typedef vector<Spheral::Geom3Vector> vector_of_Geom3Vector;
 
+typedef vector<Spheral::Box1d> vector_of_Box1d;
+typedef vector<Spheral::GeomPolygon> vector_of_Polygon;
+typedef vector<Spheral::GeomPolyhedron> vector_of_Polyhedron;
+
 typedef vector<Spheral::Vector1d>::iterator vector_of_Vector1d_iterator;
 typedef vector<Spheral::Vector2d>::iterator vector_of_Vector2d_iterator;
 typedef vector<Spheral::Vector3d>::iterator vector_of_Vector3d_iterator;
@@ -86,6 +90,10 @@ typedef vector<Spheral::ThirdRankTensor2d>::iterator vector_of_ThirdRankTensor2d
 typedef vector<Spheral::ThirdRankTensor3d>::iterator vector_of_ThirdRankTensor3d_iterator;
 
 typedef vector<Spheral::Geom3Vector>::iterator vector_of_Geom3Vector_iterator;
+
+typedef vector<Spheral::Box1d>::iterator vector_of_Box1d_iterator;
+typedef vector<Spheral::GeomPolygon>::iterator vector_of_Polygon_iterator;
+typedef vector<Spheral::GeomPolyhedron>::iterator vector_of_Polyhedron_iterator;
 
 typedef vector<vector_of_char>        vector_of_vector_of_char;
 typedef vector<vector_of_unsigned>    vector_of_vector_of_unsigned;

@@ -234,25 +234,25 @@ class TensorTestBase:
             assert result(row) == check
         return
 
-    def testScalarAddition(self):
-        val = 44.0
-        result = self.lhs + val
-        self.failUnless(isinstance(result, self.TensorType),
-                        "%s is not instance of %s" % (str(type(result)),
-                                                      str(type(self.TensorType))))
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                assert result(row, col) == self.lhs(row, col) + val
-        return
+    # def testScalarAddition(self):
+    #     val = 44.0
+    #     result = self.lhs + val
+    #     self.failUnless(isinstance(result, self.TensorType),
+    #                     "%s is not instance of %s" % (str(type(result)),
+    #                                                   str(type(self.TensorType))))
+    #     for row in xrange(self.TensorType.nDimensions):
+    #         for col in xrange(self.TensorType.nDimensions):
+    #             assert result(row, col) == self.lhs(row, col) + val
+    #     return
 
-    def testScalarSubtraction(self):
-        val = 44.0
-        result = self.lhs - val
-        assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                assert result(row, col) == self.lhs(row, col) - val
-        return
+    # def testScalarSubtraction(self):
+    #     val = 44.0
+    #     result = self.lhs - val
+    #     assert isinstance(result, self.TensorType)
+    #     for row in xrange(self.TensorType.nDimensions):
+    #         for col in xrange(self.TensorType.nDimensions):
+    #             assert result(row, col) == self.lhs(row, col) - val
+    #     return
 
     def testScalarMultiplication(self):
         val = 44.0
@@ -290,25 +290,25 @@ class TensorTestBase:
                 assert result(row, col) == self.lhs(row, col) - self.rhs(row, col)
         return
 
-    def testInPlaceScalarAddition(self):
-        val = 44.0
-        result = self.TensorType(self.lhs)
-        result += val
-        assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                assert result(row, col) == self.lhs(row, col) + val
-        return
+    # def testInPlaceScalarAddition(self):
+    #     val = 44.0
+    #     result = self.TensorType(self.lhs)
+    #     result += val
+    #     assert isinstance(result, self.TensorType)
+    #     for row in xrange(self.TensorType.nDimensions):
+    #         for col in xrange(self.TensorType.nDimensions):
+    #             assert result(row, col) == self.lhs(row, col) + val
+    #     return
 
-    def testInPlaceScalarSubtraction(self):
-        val = 44.0
-        result = self.TensorType(self.lhs)
-        result -= val
-        assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                assert result(row, col) == self.lhs(row, col) - val
-        return
+    # def testInPlaceScalarSubtraction(self):
+    #     val = 44.0
+    #     result = self.TensorType(self.lhs)
+    #     result -= val
+    #     assert isinstance(result, self.TensorType)
+    #     for row in xrange(self.TensorType.nDimensions):
+    #         for col in xrange(self.TensorType.nDimensions):
+    #             assert result(row, col) == self.lhs(row, col) - val
+    #     return
 
     def testInPlaceScalarMultiplication(self):
         val = 44.0

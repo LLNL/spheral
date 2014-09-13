@@ -167,7 +167,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
+  // const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
@@ -181,15 +181,18 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    DmassDensityDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
+  const FieldSpace::FieldList<Dimension, Scalar>&    m0() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    m1() const;
+  const FieldSpace::FieldList<Dimension, SymTensor>& m2() const;
+
   const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
   const FieldSpace::FieldList<Dimension, Vector>&    C() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    D() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
-
-  const FieldSpace::FieldList<Dimension, FacetedVolume>& polyvols() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -217,7 +220,7 @@ private:
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
+  // FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
 
   FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
@@ -237,15 +240,18 @@ private:
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
+  FieldSpace::FieldList<Dimension, Scalar>    mM0;
+  FieldSpace::FieldList<Dimension, Vector>    mM1;
+  FieldSpace::FieldList<Dimension, SymTensor> mM2;
+
   FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Vector>    mC;
   FieldSpace::FieldList<Dimension, Tensor>    mD;
+  FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
-
-  FieldSpace::FieldList<Dimension, FacetedVolume> mPolyvols;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;

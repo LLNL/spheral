@@ -249,12 +249,12 @@ class Boundary:
 
         x.add_method("setAllViolationNodes", None, [refparam(database, "dataBase")], is_virtual=True)
 
-        x.add_method("enforceFieldListBoundary", None, [refparam(intfieldlist, "fieldList")], custom_template_method_name="enforceIntFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(scalarfieldlist, "fieldList")], custom_template_method_name="enforceScalarFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(vectorfieldlist, "fieldList")], custom_template_method_name="enforceVectorFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(tensorfieldlist, "fieldList")], custom_template_method_name="enforceTensorFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(symtensorfieldlist, "fieldList")], custom_template_method_name="enforceSymTensorFieldListBoundary", is_const=True)
-        x.add_method("enforceFieldListBoundary", None, [refparam(thirdranktensorfieldlist, "fieldList")], custom_template_method_name="enforceThirdRankTensorFieldListBoundary", is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(intfieldlist, "fieldList")], is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(scalarfieldlist, "fieldList")], is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(vectorfieldlist, "fieldList")], is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(tensorfieldlist, "fieldList")], is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(symtensorfieldlist, "fieldList")], is_const=True)
+        x.add_method("enforceFieldListBoundary", None, [refparam(thirdranktensorfieldlist, "fieldList")], is_const=True)
 
         x.add_method("finalizeGhostBoundary", None, [], is_const=True, is_virtual=True)
         x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
@@ -283,10 +283,10 @@ class Boundary:
         x.add_method("ghostNodes", "vector_of_int", [refparam(nodelist, "nodeList")], is_const=True)
         x.add_method("violationNodes", "vector_of_int", [refparam(nodelist, "nodeList")], is_const=True)
 
-        x.add_method("applyFieldListGhostBoundary", None, [refparam(scalarfieldlist, "fieldList")], custom_template_method_name="applyScalarFieldListGhostBoundary", is_const=True)
-        x.add_method("applyFieldListGhostBoundary", None, [refparam(vectorfieldlist, "fieldList")], custom_template_method_name="applyVectorFieldListGhostBoundary", is_const=True)
-        x.add_method("applyFieldListGhostBoundary", None, [refparam(tensorfieldlist, "fieldList")], custom_template_method_name="applyTensorFieldListGhostBoundary", is_const=True)
-        x.add_method("applyFieldListGhostBoundary", None, [refparam(symtensorfieldlist, "fieldList")], custom_template_method_name="applySymTensorFieldListGhostBoundary", is_const=True)
+        x.add_method("applyFieldListGhostBoundary", None, [refparam(scalarfieldlist, "fieldList")], is_const=True)
+        x.add_method("applyFieldListGhostBoundary", None, [refparam(vectorfieldlist, "fieldList")], is_const=True)
+        x.add_method("applyFieldListGhostBoundary", None, [refparam(tensorfieldlist, "fieldList")], is_const=True)
+        x.add_method("applyFieldListGhostBoundary", None, [refparam(symtensorfieldlist, "fieldList")], is_const=True)
 
         # Protected methods.
         x.add_function_as_method("accessBoundaryNodesFromBoundary",
