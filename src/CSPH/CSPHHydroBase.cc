@@ -648,7 +648,12 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-  computeCSPHCorrections(connectivityMap, W, mass, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA0, gradA, gradB);
+
+  // Change CSPH weights here if need be!
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  computeCSPHCorrections(connectivityMap, W, vol, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA0, gradA, gradB);
+  // computeCSPHCorrections(connectivityMap, W, mass, position, H, true, m0, m1, m2, A0, A, B, C, D, gradA0, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -861,7 +866,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar weighti = mass(nodeListi, i);
+      const Scalar weighti = mi/rhoi; // mass(nodeListi, i);  // Change CSPH weights here if need be!
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -932,7 +937,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar weightj = mass(nodeListj, j);
+              const Scalar weightj = mj/rhoj; // mass(nodeListj, j);     // Change CSPH weights here if need be!
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -1124,12 +1129,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Aji+=(mi/rhoi)*W1j*(Ai*Bi*W0+gradAi*W0)*weighti*weightj;
               //Here we reloop over all the neighbors of i. (We really want to loop over the intersection of the neighbors of i and j, but just doing all of i is fine
               //as the kernel evaluations for points that are not in the neighbor set of j will be zero.)
-              //vector< vector<int> > intersecConnect= connectivityMap.connectivityIntersectionForNodes( nodeListi, i,  nodeListj,j);
+              // vector< vector<int> > intersecConnect= connectivityMap.connectivityIntersectionForNodes( nodeListi, i,  nodeListj,j);
               for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
                 // Connectivity of this node with this NodeList.  We only need to proceed if
                 // there are some nodes in this list.
                 const vector<int>& connectivity2 = fullConnectivity[nodeListk];
-                //const vector<int>& connectivity2 = intersecConnect[nodeListk];
+                // const vector<int>& connectivity2 = intersecConnect[nodeListk];
                 if (connectivity2.size() > 0) {
 //#pragma vector always
                  for (vector<int>::const_iterator kItr = connectivity2.begin();
@@ -1160,7 +1165,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                  }
                 }
               }
-              const Vector forceij= 0.5*(Pi+Pj)*(Aij-Aji);
+              const Vector forceij= -0.5*(Pi+Pj)*(Aij-Aji);
               const Vector forceji= -forceij;
 
               //Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
@@ -1169,7 +1174,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector deltaDvDtj = forceji/mj;
               Vector tempi = -weightj/rhoi*Pj*gradWj + Qacci;
               Vector tempj = -weighti/rhoj*Pi*gradWi + Qaccj;
-              printf("Pi=%15.5f, Pj=%15.5f, Aij=%15.5f, Aji=%15.5f, Oldi =%15.5f, Newi=%15.5f, Oldj=%15.5f, Newj=%15.5f\n",Pi,Pj,Aij(0), Aji(0), tempi(0),deltaDvDti(0),tempj(0),deltaDvDtj(0));
+              // printf("Pi=%15.5f, Pj=%15.5f, Aij=%15.5f, Aji=%15.5f, Oldi =%15.5f, Newi=%15.5f, Oldj=%15.5f, Newj=%15.5f\n",Pi,Pj,Aij(0), Aji(0), tempi(0),deltaDvDti(0),tempj(0),deltaDvDtj(0));
                
               // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
               // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
