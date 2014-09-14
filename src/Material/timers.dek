@@ -1,0 +1,10 @@
+! common block for timers
+! for getting the date and time out of the machine
+       character*8       atim
+       character*9       adat
+       common  /datime/  adat,atim
+!
+! for figuring out how much cpu time was spent
+       double precision  timzer,timtot
+       integer           hours,minuts,secs,msecs
+       common /timers/   timzer,timtot,hours,minuts,secs,msecs
