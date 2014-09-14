@@ -193,9 +193,12 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
     for (unsigned k = 0; k != numNodeLists; ++k) {
       sort(neighborsi[k].begin(), neighborsi[k].end());
       sort(neighborsj[k].begin(), neighborsj[k].end());
-      set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
-                       neighborsj[k].begin(), neighborsj[k].end(),
-                       back_inserter(result[k]));
+      set_union(neighborsi[k].begin(), neighborsi[k].end(),
+                neighborsj[k].begin(), neighborsj[k].end(),
+                back_inserter(result[k]));
+      // set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
+      //                  neighborsj[k].begin(), neighborsj[k].end(),
+      //                  back_inserter(result[k]));
     }
 
   } else {
@@ -214,23 +217,34 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
       nodeListii = nodeListj;
       nodeListjj = nodeListi;
     }
+    CHECK(ii <  mNodeLists[nodeListii]->firstGhostNode());
+    CHECK(jj >= mNodeLists[nodeListjj]->firstGhostNode());
     const vector<vector<int> >& neighborsii = this->connectivityForNode(nodeListii, ii);
-    const Vector& rjj = mNodeLists[nodeListjj]->positions()[jj];
-    const SymTensor& Hjj = mNodeLists[nodeListjj]->Hfield()[jj];
-    for (unsigned nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-      const double kernelExtent2 = FastMath::square(mNodeLists[nodeListk]->neighbor().kernelExtent());
-      const Field<Dimension, Vector>& pos = mNodeLists[nodeListk]->positions();
-      for (vector<int>::const_iterator kItr = neighborsii[nodeListk].begin();
-           kItr != neighborsii[nodeListk].end();
-           ++kItr) {
-        const int k = *kItr;
-        if (nodeListk != nodeListjj or k != jj) {  // To match our convention that i & j are not in the neighbor set.
-          const Vector& rk = pos(k);
-          const Scalar etaj2 = (Hjj*(rk - rjj)).magnitude2();
-          if (etaj2 < kernelExtent2) result[nodeListk].push_back(k);
-        }
-      }
-    }
+
+    // We can't reliably cut down the neighbor intersection because we don't necessarily know
+    // now what the positions and H's were when the initial connectivity is constructed.  
+    // For now we just punt and return all neighbors for the internal node.
+    result = neighborsii;
+
+    // const Vector& rjj = mNodeLists[nodeListjj]->positions()[jj];
+    // const SymTensor& Hjj = mNodeLists[nodeListjj]->Hfield()[jj];
+    // for (unsigned nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
+    //   const double kernelExtent2 = FastMath::square(mNodeLists[nodeListk]->neighbor().kernelExtent());
+    //   const Field<Dimension, Vector>& pos = mNodeLists[nodeListk]->positions();
+    //   const Field<Dimension, SymTensor>& H = mNodeLists[nodeListk]->Hfield();
+    //   for (vector<int>::const_iterator kItr = neighborsii[nodeListk].begin();
+    //        kItr != neighborsii[nodeListk].end();
+    //        ++kItr) {
+    //     const int k = *kItr;
+    //     if (nodeListk != nodeListjj or k != jj) {  // To match our convention that i & j are not in the neighbor set.
+    //       const Vector& rk = pos(k);
+    //       const SymTensor& Hk = H(k);
+    //       const Scalar etaj2 = (Hjj*(rk - rjj)).magnitude2();
+    //       const Scalar etak2 = (Hk *(rk - rjj)).magnitude2();
+    //       if (min(etaj2, etak2) < kernelExtent2) result[nodeListk].push_back(k);
+    //     }
+    //   }
+    // }
   }
 
   // That's it.
