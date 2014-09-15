@@ -88,6 +88,14 @@ namespace Material {
          is passed in
          */
         
+        mDistincm           = mConstants.unitLengthMeters / 0.01;
+        mMassing            = mConstants.unitMassKg / 0.001;
+        mDensingpccm        = mMassing / (mDistincm*mDistincm*mDistincm);
+        mTimeins            = mConstants.unitTimeSec;
+        mVelincmps          = mDistincm / mTimeins;
+        mEnergyinergpg      = mVelincmps*mVelincmps;
+        mPressureinergcm    = mEnergyinergpg*mDistincm;
+        
     }
 
     //------------------------------------------------------------------------------
@@ -143,7 +151,7 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            Pressure(i) = myPressure->at(i);
+            Pressure(i) = (*myPressure)[i] / mPressureinergcm;
         }
     }
 
@@ -188,7 +196,7 @@ namespace Material {
         }
 
         for (size_t i = 0; i != massDensity.numElements(); ++i) {
-            temperature(i) = myTemperature->at(i);
+            temperature(i) = (*myTemperature)[i];
         }
     }
 
@@ -295,8 +303,8 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            soundSpeed(i) = mySoundSpeed->at(i);
-            (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / myPressure->at(i);
+            soundSpeed(i) = (*mySoundSpeed)[i] / mVelincmps;
+            (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinergcm);
         }
     }
 
@@ -380,7 +388,13 @@ namespace Material {
         myAbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmAbar",thisMassDensity.nodeList(),mabar0));
         myZbar                  = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmZbar",thisMassDensity.nodeList(),mzbar0));
         
-        for(unsigned int i=0; i!=myMassDensity->numElements(); ++i) (*myMassDensity)[i] = max((*myMassDensity)[i],1.0e-12);
+        for(unsigned int i=0; i!=myMassDensity->numElements(); ++i)
+        {
+            (*myMassDensity)[i]             = (*myMassDensity)[i] * mDensingpccm;
+            (*mySpecificThermalEnergy)[i]   = (*mySpecificThermalEnergy)[i] * mEnergyinergpg;
+            
+            (*myMassDensity)[i] = max((*myMassDensity)[i],1.0e-10);
+        }
     }
 
 }
