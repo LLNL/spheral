@@ -46,12 +46,13 @@ commandLine(HydroConstructor = SPHHydro,
             topGridCellSize = 2.0,
             origin = Vector3d(0.0, 0.0),
             
-            goalTime = 30.0,
+            goalTime = 20.0,
+            realGoalTime = 30.0,
             dt = 0.0001,
             dtMin = 1.0e-5,
             dtMax = None,
             dtGrowth = 2.0,
-            dtSample = 0.005,
+            dtSample = 1,
             rigorousBoundaries = False,
             maxSteps = None,
             statsStep = 1,
@@ -134,6 +135,7 @@ if restoreCycle is None:
     vel = nodes.velocity()
     eps = nodes.specificThermalEnergy()
     abund = []
+    vel1 = VectorField("thisField",nodes)
 
     for i in xrange(nodes.numInternalNodes):
         nodes.velocity()[i].x = generator.vx[i]
@@ -143,8 +145,11 @@ if restoreCycle is None:
         vel[i].y = generator.vy[i]
         vel[i].z = generator.vz[i]
         eps[i] = generator.eps[i]
+        vel1[i] = vel[i]
 
     distributeNodes((nodes, generator),)
+    for i in xrange(nodes.numInternalNodes):
+        nodes.velocity()[i] = vel1[i]
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -241,7 +246,6 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             vizTime = dtSample,
                             vizDir = visitDir,
-                            vizStep = 2,
                             vizBaseName = "wd-pair-3d",
                             restoreCycle = restoreCycle)
 output("control")

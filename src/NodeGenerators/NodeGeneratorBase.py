@@ -20,7 +20,6 @@ class NodeGeneratorBase:
 
         if serialInitialization:
             ntot = len(vars[0])
-            print >> sys.stderr, "ntot = " + str(ntot)
             minGlobalID, maxGlobalID = self.globalIDRange(ntot)
             self.globalIDs = range(minGlobalID, maxGlobalID)
             self._cullVars(minGlobalID, maxGlobalID, *vars)
