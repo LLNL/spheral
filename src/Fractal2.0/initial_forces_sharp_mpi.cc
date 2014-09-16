@@ -34,7 +34,7 @@ namespace FractalSpace
     vector <double> variance_force(real_length,0.0);
     vector <double> variance_force_s(real_length,0.0);
     double rand_max=static_cast<double>(RAND_MAX);
-    mem.p_mess->create_potRC();
+    //    mem.p_mess->create_potRC();
     double pi=4.0*atan(1.0);
     double twopi=2.0*pi;
     double fourpi=4.0*pi;
@@ -52,6 +52,7 @@ namespace FractalSpace
     for(int lev=0;lev <= highest_level_fft;++lev)
       {
 	FileFractal << "make power " << lev << " " << highest_level_fft << "\n";
+	mem.p_mess->create_potC();
 	double boost_power=pow(8.0,lev);
 	double boost_scale=pow(2.0,lev);
 	double force_const=fourpi/boost_scale/boost_scale*length_5;
@@ -160,7 +161,9 @@ namespace FractalSpace
 	      }
 	    FileFractal << " after var b " << mem.p_mess->FractalRank << " " << kx << "\n";
 	  }
+	mem.p_mess->create_potR();
 	mem.p_mess->fftw_complex_to_real();
+	mem.p_mess->free_potC();
 	Full_Stop(mem,39);
 	if(!lev==0)
 	  for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
@@ -168,7 +171,7 @@ namespace FractalSpace
 	    potential_start(**group_itr);
 
 	slices_to_potf(mem,frac,lev);
-
+	mem.p_mess->free_potR();
 	for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
 	    group_itr!=mem.all_groups[lev].end();group_itr++)
 	  force_at_point(**group_itr,frac);
@@ -241,12 +244,6 @@ namespace FractalSpace
       } 
     sum_pot_forces(frac);
     //
-    mem.p_mess->free_potRC();
-    /*
-    mem.p_mess->return_Slice_pos.clear();
-    mem.p_mess->return_group.clear();
-    mem.p_mess->return_point.clear();
-    mem.p_mess->return_node.clear();
-    */
+    //    mem.p_mess->free_potRC();
   }
 }

@@ -16,12 +16,14 @@ namespace FractalSpace
 	Fractal::first_time_solver=false;
 	return;
       }
-    mem.p_mess->create_potRC();
+    //    mem.p_mess->create_potRC();
+    mem.p_mess->create_potR();
     mem.p_mess->zeroR(-frac.get_density_0());
     Full_Stop(mem,34);
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
     frac.timing(1,24);
+    mem.p_mess->create_potC();
     mem.p_mess->fftw_real_to_complex();
     if(mem.p_mess->FractalRank == 0)
       FileFFT << " zero power " << mem.p_mess->potC[0][0] << " " << mem.p_mess->potC[0][1] << "\n";
@@ -44,11 +46,13 @@ namespace FractalSpace
 	  }
       }
     mem.p_mess->fftw_complex_to_real();
+    mem.p_mess->free_potC();
     Full_Stop(mem,35);
     frac.timing(-1,24);
     slices_to_potf(mem,frac,0);
     frac.timing(1,24);
-    mem.p_mess->free_potRC();
+    //    mem.p_mess->free_potRC();
+    mem.p_mess->free_potR();
     FileFFT << "exiting isolated " << "\n";
   }
 }

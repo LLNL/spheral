@@ -429,6 +429,24 @@ namespace FractalSpace
       fftw_free(potR);
       fftw_free(potC);
     }
+    void create_potR()
+    {
+      size_t sizeR=sizeof(double);
+      potR=(double*) fftw_malloc(sizeR*2*total_memory);
+    }
+    void free_potR()
+    {
+      fftw_free(potR);
+    }
+    void create_potC()
+    {
+      size_t sizeC=sizeof(fftw_complex);
+      potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+    }
+    void free_potC()
+    {
+      fftw_free(potC);
+    }
     void fftw_real_to_complex()
     {
       if(IAmAnFFTNode)
@@ -995,13 +1013,15 @@ namespace FractalSpace
 	      dataI_out[FR].clear();
 	      dataR_out[FR].clear();
 	    }
+	  dataI_out.resize(FractalNodes2);
+	  dataR_out.resize(FractalNodes2);
 	}
       catch(bad_alloc& ba)
 	{
 	  cout << " DUMP IT A " << FractalRank << " " << ba.what() << " " << totals << "\n";
 	  FF << " DUMP IT A " << ba.what() << " " << totals << "\n";
-	  for(int FR=0;FR<FractalNodes;FR++)
-	    FF << FR << " " << dataI_out[FR].size() << " " << dataR_out[FR].size() << "\n";
+	  for(int FR2=0;FR2<FractalNodes2;FR2++)
+	    FF << FR2 << " " << dataI_out[FR2].size() << " " << dataR_out[FR2].size() << "\n";
 	  FF << endl;
 	  assert(0);
 	}
