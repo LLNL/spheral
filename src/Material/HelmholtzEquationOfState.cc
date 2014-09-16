@@ -88,10 +88,10 @@ namespace Material {
          is passed in
          */
         
-        mDistincm           = mConstants.unitLengthMeters / 0.01;
-        mMassing            = mConstants.unitMassKg / 0.001;
+        mDistincm           = mConstants.unitLengthMeters() / 0.01;
+        mMassing            = mConstants.unitMassKg() / 0.001;
         mDensingpccm        = mMassing / (mDistincm*mDistincm*mDistincm);
-        mTimeins            = mConstants.unitTimeSec;
+        mTimeins            = mConstants.unitTimeSec();
         mVelincmps          = mDistincm / mTimeins;
         mEnergyinergpg      = mVelincmps*mVelincmps;
         mPressureinergcm    = mEnergyinergpg*mDistincm;
