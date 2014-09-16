@@ -46,7 +46,7 @@ namespace FractalSpace
     mem.p_mess->fftw_complex_to_real();
     Full_Stop(mem,35);
     frac.timing(-1,24);
-    slices_to_potf(group,mem,frac);
+    slices_to_potf(mem,frac,0);
     frac.timing(1,24);
     mem.p_mess->free_potRC();
     FileFFT << "exiting isolated " << "\n";

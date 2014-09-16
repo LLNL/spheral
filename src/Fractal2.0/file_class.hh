@@ -29,7 +29,7 @@ namespace FractalSpace
     FILE* PFTime;
     FILE* PFPos;
     //    FILE* PFTree;
-    //    FILE* PFSurface;
+    FILE* PFSurface;
     File()
     {
     }
@@ -85,7 +85,7 @@ namespace FractalSpace
       PFTimeLev=PFTime;
       //      PFTimeLev=generate_FILE(Directory+"time_lev.d",10000);
       PFPos=generate_FILE(Directory+"pos.d",1000000);
-      //      PFSurface=generate_FILE(Directory+"surface.d",1000000);
+      PFSurface=generate_FILE(Directory+"surface.d",1000000);
       //      PFTree=PFSurface;
       //      PFTree=generate_FILE(Directory+"tree.d",1000000);
       DUMPS.precision(5);
@@ -157,7 +157,7 @@ namespace FractalSpace
       PFTimeLev=PFTime;
       //      PFTimeLev=generate_FILE(Directory+"time_lev.d",10000);
       PFPos=generate_FILE(Directory+"pos.d",1000000);
-      //      PFSurface=generate_FILE(Directory+"surface.d",1000000);
+      PFSurface=generate_FILE(Directory+"surface.d",1000000);
       //      PFTree=PFSurface;
       //      PFTree=generate_FILE(Directory+"tree.d",1000000);
       DUMPS.precision(5);
@@ -225,7 +225,7 @@ namespace FractalSpace
       //      fflush(PFTimeLev);
       fflush(PFTime);
       fflush(PFPos);
-      //      fflush(PFSurface);
+      fflush(PFSurface);
       //      fflush(PFTree);
     }
     ~File()
@@ -251,7 +251,7 @@ namespace FractalSpace
       fclose(PFTime);
       fclose(PFPos);
       //      fclose(PFTree);
-      //      fclose(PFSurface);
+      fclose(PFSurface);
     }
   };
 }
