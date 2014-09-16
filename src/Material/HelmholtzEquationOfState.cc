@@ -393,7 +393,7 @@ namespace Material {
             (*myMassDensity)[i]             = (*myMassDensity)[i] * mDensingpccm;
             (*mySpecificThermalEnergy)[i]   = (*mySpecificThermalEnergy)[i] * mEnergyinergpg;
             
-            (*myMassDensity)[i] = max((*myMassDensity)[i],1.0e-10);
+            (*myMassDensity)[i] = ((*myMassDensity)[i]>1.0e-10 ? (*myMassDensity)[i] : 1.0e-10);
         }
     }
 
