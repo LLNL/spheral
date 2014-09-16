@@ -61,7 +61,7 @@ commandLine(HydroConstructor = SPHHydro,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
-            
+            verbosedt = False,
             restoreCycle = None,
             restartStep = 1000
             )
@@ -230,6 +230,7 @@ if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.verbose = verbosedt
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
