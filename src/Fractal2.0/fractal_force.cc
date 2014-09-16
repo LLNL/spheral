@@ -637,8 +637,8 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     groups_level(fractal,fractal_memory.all_groups);
     fractal.timing(-1,44);
-    //    if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
-    //      tree_dump(fractal_memory);
+    if(fractal_memory.steps % fractal_memory.number_steps_out == 0)
+      tree_dump(fractal_memory);
     fractal.timing(1,44);
     fractal.timing(-1,26);
     clean_up(fractal_memory,misc,fractal_ghost);

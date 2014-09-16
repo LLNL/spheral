@@ -7,6 +7,8 @@ int main(int argc, char* argv[])
   MPI_Init(NULL,NULL);
   int FRN;
   MPI_Comm_size(MPI_COMM_WORLD,&FRN);
+  int Ranky;
+  MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
   //
   // Intel/IBM (1/0) default Intel
   // Gridlength      default 256
@@ -38,8 +40,11 @@ int main(int argc, char* argv[])
   int _mulT_=4;
   if(argc >= 7)
     _mulT_=atoi(argv[6]);
-  cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
-  cout << " " << _mulT_ << "\n";
+  if(Ranky == 0)
+    {
+      cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
+      cout << " " << _mulT_ << "\n";
+    }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
   p_fractal_memory->FractalNodes0=FR0;
   p_fractal_memory->FractalNodes1=FR1;
