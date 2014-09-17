@@ -1,10 +1,13 @@
-//
-//  HelmholtzEquationOfState.cc
-//  
-//
-//  Created by Raskin, Cody Dantes on 8/28/14.
-//
-//
+/*
+  HelmholtzEquationOfState.cc
+
+  Created by Raskin, Cody Dantes on 8/28/14.
+
+  The helmholtz EOS solves the helmholtz free energy equation by means of
+  a table lookup. This table file "helm_table.dat" MUST be present at runtime
+  in the same location as the run script or the EOS will fail.
+ 
+ */
 
 #include "HelmholtzEquationOfState.hh"
 #include "PhysicalConstants.hh"
