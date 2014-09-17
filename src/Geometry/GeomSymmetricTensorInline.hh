@@ -233,17 +233,17 @@ operator=(const GeomSymmetricTensor<3>& rhs) {
   return *this;
 }
 
-//------------------------------------------------------------------------------
-// Assignment with a scalar.  This sets the diagonal elements to the given
-// value, and the off-diagonals to zero.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomSymmetricTensor<nDim>&
-GeomSymmetricTensor<nDim>::operator=(const double rhs) {
-  *this = one*rhs;
-  return *this;
-}
+// //------------------------------------------------------------------------------
+// // Assignment with a scalar.  This sets the diagonal elements to the given
+// // value, and the off-diagonals to zero.
+// //------------------------------------------------------------------------------
+// template<int nDim>
+// inline
+// GeomSymmetricTensor<nDim>&
+// GeomSymmetricTensor<nDim>::operator=(const double rhs) {
+//   *this = one*rhs;
+//   return *this;
+// }
 
 //------------------------------------------------------------------------------
 // Access the elements by indicies.
@@ -911,75 +911,75 @@ GeomSymmetricTensor<nDim>::operator*(const GeomVector<nDim>& rhs) const {
   return this->dot(rhs);
 }
 
-//------------------------------------------------------------------------------
-// Add a scalar to a tensor.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomSymmetricTensor<1>
-GeomSymmetricTensor<1>::operator+(const double rhs) const {
-  return GeomSymmetricTensor<1>(this->mxx + rhs);
-}
+// //------------------------------------------------------------------------------
+// // Add a scalar to a tensor.
+// //------------------------------------------------------------------------------
+// template<>
+// inline
+// GeomSymmetricTensor<1>
+// GeomSymmetricTensor<1>::operator+(const double rhs) const {
+//   return GeomSymmetricTensor<1>(this->mxx + rhs);
+// }
 
-template<>
-inline
-GeomSymmetricTensor<2>
-GeomSymmetricTensor<2>::operator+(const double rhs) const {
-  GeomSymmetricTensor<2> result(*this);
-  result.mxx += rhs;
-  result.mxy += rhs;
-  result.myy += rhs;
-  return result;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<2>
+// GeomSymmetricTensor<2>::operator+(const double rhs) const {
+//   GeomSymmetricTensor<2> result(*this);
+//   result.mxx += rhs;
+//   result.mxy += rhs;
+//   result.myy += rhs;
+//   return result;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<3>
-GeomSymmetricTensor<3>::operator+(const double rhs) const {
-  GeomSymmetricTensor<3> result(*this);
-  result.mxx += rhs;
-  result.mxy += rhs;
-  result.mxz += rhs;
-  result.myy += rhs;
-  result.myz += rhs;
-  result.mzz += rhs;
-  return result;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<3>
+// GeomSymmetricTensor<3>::operator+(const double rhs) const {
+//   GeomSymmetricTensor<3> result(*this);
+//   result.mxx += rhs;
+//   result.mxy += rhs;
+//   result.mxz += rhs;
+//   result.myy += rhs;
+//   result.myz += rhs;
+//   result.mzz += rhs;
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// Subtract a scalar from a tensor.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomSymmetricTensor<1>
-GeomSymmetricTensor<1>::operator-(const double rhs) const {
-  return GeomSymmetricTensor<1>(this->mxx - rhs);
-}
+// //------------------------------------------------------------------------------
+// // Subtract a scalar from a tensor.
+// //------------------------------------------------------------------------------
+// template<>
+// inline
+// GeomSymmetricTensor<1>
+// GeomSymmetricTensor<1>::operator-(const double rhs) const {
+//   return GeomSymmetricTensor<1>(this->mxx - rhs);
+// }
 
-template<>
-inline
-GeomSymmetricTensor<2>
-GeomSymmetricTensor<2>::operator-(const double rhs) const {
-  GeomSymmetricTensor<2> result(*this);
-  result.mxx -= rhs;
-  result.mxy -= rhs;
-  result.myy -= rhs;
-  return result;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<2>
+// GeomSymmetricTensor<2>::operator-(const double rhs) const {
+//   GeomSymmetricTensor<2> result(*this);
+//   result.mxx -= rhs;
+//   result.mxy -= rhs;
+//   result.myy -= rhs;
+//   return result;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<3>
-GeomSymmetricTensor<3>::operator-(const double rhs) const {
-  GeomSymmetricTensor<3> result(*this);
-  result.mxx -= rhs;
-  result.mxy -= rhs;
-  result.mxz -= rhs;
-  result.myy -= rhs;
-  result.myz -= rhs;
-  result.mzz -= rhs;
-  return result;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<3>
+// GeomSymmetricTensor<3>::operator-(const double rhs) const {
+//   GeomSymmetricTensor<3> result(*this);
+//   result.mxx -= rhs;
+//   result.mxy -= rhs;
+//   result.mxz -= rhs;
+//   result.myy -= rhs;
+//   result.myz -= rhs;
+//   result.mzz -= rhs;
+//   return result;
+// }
 
 //------------------------------------------------------------------------------
 // Multiply a tensor by a scalar
@@ -1124,73 +1124,73 @@ GeomSymmetricTensor<3>::operator-=(const GeomSymmetricTensor<3>& rhs) {
   return *this;
 }
 
-//------------------------------------------------------------------------------
-// Add a scalar to this tensor in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::operator+=(const double rhs) {
-  this->mxx += rhs;
-  return *this;
-}
+// //------------------------------------------------------------------------------
+// // Add a scalar to this tensor in place.
+// //------------------------------------------------------------------------------
+// template<>
+// inline
+// GeomSymmetricTensor<1>&
+// GeomSymmetricTensor<1>::operator+=(const double rhs) {
+//   this->mxx += rhs;
+//   return *this;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::operator+=(const double rhs) {
-  this->mxx += rhs;
-  this->mxy += rhs;
-  this->myy += rhs;
-  return *this;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<2>&
+// GeomSymmetricTensor<2>::operator+=(const double rhs) {
+//   this->mxx += rhs;
+//   this->mxy += rhs;
+//   this->myy += rhs;
+//   return *this;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::operator+=(const double rhs) {
-  this->mxx += rhs;
-  this->mxy += rhs;
-  this->mxz += rhs;
-  this->myy += rhs;
-  this->myz += rhs;
-  this->mzz += rhs;
-  return *this;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<3>&
+// GeomSymmetricTensor<3>::operator+=(const double rhs) {
+//   this->mxx += rhs;
+//   this->mxy += rhs;
+//   this->mxz += rhs;
+//   this->myy += rhs;
+//   this->myz += rhs;
+//   this->mzz += rhs;
+//   return *this;
+// }
 
-//------------------------------------------------------------------------------
-// Subtract a scalar from this tensor in place.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::operator-=(const double rhs) {
-  this->mxx -= rhs;
-  return *this;
-}
+// //------------------------------------------------------------------------------
+// // Subtract a scalar from this tensor in place.
+// //------------------------------------------------------------------------------
+// template<>
+// inline
+// GeomSymmetricTensor<1>&
+// GeomSymmetricTensor<1>::operator-=(const double rhs) {
+//   this->mxx -= rhs;
+//   return *this;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::operator-=(const double rhs) {
-  this->mxx -= rhs;
-  this->mxy -= rhs;
-  this->myy -= rhs;
-  return *this;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<2>&
+// GeomSymmetricTensor<2>::operator-=(const double rhs) {
+//   this->mxx -= rhs;
+//   this->mxy -= rhs;
+//   this->myy -= rhs;
+//   return *this;
+// }
 
-template<>
-inline
-GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::operator-=(const double rhs) {
-  this->mxx -= rhs;
-  this->mxy -= rhs;
-  this->mxz -= rhs;
-  this->myy -= rhs;
-  this->myz -= rhs;
-  this->mzz -= rhs;
-  return *this;
-}
+// template<>
+// inline
+// GeomSymmetricTensor<3>&
+// GeomSymmetricTensor<3>::operator-=(const double rhs) {
+//   this->mxx -= rhs;
+//   this->mxy -= rhs;
+//   this->mxz -= rhs;
+//   this->myy -= rhs;
+//   this->myz -= rhs;
+//   this->mzz -= rhs;
+//   return *this;
+// }
 
 //------------------------------------------------------------------------------
 // Multiply this tensor by a scalar in place.
@@ -1335,37 +1335,37 @@ operator==(const GeomSymmetricTensor<3>& rhs) const {
           this->mxy == rhs.yx());
 }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<1>::
-operator==(const double rhs) const {
-  return this->mxx == rhs;
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<1>::
+// operator==(const double rhs) const {
+//   return this->mxx == rhs;
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<2>::
-operator==(const double rhs) const {
-  return (this->mxx == rhs and
-          this->mxy == rhs and
-          this->myy == rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<2>::
+// operator==(const double rhs) const {
+//   return (this->mxx == rhs and
+//           this->mxy == rhs and
+//           this->myy == rhs);
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<3>::
-operator==(const double rhs) const {
-  return (this->mxx == rhs and
-          this->mxy == rhs and
-          this->mxz == rhs and
-          this->myy == rhs and
-          this->myz == rhs and
-          this->mzz == rhs and 
-          this->mxy == rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<3>::
+// operator==(const double rhs) const {
+//   return (this->mxx == rhs and
+//           this->mxy == rhs and
+//           this->mxz == rhs and
+//           this->myy == rhs and
+//           this->myz == rhs and
+//           this->mzz == rhs and 
+//           this->mxy == rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Define the not equivalence than comparitor.
@@ -1386,13 +1386,13 @@ operator!=(const GeomSymmetricTensor<nDim>& rhs) const {
   return !(*this == rhs);
 }
 
-template<int nDim>
-inline
-bool
-GeomSymmetricTensor<nDim>::
-operator!=(const double rhs) const {
-  return !(*this == rhs);
-}
+// template<int nDim>
+// inline
+// bool
+// GeomSymmetricTensor<nDim>::
+// operator!=(const double rhs) const {
+//   return !(*this == rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Define the less than operator.
@@ -1413,37 +1413,37 @@ operator<(const GeomSymmetricTensor<nDim>& rhs) const {
   return this->Determinant() < rhs.Determinant();
 }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<1>::
-operator<(const double rhs) const {
-  return this->mxx < rhs;
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<1>::
+// operator<(const double rhs) const {
+//   return this->mxx < rhs;
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<2>::
-operator<(const double rhs) const {
-  return (this->mxx < rhs and
-          this->mxy < rhs and
-          this->myy < rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<2>::
+// operator<(const double rhs) const {
+//   return (this->mxx < rhs and
+//           this->mxy < rhs and
+//           this->myy < rhs);
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<3>::
-operator<(const double rhs) const {
-  return (this->mxx < rhs and
-          this->mxy < rhs and
-          this->mxz < rhs and
-          this->myy < rhs and
-          this->myz < rhs and
-          this->mzz < rhs and 
-          this->mxy < rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<3>::
+// operator<(const double rhs) const {
+//   return (this->mxx < rhs and
+//           this->mxy < rhs and
+//           this->mxz < rhs and
+//           this->myy < rhs and
+//           this->myz < rhs and
+//           this->mzz < rhs and 
+//           this->mxy < rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Define the greater than operator.
@@ -1464,37 +1464,37 @@ operator>(const GeomSymmetricTensor<nDim>& rhs) const {
   return this->Determinant() > rhs.Determinant();
 }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<1>::
-operator>(const double rhs) const {
-  return this->mxx > rhs;
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<1>::
+// operator>(const double rhs) const {
+//   return this->mxx > rhs;
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<2>::
-operator>(const double rhs) const {
-  return (this->mxx > rhs and
-          this->mxy > rhs and
-          this->myy > rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<2>::
+// operator>(const double rhs) const {
+//   return (this->mxx > rhs and
+//           this->mxy > rhs and
+//           this->myy > rhs);
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<3>::
-operator>(const double rhs) const {
-  return (this->mxx > rhs and
-          this->mxy > rhs and
-          this->mxz > rhs and
-          this->myy > rhs and
-          this->myz > rhs and
-          this->mzz > rhs and 
-          this->mxy > rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<3>::
+// operator>(const double rhs) const {
+//   return (this->mxx > rhs and
+//           this->mxy > rhs and
+//           this->mxz > rhs and
+//           this->myy > rhs and
+//           this->myz > rhs and
+//           this->mzz > rhs and 
+//           this->mxy > rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Define the less than or equal operator.
@@ -1515,37 +1515,37 @@ operator<=(const GeomSymmetricTensor<nDim>& rhs) const {
   return (*this < rhs) or (*this == rhs);
 }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<1>::
-operator<=(const double rhs) const {
-  return this->mxx <= rhs;
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<1>::
+// operator<=(const double rhs) const {
+//   return this->mxx <= rhs;
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<2>::
-operator<=(const double rhs) const {
-  return (this->mxx <= rhs and
-          this->mxy <= rhs and
-          this->myy <= rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<2>::
+// operator<=(const double rhs) const {
+//   return (this->mxx <= rhs and
+//           this->mxy <= rhs and
+//           this->myy <= rhs);
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<3>::
-operator<=(const double rhs) const {
-  return (this->mxx <= rhs and
-          this->mxy <= rhs and
-          this->mxz <= rhs and
-          this->myy <= rhs and
-          this->myz <= rhs and
-          this->mzz <= rhs and 
-          this->mxy <= rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<3>::
+// operator<=(const double rhs) const {
+//   return (this->mxx <= rhs and
+//           this->mxy <= rhs and
+//           this->mxz <= rhs and
+//           this->myy <= rhs and
+//           this->myz <= rhs and
+//           this->mzz <= rhs and 
+//           this->mxy <= rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Define the greater than or equal operator.
@@ -1566,37 +1566,37 @@ operator>=(const GeomSymmetricTensor<nDim>& rhs) const {
   return (*this > rhs) or (*this == rhs);
 }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<1>::
-operator>=(const double rhs) const {
-  return this->mxx >= rhs;
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<1>::
+// operator>=(const double rhs) const {
+//   return this->mxx >= rhs;
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<2>::
-operator>=(const double rhs) const {
-  return (this->mxx >= rhs and
-          this->mxy >= rhs and
-          this->myy >= rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<2>::
+// operator>=(const double rhs) const {
+//   return (this->mxx >= rhs and
+//           this->mxy >= rhs and
+//           this->myy >= rhs);
+// }
 
-template<>
-inline
-bool
-GeomSymmetricTensor<3>::
-operator>=(const double rhs) const {
-  return (this->mxx >= rhs and
-          this->mxy >= rhs and
-          this->mxz >= rhs and
-          this->myy >= rhs and
-          this->myz >= rhs and
-          this->mzz >= rhs and 
-          this->mxy >= rhs);
-}
+// template<>
+// inline
+// bool
+// GeomSymmetricTensor<3>::
+// operator>=(const double rhs) const {
+//   return (this->mxx >= rhs and
+//           this->mxy >= rhs and
+//           this->mxz >= rhs and
+//           this->myy >= rhs and
+//           this->myz >= rhs and
+//           this->mzz >= rhs and 
+//           this->mxy >= rhs);
+// }
 
 //------------------------------------------------------------------------------
 // Return the symmetric part.  A no-op for this class.

@@ -31,11 +31,13 @@ namespace FractalSpace
     double* potR;
     fftw_complex* potC; 
     vector <int> WhichSlice;
+    /*
     vector <int>return_Slice_pos;
     vector <int>return_group;
     vector <int>return_point;
     vector <int>return_node;
     vector <int>what_Slice_point;
+    */
     vector <double> green;
     MPI_Comm FractalWorld;
     MPI_Comm FFTWorld;
@@ -119,7 +121,8 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
-      cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
+      if(FractalRank == 0)
+	cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,const int& FN,MPI_Comm& FW):
       FractalRank(0),
@@ -158,7 +161,8 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
-      cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
+      if(FractalRank == 0)
+	cout << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
     ~Mess()
     {
@@ -187,7 +191,8 @@ namespace FractalSpace
       FFTNodes=min(FFTNodes,FractalNodes);
       HypreRank=FractalRank;
       HypreNodes=FractalNodes;
-      cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
+      if(FractalRank == 0)
+	cout << " initialized MPI " << FractalRank << " " << FractalNodes << "\n";
     }
     void MPIStartup(bool PR,int& FR0,int& FR1,int& FR2)
     {
@@ -384,7 +389,8 @@ namespace FractalSpace
 	  assert(FFTRank == what_is_my_FFT_rank());
 	  assert(FFTNodes == how_many_FFT_nodes());
 	}
-      cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
+      if(FractalRank == 0)
+	cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
     }
     void FFTWFinal()
     {
@@ -421,6 +427,24 @@ namespace FractalSpace
     void free_potRC()
     {
       fftw_free(potR);
+      fftw_free(potC);
+    }
+    void create_potR()
+    {
+      size_t sizeR=sizeof(double);
+      potR=(double*) fftw_malloc(sizeR*2*total_memory);
+    }
+    void free_potR()
+    {
+      fftw_free(potR);
+    }
+    void create_potC()
+    {
+      size_t sizeC=sizeof(fftw_complex);
+      potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+    }
+    void free_potC()
+    {
       fftw_free(potC);
     }
     void fftw_real_to_complex()
@@ -947,86 +971,75 @@ namespace FractalSpace
       vector <int>countsa_in(FractalNodes2);
       FF << " Send AA " << FractalRank << "\n";
       int totals=0;
+      int nIdata=0;
+      int nRdata=0;
       try
 	{
-	  for(int FR=0;FR<FractalNodes;FR++)
+	  vector <int> tmpI0=dataI_out[0];
+	  dataI_out[0].clear();
+	  nIdata=0;
+	  countsa_out[0]+=counts_out[0];
+	  for(int ni=0;ni<counts_out[0];ni++)
+	    {
+	      dataI_out[0].push_back(0);
+	      for(int ints=0;ints<integers;ints++)
+		{
+		  dataI_out[0].push_back(tmpI0[nIdata]);
+		  nIdata++;
+		}
+	    }
+	  tmpI0.clear();
+	  for(int FR=1;FR<FractalNodes;FR++)
 	    {
 	      int FR2=FR/FractalNodes01;
 	      countsa_out[FR2]+=counts_out[FR];
-	      int nIdata=0;
-	      int nRdata=0;
+	      nIdata=0;
+	      nRdata=0;
 	      for(int ni=0;ni<counts_out[FR];ni++)
 		{
-		  dataI_in.push_back(FR);
+		  dataI_out[FR2].push_back(FR);
 		  for(int ints=0;ints<integers;ints++)
 		    {
-		      dataI_in.push_back(dataI_out[FR][nIdata]);
+		      dataI_out[FR2].push_back(dataI_out[FR][nIdata]);
 		      nIdata++;
 		    }
 		  for(int reals=0;reals<doubles;reals++)
 		    {
-		      dataR_in.push_back(dataR_out[FR][nRdata]);
+		      dataR_out[FR2].push_back(dataR_out[FR][nRdata]);
 		      nRdata++;
 		    }
 		  totals++;
 		}
+	      dataI_out[FR].clear();
+	      dataR_out[FR].clear();
 	    }
+	  dataI_out.resize(FractalNodes2);
+	  dataR_out.resize(FractalNodes2);
 	}
       catch(bad_alloc& ba)
 	{
-	  cout << " DUMP IT A " << FractalRank << " " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  FF << " DUMP IT A " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  for(int FR=0;FR<FractalNodes;FR++)
-	    FF << FR << " " << dataI_out[FR].size() << " " << dataR_out[FR].size() << "\n";
+	  cout << " DUMP IT A " << FractalRank << " " << ba.what() << " " << totals << "\n";
+	  FF << " DUMP IT A " << ba.what() << " " << totals << "\n";
+	  for(int FR2=0;FR2<FractalNodes2;FR2++)
+	    FF << FR2 << " " << dataI_out[FR2].size() << " " << dataR_out[FR2].size() << "\n";
 	  FF << endl;
 	  assert(0);
 	}
-      dataI_out.clear();
-      dataR_out.clear();
-      dataI_out.resize(FractalNodes2);
-      dataR_out.resize(FractalNodes2);
-      int counterI=0;
-      int counterR=0;
-      try
-	{
-	  for(int ni=0;ni<totals;ni++)
-	    {
-	      int FR=dataI_in[counterI];
-	      int FR2=FR/FractalNodes01;
-	      counterI++;
-	      dataI_out[FR2].push_back(FR);
-	      for(int niI=0;niI<integers;niI++)
-		{
-		  dataI_out[FR2].push_back(dataI_in[counterI]);
-		  counterI++;
-		}
-	      for(int niR=0;niR<doubles;niR++)
-		{
-	      dataR_out[FR2].push_back(dataR_in[counterR]);
-	      counterR++;
-		}
-	    }
-	}
-      catch(bad_alloc& ba)
-	{
-	  cout << " DUMP IT B " << FractalRank << " " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  FF << " DUMP IT B " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  for(int FR=0;FR<FractalNodes2;FR++)
-	    FF << FR << " " << dataI_out[FR].size() << " " << dataR_out[FR].size() << "\n";
-	  FF << endl;
-	  assert(0);
-	}
-      dataI_in.clear();
-      dataR_in.clear();
       FF << " Send BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
-
-
+      int total_in=0;
+      int total_out=0;
+      for(int FR2=0;FR2<FractalNodes2;FR2++)
+	{
+	  total_out+=countsa_out[FR2];
+	  total_in+=countsa_in[FR2];
+	}
+      FF << " TotalsOne 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
       Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " Send CC " << FractalRank << "\n";
+      FF << " Send CC " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1077,12 +1090,20 @@ namespace FractalSpace
       dataI_in.clear();
       dataR_in.clear();
 
+      total_in=0;
+      total_out=0;
+      for(int FR1=0;FR1<FractalNodes1;FR1++)
+	{
+	  total_out+=countsa_out[FR1];
+	  total_in+=countsa_in[FR1];
+	}
+      FF << " TotalsOne 1 " << total_out*(integers+2) << " " << total_out*doubles << " " <<  total_in*(integers+2) << " " << total_in*doubles << endl;
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send EE " << FractalRank << "\n";
+      FF << " Send EE " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes0);
@@ -1132,12 +1153,20 @@ namespace FractalSpace
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
       dataI_in.clear();
       dataR_in.clear();
+      total_in=0;
+      total_out=0;
+      for(int FR0=0;FR0<FractalNodes0;FR0++)
+	{
+	  total_out+=countsa_out[FR0];
+	  total_in+=countsa_in[FR0];
+	}
+      FF << " TotalsOne 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send GG " << FractalRank << "\n";
+      FF << " Send GG " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes);
@@ -1304,12 +1333,20 @@ namespace FractalSpace
       FF << " Send BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
 
+      int total_in=0;
+      int total_out=0;
+      for(int FR0=0;FR0<FractalNodes0;FR0++)
+	{
+	  total_out+=countsa_out[FR0];
+	  total_in+=countsa_in[FR0];
+	}
+      FF << " TotalsOther 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
 
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " Send CC " << FractalRank << "\n";
+      FF << " Send CC " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1360,12 +1397,20 @@ namespace FractalSpace
       dataI_in.clear();
       dataR_in.clear();
 
+      total_in=0;
+      total_out=0;
+      for(int FR1=0;FR1<FractalNodes1;FR1++)
+	{
+	  total_out+=countsa_out[FR1];
+	  total_in+=countsa_in[FR1];
+	}
+      FF << " TotalsOther 1 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send EE " << FractalRank << "\n";
+      FF << " Send EE " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes2);
@@ -1415,12 +1460,20 @@ namespace FractalSpace
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
       dataI_in.clear();
       dataR_in.clear();
+      total_in=0;
+      total_out=0;
+      for(int FR2=0;FR2<FractalNodes2;FR2++)
+	{
+	  total_out+=countsa_out[FR2];
+	  total_in+=countsa_in[FR2];
+	}
+      FF << " TotalsOther 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
       Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send GG " << FractalRank << "\n";
+      FF << " Send GG " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes);

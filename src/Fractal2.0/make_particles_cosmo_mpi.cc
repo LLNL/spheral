@@ -86,6 +86,7 @@ namespace FractalSpace
 	      break;
 	    crash_0/=scale_crash;
 	  }
+	FileFractal << "iimax " << crash_0<< endl;;
 	vector <double> crash(mem.number_particles);
 	for(int n=0;n<mem.number_particles;++n)
 	  {
@@ -117,13 +118,20 @@ namespace FractalSpace
 		      }
 		    int many=split_particle(mem,frac,x0,y0,z0,count,m,split_to,true);
 		    assert(many > 0);
-		    assert(count < mem.max_particles);
+		    if(count >= mem.max_particles)
+		      {
+			FileFractal << " OVER " << count << " " << mem.max_particles;
+			FileFractal << " " << Box[0] << " " << nx << " " << Box[1];
+			FileFractal << " " << Box[2] << " " << ny << " " << Box[3];
+			FileFractal << " " << Box[4] << " " << nz << " " << Box[5] << endl;
+		      }
+		    //		    assert(count < mem.max_particles);
 		    n++;
 		  }
 	      }
 	  }
 	crash.clear();
-	FileFractal << "startit " << count << " " << crash_0 << " " << mem.crash_levels << "\n";
+	FileFractal << "startit " << count << " " << mem.max_particles << " " << crash_0 << " " << mem.crash_levels << "\n";
 	mem.number_particles=count;
       }
   }

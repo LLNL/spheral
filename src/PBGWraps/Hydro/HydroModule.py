@@ -38,9 +38,9 @@ class Hydro:
         self.ThirdMomentHourglassControl2d = addObject(space, "ThirdMomentHourglassControl2d", allow_subclassing=True, parent=physics2d)
         self.ThirdMomentHourglassControl3d = addObject(space, "ThirdMomentHourglassControl3d", allow_subclassing=True, parent=physics3d)
 
-        self.VoronoiHourglassControl1d = addObject(space, "VoronoiHourglassControl1d", allow_subclassing=True, parent=physics1d)
-        self.VoronoiHourglassControl2d = addObject(space, "VoronoiHourglassControl2d", allow_subclassing=True, parent=physics2d)
-        self.VoronoiHourglassControl3d = addObject(space, "VoronoiHourglassControl3d", allow_subclassing=True, parent=physics3d)
+        # self.VoronoiHourglassControl1d = addObject(space, "VoronoiHourglassControl1d", allow_subclassing=True, parent=physics1d)
+        # self.VoronoiHourglassControl2d = addObject(space, "VoronoiHourglassControl2d", allow_subclassing=True, parent=physics2d)
+        # self.VoronoiHourglassControl3d = addObject(space, "VoronoiHourglassControl3d", allow_subclassing=True, parent=physics3d)
 
         return
 
@@ -58,9 +58,9 @@ class Hydro:
         self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl2d, 2)
         self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl3d, 3)
 
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl1d, 1)
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl2d, 2)
-        self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl3d, 3)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl1d, 1)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl2d, 2)
+        # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl3d, 3)
 
         return
 
@@ -99,6 +99,9 @@ class Hydro:
         x.add_static_attribute("omegaGradh", "std::string",  is_const=True)
         x.add_static_attribute("numberDensitySum", "std::string",  is_const=True)
         x.add_static_attribute("timeStepMask", "std::string",  is_const=True)
+        x.add_static_attribute("m0_CSPH", "std::string",  is_const=True)
+        x.add_static_attribute("m1_CSPH", "std::string",  is_const=True)
+        x.add_static_attribute("m2_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("A0_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("A_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("B_CSPH", "std::string",  is_const=True)
@@ -106,6 +109,7 @@ class Hydro:
         x.add_static_attribute("D_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradA_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradB_CSPH", "std::string",  is_const=True)
+        x.add_static_attribute("M_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("volume", "std::string",  is_const=True)
         x.add_static_attribute("linearMomentum", "std::string",  is_const=True)
         x.add_static_attribute("totalEnergy", "std::string",  is_const=True)
@@ -115,6 +119,7 @@ class Hydro:
         x.add_static_attribute("faceForce", "std::string",  is_const=True)
         x.add_static_attribute("faceMass", "std::string",  is_const=True)
         x.add_static_attribute("polyvols", "std::string",  is_const=True)
+        x.add_static_attribute("massDensityGradient", "std::string",  is_const=True)
         return
 
     #---------------------------------------------------------------------------

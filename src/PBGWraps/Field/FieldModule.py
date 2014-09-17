@@ -39,6 +39,7 @@ self.Vector3dField%(dim)s =        addObject(space, "Vector3dField%(dim)s", pare
 self.TensorField%(dim)s =          addObject(space, "TensorField%(dim)s", parent=self.FieldBase%(dim)s)
 self.SymTensorField%(dim)s =       addObject(space, "SymTensorField%(dim)s", parent=self.FieldBase%(dim)s)
 self.ThirdRankTensorField%(dim)s = addObject(space, "ThirdRankTensorField%(dim)s", parent=self.FieldBase%(dim)s)
+self.FacetedVolumeField%(dim)s =   addObject(space, "FacetedVolumeField%(dim)s", parent=self.FieldBase%(dim)s)
 self.VectorDoubleField%(dim)s =    addObject(space, "VectorDoubleField%(dim)s", parent=self.FieldBase%(dim)s)
 self.VectorVectorField%(dim)s =    addObject(space, "VectorVectorField%(dim)s", parent=self.FieldBase%(dim)s)
 self.VectorTensorField%(dim)s =    addObject(space, "VectorTensorField%(dim)s", parent=self.FieldBase%(dim)s)
@@ -52,6 +53,7 @@ self.Vector3dFieldList%(dim)s =        addObject(space, "Vector3dFieldList%(dim)
 self.TensorFieldList%(dim)s =          addObject(space, "TensorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 self.SymTensorFieldList%(dim)s =       addObject(space, "SymTensorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 self.ThirdRankTensorFieldList%(dim)s = addObject(space, "ThirdRankTensorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
+self.FacetedVolumeFieldList%(dim)s =   addObject(space, "FacetedVolumeFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 self.VectorDoubleFieldList%(dim)s =    addObject(space, "VectorDoubleFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 self.VectorVectorFieldList%(dim)s =    addObject(space, "VectorVectorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 self.VectorTensorFieldList%(dim)s =    addObject(space, "VectorTensorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
@@ -76,34 +78,40 @@ self.vector_of_%(element)sFieldList%(dim)s = addObject(mod, "vector_of_%(element
 
         for ndim in (1, 2, 3):
             dim = "%id" % ndim
+            polyvol = {1: "Box1d", 
+                       2: "Polygon",
+                       3: "Polyhedron"}[ndim]
+
             exec("""
 self.addFieldBaseMethods(self.FieldBase%(dim)s, %(ndim)i)
 
 self.addFieldMethods(self.IntField%(dim)s, "int", "IntField%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldMethods(self.ULLField%(dim)s, "unsigned long long", "ULLField%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldMethods(self.ScalarField%(dim)s, "double", "ScalarField%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldMethods(self.VectorField%(dim)s, "Vector%(dim)s", "VectorField%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldMethods(self.Vector3dField%(dim)s, "Geom3Vector", "Vector3dField%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldMethods(self.TensorField%(dim)s, "Tensor%(dim)s", "TensorField%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldMethods(self.SymTensorField%(dim)s, "SymTensor%(dim)s", "SymTensorField%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldMethods(self.ThirdRankTensorField%(dim)s, "ThirdRankTensor%(dim)s", "ThirdRankTensorField%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldMethods(self.VectorDoubleField%(dim)s, "vector_of_double", "VectorDoubleField%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldMethods(self.VectorVectorField%(dim)s, "vector_of_Vector%(dim)s", "VectorVectorField%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldMethods(self.VectorTensorField%(dim)s, "vector_of_Tensor%(dim)s", "VectorTensorField%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldMethods(self.VectorSymTensorField%(dim)s, "vector_of_SymTensor%(dim)s", "VectorSymTensorField%(dim)s", %(ndim)i, indexAsPointer=True)
+self.addFieldMethods(self.ULLField%(dim)s, "unsigned long long", "ULLField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True)
+self.addFieldMethods(self.ScalarField%(dim)s, "double", "ScalarField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True)
+self.addFieldMethods(self.VectorField%(dim)s, "Vector%(dim)s", "VectorField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.Vector3dField%(dim)s, "Geom3Vector", "Vector3dField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.TensorField%(dim)s, "Tensor%(dim)s", "TensorField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.SymTensorField%(dim)s, "SymTensor%(dim)s", "SymTensorField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.ThirdRankTensorField%(dim)s, "ThirdRankTensor%(dim)s", "ThirdRankTensorField%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.FacetedVolumeField%(dim)s, polyvol, "FacetedVolumeField%(dim)s", %(ndim)i, indexAsPointer=True)
+self.addFieldMethods(self.VectorDoubleField%(dim)s, "vector_of_double", "VectorDoubleField%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.VectorVectorField%(dim)s, "vector_of_Vector%(dim)s", "VectorVectorField%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.VectorTensorField%(dim)s, "vector_of_Tensor%(dim)s", "VectorTensorField%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldMethods(self.VectorSymTensorField%(dim)s, "vector_of_SymTensor%(dim)s", "VectorSymTensorField%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
 
-self.addFieldListMethods(self.IntFieldList%(dim)s, "int", "IntFieldList%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldListMethods(self.ULLFieldList%(dim)s, "unsigned long long", "ULLFieldList%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldListMethods(self.ScalarFieldList%(dim)s, "double", "ScalarFieldList%(dim)s", %(ndim)i, applyNumberMethods=True)
-self.addFieldListMethods(self.VectorFieldList%(dim)s, "Vector%(dim)s", "VectorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldListMethods(self.Vector3dFieldList%(dim)s, "Geom3Vector", "Vector3dFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldListMethods(self.TensorFieldList%(dim)s, "Tensor%(dim)s", "TensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldListMethods(self.SymTensorFieldList%(dim)s, "SymTensor%(dim)s", "SymTensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldListMethods(self.ThirdRankTensorFieldList%(dim)s, "ThirdRankTensor%(dim)s", "ThirdRankTensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, indexAsPointer=True)
-self.addFieldListMethods(self.VectorDoubleFieldList%(dim)s, "vector_of_double", "VectorDoubleFieldList%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldListMethods(self.VectorVectorFieldList%(dim)s, "vector_of_Vector%(dim)s", "VectorVectorFieldList%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldListMethods(self.VectorTensorFieldList%(dim)s, "vector_of_Tensor%(dim)s", "VectorTensorFieldList%(dim)s", %(ndim)i, indexAsPointer=True)
-self.addFieldListMethods(self.VectorSymTensorFieldList%(dim)s, "vector_of_SymTensor%(dim)s", "VectorSymTensorFieldList%(dim)s", %(ndim)i, indexAsPointer=True)
+self.addFieldListMethods(self.IntFieldList%(dim)s, "int", "IntFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True)
+self.addFieldListMethods(self.ULLFieldList%(dim)s, "unsigned long long", "ULLFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True)
+self.addFieldListMethods(self.ScalarFieldList%(dim)s, "double", "ScalarFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True)
+self.addFieldListMethods(self.VectorFieldList%(dim)s, "Vector%(dim)s", "VectorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.Vector3dFieldList%(dim)s, "Geom3Vector", "Vector3dFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.TensorFieldList%(dim)s, "Tensor%(dim)s", "TensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.SymTensorFieldList%(dim)s, "SymTensor%(dim)s", "SymTensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.ThirdRankTensorFieldList%(dim)s, "ThirdRankTensor%(dim)s", "ThirdRankTensorFieldList%(dim)s", %(ndim)i, applyNumberMethods=True, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.FacetedVolumeFieldList%(dim)s, polyvol, "FacetedVolumeFieldList%(dim)s", %(ndim)i, indexAsPointer=True)
+self.addFieldListMethods(self.VectorDoubleFieldList%(dim)s, "vector_of_double", "VectorDoubleFieldList%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.VectorVectorFieldList%(dim)s, "vector_of_Vector%(dim)s", "VectorVectorFieldList%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.VectorTensorFieldList%(dim)s, "vector_of_Tensor%(dim)s", "VectorTensorFieldList%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
+self.addFieldListMethods(self.VectorSymTensorFieldList%(dim)s, "vector_of_SymTensor%(dim)s", "VectorSymTensorFieldList%(dim)s", %(ndim)i, applyOrderingMethods=True, indexAsPointer=True)
 
 self.addFieldListSetMethods(self.FieldListSet%(dim)s, %(ndim)i)
 """ % {"dim" : dim, "ndim" : ndim})
@@ -192,7 +200,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
     #---------------------------------------------------------------------------
     # Add methods (Fields).
     #---------------------------------------------------------------------------
-    def addFieldMethods(self, x, val, me, ndim, applyNumberMethods=False, indexAsPointer=False):
+    def addFieldMethods(self, x, val, me, ndim, applyNumberMethods=False, applyOrderingMethods=False, indexAsPointer=False):
 
         # Object names.
         me = "Spheral::FieldSpace::%s" % me
@@ -254,10 +262,11 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         # Comparison operators.
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
-        x.add_binary_comparison_operator("<")
-        x.add_binary_comparison_operator(">")
-        x.add_binary_comparison_operator("<=")
-        x.add_binary_comparison_operator(">=")
+        if applyOrderingMethods:
+            x.add_binary_comparison_operator("<")
+            x.add_binary_comparison_operator(">")
+            x.add_binary_comparison_operator("<=")
+            x.add_binary_comparison_operator(">=")
 
         # These methods can only be used with Field values that can be used as numbers.
         if applyNumberMethods:
@@ -339,7 +348,7 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
     #---------------------------------------------------------------------------
     # Add methods (FieldLists).
     #---------------------------------------------------------------------------
-    def addFieldListMethods(self, x, val, me, ndim, applyNumberMethods=False, indexAsPointer=False):
+    def addFieldListMethods(self, x, val, me, ndim, applyNumberMethods=False, applyOrderingMethods=False, indexAsPointer=False):
 
         # Object names.
         me = "Spheral::FieldSpace::%s" % me
@@ -400,10 +409,11 @@ generateStdVectorBindings(self.vector_of_%(element)sFieldList%(dim)s, "Spheral::
         # Comparison operators.
         x.add_binary_comparison_operator("==")
         x.add_binary_comparison_operator("!=")
-        x.add_binary_comparison_operator("<")
-        x.add_binary_comparison_operator(">")
-        x.add_binary_comparison_operator("<=")
-        x.add_binary_comparison_operator(">=")
+        if applyOrderingMethods:
+            x.add_binary_comparison_operator("<")
+            x.add_binary_comparison_operator(">")
+            x.add_binary_comparison_operator("<=")
+            x.add_binary_comparison_operator(">=")
 
         # These methods can only be used with Field values that can be used as numbers.
         if applyNumberMethods:

@@ -196,6 +196,7 @@ class CXXTypes:
                                     "SymTensor1d", "SymTensor2d", "SymTensor3d",
                                     "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d",
                                     "Geom3Vector",
+                                    "Box1d", "Polygon", "Polyhedron",
                                     "vector_of_char", "vector_of_unsigned", "vector_of_int", "vector_of_float", "vector_of_double", "vector_of_string", 
                                     "vector_of_Vector1d", "vector_of_Vector2d", "vector_of_Vector3d",
                                     "vector_of_Tensor1d", "vector_of_Tensor2d", "vector_of_Tensor3d",
@@ -225,6 +226,8 @@ class CXXTypes:
         self.valueMap["unsigned"] = "unsigned int"
         self.valueMap["string"] = "std::string"
         self.valueMap["ULL"] = "uint64_t"
+        self.valueMap["Polygon"] = "GeomPolygon"
+        self.valueMap["Polyhedron"] = "GeomPolyhedron"
 
         return
 

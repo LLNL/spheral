@@ -102,6 +102,16 @@ double monotonicWeighting(const double& ui,
 }
 
 inline
+double PoverRho2Weighting(const double Pi,
+                          const double rhoi,
+                          const double Pj,
+                          const double rhoj) {
+  const double wi = max(1.0e-100, Pi/max(1.0e-100, rhoi*rhoi));
+  const double wj = max(1.0e-100, Pj/max(1.0e-100, rhoj*rhoj));
+  return wi/(wi + wj);
+}
+
+inline
 double weighting(const double& ui,
                  const double& uj,
                  const double& mi,
@@ -197,6 +207,8 @@ update(const KeyType& key,
 
   // Get the state fields.
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, Scalar());
+  const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, Scalar());
+  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, Scalar());
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Vector> acceleration = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
@@ -226,6 +238,8 @@ update(const KeyType& key,
       // State for node i.
       Scalar& DepsDti = DepsDt(nodeListi, i);
       const Scalar& mi = mass(nodeListi, i);
+      const Scalar& Pi = pressure(nodeListi, i);
+      const Scalar& rhoi = rho(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& ui = eps0(nodeListi, i);
       const Vector& ai = acceleration(nodeListi, i);
@@ -256,6 +270,8 @@ update(const KeyType& key,
                                                          firstGhostNodej)) {
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               const Scalar& mj = mass(nodeListj, j);
+              const Scalar& Pj = pressure(nodeListj, j);
+              const Scalar& rhoj = rho(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
               const Scalar& uj = eps0(nodeListj, j);
               const Vector& aj = acceleration(nodeListj, j);
@@ -273,6 +289,8 @@ update(const KeyType& key,
 
               const Scalar dEij = -(mi*vi12.dot(pai) + mj*vj12.dot(paj));
               const Scalar duij = dEij/mi;
+              // const Scalar wi = standardWeighting(ui, uj, mi, mj, duij)
+              // const Scalar wi = PoverRho2Weighting(Pi, rhoi, Pj, rhoj);
               const Scalar wi = weighting(ui, uj, mi, mj, duij, dt);
 
               CHECK(wi >= 0.0 and wi <= 1.0);
@@ -283,6 +301,30 @@ update(const KeyType& key,
           }
         }
       }
+
+      // // Add the self-contribution.
+      // const Scalar duii = -vi12.dot(pacci.back());
+      // DepsDti += duii;
+
+      // // Grab the self-interaction term.  We will distribute this amongst our neighbors.
+      // const unsigned numNeighbors = connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i);
+      // const Scalar dEii = -mi*vi12.dot(pacci.back())/numNeighbors;
+      // for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
+      //   const vector<int>& connectivity = fullConnectivity[nodeListj];
+      //   if (connectivity.size() > 0) {
+      // 	  const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+      //     for (vector<int>::const_iterator jitr = connectivity.begin();
+      //          jitr != connectivity.end();
+      //          ++jitr) {
+      //       const int j = *jitr;
+      // 	    Scalar& DepsDtj = DepsDt(nodeListj, j);
+      // 	    const Scalar& mj = mass(nodeListj, j);
+      // 	    DepsDtj += 0.5*dEii;
+      // 	    DepsDti += 0.5*dEii;
+      // 	  }
+      // 	}
+      // }
+      //      DepsDti += dEii;
 
       // Now we can update the energy.
       CHECK(offset(nodeListi, i) == pacci.size());

@@ -80,7 +80,8 @@ namespace FractalSpace
   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
   void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH);
-  void info_to_slices(Fractal_Memory& mem,Fractal& frac,const int& lev);
+  void info_to_slices(Fractal_Memory& mem,Fractal& frac,int lev);
+  void info_to_slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,int lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);
   void isolated_solver(Group& group,Fractal_Memory& fractal_memory,Fractal& fractal);
   bool it_is_inside(Point* p_point);
@@ -130,8 +131,8 @@ namespace FractalSpace
   void shrink_cube(double SHRINK,vector <double>& xmin,vector <double>& xmax,Fractal_Memory* PFM,
 		   vector <double>& posx,vector <double>& posy,vector <double>& posz,
 		   int number_particles,vector <double>& xmini,vector <double>& xmaxy);
-  void slices_to_potf(Group& group,Fractal_Memory& mem,Fractal& frac);
-  void slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,const int& lev);
+  void slices_to_potf(Fractal_Memory& mem,Fractal& frac,int lev);
+  void slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,int lev);
   template <class T> int shortest_vector(vector<T>& veca,vector<T>& vecb,vector<T>& vecc);
   void sor(Group& group, Fractal& fractal,vector <Point*>& list_left_x,const int& dir);
   void sor_solver(Group& group, Fractal& fractal);

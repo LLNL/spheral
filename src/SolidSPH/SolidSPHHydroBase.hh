@@ -60,6 +60,7 @@ public:
                     const bool compatibleEnergyEvolution,
                     const bool gradhCorrection,
                     const bool XSPH,
+                    const bool correctVelocityGradient,
                     const PhysicsSpace::MassDensityType densityUpdate,
                     const PhysicsSpace::HEvolutionType HUpdate,
                     const double epsTensile,

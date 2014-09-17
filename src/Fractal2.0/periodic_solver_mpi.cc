@@ -13,7 +13,8 @@ namespace FractalSpace
     const double length_3=static_cast<double>(length_1*length_2);
     const double pi=4.0*atan(1.0);
     group.set_force_const(4.0*pi/static_cast<double>(length_2));
-    mem.p_mess->create_potRC();
+    //    mem.p_mess->create_potRC();
+    mem.p_mess->create_potR();
     vector <double> green_1(length_1+1);
     for (int k=0;k <length_1+1;++k)
       {
@@ -25,6 +26,7 @@ namespace FractalSpace
     frac.timing(-1,24);
     dens_to_slices(group,mem,frac);
     frac.timing(1,24);
+    mem.p_mess->create_potC();
     mem.p_mess->fftw_real_to_complex();
     double g_c=group.get_force_const()/length_3;
     FileFFT << "going to power spectrum from periodic " << length_1 << "\n";
@@ -55,11 +57,13 @@ namespace FractalSpace
 	  }
       }
     mem.p_mess->fftw_complex_to_real();
+    mem.p_mess->free_potC();
     Full_Stop(mem,35);
     frac.timing(-1,24);
-    slices_to_potf(group,mem,frac);
+    slices_to_potf(mem,frac,0);
     frac.timing(1,24);
-    mem.p_mess->free_potRC();
+    //    mem.p_mess->free_potRC();
+    mem.p_mess->free_potR();
     FileFFT << "exiting periodic " << "\n";
   }
 }
