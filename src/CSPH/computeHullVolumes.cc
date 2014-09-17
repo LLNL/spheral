@@ -32,9 +32,6 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
-  // Zero out the result.
-  volume = 0.0;
-
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
 
@@ -58,7 +55,7 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
              ++jItr) {
           const int j = *jItr;
           const Vector& rj = position(nodeListj, j);
-          const Vector rji = rj - ri,
+          const Vector rji = 0.5*(rj - ri),
                        rjiHat = rji.unitVector();
           positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
         }
@@ -71,14 +68,22 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
       // volume of the node.
       vector<Vector> positions;
       const vector<Vector>& vertsInv = hullInv.vertices();
+      CHECK((Dimension::nDim == 1 and vertsInv.size() == 2) or
+            (Dimension::nDim == 2 and vertsInv.size() >= 3) or
+            (Dimension::nDim == 3 and vertsInv.size() >= 4));
       for (typename std::vector<Vector>::const_iterator itr = vertsInv.begin();
            itr != vertsInv.end();
            ++itr) {
-        positions.push_back(1.0/sqrt(itr->magnitude2() + 1.0e-30) * itr->unitVector());
+        if (itr->magnitude2() < 1.0e-30) {
+          positions.push_back(Vector::zero);
+        } else {
+          positions.push_back(1.0/sqrt(itr->magnitude2()) * itr->unitVector());
+        }
       }
 
       // And we have it.
       polyvol(nodeListi, i) = FacetedVolume(positions, hullInv.facetVertices());
+      // polyvol(nodeListi, i) = FacetedVolume(hullVerts);
       volume(nodeListi, i) = polyvol(nodeListi, i).volume();
     }
   }

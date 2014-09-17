@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
   PFM->hypre_max_average_load=20000;
   PFM->number_steps_total=1603;
   //  PFM->number_steps_total=13;
-  PFM->number_steps_out=40;
+  PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
-  PFM->step_length=4.0e-5;
-  //  PFM->step_length=2.0e-40;
+  //  PFM->step_length=4.0e-5;
+  PFM->step_length=1.0e-4;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   //  ofstream& FFM=PFM->p_file->FileFractalMemory;

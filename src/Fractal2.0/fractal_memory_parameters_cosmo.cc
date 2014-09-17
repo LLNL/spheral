@@ -7,6 +7,8 @@ namespace FractalSpace
   //
   template <class M> void fractal_memory_parameters(M& mem,int _inteL_,int _mulT_)
   {
+    int Ranky;
+    MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
     mem.FractalNodes=mem.FractalNodes0*mem.FractalNodes1*mem.FractalNodes2;
     // These are the parameters you need to set.
     // For the others you should use my values for now.
@@ -119,7 +121,8 @@ namespace FractalSpace
     mem.sigma_initial=mem.sigma_0*Growth(mem.omega_0,mem.omega_lambda,mem.redshift_start);
     mem.time=Age_of_the_universe(mem.omega_start,mem.lambda_start,0.0);
     mem.total_mass=1.0;
-    cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << "\n";
+    if(Ranky == 0)
+      cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << "\n";
     //
     mem.crash_levels=8;
     mem.crash_pow=2.0;
@@ -229,7 +232,9 @@ namespace FractalSpace
     mem.masks_level_init[2]=4;
     mem.masks_square_init[2]=true;
     mem.masks_init=0;
-    cout << " finishing cosmo " << "\n";
+
+    if(Ranky == 0)
+      cout << " finishing cosmo " << "\n";
   }
 }
 namespace FractalSpace

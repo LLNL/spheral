@@ -70,6 +70,12 @@ public:
   connectivityForNode(const int nodeListID,
                       const int nodeID) const;
 
+  // Compute the common neighbors for a pair of nodes.  Note this method 
+  // returns by value since this information is not stored by ConnectivityMap.
+  std::vector< std::vector<int> >
+  connectivityIntersectionForNodes(const int nodeListi, const int i,
+                                   const int nodeListj, const int j) const;
+
   // Compute the number of neighbors for the given node.
   int numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
                           const int nodeID) const;

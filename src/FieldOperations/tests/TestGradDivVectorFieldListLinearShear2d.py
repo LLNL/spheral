@@ -179,11 +179,11 @@ for bc in boundaryConditions:
     bc.setViolationNodes(db)
 for bc in boundaryConditions:
     bc.setGhostNodes(db)
-    bc.applyScalarFieldListGhostBoundary(fluidWeight)
-    bc.applyScalarFieldListGhostBoundary(fluidMass)
-    bc.applyScalarFieldListGhostBoundary(fluidRho)
-    bc.applyVectorFieldListGhostBoundary(velocity)
-    bc.applySymTensorFieldListGhostBoundary(fluidHfield)
+    bc.applyFieldListGhostBoundary(fluidWeight)
+    bc.applyFieldListGhostBoundary(fluidMass)
+    bc.applyFieldListGhostBoundary(fluidRho)
+    bc.applyFieldListGhostBoundary(velocity)
+    bc.applyFieldListGhostBoundary(fluidHfield)
 for nodes in [nodes1, nodes2]:
     nodes.neighbor.updateNodes()
     for i in xrange(nodes.firstGhostNode, nodes.numNodes):

@@ -35,10 +35,8 @@ namespace FractalSpace
 	int slice_point=frac.where(nx,ny,nz,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]);
 	if(pass)
 	  slice_point=-slice_point-1;
-	int numberFR=p_point->get_number_in_list();
 	double density=p_point->get_density_point();
 	dataI_out[S].push_back(slice_point);
-	dataI_out[S].push_back(numberFR);
 	dataR_out[S].push_back(density);
 	counts_out[S]++;
       }
@@ -47,7 +45,7 @@ namespace FractalSpace
     vector <double> dataR_in;
     int how_manyI=-1;
     int how_manyR=-1;
-    int integers=2;
+    int integers=1;
     int doubles=1;
     mem.p_file->note(true," dens to slices a ");
     mem.p_mess->Send_Data_Some_How(0,counts_out,counts_in,integers,doubles,
@@ -61,26 +59,23 @@ namespace FractalSpace
     BoxS=mem.p_mess->BoxS[Slice];
     vector <int> BoxSL;
     BoxSL=mem.p_mess->BoxSL[Slice];
-    int counterR=0;
-    int counterI=0;
+    int counterIR=0;
+    /*
     mem.p_mess->return_point.resize(how_manyR);
     mem.p_mess->return_node.resize(how_manyR);
     mem.p_mess->what_Slice_point.resize(how_manyR);
+    */
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    int n=dataI_in[counterI];
+	    int n=dataI_in[counterIR];
 	    bool pass=n < 0;
 	    if(pass)
 	      n=-n-1;
 	    if(!pass)
-	      mem.p_mess->potR[n]=dataR_in[counterR];
-	    mem.p_mess->return_point[counterR]=dataI_in[counterI+1];
-	    mem.p_mess->return_node[counterR]=FR;
-	    mem.p_mess->what_Slice_point[counterR]=n;
-	    counterR++;
-	    counterI+=2;
+	      mem.p_mess->potR[n]=dataR_in[counterIR];
+	    counterIR++;
 	  }
       }
   }
