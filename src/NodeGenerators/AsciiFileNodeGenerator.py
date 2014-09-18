@@ -46,50 +46,64 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         assert min([x == filename for x in allfiles])
         self.serialfile = True
         
+        self.H = []
+        self.fieldNames = []
+        vals = []
+        self.nf = 0
+        self.nv = 0
+        
+        print "using " + str(mpi.procs) +  " procs"
+        
         if mpi.rank == 0:
             f = open(filename,'r')
             self.f = f
-        else:
-            self.f = None
-        
-        # create the field arrays
-        vals = []
-        self.H = []
-        
-        fieldNames = []
-        gotFieldNames = 0
-        
-        for line in self.f:
-            data = line.split(delimiter)
-            if data[0][0] != "#" and gotFieldNames == 1:
-                vals.append(data)
-            if data[0][0] != "#" and gotFieldNames == 0:
-                fieldNames.append(data)
-                gotFieldNames = 1
-        
-        print "in " + filename + " found " + str(len(fieldNames[0])) + " fields:"
-        for i in xrange(len(fieldNames[0])):
-            print fieldNames[0][i]
-            self.__dict__[fieldNames[0][i]] = []
+            
+            gotFieldNames = 0
+            
+            for line in self.f:
+                data = line.split(delimiter)
+                if data[0][0] != "#" and gotFieldNames == 1:
+                    vals.append(data)
+                if data[0][0] != "#" and gotFieldNames == 0:
+                    self.fieldNames.append(data)
+                    gotFieldNames = 1
+            
+            self.f.close()
+            
+            for i in xrange(len(self.fieldNames[0])):
+                print self.fieldNames[0][i]
+                self.nf = self.nf + 1
         
         
-        n = len(vals)
-        for i in xrange(n):
-            for j in xrange(len(fieldNames[0])):
-                self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
-            self.H.append((1.0/self.h[i]) * SymTensor2d.one)
+        self.nf = mpi.bcast(self.nf, root=0)
+        self.nv = mpi.bcast(len(vals), root=0)
+        self.fieldNames = mpi.bcast(self.fieldNames, root=0)
+        mpi.barrier()
         
+        for i in xrange(len(self.fieldNames[0])):
+            self.__dict__[self.fieldNames[0][i]] = []
         
+        assert self.nf == len(self.fieldNames[0])
         
+        if mpi.rank == 0:
+            n = len(vals)
+            for i in xrange(n):
+                for j in xrange(len(self.fieldNames[0])):
+                    self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
+                self.H.append((1.0/self.h[i]) * SymTensor3d.one)
+        
+        for j in xrange(len(self.fieldNames[0])):
+            self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
+        
+        self.H = mpi.bcast(self.H, root=0)
+
         
         # Initialize the base class.
         if initializeBase:
             fields = tuple([self.x, self.y, self.m, self.rho, self.vx, self.vy, self.eps, self.H] +
                            [self.__dict__[x] for x in extraFields])
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
-        
-        if mpi.rank == 0:
-            self.f.close()
+
         
         # Apply the requested number of refinements.
         for i in xrange(refineNodes):
@@ -163,51 +177,64 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         assert min([x == filename for x in allfiles])
         self.serialfile = True
 
+        self.H = []
+        self.fieldNames = []
+        vals = []
+        self.nf = 0
+        self.nv = 0
+        
+        print "using " + str(mpi.procs) +  " procs"
+
         if mpi.rank == 0:
             f = open(filename,'r')
             self.f = f
-        else:
-            self.f = None
             
-        # create the field arrays
-        vals = []
-        self.H = []
-        
-        fieldNames = []
-        gotFieldNames = 0
-        
-        for line in self.f:
-            data = line.split(delimiter)
-            if data[0][0] != "#" and gotFieldNames == 1:
-                vals.append(data)
-            if data[0][0] != "#" and gotFieldNames == 0:
-                fieldNames.append(data)
-                gotFieldNames = 1
+            gotFieldNames = 0
             
-        print "in " + filename + " found " + str(len(fieldNames[0])) + " fields:"
-        for i in xrange(len(fieldNames[0])):
-            print fieldNames[0][i]
-            self.__dict__[fieldNames[0][i]] = []
+            for line in self.f:
+                data = line.split(delimiter)
+                if data[0][0] != "#" and gotFieldNames == 1:
+                    vals.append(data)
+                if data[0][0] != "#" and gotFieldNames == 0:
+                    self.fieldNames.append(data)
+                    gotFieldNames = 1
+            
+            self.f.close()
+                
+            for i in xrange(len(self.fieldNames[0])):
+                print self.fieldNames[0][i]
+                self.nf = self.nf + 1
+                
+        
+        self.nf = mpi.bcast(self.nf, root=0)
+        self.nv = mpi.bcast(len(vals), root=0)
+        self.fieldNames = mpi.bcast(self.fieldNames, root=0)
+        mpi.barrier()
 
+        for i in xrange(len(self.fieldNames[0])):
+            self.__dict__[self.fieldNames[0][i]] = []
 
-        n = len(vals)
-        for i in xrange(n):
-            for j in xrange(len(fieldNames[0])):
-                self.__dict__[fieldNames[0][j]].append(float(vals[i][j]))
-            self.H.append((1.0/self.h[i]) * SymTensor3d.one)
+        assert self.nf == len(self.fieldNames[0])
+
+        if mpi.rank == 0:
+            n = len(vals)
+            for i in xrange(n):
+                for j in xrange(len(self.fieldNames[0])):
+                    self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
+                self.H.append((1.0/self.h[i]) * SymTensor3d.one)
+        
+        for j in xrange(len(self.fieldNames[0])):
+            self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
+        
+        self.H = mpi.bcast(self.H, root=0)
+        
     
-        # Read in extra fields
-        # maybe later...
-
-        
         # Initialize the base class.
         if initializeBase:
             fields = tuple([self.x, self.y, self.z, self.m, self.rho, self.vx, self.vy, self.vz, self.eps, self.H] +
                            [self.__dict__[x] for x in extraFields])
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
 
-        if mpi.rank == 0:
-            self.f.close()
 
         # Apply the requested number of refinements.
         for i in xrange(refineNodes):
