@@ -795,9 +795,9 @@
         return
        end if
        if (temp .lt. t(1)) then
-        write(6,01) 'temp=',temp,' t(1)=',t(1)
-        write(6,*) 'temp too cold, off grid'
-        write(6,*) 'setting eosfail to true and returning'
+        !write(6,01) 'temp=',temp,' t(1)=',t(1)
+        !write(6,*) 'temp too cold, off grid'
+        !write(6,*) 'setting eosfail to true and returning'
         call flush(6)
         eosfail = .true.
         return
