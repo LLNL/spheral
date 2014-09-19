@@ -325,7 +325,9 @@ valid() const {
     return false;
   }
   {
-    const int numNodes = domainDecompIndependent ? mNodeLists.back()->numNodes() : mNodeLists.back()->numInternalNodes();
+    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+                          mNodeLists.back()->numNodes() : 
+                          mNodeLists.back()->numInternalNodes());
     if (mConnectivity.size() != mOffsets.back() + numNodes) {
       cerr << "ConnectivityMap::valid: Failed offset bounding." << endl;
     }
@@ -356,7 +358,9 @@ valid() const {
 
     // Are all internal nodes represented?
     const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
-    const int numNodes = domainDecompIndependent ? nodeListPtri->numNodes() : nodeListPtri->numInternalNodes();
+    const int numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
+                          nodeListPtri->numNodes() : 
+                          nodeListPtri->numInternalNodes());
     const int firstGhostNodei = nodeListPtri->firstGhostNode();
     if (((nodeListIDi < numNodeLists - 1) and (mOffsets[nodeListIDi + 1] - mOffsets[nodeListIDi] != numNodes)) or
         ((nodeListIDi == numNodeLists - 1) and (mConnectivity.size() - mOffsets[nodeListIDi] != numNodes))) {
@@ -434,7 +438,7 @@ valid() const {
         for (vector<int>::const_iterator jItr = neighbors.begin();
              jItr != neighbors.end();
              ++jItr) {
-          if (domainDecompIndependent or (*jItr < nodeListPtrj->numInternalNodes())) {
+          if (domainDecompIndependent or mBuildGhostConnectivity or (*jItr < nodeListPtrj->numInternalNodes())) {
             const vector< vector<int> >& otherNeighbors = connectivityForNode(nodeListPtrj, *jItr);
             if (find(otherNeighbors[nodeListIDi].begin(),
                      otherNeighbors[nodeListIDi].end(),
@@ -551,7 +555,7 @@ computeConnectivity() {
   // Erase any prior information.
   const unsigned numNodeLists = dataBase.numNodeLists(),
              connectivitySize = mOffsets.back() + 
-               (domainDecompIndependent ? mNodeLists.back()->numNodes() : mNodeLists.back()->numInternalNodes());
+                                ((domainDecompIndependent or mBuildGhostConnectivity) ? mNodeLists.back()->numNodes() : mNodeLists.back()->numInternalNodes());
   bool ok = (connectivitySize > 0 and mConnectivity.size() == connectivitySize);
   if (ok) {
     CHECK(mNodeTraversalIndices.size() == numNodeLists);
@@ -640,7 +644,7 @@ computeConnectivity() {
                masterItr != neighbori.masterEnd();
                ++masterItr) {
             i = *masterItr;
-            if (domainDecompIndependent or i < firstGhostNode) {
+            if (domainDecompIndependent or mBuildGhostConnectivity or i < firstGhostNode) {
               CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
               start = Timing::currentTime();
               CHECK(flagNodeDone(iNodeList, i) == 0);
@@ -767,34 +771,36 @@ computeConnectivity() {
                neighborItr != neighborj.refineNeighborEnd();
                ++neighborItr) {
             j = *neighborItr;
+            if (j > i) {  // We've already hit all nodes with lower indices than this one.
 
-            // Get the neighbor state.
-            const Vector& rj = position(jNodeList, j);
-            const SymTensor& Hj = H(jNodeList, j);
+              // Get the neighbor state.
+              const Vector& rj = position(jNodeList, j);
+              const SymTensor& Hj = H(jNodeList, j);
 
-            // Compute the normalized distance between this pair.
-            rij = ri - rj;
-            eta2i = (Hi*rij).magnitude2();
-            eta2j = (Hj*rij).magnitude2();
+              // Compute the normalized distance between this pair.
+              rij = ri - rj;
+              eta2i = (Hi*rij).magnitude2();
+              eta2j = (Hj*rij).magnitude2();
 
-            // If this pair is significant, add it to the list.
-            if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+              // If this pair is significant, add it to the list.
+              if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
 
-              // We don't include self-interactions.
-              if ((iNodeList != jNodeList) or (i != j)) {
-                vector< vector<int> >& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
-                CHECK(otherNeighbors.size() == numNodeLists);
-                neighbors[jNodeList].push_back(j);
-                otherNeighbors[iNodeList].push_back(i);
-                if (domainDecompIndependent) {
-                  keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                // We don't include self-interactions.
+                if ((iNodeList != jNodeList) or (i != j)) {
+                  vector< vector<int> >& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
+                  CHECK(otherNeighbors.size() == numNodeLists);
+                  neighbors[jNodeList].push_back(j);
+                  otherNeighbors[iNodeList].push_back(i);
+                  if (domainDecompIndependent) {
+                    keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                  }
                 }
               }
             }
           }
           CHECK(neighbors.size() == numNodeLists);
           CHECK(keys.size() == numNodeLists);
-        
+    
           // We have a few options for how to order the neighbors for this node.
           for (k = 0; k != numNodeLists; ++k) {
 
