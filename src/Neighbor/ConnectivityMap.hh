@@ -45,17 +45,23 @@ public:
 
   template<typename NodeListIterator>
   ConnectivityMap(const NodeListIterator& begin,
-                  const NodeListIterator& end);
+                  const NodeListIterator& end,
+                  const bool buildGhostConnectivity);
 
   // Rebuild for a given set of NodeLists.
   template<typename NodeListIterator>
-  void rebuild(const NodeListIterator& begin, const NodeListIterator& end);
+  void rebuild(const NodeListIterator& begin, 
+               const NodeListIterator& end, 
+               const bool computeGhostConnectivity);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
   // old2new -- maps old -> new node indices.
   void patchConnectivity(const FieldSpace::FieldList<Dimension, int>& flags,
                          const FieldSpace::FieldList<Dimension, int>& old2new);
+
+  // Are we computing neighbors for ghosts?
+  bool buildGhostConnectivity() const;
 
   // Get the set of NodeLists.
   const std::vector<const NodeSpace::NodeList<Dimension>*>& nodeLists() const;
@@ -75,6 +81,12 @@ public:
   std::vector< std::vector<int> >
   connectivityIntersectionForNodes(const int nodeListi, const int i,
                                    const int nodeListj, const int j) const;
+
+  // Compute the union of neighbors for a pair of nodes.  Note this method 
+  // returns by value since this information is not stored by ConnectivityMap.
+  std::vector< std::vector<int> >
+  connectivityUnionForNodes(const int nodeListi, const int i,
+                            const int nodeListj, const int j) const;
 
   // Compute the number of neighbors for the given node.
   int numNeighborsForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
@@ -113,6 +125,9 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // The set of NodeLists.
   std::vector<const NodeSpace::NodeList<Dimension>*> mNodeLists;
+
+  // Are we building ghost connectivity?
+  bool mBuildGhostConnectivity;
 
   // The full connectivity map.  This might be quite large!
   // [offset[NodeList] + nodeID] [NodeListID] [neighborIndex]
