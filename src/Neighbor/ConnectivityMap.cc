@@ -37,6 +37,7 @@ inline
 ConnectivityMap<Dimension>::
 ConnectivityMap():
   mNodeLists(),
+  mBuildGhostConnectivity(false),
   mConnectivity(),
   mNodeTraversalIndices(),
   mKeys(FieldSpace::Copy) {
@@ -81,7 +82,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
 
     // Walk the nodes of the NodeList.
     const size_t ioff = mOffsets[iNodeList];
-    const size_t numNodes = (domainDecompIndependent ? 
+    const size_t numNodes = ((domainDecompIndependent or mBuildGhostConnectivity) ? 
                              mNodeLists[iNodeList]->numNodes() :
                              mNodeLists[iNodeList]->numInternalNodes());
 
@@ -193,58 +194,55 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
     for (unsigned k = 0; k != numNodeLists; ++k) {
       sort(neighborsi[k].begin(), neighborsi[k].end());
       sort(neighborsj[k].begin(), neighborsj[k].end());
-      set_union(neighborsi[k].begin(), neighborsi[k].end(),
-                neighborsj[k].begin(), neighborsj[k].end(),
-                back_inserter(result[k]));
-      // set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
-      //                  neighborsj[k].begin(), neighborsj[k].end(),
-      //                  back_inserter(result[k]));
+      set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
+                       neighborsj[k].begin(), neighborsj[k].end(),
+                       back_inserter(result[k]));
     }
-
+  } else if (i < firstGhostNodei) {
+    result = this->connectivityForNode(nodeListi, i);
   } else {
-    // One of the points we're checking is a ghost node, which does not have stored
-    // connectivity.  We have to look for the subset of the internal nodes neighbors
-    // that are in range the hard way.
-    unsigned ii, jj, nodeListii, nodeListjj;
-    if (i <  firstGhostNodei) {
-      ii = i;
-      jj = j;
-      nodeListii = nodeListi;
-      nodeListjj = nodeListj;
-    } else {
-      ii = j;
-      jj = i;
-      nodeListii = nodeListj;
-      nodeListjj = nodeListi;
-    }
-    CHECK(ii <  mNodeLists[nodeListii]->firstGhostNode());
-    CHECK(jj >= mNodeLists[nodeListjj]->firstGhostNode());
-    const vector<vector<int> >& neighborsii = this->connectivityForNode(nodeListii, ii);
+    result = this->connectivityForNode(nodeListj, j);
+  }
 
-    // We can't reliably cut down the neighbor intersection because we don't necessarily know
-    // now what the positions and H's were when the initial connectivity is constructed.  
-    // For now we just punt and return all neighbors for the internal node.
-    result = neighborsii;
+  // That's it.
+  return result;
+}
 
-    // const Vector& rjj = mNodeLists[nodeListjj]->positions()[jj];
-    // const SymTensor& Hjj = mNodeLists[nodeListjj]->Hfield()[jj];
-    // for (unsigned nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-    //   const double kernelExtent2 = FastMath::square(mNodeLists[nodeListk]->neighbor().kernelExtent());
-    //   const Field<Dimension, Vector>& pos = mNodeLists[nodeListk]->positions();
-    //   const Field<Dimension, SymTensor>& H = mNodeLists[nodeListk]->Hfield();
-    //   for (vector<int>::const_iterator kItr = neighborsii[nodeListk].begin();
-    //        kItr != neighborsii[nodeListk].end();
-    //        ++kItr) {
-    //     const int k = *kItr;
-    //     if (nodeListk != nodeListjj or k != jj) {  // To match our convention that i & j are not in the neighbor set.
-    //       const Vector& rk = pos(k);
-    //       const SymTensor& Hk = H(k);
-    //       const Scalar etaj2 = (Hjj*(rk - rjj)).magnitude2();
-    //       const Scalar etak2 = (Hk *(rk - rjj)).magnitude2();
-    //       if (min(etaj2, etak2) < kernelExtent2) result[nodeListk].push_back(k);
-    //     }
-    //   }
-    // }
+//------------------------------------------------------------------------------
+// Compute the union of neighbors for a pair of nodes.  Note this method 
+// returns by value since this information is not stored by ConnectivityMap.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<vector<int> >
+ConnectivityMap<Dimension>::
+connectivityUnionForNodes(const int nodeListi, const int i,
+                          const int nodeListj, const int j) const {
+
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  // Pre-conditions.
+  const unsigned numNodeLists = mNodeLists.size();
+  REQUIRE(nodeListi < numNodeLists and
+          nodeListj < numNodeLists);
+  const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
+  const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
+
+  // Do the deed.
+  vector<vector<int> > result(numNodeLists);
+  vector<vector<int> > neighborsi = this->connectivityForNode(nodeListi, i);
+  vector<vector<int> > neighborsj = this->connectivityForNode(nodeListj, j);
+  CHECK(neighborsi.size() == numNodeLists);
+  CHECK(neighborsj.size() == numNodeLists);
+  for (unsigned k = 0; k != numNodeLists; ++k) {
+    sort(neighborsi[k].begin(), neighborsi[k].end());
+    sort(neighborsj[k].begin(), neighborsj[k].end());
+    set_union(neighborsi[k].begin(), neighborsi[k].end(),
+              neighborsj[k].begin(), neighborsj[k].end(),
+              back_inserter(result[k]));
   }
 
   // That's it.
@@ -607,7 +605,7 @@ computeConnectivity() {
 
   // Predeclare stuff we're going to use in the loop.
   unsigned iiNodeList, ii, iNodeList, jNodeList, firstGhostNode;
-  int i, firstGhostNodej, j, k;
+  int i, firstGhostNodej, j, k, n;
   typename Neighbor<Dimension>::const_iterator masterItr, neighborItr;
   Time start;
   vector<vector<pair<int, Key> > > keys;
@@ -688,14 +686,15 @@ computeConnectivity() {
                     if ((iNodeList != jNodeList) or (i != j)) {
                       neighbors[jNodeList].push_back(j);
 
+                      // Do we need ghost connectivity as well?
+                      if (j >= firstGhostNodej and (domainDecompIndependent or mBuildGhostConnectivity)) {
+                        vector< vector<int> >& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
+                        CHECK(otherNeighbors.size() == numNodeLists);
+                        otherNeighbors[iNodeList].push_back(i);
+                      }
+
                       if (domainDecompIndependent) {
                         keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
-                        // In this case we also need to have ghost nodes aware of any internal neighbors.
-                        if (j >= firstGhostNodej) {
-                          vector< vector<int> >& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
-                          CHECK(otherNeighbors.size() == numNodeLists);
-                          otherNeighbors[iNodeList].push_back(i);
-                        }
                       }
 
                     }
@@ -729,6 +728,93 @@ computeConnectivity() {
         }
       }
     }
+
+    // Are we also fleshing out the ghost connectivity?
+    if (mBuildGhostConnectivity) {
+      iNodeList = iiNodeList;    // Just for consistency.
+      firstGhostNode = mNodeLists[iiNodeList]->firstGhostNode();
+      n = mNodeLists[iiNodeList]->numNodes();
+      for (i = firstGhostNode; i != n; ++i) {
+        Neighbor<Dimension>::setMasterNeighborGroup(position(iNodeList, i),
+                                                    H(iNodeList, i),
+                                                    mNodeLists.begin(),
+                                                    mNodeLists.end(),
+                                                    mNodeLists[iiNodeList]->neighbor().kernelExtent());
+        CHECK(mOffsets[iNodeList] + i < mConnectivity.size());
+        CHECK(flagNodeDone(iNodeList, i) == 0);
+
+        // Get the neighbor set we're building for this node.
+        vector< vector<int> >& neighbors = mConnectivity[mOffsets[iNodeList] + i];
+        CHECK2(neighbors.size() == numNodeLists, neighbors.size() << " " << numNodeLists << " " << i);
+
+        // We keep track of the Morton indices.
+        keys = vector<vector<pair<int, Key> > >(numNodeLists);
+
+        // Get the state for this node.
+        const Vector& ri = position(iNodeList, i);
+        const SymTensor& Hi = H(iNodeList, i);
+
+        // Iterate over the neighbor NodeLists.
+        for (jNodeList = 0; jNodeList != numNodeLists; ++jNodeList) {
+          Neighbor<Dimension>& neighborj = mNodeLists[jNodeList]->neighbor();
+          firstGhostNodej = mNodeLists[jNodeList]->firstGhostNode();
+
+          // Set the refine neighbors.
+          neighborj.setRefineNeighborList(ri, Hi);
+
+          // Iterate over the neighbors in this NodeList.
+          for (neighborItr = neighborj.refineNeighborBegin();
+               neighborItr != neighborj.refineNeighborEnd();
+               ++neighborItr) {
+            j = *neighborItr;
+
+            // Get the neighbor state.
+            const Vector& rj = position(jNodeList, j);
+            const SymTensor& Hj = H(jNodeList, j);
+
+            // Compute the normalized distance between this pair.
+            rij = ri - rj;
+            eta2i = (Hi*rij).magnitude2();
+            eta2j = (Hj*rij).magnitude2();
+
+            // If this pair is significant, add it to the list.
+            if (eta2i <= kernelExtent2 or eta2j <= kernelExtent2) {
+
+              // We don't include self-interactions.
+              if ((iNodeList != jNodeList) or (i != j)) {
+                vector< vector<int> >& otherNeighbors = mConnectivity[mOffsets[jNodeList] + j];
+                CHECK(otherNeighbors.size() == numNodeLists);
+                neighbors[jNodeList].push_back(j);
+                otherNeighbors[iNodeList].push_back(i);
+                if (domainDecompIndependent) {
+                  keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                }
+              }
+            }
+          }
+          CHECK(neighbors.size() == numNodeLists);
+          CHECK(keys.size() == numNodeLists);
+        
+          // We have a few options for how to order the neighbors for this node.
+          for (k = 0; k != numNodeLists; ++k) {
+
+            if (domainDecompIndependent) {
+              // Sort in a domain independent manner.
+              CHECK(keys[k].size() == neighbors[k].size());
+              sort(keys[k].begin(), keys[k].end(), ComparePairsBySecondElement<pair<int, Key> >());
+              for (j = 0; j != neighbors[k].size(); ++j) neighbors[k][j] = keys[k][j].first;
+
+            } else {
+              // Sort in an attempt to be cache friendly.
+              sort(neighbors[k].begin(), neighbors[k].end());
+            }
+          }
+
+          // Flag this master node as done.
+          flagNodeDone(iNodeList, i) = 1;
+        }
+      }
+    }
   }
 
   // In the domain decompostion independent case, we need to sort the neighbors for ghost
@@ -757,11 +843,16 @@ computeConnectivity() {
 
   // Post conditions.
   BEGIN_CONTRACT_SCOPE;
-  // Make sure that all internal nodes have been completed.
-  for (InternalNodeIterator<Dimension> nodeItr = dataBase.internalNodeBegin();
-       nodeItr != dataBase.internalNodeEnd();
-       ++nodeItr) ENSURE2(flagNodeDone(nodeItr) == 1,
-                          "Missed connnectivity for (" << nodeItr.fieldID() << " " << nodeItr.nodeID() << ")");
+  // Make sure that the correct number of nodes have been completed.
+  for (unsigned iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+    const unsigned n = (mBuildGhostConnectivity ? 
+                        mNodeLists[iNodeList]->numNodes() :
+                        mNodeLists[iNodeList]->numInternalNodes());
+    for (unsigned i = 0; i != n; ++i) {
+      ENSURE2(flagNodeDone(iNodeList, i) == 1,
+              "Missed connnectivity for (" << iNodeList << " " << i << ")");
+    }
+  }
   // Make sure we're ready to be used.
   ENSURE(valid());
   END_CONTRACT_SCOPE;
