@@ -17,7 +17,8 @@ namespace FractalSpace
     double y_off=-2.0;
     double z_off=3.0;
     double slope=-0.65;
-    double velratio=1.0;
+    double velratio=0.5;
+    double sigratio=0.5;
     velratio*=sqrt(G);
     double slope3=slope+3.0;
     double expo=1.0/(3.0+slope);
@@ -41,9 +42,12 @@ namespace FractalSpace
 	posy[ni]=r*stheta*sphi+y_off;
 	double massr=total_mass*pow((r/rmax),slope3);
 	double vt=velratio*sqrt(massr/r);
-	velx[ni]=-sphi*vt;
-	vely[ni]=cphi*vt;
-	velz[ni]=0.0;
+	double vs=sigratio*sqrt(massr/r);
+	double v2=vs*sqrt(-2.0*log(Fractal::my_rand(rand_max)));
+	double ang=twopi*Fractal::my_rand(rand_max);
+	velx[ni]=-sphi*vt+v2*cos(ang);
+	vely[ni]=cphi*vt+v2*sin(ang);
+	velz[ni]=vs*sqrt(-2.0*log(Fractal::my_rand(rand_max)))*cos(twopi*Fractal::my_rand(rand_max));
 	//	masses[ni]=m;
       }
   }
