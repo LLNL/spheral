@@ -31,13 +31,6 @@ namespace FractalSpace
     double* potR;
     fftw_complex* potC; 
     vector <int> WhichSlice;
-    /*
-    vector <int>return_Slice_pos;
-    vector <int>return_group;
-    vector <int>return_point;
-    vector <int>return_node;
-    vector <int>what_Slice_point;
-    */
     vector <double> green;
     MPI_Comm FractalWorld;
     MPI_Comm FFTWorld;
