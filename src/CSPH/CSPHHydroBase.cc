@@ -1112,12 +1112,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar Qwork = 0.5*(weightj*rhoj*(QPiij.second*vij).dot(gradWj) -
               //                           weighti*rhoi*(QPiij.first*vij).dot(gradWi));
               // CHECK(Qwork >= 0.0);
-              const Scalar workQ = 0.5*weighti*weightj*(mi*rhoi*rhoi*(QPiij.first*vij).dot(deltagrad) +
-                                                        mj*rhoj*rhoj*(QPiij.second*vij).dot(deltagrad));
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQ)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQ)/mj;
-              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
-              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
+              // const Scalar workQ = 0.5*weighti*weightj*(mi*rhoi*rhoi*(QPiij.first*vij).dot(deltagrad) +
+              //                                           mj*rhoj*rhoj*(QPiij.second*vij).dot(deltagrad));
+              // DepsDti += (0.5*weighti*weightj*Pj*vij.dot(deltagrad) + workQ)/mi;
+              // DepsDtj += (0.5*weighti*weightj*Pi*vij.dot(deltagrad) + workQ)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
