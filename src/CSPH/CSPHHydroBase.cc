@@ -813,15 +813,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
-  // Find the mass density gradient.
-  DrhoDx = gradientCSPH(massDensity, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(DrhoDx);
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -915,7 +906,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                ++jItr) {
             const int j = *jItr;
 
-            // // Only proceed if this node pair has not been calculated yet.
+            // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
                                                          nodeListj, j,
                                                          firstGhostNodej)) {
@@ -1023,6 +1014,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 localDvDxj += deltaDvDxj;
               }
 
+              // Mass density gradient.
+              DrhoDxi += weightj*rhoj*gradWj;
+              DrhoDxj += weighti*rhoi*gradWi;
+
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
@@ -1082,14 +1077,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DvDxi += weighti*vi*selfGradContrib;
       localDvDxi += weighti*vi*selfGradContrib;
 
-      // // Finish the density gradient.
-      // DrhoDxi += weighti*rhoi*selfGradContrib;
+      // Finish the density gradient.
+      DrhoDxi += weighti*rhoi*selfGradContrib;
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // Finish the acceleration.
-      const Vector deltaDvDtii = -weighti/rhoi*Pi*selfGradContrib;
+      // const Vector deltaDvDtii = -weighti/rhoi*Pi*selfGradContrib;
       // const Vector deltaDvDtii = weighti*Pi*Ai*W0*Bi.unitVector();
       // DvDti += deltaDvDtii;
 
