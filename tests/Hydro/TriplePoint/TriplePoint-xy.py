@@ -58,7 +58,7 @@ commandLine(
     SVPH = False,
     CSPH = False,
     ASPH = False,
-    filter = 0.01,  # For CSPH
+    filter = 0.0,  # For CSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
