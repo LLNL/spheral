@@ -1022,8 +1022,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
-              // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
-              //                                             (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+              // const Vector deltagrad0 = gradW0j - gradW0i;
+              // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad0);
               const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
               Vector deltaDvDti = -forceij/mi;
               Vector deltaDvDtj =  forceij/mj;
@@ -1044,6 +1044,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Q work based on the Q per point.
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mj;
+
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mj;
 
