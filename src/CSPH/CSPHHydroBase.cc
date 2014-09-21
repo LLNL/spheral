@@ -994,8 +994,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
               //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
               // const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
-              // const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = 1.0; // min(fQ, min(fL, fg));
+              const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
+              const Scalar f = fg; //min(fQ, min(fL, fg));
               CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
               const Scalar Wj = (1.0 - f)*W0j + f*W1j;
               const Scalar Wi = (1.0 - f)*W0i + f*W1i;
