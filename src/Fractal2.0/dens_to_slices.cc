@@ -26,9 +26,11 @@ namespace FractalSpace
     vector <vector <double> > dataR_out;
     vector <int> dataI_in;
     vector <double> dataR_in;
-    int LOOPS=(FractalNodes-1)/256+1;
+    int LOOPS=(FractalNodes-1)/4096+1;
+    vector <double>times;
     for(int loop=0;loop<LOOPS;loop++)
       {
+	times.push_back(mem.p_mess->Clock());
 	dataI_out.clear();
 	dataR_out.clear();
 	dataI_in.clear();
@@ -84,5 +86,10 @@ namespace FractalSpace
 	      }
 	  }
       }
+    times.push_back(mem.p_mess->Clock());
+    fprintf(mem.p_file->PFTime," dens to slices ");
+    for(int ni=0;ni<LOOPS;ni++)
+      fprintf(mem.p_file->PFTime," %3d %8.3E ",ni,times[ni+1]-times[ni]);
+    fprintf(mem.p_file->PFTime,"\n");
   }
 }
