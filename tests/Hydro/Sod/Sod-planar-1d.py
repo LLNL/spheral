@@ -46,7 +46,7 @@ commandLine(nx1 = 400,
             hourglass = None,
             hourglassOrder = 1,
             hourglassLimiter = 1,
-            filter = 0.01,
+            filter = 0.00,
 
             SVPH = False,
             CSPH = False,
