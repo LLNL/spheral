@@ -993,9 +993,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the limiter determining how much of the linear correction we allow.
               // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
               //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
-              const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
-              const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = 1.0; // min(fL, fg);
+              // const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
+              // const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
+              const Scalar f = 1.0; // min(fQ, min(fL, fg));
               CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
               const Scalar Wj = (1.0 - f)*W0j + f*W1j;
               const Scalar Wi = (1.0 - f)*W0i + f*W1i;
@@ -1027,98 +1027,35 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
-              const Vector forceij = -0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
-                                                           (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
-              const Vector forceji = -forceij;
-
-//               // Acceleration (CSPH form).
-//               Vector Aij=Vector::zero;
-//    	      Vector Aji=Vector::zero;
-
-
-//               //Self Contribution
-//               // Aij+=(mi/rhoi)*Ai*W0*gradW1j*weighti*weightj;
-//               // Aji+=(mi/rhoi)*W1j*(Ai*Bi*W0+gradAi*W0)*weighti*weightj;
-//               //Here we reloop over all the neighbors of i. (We really want to loop over the intersection of the neighbors of i and j, but just doing all of i is fine
-//               //as the kernel evaluations for points that are not in the neighbor set of j will be zero.)
-//               vector< vector<int> > unionConnect= connectivityMap.connectivityUnionForNodes(nodeListi, i,  nodeListj, j);
-//               for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-//                 // Connectivity of this node with this NodeList.  We only need to proceed if
-//                 // there are some nodes in this list.
-//                 // const vector<int>& connectivity2 = fullConnectivity[nodeListk];
-//                 const vector<int>& connectivity2 = unionConnect[nodeListk];
-//                 if (connectivity2.size() > 0) {
-// //#pragma vector always
-//                  for (vector<int>::const_iterator kItr = connectivity2.begin();
-//                      kItr != connectivity2.end();
-//                      ++kItr) {
-//                      const int k = *kItr;
-
-//                      const Scalar& mk = mass(nodeListk, k);
-//                      const Scalar& rhok = massDensity(nodeListk, k);
-//                      const Scalar& Ak = A(nodeListk, k);
-//                      const Vector& Bk = B(nodeListk, k);
-//                      const Vector& gradAk = gradA(nodeListk, k);
-//                      const Tensor& gradBk = gradB(nodeListk, k);
-//                      const Vector& rk = position(nodeListk, k);
-//                      const Scalar volk = mk/rhok;
-//                      const Vector rkj = rk - rj;
-//                      const Vector rki = rk - ri;
-//                      //const Vector etaj = Hj*rij;
-//                      const Vector etajk = Hj*rkj;
-//                      const Vector etaik = Hi*rki;
-//                      Vector gradWjk, gradWik;
-//                      Scalar Wjk, gWjk, Wik, gWik;
-//                      CSPHKernelAndGradient(W,  rkj,  etajk, Hj, Hdetj, Ak, Bk, gradAk, gradBk, Wjk, gWjk, gradWjk);
-//                      CSPHKernelAndGradient(W,  rki,  etaik, Hi, Hdeti, Ak, Bk, gradAk, gradBk, Wik, gWik, gradWik);
-//                      Aij+=volk*Wik*gradWjk*weighti*weightj;
-//   		     Aji+=volk*Wjk*gradWik*weighti*weightj;
-                     
-//                  }
-//                 }
-//               }
-//               const Vector forceij= -0.5*(Pi+Pj)*(Aij-Aji);
-//               const Vector forceji= -forceij;
-
-              //Vector deltaDvDti = -weightj/rhoi*Pj*gradWj + Qacci;
-              //Vector deltaDvDtj = -weighti/rhoj*Pi*gradWi + Qaccj;
-              Vector deltaDvDti = forceij/mi;
-              Vector deltaDvDtj = forceji/mj;
-              // Vector tempi = -weightj/rhoi*Pj*gradWj + Qacci;
-              // Vector tempj = -weighti/rhoj*Pi*gradWi + Qaccj;
-              // printf("Pi=%15.5f, Pj=%15.5f, Aij=%15.5f, Aji=%15.5f, Oldi =%15.5f, Newi=%15.5f, Oldj=%15.5f, Newj=%15.5f\n",Pi,Pj,Aij(0), Aji(0), tempi(0),deltaDvDti(0),tempj(0),deltaDvDtj(0));
-              // printf("Pi=%15.5f, Pj=%15.5f, Oldi =%15.5f, Newi=%15.5f, Oldj=%15.5f, Newj=%15.5f\n",Pi,Pj, tempi(0),deltaDvDti(0),tempj(0),deltaDvDtj(0));
-               
-              // Vector deltaDvDti = -weightj/rhoi*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj);
-              // Vector deltaDvDtj = -weighti/rhoj*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+              // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+              //                                             (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+              const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
+              Vector deltaDvDti = -forceij/mi;
+              Vector deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
-                // const Scalar W0j = W.kernelValue(0.0, Hdetj);
-                // const Vector selfGradContribj = W0j*(Aj*Bj + gradAj);
-                // const unsigned numNeighborsi = max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListi], i));
-                // const unsigned numNeighborsj = (j < firstGhostNodej ? 
-                //                                 max(1, connectivityMap.numNeighborsForNode(nodeLists[nodeListj], j)) :
-                //                                 1);
-                // const Vector deltaDvDtii = -weighti*Pi/rhoi*selfGradContrib/numNeighborsi;
-                // const Vector deltaDvDtjj = -weightj*Pj/rhoj*selfGradContribj/numNeighborsj;
-                pairAccelerationsi.push_back(deltaDvDti);// + deltaDvDtii);
-                pairAccelerationsj.push_back(deltaDvDtj);// + deltaDvDtjj);
+                pairAccelerationsi.push_back(deltaDvDti);
+                pairAccelerationsj.push_back(deltaDvDtj);
               }
 
               // Specific thermal energy evolution.
-              // CHECK2((QPiij.second*vij).dot(gradWj) >= 0.0, (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
-              // CHECK2((QPiij.first*vij).dot(gradWi) <= 0.0,  (QPiij.second*vij).dot(gradWj) << " " << (QPiij.first*vij).dot(gradWi));
-              // const Scalar Qwork = 0.5*(weightj*rhoj*(QPiij.second*vij).dot(gradWj) -
-              //                           weighti*rhoi*(QPiij.first*vij).dot(gradWi));
-              // CHECK(Qwork >= 0.0);
-              // const Scalar workQ = 0.5*weighti*weightj*(mi*rhoi*rhoi*(QPiij.first*vij).dot(deltagrad) +
-              //                                           mj*rhoj*rhoj*(QPiij.second*vij).dot(deltagrad));
-              // DepsDti += (0.5*weighti*weightj*Pj*vij.dot(deltagrad) + workQ)/mi;
-              // DepsDtj += (0.5*weighti*weightj*Pi*vij.dot(deltagrad) + workQ)/mj;
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
+              // Equipartition the q work.
+              // const Scalar workQ = (rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0) +
+              //                       rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0));
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + 0.5*workQ)/mi;
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
+              // Q work based on the Q per point.
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mi;
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mj;
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mi;
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mj;
+
+              // SPH Q work.
+              DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
+              DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
+              
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
                 XSPHDeltaVi -= weightj*Wj*vij;
