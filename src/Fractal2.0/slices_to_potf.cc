@@ -21,8 +21,10 @@ namespace FractalSpace
     vector <int> dataI_in;
     vector <double> dataR_in;
     int LOOPS=(FractalNodes-1)/4096+1;
+    vector <double>times;
     for(int loop=0;loop<LOOPS;loop++)
       {
+	times.push_back(mem.p_mess->Clock());
 	dataI_out.clear();
 	dataR_out.clear();
 	dataI_in.clear();
@@ -71,6 +73,7 @@ namespace FractalSpace
 				       dataI_out,dataI_in,how_manyI,
 				       dataR_out,dataR_in,how_manyR);
 	mem.p_file->note(true," info to slices c ");
+	times.push_back(mem.p_mess->Clock());
 	dataI_out.clear();
 	dataR_out.clear();    
 	dataI_out.resize(FractalNodes);
@@ -134,6 +137,11 @@ namespace FractalSpace
 	      }
 	  }
       }
+    times.push_back(mem.p_mess->Clock());
+    fprintf(mem.p_file->PFTime," slices to potf "); 
+    for(int ni=0;ni<2*LOOPS;ni++)
+      fprintf(mem.p_file->PFTime,"%3d %9.3E ",ni/2,times[ni+1]-times[ni]);
+    fprintf(mem.p_file->PFTime,"\n");
     mem.p_file->note(true," slices to potf exit ");
   }
 }
