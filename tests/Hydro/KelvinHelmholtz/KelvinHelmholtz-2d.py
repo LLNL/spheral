@@ -40,7 +40,10 @@ commandLine(nx1 = 100,
 
             nPerh = 2.01,
 
-            HydroConstructor = SPHHydro,
+            SVPH = False,
+            CSPH = False,
+            ASPH = False,
+            filter = 0.0,   # CSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             Qhmult = 1.0,
@@ -56,10 +59,6 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
@@ -73,7 +72,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             domainIndependent = False,
             rigorousBoundaries = True,
             dtverbose = False,
@@ -82,6 +81,7 @@ commandLine(nx1 = 100,
             compatibleEnergy = False,           # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 20,
@@ -91,6 +91,23 @@ commandLine(nx1 = 100,
             outputFile = "None",
             comparisonFile = "None",
             )
+
+# Decide on our hydro algorithm.
+if SVPH:
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
+elif CSPH:
+    if ASPH:
+        HydroConstructor = ACSPHHydro
+    else:
+        HydroConstructor = CSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
@@ -243,56 +260,51 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if SVPH:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(x0 - (x2 - x0), y0 - (y2 - y0)),
+                             xmax = Vector(x2 + (x2 - x0), y2 + (y2 - y0)))
+                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif CSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
-
-#-------------------------------------------------------------------------------
-# Optionally construct an hourglass control object.
-#-------------------------------------------------------------------------------
-if hourglass:
-    mask = db.newFluidIntFieldList(1, "mask")
-    dx = rmax/nRadial
-    bound = rmax - dx
-##     if seed == "square":
-##         for i in xrange(nodes1.numInternalNodes):
-##             if pos[i].x > bound or pos[i].y > bound:
-##                 mask[0][i] = 0
-##     else:
-##         for i in xrange(nodes1.numInternalNodes):
-##             if pos[i].magnitude() > bound:
-##                 mask[0][i] = 0
-    hg = hourglass(WT,
-                   order = hourglassOrder,
-                   limiter = hourglassLimiter,
-                   fraction = hourglassFraction,
-                   mask = mask)
-    output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    output("hg.fraction")
-    packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -328,8 +340,6 @@ integrator.cullGhostNodes = False
 
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -341,31 +351,24 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralVisitDump
+    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
+                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
-    control.smoothState(smoothIters)
-##     if hourglass:
-##         print "Relaxing initial node distribution."
-##         control.prerelaxNodeDistribution(hg, rho0)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-    control.dropRestartFile()
-    control.dropViz()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -377,4 +380,3 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-    control.dropViz()
