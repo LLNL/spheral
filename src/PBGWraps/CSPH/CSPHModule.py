@@ -254,6 +254,13 @@ class CSPH:
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
 
+        # Compute the H scaled volume for each point.
+        Spheral.add_function("computeHVolumes", None,
+                             [param("double", "kernelExtent"),
+                              constrefparam(symtensorfieldlist, "H"),
+                              refparam(scalarfieldlist, "volume")],
+                             docstring = "Compute the H scaled volume for each point.")
+
         return
 
     #---------------------------------------------------------------------------
