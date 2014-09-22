@@ -111,6 +111,7 @@ class CSPH:
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(scalarfieldlist, "volume"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "massDensity")],
@@ -259,7 +260,9 @@ class CSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         Spheral.add_function("computeHullVolumes", None,
                              [constrefparam(connectivitymap, "connectivityMap"),
+                              param("double", "kernelExtent"),
                               constrefparam(vectorfieldlist, "position"),
+                              constrefparam(symtensorfieldlist, "H"),
                               refparam(polyvolfieldlist, "polyvol"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
@@ -400,6 +403,7 @@ class CSPH:
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
+        const_ref_return_value(x, me, "%s::DmassDensityDx" % me, vectorfieldlist, [], "DmassDensityDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
