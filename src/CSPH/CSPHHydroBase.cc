@@ -1421,9 +1421,9 @@ finalize(const typename Dimension::Scalar time,
     // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
 
-    const FieldList<Dimension, Scalar> vol = mass/massDensity;
+    // const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();

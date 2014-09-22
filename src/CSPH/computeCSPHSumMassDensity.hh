@@ -28,7 +28,6 @@ namespace Spheral {
                               const KernelSpace::TableKernel<Dimension>& W,
                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume,
                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                               const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
                               const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
