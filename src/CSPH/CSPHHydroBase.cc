@@ -13,6 +13,7 @@
 #include "CSPHHydroBase.hh"
 #include "CSPHUtilities.hh"
 #include "computeCSPHSumMassDensity.hh"
+#include "computeHullSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
 #include "computeHVolumes.hh"
 #include "centerOfMass.hh"
@@ -1423,7 +1424,8 @@ finalize(const typename Dimension::Scalar time,
 
     // const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+    computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    // computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();

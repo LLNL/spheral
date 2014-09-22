@@ -117,6 +117,17 @@ class CSPH:
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
 
+        # Hull sum density.
+        self.space.add_function("computeHullSumMassDensity", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "massDensity")],
+                                template_parameters = [dim],
+                                custom_name = "computeHullSumMassDensity%id" % ndim)
+
         # CSPH corrections.
         self.space.add_function("computeCSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),

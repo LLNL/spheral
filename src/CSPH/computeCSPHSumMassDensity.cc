@@ -51,13 +51,14 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Compute the initial volume guess and prepare a FieldList to hold the zeroth correction.
   const FieldList<Dimension, Scalar> volume = mass/massDensity;
-  FieldList<Dimension, Scalar> A0(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> A0(FieldSpace::Copy), Veff(FieldSpace::Copy);
 
   // Build the correction for the initial volume estimate.
   const Scalar W0 = W.kernelValue(0.0, 1.0);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
     A0.appendNewField("A0", nodeList, 0.0);
+    Veff.appendNewField("effective volume", nodeList, 0.0);
     const int firstGhostNodei = nodeList.firstGhostNode();
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -91,6 +92,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       A0(nodeListi, i) += Vi*Hdeti*W0;
       CHECK(A0(nodeListi, i) > 0.0);
       A0(nodeListi, i) = 1.0/A0(nodeListi, i);
+      // if (std::abs(A0(nodeListi, i) - 1.0) < 0.2) A0(nodeListi, i) = 1.0;
     }
   }
 
@@ -151,19 +153,26 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = A0j*W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*Wi;
-          massDensity(nodeListi, j) += mi*Wj;
+          // massDensity(nodeListi, i) += mj*Wi;
+          // massDensity(nodeListi, j) += mi*Wj;
+          massDensity(nodeListi, i) += Vj*mj*Wi;
+          massDensity(nodeListi, j) += Vi*mi*Wj;
+          Veff(nodeListi, i) += Vj*Vj*Wi;
+          Veff(nodeListi, j) += Vi*Vi*Wj;
         }
       }
       
       // Finalize the density for node i.
-      massDensity(nodeListi, i) = max(rhoMin, 
-                                      min(rhoMax,
-                                          (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
-      //                                     (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
-      //                                     safeInv(A0i*(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0))));
+      //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
+      // massDensity(nodeListi, i) = max(rhoMin, 
+      //                                 min(rhoMax,
+      //                                     (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
+      massDensity(nodeListi, i) = max(rhoMin, 
+                                      min(rhoMax,
+                                          (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
+                                          safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }

@@ -202,6 +202,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Update the density.
 #-------------------------------------------------------------------------------
+nodes1.neighbor().updateNodes()
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 position_fl = db.fluidPosition
@@ -218,7 +219,8 @@ boundaries = vector_of_Boundary()
 for iter in xrange(1):
     # for i in xrange(nodes1.numInternalNodes):
     #     vol_fl[0][i] = mass_fl[0][i]/rho_fl[0][i]
-    computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, boundaries, rho_fl)
+    #computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, boundaries, rho_fl)
+    computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
