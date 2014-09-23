@@ -1427,12 +1427,19 @@ finalize(const typename Dimension::Scalar time,
     // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
 
-    // const FieldList<Dimension, Scalar> vol = mass/massDensity;
+    computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    FieldList<Dimension, Scalar> vol = mass/massDensity;
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
     // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
-    // computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
-    computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
