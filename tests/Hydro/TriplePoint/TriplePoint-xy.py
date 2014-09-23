@@ -58,6 +58,7 @@ commandLine(
     SVPH = False,
     CSPH = False,
     ASPH = False,
+    SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
     filter = 0.0,  # For CSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -221,19 +222,19 @@ if restoreCycle is None:
                                                xmin = (x0, y0),
                                                xmax = (x1, y2),
                                                nNodePerh = nPerh,
-                                               SPH = True)
+                                               SPH = SPH)
     generatorTop = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                               distributionType = "lattice",
                                               xmin = (x1, y1),
                                               xmax = (x2, y2),
                                               nNodePerh = nPerh,
-                                              SPH = True)
+                                              SPH = SPH)
     generatorBottom = GenerateNodeDistribution2d(nx3, ny3, rho3,
                                                  distributionType = "lattice",
                                                  xmin = (x1, y0),
                                                  xmax = (x2, y1),
                                                  nNodePerh = nPerh,
-                                                 SPH = True)
+                                                 SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -401,7 +402,8 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)))
+                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
+                            SPH = SPH)
 output("control")
 
 #-------------------------------------------------------------------------------

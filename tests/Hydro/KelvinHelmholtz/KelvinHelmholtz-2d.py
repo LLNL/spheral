@@ -43,9 +43,17 @@ commandLine(nx1 = 100,
             SVPH = False,
             CSPH = False,
             ASPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
             filter = 0.0,   # CSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
+            linearConsistent = False,
+            fcentroidal = 0.0,
+            fcellPressure = 0.0,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 0.75,
@@ -187,21 +195,21 @@ if restoreCycle is None:
                                             xmin = (0.0,  0.25),
                                             xmax = (1.0,  0.75),
                                             nNodePerh = nPerh,
-                                            SPH = (HydroConstructor == SPHHydro))
+                                            SPH = SPH)
     generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho2,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.0),
                                              xmax = (1.0, 0.25),
                                              nNodePerh = nPerh,
-                                             SPH = (HydroConstructor == SPHHydro))
+                                             SPH = SPH)
     generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho2,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.75),
                                              xmax = (1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = (HydroConstructor == SPHHydro))
+                                             SPH = SPH)
     generator2 = CompositeNodeDistribution(generator21, generator22)
 
     if mpi.procs > 1:
@@ -271,8 +279,8 @@ if SVPH:
                              HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
-                             xmin = Vector(x0 - (x2 - x0), y0 - (y2 - y0)),
-                             xmax = Vector(x2 + (x2 - x0), y2 + (y2 - y0)))
+                             xmin = Vector(-2.0, -2.0),
+                             xmax = Vector(3.0, 3.0))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CSPH:
@@ -300,11 +308,19 @@ output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    
+    packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -367,7 +383,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = SPH)
 output("control")
 
 #-------------------------------------------------------------------------------
