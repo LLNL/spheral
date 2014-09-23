@@ -11,6 +11,13 @@
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/comparisons.hh"
+#include "Utilities/boundingBox.hh"
+#include "Utilities/pointOnPolygon.hh"
+
+#include "boost/foreach.hpp"
+
+#include "polytope/polytope.hh"
+#include "polytope/convexHull_2d.hh"
 
 namespace Spheral {
 namespace CSPHSpace {
@@ -60,16 +67,96 @@ double hullMassDensity(const std::vector<Dim<1>::Vector>& posInv,
   return msum*safeInv(vol);
 }
 
+//..............................................................................
 // 2D
+//..............................................................................
 double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
                        const std::vector<Dim<2>::Scalar>& mass) {
   REQUIRE(posInv.size() == mass.size());
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
-  VERIFY(false);
+  typedef Dim<2>::FacetedVolume FacetedVolume;
+
+  // Find the appropriate renormalization so that we can do the convex hull
+  // in a unit box.
+  Vector xmin, xmax;
+  boundingBox(posInv, xmin, xmax);
+  const double fscale = (xmax - xmin).maxElement();
+  CHECK(fscale > 0.0);
+
+  // Copy the point coordinates to a polytope point array.
+  const unsigned n = posInv.size();
+  vector<double> points_polytope;
+  vector<Vector> pos;
+  points_polytope.reserve(2*n);
+  pos.reserve(n);
+  BOOST_FOREACH(Vector vec, posInv) {
+    points_polytope.push_back((vec.x() - xmin.x())/fscale);
+    points_polytope.push_back((vec.y() - xmin.y())/fscale);
+    const Scalar mag2 = vec.magnitude2();
+    if (mag2 == 0.0) {
+      pos.push_back(Vector::zero);
+    } else {
+      pos.push_back(vec/mag2);
+    }
+  }
+  CHECK(points_polytope.size() == 2*n);
+  CHECK(pos.size() == n);
+
+  // Call the polytope method for computing the convex hull.
+  vector<double> low(2, 0.0);
+  polytope::PLC<2, double> plc = polytope::convexHull_2d(points_polytope, &(*low.begin()), 1.0e-15);
+  const unsigned numVertices = plc.facets.size();
+  CHECK(numVertices >= 3);
+
+  // Build a polygon in non-inverse coordinates.
+  Scalar msum = 0.0;
+  vector<unsigned> flags(n, 0);
+  vector<Vector> verts(numVertices);
+  vector<vector<unsigned> > facets(numVertices, vector<unsigned>(2));
+  for (unsigned k = 0; k != numVertices; ++k) {
+    const unsigned i = plc.facets[k][0],
+                   j = plc.facets[k][1],
+                   kk = (k + 1) % numVertices;
+    CHECK(i < n);
+    CHECK(j < n);
+    CHECK(kk < numVertices and plc.facets[kk][0] == j);
+    verts[k] = pos[i];
+    facets[k][0] = k;
+    facets[k][1] = kk;
+
+    // Each point on the hull contributes a fraction of mass.
+    const Vector v1 = pos[plc.facets[kk][1]] - pos[plc.facets[kk][0]],
+                 v2 = pos[i] - pos[j];
+    const Scalar theta = acos(v1.dot(v2)*safeInv(v1.magnitude()*v2.magnitude()));
+    msum += theta/(2.0*M_PI) * mass[j];
+    flags[j] = 1;
+  }
+  const FacetedVolume hull(verts, facets);
+
+  // Check for any points contained in the hull and add their mass.
+  // We exclude boundary points here since we took care of them in the
+  // previous loop.
+  for (unsigned i = 0; i != n; ++i) {
+    if (flags[i] == 0) {
+      if (pointOnPolygon(pos[i], verts)) {
+        msum += 0.5*mass[i];
+      } else if (hull.contains(pos[i], false)) {
+        msum += mass[i];
+      }
+    }
+  }
+
+  // And finally we're there.
+  const Scalar vol = hull.volume();
+  CHECK(vol > 0.0);
+  // CHECK(false);
+  return msum*safeInv(vol);
 }
 
+//..............................................................................
 // 3D
+//..............................................................................
 double hullMassDensity(const std::vector<Dim<3>::Vector>& posInv,
                        const std::vector<Dim<3>::Scalar>& mass) {
   REQUIRE(posInv.size() == mass.size());
