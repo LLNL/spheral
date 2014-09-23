@@ -211,16 +211,15 @@ H_fl = db.fluidHfield
 rho_fl = db.fluidMassDensity
 
 # Compute the volumes to use as weighting.
-#vol_fl = db.newFluidScalarFieldList(1.0, "volume")
-#polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
-#computeHullVolumes(cm, position_fl, polyvol_fl, vol_fl)
+vol_fl = db.newFluidScalarFieldList(1.0, "volume")
+polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
+#computeHullVolumes(cm, WT.kernelExtent, position_fl, H_fl, polyvol_fl, vol_fl)
 #computeHVolumes(WT.kernelExtent, H_fl, vol_fl)
+for i in xrange(nodes1.numInternalNodes):
+    vol_fl[0][i] = mass_fl[0][i]/rho_fl[0][i]
 boundaries = vector_of_Boundary()
-for iter in xrange(1):
-    # for i in xrange(nodes1.numInternalNodes):
-    #     vol_fl[0][i] = mass_fl[0][i]/rho_fl[0][i]
-    #computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, boundaries, rho_fl)
-    computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
+computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, vol_fl, H_fl, boundaries, rho_fl)
+#computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
