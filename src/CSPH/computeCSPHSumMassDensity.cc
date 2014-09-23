@@ -154,12 +154,12 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = A0j*W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*Wi;
-          massDensity(nodeListi, j) += mi*Wj;
-          // massDensity(nodeListi, i) += Vj*mj*Wi;
-          // massDensity(nodeListi, j) += Vi*mi*Wj;
-          // Veff(nodeListi, i) += Vj*Vj*Wi;
-          // Veff(nodeListi, j) += Vi*Vi*Wj;
+          // massDensity(nodeListi, i) += mj*Wi;
+          // massDensity(nodeListi, j) += mi*Wj;
+          massDensity(nodeListi, i) += Vj*mj*Wi;
+          massDensity(nodeListi, j) += Vi*mi*Wj;
+          Veff(nodeListi, i) += Vj*Vj*Wi;
+          Veff(nodeListi, j) += Vi*Vi*Wj;
         }
       }
       
@@ -167,13 +167,13 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
       //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
-      massDensity(nodeListi, i) = max(rhoMin, 
-                                      min(rhoMax,
-                                          (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
-      //                                     (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
-      //                                     safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
+      //                                     (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
+      massDensity(nodeListi, i) = max(rhoMin, 
+                                      min(rhoMax,
+                                          (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
+                                          safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
