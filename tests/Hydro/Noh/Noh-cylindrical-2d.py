@@ -43,7 +43,9 @@ commandLine(seed = "constantDTheta",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            HydroConstructor = ASPHHydro,
+            SVPH = False,
+            CSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -65,10 +67,7 @@ commandLine(seed = "constantDTheta",
             XSPH = True,
             epsilonTensile = 0.0,
             nTensile = 8,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
+            filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -82,7 +81,7 @@ commandLine(seed = "constantDTheta",
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -187,7 +186,7 @@ if restoreCycle is None:
                                                    xmin,
                                                    xmax,
                                                    nNodePerh = nPerh,
-                                                   SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
+                                                   SPH = True)
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
@@ -197,9 +196,7 @@ if restoreCycle is None:
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
-                                               SPH = (HydroConstructor in (SPHHydro, SVPHFacetedHydro)))
-##                                                relaxation = RadialCentroidalRelaxation(Vector(0,0),
-##                                                                                        tolerance = 5.0e-4))
+                                               SPH = True)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -248,29 +245,37 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro):
-    hydro = HydroConstructor(WT, q,
+if SVPH:
+    hydro = SVPHFacetedHydro(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
-                             XSVPH = False,
+                             XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              generateVoid = False,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
                              xmin = Vector(-1.1, -1.1),
                              xmax = Vector( 1.1,  1.1))
+elif CSPH:
+    hydro = CSPHHydro(WT, WTPi, q,
+                      filter = filter,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPHHydro(WT, WTPi, q,
+                     cfl = cfl,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     gradhCorrection = gradhCorrection,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HUpdate,
+                     XSPH = XSPH,
+                     epsTensile = epsilonTensile,
+                     nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -287,32 +292,6 @@ packages = [hydro]
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
-# Optionally construct an hourglass control object.
-#-------------------------------------------------------------------------------
-if hourglass:
-    mask = db.newFluidIntFieldList(1, "mask")
-    dx = rmax/nRadial
-    bound = rmax - dx
-    if seed == "square":
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].x > bound or pos[i].y > bound:
-                mask[0][i] = 0
-    else:
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].magnitude() > bound:
-                mask[0][i] = 0
-    hg = hourglass(WT,
-                   order = hourglassOrder,
-                   limiter = hourglassLimiter,
-                   fraction = hourglassFraction,
-                   mask = mask)
-    output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    output("hg.fraction")
-    packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -343,8 +322,6 @@ integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -375,15 +352,13 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)))
+                            skipInitialPeriodicWork = SVPH,
+                            SPH = SPH)
 output("control")
 
 # Do some startup stuff (unless we're restarting).
 if restoreCycle is None:
     control.smoothState(smoothIters)
-##     if hourglass:
-##         print "Relaxing initial node distribution."
-##         control.prerelaxNodeDistribution(hg, rho0)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
         print "Reinitializing node masses."
         control.voronoiInitializeMass()
