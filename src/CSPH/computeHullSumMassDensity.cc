@@ -127,8 +127,10 @@ double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
 
     // Each point on the hull contributes a fraction of mass.
     const Vector v1 = pos[plc.facets[kk][1]] - pos[plc.facets[kk][0]],
-                 v2 = pos[i] - pos[j];
-    const Scalar theta = acos(v1.dot(v2)*safeInv(v1.magnitude()*v2.magnitude()));
+                 v2 = pos[i] - pos[j],
+                 v3 = pos[plc.facets[kk][1]] - pos[j];
+    // const Scalar theta = atan2(v3.x(), v3.y());
+    const Scalar theta = acos(max(-1.0, min(1.0, v1.dot(v2)*safeInv(v1.magnitude()*v2.magnitude()))));
     msum += theta/(2.0*M_PI) * mass[j];
     flags[j] = 1;
   }
@@ -149,8 +151,7 @@ double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
 
   // And finally we're there.
   const Scalar vol = hull.volume();
-  CHECK(vol > 0.0);
-  // CHECK(false);
+  CHECK2(msum > 0.0 and vol > 0.0, "Bad density estimate: " << msum << " " << vol);
   return msum*safeInv(vol);
 }
 
