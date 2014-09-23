@@ -110,13 +110,13 @@ elif testDim == "2d":
     from DistributeNodes import distributeNodes2d
     from GenerateNodeDistribution2d import GenerateNodeDistribution2d
     from CompositeNodeDistribution import CompositeNodeDistribution
-    gen1 = GenerateNodeDistribution2d(nx1, nx1, rho1,
+    gen1 = GenerateNodeDistribution2d(nx1, 2*nx1, rho1,
                                       distributionType = "lattice",
                                       xmin = (x0, x0),
                                       xmax = (x1, x2),
                                       nNodePerh = nPerh,
                                       SPH = True)
-    gen2 = GenerateNodeDistribution2d(nx2, nx2, rho2,
+    gen2 = GenerateNodeDistribution2d(nx2, 2*nx2, rho2,
                                       distributionType = "lattice",
                                       xmin = (x1, x0),
                                       xmax = (x2, x2),
