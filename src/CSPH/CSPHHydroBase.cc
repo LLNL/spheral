@@ -12,6 +12,7 @@
 
 #include "CSPHHydroBase.hh"
 #include "CSPHUtilities.hh"
+#include "computeHullVolumes.hh"
 #include "computeCSPHSumMassDensity.hh"
 #include "computeHullSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
@@ -986,8 +987,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
               //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
               // const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
-              const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = fg; //min(fQ, min(fL, fg));
+              // const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
+              const Scalar f = 1.0; // fg; //min(fQ, min(fL, fg));
               CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
               const Scalar Wj = (1.0 - f)*W0j + f*W1j;
               const Scalar Wi = (1.0 - f)*W0i + f*W1i;
@@ -1006,8 +1007,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Velocity gradient.
               const Vector vij = vi - vj;
-              const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
-              const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
+              // const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
+              // const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
+              const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
+              const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
               DvDxi += deltaDvDxi;
               DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
@@ -1016,8 +1019,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Mass density gradient.
-              DrhoDxi += weightj*rhoj*gradWj;
-              DrhoDxj += weighti*rhoi*gradWi;
+              // DrhoDxi += weightj*rhoj*gradWj;
+              // DrhoDxj += weighti*rhoi*gradWi;
+              DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
+              DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
@@ -1075,12 +1080,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // rhoSumi = A0i*(rhoSumi + mi*W(0.0, Hdeti));
       // // rhoSumi += mi*W(0.0, Hdeti);
 
-      // Finish the velocity gradient.
-      DvDxi += weighti*vi*selfGradContrib;
-      localDvDxi += weighti*vi*selfGradContrib;
+      // // Finish the velocity gradient.
+      // DvDxi += weighti*vi.dyad(selfGradContrib);
+      // localDvDxi += weighti*vi.dyad(selfGradContrib);
 
-      // Finish the density gradient.
-      DrhoDxi += weighti*rhoi*selfGradContrib;
+      // // Finish the density gradient.
+      // DrhoDxi += weighti*rhoi*selfGradContrib;
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
@@ -1423,9 +1428,11 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
 
     // const FieldList<Dimension, Scalar> vol = mass/massDensity;
-
+    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
+    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
+    // computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
     computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    // computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
     // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();

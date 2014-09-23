@@ -218,8 +218,8 @@ polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 for i in xrange(nodes1.numInternalNodes):
     vol_fl[0][i] = mass_fl[0][i]/rho_fl[0][i]
 boundaries = vector_of_Boundary()
-computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, vol_fl, H_fl, boundaries, rho_fl)
-#computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
+#computeCSPHSumMassDensity(cm, WT, position_fl, mass_fl, vol_fl, H_fl, boundaries, rho_fl)
+computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.

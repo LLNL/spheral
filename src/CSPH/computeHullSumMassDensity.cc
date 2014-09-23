@@ -33,39 +33,46 @@ namespace {
 // on convex hulls.
 //------------------------------------------------------------------------------
 // 1D
-double hullMassDensity(const std::vector<Dim<1>::Vector>& pos,
+double hullMassDensity(const std::vector<Dim<1>::Vector>& posInv,
                        const std::vector<Dim<1>::Scalar>& mass) {
-  REQUIRE(pos.size() == mass.size());
+  REQUIRE(posInv.size() == mass.size());
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;
 
+  // Remember the mass of point i which comes in as the first value.
+  const Scalar mi = mass[0];
+
   // Copy the two vectors to a single vector<pair> for sorting.
   vector<pair<Vector, Scalar> > stuff;
-  const unsigned n = pos.size();
-  for (unsigned i = 0; i != n; ++i) stuff.push_back(make_pair(pos[i], mass[i]));
+  const unsigned n = posInv.size();
+  for (unsigned i = 0; i != n; ++i) stuff.push_back(make_pair(posInv[i], mass[i]));
   sort(stuff.begin(), stuff.end(), ComparePairByFirstElement<pair<Vector, Scalar> >());
 
   // Add up the masses.
   Scalar msum = 0.5*(stuff[0].second + stuff[n-1].second);
-  for (unsigned i = 1; i < n - 1; ++i) msum += stuff[i].second;
+  if (stuff[0].first != Vector::zero and stuff[n-1].first != Vector::zero) msum += mi;
 
-  // Divide by volume and we're done.
-  return msum*safeInv(stuff[n-1].first.x() - stuff[0].first.x());
+  // Figure out the volume.
+  const Scalar vol = safeInv(stuff[n-1].first.x()) - safeInv(stuff[0].first.x());
+  CHECK(vol > 0.0);
+
+  // We've got it.
+  return msum*safeInv(vol);
 }
 
 // 2D
-double hullMassDensity(const std::vector<Dim<2>::Vector>& pos,
+double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
                        const std::vector<Dim<2>::Scalar>& mass) {
-  REQUIRE(pos.size() == mass.size());
+  REQUIRE(posInv.size() == mass.size());
   typedef Dim<2>::Scalar Scalar;
   typedef Dim<2>::Vector Vector;
   VERIFY(false);
 }
 
 // 3D
-double hullMassDensity(const std::vector<Dim<3>::Vector>& pos,
+double hullMassDensity(const std::vector<Dim<3>::Vector>& posInv,
                        const std::vector<Dim<3>::Scalar>& mass) {
-  REQUIRE(pos.size() == mass.size());
+  REQUIRE(posInv.size() == mass.size());
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
   VERIFY(false);
@@ -123,26 +130,28 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListi, i)[nodeListi];
 
         // Copy the neighbor positions & masses.
-        vector<Vector> pos(1, ri);
+        vector<Vector> positionsInv(1, Vector::zero);
         vector<Scalar> masses(1, mi);
-        pos.reserve(connectivity.size() + 1);
+        positionsInv.reserve(connectivity.size() + 1);
         masses.reserve(connectivity.size() + 1);
         for (vector<int>::const_iterator jItr = connectivity.begin();
              jItr != connectivity.end();
              ++jItr) {
           const unsigned j = *jItr;
           const Vector& rj = position(nodeListi, j);
-          const Scalar eta2i = (Hi*(ri - rj)).magnitude2();
-          if (eta2i < kernelExtent2) {
-            pos.push_back(position(nodeListi, *jItr));
+          const Vector rji = rj - ri;
+          const Scalar etai2 = (Hi*rji).magnitude2();
+          if (etai2 < kernelExtent2) {
+            const Vector rjiHat = rji.unitVector();
+            positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
             masses.push_back(mass(nodeListi, *jItr));
           }
         }
-        CHECK(pos.size() >= 2);
-        CHECK(masses.size() == pos.size());
+        CHECK(positionsInv.size() >= 2);
+        CHECK(masses.size() == positionsInv.size());
 
         // Delegate to specialized methods.
-        massDensity(nodeListi, i) = hullMassDensity(pos, masses);
+        massDensity(nodeListi, i) = hullMassDensity(positionsInv, masses);
         CHECK(massDensity(nodeListi, i) > 0.0);
       }
     }
