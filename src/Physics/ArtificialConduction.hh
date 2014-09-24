@@ -40,22 +40,19 @@ namespace Spheral {
             // Do any required one-time initializations on problem start up.
             virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
             
-            // Access to the derivative field(s).
-            const FieldSpace::FieldList<Dimension, Vector>& DepsDt() const;
-            
-            // Access to vsig and gradPMode
-            Scalar vsig() const;
+            // Accessor Fns
+            const FieldSpace::FieldList<Dimension, Scalar>& DepsDt() const;
+            const FieldSpace::FieldList<Dimension, Scalar>& vsig() const;
             bool gradPMode() const;
-            
             void gradPMode(bool val);
             
         private:
             //--------------------------- Private Interface ---------------------------//
             // Our derivative field(s).
-            FieldSpace::FieldList<Dimension, Vector> mDepsDt;
+            FieldSpace::FieldList<Dimension, Scalar> mDepsDt;
+            FieldSpace::FieldList<Dimension, Scalar> mVsig;
+            bool mGradPMode;
             
-            const bool mGradPMode;
-            Scalar mVsig;
 
         };
     }

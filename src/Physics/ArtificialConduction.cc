@@ -40,26 +40,22 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
-gradPMode(bool val)
-{
-    mGradPMode = val;
-}
+gradPMode(bool val) { mGradPMode = val;}
+
 template<typename Dimension>
 bool
 ArtificialConduction<Dimension>::
-gradPMode() const{ return mGradPMode;}
+gradPMode() const { return mGradPMode;}
 
 template<typename Dimension>
-typename Dimension::Scalar
+const FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialConduction<Dimension>::
-vsig() const{ return mVsig;}
+vsig() const { return mVsig;}
 
 template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::Scalar>&
 ArtificialConduction<Dimension>::
-DepsDt() const {
-    return mDepsDt;
-}
+DepsDt() const { return mDepsDt;}
 
 //------------------------------------------------------------------------------
 // Create and register the conduction
