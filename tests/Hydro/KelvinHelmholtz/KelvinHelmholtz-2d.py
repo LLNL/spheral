@@ -35,6 +35,8 @@ commandLine(nx1 = 100,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
+            numNodeLists = 2,  # If 1, makes this a single material problem.
+
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -55,8 +57,8 @@ commandLine(nx1 = 100,
             aMin = 0.1,
             aMax = 2.0,
             Qhmult = 1.0,
-            Cl = 1.0, 
-            Cq = 0.75,
+            Cl = 0.1, 
+            Cq = 0.5,
             Qlimiter = False,
             balsaraCorrection = True,
             epsilon2 = 1e-2,
@@ -92,13 +94,15 @@ commandLine(nx1 = 100,
             useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
-            restartStep = 20,
-            redistributeStep = 20,
+            restartStep = 100,
+            redistributeStep = 200,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d",
             outputFile = "None",
             comparisonFile = "None",
             )
+
+assert numNodeLists in (1, 2)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -217,29 +221,44 @@ if restoreCycle is None:
     else:
         from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator1),
-                      (nodes2, generator2))
-
-    # Set specific thermal energies
-    eps1 = P1/((gamma - 1.0)*rho1)
-    eps2 = P2/((gamma - 1.0)*rho2)
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-    nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps2))
+    if numNodeLists == 2:
+        distributeNodes2d((nodes1, generator1),
+                          (nodes2, generator2))
+    else:
+        gen = CompositeNodeDistribution(generator1, generator2)
+        distributeNodes2d((nodes1, gen))
+        
 
     # A helpful method for setting y velocities.
     def vy(ri):
         thpt = 1.0/(2.0*sigma*sigma)
         return (w0*sin(freq*pi*ri.x) *
                 (exp(-((ri.y - 0.25)**2 * thpt)) +
-                 exp(-((ri.y - 0.75)**2 * thpt))))
+                 exp(-((ri.y - 0.75)**2 * thpt))))*abs(0.5 - ri.y)
 
-    # Set node velocities
-    for (nodes, vx) in ((nodes1, vx1),
-                        (nodes2, vx2)):
-        pos = nodes.positions()
-        vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
-            vel[i] = Vector(vx, vy(pos[i]))
+    # Finish initial conditions.
+    eps1 = P1/((gamma - 1.0)*rho1)
+    eps2 = P2/((gamma - 1.0)*rho2)
+    if numNodeLists == 2:
+        nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
+        nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps2))
+        for (nodes, vx) in ((nodes1, vx1),
+                            (nodes2, vx2)):
+            pos = nodes.positions()
+            vel = nodes.velocity()
+            for i in xrange(nodes.numInternalNodes):
+                vel[i] = Vector(vx, vy(pos[i]))
+    else:
+        pos = nodes1.positions()
+        vel = nodes1.velocity()
+        eps = nodes1.specificThermalEnergy()
+        for i in xrange(nodes1.numInternalNodes):
+            if pos[i].y > 0.25 and pos[i].y < 0.75:
+                eps[i] = eps1
+                vel[i] = Vector(vx1, vy(pos[i]))
+            else:
+                eps[i] = eps2
+                vel[i] = Vector(vx2, vy(pos[i]))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -331,7 +350,9 @@ yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
 yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
 ybc = PeriodicBoundary(yp1, yp2)
-bcSet = [xbc, ybc]
+ybc1 = ReflectingBoundary(yp1)
+ybc2 = ReflectingBoundary(yp2)
+bcSet = [xbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
