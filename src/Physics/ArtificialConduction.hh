@@ -25,17 +25,13 @@ namespace Spheral {
             typedef typename Dimension::SymTensor SymTensor;
             
             // Constructors
-            ArtificialConduction(const bool gradPMode);
+            ArtificialConduction(const bool gradPMode, const Scalar alphaArCond);
             
             // Destructor
             virtual ~ArtificialConduction();
             
             // Provide default methods for creating and registering an energy derivative.
-            virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                       State<Dimension>& state);
-            virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                             StateDerivatives<Dimension>& derivs);
-            
+
             
             // Do any required one-time initializations on problem start up.
             virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
@@ -46,12 +42,17 @@ namespace Spheral {
             bool gradPMode() const;
             void gradPMode(bool val);
             
+            // DepsDt Iterator Fn
+            void computeConduction(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state);
+            
         private:
             //--------------------------- Private Interface ---------------------------//
             // Our derivative field(s).
             FieldSpace::FieldList<Dimension, Scalar> mDepsDt;
             FieldSpace::FieldList<Dimension, Scalar> mVsig;
             bool mGradPMode;
+            Scalar mAlphaArCond;
             
 
         };
