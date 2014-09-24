@@ -93,17 +93,16 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       A0(nodeListi, i) += Vi*Hdeti*W0;
       CHECK(A0(nodeListi, i) > 0.0);
       A0(nodeListi, i) = 1.0/A0(nodeListi, i);
-      // if (std::abs(A0(nodeListi, i) - 1.0) < 0.2) A0(nodeListi, i) = 1.0;
     }
   }
 
-  // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(A0);
-  for (ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(A0);
+  // for (ConstBoundaryIterator boundItr = boundaryBegin;
+  //      boundItr != boundaryEnd;
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Walk the FluidNodeLists and sum the new mass density.
   massDensity = 0.0;
@@ -154,12 +153,12 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = A0j*W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          // massDensity(nodeListi, i) += mj*Wi;
-          // massDensity(nodeListi, j) += mi*Wj;
-          massDensity(nodeListi, i) += Vj*mj*Wi;
-          massDensity(nodeListi, j) += Vi*mi*Wj;
-          Veff(nodeListi, i) += Vj*Vj*Wi;
-          Veff(nodeListi, j) += Vi*Vi*Wj;
+          massDensity(nodeListi, i) += mj*Wi;
+          massDensity(nodeListi, j) += mi*Wj;
+          // massDensity(nodeListi, i) += Vj*mj*Wi;
+          // massDensity(nodeListi, j) += Vi*mi*Wj;
+          // Veff(nodeListi, i) += Vj*Vj*Wi;
+          // Veff(nodeListi, j) += Vi*Vi*Wj;
         }
       }
       
@@ -167,13 +166,13 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
       //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
-      // massDensity(nodeListi, i) = max(rhoMin, 
-      //                                 min(rhoMax,
-      //                                     (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
-                                          safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
+                                          (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
+      // massDensity(nodeListi, i) = max(rhoMin, 
+      //                                 min(rhoMax,
+      //                                     (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
+      //                                     safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
