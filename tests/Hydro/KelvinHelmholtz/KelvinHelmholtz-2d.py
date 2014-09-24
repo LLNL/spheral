@@ -55,8 +55,8 @@ commandLine(nx1 = 100,
             aMin = 0.1,
             aMax = 2.0,
             Qhmult = 1.0,
-            Cl = 1.0, 
-            Cq = 0.75,
+            Cl = 0.1, 
+            Cq = 0.5,
             Qlimiter = False,
             balsaraCorrection = True,
             epsilon2 = 1e-2,
@@ -92,8 +92,8 @@ commandLine(nx1 = 100,
             useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
-            restartStep = 20,
-            redistributeStep = 20,
+            restartStep = 100,
+            redistributeStep = 200,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d",
             outputFile = "None",
@@ -231,7 +231,7 @@ if restoreCycle is None:
         thpt = 1.0/(2.0*sigma*sigma)
         return (w0*sin(freq*pi*ri.x) *
                 (exp(-((ri.y - 0.25)**2 * thpt)) +
-                 exp(-((ri.y - 0.75)**2 * thpt))))
+                 exp(-((ri.y - 0.75)**2 * thpt))))*abs(0.5 - ri.y)
 
     # Set node velocities
     for (nodes, vx) in ((nodes1, vx1),
@@ -331,7 +331,9 @@ yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
 yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
 ybc = PeriodicBoundary(yp1, yp2)
-bcSet = [xbc, ybc]
+ybc1 = ReflectingBoundary(yp1)
+ybc2 = ReflectingBoundary(yp2)
+bcSet = [xbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
