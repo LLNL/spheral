@@ -131,7 +131,7 @@ ANEOS(const int materialNumber,
       call_aneos1_(&Ti, &rhoi,
                    &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi,
                    &mMaterialNumber);
-      mSTEvals[i][j] = log(mSTEvals[i][j] * mEconv);
+      mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
     }
   }
 }
@@ -271,18 +271,19 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  const double logeps = log(specificThermalEnergy);
+  // const double logeps = log(specificThermalEnergy);
   const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
   const double dT = (mTmax - mTmin)/(mNumTvals - 1);
   const unsigned irho0 = min(mNumRhoVals - 2, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
                  irho1 = irho0 + 1;
   const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
   const unsigned iT0 = max(0, min(int(mNumTvals - 2), 
-                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), logeps))),
+                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
                  iT1 = iT0 + 1;
   const double u = max(0.0, min(1.0, (massDensity - mRhoMin - irho0*drho)/drho));
-  const double num = logeps - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
-  const double den = (1.0 - u)*(mSTEvals[irho1][iT0] - mSTEvals[irho0][iT0]) + u*(mSTEvals[irho1][iT1] - mSTEvals[irho0][iT1]);
+  double num = specificThermalEnergy - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
+  double den = (1.0 - u)*(mSTEvals[irho1][iT0] - mSTEvals[irho0][iT0]) + u*(mSTEvals[irho1][iT1] - mSTEvals[irho0][iT1]);
+  if (irho0 == 0 or irho1 == mNumRhoVals - 1 or iT0 == 0 or iT1 == mNumTvals - 1) num = 0.0;   // Avoid extrapolating off the T table.
   CHECK(den != 0.0);
   const double t = max(0.0, min(1.0, num*safeInv(den, 1.0e-100)));
   // cerr << "Looking up temperature : " << massDensity << " " << specificThermalEnergy << endl
@@ -344,7 +345,7 @@ soundSpeed(const Scalar massDensity,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
                const_cast<int*>(&mMaterialNumber));
   // CHECK2(DPDRi > 0.0, DPDRi << " " << Pi << " " << Ei);
-  return sqrt(max(0.0, DPDRi)) * mVelConv;
+  return sqrt(max(1e-10, DPDRi)) * mVelConv;
 }
 
 //------------------------------------------------------------------------------
@@ -372,7 +373,7 @@ bulkModulus(const Scalar massDensity,
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
                const_cast<int*>(&mMaterialNumber));
-  return rhoi * DPDRi * mPconv;
+  return std::abs(rhoi * DPDRi * mPconv);
 }
 
 //------------------------------------------------------------------------------
