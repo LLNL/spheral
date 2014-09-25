@@ -55,7 +55,6 @@ template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-    mVsig = dataBase.newFluidFieldList(0.0, "Artificial Conduction vsig");
     mGradP = dataBase.newFluidFieldList(0.0, "Pressure Gradient");
 }
 
@@ -69,20 +68,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
     derivs.enroll(mGradP);
     // do i want to do this?? is it sufficient merely to calculate it below in eval?
-}
-
-//------------------------------------------------------------------------------
-// Register vsig
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-ArtificialConduction<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state) {
-    typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-    
-    dataBase.resizeFluidFieldList(mVsig, 0.0,"Artificial Conduction vsig", false);
-    state.enroll(mVsig);
 }
     
 //------------------------------------------------------------------------------
@@ -113,7 +98,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-    const FieldList<Dimension, Scalar> vsig = state.fields("Artificial Conduction vsig", 0.0);
     CHECK(mass.size() == numNodeLists);
     CHECK(position.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
@@ -145,8 +129,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(gradA0.size() == numNodeLists);
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
-        //gradP = gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
     }
+    
+    // Fill the gradP fieldlist
+    gradP = (CSPHisOn ?
+             gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W) :
+             /*gradientSPH*/);
+    
     
     // Start our big loop over all FluidNodeLists.
     size_t nodeListi = 0;
@@ -167,7 +156,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const Scalar& rhoi = massDensity(nodeListi, i);
             const Scalar& epsi = specificThermalEnergy(nodeListi, i);
             const Scalar& Pi = pressure(nodeListi, i);
-            const Scalar& vsigi = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
             if (CSPHisOn)
             {
@@ -183,6 +171,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             
             Scalar& DepsDti = DepsDt(nodeListi, i);
             Scalar& gradPi = gradP(nodeListi, i);
+                      
             
             // Get the connectivity info for this node.
             const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -213,7 +202,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar& rhoj = massDensity(nodeListj, j);
                             const Scalar& epsj = specificThermalEnergy(nodeListj, j);
                             const Scalar& Pj = pressure(nodeListj, j);
-                            const Scalar& vsigj = pressure(nodeListj, j);
                             const SymTensor& Hj = H(nodeListj, j);
                             if (CSPHisOn)
                             {
@@ -230,8 +218,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             Scalar& DepsDtj = DepsDt(nodeListj, j);
                             Scalar& gradPj = gradP(nodeListj, j);
                             
-                            // Node displacement.
-                            const Vector rij = ri - rj;
+                            // get some differentials
+                            const Vector rij        = ri - rj;
+                            const Vector rji        = rj - ri;
+                            const Scalar rhoij      = 0.5 * (rhoi + rhoj);
+                            const Scalar uij        = epsi - epsj;
+                            const Scalar Pij        = Pi - Pj;
+                            const Scalar DPij       = 0.5 * (gradPi * rji.magnitude() - gradPj * rij.magnitude());
+                            const Scalar deltaPij   = min(abs(Pij),abs(Pij+DPij));
+                            
+                            const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            const Scalar deltaU     = (mj/rhoij) * (alphaArCond) * vsigij * uij * gradWij.dot(rij);
+                            // need to get alpha in here and gradWij
+                            
+                            DepsDti += deltaU;
+                            DepsDtj += -deltaU;
                             
                         }
                     }
