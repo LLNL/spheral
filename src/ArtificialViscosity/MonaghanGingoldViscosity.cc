@@ -106,8 +106,8 @@ Piij(const unsigned nodeListi, const unsigned i,
                              Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
                              Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
-  CHECK(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
-  CHECK(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion));
+  CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
+  CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 
   // Now compute the symmetrized artificial viscous pressure.
   return make_pair(ei/rhoi*Tensor::one,
