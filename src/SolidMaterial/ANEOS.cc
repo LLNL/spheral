@@ -343,8 +343,8 @@ soundSpeed(const Scalar massDensity,
   call_aneos1_(&Ti, &rhoi,
                &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi,
                const_cast<int*>(&mMaterialNumber));
-  CHECK2(DPDRi > 0.0, DPDRi << " " << Pi << " " << Ei);
-  return sqrt(DPDRi) * mVelConv;
+  // CHECK2(DPDRi > 0.0, DPDRi << " " << Pi << " " << Ei);
+  return sqrt(max(0.0, DPDRi)) * mVelConv;
 }
 
 //------------------------------------------------------------------------------
