@@ -25,13 +25,20 @@ namespace Spheral {
             typedef typename Dimension::SymTensor SymTensor;
             
             // Constructors
-            ArtificialConduction(const bool gradPMode, const Scalar alphaArCond);
+            ArtificialConduction(const Scalar alphaArCond);
             
             // Destructor
             virtual ~ArtificialConduction();
             
-            // Provide default methods for creating and registering an energy derivative.
-
+            // Provide default methods for registering and iterating derivatives.
+            virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                             StateDerivatives<Dimension>& derivs);
+            virtual
+            void evaluateDerivatives(const Scalar time,
+                                     const Scalar dt,
+                                     const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                     const State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivatives) const;
             
             // Do any required one-time initializations on problem start up.
             virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
@@ -39,21 +46,14 @@ namespace Spheral {
             // Accessor Fns
             const FieldSpace::FieldList<Dimension, Scalar>& DepsDt() const;
             const FieldSpace::FieldList<Dimension, Scalar>& vsig() const;
-            bool gradPMode() const;
-            void gradPMode(bool val);
-            
-            // DepsDt Iterator Fn
-            void computeConduction(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                                   const State<Dimension>& state);
             
         private:
             //--------------------------- Private Interface ---------------------------//
             // Our derivative field(s).
             FieldSpace::FieldList<Dimension, Scalar> mDepsDt;
             FieldSpace::FieldList<Dimension, Scalar> mVsig;
-            bool mGradPMode;
+            FieldSpace::FieldList<Dimension, Scalar> mGradP;
             Scalar mAlphaArCond;
-            
 
         };
     }
