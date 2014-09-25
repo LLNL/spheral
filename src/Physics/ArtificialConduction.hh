@@ -30,6 +30,10 @@ namespace Spheral {
             // Destructor
             virtual ~ArtificialConduction();
             
+            // Register state vars (vsig in this case)
+            virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                       State<Dimension>& state);
+            
             // Provide default methods for registering and iterating derivatives.
             virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                                              StateDerivatives<Dimension>& derivs);
