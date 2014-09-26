@@ -237,7 +237,7 @@ gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 
-db.updateConnectivityMap()
+db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 position_fl = db.fluidPosition
 weight_fl = db.fluidMass

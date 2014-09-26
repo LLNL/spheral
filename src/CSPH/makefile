@@ -6,6 +6,7 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	computeCSPHSumMassDensityInst.cc \
+	computeHullSumMassDensityInst.cc \
 	computeCSPHCorrectionsInst.cc \
 	computeHullVolumesInst.cc \
 	computeHVolumesInst.cc \

@@ -52,6 +52,7 @@ Integrator<Dimension>::Integrator():
   mCurrentCycle(0),
   mVerbose(false),
   mRequireConnectivity(true),
+  mRequireGhostConnectivity(false),
   mDtThreshold(1.0e-10),
   mDataBasePtr(0),
   mPhysicsPackages(0),
@@ -75,6 +76,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mCurrentCycle(0),
   mVerbose(false),
   mRequireConnectivity(true),
+  mRequireGhostConnectivity(false),
   mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
@@ -99,6 +101,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mCurrentCycle(0),
   mVerbose(false),
   mRequireConnectivity(true),
+  mRequireGhostConnectivity(false),
   mDtThreshold(1.0e-10),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(physicsPackages),
@@ -136,6 +139,7 @@ operator=(const Integrator<Dimension>& rhs) {
     mCullGhostNodes = rhs.mCullGhostNodes;
     mVerbose = rhs.mVerbose;
     mRequireConnectivity = rhs.mRequireConnectivity;
+    mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
     mDtThreshold = rhs.mDtThreshold;
   }
   return *this;
@@ -205,10 +209,13 @@ Integrator<Dimension>::initialize(State<Dimension>& state,
 
   // Check if we need to construct connectivity.
   mRequireConnectivity = false;
+  mRequireGhostConnectivity = false;
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = physicsPackagesBegin();
        physicsItr != physicsPackagesEnd();
-       ++physicsItr) mRequireConnectivity = (mRequireConnectivity or
-                                             (*physicsItr)->requireConnectivity());
+       ++physicsItr) {
+    mRequireConnectivity = (mRequireConnectivity or (*physicsItr)->requireConnectivity());
+    mRequireGhostConnectivity = (mRequireGhostConnectivity or (*physicsItr)->requireGhostConnectivity());
+  }
 
   // Set the boundary conditions.
   if ((not mRigorousBoundaries) and (mCurrentCycle % mUpdateBoundaryFrequency == 0)) {
@@ -219,7 +226,7 @@ Integrator<Dimension>::initialize(State<Dimension>& state,
   // Register the now updated connectivity with the state.
   if (mRequireConnectivity) {
     DataBase<Dimension>& db = accessDataBase();
-    state.enrollConnectivityMap(db.connectivityMapPtr());
+    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity));
   }
 
   // Prepare individual packages and node lists.
@@ -463,10 +470,12 @@ Integrator<Dimension>::setGhostNodes() {
   if (mRequireConnectivity) {
 
     // Update the connectivity.
-    db.updateConnectivityMap();
+    db.updateConnectivityMap(mRequireGhostConnectivity);
 
     // If we're culling ghost nodes, do it now.
-    if (mCullGhostNodes and not this->domainDecompositionIndependent()) {
+    if (mCullGhostNodes and 
+        (not this->domainDecompositionIndependent()) and
+        (not mRequireGhostConnectivity)) {
 
       // First build the set of flags indicating which nodes are used.
       FieldList<Dimension, int> flags = db.newGlobalFieldList(int(0), "active nodes");
