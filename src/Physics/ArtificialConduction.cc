@@ -24,8 +24,6 @@ template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const Scalar alphaArCond):
     Physics<Dimension>(),
-    mDepsDt(FieldSpace::Copy),
-    mGradPMode(gradPMode)
     mAlphaArCond(alphaArCond){
     
 }
@@ -40,15 +38,6 @@ ArtificialConduction<Dimension>::~ArtificialConduction() {
 //------------------------------------------------------------------------------
 // Accessor Fns
 //------------------------------------------------------------------------------
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-ArtificialConduction<Dimension>::
-vsig() const { return mVsig;}
-
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-ArtificialConduction<Dimension>::
-DepsDt() const { return mDepsDt;}
     
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -198,6 +187,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                         if (connectivityMap.calculatePairInteraction(nodeListi, i,
                                                                      nodeListj, j,
                                                                      firstGhostNodej)) {
+                            //const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+                            
                             // Get the state for node j
                             const Vector& rj        = position(nodeListj, j);
                             const Scalar& mj        = mass(nodeListj, j);
@@ -212,7 +203,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Vector& gradA0j   = gradA0(nodeListj, j);
                             const Vector& gradAj    = gradA(nodeListj, j);
                             const Tensor& gradBj    = gradB(nodeListj, j);
-                            CHECK(Aj > 0.0 or j >= firstGhostNodej);
+                            //CHECK(Aj > 0.0 or j >= firstGhostNodej);
                             }
                             CHECK(mj > 0.0);
                             CHECK(rhoj > 0.0);

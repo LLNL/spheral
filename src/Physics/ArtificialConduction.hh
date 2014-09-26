@@ -30,6 +30,9 @@ namespace Spheral {
             // Destructor
             virtual ~ArtificialConduction();
             
+            // Do any required one-time initializations on problem start up.
+            virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+            
             // Provide default methods for registering and iterating derivatives.
             virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                                              StateDerivatives<Dimension>& derivs);
@@ -40,18 +43,13 @@ namespace Spheral {
                                      const State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivatives) const;
             
-            // Do any required one-time initializations on problem start up.
-            virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+            
             
             // Accessor Fns
-            const FieldSpace::FieldList<Dimension, Scalar>& DepsDt() const;
-            const FieldSpace::FieldList<Dimension, Scalar>& vsig() const;
             
         private:
             //--------------------------- Private Interface ---------------------------//
             // Our derivative field(s).
-            FieldSpace::FieldList<Dimension, Scalar> mDepsDt;
-            FieldSpace::FieldList<Dimension, Scalar> mVsig;
             FieldSpace::FieldList<Dimension, Scalar> mGradP;
             Scalar mAlphaArCond;
 
