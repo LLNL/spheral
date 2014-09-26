@@ -301,14 +301,7 @@ class Physics:
         
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
-        x.add_method("registerDerivatives", None, [refparam(database, "dataBase"),refparam(derivatives, "derivatives")],is_virtual=True)
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-
+        generatePhysicsVirtualBindings(x,ndim,pureVirtual=False)
         
         
         return
