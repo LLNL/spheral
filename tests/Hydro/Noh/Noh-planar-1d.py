@@ -82,6 +82,9 @@ commandLine(KernelConstructor = BSplineKernel,
             gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
+            
+            bArtificialConduction = False,
+            arCondAlpha = 0.5,
 
             clearDirectories = True,
             checkError = True,
@@ -258,6 +261,16 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
+# Construct the Artificial Conduction physics object.
+#-------------------------------------------------------------------------------
+
+if bArtificialConduction:
+    #q.reducingViscosityCorrection = True
+    ArtyCond = ArtificialConduction(WT,arCondAlpha)
+    
+    packages.append(ArtyCond)
 
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
