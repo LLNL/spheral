@@ -24,14 +24,21 @@ namespace Spheral {
             typedef typename Dimension::Tensor Tensor;
             typedef typename Dimension::SymTensor SymTensor;
             
+            typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+            
             // Constructors
-            ArtificialConduction(const Scalar alphaArCond);
+            ArtificialConduction(const KernelSpace::TableKernel<Dimension>& W,
+                                 const Scalar alphaArCond);
             
             // Destructor
             virtual ~ArtificialConduction();
             
             // Do any required one-time initializations on problem start up.
             virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
+            
+            // Register our state.
+            virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                       State<Dimension>& state);
             
             // Provide default methods for registering and iterating derivatives.
             virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
@@ -44,13 +51,22 @@ namespace Spheral {
                                      StateDerivatives<Dimension>& derivatives) const;
             
             
+            // Vote on a time step.
+            virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                    const State<Dimension>& state,
+                                    const StateDerivatives<Dimension>& derivs,
+                                    const Scalar currentTime) const;
+            
+            virtual std::string label() const { return "Artificial Conduction"; }
             
             // Accessor Fns
             
         private:
             //--------------------------- Private Interface ---------------------------//
+            const KernelSpace::TableKernel<Dimension>& mKernel;
+            
             // Our derivative field(s).
-            FieldSpace::FieldList<Dimension, Scalar> mGradP;
+            FieldSpace::FieldList<Dimension, Vector> mGradP;
             Scalar mAlphaArCond;
 
         };

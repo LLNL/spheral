@@ -10,20 +10,33 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "FieldOperations/FieldListFunctions.hh"
 #include "CSPH/gradientCSPH.hh"
+#include "DataBase/IncrementFieldList.hh"
+#include "Neighbor/ConnectivityMap.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
 
+using std::vector;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
+using KernelSpace::TableKernel;
+using NodeSpace::NodeList;
+using NodeSpace::FluidNodeList;
+using FieldSpace::FieldList;
+using NeighborSpace::ConnectivityMap;
+    
+using CSPHSpace::gradientCSPH;
+using FieldSpace::gradient;
 
 //------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ArtificialConduction<Dimension>::
-ArtificialConduction(const Scalar alphaArCond):
+ArtificialConduction(const TableKernel<Dimension>& W,
+                     const Scalar alphaArCond):
     Physics<Dimension>(),
+    mKernel(W),
     mAlphaArCond(alphaArCond){
     
 }
@@ -46,9 +59,20 @@ template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-    mGradP = dataBase.newFluidFieldList(0.0, "Pressure Gradient");
+    mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
 }
 
+//------------------------------------------------------------------------------
+// Register the state (no op here)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ArtificialConduction<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+    typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+}
+    
 //------------------------------------------------------------------------------
 // Register gradP
 //------------------------------------------------------------------------------
@@ -58,7 +82,6 @@ ArtificialConduction<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
     derivs.enroll(mGradP);
-    // do i want to do this?? is it sufficient merely to calculate it below in eval?
 }
     
 //------------------------------------------------------------------------------
@@ -73,7 +96,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
     
-    const TableKernel<Dimension>& W = this->kernel();
+    const TableKernel<Dimension>& W = mKernel;
     
     bool CSPHisOn = 0;
     
@@ -98,12 +121,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     
     // The relevant derivatives
     FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-    FieldList<Dimension, Scalar> gradP = derivatives.fields("Pressure Gradient", 0.0);
+    FieldList<Dimension, Vector> gradP = derivatives.fields("Pressure Gradient", Vector::zero);
     CHECK(DepsDt.size() == numNodeLists);
     CHECK(gradP.size() == numNodeLists);
     
     // Now check if CSPH is active
-    if (state.registered(A_CSPH))
+    if (state.registered(HydroFieldNames::A_CSPH))
     {
         CSPHisOn = 1;
         const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
@@ -120,12 +143,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(gradA0.size() == numNodeLists);
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
+        
+        gradP = gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
     }
-    
-    // Fill the gradP fieldlist
-    gradP = (CSPHisOn ?
-             CSPHSpace::gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W) :
-             FieldSpace::gradient(pressure,position,mass,mass,rho,H,W));
+    else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     
     
     // Start our big loop over all FluidNodeLists.
@@ -148,20 +169,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const Scalar& epsi = specificThermalEnergy(nodeListi, i);
             const Scalar& Pi = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
-            if (CSPHisOn)
-            {
-            const Scalar& Ai = A(nodeListi, i);
-            const Vector& Bi = B(nodeListi, i);
-            const Vector& gradA0i = gradA0(nodeListi, i);
-            const Vector& gradAi = gradA(nodeListi, i);
-            const Tensor& gradBi = gradB(nodeListi, i);
-            CHECK(Ai > 0.0);
-            }
+//            if (CSPHisOn)
+//            {
+//            const Scalar& Ai = A(nodeListi, i);
+//            const Vector& Bi = B(nodeListi, i);
+//            const Vector& gradA0i = gradA0(nodeListi, i);
+//            const Vector& gradAi = gradA(nodeListi, i);
+//            const Tensor& gradBi = gradB(nodeListi, i);
+//            CHECK(Ai > 0.0);
+//            }
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
             Scalar& DepsDti = DepsDt(nodeListi, i);
-            Scalar& gradPi = gradP(nodeListi, i);
+            Vector& gradPi = gradP(nodeListi, i);
                       
             
             // Get the connectivity info for this node.
@@ -181,13 +202,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                          jItr != connectivity.end();
                          ++jItr) {
                         const int j = *jItr;
+                        const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
                         
                         // Only proceed if this node pair has not been calculated yet.
-                        // not sure about this..... <--------------------------------
                         if (connectivityMap.calculatePairInteraction(nodeListi, i,
                                                                      nodeListj, j,
                                                                      firstGhostNodej)) {
-                            //const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+                            
                             
                             // Get the state for node j
                             const Vector& rj        = position(nodeListj, j);
@@ -196,20 +217,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar& epsj      = specificThermalEnergy(nodeListj, j);
                             const Scalar& Pj        = pressure(nodeListj, j);
                             const SymTensor& Hj     = H(nodeListj, j);
-                            if (CSPHisOn)
-                            {
-                            const Scalar& Aj        = A(nodeListj, j);
-                            const Vector& Bj        = B(nodeListj, j);
-                            const Vector& gradA0j   = gradA0(nodeListj, j);
-                            const Vector& gradAj    = gradA(nodeListj, j);
-                            const Tensor& gradBj    = gradB(nodeListj, j);
-                            //CHECK(Aj > 0.0 or j >= firstGhostNodej);
-                            }
+//                            if (CSPHisOn)
+//                            {
+//                            const Scalar& Aj        = A(nodeListj, j);
+//                            const Vector& Bj        = B(nodeListj, j);
+//                            const Vector& gradA0j   = gradA0(nodeListj, j);
+//                            const Vector& gradAj    = gradA(nodeListj, j);
+//                            const Tensor& gradBj    = gradB(nodeListj, j);
+//                            //CHECK(Aj > 0.0 or j >= firstGhostNodej);
+//                            }
                             CHECK(mj > 0.0);
                             CHECK(rhoj > 0.0);
                             
                             Scalar& DepsDtj         = DepsDt(nodeListj, j);
-                            Scalar& gradPj          = gradP(nodeListj, j);
+                            Vector& gradPj          = gradP(nodeListj, j);
                             
                             // get some differentials
                             const Vector rij        = ri - rj;
@@ -221,13 +242,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar rhoij      = 0.5 * (rhoi + rhoj);
                             const Scalar uij        = epsi - epsj;
                             const Scalar Pij        = Pi - Pj;
-                            const Scalar DPij       = 0.5 * (gradPi * rji.magnitude() -
-                                                             gradPj * rij.magnitude());
+                            const Scalar DPij       = 0.5 * (gradPi.dot(rji) -
+                                                             gradPj.dot(rij));
                             const Scalar deltaPij   = min(abs(Pij),abs(Pij+DPij));
                             
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
-                            const Vector gradWij    = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) +
-                                                           Hj*etajNorm*kernel.grad(etaj, Hj));
+                            const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
+                                                           Hj*etajNorm*W.grad(etaj, Hj));
                             
                             const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij);
                             
@@ -240,6 +261,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             }
         }
     }
+}
+    
+//------------------------------------------------------------------------------
+// Vote on a time step.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename ArtificialConduction<Dimension>::TimeStepType
+ArtificialConduction<Dimension>::
+dt(const DataBase<Dimension>& dataBase,
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   const Scalar currentTime) const {
+    return TimeStepType(1.0e100, "Rate of artificial conduction change -- NO VOTE.");
 }
 
 
