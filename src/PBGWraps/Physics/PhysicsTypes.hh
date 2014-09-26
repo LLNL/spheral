@@ -5,6 +5,7 @@
 #include "Physics/Physics.hh"
 #include "Physics/GenericHydro.hh"
 #include "Physics/GenericBodyForce.hh"
+#include "Physics/ArtificialConduction.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -24,6 +25,10 @@ typedef GenericBodyForce<Dim<1> > GenericBodyForce1d;
 typedef GenericBodyForce<Dim<2> > GenericBodyForce2d;
 typedef GenericBodyForce<Dim<3> > GenericBodyForce3d;
 
+typedef ArtificialConduction<Dim<1> > ArtificialConduction1d;
+typedef ArtificialConduction<Dim<2> > ArtificialConduction2d;
+typedef ArtificialConduction<Dim<3> > ArtificialConduction3d;
+    
 }
 }
 
