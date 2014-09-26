@@ -267,7 +267,7 @@ class zeroV_pkg(Physics):
         return
 
     def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DvDt = derivs.vectorFields("delta" + HydroFieldNames.velocity)
+        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
         DvDt.Zero()
         return
             
