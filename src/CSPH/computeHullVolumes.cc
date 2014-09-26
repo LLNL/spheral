@@ -20,19 +20,25 @@ using NodeSpace::NodeList;
 template<typename Dimension>
 void
 computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
+                   const typename Dimension::Scalar kernelExtent,
                    const FieldList<Dimension, typename Dimension::Vector>& position,
+                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
                    FieldList<Dimension, typename Dimension::FacetedVolume>& polyvol,
                    FieldList<Dimension, typename Dimension::Scalar>& volume) {
 
   // Pre-conditions.
   const size_t numNodeLists = volume.size();
   REQUIRE(position.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
+  REQUIRE(kernelExtent > 0.0);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Walk the FluidNodeLists.
+  const double kernelExtent2 = kernelExtent*kernelExtent;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
 
     // Iterate over the nodes in this node list.
@@ -43,8 +49,9 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
 
-      // Collect the positions of all neighbors.
+      // Collect the positions of all neighbors *within i's sampling volume*.
       vector<Vector> positionsInv(1, Vector::zero);
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
@@ -55,9 +62,12 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
              ++jItr) {
           const int j = *jItr;
           const Vector& rj = position(nodeListj, j);
-          const Vector rji = 0.5*(rj - ri),
-                       rjiHat = rji.unitVector();
-          positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
+          const Vector rji = rj - ri;
+          const Scalar etai2 = (Hi*rji).magnitude2();
+          if (etai2 < kernelExtent2) {
+            const Vector rjiHat = rji.unitVector();
+            positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
+          }
         }
       }
 
@@ -82,8 +92,8 @@ computeHullVolumes(const ConnectivityMap<Dimension>& connectivityMap,
       }
 
       // And we have it.
-      polyvol(nodeListi, i) = FacetedVolume(positions, hullInv.facetVertices());
-      // polyvol(nodeListi, i) = FacetedVolume(hullVerts);
+      // polyvol(nodeListi, i) = FacetedVolume(positions, hullInv.facetVertices());
+      polyvol(nodeListi, i) = FacetedVolume(positions);
       volume(nodeListi, i) = polyvol(nodeListi, i).volume();
     }
   }

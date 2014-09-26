@@ -426,10 +426,11 @@ DataBase<Dimension>::fluidRefineNodeEnd() const {
 template<typename Dimension>
 void
 DataBase<Dimension>::
-updateConnectivityMap() const {
+updateConnectivityMap(const bool computeGhostConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
-  mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd());
+  mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
+                               computeGhostConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -1223,8 +1224,8 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   xmaxima = vector<Vector>();
 
   // We use our connectivity to make this more efficient.
-  this->updateConnectivityMap();
-  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap();
+  this->updateConnectivityMap(false);
+  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false);
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
   const int numNodeLists = this->numNodeLists();

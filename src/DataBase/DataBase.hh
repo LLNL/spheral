@@ -148,13 +148,14 @@ public:
   RefineNodeIterator<Dimension> fluidRefineNodeEnd() const;
 
   // Update the internal connectivity map.
-  void updateConnectivityMap() const;
+  void updateConnectivityMap(const bool computeGhostConnectivity) const;
   void patchConnectivityMap(const FieldSpace::FieldList<Dimension, int>& flags,
                             const FieldSpace::FieldList<Dimension, int>& old2new) const;
 
   // Get the connectivity map.
   const ConnectivityMapType& connectivityMap() const;
-  ConnectivityMapPtr connectivityMapPtr() const;
+  const ConnectivityMapType& connectivityMap(const bool computeGhostConnectivity) const;
+  ConnectivityMapPtr connectivityMapPtr(const bool computeGhostConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
   void appendNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);

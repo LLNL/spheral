@@ -404,6 +404,9 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
         x.add_method("connectivityIntersectionForNodes", "vector_of_vector_of_int", 
                      [param("int", "nodeListi"), param("int", "i"),
                       param("int", "nodeListj"), param("int", "j")], is_const=True)
+        x.add_method("connectivityUnionForNodes", "vector_of_vector_of_int", 
+                     [param("int", "nodeListi"), param("int", "i"),
+                      param("int", "nodeListj"), param("int", "j")], is_const=True)
         x.add_method("numNeighborsForNode", "int", [param(ptr("const " + nodelist), "nodeList"), param("int", "nodeID")], is_const=True)
         x.add_method("calculatePairInteraction", "bool", [param("int", "nodeListi"),
                                                           param("int", "i"),
@@ -421,5 +424,8 @@ generateStdVectorBindings(self.vector_of_vector_of_GridCellIndex%(ndim)id, "vect
                                  template_parameters = [dim],
                                  custom_name = "numNodeLists")
         x.add_method("valid", "bool", [], is_const=True)
+
+        # Attributes.
+        x.add_instance_attribute("buildGhostConnectivity", "bool", getter="buildGhostConnectivity", is_const=True)
 
         return

@@ -50,6 +50,17 @@ fieldFromStateBase(StateBase<Dimension>& self,
   return &(self.field(key, Value()));
 }
 
+//------------------------------------------------------------------------------
+// Get the connectivity map as a pointer from the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+NeighborSpace::ConnectivityMap<Dimension>*
+connectivityMapFromDataBase(const DataBaseSpace::DataBase<Dimension>& db,
+                            const bool buildGhostConnectivity) {
+  return const_cast<NeighborSpace::ConnectivityMap<Dimension>*>(&(db.connectivityMap(buildGhostConnectivity)));
+}
+
 }
 
 #endif

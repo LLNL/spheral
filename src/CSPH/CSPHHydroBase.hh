@@ -129,6 +129,9 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
 
+  // // We need ghost connectivity to be computed.
+  // virtual bool requireGhostConnectivity() const { return true; }
+
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
   PhysicsSpace::MassDensityType densityUpdate() const;

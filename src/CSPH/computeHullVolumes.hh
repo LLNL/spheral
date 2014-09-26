@@ -20,8 +20,10 @@ namespace Spheral {
   template<typename Dimension>
   void
   computeHullVolumes(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                     const typename Dimension::Scalar kernelExtent,
                      const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                     FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& polvol,
+                     const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                     FieldSpace::FieldList<Dimension, typename Dimension::FacetedVolume>& polyvol,
                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& volume);
 }
 

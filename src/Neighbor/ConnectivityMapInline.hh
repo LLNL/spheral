@@ -16,8 +16,10 @@ template<typename NodeListIterator>
 inline
 ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
-                const NodeListIterator& end):
+                const NodeListIterator& end,
+                const bool buildGhostConnectivity):
   mNodeLists(),
+  mBuildGhostConnectivity(buildGhostConnectivity),
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
@@ -25,7 +27,7 @@ ConnectivityMap(const NodeListIterator& begin,
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
-  this->rebuild(begin, end);
+  this->rebuild(begin, end, buildGhostConnectivity);
 
   // We'd better be valid after the constructor is finished!
   ENSURE(valid());
@@ -40,7 +42,9 @@ inline
 void
 ConnectivityMap<Dimension>::
 rebuild(const NodeListIterator& begin,
-        const NodeListIterator& end) {
+        const NodeListIterator& end, 
+        const bool buildGhostConnectivity) {
+  mBuildGhostConnectivity = buildGhostConnectivity;
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
@@ -55,7 +59,9 @@ rebuild(const NodeListIterator& begin,
     const unsigned i = std::distance(mNodeLists.begin(), posItr);
     CHECK(i < numNodeLists);
     mNodeLists.insert(posItr, *itr);
-    numNodes[i] = (domainDecompIndependent ? (*itr)->numNodes() : (*itr)->numInternalNodes());
+    numNodes[i] = ((domainDecompIndependent or mBuildGhostConnectivity) ?
+                   (*itr)->numNodes() :
+                   (*itr)->numInternalNodes());
   }
 
   // Construct the offsets.
@@ -65,6 +71,17 @@ rebuild(const NodeListIterator& begin,
 
   this->computeConnectivity();
   ENSURE(valid());
+}
+
+//------------------------------------------------------------------------------
+// Are we computing ghost connectivity?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+ConnectivityMap<Dimension>::
+buildGhostConnectivity() const {
+  return mBuildGhostConnectivity;
 }
 
 //------------------------------------------------------------------------------
@@ -87,10 +104,11 @@ const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
 connectivityForNode(const NodeSpace::NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const bool ghostValid = (mBuildGhostConnectivity or
+                           NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   REQUIRE(nodeID >= 0 and 
           (nodeID < nodeListPtr->numInternalNodes()) or
-          (domainDecompIndependent and nodeID < nodeListPtr->numNodes()));
+          (ghostValid and nodeID < nodeListPtr->numNodes()));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
   REQUIRE(nodeListID < mConnectivity.size() and nodeListID < mOffsets.size());
@@ -107,11 +125,12 @@ const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
 connectivityForNode(const int nodeListID,
                     const int nodeID) const {
-  const bool domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const bool ghostValid = (mBuildGhostConnectivity or
+                           NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
   REQUIRE(nodeID >= 0 and 
           (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
-          (domainDecompIndependent and nodeID < mNodeLists[nodeListID]->numNodes()));
+          (ghostValid and nodeID < mNodeLists[nodeListID]->numNodes()));
   REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
   return mConnectivity[mOffsets[nodeListID] + nodeID];
 }

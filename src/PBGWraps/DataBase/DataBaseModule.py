@@ -303,10 +303,16 @@ class DataBase:
         x.add_constructor([])
 
         # Methods.
-        x.add_method("updateConnectivityMap", None, [], is_const=True)
+        x.add_method("updateConnectivityMap", None, [param("bool", "computeGhostConnectivity")], is_const=True)
         x.add_method("patchConnectivityMap", None, [constrefparam(intfieldlist, "flags"),
                                                     constrefparam(intfieldlist, "old2new")], is_const=True)
         const_ref_return_value(x, me, "%s::connectivityMap" % me, connectivitymap, [], "connectivityMap")
+        x.add_function_as_method("connectivityMapFromDataBase", 
+                                 retval(ptr(connectivitymap), reference_existing_object=True),
+                                 [param(me, "self"), param("bool", "computeGhostConnectivity")],
+                                 template_parameters = [dim],
+                                 foreign_cpp_namespace = "Spheral",
+                                 custom_name = "connectivityMap")
         x.add_method("appendNodeList", None, [refparam(fluidnodelist, "nodeList")])
         x.add_method("appendNodeList", None, [refparam(nodelist, "nodeList")])
         x.add_method("deleteNodeList", None, [refparam(fluidnodelist, "nodeList")])
