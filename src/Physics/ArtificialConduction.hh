@@ -24,35 +24,50 @@ namespace Spheral {
             typedef typename Dimension::Tensor Tensor;
             typedef typename Dimension::SymTensor SymTensor;
             
+            typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+            
             // Constructors
-            ArtificialConduction(const bool gradPMode);
+            ArtificialConduction(const KernelSpace::TableKernel<Dimension>& W,
+                                 const Scalar alphaArCond);
             
             // Destructor
             virtual ~ArtificialConduction();
             
-            // Provide default methods for creating and registering an energy derivative.
-            virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                       State<Dimension>& state);
-            virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
-                                             StateDerivatives<Dimension>& derivs);
-            
-            
             // Do any required one-time initializations on problem start up.
             virtual void initializeProblemStartup(DataBaseSpace::DataBase<Dimension>& dataBase);
             
+            // Register our state.
+            virtual void registerState(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                       State<Dimension>& state);
+            
+            // Provide default methods for registering and iterating derivatives.
+            virtual void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
+                                             StateDerivatives<Dimension>& derivs);
+            virtual
+            void evaluateDerivatives(const Scalar time,
+                                     const Scalar dt,
+                                     const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                     const State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivatives) const;
+            
+            
+            // Vote on a time step.
+            virtual TimeStepType dt(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                                    const State<Dimension>& state,
+                                    const StateDerivatives<Dimension>& derivs,
+                                    const Scalar currentTime) const;
+            
+            virtual std::string label() const { return "Artificial Conduction"; }
+            
             // Accessor Fns
-            const FieldSpace::FieldList<Dimension, Scalar>& DepsDt() const;
-            const FieldSpace::FieldList<Dimension, Scalar>& vsig() const;
-            bool gradPMode() const;
-            void gradPMode(bool val);
             
         private:
             //--------------------------- Private Interface ---------------------------//
-            // Our derivative field(s).
-            FieldSpace::FieldList<Dimension, Scalar> mDepsDt;
-            FieldSpace::FieldList<Dimension, Scalar> mVsig;
-            bool mGradPMode;
+            const KernelSpace::TableKernel<Dimension>& mKernel;
             
+            // Our derivative field(s).
+            FieldSpace::FieldList<Dimension, Vector> mGradP;
+            Scalar mAlphaArCond;
 
         };
     }
