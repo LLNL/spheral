@@ -161,7 +161,17 @@ inline
 const NeighborSpace::ConnectivityMap<Dimension>&
 DataBase<Dimension>::
 connectivityMap() const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap();
+  VERIFY2(mConnectivityMapPtr.use_count() != 0,
+          "DataBase::connectivityMap ERROR -- need to ensure ConnectivityMap is constructed before calling this method.");
+  return *mConnectivityMapPtr;
+}
+
+template<typename Dimension>
+inline
+const NeighborSpace::ConnectivityMap<Dimension>&
+DataBase<Dimension>::
+connectivityMap(const bool buildConnectivityMap) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(buildConnectivityMap);
   return *mConnectivityMapPtr;
 }
 
@@ -169,8 +179,8 @@ template<typename Dimension>
 inline
 typename DataBase<Dimension>::ConnectivityMapPtr
 DataBase<Dimension>::
-connectivityMapPtr() const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap();
+connectivityMapPtr(const bool buildConnectivityMap) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(buildConnectivityMap);
   return mConnectivityMapPtr;
 }
 

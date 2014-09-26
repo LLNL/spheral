@@ -124,7 +124,7 @@ dt(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity, Vector::zero);
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
   const int numNodeLists = connectivityMap.nodeLists().size();
 
   // Initialize the return value to some impossibly high value.

@@ -187,7 +187,7 @@ mesh, void = generateLineMesh([nodes1],
 #-------------------------------------------------------------------------------
 fl = ScalarFieldList()
 fl.appendField(f)
-db.updateConnectivityMap()
+db.updateConnectivityMap(True)
 fSVPHfl = sampleFieldListSVPH(fl,
                               db.globalPosition,
                               db.globalHfield,

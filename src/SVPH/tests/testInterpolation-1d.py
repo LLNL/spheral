@@ -196,7 +196,7 @@ mass = nodes1.mass()
 H = nodes1.Hfield()
 
 # Prepare the connectivity
-db.updateConnectivityMap()
+db.updateConnectivityMap(False)
 cm = db.connectivityMap()
 
 #-------------------------------------------------------------------------------

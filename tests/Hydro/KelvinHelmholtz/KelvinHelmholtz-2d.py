@@ -35,14 +35,27 @@ commandLine(nx1 = 100,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
+            numNodeLists = 1,  # If 2, makes this a two material problem.
+
             gamma = 5.0/3.0,
             mu = 1.0,
 
             nPerh = 2.01,
 
-            HydroConstructor = SPHHydro,
+            SVPH = False,
+            CSPH = False,
+            ASPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
+            filter = 0.0,   # CSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
+            linearConsistent = False,
+            fcentroidal = 0.0,
+            fcellPressure = 0.0,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 0.75,
@@ -56,10 +69,6 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
@@ -73,7 +82,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             domainIndependent = False,
             rigorousBoundaries = True,
             dtverbose = False,
@@ -82,15 +91,35 @@ commandLine(nx1 = 100,
             compatibleEnergy = False,           # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
-            restartStep = 20,
-            redistributeStep = 20,
+            restartStep = 100,
+            redistributeStep = 200,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d",
             outputFile = "None",
             comparisonFile = "None",
             )
+
+assert numNodeLists in (1, 2)
+
+# Decide on our hydro algorithm.
+if SVPH:
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
+elif CSPH:
+    if ASPH:
+        HydroConstructor = ACSPHHydro
+    else:
+        HydroConstructor = CSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
@@ -170,21 +199,21 @@ if restoreCycle is None:
                                             xmin = (0.0,  0.25),
                                             xmax = (1.0,  0.75),
                                             nNodePerh = nPerh,
-                                            SPH = (HydroConstructor == SPHHydro))
+                                            SPH = SPH)
     generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho2,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.0),
                                              xmax = (1.0, 0.25),
                                              nNodePerh = nPerh,
-                                             SPH = (HydroConstructor == SPHHydro))
+                                             SPH = SPH)
     generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
                                              rho = rho2,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.75),
                                              xmax = (1.0, 1.0),
                                              nNodePerh = nPerh,
-                                             SPH = (HydroConstructor == SPHHydro))
+                                             SPH = SPH)
     generator2 = CompositeNodeDistribution(generator21, generator22)
 
     if mpi.procs > 1:
@@ -192,29 +221,44 @@ if restoreCycle is None:
     else:
         from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator1),
-                      (nodes2, generator2))
-
-    # Set specific thermal energies
-    eps1 = P1/((gamma - 1.0)*rho1)
-    eps2 = P2/((gamma - 1.0)*rho2)
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-    nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps2))
+    if numNodeLists == 2:
+        distributeNodes2d((nodes1, generator1),
+                          (nodes2, generator2))
+    else:
+        gen = CompositeNodeDistribution(generator1, generator2)
+        distributeNodes2d((nodes1, gen))
+        
 
     # A helpful method for setting y velocities.
     def vy(ri):
         thpt = 1.0/(2.0*sigma*sigma)
         return (w0*sin(freq*pi*ri.x) *
                 (exp(-((ri.y - 0.25)**2 * thpt)) +
-                 exp(-((ri.y - 0.75)**2 * thpt))))
+                 exp(-((ri.y - 0.75)**2 * thpt))))*abs(0.5 - ri.y)
 
-    # Set node velocities
-    for (nodes, vx) in ((nodes1, vx1),
-                        (nodes2, vx2)):
-        pos = nodes.positions()
-        vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
-            vel[i] = Vector(vx, vy(pos[i]))
+    # Finish initial conditions.
+    eps1 = P1/((gamma - 1.0)*rho1)
+    eps2 = P2/((gamma - 1.0)*rho2)
+    if numNodeLists == 2:
+        nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
+        nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps2))
+        for (nodes, vx) in ((nodes1, vx1),
+                            (nodes2, vx2)):
+            pos = nodes.positions()
+            vel = nodes.velocity()
+            for i in xrange(nodes.numInternalNodes):
+                vel[i] = Vector(vx, vy(pos[i]))
+    else:
+        pos = nodes1.positions()
+        vel = nodes1.velocity()
+        eps = nodes1.specificThermalEnergy()
+        for i in xrange(nodes1.numInternalNodes):
+            if pos[i].y > 0.25 and pos[i].y < 0.75:
+                eps[i] = eps1
+                vel[i] = Vector(vx1, vy(pos[i]))
+            else:
+                eps[i] = eps2
+                vel[i] = Vector(vx2, vy(pos[i]))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -243,56 +287,59 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if SVPH:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-2.0, -2.0),
+                             xmax = Vector(3.0, 3.0))
+                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif CSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
-# Optionally construct an hourglass control object.
+# Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-if hourglass:
-    mask = db.newFluidIntFieldList(1, "mask")
-    dx = rmax/nRadial
-    bound = rmax - dx
-##     if seed == "square":
-##         for i in xrange(nodes1.numInternalNodes):
-##             if pos[i].x > bound or pos[i].y > bound:
-##                 mask[0][i] = 0
-##     else:
-##         for i in xrange(nodes1.numInternalNodes):
-##             if pos[i].magnitude() > bound:
-##                 mask[0][i] = 0
-    hg = hourglass(WT,
-                   order = hourglassOrder,
-                   limiter = hourglassLimiter,
-                   fraction = hourglassFraction,
-                   mask = mask)
-    output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    output("hg.fraction")
-    packages.append(hg)
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    
+    packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -303,7 +350,9 @@ yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
 yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
 ybc = PeriodicBoundary(yp1, yp2)
-bcSet = [xbc, ybc]
+ybc1 = ReflectingBoundary(yp1)
+ybc2 = ReflectingBoundary(yp2)
+bcSet = [xbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
@@ -328,8 +377,6 @@ integrator.cullGhostNodes = False
 
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -341,31 +388,25 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralVisitDump
+    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
+                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = SPH)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
-    control.smoothState(smoothIters)
-##     if hourglass:
-##         print "Relaxing initial node distribution."
-##         control.prerelaxNodeDistribution(hg, rho0)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-    control.dropRestartFile()
-    control.dropViz()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -377,4 +418,3 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-    control.dropViz()

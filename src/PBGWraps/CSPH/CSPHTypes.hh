@@ -5,9 +5,11 @@
 #include "CSPH/CSPHUtilities.hh"
 #include "CSPH/CSPHHydroBase.hh"
 #include "CSPH/computeCSPHSumMassDensity.hh"
+#include "CSPH/computeHullSumMassDensity.hh"
 #include "CSPH/computeCSPHCorrections.hh"
 #include "CSPH/centerOfMass.hh"
 #include "CSPH/computeHullVolumes.hh"
+#include "CSPH/computeHVolumes.hh"
 #include "CSPH/gradientCSPH.hh"
 #include "CSPH/interpolateCSPH.hh"
 

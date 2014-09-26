@@ -229,7 +229,7 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Based on the moments we can calculate the CSPH corrections terms and their gradients.
       if (i < firstGhostNodei) {
-        CHECK2(abs(m2(nodeListi, i).Determinant()) > 1.0e-30, i << " " << m0(nodeListi, i) << " " << m2(nodeListi, i).Determinant());
+        CHECK2(abs(m2(nodeListi, i).Determinant()) > 1.0e-30, i << " " << m0(nodeListi, i) << " " << m2(nodeListi, i) << " " << m2(nodeListi, i).Determinant());
         const SymTensor m2inv = m2(nodeListi, i).Inverse();
         const Vector m2invm1 = m2inv*m1(nodeListi, i);
         const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
