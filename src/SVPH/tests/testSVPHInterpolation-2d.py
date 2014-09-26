@@ -222,7 +222,7 @@ mesh, void = generatePolygonalMesh([nodes1],
 #-------------------------------------------------------------------------------
 fl = ScalarFieldList()
 fl.appendField(f)
-db.updateConnectivityMap()
+db.updateConnectivityMap(True)
 mass = nodes1.mass()
 rho = nodes1.massDensity()
 weight = db.newFluidScalarFieldList(0.0, "weight")

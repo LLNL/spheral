@@ -46,7 +46,7 @@ commandLine(nx1 = 400,
             hourglass = None,
             hourglassOrder = 1,
             hourglassLimiter = 1,
-            filter = 0.01,
+            filter = 0.00,
 
             SVPH = False,
             CSPH = False,
@@ -388,6 +388,12 @@ if graphics in ("gnu", "matplot"):
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
+        state = State()
+        derivs = StateDerivatives(db, integrator.physicsPackages())
+        drhodt = derivs.scalarFields("delta mass density")
+        pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", colorNodeLists=False)
+        drhodx = derivs.vectorFields("mass density gradient")
+        pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
     
     if boolReduceViscosity:
         alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
@@ -445,13 +451,6 @@ if graphics in ("gnu", "matplot"):
     #                           colorNodeLists = False)
 
     # Some debugging useful plots to pull out the derivatives and check 'em out.
-
-    state = State()
-    derivs = StateDerivatives(db, integrator.physicsPackages())
-    drhodt = derivs.scalarFields("delta mass density")
-    drhodx = derivs.vectorFields("mass density gradient")
-    pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", colorNodeLists=False)
-    #pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],

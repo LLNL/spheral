@@ -118,6 +118,17 @@ class CSPH:
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
 
+        # Hull sum density.
+        self.space.add_function("computeHullSumMassDensity", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "massDensity")],
+                                template_parameters = [dim],
+                                custom_name = "computeHullSumMassDensity%id" % ndim)
+
         # CSPH corrections.
         self.space.add_function("computeCSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
@@ -249,10 +260,19 @@ class CSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         Spheral.add_function("computeHullVolumes", None,
                              [constrefparam(connectivitymap, "connectivityMap"),
+                              param("double", "kernelExtent"),
                               constrefparam(vectorfieldlist, "position"),
+                              constrefparam(symtensorfieldlist, "H"),
                               refparam(polyvolfieldlist, "polyvol"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
+
+        # Compute the H scaled volume for each point.
+        Spheral.add_function("computeHVolumes", None,
+                             [param("double", "kernelExtent"),
+                              constrefparam(symtensorfieldlist, "H"),
+                              refparam(scalarfieldlist, "volume")],
+                             docstring = "Compute the H scaled volume for each point.")
 
         return
 
@@ -383,6 +403,7 @@ class CSPH:
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
+        const_ref_return_value(x, me, "%s::DmassDensityDx" % me, vectorfieldlist, [], "DmassDensityDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
         const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")

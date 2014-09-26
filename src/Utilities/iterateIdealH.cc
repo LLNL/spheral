@@ -144,7 +144,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H1.copyFields();
 
     // Get the new connectivity.
-    dataBase.updateConnectivityMap();
+    dataBase.updateConnectivityMap(false);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
 
     // Iterate over the NodeLists.
