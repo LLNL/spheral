@@ -8,6 +8,8 @@
 #include "ArtificialConduction.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "FieldOperations/FieldListFunctions.hh"
+#include "CSPH/gradientCSPH.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -133,8 +135,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     
     // Fill the gradP fieldlist
     gradP = (CSPHisOn ?
-             gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W) :
-             /*gradientSPH*/);
+             CSPHSpace::gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W) :
+             FieldSpace::gradient(pressure,position,mass,mass,rho,H,W));
     
     
     // Start our big loop over all FluidNodeLists.
@@ -197,39 +199,46 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                                      nodeListj, j,
                                                                      firstGhostNodej)) {
                             // Get the state for node j
-                            const Vector& rj = position(nodeListj, j);
-                            const Scalar& mj = mass(nodeListj, j);
-                            const Scalar& rhoj = massDensity(nodeListj, j);
-                            const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-                            const Scalar& Pj = pressure(nodeListj, j);
-                            const SymTensor& Hj = H(nodeListj, j);
+                            const Vector& rj        = position(nodeListj, j);
+                            const Scalar& mj        = mass(nodeListj, j);
+                            const Scalar& rhoj      = massDensity(nodeListj, j);
+                            const Scalar& epsj      = specificThermalEnergy(nodeListj, j);
+                            const Scalar& Pj        = pressure(nodeListj, j);
+                            const SymTensor& Hj     = H(nodeListj, j);
                             if (CSPHisOn)
                             {
-                            const Scalar& Aj = A(nodeListj, j);
-                            const Vector& Bj = B(nodeListj, j);
-                            const Vector& gradA0j = gradA0(nodeListj, j);
-                            const Vector& gradAj = gradA(nodeListj, j);
-                            const Tensor& gradBj = gradB(nodeListj, j);
+                            const Scalar& Aj        = A(nodeListj, j);
+                            const Vector& Bj        = B(nodeListj, j);
+                            const Vector& gradA0j   = gradA0(nodeListj, j);
+                            const Vector& gradAj    = gradA(nodeListj, j);
+                            const Tensor& gradBj    = gradB(nodeListj, j);
                             CHECK(Aj > 0.0 or j >= firstGhostNodej);
                             }
                             CHECK(mj > 0.0);
                             CHECK(rhoj > 0.0);
                             
-                            Scalar& DepsDtj = DepsDt(nodeListj, j);
-                            Scalar& gradPj = gradP(nodeListj, j);
+                            Scalar& DepsDtj         = DepsDt(nodeListj, j);
+                            Scalar& gradPj          = gradP(nodeListj, j);
                             
                             // get some differentials
                             const Vector rij        = ri - rj;
                             const Vector rji        = rj - ri;
+                            const Vector etai       = Hi*rij;
+                            const Vector etaj       = Hj*rij;
+                            const Vector etaiNorm   = etai.unitVector();
+                            const Vector etajNorm   = etaj.unitVector();
                             const Scalar rhoij      = 0.5 * (rhoi + rhoj);
                             const Scalar uij        = epsi - epsj;
                             const Scalar Pij        = Pi - Pj;
-                            const Scalar DPij       = 0.5 * (gradPi * rji.magnitude() - gradPj * rij.magnitude());
+                            const Scalar DPij       = 0.5 * (gradPi * rji.magnitude() -
+                                                             gradPj * rij.magnitude());
                             const Scalar deltaPij   = min(abs(Pij),abs(Pij+DPij));
                             
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
-                            const Scalar deltaU     = (mj/rhoij) * (alphaArCond) * vsigij * uij * gradWij.dot(rij);
-                            // need to get alpha in here and gradWij
+                            const Vector gradWij    = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) +
+                                                           Hj*etajNorm*kernel.grad(etaj, Hj));
+                            
+                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij);
                             
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
