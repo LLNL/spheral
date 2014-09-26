@@ -7,7 +7,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	PhysicsInst.cc \
 	GenericHydroInst.cc \
-	GenericBodyForceInst.cc
+	GenericBodyForceInst.cc \
+	ArtificialConductionInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
