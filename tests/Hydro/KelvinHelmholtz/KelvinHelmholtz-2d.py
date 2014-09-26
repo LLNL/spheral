@@ -35,7 +35,7 @@ commandLine(nx1 = 100,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
-            numNodeLists = 2,  # If 1, makes this a single material problem.
+            numNodeLists = 1,  # If 2, makes this a two material problem.
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -57,8 +57,8 @@ commandLine(nx1 = 100,
             aMin = 0.1,
             aMax = 2.0,
             Qhmult = 1.0,
-            Cl = 0.1, 
-            Cq = 0.5,
+            Cl = 1.0, 
+            Cq = 0.75,
             Qlimiter = False,
             balsaraCorrection = True,
             epsilon2 = 1e-2,
