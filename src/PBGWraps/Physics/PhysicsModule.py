@@ -298,7 +298,8 @@ class Physics:
         artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
         
         # Constructor.
-        x.add_constructor([param("double", "arCondAlpha", default_value="0.5")])
+        x.add_constructor([constrefparam(tablekernel, "W"),
+                           param("double", "arCondAlpha", default_value="0.5")])
         
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
