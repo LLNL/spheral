@@ -78,12 +78,12 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = True,
+            compatibleEnergy = False,
             gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
-            bArtificialConduction = False,
+            bArtificialConduction = True,
             arCondAlpha = 0.5,
 
             clearDirectories = True,
@@ -249,16 +249,6 @@ if boolReduceViscosity:
     packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
-# Construct the Artificial Conduction physics object.
-#-------------------------------------------------------------------------------
-
-if bArtificialConduction:
-    #q.reducingViscosityCorrection = True
-    ArtyCond = ArtificialConduction(WT,arCondAlpha)
-    
-    packages.append(ArtyCond)
-
-#-------------------------------------------------------------------------------
 # zero velocity package
 #-------------------------------------------------------------------------------
 class zeroV_pkg(Physics):
@@ -267,12 +257,11 @@ class zeroV_pkg(Physics):
         return
 
     def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DvDt = derivs.vectorFields("delta" + HydroFieldNames.velocity)
+        DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+        DepsDt.Zero()
         DvDt.Zero()
         return
-            
-
-
     
     def dt(self, db, state, derivs, t):
         return pair_double_string(1e100, "No vote")
@@ -293,6 +282,16 @@ zv = zeroV_pkg()
 
 packages.append(zv)
 
+
+#-------------------------------------------------------------------------------
+# Construct the Artificial Conduction physics object.
+#-------------------------------------------------------------------------------
+
+if bArtificialConduction:
+    #q.reducingViscosityCorrection = True
+    ArtyCond = ArtificialConduction(WT,arCondAlpha)
+    
+    packages.append(ArtyCond)
 
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
