@@ -76,8 +76,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
-                         "strainAlgorithm"          : PseudoPlasticStrain,
-                         "effectiveDamageAlgorithm" : Copy,
+                         "strainAlgorithm"          : BenzAsphaug,
+                         "effectiveDamageAlgorithm" : 0,  # Copy
                          "useDamageGradient"        : True,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
@@ -213,8 +213,8 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
-                         "strainAlgorithm"          : PseudoPlasticStrain,
-                         "effectiveDamageAlgorithm" : Copy,
+                         "strainAlgorithm"          : BenzAsphaug,
+                         "effectiveDamageAlgorithm" : 0, # Copy,
                          "useDamageGradient"        : True,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
