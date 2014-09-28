@@ -26,6 +26,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                  xmax = (1.0, 1.0, 1.0),
                  rmin = None,
                  rmax = None,
+                 origin = (0.0, 0.0, 0.0),  # For rmin, rmax
                  thetamin = None,
                  thetamax = None,
                  phimin = None,
@@ -75,6 +76,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         self.xmax = xmax
         self.rmin = rmin
         self.rmax = rmax
+        self.origin = origin
         self.thetamin = thetamin
         self.thetamax = thetamax
         self.phimin = phimin
@@ -141,6 +143,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                          self.xmax,    # (xmax, ymax, zmax)
                                          self.rmin,
                                          self.rmax,
+                                         self.origin,
                                          self.nNodePerh)
 
         elif distributionType == 'cylindrical':
@@ -196,6 +199,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                      self.xmax,    # (xmax, ymax, zmax)
                                      self.rmin,
                                      self.rmax,
+                                     self.origin,
                                      self.nNodePerh)
 
         # If the user provided a "rejecter", give it a pass
@@ -553,6 +557,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                             xmax,
                             rmin,
                             rmax,
+                            origin,
                             nNodePerh = 2.01):
 
         assert nx > 0
@@ -591,9 +596,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
             xx = xmin[0] + (i + 0.5)*dx
             yy = xmin[1] + (j + 0.5)*dy
             zz = xmin[2] + (k + 0.5)*dz
-            r = sqrt(xx*xx + yy*yy + zz*zz)
-            if ((r >= rmin or rmin is None) and
-                (r <= rmax or rmax is None)):
+            r2 = (xx - origin[0])**2 + (yy - origin[1])**2 + (zz - origin[2])**2
+            if ((rmin is None or r2 >= rmin**2) and
+                (rmax is None or r2 <= rmax**2)):
                 x.append(xx)
                 y.append(yy)
                 z.append(zz)
@@ -793,6 +798,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                         xmax,
                         rmin,
                         rmax,
+                        origin,
                         nNodePerh = 2.01):
 
         assert nx > 0
@@ -835,9 +841,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
             # xx = xmin[0] + 0.5*dx*(2*i + (j % 2) + (k % 2))
             # yy = xmin[1] + 0.5*dy*sqrt(3.0)/3.0*(j + (k % 2))
             # zz = xmin[2] + dz*sqrt(6.0)/3.0*k
-            r = sqrt(xx*xx + yy*yy + zz*zz)
-            if ((r >= rmin or rmin is None) and
-                (r <= rmax or rmax is None)):
+            r2 = (xx - origin[0])**2 + (yy - origin[1])**2 + (zz - origin[2])**2
+            if ((rmin is None or r2 >= rmin**2) and
+                (rmax is None or r2 <= rmax**2)):
                 x.append(xx)
                 y.append(yy)
                 z.append(zz)
