@@ -86,9 +86,10 @@ def _TillotsonFactory(*args,
 
         # It looks like the user is trying to use one of the libarary canned values.
         # Evaluate the arguments to the method.
-        if len(args) != len(expectedArgs): # insist on formal mandaory arguments 
+        if (len(args) > len(expectedArgs) or 
+            (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
             raise ValueError, expectedUsageString
-        for i in xrange(len(expectedArgs)): # deal with mandatory args
+        for i in xrange(len(args)): # deal with mandatory args
             exec("%s = args[i]" % expectedArgs[i])
         for arg in kwargs: # deal with optional args
             if arg not in (expectedArgs + optionalKwArgs.keys() + ["TillConstructor"]):
