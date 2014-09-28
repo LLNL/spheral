@@ -459,7 +459,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
-      const Scalar sDi = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      Scalar sDi = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      if (sDi > 1.0 - 1.0e-5) sDi = 1.0;
       const Vector gradDi = unitVectorWithZero(gradDamage(nodeListi, i)*Dimension::nDim/Hi.Trace());
       const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
@@ -526,7 +527,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
-              const Scalar sDj = max(0.0, min(1.0, damage(nodeListj, j).eigenValues().maxElement()));
+              Scalar sDj = max(0.0, min(1.0, damage(nodeListj, j).eigenValues().maxElement()));
+              if (sDj > 1.0 - 1.0e-5) sDj = 1.0;
               const Vector gradDj = unitVectorWithZero(gradDamage(nodeListj, j)*Dimension::nDim/Hj.Trace());
               const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
