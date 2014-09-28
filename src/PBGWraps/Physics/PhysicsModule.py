@@ -75,6 +75,10 @@ class Physics:
         self.GenericBodyForce1d = addObject(space, "GenericBodyForce1d", allow_subclassing=True, parent=self.Physics1d)
         self.GenericBodyForce2d = addObject(space, "GenericBodyForce2d", allow_subclassing=True, parent=self.Physics2d)
         self.GenericBodyForce3d = addObject(space, "GenericBodyForce3d", allow_subclassing=True, parent=self.Physics3d)
+        
+        self.ArtificialConduction1d = addObject(space, "ArtificialConduction1d", allow_subclassing=True, parent=self.Physics1d)
+        self.ArtificialConduction2d = addObject(space, "ArtificialConduction2d", allow_subclassing=True, parent=self.Physics2d)
+        self.ArtificialConduction3d = addObject(space, "ArtificialConduction3d", allow_subclassing=True, parent=self.Physics3d)
 
         self.vector_of_Physics1d = addObject(mod, "vector_of_Physics1d", allow_subclassing=True)
         self.vector_of_Physics2d = addObject(mod, "vector_of_Physics2d", allow_subclassing=True)
@@ -101,6 +105,10 @@ class Physics:
         self.generateGenericBodyForceBindings(self.GenericBodyForce1d, 1)
         self.generateGenericBodyForceBindings(self.GenericBodyForce2d, 2)
         self.generateGenericBodyForceBindings(self.GenericBodyForce3d, 3)
+        
+        self.generateArtificialConductionBindings(self.ArtificialConduction1d, 1)
+        self.generateArtificialConductionBindings(self.ArtificialConduction2d, 2)
+        self.generateArtificialConductionBindings(self.ArtificialConduction3d, 3)
 
         generateStdVectorBindings(self.vector_of_Physics1d, "Spheral::PhysicsSpace::Physics1d*", "vector_of_Physics1d")
         generateStdVectorBindings(self.vector_of_Physics2d, "Spheral::PhysicsSpace::Physics2d*", "vector_of_Physics2d")
@@ -267,5 +275,36 @@ class Physics:
         const_ref_return_value(x, me, "%s::DxDt" % me, vectorfieldlist, [], "DxDt")
         const_ref_return_value(x, me, "%s::DvDt" % me, vectorfieldlist, [], "DvDt")
 
+        return
+
+    #---------------------------------------------------------------------------
+    # Artificial Conduction
+    #---------------------------------------------------------------------------
+    def generateArtificialConductionBindings(self, x, ndim):
+        
+        # Object names.
+        me = "Spheral::PhysicsSpace::ArtificialConduction%id" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        database = "Spheral::DataBaseSpace::DataBase%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
+        boundary = "Spheral::BoundarySpace::Boundary%id" % ndim
+        vector_of_boundary = "vector_of_Boundary%id" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        
+        # Constructor.
+        x.add_constructor([constrefparam(tablekernel, "W"),
+                           param("double", "arCondAlpha", default_value="0.5")])
+        
+        # Methods.
+        x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
+        generatePhysicsVirtualBindings(x,ndim,pureVirtual=False)
+        
+        
         return
 

@@ -22,10 +22,10 @@ commandLine(KernelConstructor = BSplineKernel,
 
             nx1 = 100,
             rho1 = 1.0,
-            eps1 = 0.0,
+            eps1 = 1.0,
             x0 = 0.0,
             x1 = 1.0,
-            xwall = 0.0,
+            xwall = 0.5,
             nPerh = 1.25,
             NeighborType = NestedGridNeighbor,
 
@@ -78,12 +78,12 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = True,
+            compatibleEnergy = False,
             gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
-            bArtificialConduction = False,
+            bArtificialConduction = True,
             arCondAlpha = 0.5,
 
             clearDirectories = True,
@@ -97,28 +97,9 @@ commandLine(KernelConstructor = BSplineKernel,
             outputFile = "None",
             comparisonFile = "None",
 
-            # Parameters for the test acceptance.,
-            L1rho =   0.0622862    ,
-            L2rho =   0.226227     ,
-            Linfrho = 1.53012      ,
-                                                         
-            L1P =     0.0223858    ,
-            L2P =     0.0886198    ,
-            LinfP =   0.61721      ,
-                                                         
-            L1v =     0.023289     ,
-            L2v =     0.11406      ,
-            Linfv =   0.809769     ,
-                                                         
-            L1eps =   0.0114214    ,
-            L2eps =   0.0522108    ,
-            Linfeps = 0.365918     ,
-                                             
-            L1h =     0.000341588  ,
-            L2h =     0.00128347   ,
-            Linfh =   0.00748636   ,
-
-            tol = 1.0e-5,
+            # Parameters for the test
+            scalePressure = 5.0,
+            scaleEnergy = 5.0,
 
             graphics = "gnu",
             )
@@ -177,14 +158,19 @@ output("nodes1.numNodes")
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 
-# Set node velocities
-pos = nodes1.positions()
-vel = nodes1.velocity()
-for ix in xrange(nodes1.numNodes):
-    if pos[ix].x > xwall:
-        vel[ix].x = vr0 + vrSlope*pos[ix].x
+nodeSet = [nodes1]
+
+# Set node specific thermal energies
+def specificEnergy(x):
+    if x < xwall:
+        return eps1
     else:
-        vel[ix].x = -vr0 + vrSlope*pos[ix].x
+        return eps1*scaleEnergy
+for nodes in nodeSet:
+    pos = nodes.positions()
+    eps = nodes.specificThermalEnergy()
+    for i in xrange(nodes.numInternalNodes):
+        eps[i] = specificEnergy(pos[i].x)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -261,6 +247,76 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
+# zero velocity package
+#-------------------------------------------------------------------------------
+class zeroV_pkg(Physics):
+    def __init__(self):
+        Physics.__init__(self)
+        return
+
+    def evaluateDerivatives(self, t, dt, db, state, derivs):
+        DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+        DepsDt.Zero()
+        DvDt.Zero()
+        return
+    
+    def dt(self, db, state, derivs, t):
+        return pair_double_string(1e100, "No vote")
+    
+    def registerState(self, dt, state):
+        return
+    
+    def registerDerivatives(self, db, derivs):
+        return
+    
+    def label(self):
+        return "zeroV package"
+    
+    def initialize(self, t, dt, db, state, derivs):
+        return
+
+zv = zeroV_pkg()
+
+packages.append(zv)
+
+#-------------------------------------------------------------------------------
+# debug pkg
+#-------------------------------------------------------------------------------
+class debug_pkg(Physics):
+    def __init__(self):
+        Physics.__init__(self)
+        return
+    
+    def evaluateDerivatives(self, t, dt, db, state, derivs):
+        DepsDt = derivs.scalarFields("specificThermalEnergy " + HydroFieldNames.velocity)
+        print DepsDt(0,50)
+        return
+    
+    
+    
+    
+    def dt(self, db, state, derivs, t):
+        return pair_double_string(1e100, "No vote")
+    
+    def registerState(self, dt, state):
+        return
+    
+    def registerDerivatives(self, db, derivs):
+        return
+    
+    def label(self):
+        return "zeroV package"
+    
+    def initialize(self, t, dt, db, state, derivs):
+        return
+
+dbg = debug_pkg()
+
+packages.append(dbg)
+
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -372,30 +428,6 @@ else:
         control.step(5)
         control.advance(goalTime, maxSteps)
 
-#-------------------------------------------------------------------------------
-# Compute the analytic answer.
-#-------------------------------------------------------------------------------
-import mpi
-import NohAnalyticSolution
-rlocal = [pos.x for pos in nodes1.positions().internalValues()]
-r = mpi.reduce(rlocal, mpi.SUM)
-h1 = 1.0/(nPerh*dx)
-answer = NohAnalyticSolution.NohSolution(1,
-                                         r = r,
-                                         v0 = -1.0,
-                                         h0 = 1.0/h1)
-
-# Compute the simulated specific entropy.
-rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
-Pf = ScalarField("pressure", nodes1)
-nodes1.pressure(Pf)
-P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
-A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
-
-# The analytic solution for the simulated entropy.
-xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -429,7 +461,8 @@ elif graphics == "gnu":
     Aplot.refresh()
     
     dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-
+    dudtPlot = plotFieldList(hydro.DepsDt(),yFunction='-1*%s.xx',winTitle='DepsDt',colorNodeLists=False)
+    
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
                                   winTitle = "rvAlphaQ",
