@@ -4,7 +4,7 @@
 //
 // Created by CDR, 9/24/2014
 //----------------------------------------------------------------------------//
-
+#include <stdio.h>
 #include "ArtificialConduction.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
