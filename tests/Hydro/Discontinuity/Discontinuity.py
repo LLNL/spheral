@@ -283,42 +283,6 @@ zv = zeroV_pkg()
 packages.append(zv)
 
 #-------------------------------------------------------------------------------
-# debug pkg
-#-------------------------------------------------------------------------------
-class debug_pkg(Physics):
-    def __init__(self):
-        Physics.__init__(self)
-        return
-    
-    def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DepsDt = derivs.scalarFields("specificThermalEnergy " + HydroFieldNames.velocity)
-        print DepsDt(0,50)
-        return
-    
-    
-    
-    
-    def dt(self, db, state, derivs, t):
-        return pair_double_string(1e100, "No vote")
-    
-    def registerState(self, dt, state):
-        return
-    
-    def registerDerivatives(self, db, derivs):
-        return
-    
-    def label(self):
-        return "zeroV package"
-    
-    def initialize(self, t, dt, db, state, derivs):
-        return
-
-dbg = debug_pkg()
-
-packages.append(dbg)
-
-
-#-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
 
