@@ -73,7 +73,10 @@ registerState(DataBase<Dimension>& dataBase,
     typedef typename State<Dimension>::PolicyPointer PolicyPointer;
     
     // get the eps policy
-    
+    FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+    PolicyPointer energyPolicy = state.policy(specificThermalEnergy.name()); /* this needs to be the key */
+    PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension, Scalar>(energyPolicy));
+    state.enroll(specificThermalEnergy, artificialConductionPolicy);
 }
     
 //------------------------------------------------------------------------------
@@ -233,8 +236,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             // start a-calculatin' all the things
                             const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij));
                             
-                            //const Scalar vsigij     = sqrt(deltaPij/rhoij);
-                            const Scalar vsigij     = sqrt(fabs(Pij)/rhoij); /* this is purely for testing against Price */
+                            const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            //const Scalar vsigij     = sqrt(fabs(Pij)/rhoij); /* this is purely for testing against Price */
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
                             
