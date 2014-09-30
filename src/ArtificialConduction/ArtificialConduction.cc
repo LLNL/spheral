@@ -75,7 +75,7 @@ registerState(DataBase<Dimension>& dataBase,
     
     // get the eps policy
     FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-    PolicyPointer energyPolicy = state.policy(specificThermalEnergy.name()); /* this needs to be the key */
+    PolicyPointer energyPolicy = state.policy(state.key(specificThermalEnergy)); /* this needs to be the key */
     PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension, Scalar>(energyPolicy));
     state.enroll(specificThermalEnergy, artificialConductionPolicy);
 }
