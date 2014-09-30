@@ -71,6 +71,9 @@ ArtificialConduction<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
     typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+    
+    // get the eps policy
+    
 }
     
 //------------------------------------------------------------------------------
@@ -230,15 +233,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             // start a-calculatin' all the things
                             const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij));
                             
-                            const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            //const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            const Scalar vsigij     = sqrt(fabs(Pij)/rhoij); /* this is purely for testing against Price */
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
                             
-                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij);
+                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
                             
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
-                            //if(i==50 || j==50) printf("%02d->%02d %3.2e: rhoij=%3.2e mj=%3.2e vsigij=%3.2e uij=%3.2e rij*gradWij=%3.2e dU/U=%3.2e DuDt=%3.2e\n",j,i,(i==50? deltaU : -deltaU),rhoij,mj,vsigij,uij,rij.dot(gradWij),deltaU/epsi,DepsDti);
+                            //if(i==50 || j==50) printf("%02d->%02d %3.2e: rhoij=%3.2e mj=%3.2e vsigij=%3.2e uij=%3.2e gradWij=%3.2e dU/U=%3.2e DuDt=%3.2e\n",j,i,(i==50? deltaU : -deltaU),rhoij,mj,vsigij,uij,gradWij.magnitude(),deltaU/epsi,DepsDti);
                         }
                     }
                 }

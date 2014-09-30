@@ -126,6 +126,9 @@ commandLine(KernelConstructor = BSplineKernel,
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
+if bArtificialConduction:
+    compatibleEnergy = False
+
 dx = (x1 - x0)/nx1
 
 #-------------------------------------------------------------------------------
