@@ -86,11 +86,11 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar etaj = (Hj*rij).magnitude();
           const Scalar Wi = W.kernelValue(etai, Hdeti);
           const Scalar Wj = W.kernelValue(etaj, Hdetj);
-          A0(nodeListi, i) += Vj*Wi;
-          A0(nodeListi, j) += Vi*Wj;
+          A0(nodeListi, i) += Vj*(Wi + Wj);
+          A0(nodeListi, j) += Vi*(Wi + Wj);
         }
       }
-      A0(nodeListi, i) += Vi*Hdeti*W0;
+      A0(nodeListi, i) += Vi*2.0*Hdeti*W0;
       CHECK(A0(nodeListi, i) > 0.0);
       A0(nodeListi, i) = 1.0/A0(nodeListi, i);
     }
@@ -153,8 +153,8 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar Wj = A0j*W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*Wi;
-          massDensity(nodeListi, j) += mi*Wj;
+          massDensity(nodeListi, i) += mj*(Wi + Wj);
+          massDensity(nodeListi, j) += mi*(Wi + Wj);
           // massDensity(nodeListi, i) += Vj*mj*Wi;
           // massDensity(nodeListi, j) += Vi*mi*Wj;
           // Veff(nodeListi, i) += Vj*Vj*Wi;
@@ -168,7 +168,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          (massDensity(nodeListi, i) + mi*A0i*Hdeti*W0)));
+                                          (massDensity(nodeListi, i) + mi*A0i*2.0*Hdeti*W0)));
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
       //                                     (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
