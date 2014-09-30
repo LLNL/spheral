@@ -1173,12 +1173,11 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-fortran=no --enable-shared --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
+	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
-	@if ! test -e $(SPHERALDIR)/lib/libsiloh5.a -a \
-	           -e $(SPHERALDIR)/lib/libsiloh5.$(DYLIBEXT); then \
+	@if ! test -e $(SPHERALDIR)/lib/libsiloh5.a; then \
 	echo "ERROR building SILO."; \
 	rm -f $(SILOBUILDDATE); \
 	exit 1; \
