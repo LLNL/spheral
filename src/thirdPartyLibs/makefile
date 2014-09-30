@@ -1173,7 +1173,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS)' CXXFLAGS='$(MPICXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
+	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(SPHERALDIR) --with-hdf5='$(SPHERALDIR)/include,$(SPHERALDIR)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(SPHERALDIR)/lib/Silo.so $(LIBDIR)
