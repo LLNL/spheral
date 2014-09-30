@@ -1,0 +1,183 @@
+#!/bin/ksh
+#
+#  pick a path and options to KCC based on the name used
+#  to get to this script being one of the following:
+#  
+#   [new | old][mp]KCC[_r | _r7 | _r10]
+#
+#  If environment variable LLNL_COMPILE_SINGLE_THREADED is TRUE, 
+#  override the default and don't use the thread-safe (_r) compile and load.
+if_on_machine() { eval "uname -n | grep -q $1" ; }
+
+# version names
+KCC_33g=/usr/local/kcc3.3g/KCC_BASE/bin/
+KCC_34d=/usr/local/kcc3.4d/KCC_BASE/bin/
+KCC_34g=/usr/local/kcc3.4g/KCC_BASE/bin/
+KCC_40c=/usr/local/kcc.base/kcc4.0c/KCC_BASE/bin/
+KCC_40d=/usr/local/kcc.base/kcc4.0d/KCC_BASE/bin/
+KCC_40f=/usr/local/kcc.base/kcc4.0f/KCC_BASE/bin/
+
+  KCC_CURRENT=$KCC_34d
+# deal with node specific differences in versions
+  if_on_machine          "blue"        ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_40f
+  else if_on_machine     "frost"        ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_40f
+  else if_on_machine     "baby"        ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_40f
+  else if_on_machine     "snow"        ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_40f
+  else if_on_machine     "smurf"       ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_40f
+  else if_on_machine     "white"       ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_34g
+  else if_on_machine     "ice"         ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_34g
+  else if_on_machine     "s"            ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_34g
+  else if_on_machine     "k"            ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_34g
+  else if_on_machine     "y"            ; if [ $? != 1 ]; then
+         KCC_OLD=$KCC_33g
+     KCC_CURRENT=$KCC_34d
+         KCC_NEW=$KCC_34g
+  fi; fi; fi; fi; fi; fi; fi; fi; fi; fi
+
+# Override the system choice and force to use our hacked KCC driver.
+KCC_OLD=@SPHERALDIR@/helpers/
+KCC_CURRENT=@SPHERALDIR@/helpers/
+KCC_NEW=@SPHERALDIR@/helpers/
+
+ _LIB=
+ opts=
+ _FLAGS=--thread_safe
+ DRIVER=myKCC
+ MP_VERBOSE=NO
+ _PTHR=
+
+#  pick new, old, or default version
+  COMPILERLOC=$KCC_CURRENT
+  case $0 in
+     *new*)
+        COMPILERLOC=$KCC_NEW
+        ;;
+     *old*)
+        COMPILERLOC=$KCC_OLD
+        ;;
+  esac
+
+  _D7_COMPAT=
+  EXPLICIT_R=NO
+  case $0 in
+     *_r10)
+         EXPLICIT_R=YES
+         ;;
+     *_r7)
+         EXPLICIT_R=YES
+         _D7_COMPAT=YES
+         ;;
+     *_r)
+         EXPLICIT_R=YES
+         ;;
+  esac
+
+  USEMPI=
+  case $0 in
+     *mp*)
+        USEMPI=YES
+        ;;
+  esac
+
+#  Check environment variable to see if thread-safe _r compile/load
+#  should be avoided
+ if [ "$EXPLICIT_R" = "NO" ] ; then
+    if [ "$LLNL_COMPILE_SINGLE_THREADED" = "TRUE" ] ; then
+       _FLAGS=
+    elif [ "$LLNL_COMPILE_SINGLE_THREADED" = "true" ] ; then
+       _FLAGS=
+    elif [ "$LLNL_COMPILE_SINGLE_THREADED" = "YES" ] ; then
+       _FLAGS=
+    elif [ "$LLNL_COMPILE_SINGLE_THREADED" = "yes" ] ; then
+       _FLAGS=
+    fi
+ fi
+
+ args=$#
+ while [ $args -gt 0 ]
+ do
+   param=$1
+   shift
+   args=`expr $args - 1`
+   case $param in
+     *\'*) opts="$opts \"$param\"" ;;
+     *\"*) opts="$opts '$param'" ;;
+     -v) opts="$opts $param " ; MP_VERBOSE=YES ;;
+     -d7) _D7_COMPAT=YES ;;
+     *) opts="$opts $param " ;;
+   esac
+ done
+
+  if [ "$USEMPI" = "YES" ]; then
+     _BASE=${MP_PREFIX:-/usr/lpp}/ppe.poe
+     _LIBROOT=$_BASE/lib
+     _LIBR="-L$_LIBROOT "
+     _LIBD="-L$_LIBROOT/ip"
+     _LIB_THREADS="-L$_LIBROOT/threads"
+     _LIB="$_LIB_THREADS $_LIBR $_LIBD"
+     _INCLUDE=$_BASE/include
+     if [ "$_FLAGS" != "" ]; then
+        _PTHR="-I$_INCLUDE -binitfini:poe_remote_main -lmpi_r -lvtd_r"
+     else
+        _PTHR="-I$_INCLUDE -binitfini:poe_remote_main -lmpi -lvtd"
+     fi
+     _LAPI_BASE=${MP_PREFIX:-/usr/lpp}/ssp/css
+     _LAPI_INCDIR=$_LAPI_BASE/include
+     _PTHR="$_PTHR -I$_LAPI_INCDIR -llapi_r"
+  fi
+
+# Check for POSIX Threads Draft 7 Compatibility.  If programs are
+# to be compiled with pthreads Draft 7,  include the draft 7 MPI
+# and LAPI (if found) libraries, and use the pthreads compatibility
+# library.
+ if [ "$_PTHR" != "" ]; then
+   if [ "$_D7_COMPAT" = "YES" ]; then
+     _PTHR="$_PTHR -lpthreads_compat"
+   fi
+   _PTHR="$_PTHR -lpthreads"
+ else
+   if [ "$_FLAGS" != "" ]; then
+     if [ "$_D7_COMPAT" = "YES" ]; then
+       _PTHR="-lpthreads_compat -lpthreads"
+     else
+       _PTHR="-lpthreads"
+     fi
+   fi
+ fi
+
+ if [ "$MP_VERBOSE" = "YES" ]; then
+         echo $COMPILERLOC$DRIVER $_FLAGS $opts $_LIB $_PTHR
+ fi
+
+ eval "$COMPILERLOC$DRIVER $_FLAGS $opts $_LIB $_PTHR"
+ rc=$?
+ 
+exit $rc
+
