@@ -73,7 +73,7 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
     typedef typename State<Dimension>::PolicyPointer PolicyPointer;
     
-    // get the eps policy
+    // get the eps policy and enroll the new one passing the old one as arg
     FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     PolicyPointer energyPolicy = state.policy(state.key(specificThermalEnergy)); /* this needs to be the key */
     PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension, Scalar>(energyPolicy));
@@ -223,7 +223,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             Vector& gradPj          = gradP(nodeListj, j);
                             
                             // get some differentials
-                            const Vector rij        = ri - rj;
+                            const Vector rij        = ri - rj; /* this is sign flipped but it's ok! */
                             const Vector rji        = rj - ri;
                             const Vector etai       = Hi*rij;
                             const Vector etaj       = Hj*rij;
@@ -236,10 +236,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              gradPj.dot(rij));
                             
                             // start a-calculatin' all the things
-                            const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij));
-                            
+                            const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
-                            //const Scalar vsigij     = sqrt(fabs(Pij)/rhoij); /* this is purely for testing against Price */
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
                             
