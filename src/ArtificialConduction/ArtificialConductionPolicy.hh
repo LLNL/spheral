@@ -23,7 +23,7 @@ namespace Spheral {
         template<typename Dimension, typename DataType> class Field;
     }
     
-    template<typename Dimension, typename ValueType>
+    template<typename Dimension>
     class ArtificialConductionPolicy: public FieldListUpdatePolicyBase<Dimension, ValueType> {
     public:
         //--------------------------- Public Interface ---------------------------//
