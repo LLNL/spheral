@@ -50,51 +50,52 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-  // Compute the initial volume guess and prepare a FieldList to hold the zeroth correction.
-  // const FieldList<Dimension, Scalar> volume = mass/massDensity;
-  FieldList<Dimension, Scalar> A0(FieldSpace::Copy), Veff(FieldSpace::Copy);
+  const Scalar W0 = W.kernelValue(0.0, 1.0);
+
+  // // Compute the initial volume guess and prepare a FieldList to hold the zeroth correction.
+  // // const FieldList<Dimension, Scalar> volume = mass/massDensity;
+  // FieldList<Dimension, Scalar> A0(FieldSpace::Copy), Veff(FieldSpace::Copy);
 
   // Build the correction for the initial volume estimate.
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
-  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
-    A0.appendNewField("A0", nodeList, 0.0);
-    Veff.appendNewField("effective volume", nodeList, 0.0);
-    const int firstGhostNodei = nodeList.firstGhostNode();
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const int i = *iItr;
-      const Vector& ri = position(nodeListi, i);
-      const Scalar& Vi = volume(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListi, i)[nodeListi];
-      for (vector<int>::const_iterator jItr = connectivity.begin();
-           jItr != connectivity.end();
-           ++jItr) {
-        const int j = *jItr;
-        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                     nodeListi, j,
-                                                     firstGhostNodei)) {
-          const Vector& rj = position(nodeListi, j);
-          const Scalar Vj = volume(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
-          const Vector rij = ri - rj;
-          const Scalar etai = (Hi*rij).magnitude();
-          const Scalar etaj = (Hj*rij).magnitude();
-          const Scalar Wi = W.kernelValue(etai, Hdeti);
-          const Scalar Wj = W.kernelValue(etaj, Hdetj);
-          A0(nodeListi, i) += Vj*(Wi + Wj);
-          A0(nodeListi, j) += Vi*(Wi + Wj);
-        }
-      }
-      A0(nodeListi, i) += Vi*2.0*Hdeti*W0;
-      CHECK(A0(nodeListi, i) > 0.0);
-      A0(nodeListi, i) = 1.0/A0(nodeListi, i);
-    }
-  }
+  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   const NodeList<Dimension>& nodeList = massDensity[nodeListi]->nodeList();
+  //   A0.appendNewField("A0", nodeList, 0.0);
+  //   Veff.appendNewField("effective volume", nodeList, 0.0);
+  //   const int firstGhostNodei = nodeList.firstGhostNode();
+  //   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //        iItr != connectivityMap.end(nodeListi);
+  //        ++iItr) {
+  //     const int i = *iItr;
+  //     const Vector& ri = position(nodeListi, i);
+  //     const Scalar& Vi = volume(nodeListi, i);
+  //     const SymTensor& Hi = H(nodeListi, i);
+  //     const Scalar Hdeti = Hi.Determinant();
+  //     const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListi, i)[nodeListi];
+  //     for (vector<int>::const_iterator jItr = connectivity.begin();
+  //          jItr != connectivity.end();
+  //          ++jItr) {
+  //       const int j = *jItr;
+  //       if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+  //                                                    nodeListi, j,
+  //                                                    firstGhostNodei)) {
+  //         const Vector& rj = position(nodeListi, j);
+  //         const Scalar Vj = volume(nodeListi, j);
+  //         const SymTensor& Hj = H(nodeListi, j);
+  //         const Scalar Hdetj = Hj.Determinant();
+  //         const Vector rij = ri - rj;
+  //         const Scalar etai = (Hi*rij).magnitude();
+  //         const Scalar etaj = (Hj*rij).magnitude();
+  //         const Scalar Wi = W.kernelValue(etai, Hdeti);
+  //         const Scalar Wj = W.kernelValue(etaj, Hdetj);
+  //         A0(nodeListi, i) += Vj*(Wi + Wj);
+  //         A0(nodeListi, j) += Vi*(Wi + Wj);
+  //       }
+  //     }
+  //     A0(nodeListi, i) += Vi*2.0*Hdeti*W0;
+  //     CHECK(A0(nodeListi, i) > 0.0);
+  //     A0(nodeListi, i) = 1.0/A0(nodeListi, i);
+  //   }
+  // }
 
   // // Apply boundaries to the zeroth correction.  We assume the caller has taken care of the input fields.
   // for (ConstBoundaryIterator boundItr = boundaryBegin;
@@ -124,7 +125,7 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar A0i = A0(nodeListi, i);
+      // const Scalar A0i = A0(nodeListi, i);
 
       // Get the neighbors for this node (in this NodeList).  We use the approximation here
       // that nodes from other NodeLists do not contribute to the density of this one.
@@ -143,22 +144,22 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
           const Scalar mj = mass(nodeListi, j);
           const SymTensor& Hj = H(nodeListi, j);
           const Scalar Hdetj = Hj.Determinant();
-          const Scalar A0j = A0(nodeListi, j);
+          // const Scalar A0j = A0(nodeListi, j);
 
           // Kernel weighting and gradient.
           const Vector rij = ri - rj;
           const Scalar etai = (Hi*rij).magnitude();
           const Scalar etaj = (Hj*rij).magnitude();
-          const Scalar Wi = A0i*W.kernelValue(etai, Hdeti);
-          const Scalar Wj = A0j*W.kernelValue(etaj, Hdetj);
+          const Scalar Wi = W.kernelValue(etai, Hdeti);
+          const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
           // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*(Wi + Wj);
-          massDensity(nodeListi, j) += mi*(Wi + Wj);
-          // massDensity(nodeListi, i) += Vj*mj*Wi;
-          // massDensity(nodeListi, j) += Vi*mi*Wj;
-          // Veff(nodeListi, i) += Vj*Vj*Wi;
-          // Veff(nodeListi, j) += Vi*Vi*Wj;
+          massDensity(nodeListi, i) += Wi;
+          massDensity(nodeListi, j) += Wj;
+          // massDensity(nodeListi, i) += mj*(Wi + Wj);
+          // massDensity(nodeListi, j) += mi*(Wi + Wj);
+          // Veff(nodeListi, i) += Vj*(Wi + Wj);
+          // Veff(nodeListi, j) += Vi*(Wi + Wj);
         }
       }
       
@@ -166,13 +167,12 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
       //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
-      massDensity(nodeListi, i) = max(rhoMin, 
-                                      min(rhoMax,
-                                          (massDensity(nodeListi, i) + mi*A0i*2.0*Hdeti*W0)));
       // massDensity(nodeListi, i) = max(rhoMin, 
       //                                 min(rhoMax,
-      //                                     (massDensity(nodeListi, i) + Vi*mi*A0i*Hdeti*W0) * 
-      //                                     safeInv(Veff(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
+      //                                     A0i*(massDensity(nodeListi, i) + mi*2.0*Hdeti*W0)));
+      massDensity(nodeListi, i) = max(rhoMin, 
+                                      min(rhoMax,
+                                          mi*(massDensity(nodeListi, i) + Hdeti*W0)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }

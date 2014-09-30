@@ -1427,7 +1427,7 @@ finalize(const typename Dimension::Scalar time,
     // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
 
-    computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     FieldList<Dimension, Scalar> vol = mass/massDensity;
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
