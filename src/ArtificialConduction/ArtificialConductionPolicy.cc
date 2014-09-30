@@ -59,7 +59,7 @@ namespace Spheral {
         
         FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
         const FieldSpace::FieldList<Dimension, Value> DepsDt = derivs.fields("Artificial Cond. DepsDt", Scalar);
-        CHECK(f.size() == df.size());
+        CHECK(eps.size() == DepsDt.size());
         
         // Have the base class update the energy.
         mEnergyPolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);
