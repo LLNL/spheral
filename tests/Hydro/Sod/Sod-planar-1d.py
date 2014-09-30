@@ -86,9 +86,6 @@ dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
 restartDir = dataDir + "/restarts"
 restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
 
-if bArtificialConduction:
-    compatibleEnergy = False
-
 assert numNodeLists in (1, 2)
 
 #-------------------------------------------------------------------------------

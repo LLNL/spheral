@@ -60,6 +60,7 @@ void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
+    mDepsDtArty = dataBase.newFluidFieldList(Scalar, "Artificial Cond. DepsDt");
 }
 
 //------------------------------------------------------------------------------
@@ -88,6 +89,7 @@ ArtificialConduction<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
     derivs.enroll(mGradP);
+    derivs.enroll(mDepsDtArty);
 }
     
 //------------------------------------------------------------------------------
@@ -126,7 +128,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK(pressure.size() == numNodeLists);
     
     // The relevant derivatives
-    FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+    FieldList<Dimension, Scalar> DepsDt = derivatives.fields("Artificial Cond. DepsDt", 0.0);
     FieldList<Dimension, Vector> gradP = derivatives.fields("Pressure Gradient", Vector::zero);
     CHECK(DepsDt.size() == numNodeLists);
     CHECK(gradP.size() == numNodeLists);
