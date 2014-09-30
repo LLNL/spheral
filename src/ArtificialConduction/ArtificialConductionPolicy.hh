@@ -23,7 +23,7 @@ namespace Spheral {
         template<typename Dimension, typename DataType> class Field;
     }
     
-    template<typename Dimension>
+    template<typename Dimension, typename ValueType>
     class ArtificialConductionPolicy: public FieldListUpdatePolicyBase<Dimension, ValueType> {
     public:
         //--------------------------- Public Interface ---------------------------//
@@ -52,6 +52,8 @@ namespace Spheral {
         //--------------------------- Private Interface ---------------------------//
         ArtificialConductionPolicy(const ArtificialConductionPolicy& rhs);
         ArtificialConductionPolicy& operator=(const ArtificialConductionPolicy& rhs);
+        
+        State<Dimension>::PolicyPointer mEnergyPolicy;
     };
     
 }
