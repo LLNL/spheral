@@ -22,7 +22,7 @@ namespace Spheral {
     //------------------------------------------------------------------------------
     // Constructor.
     //------------------------------------------------------------------------------
-    template<typename Dimension, typename Value>
+    template<typename Dimension>
     ArtificialConductionPolicy<Dimension>::
     ArtificialConductionPolicy(State<Dimension>::PolicyPointer& energyPolicy):
     FieldListUpdatePolicyBase<Dimension>(),
@@ -33,7 +33,7 @@ namespace Spheral {
     //------------------------------------------------------------------------------
     // Destructor.
     //------------------------------------------------------------------------------
-    template<typename Dimension, typename Value>
+    template<typename Dimension>
     ArtificialConductionPolicy<Dimension>::
     ~ArtificialConductionPolicy() {
     }
@@ -41,7 +41,7 @@ namespace Spheral {
     //------------------------------------------------------------------------------
     // Update the field.
     //------------------------------------------------------------------------------
-    template<typename Dimension, typename Value>
+    template<typename Dimension>
     void
     ArtificialConductionPolicy<Dimension>::
     update(const KeyType& key,
@@ -57,8 +57,8 @@ namespace Spheral {
         
         
         
-        FieldSpace::FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
-        const FieldSpace::FieldList<Dimension, Value> df = derivs.fields(incrementKey, Value());
+        FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+        const FieldSpace::FieldList<Dimension, Value> DepsDt = derivs.fields("Artificial Cond. DepsDt", Scalar);
         CHECK(f.size() == df.size());
         
         // Have the base class update the energy.
@@ -68,11 +68,11 @@ namespace Spheral {
 
         
         // Loop over the internal values of the field.
-        const unsigned numNodeLists = f.size();
+        const unsigned numNodeLists = eps.size();
         for (unsigned k = 0; k != numNodeLists; ++k) {
-            const unsigned n = f[k]->numInternalElements();
+            const unsigned n = eps[k]->numInternalElements();
             for (unsigned i = 0; i != n; ++i) {
-                f(k, i) += df(k,i) * dt;
+                eps(k, i) += DepsDt(k,i) * dt;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Spheral {
     //------------------------------------------------------------------------------
     // Equivalence operator.
     //------------------------------------------------------------------------------
-    template<typename Dimension, typename Value>
+    template<typename Dimension>
     bool
     ArtificialConductionPolicy<Dimension>::
     operator==(const UpdatePolicyBase<Dimension>& rhs) const {
