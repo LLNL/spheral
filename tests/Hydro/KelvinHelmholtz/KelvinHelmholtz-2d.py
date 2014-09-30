@@ -373,7 +373,7 @@ integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
 
 # Blago!  Currently a problem with periodic boundaries.
-integrator.cullGhostNodes = False
+# integrator.cullGhostNodes = False
 
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
