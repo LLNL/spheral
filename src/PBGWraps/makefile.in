@@ -9,7 +9,7 @@ INSTALLTARGETS = Spheral.pth
 
 SPHERALTOP = ..
 
-EXTRALIBS = -lvisit_writer -lsiloh5
+EXTRALIBS = -lvisit_writer -lsiloh5 -lhdf5
 
 PYTHONPKGS = @PYTHONPKGS@
 PBGPKGS = @PYTHONPKGS@
