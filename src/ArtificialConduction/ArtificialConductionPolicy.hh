@@ -24,7 +24,7 @@ namespace Spheral {
     }
     
     template<typename Dimension>
-    class ArtificialConductionPolicy: public FieldListUpdatePolicyBase<Dimension, ValueType> {
+    class ArtificialConductionPolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
     public:
         //--------------------------- Public Interface ---------------------------//
         // Useful typedefs
@@ -53,7 +53,7 @@ namespace Spheral {
         ArtificialConductionPolicy(const ArtificialConductionPolicy& rhs);
         ArtificialConductionPolicy& operator=(const ArtificialConductionPolicy& rhs);
         
-        State<Dimension>::PolicyPointer mEnergyPolicy;
+        typename State<Dimension>::PolicyPointer mEnergyPolicy;
     };
     
 }

@@ -24,10 +24,12 @@ namespace Spheral {
     //------------------------------------------------------------------------------
     template<typename Dimension>
     ArtificialConductionPolicy<Dimension>::
-    ArtificialConductionPolicy(State<Dimension>::PolicyPointer& energyPolicy):
-    FieldListUpdatePolicyBase<Dimension>(),
+    ArtificialConductionPolicy(typename State<Dimension>::PolicyPointer& energyPolicy):
+    FieldListUpdatePolicyBase<Dimension, Scalar>(),
     mEnergyPolicy(energyPolicy){
-        
+        const std::vector<std::string>& dependencies = energyPolicy->dependencies();
+        for (unsigned i = 0; i<dependencies.size(); ++i)
+            this->addDependency(dependencies[i]);
     }
     
     //------------------------------------------------------------------------------
@@ -58,21 +60,19 @@ namespace Spheral {
         
         
         FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-        const FieldSpace::FieldList<Dimension, Value> DepsDt = derivs.fields("Artificial Cond. DepsDt", Scalar);
+        const FieldSpace::FieldList<Dimension, Scalar> DepsDt = derivs.fields("Artificial Cond. DepsDt", 0.0);
         CHECK(eps.size() == DepsDt.size());
         
         // Have the base class update the energy.
-        mEnergyPolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);
+        mEnergyPolicy->update(key, state, derivs, multiplier, t, dt);
         
-        // Get the artycond depsdt from derivs
-
         
         // Loop over the internal values of the field.
         const unsigned numNodeLists = eps.size();
         for (unsigned k = 0; k != numNodeLists; ++k) {
             const unsigned n = eps[k]->numInternalElements();
             for (unsigned i = 0; i != n; ++i) {
-                eps(k, i) += DepsDt(k,i) * dt;
+                eps(k, i) += DepsDt(k,i) * multiplier;
             }
         }
 
