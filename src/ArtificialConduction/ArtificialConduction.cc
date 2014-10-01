@@ -6,6 +6,7 @@
 //----------------------------------------------------------------------------//
 #include <stdio.h>
 #include "ArtificialConduction.hh"
+#include "ArtificialConductionPolicy.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FieldOperations/FieldListFunctions.hh"
@@ -60,7 +61,7 @@ void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
-    mDepsDtArty = dataBase.newFluidFieldList(Scalar, "Artificial Cond. DepsDt");
+    mDepsDtArty = dataBase.newFluidFieldList(0.0, "Artificial Cond. DepsDt");
 }
 
 //------------------------------------------------------------------------------
@@ -76,7 +77,7 @@ registerState(DataBase<Dimension>& dataBase,
     // get the eps policy and enroll the new one passing the old one as arg
     FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     PolicyPointer energyPolicy = state.policy(state.key(specificThermalEnergy)); /* this needs to be the key */
-    PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension, Scalar>(energyPolicy));
+    PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension>(energyPolicy));
     state.enroll(specificThermalEnergy, artificialConductionPolicy);
 }
     

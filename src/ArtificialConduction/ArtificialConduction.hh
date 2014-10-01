@@ -8,7 +8,7 @@
 #ifndef ArtificialConduction_HH
 #define ArtificialConduction_HH
 
-#include "Physics.hh"
+#include "Physics/Physics.hh"
 
 namespace Spheral {
     template<typename Dimension> class State;

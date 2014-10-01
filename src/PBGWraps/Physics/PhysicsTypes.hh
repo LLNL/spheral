@@ -5,7 +5,6 @@
 #include "Physics/Physics.hh"
 #include "Physics/GenericHydro.hh"
 #include "Physics/GenericBodyForce.hh"
-#include "Physics/ArtificialConduction.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
