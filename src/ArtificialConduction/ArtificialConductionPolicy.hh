@@ -45,6 +45,13 @@ namespace Spheral {
                             const double t,
                             const double dt);
         
+        virtual void updateAsIncrement(const KeyType& key,
+                                       State<Dimension>& state,
+                                       StateDerivatives<Dimension>& derivs,
+                                       const double multiplier,
+                                       const double t,
+                                       const double dt);
+        
         // Equivalence.
         virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
         
@@ -54,6 +61,7 @@ namespace Spheral {
         ArtificialConductionPolicy& operator=(const ArtificialConductionPolicy& rhs);
         
         typename State<Dimension>::PolicyPointer mEnergyPolicy;
+        bool mUpdateAsInc;
     };
     
 }

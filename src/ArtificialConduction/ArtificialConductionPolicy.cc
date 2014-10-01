@@ -64,8 +64,8 @@ namespace Spheral {
         CHECK(eps.size() == DepsDt.size());
         
         // Have the base class update the energy.
-        mEnergyPolicy->update(key, state, derivs, multiplier, t, dt);
-        
+        if(!mUpdateAsInc) mEnergyPolicy->update(key, state, derivs, multiplier, t, dt);
+        mUpdateAsInc = false;
         
         // Loop over the internal values of the field.
         const unsigned numNodeLists = eps.size();
@@ -77,6 +77,21 @@ namespace Spheral {
         }
 
     }
+    
+    template<typename Dimension>
+    void
+    ArtificialConductionPolicy<Dimension>::
+    updateAsIncrement(const KeyType& key,
+                      State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivs,
+                      const double multiplier,
+                      const double t,
+                      const double dt) {
+        mEnergyPolicy->updateAsIncrement(key,state,derivs,multiplier,t,dt);
+        mUpdateAsInc = true;
+        update(key,state,derivs,multiplier,t,dt);
+    }
+    
     
     //------------------------------------------------------------------------------
     // Equivalence operator.
