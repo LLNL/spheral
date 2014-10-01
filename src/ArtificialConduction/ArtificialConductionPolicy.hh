@@ -68,7 +68,6 @@ namespace Spheral {
         ArtificialConductionPolicy& operator=(const ArtificialConductionPolicy& rhs);
         
         typename State<Dimension>::PolicyPointer mEnergyPolicy;
-        bool mUpdateAsInc;
     };
     
 }
