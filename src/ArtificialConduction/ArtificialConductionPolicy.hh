@@ -52,6 +52,13 @@ namespace Spheral {
                                        const double t,
                                        const double dt);
         
+        void conduct(const KeyType& key,
+                     State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs,
+                     const double multiplier,
+                     const double t,
+                     const double dt);
+        
         // Equivalence.
         virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
         

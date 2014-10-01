@@ -52,30 +52,8 @@ namespace Spheral {
            const double multiplier,
            const double t,
            const double dt) {
-        KeyType fieldKey, nodeListKey;
-        StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-        REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and
-                nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-        
-        
-        
-        FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-        const FieldSpace::FieldList<Dimension, Scalar> DepsDt = derivs.fields("Artificial Cond. DepsDt", 0.0);
-        CHECK(eps.size() == DepsDt.size());
-        
-        // Have the base class update the energy.
-        if(!mUpdateAsInc) mEnergyPolicy->update(key, state, derivs, multiplier, t, dt);
-        mUpdateAsInc = false;
-        
-        // Loop over the internal values of the field.
-        const unsigned numNodeLists = eps.size();
-        for (unsigned k = 0; k != numNodeLists; ++k) {
-            const unsigned n = eps[k]->numInternalElements();
-            for (unsigned i = 0; i != n; ++i) {
-                eps(k, i) += DepsDt(k,i) * multiplier;
-            }
-        }
-
+        mEnergyPolicy->update(key, state, derivs, multiplier, t, dt);
+        conduct(key,state,derivs,multiplier,t,dt);
     }
     
     template<typename Dimension>
@@ -88,8 +66,36 @@ namespace Spheral {
                       const double t,
                       const double dt) {
         mEnergyPolicy->updateAsIncrement(key,state,derivs,multiplier,t,dt);
-        mUpdateAsInc = true;
-        update(key,state,derivs,multiplier,t,dt);
+        conduct(key,state,derivs,multiplier,t,dt);
+    }
+    
+    template<typename Dimension>
+    void
+    ArtificialConductionPolicy<Dimension>::
+    conduct(const KeyType& key,
+            State<Dimension>& state,
+            StateDerivatives<Dimension>& derivs,
+            const double multiplier,
+            const double t,
+            const double dt) {
+        KeyType fieldKey, nodeListKey;
+        StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+        REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and
+                nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+        
+        FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+        const FieldSpace::FieldList<Dimension, Scalar> DepsDt = derivs.fields("Artificial Cond. DepsDt", 0.0);
+        CHECK(eps.size() == DepsDt.size());
+
+        // Loop over the internal values of the field.
+        const unsigned numNodeLists = eps.size();
+        for (unsigned k = 0; k != numNodeLists; ++k) {
+            const unsigned n = eps[k]->numInternalElements();
+            for (unsigned i = 0; i != n; ++i) {
+                eps(k, i) += DepsDt(k,i) * multiplier;
+            }
+        }
+
     }
     
     
