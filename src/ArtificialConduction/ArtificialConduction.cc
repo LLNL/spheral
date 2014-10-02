@@ -246,7 +246,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
-                            //if(i==50 || j==50) printf("%02d->%02d %3.2e: rhoij=%3.2e mj=%3.2e vsigij=%3.2e uij=%3.2e gradWij=%3.2e dU/U=%3.2e DuDt=%3.2e\n",j,i,(i==50? deltaU : -deltaU),rhoij,mj,vsigij,uij,gradWij.magnitude(),deltaU/epsi,DepsDti);
                         }
                     }
                 }

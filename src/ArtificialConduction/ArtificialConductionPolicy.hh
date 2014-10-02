@@ -9,7 +9,7 @@
 #define __ArtificialConductionPolicy_hh__
 
 #include <string>
-#include "Database/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
     
