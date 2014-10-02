@@ -106,7 +106,7 @@ clean:
 distclean:
 	$(MAKE) clean
 	$(MAKE) -C thirdPartyLibs clean
-	rm -fr $(SPHERALDIR)/bin $(SPHERALDIR)/doc $(SPHERALDIR)/include $(SPHERALDIR)/lib $(SPHERALDIR)/share $(SPHERALDIR)/man $(SPHERALDIR)/info $(SPHERALDIR)/WildMagic5
+	rm -fr $(SPHERALDIR)/bin $(SPHERALDIR)/doc $(SPHERALDIR)/include $(SPHERALDIR)/lib $(SPHERALDIR)/share $(SPHERALDIR)/man $(SPHERALDIR)/info $(SPHERALDIR)/Applications $(SPHERALDIR)/Python.framework $(SPHERALDIR)/atsMachines
 
 spotless:
 	for pckg in $(CXXPKGS); do \
