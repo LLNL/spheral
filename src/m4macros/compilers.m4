@@ -154,12 +154,6 @@ case $COMPILERS in
          PARMETISCC=$MPICC
 
       fi
-
-#      # On 64 bit Darwin we have to diddle the python configure 
-#      if test $OSNAME = "Darwin"; then
-#         PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR" # --enable-universalsdk" # --disable-toolbox-glue"
-#         #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR --enable-universalsdk" # --disable-toolbox-glue"
-#      fi
       ;;
 
    vacpp)
@@ -231,6 +225,12 @@ if test $MPIENABLED = "no"; then
   MPICXX=$CXX
   MPICCFLAGS=
   MPICXXFLAGS=
+fi
+
+# On 64 bit Darwin we have to diddle the python configure 
+if test $OSNAME = "Darwin"; then
+   PYTHONCONFFLAGS="--enable-framework=$SPHERALDIR DESTDIR=$SPHERALDIR"
+   #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR --enable-universalsdk" # --disable-toolbox-glue"
 fi
 
 # =======================================================================

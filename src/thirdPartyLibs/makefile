@@ -61,7 +61,7 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(SPHERALDIR)/bin/cmake
-CMAKEDIST = cmake-3.0.1.tar.gz
+CMAKEDIST = cmake-3.0.2.tar.gz
 CMAKEURL = http://www.cmake.org/files/v3.0/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
@@ -378,9 +378,9 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	rm -fr $(PYTHONDIR)
 	$(GZIP) -dc $(PYTHONDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(PYTHONDIR); \
-	env CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
-	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' 
-	$(MAKE) -C $(PYTHONDIR) install
+	env PATH="$(SPHERALDIR)/bin:$$PATH" CONFIG_SHELL=$(CONFIG_SHELL) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' HAS_HG=no ./configure --disable-ipv6 --with-gcc='$(PYTHONCC)' --with-cxx-main=$(PYTHONCXX) --prefix=$(SPHERALDIR) $(PYTHONCONFFLAGS)"
+	$(MAKE) -C $(PYTHONDIR) CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' CFLAGS='$(PYTHONCFLAGS)' LDFLAGS='$(LDFLAGS)' DESTDIR=$(SPHERALDIR)
+	$(MAKE) -C $(PYTHONDIR) DESTDIR=$(SPHERALDIR) install
 	@if ! test -e $(PYTHONEXE); then \
 	echo "ERROR building local python distribution."; \
 	rm -f $(PYTHONBUILDDATE); \
