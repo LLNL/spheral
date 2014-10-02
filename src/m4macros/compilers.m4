@@ -227,11 +227,11 @@ if test $MPIENABLED = "no"; then
   MPICXXFLAGS=
 fi
 
-# On 64 bit Darwin we have to diddle the python configure 
-if test $OSNAME = "Darwin"; then
-   PYTHONCONFFLAGS="--enable-framework=$SPHERALDIR DESTDIR=$SPHERALDIR"
-   #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR --enable-universalsdk" # --disable-toolbox-glue"
-fi
+## On 64 bit Darwin we have to diddle the python configure 
+#if test $OSNAME = "Darwin"; then
+#   PYTHONCONFFLAGS="--enable-framework=$SPHERALDIR DESTDIR=$SPHERALDIR"
+#   #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR --enable-universalsdk" # --disable-toolbox-glue"
+#fi
 
 # =======================================================================
 # MPI compilers
