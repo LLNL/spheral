@@ -963,7 +963,7 @@ $(ZLIBBUILDDATE):	$(ZLIBDIST)
 	rm -fr $(ZLIBDIR)
 	$(GZIP) -dc $(ZLIBDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(ZLIBDIR); \
-	./configure --prefix=$(SPHERALDIR) ; \
+	env CFLAGS='$(CFLAGS)' ./configure --prefix=$(SPHERALDIR) ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/include/zlib.h -a \
