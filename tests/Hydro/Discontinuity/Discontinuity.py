@@ -20,11 +20,14 @@ title("1-D integrated hydro test -- planar Noh problem")
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
 
-            nx1 = 100,
+            nx1 = 50,
+            nx2 = 50,
             rho1 = 1.0,
+            rho2 = 5.0,
             eps1 = 1.0,
             x0 = 0.0,
-            x1 = 1.0,
+            x1 = 0.5,
+            x2 = 1.0,
             xwall = 0.5,
             nPerh = 1.25,
             NeighborType = NestedGridNeighbor,
@@ -66,7 +69,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
-            steps = None,
+            steps = 100,
             dt = 0.0001,
             dtMin = 1.0e-5, 
             dtMax = 0.1,
@@ -77,7 +80,8 @@ commandLine(KernelConstructor = BSplineKernel,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IdealH,
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            #densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            densityUpdate = IntegrateDensity,
             compatibleEnergy = False,
             gradhCorrection = True,
             domainIndependent = True,
@@ -101,8 +105,7 @@ commandLine(KernelConstructor = BSplineKernel,
             scalePressure = 5.0,
             scaleEnergy = 5.0,
 
-            graphics = "gnu",
-            )
+            graphics = "gnu")
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
@@ -123,7 +126,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gamma, mu)
+eos = IsothermalEquationOfStateMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -150,13 +153,13 @@ output("nodes1.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
+distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)), (nx2, rho2, (x1, x2))])],
                          nPerh = nPerh)
 output("nodes1.numNodes")
 
 # Set node specific thermal energies
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
+#nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 
 nodeSet = [nodes1]
 
@@ -283,42 +286,6 @@ zv = zeroV_pkg()
 packages.append(zv)
 
 #-------------------------------------------------------------------------------
-# debug pkg
-#-------------------------------------------------------------------------------
-class debug_pkg(Physics):
-    def __init__(self):
-        Physics.__init__(self)
-        return
-    
-    def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DepsDt = derivs.scalarFields("specificThermalEnergy " + HydroFieldNames.velocity)
-        print DepsDt(0,50)
-        return
-    
-    
-    
-    
-    def dt(self, db, state, derivs, t):
-        return pair_double_string(1e100, "No vote")
-    
-    def registerState(self, dt, state):
-        return
-    
-    def registerDerivatives(self, db, derivs):
-        return
-    
-    def label(self):
-        return "zeroV package"
-    
-    def initialize(self, t, dt, db, state, derivs):
-        return
-
-dbg = debug_pkg()
-
-packages.append(dbg)
-
-
-#-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
 
@@ -409,24 +376,18 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-if not steps is None:
-    control.step(steps)
-
-    # Are we doing the restart test?
-    if checkRestart:
-        state0 = State(db, integrator.physicsPackages())
-        state0.copyState()
-        control.loadRestartFile(control.totalSteps)
-        state1 = State(db, integrator.physicsPackages())
-        if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
-        else:
-            print "Restart check PASSED."
-
-else:
-    if control.time() < goalTime:
-        control.step(5)
-        control.advance(goalTime, maxSteps)
+eps50 = []
+timeArray = []
+if control.time() < goalTime:
+    step = 0
+    
+    while step < steps:
+        control.step(1)
+        step = step + 1
+        eps = nodes1.specificThermalEnergy()
+        eps50.append(float(eps[50]))
+        timeArray.append(float(control.time()))
+#control.advance(goalTime, maxSteps)
 
 
 #-------------------------------------------------------------------------------
@@ -441,138 +402,21 @@ if graphics == "matplot":
 
 elif graphics == "gnu":
     from SpheralGnuPlotUtilities import *
+
+
+
+    #EPlot = plotEHistory(control.conserve)
+    
+    dudtPlot = generateNewGnuPlot()
+    dudtData = Gnuplot.Data(timeArray,eps50,with_ = "points", title="eps50")
+    dudtPlot.plot(dudtData)
+    #dudtPlot('set logscale y')
+    dudtPlot.refresh()
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
-    EPlot = plotEHistory(control.conserve)
+#plotAnswer(control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
 
-    # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    
-    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-    dudtPlot = plotFieldList(hydro.DepsDt(),yFunction='-1*%s.xx',winTitle='DepsDt',colorNodeLists=False)
-    
-    if boolReduceViscosity:
-        alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
-                                  winTitle = "rvAlphaQ",
-                                  colorNodeLists = False, plotGhosts = False)
-        alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
-                                   winTitle = "rvAlphaL",
-                                   colorNodeLists = False, plotGhosts = False)
-
-    # # Plot the grad h correction term (omega)
-    # omegaPlot = plotFieldList(hydro.omegaGradh(),
-    #                           winTitle = "grad h correction",
-    #                           colorNodeLists = False)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
 if checkEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
-
-#-------------------------------------------------------------------------------
-# Measure the difference between the simulation and analytic answer.
-#-------------------------------------------------------------------------------
-rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
-rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-P = ScalarField("pressure", nodes1)
-nodes1.pressure(P)
-Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-
-#-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
-#-------------------------------------------------------------------------------
-if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-    P = ScalarField("pressure", nodes1)
-    nodes1.pressure(P)
-    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-    if mpi.rank == 0:
-        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-        f = open(outputFile, "w")
-        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "hans",
-                                               "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, rhoi, Pi, vi, epsi, hi, mi,
-             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-                                                  rhoans, Pans, vans, hans):
-            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, hi, mi,
-                     rhoansi, Pansi, vansi, hansi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi))))
-        f.close()
-
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file.
-        #---------------------------------------------------------------------------
-        if comparisonFile != "None":
-            comparisonFile = os.path.join(dataDir, comparisonFile)
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)
-#------------------------------------------------------------------------------
-# Compute the error.
-#------------------------------------------------------------------------------
-if checkError:
-    if mpi.rank == 0:
-        xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-        import Pnorm
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-        failure = False
-        for (name, data, ans,
-             L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-                                                 ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-                                                 ("Velocity", vprof, vans, L1v, L2v, Linfv),
-                                                 ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-                                                 ("h       ", hprof, hans, L1h, L2h, Linfh)]:
-            assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
-            Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, rmin, rmax)
-            L2 = Pn.gridpnorm(2, rmin, rmax)
-            Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-            if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L1,
-                                                                                      L1expect)
-                failure = True
-            if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L2,
-                                                                                      L2expect)
-                failure = True
-            if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                        Linf,
-                                                                                        Linfexpect)
-                failure = True
-        if failure:
-            raise ValueError, "Error bounds violated."
-

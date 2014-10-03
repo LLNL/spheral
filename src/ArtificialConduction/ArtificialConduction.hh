@@ -8,7 +8,7 @@
 #ifndef ArtificialConduction_HH
 #define ArtificialConduction_HH
 
-#include "Physics.hh"
+#include "Physics/Physics.hh"
 
 namespace Spheral {
     template<typename Dimension> class State;
@@ -67,6 +67,7 @@ namespace Spheral {
             
             // Our derivative field(s).
             FieldSpace::FieldList<Dimension, Vector> mGradP;
+            FieldSpace::FieldList<Dimension, Scalar> mDepsDtArty;
             Scalar mAlphaArCond;
 
         };

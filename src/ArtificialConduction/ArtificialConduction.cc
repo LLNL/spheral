@@ -6,6 +6,7 @@
 //----------------------------------------------------------------------------//
 #include <stdio.h>
 #include "ArtificialConduction.hh"
+#include "ArtificialConductionPolicy.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FieldOperations/FieldListFunctions.hh"
@@ -60,6 +61,7 @@ void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
+    mDepsDtArty = dataBase.newFluidFieldList(0.0, "Artificial Cond. DepsDt");
 }
 
 //------------------------------------------------------------------------------
@@ -71,6 +73,12 @@ ArtificialConduction<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
     typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+    
+    // get the eps policy and enroll the new one passing the old one as arg
+    FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+    PolicyPointer energyPolicy = state.policy(state.key(specificThermalEnergy)); /* this needs to be the key */
+    PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension>(energyPolicy));
+    state.enroll(specificThermalEnergy, artificialConductionPolicy);
 }
     
 //------------------------------------------------------------------------------
@@ -82,6 +90,7 @@ ArtificialConduction<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
     derivs.enroll(mGradP);
+    derivs.enroll(mDepsDtArty);
 }
     
 //------------------------------------------------------------------------------
@@ -120,7 +129,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK(pressure.size() == numNodeLists);
     
     // The relevant derivatives
-    FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+    FieldList<Dimension, Scalar> DepsDt = derivatives.fields("Artificial Cond. DepsDt", 0.0);
     FieldList<Dimension, Vector> gradP = derivatives.fields("Pressure Gradient", Vector::zero);
     CHECK(DepsDt.size() == numNodeLists);
     CHECK(gradP.size() == numNodeLists);
@@ -169,15 +178,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const Scalar& epsi = specificThermalEnergy(nodeListi, i);
             const Scalar& Pi = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
-//            if (CSPHisOn)
-//            {
-//            const Scalar& Ai = A(nodeListi, i);
-//            const Vector& Bi = B(nodeListi, i);
-//            const Vector& gradA0i = gradA0(nodeListi, i);
-//            const Vector& gradAi = gradA(nodeListi, i);
-//            const Tensor& gradBi = gradB(nodeListi, i);
-//            CHECK(Ai > 0.0);
-//            }
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
@@ -210,22 +210,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                                      firstGhostNodej)) {
                             
                             
-                            // Get the state for node j
+                            // get the state for node j
                             const Vector& rj        = position(nodeListj, j);
                             const Scalar& mj        = mass(nodeListj, j);
                             const Scalar& rhoj      = massDensity(nodeListj, j);
                             const Scalar& epsj      = specificThermalEnergy(nodeListj, j);
                             const Scalar& Pj        = pressure(nodeListj, j);
                             const SymTensor& Hj     = H(nodeListj, j);
-//                            if (CSPHisOn)
-//                            {
-//                            const Scalar& Aj        = A(nodeListj, j);
-//                            const Vector& Bj        = B(nodeListj, j);
-//                            const Vector& gradA0j   = gradA0(nodeListj, j);
-//                            const Vector& gradAj    = gradA(nodeListj, j);
-//                            const Tensor& gradBj    = gradB(nodeListj, j);
-//                            //CHECK(Aj > 0.0 or j >= firstGhostNodej);
-//                            }
                             CHECK(mj > 0.0);
                             CHECK(rhoj > 0.0);
                             
@@ -233,7 +224,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             Vector& gradPj          = gradP(nodeListj, j);
                             
                             // get some differentials
-                            const Vector rij        = ri - rj;
+                            const Vector rij        = ri - rj; /* this is sign flipped but it's ok! */
                             const Vector rji        = rj - ri;
                             const Vector etai       = Hi*rij;
                             const Vector etaj       = Hj*rij;
@@ -244,17 +235,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar Pij        = Pi - Pj;
                             const Scalar DPij       = 0.5 * (gradPi.dot(rji) -
                                                              gradPj.dot(rij));
-                            const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij));
                             
+                            // start a-calculatin' all the things
+                            const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
                             
-                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij);
+                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
                             
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
-                            if(i==50 || j==50) printf("%02d->%02d %3.2e: rhoij=%3.2e mj=%3.2e vsigij=%3.2e uij=%3.2e rij*gradWij=%3.2e dU/U=%3.2e DuDt=%3.2e\n",j,i,(i==50? deltaU : -deltaU),rhoij,mj,vsigij,uij,rij.dot(gradWij),deltaU/epsi,DepsDti);
                         }
                     }
                 }
