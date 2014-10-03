@@ -47,6 +47,9 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
+            
+            bArtificialConduction = False,
+            arCondAlpha = 0.5,
 
             SVPH = False,
             CSPH = False,
@@ -221,6 +224,16 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
+# Construct the Artificial Conduction physics object.
+#-------------------------------------------------------------------------------
+
+if bArtificialConduction:
+    #q.reducingViscosityCorrection = True
+    ArtyCond = ArtificialConduction(WT,arCondAlpha)
+    
+    packages.append(ArtyCond)
 
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.

@@ -1,13 +1,12 @@
 # -*-makefile-*-
-# Spheral++ Physics package makefile
+# Spheral++ Artificial Conduction package makefile
 #-------------------------------------------------------------------------------
-PKGNAME = Physics
+PKGNAME = ArtificialConduction
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
-	PhysicsInst.cc \
-	GenericHydroInst.cc \
-	GenericBodyForceInst.cc
+	ArtificialConductionInst.cc \
+	ArtificialConductionPolicyInst.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
