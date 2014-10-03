@@ -2,12 +2,12 @@
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
 #ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt --restoreCycle 500' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20140913.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #ATS:else:
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
 #ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt --restoreCycle 500'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
 # test of the cracking/failure models.
@@ -145,7 +145,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20140910.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20141002.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
