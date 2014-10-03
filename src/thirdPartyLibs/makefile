@@ -1442,7 +1442,7 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
 	@if ! test -e $(SPHERALDIR)/lib/libpolytope.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_2d.a -a \
 	           -e $(SPHERALDIR)/lib/libvoro_3d.a -a \
-                   -e $(SPHERALDIR)/lib/PolytopeModules.so -a \
+                   -e $(PYTHONLIBDIR)/polytope/PolytopeModules.so -a \
 	           -e $(SPHERALDIR)/include/polytope/polytope.hh; then \
 	echo "ERROR building Polytope."; \
 	rm -f $(POLYTOPEBUILDDATE); \
