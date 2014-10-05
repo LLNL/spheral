@@ -28,7 +28,8 @@ class Silo:
         self.DBfile = addObject(self.space, "DBfile", allow_subclassing=True)
         self.DBoptlist = addObject(self.space, "DBoptlist_wrapper", custom_name="DBoptlist", allow_subclassing=True)
         self.DBmrgtree = addObject(self.space, "DBmrgtree_wrapper", custom_name="DBmrgtree", allow_subclassing=True)
-        self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
+        self.SiloAttributes = addStructAsEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
+        #self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
 
         self.vector_of_DBoptlist = addObject(mod, "vector_of_DBoptlist", allow_subclassing=True)
 
