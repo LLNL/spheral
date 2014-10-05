@@ -5,6 +5,7 @@
 import os, mpi
 from Spheral import *
 from SpheralModules import silo
+from SpheralModules.silo import SiloAttributes as SA
 
 #-------------------------------------------------------------------------------
 # siloPointMeshDump -- this is the one the user should actually call!
@@ -129,19 +130,19 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     # Create the master file.
     fileName = os.path.join(baseDirectory, baseName + ".silo")
     db = silo.DBCreate(fileName, 
-                       silo._DB_CLOBBER, silo._DB_LOCAL, label, silo._DB_HDF5)
+                       SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
 
     # Pattern for constructing per domain variables.
     domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(mpi.procs)]
 
     # Write the domain file names and types.
     domainNames = vector_of_string()
-    meshTypes = vector_of_int(mpi.procs, silo._DB_POINTMESH)
+    meshTypes = vector_of_int(mpi.procs, SA._DB_POINTMESH)
     for p in domainNamePatterns:
         domainNames.append(p % "mesh")
     optlist = silo.DBoptlist(1024)
-    assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
+    assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
     assert silo.DBPutMultimesh(db, "MESH", domainNames, meshTypes, optlist) == 0
 
     # Extract the material names, and write per material info if any.
@@ -161,17 +162,17 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         assert len(matnames) == len(nodeLists)
         assert len(matnos) == len(nodeLists)
         optlist = silo.DBoptlist(1024)
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
-        assert optlist.addOption(silo._DBOPT_MATNOS, silo._DBOPT_NMATNOS, matnos) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
+        assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
         assert silo.DBPutMultimat(db, "MATERIAL", material_names, optlist) == 0
 
         # Write the variable descriptions for non-scalar variables (vector and tensors).
         writeDefvars(db, fieldwad)
 
         # Write the variables descriptors.
-        types = vector_of_int(mpi.procs, silo._DB_POINTVAR)
+        types = vector_of_int(mpi.procs, SA._DB_POINTVAR)
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             domainVarNames = vector_of_string()
             for p in domainNamePatterns:
@@ -200,7 +201,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     # Create the file.
     fileName = os.path.join(baseDirectory, procDirBaseName % mpi.rank, baseName + ".silo")
     db = silo.DBCreate(fileName, 
-                       silo._DB_CLOBBER, silo._DB_LOCAL, label, silo._DB_HDF5)
+                       SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
     nullOpts = silo.DBoptlist()
 
     # Read the per material info.
@@ -217,8 +218,8 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
     # Write the Pointmesh.
     meshOpts = silo.DBoptlist(1024)
-    assert meshOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert meshOpts.addOption(silo._DBOPT_DTIME, time) == 0
+    assert meshOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert meshOpts.addOption(SA._DBOPT_DTIME, time) == 0
     assert silo.DBPutPointmesh(db, "mesh", coords, meshOpts) == 0
 
     # Write materials.
@@ -234,9 +235,9 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     assert len(matlist) == ntot
     assert len(matnames) == len(nodeLists)
     matOpts = silo.DBoptlist(1024)
-    assert matOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert matOpts.addOption(silo._DBOPT_DTIME, time) == 0
-    assert matOpts.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
+    assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
+    assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
     vecInt = vector_of_int(0)
     vecDouble = vector_of_double(0)
     assert silo.DBPutMaterial(db, "material", "mesh", matnos, matlist,
@@ -248,8 +249,8 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 
     # Write the field components.
     varOpts = silo.DBoptlist(1024)
-    assert varOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert varOpts.addOption(silo._DBOPT_DTIME, time) == 0
+    assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
     for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
         for subname, vals in subvars:
             if len(vals) > 0:
@@ -328,10 +329,10 @@ def metaDataIntField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
-    return (None, silo._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+    return (None, SA._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Scalar field components.
@@ -355,10 +356,10 @@ def metaDataScalarField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
-    return (None, silo._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+    return (None, SA._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Vector field components.
@@ -409,17 +410,17 @@ def metaDataVectorField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistDef, optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-    assert optlistMV.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_VECTOR) == 0
-    assert optlistVar.addOption(silo._DBOPT_HIDE_FROM_GUI, 1) == 0
-    assert optlistVar.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+    assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_VECTOR) == 0
+    assert optlistVar.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{%s_x, %s_y}" % (name, name), silo._DB_VARTYPE_VECTOR,
+        return ("{%s_x, %s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{%s_x, %s_y, %s_z}" % (name, name, name), silo._DB_VARTYPE_VECTOR,
+        return ("{%s_x, %s_y, %s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -486,20 +487,20 @@ def metaDataTensorField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistDef, optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-    assert optlistMV.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_TENSOR) == 0
-    assert optlistVar.addOption(silo._DBOPT_HIDE_FROM_GUI, 1) == 0
-    assert optlistVar.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+    assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_TENSOR) == 0
+    assert optlistVar.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), silo._DB_VARTYPE_TENSOR,
+        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
                 optlistDef, optlistMV, optlistVar)
     else:
         return ("{{%s_xx, %s_xy, %s_xz}, {%s_yx, %s_yy, %s_yz}, {%s_zx, %s_zy, %s_zz}}" % (name, name, name,
                                                                                            name, name, name,
                                                                                            name, name, name),
-                silo._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
+                SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Write the variable descriptors for non-scalar types (vector and tensor).
