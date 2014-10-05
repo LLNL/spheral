@@ -131,7 +131,7 @@ class SpheralVoronoiSiloDump:
             assert self.dimension == "3d"
             raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
         if mpi.procs > 1:
-            tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator)" % self.dimension)
+            tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
         else:
             tessellator = serial_tessellator
         tessellator.tessellate(gens, mesh)
