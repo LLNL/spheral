@@ -1,13 +1,14 @@
 #-------------------------------------------------------------------------------
 # Package for outputting Spheral++ data in silo files on automatically generated
-# Voronoi meshes.
+# Voronoi meshes.  This version uses polytope internals to do all the heavy 
+# lifting.
 # This data can be easily visualized using Visit:
 # ftp://ftp.llnl.gov/pub/pub/visit
 #
 # Format version:
 # 1.0 -- original release
 #-------------------------------------------------------------------------------
-import os, time, gc, mpi
+import os, sys, time, gc, mpi
 
 from SpheralModules import *
 from SpheralModules.Spheral import *
@@ -26,9 +27,8 @@ from SpheralModules.Spheral.GravitySpace import *
 from SpheralModules.Spheral.IntegratorSpace import *
 
 from PolytopeModules import polytope
-from siloMeshDump import *
 
-class SpheralVoronoiSiloDump:
+class SpheralPolytopeSiloDump:
 
     #---------------------------------------------------------------------------
     # Constructor.
@@ -74,8 +74,10 @@ class SpheralVoronoiSiloDump:
         # Determine our dimensionality.
         assert len(self._nodeLists) > 0
         if "List2d" in str(self._nodeLists[0]):
+            self.ndim = 2
             self.dimension = "2d"
         elif "List3d" in str(self._nodeLists[0]):
+            self.ndim = 3
             self.dimension = "3d"
         else:
             assert False
@@ -104,12 +106,8 @@ class SpheralVoronoiSiloDump:
                     raise ValueError, "Cannot create output directory %s" % outputdir
         mpi.barrier()
 
-        # Now build the output file name, including directory.  Make sure
-        # the file does not already exist -- if it does we default to overwriting.
-        filename = os.path.join(outputdir,
-                                self.baseFileName + "-time=%g-cycle=%i" % (simulationTime, cycle))
-##         if os.path.exists(filename):
-##             raise ValueError, "File %s already exists!  Aborting." % filename
+        # Now build the output file name.
+        filename = self.baseFileName + "-time=%g-cycle=%i" % (simulationTime, cycle)
 
         # Build the set of generators from our points.
         gens = vector_of_double()
@@ -120,7 +118,7 @@ class SpheralVoronoiSiloDump:
                     gens.append(coord)
 
         # Build the tessellation.
-        if self.dimension == "2d":
+        if self.ndim == 2:
             mesh = polytope.Tessellation2d()
             if "TriangleTessellator2d" in dir(polytope):
                 serial_tessellator = polytope.TriangleTessellator2d()
@@ -128,7 +126,7 @@ class SpheralVoronoiSiloDump:
                 assert "BoostTessellator2d" in dir(polytope)
                 serial_tessellator = polytope.BoostTessellator2d()
         else:
-            assert self.dimension == "3d"
+            assert self.ndim == 3
             raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
         if mpi.procs > 1:
             tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator)" % self.dimension)
@@ -137,7 +135,8 @@ class SpheralVoronoiSiloDump:
         tessellator.tessellate(gens, mesh)
 
         # Figure out how many of each type of field we're dumping.
-        scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
+        scalarFields = ([x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))] +
+                        [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))])
         vectorFields = [x for x in self._fields if isinstance(x, eval("VectorField%s" % self.dimension))]
         tensorFields = [x for x in self._fields if isinstance(x, eval("TensorField%s" % self.dimension))]
         symTensorFields = [x for x in self._fields if isinstance(x, eval("SymTensorField%s" % self.dimension))]
@@ -157,17 +156,54 @@ class SpheralVoronoiSiloDump:
                 maxeigen[i] = eigen.maxElement()
             scalarFields += [tr, det, mineigen, maxeigen]
 
+        # Build the dictionary of (name, array) values that the polytope silo method can take.
+        # Scalar fields.
+        cellFields = {}
+        for field in scalarFields:
+            cellFields[self.siloMangleName(field.name)] = [float(x) for x in field.internalValues()]
+
+        # Vector fields.
+        for field in vectorFields:
+            cellFields[field.name + "_x"] = [x.x for x in field.internalValues()]
+            cellFields[field.name + "_y"] = [x.y for x in field.internalValues()]
+            if self.ndim == 3:
+                cellFields[field.name + "_z"] = [x.z for x in field.internalValues()]
+
+        # Tensor fields.
+        for field in tensorFields:
+            cellFields[field.name + "_xx"] = [x.xx for x in field.internalValues()]
+            cellFields[field.name + "_xy"] = [x.xy for x in field.internalValues()]
+            cellFields[field.name + "_yx"] = [x.yx for x in field.internalValues()]
+            cellFields[field.name + "_yy"] = [x.yy for x in field.internalValues()]
+            if self.ndim == 3:
+                cellFields[field.name + "_xz"] = [x.xz for x in field.internalValues()]
+                cellFields[field.name + "_yz"] = [x.yz for x in field.internalValues()]
+                cellFields[field.name + "_zx"] = [x.zx for x in field.internalValues()]
+                cellFields[field.name + "_zy"] = [x.zy for x in field.internalValues()]
+                cellFields[field.name + "_zz"] = [x.zz for x in field.internalValues()]
+
+        # SymTensor fields.
+        for field in symTensorFields:
+            cellFields[field.name + "_xx"] = [x.xx for x in field.internalValues()]
+            cellFields[field.name + "_xy"] = [x.xy for x in field.internalValues()]
+            cellFields[field.name + "_yy"] = [x.yy for x in field.internalValues()]
+            if self.ndim == 3:
+                cellFields[field.name + "_xz"] = [x.xz for x in field.internalValues()]
+                cellFields[field.name + "_yz"] = [x.yz for x in field.internalValues()]
+                cellFields[field.name + "_zz"] = [x.zz for x in field.internalValues()]
+
         # Write the output.
-        timeslice = siloMeshDump(filename, mesh,
-                                 nodeLists = self._nodeLists,
-                                 time = simulationTime,
-                                 cycle = cycle,
-                                 scalarFields = scalarFields,
-                                 vectorFields = vectorFields,
-                                 tensorFields = tensorFields,
-                                 symTensorFields = symTensorFields)
+        writeTessellation = eval("polytope.writeTessellation%s" % self.dimension)
+        writeTessellation(mesh, filename, outputdir,
+                          nodeFields = None,
+                          edgeFields = None,
+                          faceFields = None,
+                          cellFields = cellFields,
+                          cycle = cycle,
+                          time = simulationTime)
 
         # Write the master file listing all the time slices.
+        timeslice = "%s-%d.silo" % (filename, cycle)
         if mpi.rank == 0:
             mastername = os.path.join(self.baseDirectory, self.baseFileName, self.masterFileName)
             mf = open(mastername, "a")
@@ -176,9 +212,6 @@ class SpheralVoronoiSiloDump:
         mpi.barrier()
 
         # That's it.
-        del mesh
-        while gc.collect():
-            pass
         return
 
     #---------------------------------------------------------------------------
@@ -218,6 +251,12 @@ class SpheralVoronoiSiloDump:
     #---------------------------------------------------------------------------
     def haveNodeList(self, nodeList):
         return nodeList.name in [n.name for n in self._nodeLists]
+
+    #---------------------------------------------------------------------------
+    # Mangle a string into something silo acceptable.
+    #---------------------------------------------------------------------------
+    def siloMangleName(self, name):
+        return name.replace(" ", "_")
 
 #-------------------------------------------------------------------------------
 # Dump out all the Fields in a State object.
@@ -306,8 +345,8 @@ def dumpPhysicsState(stateThingy,
         fieldLists.append(hminhmax)
 
         # We also like to dump the moments of the local point distribution.
-        zerothMoment = eval("ScalarFieldList%id(Copy)" % dataBase.nDim)
-        firstMoment = eval("VectorFieldList%id(Copy)" % dataBase.nDim)
+        zerothMoment = eval("ScalarFieldList%id(1)" % dataBase.nDim)
+        firstMoment = eval("VectorFieldList%id(1)" % dataBase.nDim)
         W = eval("TableKernel%id(BSplineKernel%id(), 1000)" % (dataBase.nDim, dataBase.nDim))
         zerothAndFirstNodalMoments(dataBase.nodeLists(), W, True, zerothMoment, firstMoment)
         fieldLists += [zerothMoment, firstMoment]
@@ -325,11 +364,11 @@ def dumpPhysicsState(stateThingy,
         pass
 
     # Now build the visit dumper.
-    dumper = SpheralVoronoiSiloDump(baseFileName,
-                                    baseDirectory,
-                                    fields,
-                                    fieldLists,
-                                    boundaries)
+    dumper = SpheralPolytopeSiloDump(baseFileName,
+                                     baseDirectory,
+                                     fields,
+                                     fieldLists,
+                                     boundaries)
 
     # Dump the sucker.
     dumper.dump(currentTime, currentCycle)
