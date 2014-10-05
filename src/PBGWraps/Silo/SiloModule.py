@@ -54,6 +54,15 @@ class Silo:
                                 custom_name = "DBCreate",
                                 docstring = "Create a SILO file.")
 
+        # DBOpen
+        self.space.add_function("DBOpen_wrap",
+                                retval("DBfile*", reference_existing_object=True),
+                                [param("std::string", "pathName"),
+                                 param("int", "type"),
+                                 param("int", "mode")],
+                                custom_name = "DBOpen",
+                                docstring = "Open an existing SILO file.")
+
         # # DBMakeMrgtree
         # self.space.add_function("DBMakeMrgtree_wrap", 
         #                         retval("DBmrgtree*", reference_existing_object=True),
