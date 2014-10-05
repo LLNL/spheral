@@ -217,8 +217,8 @@ HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
 # SILO
-SILODIST = silo-4.9.1-bsd.tar.gz
-SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.9.1/$(SILODIST)
+SILODIST = silo-4.10-bsd.tar.gz
+SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10/$(SILODIST)
 SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 

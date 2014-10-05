@@ -20,6 +20,7 @@ PYTHONTARGETS = \
 	SpheralOptionParser.py \
 	SpheralVisitDump.py \
 	SpheralVoronoiSiloDump.py \
+	SpheralPolytopeSiloDump.py \
 	Spheral1dVizDump.py \
 	SpheralGnuPlotUtilities.py \
 	findLastRestart.py \
