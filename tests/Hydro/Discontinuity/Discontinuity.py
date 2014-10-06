@@ -318,7 +318,7 @@ if hourglass:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-if x0 == xwall:
+if x0 == xwall: #fix me later
     xPlane0 = Plane(Vector(0.0), Vector(1.0))
     xbc0 = ReflectingBoundary(xPlane0)
     for p in packages:
