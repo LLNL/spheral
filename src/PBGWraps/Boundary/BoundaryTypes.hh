@@ -112,7 +112,8 @@ dynamicCastBoundary(Boundary1* boundPtr) {
   if (Boundary2* result = dynamic_cast<Boundary2*>(boundPtr)) {
     return result;
   } else {
-    VERIFY2(false, "dynamicCastBoundary Error");
+    PyErr_SetString(PyExc_ValueError, "Failed attempt to dynamic_cast a Boundary class");
+    return NULL;
   }
 }
 
