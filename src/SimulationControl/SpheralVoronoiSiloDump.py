@@ -113,11 +113,49 @@ class SpheralVoronoiSiloDump:
 
         # Build the set of generators from our points.
         gens = vector_of_double()
+        nDim = eval("Vector%s.nDimensions" % self.dimension)
+        xmin = vector_of_double(nDim,  1e100)
+        xmax = vector_of_double(nDim, -1e100)
         for nodes in self._nodeLists:
             pos = nodes.positions()
             for i in xrange(nodes.numInternalNodes):
-                for coord in pos[i]:
-                    gens.append(coord)
+                for j in xrange(nDim):
+                    gens.append(pos[i][j])
+                    xmin[j] = min(xmin[j], pos[i][j])
+                    xmax[j] = max(xmax[j], pos[i][j])
+
+        # Check the boundaries for any additional points we want to use for the bounding box.
+        for bound in self._boundaries:
+            try:
+                pb = dynamicCastBoundaryToPlanarBoundary2d(bound)
+                for p in (pb.enterPlane.point, pb.exitPlane.point):
+                    for j in xrange(nDim):
+                        xmin[j] = min(xmin[j], p[j])
+                        xmax[j] = max(xmax[j], p[j])
+            except:
+                pass
+
+        xmin[0] = mpi.allreduce(xmin[0], mpi.MIN)
+        xmin[1] = mpi.allreduce(xmin[1], mpi.MIN)
+        xmax[0] = mpi.allreduce(xmax[0], mpi.MAX)
+        xmax[1] = mpi.allreduce(xmax[1], mpi.MAX)
+
+        # Build the PLC.
+        plc = polytope.PLC2d()
+        plc.facets.resize(4)
+        for i in xrange(4):
+            plc.facets[i].resize(2)
+            plc.facets[i][0] = i
+            plc.facets[i][1] = i % 4
+        plccoords = vector_of_double(8)
+        plccoords[0] = xmin[0]
+        plccoords[1] = xmin[1]
+        plccoords[2] = xmax[0]
+        plccoords[3] = xmin[1]
+        plccoords[4] = xmax[0]
+        plccoords[5] = xmax[1]
+        plccoords[6] = xmin[0]
+        plccoords[7] = xmax[1]
 
         # Build the tessellation.
         if self.dimension == "2d":
@@ -134,7 +172,7 @@ class SpheralVoronoiSiloDump:
             tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
         else:
             tessellator = serial_tessellator
-        tessellator.tessellate(gens, mesh)
+        tessellator.tessellate(gens, plccoords, plc, mesh)
 
         # Figure out how many of each type of field we're dumping.
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
