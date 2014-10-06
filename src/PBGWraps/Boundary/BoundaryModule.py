@@ -74,57 +74,31 @@ class Boundary:
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
-        space = Spheral.add_cpp_namespace("BoundarySpace")
+        self.space = Spheral.add_cpp_namespace("BoundarySpace")
 
         # Expose types.
-        self.Boundary1d = addObject(space, "Boundary1d", allow_subclassing=True)
-        self.Boundary2d = addObject(space, "Boundary2d", allow_subclassing=True)
-        self.Boundary3d = addObject(space, "Boundary3d", allow_subclassing=True)
+        for ndim in (1, 2, 3):
+            exec("""
+self.Boundary%(ndim)id = addObject(self.space, "Boundary%(ndim)id", allow_subclassing=True)
+self.PlanarBoundary%(ndim)id = addObject(self.space, "PlanarBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
+self.ReflectingBoundary%(ndim)id = addObject(self.space, "ReflectingBoundary%(ndim)id", parent=self.PlanarBoundary%(ndim)id)
+self.RigidBoundary%(ndim)id = addObject(self.space, "RigidBoundary%(ndim)id", parent=self.PlanarBoundary%(ndim)id)
+self.PeriodicBoundary%(ndim)id = addObject(self.space, "PeriodicBoundary%(ndim)id", parent=self.PlanarBoundary%(ndim)id)
+self.ConstantVelocityBoundary%(ndim)id = addObject(self.space, "ConstantVelocityBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
+self.ConstantXVelocityBoundary%(ndim)id = addObject(self.space, "ConstantXVelocityBoundary%(ndim)id", parent=self.ConstantVelocityBoundary%(ndim)id)
+self.ConstantRVelocityBoundary%(ndim)id = addObject(self.space, "ConstantRVelocityBoundary%(ndim)id", parent=self.ConstantVelocityBoundary%(ndim)id)
+self.ConstantBoundary%(ndim)id = addObject(self.space, "ConstantBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
+self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_subclassing=True)
+""" % {"ndim" : ndim})
 
-        self.PlanarBoundary1d = addObject(space, "PlanarBoundary1d", parent=self.Boundary1d)
-        self.PlanarBoundary2d = addObject(space, "PlanarBoundary2d", parent=self.Boundary2d)
-        self.PlanarBoundary3d = addObject(space, "PlanarBoundary3d", parent=self.Boundary3d)
+        self.ConstantYVelocityBoundary2d = addObject(self.space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
+        self.ConstantYVelocityBoundary3d = addObject(self.space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
 
-        self.ReflectingBoundary1d = addObject(space, "ReflectingBoundary1d", parent=self.PlanarBoundary1d)
-        self.ReflectingBoundary2d = addObject(space, "ReflectingBoundary2d", parent=self.PlanarBoundary2d)
-        self.ReflectingBoundary3d = addObject(space, "ReflectingBoundary3d", parent=self.PlanarBoundary3d)
+        self.ConstantZVelocityBoundary3d = addObject(self.space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
 
-        self.RigidBoundary1d = addObject(space, "RigidBoundary1d", parent=self.PlanarBoundary1d)
-        self.RigidBoundary2d = addObject(space, "RigidBoundary2d", parent=self.PlanarBoundary2d)
-        self.RigidBoundary3d = addObject(space, "RigidBoundary3d", parent=self.PlanarBoundary3d)
+        self.SphericalBoundary = addObject(self.space, "SphericalBoundary", parent=self.Boundary3d)
 
-        self.PeriodicBoundary1d = addObject(space, "PeriodicBoundary1d", parent=self.PlanarBoundary1d)
-        self.PeriodicBoundary2d = addObject(space, "PeriodicBoundary2d", parent=self.PlanarBoundary2d)
-        self.PeriodicBoundary3d = addObject(space, "PeriodicBoundary3d", parent=self.PlanarBoundary3d)
-
-        self.ConstantVelocityBoundary1d = addObject(space, "ConstantVelocityBoundary1d", parent=self.Boundary1d)
-        self.ConstantVelocityBoundary2d = addObject(space, "ConstantVelocityBoundary2d", parent=self.Boundary2d)
-        self.ConstantVelocityBoundary3d = addObject(space, "ConstantVelocityBoundary3d", parent=self.Boundary3d)
-
-        self.ConstantXVelocityBoundary1d = addObject(space, "ConstantXVelocityBoundary1d", parent=self.ConstantVelocityBoundary1d)
-        self.ConstantXVelocityBoundary2d = addObject(space, "ConstantXVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
-        self.ConstantXVelocityBoundary3d = addObject(space, "ConstantXVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
-
-        self.ConstantYVelocityBoundary2d = addObject(space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
-        self.ConstantYVelocityBoundary3d = addObject(space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
-
-        self.ConstantZVelocityBoundary3d = addObject(space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
-
-        self.ConstantRVelocityBoundary1d = addObject(space, "ConstantRVelocityBoundary1d", parent=self.ConstantVelocityBoundary1d)
-        self.ConstantRVelocityBoundary2d = addObject(space, "ConstantRVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
-        self.ConstantRVelocityBoundary3d = addObject(space, "ConstantRVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
-
-        self.ConstantBoundary1d = addObject(space, "ConstantBoundary1d", parent=self.Boundary1d)
-        self.ConstantBoundary2d = addObject(space, "ConstantBoundary2d", parent=self.Boundary2d)
-        self.ConstantBoundary3d = addObject(space, "ConstantBoundary3d", parent=self.Boundary3d)
-
-        self.SphericalBoundary = addObject(space, "SphericalBoundary", parent=self.Boundary3d)
-
-        self.CylindricalBoundary = addObject(space, "CylindricalBoundary", parent=self.Boundary3d)
-
-        self.vecBound1d = addObject(mod, "vector_of_Boundary1d", allow_subclassing=True)
-        self.vecBound2d = addObject(mod, "vector_of_Boundary2d", allow_subclassing=True)
-        self.vecBound3d = addObject(mod, "vector_of_Boundary3d", allow_subclassing=True)
+        self.CylindricalBoundary = addObject(self.space, "CylindricalBoundary", parent=self.Boundary3d)
 
         return
 
@@ -133,50 +107,33 @@ class Boundary:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateBoundaryBindings(self.Boundary1d, 1)
-        self.generateBoundaryBindings(self.Boundary2d, 2)
-        self.generateBoundaryBindings(self.Boundary3d, 3)
-
-        self.generatePlanarBoundaryBindings(self.PlanarBoundary1d, 1)
-        self.generatePlanarBoundaryBindings(self.PlanarBoundary2d, 2)
-        self.generatePlanarBoundaryBindings(self.PlanarBoundary3d, 3)
-
-        self.generateReflectingBoundaryBindings(self.ReflectingBoundary1d, 1)
-        self.generateReflectingBoundaryBindings(self.ReflectingBoundary2d, 2)
-        self.generateReflectingBoundaryBindings(self.ReflectingBoundary3d, 3)
-
-        self.generateRigidBoundaryBindings(self.RigidBoundary1d, 1)
-        self.generateRigidBoundaryBindings(self.RigidBoundary2d, 2)
-        self.generateRigidBoundaryBindings(self.RigidBoundary3d, 3)
-
-        self.generatePeriodicBoundaryBindings(self.PeriodicBoundary1d, 1)
-        self.generatePeriodicBoundaryBindings(self.PeriodicBoundary2d, 2)
-        self.generatePeriodicBoundaryBindings(self.PeriodicBoundary3d, 3)
-
-        self.generateConstantVelocityBoundaryBindings(self.ConstantVelocityBoundary1d, 1)
-        self.generateConstantVelocityBoundaryBindings(self.ConstantVelocityBoundary2d, 2)
-        self.generateConstantVelocityBoundaryBindings(self.ConstantVelocityBoundary3d, 3)
-
-        self.generateConstantXVelocityBoundaryBindings(self.ConstantXVelocityBoundary1d, 1)
-        self.generateConstantXVelocityBoundaryBindings(self.ConstantXVelocityBoundary2d, 2)
-        self.generateConstantXVelocityBoundaryBindings(self.ConstantXVelocityBoundary3d, 3)
+        for ndim in (1, 2, 3):
+            exec("""
+self.generateBoundaryBindings(self.Boundary%(ndim)id, %(ndim)i)
+self.generatePlanarBoundaryBindings(self.PlanarBoundary%(ndim)id, %(ndim)i)
+self.generateReflectingBoundaryBindings(self.ReflectingBoundary%(ndim)id, %(ndim)i)
+self.generateRigidBoundaryBindings(self.RigidBoundary%(ndim)id, %(ndim)i)
+self.generatePeriodicBoundaryBindings(self.PeriodicBoundary%(ndim)id, %(ndim)i)
+self.generateConstantVelocityBoundaryBindings(self.ConstantVelocityBoundary%(ndim)id, %(ndim)i)
+self.generateConstantXVelocityBoundaryBindings(self.ConstantXVelocityBoundary%(ndim)id, %(ndim)i)
+self.generateConstantBoundaryBindings(self.ConstantBoundary%(ndim)id, %(ndim)i)
+generateStdVectorBindings(self.vecBound%(ndim)id, "Spheral::BoundarySpace::Boundary%(ndim)id*", "vector_of_Boundary%(ndim)id")
+self.space.add_function("dynamicCastBoundary", 
+                        retval("Spheral::BoundarySpace::PlanarBoundary%(ndim)id*", reference_existing_object=True), # caller_owns_return=False),
+                        [param("Spheral::BoundarySpace::Boundary%(ndim)id*", "boundary", transfer_ownership=False)],
+                        template_parameters=["Spheral::BoundarySpace::Boundary%(ndim)id", "Spheral::BoundarySpace::PlanarBoundary%(ndim)id"],
+                        custom_name = "dynamicCastBoundaryToPlanarBoundary%(ndim)id")
+""" % {"ndim": ndim})
 
         self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary2d, 2)
         self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary3d, 3)
 
         self.generateConstantZVelocityBoundaryBindings(self.ConstantZVelocityBoundary3d, 3)
 
-        self.generateConstantBoundaryBindings(self.ConstantBoundary1d, 1)
-        self.generateConstantBoundaryBindings(self.ConstantBoundary2d, 2)
-        self.generateConstantBoundaryBindings(self.ConstantBoundary3d, 3)
-
         self.generateSphericalBoundaryBindings(self.SphericalBoundary)
 
         self.generateCylindricalBoundaryBindings(self.CylindricalBoundary)
 
-        generateStdVectorBindings(self.vecBound1d, "Spheral::BoundarySpace::Boundary1d*", "vector_of_Boundary1d")
-        generateStdVectorBindings(self.vecBound2d, "Spheral::BoundarySpace::Boundary2d*", "vector_of_Boundary2d")
-        generateStdVectorBindings(self.vecBound3d, "Spheral::BoundarySpace::Boundary3d*", "vector_of_Boundary3d")
         
         return
 
