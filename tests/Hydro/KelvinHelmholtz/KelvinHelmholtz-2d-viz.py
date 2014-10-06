@@ -126,12 +126,7 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
-                       "rho1=%g-rho2=%g" % (rho1, rho2),
-                       "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       "densityUpdate=%s" % (densityUpdate),
-                       "XSPH=%s" % XSPH,
-                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       str(HydroConstructor).split("'")[1].split(".")[-1],       
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
@@ -443,9 +438,9 @@ if serialDump:
             if rank == i:
                 for j in xrange(nodeL.numInternalNodes):
                     serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
-        serialData = mpi.reduce(serialData,mpi.SUM)
+    serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
-        f = open("serialDump.ascii",'w')
+        f = open(dataDir + "/serialDump.ascii",'w')
         for i in xrange(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()
