@@ -40,7 +40,7 @@ commandLine(nx1 = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             SVPH = False,
             CSPH = False,
@@ -91,7 +91,7 @@ commandLine(nx1 = 100,
             compatibleEnergy = False,           # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
 
-            useVoronoiOutput = False,
+            useVoronoiOutput = True,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,
