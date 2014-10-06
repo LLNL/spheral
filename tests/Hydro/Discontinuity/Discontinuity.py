@@ -13,49 +13,43 @@ import os, shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
 
-title("1-D integrated hydro test -- planar Noh problem")
+title("1-D integrated hydro test -- discontinuities")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
-
-            nx1 = 50,
-            nx2 = 50,
-            rho1 = 1.0,
-            rho2 = 5.0,
-            eps1 = 1.0,
-            x0 = 0.0,
-            x1 = 0.5,
-            x2 = 1.0,
-            xwall = 0.5,
+            nx1 = 100,
             nPerh = 1.25,
             NeighborType = NestedGridNeighbor,
-
-            vr0 = -1.0, 
-            vrSlope = 0.0,
-
+            
+            eps1 = 1.0,
+            rho1 = 1.0,
+            x0 = 0.0,
+            x1 = 1.0,
+            xwall = 1.0,
+            
+            dfx1 = 0,   #positions of delta functions
+            dfx2 = 0.5,
+            dfx3 = 1.0,
+            
             gamma = 5.0/3.0,
             mu = 1.0,
-
+            
             SVPH = False,
             CSPH = False,
-            #Qconstructor = MonaghanGingoldViscosity,
-            Qconstructor = TensorMonaghanGingoldViscosity,
-            boolReduceViscosity = False,
-            nhQ = 5.0,
-            nhL = 10.0,
-            aMin = 0.1,
-            aMax = 2.0,
+            Qconstructor = MonaghanGingoldViscosity,
+            #Qconstructor = TensorMonaghanGingoldViscosity,
+            
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
-            Cl = 1.0, 
+            Cl = 1.0,
             Cq = 1.0,
             Qlimiter = False,
             epsilon2 = 1e-2,
-            hmin = 0.0001, 
+            hmin = 0.0001,
             hmax = 0.1,
             cfl = 0.5,
             XSPH = True,
@@ -66,12 +60,12 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
-
+            
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
             steps = 100,
             dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dtMin = 1.0e-5,
             dtMax = 0.1,
             dtGrowth = 2.0,
             rigorousBoundaries = False,
@@ -89,7 +83,7 @@ commandLine(KernelConstructor = BSplineKernel,
             
             bArtificialConduction = True,
             arCondAlpha = 0.5,
-
+            
             clearDirectories = True,
             checkError = True,
             checkRestart = False,
@@ -100,15 +94,18 @@ commandLine(KernelConstructor = BSplineKernel,
             restartBaseName = "Noh-planar-1d",
             outputFile = "None",
             comparisonFile = "None",
-
+            
             # Parameters for the test
             scalePressure = 5.0,
-            scaleEnergy = 5.0,
-
-            graphics = "gnu")
+            scaleEnergy = 2.0,
+            showDecay = False,
+            zerovpkg = True,
+            
+            graphics = "gnu"
+            )
 
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
+restartBaseName = os.path.join(restartDir, "discontinuity-1d-%i" % nx1)
 
 dx = (x1 - x0)/nx1
 
@@ -126,7 +123,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = IsothermalEquationOfStateMKS(gamma, mu)
+eos = GammaLawGasMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -153,7 +150,7 @@ output("nodes1.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)), (nx2, rho2, (x1, x2))])],
+distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
                          nPerh = nPerh)
 output("nodes1.numNodes")
 
@@ -164,16 +161,20 @@ nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 nodeSet = [nodes1]
 
 # Set node specific thermal energies
+xeps = x1/nx1
 def specificEnergy(x):
-    if x < xwall:
-        return eps1
+    if (abs(x-dfx1) < xeps) or (abs(x-dfx2) < xeps) or (abs(x-dfx3) < xeps):
+        return eps1*1.0 + scaleEnergy
     else:
-        return eps1*scaleEnergy
+        return eps1
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
+    rho = nodes.massDensity()
     for i in xrange(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x)
+#rho[i] = specificEnergy(pos[i].x)
+
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -242,48 +243,41 @@ packages = [hydro]
 
 
 #-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-
-if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
-    packages.append(evolveReducingViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
 # zero velocity package
 #-------------------------------------------------------------------------------
-class zeroV_pkg(Physics):
-    def __init__(self):
-        Physics.__init__(self)
-        return
 
-    def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
-        DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
-        DepsDt.Zero()
-        DvDt.Zero()
-        return
-    
-    def dt(self, db, state, derivs, t):
-        return pair_double_string(1e100, "No vote")
-    
-    def registerState(self, dt, state):
-        return
-    
-    def registerDerivatives(self, db, derivs):
-        return
-    
-    def label(self):
-        return "zeroV package"
-    
-    def initialize(self, t, dt, db, state, derivs):
-        return
 
-zv = zeroV_pkg()
+if zerovpkg:
+    class zeroV_pkg(Physics):
+        def __init__(self):
+            Physics.__init__(self)
+            return
+        
+        def evaluateDerivatives(self, t, dt, db, state, derivs):
+            DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+            DvDt = derivs.vectorFields("delta " + HydroFieldNames.velocity)
+            DepsDt.Zero()
+            DvDt.Zero()
+            return
+        
+        def dt(self, db, state, derivs, t):
+            return pair_double_string(1e100, "No vote")
+        
+        def registerState(self, dt, state):
+            return
+        
+        def registerDerivatives(self, db, derivs):
+            return
+        
+        def label(self):
+            return "zeroV package"
+        
+        def initialize(self, t, dt, db, state, derivs):
+            return
 
-packages.append(zv)
+    zv = zeroV_pkg()
+
+    packages.append(zv)
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -318,11 +312,13 @@ if hourglass:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-if x0 == xwall: #fix me later
-    xPlane0 = Plane(Vector(0.0), Vector(1.0))
-    xbc0 = ReflectingBoundary(xPlane0)
-    for p in packages:
-        p.appendBoundary(xbc0)
+xPlane0 = Plane(Vector(0.0), Vector(1.0))
+xp2 = Plane(Vector(1.0), Vector(-1.0))
+xbc0 = ReflectingBoundary(xPlane0)
+xbc1 = ReflectingBoundary(xp2)
+for p in packages:
+    p.appendBoundary(xbc0)
+    p.appendBoundary(xbc1)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -376,17 +372,20 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-eps50 = []
-timeArray = []
-if control.time() < goalTime:
-    step = 0
-    
-    while step < steps:
-        control.step(1)
-        step = step + 1
-        eps = nodes1.specificThermalEnergy()
-        eps50.append(float(eps[50]))
-        timeArray.append(float(control.time()))
+if showDecay:
+    eps50 = []
+    timeArray = []
+    if control.time() < goalTime:
+        step = 0
+        
+        while step < steps:
+            control.step(1)
+            step = step + 1
+            eps = nodes1.specificThermalEnergy()
+            eps50.append(float(eps[50]))
+            timeArray.append(float(control.time()))
+else:
+    control.step(steps)
 #control.advance(goalTime, maxSteps)
 
 
@@ -407,11 +406,13 @@ elif graphics == "gnu":
 
     #EPlot = plotEHistory(control.conserve)
     
-    dudtPlot = generateNewGnuPlot()
-    dudtData = Gnuplot.Data(timeArray,eps50,with_ = "points", title="eps50")
-    dudtPlot.plot(dudtData)
-    #dudtPlot('set logscale y')
-    dudtPlot.refresh()
+    
+    if showDecay:
+        dudtPlot = generateNewGnuPlot()
+        dudtData = Gnuplot.Data(timeArray,eps50,with_ = "points", title="eps50")
+        dudtPlot.plot(dudtData)
+        #dudtPlot('set logscale y')
+        dudtPlot.refresh()
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
 #plotAnswer(control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
 
