@@ -146,7 +146,7 @@ class SpheralVoronoiSiloDump:
         for i in xrange(4):
             plc.facets[i].resize(2)
             plc.facets[i][0] = i
-            plc.facets[i][1] = i % 4
+            plc.facets[i][1] = (i + 1) % 4
         plccoords = vector_of_double(8)
         plccoords[0] = xmin[0]
         plccoords[1] = xmin[1]
