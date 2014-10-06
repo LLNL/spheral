@@ -390,16 +390,21 @@ if boolReduceViscosity:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
-xPlane1 = Plane(Vector(x3, y0), Vector(-1.0,  0.0))
-yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
-yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
+#xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
+#xPlane1 = Plane(Vector(x3, y0), Vector(-1.0,  0.0))
+#yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
+#yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
+xPlane0 = Plane(Vector(0.0, 0.0), Vector( 1.0,  0.0))
+xPlane1 = Plane(Vector(1.0, 0.0), Vector(-1.0,  0.0))
+yPlane0 = Plane(Vector(0.0, 0.0), Vector( 0.0,  1.0))
+yPlane1 = Plane(Vector(0.0, 1.0), Vector( 0.0, -1.0))
 
 xbc = PeriodicBoundary(xPlane0, xPlane1)
 ybc = PeriodicBoundary(yPlane0, yPlane1)
+bcSet=[xbc, ybc]
 
 for p in packages:
-    for bc in (xbc, ybc):
+    for bc in bcSet:
         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
