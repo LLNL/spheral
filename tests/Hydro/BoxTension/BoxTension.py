@@ -96,7 +96,7 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = False,
+    useVoronoiOutput = True,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
@@ -212,7 +212,8 @@ if restoreCycle is None:
                                                 xminreject = (x1, y1),
                                                 xmaxreject = (x2, y2),
                                                 nNodePerh = nPerh,
-                                                SPH = SPH)
+                                                SPH = SPH,
+                                                reversereject = True)
     generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
                                                 distributionType = "lattice",
                                                 xmin = (x1, y1),

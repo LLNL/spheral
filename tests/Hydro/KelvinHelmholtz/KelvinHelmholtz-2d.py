@@ -40,7 +40,7 @@ commandLine(nx1 = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 1.51,
+            nPerh = 2.01,
 
             SVPH = False,
             CSPH = False,
