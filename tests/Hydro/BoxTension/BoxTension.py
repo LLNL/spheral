@@ -334,7 +334,14 @@ yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
 
 xbc = PeriodicBoundary(xPlane0, xPlane1)
 ybc = PeriodicBoundary(yPlane0, yPlane1)
+
+xbc0 = ReflectingBoundary(xPlane0)
+xbc1 = ReflectingBoundary(xPlane1)
+ybc0 = ReflectingBoundary(yPlane0)
+ybc1 = ReflectingBoundary(yPlane1)
+
 bcSet = [xbc, ybc]
+#bcSet = [xbc0, xbc1, ybc0, ybc1]
 
 for p in packages:
     for bc in bcSet:
