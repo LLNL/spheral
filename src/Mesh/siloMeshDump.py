@@ -30,6 +30,7 @@ OverlinkAttrs = {"ATTR_NODAL"        : 0,
 # writeSiloMesh -- this is the one the user should actually call!
 #-------------------------------------------------------------------------------
 def siloMeshDump(dirName, mesh,
+                 index2zone = None,
                  nodeLists = [],
                  label = "Spheral++ generated mesh",
                  time = 0.0,
@@ -62,6 +63,21 @@ def siloMeshDump(dirName, mesh,
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       scalarFields, vectorFields, tensorFields, symTensorFields)
+
+    # If we have index2zones, remove any redundant values.
+    if index2zone:
+        ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
+        assert len(index2zone) == ntot
+        ntarget = len(mesh.cells)
+        assert max(index2zone) + 1 == ntarget
+        zone2index = range(len(mesh.cells))
+        for i, zi in enumerate(index2zone):
+            zone2index[zi] = i
+        for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            for subname, vals in subvars:
+                newvals = [vals[i] for i in xrange(ntarget)]
+                vals = newvals
+                assert len(vals) == ntarget
 
     # If we're domain 0 we write the master file.
     masterfile = None
