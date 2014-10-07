@@ -20,30 +20,15 @@ title("2-D integrated hydro test --  Hydrostatic Equilibrium/Surface Tension Tes
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
-    # Left state.
+    # Outer state.
     rho1 = 1.0,
     P1 = 1.0,
     gamma1 = 1.5,
 
-    # Top state
-    rho2 = 1.0,
+    # Inner state
+    rho2 = 4.0,
     P2 = 1.0,
     gamma2 = 1.5,
-
-    # Bottom state
-    rho3 = 1.0,
-    P3 = 1.0,
-    gamma3 = 1.5,
-
-    # Right state
-    rho4 = 1.0,
-    P4 = 1.0,
-    gamma4 = 1.5,
- 
-    # Middle state
-    rho5 = 4.0,
-    P5 = 1.0,
-    gamma5 = 1.5,
 
     # Geometry 
     x0 = 0.0,
@@ -56,20 +41,11 @@ commandLine(
     y3 = 1.0,
 
     # Resolution and node seeding.
-    nx1 = 25,
+    nx1 = 100,
     ny1 = 100,
 
     nx2 = 50,
-    ny2 = 25,
-
-    nx3 = 50,
-    ny3 = 25,
-
-    nx4 = 25,
-    ny4 = 100,
-
-    nx5 = 50,
-    ny5 = 50,
+    ny2 = 50,
 
     nPerh = 1.51,
 
@@ -193,9 +169,6 @@ if restoreCycle is None:
 mu = 1.0
 eos1 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
 eos2 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos3 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos4 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos5 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -209,32 +182,17 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-leftNodes = makeFluidNodeList("Left", eos1,
-                              hmin = hmin,
-                              hmax = hmax,
-                              hminratio = hminratio,
-                              nPerh = nPerh)
-topNodes = makeFluidNodeList("Top", eos2,
-                             hmin = hmin,
-                             hmax = hmax,
-                             hminratio = hminratio,
-                             nPerh = nPerh)
-bottomNodes = makeFluidNodeList("Bottom", eos3,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                nPerh = nPerh)
-rightNodes = makeFluidNodeList("Right", eos4,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                nPerh = nPerh)
-middleNodes = makeFluidNodeList("Middle", eos5,
-                                hmin = hmin,
-                                hmax = hmax,
-                                hminratio = hminratio,
-                                nPerh = nPerh)
-nodeSet = (leftNodes, topNodes, bottomNodes, rightNodes, middleNodes)
+outerNodes = makeFluidNodeList("outer", eos1,
+                               hmin = hmin,
+                               hmax = hmax,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
+innerNodes = makeFluidNodeList("inner", eos2,
+                               hmin = hmin,
+                               hmax = hmax,
+                               hminratio = hminratio,
+                               nPerh = nPerh)
+nodeSet = (outerNodes, innerNodes)
 for nodes in nodeSet:
     output("nodes.name")
     output("    nodes.hmin")
@@ -247,47 +205,28 @@ del nodes
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generatorLeft = GenerateNodeDistribution2d(nx1, ny1, rho1,
-                                               distributionType = "lattice",
-                                               xmin = (x0, y0),
-                                               xmax = (x1, y3),
-                                               nNodePerh = nPerh,
-                                               SPH = SPH)
-    generatorTop = GenerateNodeDistribution2d(nx2, ny2, rho2,
-                                              distributionType = "lattice",
-                                              xmin = (x1, y2),
-                                              xmax = (x2, y3),
-                                              nNodePerh = nPerh,
-                                              SPH = SPH)
-    generatorBottom = GenerateNodeDistribution2d(nx3, ny3, rho3,
-                                                 distributionType = "lattice",
-                                                 xmin = (x1, y0),
-                                                 xmax = (x2, y1),
-                                                 nNodePerh = nPerh,
-                                                 SPH = SPH)
-    generatorRight = GenerateNodeDistribution2d(nx4, ny4, rho4,
-                                                 distributionType = "lattice",
-                                                 xmin = (x2, y0),
-                                                 xmax = (x3, y3),
-                                                 nNodePerh = nPerh,
-                                                 SPH = SPH)
-    generatorMiddle = GenerateNodeDistribution2d(nx5, ny5, rho5,
-                                                 distributionType = "lattice",
-                                                 xmin = (x1, y1),
-                                                 xmax = (x2, y2),
-                                                 nNodePerh = nPerh,
-                                                 SPH = SPH)
+    generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rho1,
+                                                distributionType = "lattice",
+                                                xmin = (x0, y0),
+                                                xmax = (x3, y3),
+                                                xminreject = (x1, y1),
+                                                xmaxreject = (x2, y2),
+                                                nNodePerh = nPerh,
+                                                SPH = SPH)
+    generatorInner = GenerateNodeDistribution2d(nx2, ny2, rho2,
+                                                distributionType = "lattice",
+                                                xmin = (x1, y1),
+                                                xmax = (x2, y2),
+                                                nNodePerh = nPerh,
+                                                SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
     else:
         from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((leftNodes, generatorLeft),
-                      (topNodes,generatorTop),
-                      (bottomNodes, generatorBottom),
-                      (rightNodes, generatorRight),
-                      (middleNodes, generatorMiddle))
+    distributeNodes2d((outerNodes, generatorOuter),
+                      (innerNodes, generatorInner))
     for nodes in nodeSet:
         print nodes.name, ":"
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
@@ -296,11 +235,8 @@ if restoreCycle is None:
     del nodes
 
     # Set node specific thermal energies
-    for (nodes, gamma, rho, P) in ((leftNodes, gamma1, rho1, P1),
-                                   (topNodes, gamma2, rho2, P2),
-                                   (bottomNodes, gamma3, rho3, P3),
-                                   (rightNodes, gamma4, rho4, P4),
-                                   (middleNodes, gamma5, rho5, P5)):
+    for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
+                                   (innerNodes, gamma2, rho2, P2)):
         eps0 = P/((gamma - 1.0)*rho)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
     del nodes
@@ -399,9 +335,14 @@ xPlane1 = Plane(Vector(1.0, 0.0), Vector(-1.0,  0.0))
 yPlane0 = Plane(Vector(0.0, 0.0), Vector( 0.0,  1.0))
 yPlane1 = Plane(Vector(0.0, 1.0), Vector( 0.0, -1.0))
 
-xbc = PeriodicBoundary(xPlane0, xPlane1)
-ybc = PeriodicBoundary(yPlane0, yPlane1)
-bcSet=[xbc, ybc]
+# xbc = PeriodicBoundary(xPlane0, xPlane1)
+# ybc = PeriodicBoundary(yPlane0, yPlane1)
+# bcSet=[xbc, ybc]
+xbc0 = ReflectingBoundary(xPlane0)
+xbc1 = ReflectingBoundary(xPlane1)
+ybc0 = ReflectingBoundary(yPlane0)
+ybc1 = ReflectingBoundary(yPlane1)
+bcSet = [xbc0, xbc1, ybc0, ybc1]
 
 for p in packages:
     for bc in bcSet:
