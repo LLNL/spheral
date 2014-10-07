@@ -318,9 +318,10 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     sort(coarseList.begin(), coarseList.end());
     coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
 
-    // We don't allow ghost nodes to be masters.
-    const int firstGhostNode = this->nodeList().firstGhostNode();
-    masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+    // Ghost have to be allowed to be master for boundary conditions to work!
+    // // We don't allow ghost nodes to be masters.
+    // const int firstGhostNode = this->nodeList().firstGhostNode();
+    // masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
   }
 }
 
@@ -346,7 +347,7 @@ updateNodes() {
   // CHECK(mBoxLength > 0.0);
   // mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
 
-  // Walk all the internal nodes and add them to the tree.
+  // Walk all the nodes and add them to the tree.
   const size_t n = nodes.numNodes();
   for (unsigned i = 0; i != n; ++i) {
     this->addNodeToTree(positions(i), H(i), i);
