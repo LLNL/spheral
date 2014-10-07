@@ -75,6 +75,7 @@ class SPH:
         self.space.add_function("computeSPHSumMassDensity", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
+                                 param("bool", "sumMassDensityOverAllNodeLists"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
@@ -149,6 +150,7 @@ class SPH:
                            param("int", "gradhCorrection", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
+                           param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("double", "epsTensile", default_value="0.3"),
@@ -203,7 +205,9 @@ class SPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("gradhCorrection", "bool", getter="gradhCorrection", setter="gradhCorrection")
+        x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
+        x.add_instance_attribute("sumMassDensityOverAllNodeLists", "bool", getter="sumMassDensityOverAllNodeLists", setter="sumMassDensityOverAllNodeLists")
         x.add_instance_attribute("epsilonTensile", "double", getter="epsilonTensile", setter="epsilonTensile")
         x.add_instance_attribute("nTensile", "double", getter="nTensile", setter="nTensile")
         x.add_instance_attribute("xmin", vector, getter="xmin", setter="xmin")

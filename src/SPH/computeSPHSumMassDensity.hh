@@ -23,6 +23,7 @@ namespace Spheral {
     void
     computeSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                              const KernelSpace::TableKernel<Dimension>& W,
+                             const bool sumOverAllNodeLists,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,

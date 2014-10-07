@@ -26,6 +26,7 @@ template<typename Dimension>
 void
 computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                          const TableKernel<Dimension>& W,
+                         const bool sumOverAllNodeLists,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -66,33 +67,38 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar W0 = W.kernelValue(0.0, Hdeti);
       massDensity(nodeListi, i) += mi*W0;
 
-      // Get the neighbors for this node (in this NodeList).  We use the approximation here
-      // that nodes from other NodeLists do not contribute to the density of this one.
-      const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListi, i)[nodeListi];
-      for (vector<int>::const_iterator jItr = connectivity.begin();
-           jItr != connectivity.end();
-           ++jItr) {
-        const int j = *jItr;
+      // Get the neighbors for this node.
+      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        if (sumOverAllNodeLists or (nodeListi == nodeListj)) {
+          const int firstGhostNodej = massDensity[nodeListj]->nodeList().firstGhostNode();
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
 
-        // Check if this node pair has already been calculated.
-        if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                     nodeListi, j,
-                                                     firstGhostNodei)) {
-          const Vector& rj = position(nodeListi, j);
-          const Scalar& mj = mass(nodeListi, j);
-          const SymTensor& Hj = H(nodeListi, j);
-          const Scalar Hdetj = Hj.Determinant();
+            // Check if this node pair has already been calculated.
+            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                         nodeListj, j,
+                                                         firstGhostNodej)) {
+              const Vector& rj = position(nodeListj, j);
+              const Scalar& mj = mass(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
 
-          // Kernel weighting and gradient.
-          const Vector rij = ri - rj;
-          const Scalar etai = (Hi*rij).magnitude();
-          const Scalar etaj = (Hj*rij).magnitude();
-          const Scalar Wi = W.kernelValue(etai, Hdeti);
-          const Scalar Wj = W.kernelValue(etaj, Hdetj);
+              // Kernel weighting and gradient.
+              const Vector rij = ri - rj;
+              const Scalar etai = (Hi*rij).magnitude();
+              const Scalar etaj = (Hj*rij).magnitude();
+              const Scalar Wi = W.kernelValue(etai, Hdeti);
+              const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
-          // Sum the pair-wise contributions.
-          massDensity(nodeListi, i) += mj*Wi;
-          massDensity(nodeListi, j) += mi*Wj;
+              // Sum the pair-wise contributions.
+              massDensity(nodeListi, i) += mj*Wi;
+              massDensity(nodeListj, j) += mi*Wj;
+            }
+          }
         }
       }
       CHECK(massDensity(nodeListi, i) > 0.0);
