@@ -327,23 +327,14 @@ if boolReduceViscosity:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-#xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
-#xPlane1 = Plane(Vector(x3, y0), Vector(-1.0,  0.0))
-#yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
-#yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
-xPlane0 = Plane(Vector(0.0, 0.0), Vector( 1.0,  0.0))
-xPlane1 = Plane(Vector(1.0, 0.0), Vector(-1.0,  0.0))
-yPlane0 = Plane(Vector(0.0, 0.0), Vector( 0.0,  1.0))
-yPlane1 = Plane(Vector(0.0, 1.0), Vector( 0.0, -1.0))
+xPlane0 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
+xPlane1 = Plane(Vector(x3, y0), Vector(-1.0,  0.0))
+yPlane0 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
+yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
 
-# xbc = PeriodicBoundary(xPlane0, xPlane1)
-# ybc = PeriodicBoundary(yPlane0, yPlane1)
-# bcSet=[xbc, ybc]
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
-ybc0 = ReflectingBoundary(yPlane0)
-ybc1 = ReflectingBoundary(yPlane1)
-bcSet = [xbc0, xbc1, ybc0, ybc1]
+xbc = PeriodicBoundary(xPlane0, xPlane1)
+ybc = PeriodicBoundary(yPlane0, yPlane1)
+bcSet = [xbc, ybc]
 
 for p in packages:
     for bc in bcSet:
@@ -355,6 +346,7 @@ for p in packages:
 integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
+integrator.cullGhostNodes = False
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
