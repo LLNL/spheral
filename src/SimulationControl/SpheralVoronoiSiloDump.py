@@ -172,7 +172,7 @@ class SpheralVoronoiSiloDump:
             tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
         else:
             tessellator = serial_tessellator
-        tessellator.tessellate(gens, plccoords, plc, mesh)
+        index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
         # Figure out how many of each type of field we're dumping.
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
@@ -197,6 +197,7 @@ class SpheralVoronoiSiloDump:
 
         # Write the output.
         timeslice = siloMeshDump(filename, mesh,
+                                 index2zone = index2zone,
                                  nodeLists = self._nodeLists,
                                  time = simulationTime,
                                  cycle = cycle,
