@@ -108,6 +108,24 @@ SPHHydroBase<Dimension>::correctVelocityGradient(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if the sum mass density definition goes over
+// neighbor NodeLists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists() const {
+  return mSumMassDensityOverAllNodeLists;
+}
+
+template<typename Dimension>
+inline
+void
+SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(const bool val) {
+  mSumMassDensityOverAllNodeLists = val;
+}
+
+//------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>

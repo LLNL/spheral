@@ -79,7 +79,7 @@ commandLine(
     IntegratorConstructor = CheapSynchronousRK2Integrator,
     goalTime = 7.0,
     steps = None,
-    vizCycle = 1,
+    vizCycle = 5,
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
@@ -167,8 +167,8 @@ if restoreCycle is None:
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
-eos1 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
-eos2 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
+eos1 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma1, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
