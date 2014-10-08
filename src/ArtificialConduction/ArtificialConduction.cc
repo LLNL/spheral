@@ -18,6 +18,9 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 using std::vector;
+  using std::min;
+  using std::max;
+  using std::abs;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using KernelSpace::TableKernel;
@@ -62,6 +65,7 @@ ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
     mDepsDtArty = dataBase.newFluidFieldList(0.0, "Artificial Cond. DepsDt");
+    mVsigMax = dataBase.newFluidFieldList(0.0, "Maximum Artificial Cond. Signal Speed");
 }
 
 //------------------------------------------------------------------------------
@@ -79,6 +83,7 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer energyPolicy = state.policy(state.key(specificThermalEnergy)); /* this needs to be the key */
     PolicyPointer artificialConductionPolicy(new ArtificialConductionPolicy<Dimension>(energyPolicy));
     state.enroll(specificThermalEnergy, artificialConductionPolicy);
+    state.enroll(mVsigMax);
 }
     
 //------------------------------------------------------------------------------
@@ -121,6 +126,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
+    FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond. Signal Speed", 0.0);
     CHECK(mass.size() == numNodeLists);
     CHECK(position.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
@@ -183,7 +189,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             
             Scalar& DepsDti = DepsDt(nodeListi, i);
             Vector& gradPi = gradP(nodeListi, i);
-                      
+            Scalar& vsigi = vsigMax(nodeListi, i);
             
             // Get the connectivity info for this node.
             const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -205,9 +211,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                         const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
                         
                         // Only proceed if this node pair has not been calculated yet.
-                        if (connectivityMap.calculatePairInteraction(nodeListi, i,
+                        /*if (connectivityMap.calculatePairInteraction(nodeListi, i,
                                                                      nodeListj, j,
-                                                                     firstGhostNodej)) {
+                                                                     firstGhostNodej)) {*/
                             
                             
                             // get the state for node j
@@ -222,6 +228,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             
                             Scalar& DepsDtj         = DepsDt(nodeListj, j);
                             Vector& gradPj          = gradP(nodeListj, j);
+			    Scalar& vsigj           = vsigMax(nodeListj, j);
                             
                             // get some differentials
                             const Vector rij        = ri - rj; /* this is sign flipped but it's ok! */
@@ -237,16 +244,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              gradPj.dot(rij));
                             
                             // start a-calculatin' all the things
-                            const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
-                            const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            //const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
+                            const Scalar deltaPij   = abs(Pij);
+			    const Scalar vsigij     = sqrt(deltaPij/rhoij);
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
+
+			    // store max vsig back to i and j
+			    vsigi = max(vsigi,vsigij);
+			    vsigj = max(vsigj,vsigij);
                             
+			    // calc and add change in energy
                             const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
+			    
+			    if ((((ri.magnitude()-0.5)<0.01 || (rj.magnitude()-0.5)<0.01)))
+			      printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e DuDt=%3.2e rij=%3.2e rji=%3.2e deltaPij=%3.2e\n",
+				     j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),DepsDti,rij.magnitude(),rji.magnitude(),deltaPij);
+
                             
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
-                        }
+
+
+			    //}
                     }
                 }
             }

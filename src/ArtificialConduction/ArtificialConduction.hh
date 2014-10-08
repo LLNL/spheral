@@ -68,6 +68,7 @@ namespace Spheral {
             // Our derivative field(s).
             FieldSpace::FieldList<Dimension, Vector> mGradP;
             FieldSpace::FieldList<Dimension, Scalar> mDepsDtArty;
+	    FieldSpace::FieldList<Dimension, Scalar> mVsigMax;
             Scalar mAlphaArCond;
 
         };
