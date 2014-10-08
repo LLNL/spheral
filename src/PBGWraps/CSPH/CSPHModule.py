@@ -82,6 +82,8 @@ class CSPH:
         # Helper to compute the CSPH kernel.
         self.space.add_function("CSPHKernel", "double", [constrefparam(tablekernel, "W"),
                                                          constrefparam(vector, "rij"),
+                                                         constrefparam(vector, "etai"),
+                                                         param("double", "Hdeti"),
                                                          constrefparam(vector, "etaj"),
                                                          param("double", "Hdetj"),
                                                          param("double", "Ai"),
@@ -93,6 +95,9 @@ class CSPH:
         # Simultaneously evaluate the CSPH kernel and it's gradient.
         self.space.add_function("CSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
                                                                           constrefparam(vector, "rij"),
+                                                                          constrefparam(vector, "etai"),
+                                                                          constrefparam(symtensor, "Hi"),
+                                                                          param("double", "Hdeti"),
                                                                           constrefparam(vector, "etaj"),
                                                                           constrefparam(symtensor, "Hj"),
                                                                           param("double", "Hdetj"),

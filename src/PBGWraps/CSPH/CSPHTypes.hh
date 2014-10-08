@@ -30,6 +30,9 @@ inline
 void
 CSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
                         const Dim<1>::Vector& rij,
+                        const Dim<1>::Vector& etai,
+                        const Dim<1>::SymTensor& Hi,
+                        const Dim<1>::Scalar& Hdeti,
                         const Dim<1>::Vector& etaj,
                         const Dim<1>::SymTensor& Hj,
                         const Dim<1>::Scalar& Hdetj,
@@ -40,13 +43,16 @@ CSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
                         Dim<1>::Scalar* WCSPH,
                         Dim<1>::Scalar* gradWSPH,
                         Dim<1>::Vector& gradWCSPH) {
-  return CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
+  return CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
 }
 
 inline
 void
 CSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
                         const Dim<2>::Vector& rij,
+                        const Dim<2>::Vector& etai,
+                        const Dim<2>::SymTensor& Hi,
+                        const Dim<2>::Scalar& Hdeti,
                         const Dim<2>::Vector& etaj,
                         const Dim<2>::SymTensor& Hj,
                         const Dim<2>::Scalar& Hdetj,
@@ -57,13 +63,16 @@ CSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
                         Dim<2>::Scalar* WCSPH,
                         Dim<2>::Scalar* gradWSPH,
                         Dim<2>::Vector& gradWCSPH) {
-  return CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
+  return CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
 }
 
 inline
 void
 CSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
                         const Dim<3>::Vector& rij,
+                        const Dim<3>::Vector& etai,
+                        const Dim<3>::SymTensor& Hi,
+                        const Dim<3>::Scalar& Hdeti,
                         const Dim<3>::Vector& etaj,
                         const Dim<3>::SymTensor& Hj,
                         const Dim<3>::Scalar& Hdetj,
@@ -74,7 +83,7 @@ CSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
                         Dim<3>::Scalar* WCSPH,
                         Dim<3>::Scalar* gradWSPH,
                         Dim<3>::Vector& gradWCSPH) {
-  return CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
+  return CSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCSPH, *gradWSPH, gradWCSPH);
 }
 
 //------------------------------------------------------------------------------

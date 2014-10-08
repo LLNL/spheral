@@ -122,8 +122,8 @@ interpolateCSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CSPHKernel(W,  rij,  etaj, Hdetj, Ai, Bi);
-              const Scalar Wi = CSPHKernel(W, -rij, -etai, Hdeti, Aj, Bj);
+              const Scalar Wj = CSPHKernel(W,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi);
+              const Scalar Wi = CSPHKernel(W, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj);
 
 	      // Increment the pair-wise values.
 	      resulti += wj*Fj*Wj;
