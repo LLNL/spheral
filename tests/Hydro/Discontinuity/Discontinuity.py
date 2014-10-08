@@ -101,7 +101,8 @@ commandLine(KernelConstructor = BSplineKernel,
             showDecay = False,
             zerovpkg = True,
             
-            graphics = "gnu"
+            graphics = "gnu",
+            periodic = False
             )
 
 restartDir = os.path.join(dataDir, "restarts")
@@ -316,9 +317,12 @@ xPlane0 = Plane(Vector(0.0), Vector(1.0))
 xp2 = Plane(Vector(1.0), Vector(-1.0))
 xbc0 = ReflectingBoundary(xPlane0)
 xbc1 = ReflectingBoundary(xp2)
+if periodic:
+    xbc0 = PeriodicBoundary(xPlane0,xp2)
 for p in packages:
     p.appendBoundary(xbc0)
-    p.appendBoundary(xbc1)
+    if periodic==False:
+        p.appendBoundary(xbc1)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
