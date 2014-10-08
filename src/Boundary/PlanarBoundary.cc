@@ -113,24 +113,44 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
   typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
+  controlNodes = vector<int>();
 
   // Get the Neighbor object associated with the node list.
   Neighbor<Dimension>& neighbor = nodeList.neighbor();
 
-  // Begin by identifying the set of master and neighbor nodes, where master
-  // nodes see through the enter plane, and neighbors see through the exit plane.
-  neighbor.setMasterList(enterPlane(), exitPlane());
+  // Here we switch between using the Neighbor magic or just doing an O(N)
+  // search for anyone who overlaps the exit plane.
+  if (true) {
 
-  // Set the list of control nodes.
-  controlNodes = vector<int>();
-  controlNodes.reserve(neighbor.coarseNeighborList().size());
-  for (typename Neighbor<Dimension>::const_iterator
-         nodeItr = neighbor.coarseNeighborBegin();
-       nodeItr < neighbor.coarseNeighborEnd(); ++nodeItr) {
-    CHECK(*nodeItr >= 0 and *nodeItr < nodeList.numNodes());
-    controlNodes.push_back(*nodeItr);
+    // Begin by identifying the set of master and neighbor nodes, where master
+    // nodes see through the enter plane, and neighbors see through the exit plane.
+    neighbor.setMasterList(enterPlane(), exitPlane());
+
+    // Set the list of control nodes.
+    // std::copy(neighbor.masterBegin(), neighbor.masterEnd(), std::back_inserter(controlNodes));
+    std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
+
+  } else {
+
+    const unsigned n = nodeList.numNodes();
+    const double kernelExtent = neighbor.kernelExtent();
+    const Field<Dimension, Vector>& pos = nodeList.positions();
+    const Field<Dimension, SymTensor>& H = nodeList.Hfield();
+    for (unsigned i = 0; i != n; ++i) {
+      const Vector& ri = pos(i);
+      const SymTensor& Hi = H(i);
+      // const GeomPlane<Dimension> enterPlanePrime(Hi*(mEnterPlane.point() - ri),
+      //                                            (Hi*mEnterPlane.normal()).unitVector());
+      const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
+                                                (Hi*mExitPlane.normal()).unitVector());
+      if (exitPlanePrime.minimumDistance(Vector::zero) <= kernelExtent) controlNodes.push_back(i);
+      // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
+    }
+
   }
-  CHECK(controlNodes.size() == neighbor.coarseNeighborList().size());
+
+  // std::sort(controlNodes.begin(), controlNodes.end());
+  // controlNodes.erase(std::unique(controlNodes.begin(), controlNodes.end()), controlNodes.end());
 
   // Set the ghost node indicies to correspond to these control nodes.
   setGhostNodeIndicies(nodeList);
@@ -160,14 +180,7 @@ setGhostNodes(NodeList<Dimension>& nodeList,
   // Set the list of control nodes.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
   vector<int>& controlNodes = boundaryNodes.controlNodes;
-  controlNodes.resize(0);
-  controlNodes.reserve(presetControlNodes.size());
-  for (typename vector<int>::const_iterator nodeItr = presetControlNodes.begin();
-       nodeItr < presetControlNodes.end(); ++nodeItr) {
-    CHECK(*nodeItr >= 0 and *nodeItr < nodeList.numNodes());
-    controlNodes.push_back(*nodeItr);
-  }
-  CHECK(controlNodes.size() == presetControlNodes.size());
+  controlNodes = presetControlNodes;
 
   // Set the ghost node indicies to correspond to these control nodes.
   setGhostNodeIndicies(nodeList);
