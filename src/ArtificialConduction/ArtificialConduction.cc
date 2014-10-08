@@ -18,9 +18,10 @@ namespace Spheral {
 namespace PhysicsSpace {
 
 using std::vector;
-  using std::min;
-  using std::max;
-  using std::abs;
+using std::min;
+using std::max;
+using std::abs;
+using std::string;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using KernelSpace::TableKernel;
@@ -211,9 +212,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                         const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
                         
                         // Only proceed if this node pair has not been calculated yet.
-                        /*if (connectivityMap.calculatePairInteraction(nodeListi, i,
+                        if (connectivityMap.calculatePairInteraction(nodeListi, i,
                                                                      nodeListj, j,
-                                                                     firstGhostNodej)) {*/
+                                                                     firstGhostNodej)) {
                             
                             
                             // get the state for node j
@@ -228,7 +229,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             
                             Scalar& DepsDtj         = DepsDt(nodeListj, j);
                             Vector& gradPj          = gradP(nodeListj, j);
-			    Scalar& vsigj           = vsigMax(nodeListj, j);
+                            Scalar& vsigj           = vsigMax(nodeListj, j);
                             
                             // get some differentials
                             const Vector rij        = ri - rj; /* this is sign flipped but it's ok! */
@@ -246,27 +247,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             // start a-calculatin' all the things
                             //const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
                             const Scalar deltaPij   = abs(Pij);
-			    const Scalar vsigij     = sqrt(deltaPij/rhoij);
+                            const Scalar vsigij     = sqrt(deltaPij/rhoij);
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
 
-			    // store max vsig back to i and j
-			    vsigi = max(vsigi,vsigij);
-			    vsigj = max(vsigj,vsigij);
-                            
-			    // calc and add change in energy
+                            // store max vsig back to i and j
+                            vsigi = max(vsigi,vsigij);
+                            vsigj = max(vsigj,vsigij);
+                                        
+                            // calc and add change in energy
                             const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
-			    
-			    if ((((ri.magnitude()-0.5)<0.01 || (rj.magnitude()-0.5)<0.01)))
-			      printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e DuDt=%3.2e rij=%3.2e rji=%3.2e deltaPij=%3.2e\n",
-				     j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),DepsDti,rij.magnitude(),rji.magnitude(),deltaPij);
+                        
+                            if ((((ri.magnitude()-0.5)<0.01 || (rj.magnitude()-0.5)<0.01)))
+                                printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e DuDt=%3.2e rij=%3.2e rji=%3.2e deltaPij=%3.2e\n",
+                                       j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),DepsDti,rij.magnitude(),rji.magnitude(),deltaPij);
 
-                            
+                                    
                             DepsDti += deltaU;
                             DepsDtj += -deltaU;
 
 
-			    //}
+                        }
                     }
                 }
             }
@@ -284,7 +285,83 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
-    return TimeStepType(1.0e100, "Rate of artificial conduction change -- NO VOTE.");
+    
+    
+    // Get some useful fluid variables from the DataBase.
+    const FieldList<Dimension, int> mask = state.fields(HydroFieldNames::timeStepMask, 1);
+    const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
+    const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+    const FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond. Signal Speed", 0.0);
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
+    const int numNodeLists = connectivityMap.nodeLists().size();
+
+    // Initialize the return value to some impossibly high value.
+    Scalar minDt = FLT_MAX;
+    // Set up some history variables to track what set the minimum Dt.
+    Scalar lastMinDt = minDt;
+    int lastNodeID;
+    string lastNodeListName, reason;
+    Scalar lastNodeScale, lastEps, lastVsig, lastRho;
+    
+    // Loop over every fluid node.
+    size_t nodeListi = 0;
+    for (typename DataBase<Dimension>::ConstFluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
+         nodeListItr != dataBase.fluidNodeListEnd();
+         ++nodeListItr, ++nodeListi) {
+        const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
+        const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
+        CHECK(kernelExtent > 0.0);
+        
+        for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+             iItr != connectivityMap.end(nodeListi);
+             ++iItr) {
+            const int i = *iItr;
+            
+            // If this node is masked, don't worry about it.
+            if (mask(nodeListi, i) == 1) {
+                
+                // Get this nodes minimum characteristic smoothing scale.
+                CHECK2(H(nodeListi, i).Determinant() >  0.0,
+                       "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
+                const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
+
+                // Artificial conduction effective signal speed.
+                CHECK(rho(nodeListi, i) > 0.0);
+                const Scalar csq = vsigMax(nodeListi, i);
+                const double csqDt = 0.3 * nodeScale/(csq + FLT_MIN); //ideally this should be Cfl() instead of 0.3
+                if (csqDt < minDt) {
+                    minDt = csqDt;
+                    reason = "artificial conduction signal velocity limit";
+                }
+                
+                if (minDt < lastMinDt) {
+                    lastMinDt = minDt;
+                    lastNodeID = i;
+                    lastNodeListName = fluidNodeList.name();
+                    lastRho = rho(nodeListi, i);
+                    lastEps = eps(nodeListi, i);
+                    lastVsig = vsigMax(nodeListi, i);
+                }
+            }
+        }
+    }
+    
+    std::stringstream reasonStream;
+    reasonStream << "mindt = " << minDt << std::endl
+    << reason << std::endl
+    << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
+    << "  h = " << lastNodeScale << std::endl
+    << "  vsig = " << lastVsig << std::endl
+    << "  rho = " << lastRho << std::endl
+    << "  eps = " << lastEps << std::endl
+    << std::ends;
+    
+    // Now build the result.
+    TimeStepType result(minDt, reasonStream.str());
+    
+    return result;
 }
 
 
