@@ -297,36 +297,42 @@ for i in xrange(nodes1.numInternalNodes):
 
         # The standard SPH kernel and it's gradient.
         rij = ri - rj
+        etai = Hi*rij
         etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
+        Wij = 0.5*(WT.kernelValue(etaj.magnitude(), Hdetj) +
+                   WT.kernelValue(etai.magnitude(), Hdeti))
+        gradWij = 0.5*(Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj) +
+                       Hi*etai.unitVector() * WT.gradValue(etai.magnitude(), Hdeti))
 
         # The corrected kernel and it's gradient.
-        WRj = 0.0
+        WRij = 0.0
         dummy = 0.0
-        gradWRj = Vector()
-        WRj, dummy = CSPHKernelAndGradient(WT,
-                                           rij,
-                                           etaj,
-                                           Hj,
-                                           Hdetj,
-                                           Ai,
-                                           Bi,
-                                           gradAi,
-                                           gradBi,
-                                           gradWRj)
-        assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
+        gradWRij = Vector()
+        WRij, dummy = CSPHKernelAndGradient(WT,
+                                            rij,
+                                            -etai,
+                                            Hi,
+                                            Hdeti,
+                                            etaj,
+                                            Hj,
+                                            Hdetj,
+                                            Ai,
+                                            Bi,
+                                            gradAi,
+                                            gradBi,
+                                            gradWRij)
+        assert fuzzyEqual(WRij, CSPHKernel(WT, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi), 1.0e-5)
 
         # Increment our interpolated values.
-        fSPH[i] += fj * wj*Wj
-        fCSPH[i] += fj * wj*WRj
+        fSPH[i] += fj * wj*Wij
+        fCSPH[i] += fj * wj*WRij
 
         # Increment the derivatives.
-        dfSPH[i] += fj * wj*gradWj
-        dfCSPH[i] += fj * wj*gradWRj
+        dfSPH[i] += fj * wj*gradWij
+        dfCSPH[i] += fj * wj*gradWRij
 
     # We can now apply the integration correction (C) for CSPH.
-    dfCSPH[i] += Ci*(fi - fCSPH[i])
+    #dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
 # We also check the C++ interpolation and gradient methods.

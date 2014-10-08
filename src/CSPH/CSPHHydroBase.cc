@@ -974,27 +974,25 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
               // Symmetrized kernel weight and gradient.
-              Scalar gWi, gWj, W1i, W1j, W0i, W0j;
-              Vector gradW1i, gradW1j, gradW0i, gradW0j;
-              CSPHKernelAndGradient(W,  rij,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, W1j, gWj, gradW1j);
-              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, W1i, gWi, gradW1i);
-              CSPHKernelAndGradient(W,  rij,  etaj, Hj, Hdetj, A0i, Vector::zero, gradA0i, Tensor::zero, W0j, gWj, gradW0j);
-              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, W0i, gWi, gradW0i);
+              Scalar gWi, gWj, Wi, Wj;
+              Vector gradWi, gradWj;
+              CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
+              CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
               const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
 
-              // Compute the limiter determining how much of the linear correction we allow.
-              // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
-              //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
-              // const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
-              // const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
-              const Scalar f = 1.0; // fg; //min(fQ, min(fL, fg));
-              CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
-              const Scalar Wj = (1.0 - f)*W0j + f*W1j;
-              const Scalar Wi = (1.0 - f)*W0i + f*W1i;
-              const Vector gradWj = (1.0 - f)*gradW0j + f*gradW1j;
-              const Vector gradWi = (1.0 - f)*gradW0i + f*gradW1i;
-              // CHECK(gradWj.dot(gradWi) <= 0.0);
+              // // Compute the limiter determining how much of the linear correction we allow.
+              // // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
+              // //                                         max(0.0, abs(0.05*Pj) - Qj)*safeInv(abs(0.05*Pj)))));
+              // // const Scalar fL = max(0.0, min(1.0, 1.0 - abs(0.5*(DrhoDxj + DrhoDxi).dot(rij) - (rhoi - rhoj))));
+              // // const Scalar fg = max(0.0, min(1.0, -(gradW1j.dot(gradW1i))*safeInv(sqrt(gradW1j.magnitude2()*gradW1i.magnitude2()))));
+              // const Scalar f = 1.0; // fg; //min(fQ, min(fL, fg));
+              // CHECK2(f >= 0.0 and f <= 1.0, "Failing f bounds: " << f);
+              // const Scalar Wj = (1.0 - f)*W0j + f*W1j;
+              // const Scalar Wi = (1.0 - f)*W0i + f*W1i;
+              // const Vector gradWj = (1.0 - f)*gradW0j + f*gradW1j;
+              // const Vector gradWi = (1.0 - f)*gradW0i + f*gradW1i;
+              // // CHECK(gradWj.dot(gradWi) <= 0.0);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
