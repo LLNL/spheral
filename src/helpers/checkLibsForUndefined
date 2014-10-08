@@ -1,0 +1,11 @@
+#!/bin/sh
+if test `uname -s` = "AIX"; then
+  if dump -Tv $1 | fgrep '..'; then
+    dump -Tv $1 | fgrep '..'
+    exit 0
+  else
+    echo "No unresolveds!"
+    exit 1
+  fi
+fi
+exit 1
