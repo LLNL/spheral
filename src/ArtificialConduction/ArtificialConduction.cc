@@ -258,9 +258,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             // calc and add change in energy
                             const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
                         
-                            if ((((ri.magnitude()-0.5)<0.01 || (rj.magnitude()-0.5)<0.01)))
-                                printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e DuDt=%3.2e rij=%3.2e rji=%3.2e deltaPij=%3.2e\n",
-                                       j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),DepsDti,rij.magnitude(),rji.magnitude(),deltaPij);
+                            if (((abs(ri.magnitude()-0.5)<=0.006 || abs(rj.magnitude()-0.5)<=0.006)) && abs(uij)>0)
+                                printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e ri,j=(%3.2e,%3.2e,%3.2e) deltaPij=%3.2e\n",
+                                       j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),ri.magnitude(),rj.magnitude(),rij.magnitude(),deltaPij);
 
                                     
                             DepsDti += deltaU;
