@@ -30,6 +30,10 @@ commandLine(
     P2 = 1.0,
     gamma2 = 1.5,
 
+    # Translation
+    velx=0.0,
+    vely=0.0,
+
     # Geometry 
     x0 = 0.0,
     x1 = 0.25,
@@ -241,6 +245,18 @@ if restoreCycle is None:
         eps0 = P/((gamma - 1.0)*rho)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
     del nodes
+
+    #for nodes in nodeSet:
+    #  vel = nodes.velocity()
+    #  for i in xrange(nodes.numInternalNodes):
+    #    vel[i]=Vector(velx,vely)
+    vel = outerNodes.velocity()
+    for i in xrange(outerNodes.numInternalNodes):
+        vel[i]=Vector(velx,vely)
+    vel = innerNodes.velocity()
+    for i in xrange(innerNodes.numInternalNodes):
+        vel[i]=Vector(velx,vely)
+
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
