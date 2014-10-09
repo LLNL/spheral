@@ -102,7 +102,7 @@ commandLine(KernelConstructor = BSplineKernel,
             zerovpkg = True,
             
             graphics = "gnu",
-            periodic = False
+            periodic = True
             )
 
 restartDir = os.path.join(dataDir, "restarts")
