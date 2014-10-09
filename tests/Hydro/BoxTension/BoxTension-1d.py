@@ -33,6 +33,9 @@ commandLine(
     x2 = 0.75,
     x3 = 1.0,
 
+    #Translation
+    vel=0.0,
+
     # Resolution and node seeding.
     nx1 = 100,
     ny1 = 100,
@@ -211,6 +214,9 @@ if restoreCycle is None:
                                    (innerNodes, gamma2, rho2, P2)):
         eps0 = P/((gamma - 1.0)*rho)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+        vels = nodes.velocity()
+        for i in xrange(nodes.numInternalNodes):
+           vels[i]=Vector(vel)
     del nodes
 
 #-------------------------------------------------------------------------------
