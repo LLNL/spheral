@@ -135,10 +135,13 @@ class SpheralVoronoiSiloDump:
             except:
                 pass
 
-        xmin[0] = mpi.allreduce(xmin[0], mpi.MIN)
-        xmin[1] = mpi.allreduce(xmin[1], mpi.MIN)
-        xmax[0] = mpi.allreduce(xmax[0], mpi.MAX)
-        xmax[1] = mpi.allreduce(xmax[1], mpi.MAX)
+        # Globally reduce and puff up a bit.
+        for j in xrange(nDim):
+            xmin[j] = mpi.allreduce(xmin[j], mpi.MIN)
+            xmax[j] = mpi.allreduce(xmax[j], mpi.MAX)
+            delta = 0.01*(xmax[j] - xmin[j])
+            xmin[j] -= delta
+            xmax[j] += delta
 
         # Build the PLC.
         plc = polytope.PLC2d()
