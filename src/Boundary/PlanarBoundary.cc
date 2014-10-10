@@ -359,13 +359,13 @@ PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
 //            << (*controlItr) << " " 
 //            << positions(*controlItr) << endl;
 //     }
-    CHECK(positions(*controlItr) >= mEnterPlane and
-          positions(*controlItr) >= mExitPlane);
+    // CHECK(positions(*controlItr) >= mEnterPlane and
+    //       positions(*controlItr) >= mExitPlane);
 
     positions(*ghostItr) = mapPosition(positions(*controlItr),
                                        mExitPlane,
                                        mEnterPlane);
-    CHECK(positions(*ghostItr) <= mEnterPlane);
+    // CHECK(positions(*ghostItr) <= mEnterPlane);
   }
 
   // Set the Hfield.

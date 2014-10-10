@@ -95,7 +95,7 @@ commandLine(
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
-    dataDir = "dumps-boxtension-xy",
+    dataDir = "dumps-boxtension-1d",
     graphics = True,
     )
 
@@ -373,7 +373,7 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 if graphics:
     from SpheralGnuPlotUtilities import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotGhosts=True)
     pE = plotEHistory(control.conserve)
 
     if CSPH:
