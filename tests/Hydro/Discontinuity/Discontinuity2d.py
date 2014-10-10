@@ -46,7 +46,7 @@ commandLine(KernelConstructor = BSplineKernel,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             
-            linearConsistent = False,
+            linearConsistent = False,  #what does this do?
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
@@ -83,7 +83,7 @@ commandLine(KernelConstructor = BSplineKernel,
             HUpdate = IdealH,
             #densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             densityUpdate = IntegrateDensity,
-            compatibleEnergy = False,
+            compatibleEnergy = True,
             gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
@@ -108,7 +108,7 @@ commandLine(KernelConstructor = BSplineKernel,
             scalePressure = 5.0,
             scaleEnergy = 2.0,
             showDecay = False,
-            zerovpkg = True,
+            zerovpkg = False,
             
             graphics = "gnu",
             periodic = True
@@ -116,7 +116,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "discontinuity-1d-%i" % nx1)
-vizBaseName = "Discontinuity Test 2d"
+vizBaseName = "DiscontinuityTest2d"
 vizDir = os.path.join(dataDir, "visit")
 
 dx = (x1 - x0)/nx1
@@ -185,17 +185,21 @@ nodeSet = [nodes1]
 
 # Set node specific thermal energies
 xeps = x1/nx1
-def specificEnergy(x):
-    if ((abs(x-dfx1) < xeps) or (abs(x-dfx2)<xeps)):
-        return eps1*1.0 + scaleEnergy
-    else:
-        return eps1
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
+    vel = nodes.velocity()
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x)
+        x = pos[i].x
+        y = pos[i].y
+        vel[i][0] = sin(2*3.14159*y)
+        if ((abs(x-dfx2) < xeps and abs(y-dfx2) < xeps)):
+            eps[i] = eps1 + scaleEnergy
+            #vel[i][1] = 2.0
+        else:
+            eps[i] = eps1
+            
 #rho[i] = specificEnergy(pos[i].x)
 
 
@@ -343,7 +347,10 @@ xbc = PeriodicBoundary(xp1, xp2)
 ybc = PeriodicBoundary(yp1, yp2)
 ybc1 = ReflectingBoundary(yp1)
 ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc1, ybc2]
+if periodic:
+    bcSet = [xbc,ybc]
+else:
+    bcSet = [xbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
