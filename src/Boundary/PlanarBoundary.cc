@@ -234,8 +234,9 @@ PlanarBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
        ++itr) {
     CHECK(positions(*itr) <= enterPlane());
     positions(*itr) = mapPosition(positions(*itr), mEnterPlane, mExitPlane);
-    CHECK((positions(*itr) >= enterPlane()) and
-          (positions(*itr) >= exitPlane()));
+    // CHECK2((positions(*itr) >= enterPlane()) and
+    //        (positions(*itr) >= exitPlane()),
+    //        "Bad position mapping: " << *itr << " " << nodeList.firstGhostNode() << " " << positions(*itr));
   }
 
   // Set the Hfield.
