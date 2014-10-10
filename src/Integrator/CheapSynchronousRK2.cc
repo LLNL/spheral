@@ -106,44 +106,33 @@ step(typename Dimension::Scalar maxTime) {
   const double hdt = 0.5*dt;
   state.update(derivs, hdt, t, hdt);
   this->currentTime(t + hdt);
-
-  // Enforce Boundary conditions.
-  this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-                                  
-  // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Loop over the physics packages and perform any necessary initializations.
-  this->preStepInitialize(t + hdt, hdt, state, derivs);
 
-  // Zero out the stored derivatives.
+  // Evaluate the derivatives at the midpoint.
   derivs.Zero();
-
-  // Now loop over the packages and evaluate the derivatives at the
-  // midpoint.
+  this->preStepInitialize(t + hdt, hdt, state, derivs);
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
 
-  // Advance the state from the beginning of the cycle using the midpoint 
-  // derivatives.
+  // Advance the state from the beginning of the cycle using the midpoint derivatives.
   state.timeAdvanceOnly(false);
-  this->copyGhostState(state, state0);
+  //this->copyGhostState(state, state0);
   state.assign(state0);
   state.update(derivs, dt, t, dt);
   this->currentTime(t + dt);
-
-  // Enforce boundaries.
-  this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-
-  // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
   this->finalize(t + dt, dt, state, derivs);
+
+  // Enforce boundaries.
+  this->enforceBoundaries(state, derivs);
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);

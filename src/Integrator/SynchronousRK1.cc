@@ -104,12 +104,7 @@ step(typename Dimension::Scalar maxTime) {
 
   // Advance the state to the end of the timestep.
   state.update(derivs, dt, t, dt);
-
-  // Enforce boundaries.
-  this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-
-  // Do any physics specific stuff relating to the fact the state was just updated.
   this->postStateUpdate(db, state, derivs);
   this->finalizeGhostBoundaries();
 
@@ -117,6 +112,9 @@ step(typename Dimension::Scalar maxTime) {
   for (typename Integrator<Dimension>::ConstPackageIterator physicsItr = this->physicsPackagesBegin();
        physicsItr != this->physicsPackagesEnd();
        ++physicsItr) (*physicsItr)->finalize(t + dt, dt, db, state, derivs);
+
+  // Enforce boundaries.
+  this->enforceBoundaries(state, derivs);
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
