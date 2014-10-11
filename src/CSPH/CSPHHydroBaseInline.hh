@@ -103,6 +103,43 @@ CSPHHydroBase<Dimension>::filter(const double val) {
 }
 
 //------------------------------------------------------------------------------
+// Parameter to determine the magnitude of the tensile small scale correction.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+CSPHHydroBase<Dimension>::
+epsilonTensile() const {
+  return mEpsTensile;
+}
+
+template<typename Dimension>
+void
+CSPHHydroBase<Dimension>::
+epsilonTensile(const typename Dimension::Scalar val) {
+  mEpsTensile = val;
+}
+
+//------------------------------------------------------------------------------
+// Parameter to set the exponent used in the tensile small scale correction.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+CSPHHydroBase<Dimension>::
+nTensile() const {
+  return mnTensile;
+}
+
+template<typename Dimension>
+inline
+void
+CSPHHydroBase<Dimension>::
+nTensile(const typename Dimension::Scalar val) {
+  mnTensile = val;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

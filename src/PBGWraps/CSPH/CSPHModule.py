@@ -336,7 +336,9 @@ class CSPH:
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH")])
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("double", "epsTensile", default_value="0.0"),
+                           param("double", "nTensile", default_value="4.0")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)

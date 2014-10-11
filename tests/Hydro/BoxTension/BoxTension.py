@@ -178,7 +178,7 @@ eos2 = GammaLawGasMKS(gamma1, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -302,6 +302,8 @@ if SVPH:
 elif CSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
@@ -356,8 +358,8 @@ xbc1 = ReflectingBoundary(xPlane1)
 ybc0 = ReflectingBoundary(yPlane0)
 ybc1 = ReflectingBoundary(yPlane1)
 
-bcSet = [xbc, ybc]
-#bcSet = [xbc0, xbc1, ybc0, ybc1]
+#bcSet = [xbc, ybc]
+bcSet = [xbc0, xbc1, ybc0, ybc1]
 
 for p in packages:
     for bc in bcSet:
