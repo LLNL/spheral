@@ -307,7 +307,9 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const bool compatibleEnergyEvolution,
               const bool XSPH,
               const MassDensityType densityUpdate,
-              const HEvolutionType HUpdate):
+              const HEvolutionType HUpdate,
+              const double epsTensile,
+              const double nTensile):
   GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
   mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
@@ -315,6 +317,8 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSPH(XSPH),
   mfilter(filter),
+  mEpsTensile(epsTensile),
+  mnTensile(nTensile),
   mTimeStepMask(FieldSpace::Copy),
   mPressure(FieldSpace::Copy),
   mSoundSpeed(FieldSpace::Copy),
@@ -702,6 +706,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
+  const TableKernel<Dimension>& WQ = this->PiKernel();
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -827,6 +832,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const Scalar hminratio = nodeList.hminratio();
     const int maxNumNeighbors = nodeList.maxNumNeighbors();
     const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+
+    // The scale for the tensile correction.
+    const Scalar WnPerh = W(1.0/nPerh, 1.0);
 
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
@@ -978,8 +986,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector gradWi, gradWj;
               CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
-              const Vector gradWSPHi = gWi*(Hi*etai.unitVector());
-              const Vector gradWSPHj = gWj*(Hj*etaj.unitVector());
+              const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
+              const Vector gradWSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
+
+              // Scalar gW0i, gW0j, W0i, W0j;
+              // Vector gradW0i, gradW0j;
+              // CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, A0i, Vector::zero, gradA0i, Tensor::zero, W0j, gW0j, gradW0j);
+              // CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, W0i, gW0i, gradW0i);
 
               // // Compute the limiter determining how much of the linear correction we allow.
               // // const Scalar fQ = max(0.0, min(1.0, min(max(0.0, abs(0.05*Pi) - Qi)*safeInv(abs(0.05*Pi)), 
@@ -1022,13 +1035,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
               DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
+              // Determine an effective pressure including a term to fight the tensile instability.
+              const Scalar fij = mEpsTensile*pow(Wi/(Hdeti*WnPerh), mnTensile);
+              // const Scalar fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+              const Scalar Ri = fij*abs(Pi);
+              const Scalar Rj = fij*abs(Pj);
+              const Scalar Peffi = Pi + Ri;
+              const Scalar Peffj = Pj + Rj;
+
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
               // const Vector deltagrad0 = gradW0j - gradW0i;
               // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad0);
-              const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
+              const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
+              // const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
               Vector deltaDvDti = -forceij/mi;
               Vector deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
@@ -1045,7 +1067,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + 0.5*workQ)/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
-              // Q work based on the Q per point.
+              // // Q work based on the Q per point.
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mj;
 
@@ -1053,8 +1075,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mj;
 
               // CSPH PdV and SPH Q work.
-              DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
-              DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
+              // const Scalar Qworkij = 0.125*((QPiij.first + QPiij.second)*vij).dot(gradWSPHi + gradWSPHj);
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*Qworkij;
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*Qworkij;
+
+              DepsDti += 0.5*weighti*weightj*Peffj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
+              DepsDtj += 0.5*weighti*weightj*Peffi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
               
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {

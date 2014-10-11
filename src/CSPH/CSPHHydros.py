@@ -18,7 +18,9 @@ class %(classname)s%(dim)s(CSPHHydroBase%(dim)s):
                  compatibleEnergyEvolution = True,
                  XSPH = True,
                  densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH):
+                 HUpdate = IdealH,
+                 epsTensile = 0.0,
+                 nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CSPHHydroBase%(dim)s.__init__(self,
                                       self._smoothingScaleMethod,
@@ -31,7 +33,9 @@ class %(classname)s%(dim)s(CSPHHydroBase%(dim)s):
                                       compatibleEnergyEvolution,
                                       XSPH,
                                       densityUpdate,
-                                      HUpdate)
+                                      HUpdate,
+                                      epsTensile,
+                                      nTensile)
         return
 """
 
