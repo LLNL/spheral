@@ -10,7 +10,8 @@ SRCTARGETS = \
 	MorrisMonaghanReducingViscosityInst.cc \
 	TensorMonaghanGingoldViscosityInst.cc \
 	FiniteVolumeViscosityInst.cc \
-	TensorSVPHViscosityInst.cc 
+	TensorSVPHViscosityInst.cc \
+	VonNeumanViscosityInst.cc
 #	MonaghanGingoldViscosityRZ.cc \
 #	GradPressureViscosity.cc \
 #	ArtificialViscosityList.cc \

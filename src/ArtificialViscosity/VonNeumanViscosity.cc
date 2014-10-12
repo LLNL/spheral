@@ -3,33 +3,25 @@
 //----------------------------------------------------------------------------//
 #include "VonNeumanViscosity.hh"
 #include "DataBase/DataBase.hh"
+#include "DataBase/State.hh"
+#include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
-#include "Field/FieldListFunctions.hh"
-#include "Field/FieldListFunctionsMash.hh"
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
+#include "CSPH/gradientCSPH.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "FileIO/FileIO.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
 
-using Spheral::DataBaseSpace::DataBase;
-using Spheral::FieldSpace::Field;
-using Spheral::FieldSpace::FieldList;
-using Spheral::KernelSpace::TableKernel;
-using Spheral::BoundarySpace::Boundary;
-
-//------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-VonNeumanViscosity<Dimension>::
-VonNeumanViscosity():
-  ArtificialViscosity<Dimension>(),
-  mViscousEnergy(FieldList<Dimension, Scalar>::Copy) {
-#ifdef DEBUG
-  cerr << "VonNeumanViscosity::VonNeumanViscosity()" << endl;
-#endif
-}
+using namespace std;
+using DataBaseSpace::DataBase;
+using FieldSpace::Field;
+using FieldSpace::FieldList;
+using KernelSpace::TableKernel;
+using BoundarySpace::Boundary;
+using NeighborSpace::ConnectivityMap;
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
@@ -38,10 +30,7 @@ template<typename Dimension>
 VonNeumanViscosity<Dimension>::
 VonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
   ArtificialViscosity<Dimension>(Clinear, Cquadratic),
-  mViscousEnergy(FieldList<Dimension, Scalar>::Copy) {
-#ifdef DEBUG
-  cerr << "VonNeumanViscosity::VonNeumanViscosity(Cl, Cq)" << endl;
-#endif
+  mViscousEnergy(FieldSpace::Copy) {
 }
 
 //------------------------------------------------------------------------------
@@ -50,9 +39,6 @@ VonNeumanViscosity(Scalar Clinear, Scalar Cquadratic):
 template<typename Dimension>
 VonNeumanViscosity<Dimension>::
 ~VonNeumanViscosity() {
-#ifdef DEBUG
-  cerr << "VonNeumanViscosity::~VonNeumanViscosity()" << endl;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -62,62 +48,69 @@ template<typename Dimension>
 void
 VonNeumanViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
+           const State<Dimension>& state,
+           const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
 	   const typename Dimension::Scalar time,
 	   const typename Dimension::Scalar dt,
            const TableKernel<Dimension>& W) {
-#ifdef DEBUG
-  cerr << "VonNeumanViscosity::initialize()" << endl;
-#endif
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
+  // Make sure the CSPH corrections have had boundaries completed.
+  for (ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
   // Verify that the internal pressure field is properly initialized for this
   // set of fluid node lists.
-  if (mViscousEnergy.numFields() != dataBase.numFluidNodeLists()) {
-    FieldList<Dimension, Scalar> thpt(FieldList<Dimension, Scalar>::Copy);
-    for (typename DataBase<Dimension>::ConstFluidNodeListIterator fluidNodeListItr = dataBase.fluidNodeListBegin();
-         fluidNodeListItr < dataBase.fluidNodeListEnd();
-         ++fluidNodeListItr) {
-      thpt.appendField(Field<Dimension, Scalar>(**fluidNodeListItr));
-    }
-    mViscousEnergy = thpt;
-  } else {
-    mViscousEnergy.Zero();
-  }
+  dataBase.resizeFluidFieldList(mViscousEnergy, 0.0, "viscous pressure", true);
   CHECK(mViscousEnergy.numFields() == dataBase.numFluidNodeLists());
 
   // Get the fluid state.
-  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-  const FieldList<Dimension, Scalar> specificEnergy = dataBase.fluidSpecificThermalEnergy();
-  const FieldList<Dimension, SymTensor> Hfield = dataBase.fluidHfield();
-  const FieldList<Dimension, Scalar> weight = dataBase.fluidWeight();
-  const FieldList<Dimension, Scalar> pressure = dataBase.fluidPressure();
-  const FieldList<Dimension, Scalar> soundSpeed = dataBase.fluidSoundSpeed();
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> specificEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
+  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
+  const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
-  // Get the fluid velocity divergence.
-  const FieldList<Dimension, Scalar> velocityDivergence = 
-    Spheral::FieldSpace::divergence<Dimension, Vector>(velocity,
-                                                       position,
-                                                       weight,
-                                                       mass,
-                                                       massDensity,
-                                                       Hfield,
-                                                       W);
+  // Get the fluid velocity gradient.
+  const FieldList<Dimension, Tensor> velocityGradient = CSPHSpace::gradientCSPH(velocity,
+                                                                                position,
+                                                                                vol,
+                                                                                H,
+                                                                                A,
+                                                                                B,
+                                                                                C,
+                                                                                D,
+                                                                                gradA,
+                                                                                gradB,
+                                                                                connectivityMap,
+                                                                                W);
 
   // Set the viscous energy for each fluid node.
-  const Scalar alpha = -Cl();
-  const Scalar beta = Cq();
-  for (NodeIDIterator<Dimension> nodeItr = dataBase.internalNodeBegin();
-       nodeItr < dataBase.internalNodeEnd();
-       ++nodeItr) {
-    const Scalar mui = min(0.0, velocityDivergence(nodeItr));
-    const Scalar l = nodeItr.nodeListPtr()->neighborPtr()->nodeExtentField()(nodeItr).maxElement();
-    mViscousEnergy(nodeItr) = (alpha*soundSpeed(nodeItr) + beta*l*mui)*l*mui;
+  const Scalar Cl = this->Cl();
+  const Scalar Cq = this->Cq();
+  const unsigned numNodeLists = dataBase.numFluidNodeLists();
+  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const unsigned n = velocityGradient[nodeListi]->numInternalElements();
+    for (unsigned i = 0; i != n; ++i) {
+      const Scalar mui = min(0.0, velocityGradient(nodeListi, i).Trace());
+      const Scalar l = 1.0/(H(nodeListi, i).eigenValues().maxElement());
+      mViscousEnergy(nodeListi, i) = (-Cl*soundSpeed(nodeListi, i) + Cq*l*mui)*l*mui;
+    }
   }
 
   // Finally apply the boundary conditions to the viscous energy FieldList.
@@ -126,42 +119,43 @@ initialize(const DataBase<Dimension>& dataBase,
        ++boundaryItr) {
     (*boundaryItr)->applyFieldListGhostBoundary(mViscousEnergy);
   }
-
 }
 
 //------------------------------------------------------------------------------
-// Method to calculate and return the viscous acceleration, work, and pressure,
-// all in one step (efficiency and all).
+// 
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+std::pair<typename Dimension::Tensor, typename Dimension::Tensor>
 VonNeumanViscosity<Dimension>::
-viscousEffects(typename Dimension::Vector& acceleration,
-               typename Dimension::Scalar& work,
-               typename Dimension::Scalar& pressure,
-               const NodeIDIterator<Dimension>& nodeI,
-               const NodeIDIterator<Dimension>& nodeJ,
-               const typename Dimension::Vector& rij, 
-               const typename Dimension::Vector& vi,
-               const typename Dimension::Vector& vj,
-               const typename Dimension::Vector& etai,
-               const typename Dimension::Vector& etaj,
-               const typename Dimension::Scalar ci,
-               const typename Dimension::Scalar cj,
-               const typename Dimension::Scalar rhoi,
-               const typename Dimension::Scalar rhoj,
-               const typename Dimension::Vector& gradW) const {
+Piij(const unsigned nodeListi, const unsigned i, 
+     const unsigned nodeListj, const unsigned j,
+     const typename Dimension::Vector& xi,
+     const typename Dimension::Vector& etai,
+     const typename Dimension::Vector& vi,
+     const typename Dimension::Scalar rhoi,
+     const typename Dimension::Scalar csi,
+     const typename Dimension::SymTensor& Hi,
+     const typename Dimension::Vector& xj,
+     const typename Dimension::Vector& etaj,
+     const typename Dimension::Vector& vj,
+     const typename Dimension::Scalar rhoj,
+     const typename Dimension::Scalar csj,
+     const typename Dimension::SymTensor& Hj) const {
 
   REQUIRE(rhoi > 0.0);
 
-  // viscousInternalEnergy does most of the work.
-  Vector vij = vi - vj;
-  Scalar Qepsi = mViscousEnergy(nodeI);
-  CHECK(Qepsi >= 0.0);
-  Scalar QPi = Qepsi/rhoi;
-  acceleration = QPi*gradW;
-  work = QPi*vij.dot(gradW);
-  pressure = rhoi*Qepsi;
+  return make_pair(mViscousEnergy(nodeListi, i)/rhoi*Tensor::one,
+                   mViscousEnergy(nodeListj, j)/rhoj*Tensor::one);
+}
+
+//------------------------------------------------------------------------------
+// Access the viscous energy.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const FieldList<Dimension, typename Dimension::Scalar>&
+VonNeumanViscosity<Dimension>::
+viscousEnergy() const {
+  return mViscousEnergy;
 }
 
 //------------------------------------------------------------------------------
@@ -176,7 +170,7 @@ dumpState(FileIO& file, const string& pathName) const {
   ArtificialViscosity<Dimension>::dumpState(file, pathName);
 
   // Dump the viscous energy.
-  file.write(viscousInternalEnergy(), pathName + "/viscousEnergy");
+  file.write(mViscousEnergy, pathName + "/viscousEnergy");
 }  
 
 //------------------------------------------------------------------------------
@@ -193,17 +187,5 @@ restoreState(const FileIO& file, const string& pathName) {
   // Dump the viscous energy.
   file.read(mViscousEnergy, pathName + "/viscousEnergy");
 }  
-}
-}
-
-//------------------------------------------------------------------------------
-// Explicit instantiation.
-//------------------------------------------------------------------------------
-#include "Geometry/Dimension.hh"
-namespace Spheral {
-namespace ArtificialViscositySpace {
-template class VonNeumanViscosity< Dim<1> >;
-template class VonNeumanViscosity< Dim<2> >;
-template class VonNeumanViscosity< Dim<3> >;
 }
 }
