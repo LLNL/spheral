@@ -32,10 +32,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef NodeIDIterator<Dimension> IDIterator;
-
   // Constructors.
-  VonNeumanViscosity();
   VonNeumanViscosity(Scalar Clinear, Scalar Cquadratic);
 
   // Destructor.
@@ -44,34 +41,39 @@ public:
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
   virtual 
-  void initialize(const DataBase<Dimension>& dataBase,
+  void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  const State<Dimension>& state,
+                  const StateDerivatives<Dimension>& derivs,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                   typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
 		  const Scalar time,
 		  const Scalar dt,
-                  const TableKernel<Dimension>& W);
+                  const KernelSpace::TableKernel<Dimension>& W);
 
-  // Method to calculate and return the viscous acceleration, work, and pressure,
-  // all in one step (efficiency and all).
-  virtual void viscousEffects(Vector& acceleration,
-                              Scalar& work,
-                              Scalar& pressure,
-                              const IDIterator& nodeI,
-                              const IDIterator& nodeJ,
-                              const Vector& rij, 
-                              const Vector& vi, const Vector& vj,
-                              const Vector& etai, const Vector& etaj,
-                              const Scalar ci, const Scalar cj,
-                              const Scalar rhoi, const Scalar rhoj,
-                              const Vector& gradW) const;
+  // Require all descendents to return the artificial viscous Pi = P/rho^2 as a tensor.
+  // Scalar viscosities should just return a diagonal tensor with their value along the diagonal.
+  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
+                                         const unsigned nodeListj, const unsigned j,
+                                         const Vector& xi,
+                                         const Vector& etai,
+                                         const Vector& vi,
+                                         const Scalar rhoi,
+                                         const Scalar csi,
+                                         const SymTensor& Hi,
+                                         const Vector& xj,
+                                         const Vector& etaj,
+                                         const Vector& vj,
+                                         const Scalar rhoj,
+                                         const Scalar csj,
+                                         const SymTensor& Hj) const;
 
   // Access the viscous internal energy.
-  const FieldList<Dimension, Scalar>& viscousInternalEnergy() const;
+  const FieldList<Dimension, Scalar>& viscousEnergy() const;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual void dumpState(FileIO& file, const string& pathName) const;
-  virtual void restoreState(const FileIO& file, const string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
@@ -79,16 +81,6 @@ protected:
   FieldList<Dimension, Scalar> mViscousEnergy;
 };
 
-//------------------------------------------------------------------------------
-// Return the viscous energy field list.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-VonNeumanViscosity<Dimension>::
-viscousInternalEnergy() const {
-  return mViscousEnergy;
-}
 }
 }
 

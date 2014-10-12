@@ -8,6 +8,7 @@
 #include "ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/FiniteVolumeViscosity.hh"
 #include "ArtificialViscosity/TensorSVPHViscosity.hh"
+#include "ArtificialViscosity/VonNeumanViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
@@ -39,6 +40,9 @@ typedef TensorSVPHViscosity<Dim<1> > TensorSVPHViscosity1d;
 typedef TensorSVPHViscosity<Dim<2> > TensorSVPHViscosity2d;
 typedef TensorSVPHViscosity<Dim<3> > TensorSVPHViscosity3d;
 
+typedef VonNeumanViscosity<Dim<1> > VonNeumanViscosity1d;
+typedef VonNeumanViscosity<Dim<2> > VonNeumanViscosity2d;
+typedef VonNeumanViscosity<Dim<3> > VonNeumanViscosity3d;
 }
 }
 

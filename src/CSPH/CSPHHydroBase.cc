@@ -12,6 +12,7 @@
 
 #include "CSPHHydroBase.hh"
 #include "CSPHUtilities.hh"
+#include "gradientCSPH.hh"
 #include "computeHullVolumes.hh"
 #include "computeCSPHSumMassDensity.hh"
 #include "computeHullSumMassDensity.hh"
@@ -625,19 +626,8 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  // Get the artificial viscosity and initialize it.
-  const TableKernel<Dimension>& W = this->kernel();
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               W);
-
   // Compute the kernel correction fields.
+  const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   // const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -672,6 +662,17 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
   }
+
+  // Get the artificial viscosity and initialize it.
+  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  Q.initialize(dataBase, 
+               state,
+               derivs,
+               this->boundaryBegin(),
+               this->boundaryEnd(),
+               time, 
+               dt,
+               W);
 
   // // If we're doing the RigorousSumDensity update, now is a good time to do it
   // // since we have the boundary conditions and corrections all ready to go.
@@ -819,6 +820,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
+
+  // Evaluate grad v.
+  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  DvDx = gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
@@ -1048,8 +1053,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
               // const Vector deltagrad0 = gradW0j - gradW0i;
-              // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad0);
-              const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
+              const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+
+              // const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
+
               // const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
               Vector deltaDvDti = -forceij/mi;
               Vector deltaDvDtj =  forceij/mj;
@@ -1067,9 +1074,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + 0.5*workQ)/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
-              // // Q work based on the Q per point.
-              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mi;
-              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mj;
+              // Q work based on the Q per point.
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
 
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mj;
@@ -1079,8 +1086,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*Qworkij;
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*Qworkij;
 
-              DepsDti += 0.5*weighti*weightj*Peffj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
-              DepsDtj += 0.5*weighti*weightj*Peffi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
+              // DepsDti += 0.5*weighti*weightj*Peffj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
+              // DepsDtj += 0.5*weighti*weightj*Peffi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
               
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
