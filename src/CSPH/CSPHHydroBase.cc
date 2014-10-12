@@ -12,7 +12,6 @@
 
 #include "CSPHHydroBase.hh"
 #include "CSPHUtilities.hh"
-#include "gradientCSPH.hh"
 #include "computeHullVolumes.hh"
 #include "computeCSPHSumMassDensity.hh"
 #include "computeHullSumMassDensity.hh"
@@ -821,10 +820,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
-  // Evaluate grad v.
-  const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  DvDx = gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
-
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -989,6 +984,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj;
               Vector gradWi, gradWj;
+              // CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, A0i, Vector::zero, gradA0i, Tensor::zero, Wj, gWj, gradWj);
+              // CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, Wi, gWi, gradWi);
               CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
@@ -1040,13 +1037,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
               DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
-              // Determine an effective pressure including a term to fight the tensile instability.
-              const Scalar fij = mEpsTensile*pow(Wi/(Hdeti*WnPerh), mnTensile);
-              // const Scalar fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              const Scalar Ri = fij*abs(Pi);
-              const Scalar Rj = fij*abs(Pj);
-              const Scalar Peffi = Pi + Ri;
-              const Scalar Peffj = Pj + Rj;
+              // // Determine an effective pressure including a term to fight the tensile instability.
+              // const Scalar fij = mEpsTensile*pow(Wi/(Hdeti*WnPerh), mnTensile);
+              // // const Scalar fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+              // const Scalar Ri = fij*abs(Pi);
+              // const Scalar Rj = fij*abs(Pj);
+              // const Scalar Peffi = Pi + Ri;
+              // const Scalar Peffj = Pj + Rj;
 
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
