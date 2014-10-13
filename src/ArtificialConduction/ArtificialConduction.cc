@@ -224,7 +224,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             Vector& gradPj          = gradP(nodeListj, j);
                             
                             // get some differentials
-                            const Vector rij        = ri - rj; /* this is sign flipped but it's ok! */
+                            const Vector rij        = ri - rj;
                             const Vector rji        = rj - ri;
                             const Vector etai       = Hi*rij;
                             const Vector etaj       = Hj*rij;
