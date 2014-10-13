@@ -143,8 +143,8 @@ dt(const DataBase<Dimension>& dataBase,
        nodeListItr != dataBase.fluidNodeListEnd();
        ++nodeListItr, ++nodeListi) {
     const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
-    const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
-    CHECK(kernelExtent > 0.0);
+    const Scalar nPerh = fluidNodeList.nodesPerSmoothingScale();
+    CHECK(nPerh > 0.0);
 
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -157,8 +157,9 @@ dt(const DataBase<Dimension>& dataBase,
         // Get this nodes minimum characteristic smoothing scale.
         CHECK2(H(nodeListi, i).Determinant() >  0.0,
                "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
-        const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
-        //     const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
+        const Scalar nodeScale = 1.0/(H(nodeListi, i).eigenValues().maxElement())/nPerh;
+        // const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
+        // const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
 
         // Sound speed limit.
         const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);
