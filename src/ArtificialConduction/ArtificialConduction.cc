@@ -39,10 +39,12 @@ using FieldSpace::gradient;
 template<typename Dimension>
 ArtificialConduction<Dimension>::
 ArtificialConduction(const TableKernel<Dimension>& W,
-                     const Scalar alphaArCond):
+                     const Scalar alphaArCond,
+                     const bool deltaPMode):
     Physics<Dimension>(),
     mKernel(W),
-    mAlphaArCond(alphaArCond){
+    mAlphaArCond(alphaArCond),
+    mDeltaPMode(deltaPMode){
     
 }
 
@@ -245,8 +247,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              gradPj.dot(rij));
                             
                             // start a-calculatin' all the things
-                            //const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
-                            const Scalar deltaPij   = abs(Pij);
+                            const Scalar deltaPij   = (mDeltaPMode ? min(abs(Pij),abs(Pij+DPij)) : abs(Pij));
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
                             const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
                                                            Hj*etajNorm*W.grad(etaj, Hj));
@@ -259,8 +260,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
                         
                             //if (((abs(ri.magnitude()-0.5)<=0.006 || abs(rj.magnitude()-0.5)<=0.006)) && abs(uij)>0)
-			    //printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e ri,j=(%3.2e,%3.2e,%3.2e) deltaPij=%3.2e\n",
-			    //         j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),ri.magnitude(),rj.magnitude(),rij.magnitude(),deltaPij);
+                            //printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e ri,j=(%3.2e,%3.2e,%3.2e) deltaPij=%3.2e\n",
+                            //j,i,firstGhostNodej,deltaU,vsigij,epsi,epsj,uij,gradWij.magnitude(),ri.magnitude(),rj.magnitude(),rij.magnitude(),deltaPij);
 
                                     
                             DepsDti += deltaU;

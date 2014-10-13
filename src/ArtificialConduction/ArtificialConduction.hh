@@ -28,7 +28,8 @@ namespace Spheral {
             
             // Constructors
             ArtificialConduction(const KernelSpace::TableKernel<Dimension>& W,
-                                 const Scalar alphaArCond);
+                                 const Scalar alphaArCond,
+                                 const bool deltaPMode);
             
             // Destructor
             virtual ~ArtificialConduction();
@@ -68,8 +69,9 @@ namespace Spheral {
             // Our derivative field(s).
             FieldSpace::FieldList<Dimension, Vector> mGradP;
             FieldSpace::FieldList<Dimension, Scalar> mDepsDtArty;
-	    FieldSpace::FieldList<Dimension, Scalar> mVsigMax;
+            FieldSpace::FieldList<Dimension, Scalar> mVsigMax;
             Scalar mAlphaArCond;
+            bool mDeltaPMode;
 
         };
     }

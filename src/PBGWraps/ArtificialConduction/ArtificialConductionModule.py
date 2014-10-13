@@ -76,7 +76,8 @@ class ArtificialConduction:
         
         # Constructor.
         x.add_constructor([constrefparam(tablekernel, "W"),
-                           param("double", "arCondAlpha", default_value="0.5")])
+                           param("double", "arCondAlpha", default_value="0.5"),
+                           param("bool", "deltaPMode", default_value="0")])
                            
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
