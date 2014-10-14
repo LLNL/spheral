@@ -215,6 +215,7 @@ class SPH:
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
+        const_ref_return_value(x, me, "%s::nodeScale" % me, scalarfieldlist, [], "nodeScale")
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
         const_ref_return_value(x, me, "%s::omegaGradh" % me, scalarfieldlist, [], "omegaGradh")

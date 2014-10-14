@@ -99,6 +99,7 @@ class Hydro:
         x.add_static_attribute("omegaGradh", "std::string",  is_const=True)
         x.add_static_attribute("numberDensitySum", "std::string",  is_const=True)
         x.add_static_attribute("timeStepMask", "std::string",  is_const=True)
+        x.add_static_attribute("nodeScale", "std::string",  is_const=True)
         x.add_static_attribute("m0_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("m1_CSPH", "std::string",  is_const=True)
         x.add_static_attribute("m2_CSPH", "std::string",  is_const=True)
