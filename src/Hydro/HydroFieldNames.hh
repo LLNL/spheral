@@ -37,6 +37,7 @@ struct HydroFieldNames {
   static const std::string omegaGradh;
   static const std::string numberDensitySum;
   static const std::string timeStepMask;
+  static const std::string nodeScale;
   static const std::string m0_CSPH;
   static const std::string m1_CSPH;
   static const std::string m2_CSPH;
