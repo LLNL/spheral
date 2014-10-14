@@ -32,7 +32,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                           const TableKernel<Dimension>& W,
                           const FieldList<Dimension, typename Dimension::Vector>& position,
                           const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                          const FieldList<Dimension, typename Dimension::Scalar>& volume,
                           const FieldList<Dimension, typename Dimension::SymTensor>& H,
                           const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
                           const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
@@ -67,7 +66,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
-      const Scalar Vi = volume(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -86,7 +84,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                        nodeListj, j,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
-            const Scalar Vj = volume(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
