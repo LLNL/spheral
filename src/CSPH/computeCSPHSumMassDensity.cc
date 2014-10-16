@@ -35,15 +35,13 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                           const FieldList<Dimension, typename Dimension::SymTensor>& H,
                           const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
                           const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
-                          FieldList<Dimension, typename Dimension::Scalar>& massDensity,
-                          FieldList<Dimension, typename Dimension::Scalar>& nodeScale) {
+                          FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
   const size_t numNodeLists = massDensity.size();
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-  REQUIRE(nodeScale.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -52,7 +50,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   massDensity = 0.0;
-  nodeScale = 1e100;
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // Walk the FluidNodeLists and sum the new mass density.
@@ -105,11 +102,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             // massDensity(nodeListj, j) += mi*(Wi + Wj);
             // Veff(nodeListi, i) += Vj*(Wi + Wj);
             // Veff(nodeListj, j) += Vi*(Wi + Wj);
-
-            // Update the minimum node scale.
-            const Scalar rijmag = rij.magnitude();
-            nodeScale(nodeListi, i) = min(nodeScale(nodeListi, i), rijmag);
-            nodeScale(nodeListj, j) = min(nodeScale(nodeListj, j), rijmag);
           }
         }
       }

@@ -32,7 +32,6 @@ const std::string Spheral::HydroFieldNames::pairWork = "pair-wise work";
 const std::string Spheral::HydroFieldNames::omegaGradh = "grad h corrections";
 const std::string Spheral::HydroFieldNames::numberDensitySum = "number density sum";
 const std::string Spheral::HydroFieldNames::timeStepMask = "time step mask";
-const std::string Spheral::HydroFieldNames::nodeScale = "time step node scale";
 const std::string Spheral::HydroFieldNames::m0_CSPH = "m0 CSPH moment";
 const std::string Spheral::HydroFieldNames::m1_CSPH = "m1 CSPH moment";
 const std::string Spheral::HydroFieldNames::m2_CSPH = "m2 CSPH moment";

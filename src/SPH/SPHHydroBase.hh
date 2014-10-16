@@ -183,7 +183,6 @@ public:
 
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    nodeScale() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
@@ -233,8 +232,6 @@ protected:
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
-  FieldSpace::FieldList<Dimension, Scalar>    mNodeScale;
-
   FieldSpace::FieldList<Dimension, Scalar>    mPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldSpace::FieldList<Dimension, Scalar>    mOmegaGradh;

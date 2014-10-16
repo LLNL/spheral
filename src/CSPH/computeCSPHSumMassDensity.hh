@@ -1,7 +1,5 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the CSPH mass density summation.
-// For efficiency we also huck back the minimum node scale for each internal
-// node.
 //------------------------------------------------------------------------------
 #ifndef __Spheral__computeCSPHSumMassDensity__
 #define __Spheral__computeCSPHSumMassDensity__
@@ -33,8 +31,7 @@ namespace Spheral {
                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                               const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
                               const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
-                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity,
-                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& nodeScale);
+                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }
 

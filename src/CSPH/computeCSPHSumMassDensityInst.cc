@@ -14,7 +14,6 @@ namespace Spheral {
                                             const FieldList<Dim<1>, Dim<1>::SymTensor>&,
                                             const std::vector<BoundarySpace::Boundary<Dim<1> >*>::const_iterator&,
                                             const std::vector<BoundarySpace::Boundary<Dim<1> >*>::const_iterator&,
-                                            FieldList<Dim<1>, Dim<1>::Scalar>&,
                                             FieldList<Dim<1>, Dim<1>::Scalar>&);
     template void computeCSPHSumMassDensity(const ConnectivityMap<Dim<2> >&, 
                                             const TableKernel<Dim<2> >&, 
@@ -23,7 +22,6 @@ namespace Spheral {
                                             const FieldList<Dim<2>, Dim<2>::SymTensor>&,
                                             const std::vector<BoundarySpace::Boundary<Dim<2> >*>::const_iterator&,
                                             const std::vector<BoundarySpace::Boundary<Dim<2> >*>::const_iterator&,
-                                            FieldList<Dim<2>, Dim<2>::Scalar>&,
                                             FieldList<Dim<2>, Dim<2>::Scalar>&);
     template void computeCSPHSumMassDensity(const ConnectivityMap<Dim<3> >&, 
                                             const TableKernel<Dim<3> >&, 
@@ -32,7 +30,6 @@ namespace Spheral {
                                             const FieldList<Dim<3>, Dim<3>::SymTensor>&,
                                             const std::vector<BoundarySpace::Boundary<Dim<3> >*>::const_iterator&,
                                             const std::vector<BoundarySpace::Boundary<Dim<3> >*>::const_iterator&,
-                                            FieldList<Dim<3>, Dim<3>::Scalar>&,
                                             FieldList<Dim<3>, Dim<3>::Scalar>&);
   }
 }

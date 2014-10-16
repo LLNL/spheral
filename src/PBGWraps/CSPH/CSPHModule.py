@@ -118,8 +118,7 @@ class CSPH:
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(vector_of_boundary, "boundaries"),
-                                 refparam(scalarfieldlist, "massDensity"),
-                                 refparam(scalarfieldlist, "nodeScale")],
+                                 refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCSPHSumMassDensity%id" % ndim)
 
@@ -393,7 +392,6 @@ class CSPH:
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
-        const_ref_return_value(x, me, "%s::nodeScale" % me, scalarfieldlist, [], "nodeScale")
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
         const_ref_return_value(x, me, "%s::volume" % me, scalarfieldlist, [], "volume")
