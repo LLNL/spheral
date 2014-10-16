@@ -154,14 +154,6 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CSPHHydroBase<Dimension>::
-nodeScale() const {
-  return mNodeScale;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CSPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
 }

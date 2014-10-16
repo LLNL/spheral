@@ -320,7 +320,6 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mTimeStepMask(FieldSpace::Copy),
-  mNodeScale(FieldSpace::Copy),
   mPressure(FieldSpace::Copy),
   mSoundSpeed(FieldSpace::Copy),
   mVolume(FieldSpace::Copy),
@@ -372,7 +371,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
-  mNodeScale = dataBase.newFluidFieldList(0.0, HydroFieldNames::nodeScale);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
@@ -426,36 +424,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-
-  // Initialize the node scales.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  mNodeScale = 1e100;
-  const unsigned numNodeLists = position.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const unsigned i = *iItr;
-      const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const unsigned firstGhostNodej = position[nodeListj]->nodeList().firstGhostNode();
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        for (vector<int>::const_iterator jItr = connectivity.begin();
-             jItr != connectivity.end();
-             ++jItr) {
-          const unsigned j = *jItr;
-          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                       nodeListj, j,
-                                                       firstGhostNodej)) {
-            const Scalar rij = (position(nodeListi, i) - position(nodeListj, j)).magnitude();
-            mNodeScale(nodeListi, i) = min(mNodeScale(nodeListi, i), rij);
-            mNodeScale(nodeListj, j) = min(mNodeScale(nodeListj, j), rij);
-          }
-        }
-      }
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -471,7 +439,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and correction fields.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  dataBase.resizeFluidFieldList(mNodeScale, 0.0, HydroFieldNames::nodeScale, false);
   // dataBase.fluidPressure(mPressure);
   // dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mPressure, 0.0,          HydroFieldNames::pressure, false);
@@ -566,7 +533,6 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the time step mask, initialized to 1 so that everything defaults to being
   // checked.
   state.enroll(mTimeStepMask);
-  state.enroll(mNodeScale);
 
   // Compute and register the pressure and sound speed.
   PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
@@ -1480,14 +1446,13 @@ finalize(const typename Dimension::Scalar time,
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
     const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    FieldList<Dimension, Scalar> nodeScale = state.fields(HydroFieldNames::nodeScale, 0.0);
 
     // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     // FieldList<Dimension, Scalar> vol = mass/massDensity;
@@ -1497,7 +1462,7 @@ finalize(const typename Dimension::Scalar time,
     // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
     //      boundaryItr != this->boundaryEnd();
     //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity, nodeScale);
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
@@ -1509,40 +1474,14 @@ finalize(const typename Dimension::Scalar time,
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                                               HydroFieldNames::massDensity, 0.0);
+  //   massDensity.assignFields(massDensitySum);
   }
 
-  // Update the node scale now that the positions have been finalized.  This 
-  // is necessary to set the next time step.
-  if (densityUpdate() != PhysicsSpace::RigorousSumDensity) {
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    FieldList<Dimension, Scalar> nodeScale = state.fields(HydroFieldNames::nodeScale, 0.0);
-    nodeScale = 1e100;
-    const unsigned numNodeLists = position.numFields();
-    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-           iItr != connectivityMap.end(nodeListi);
-           ++iItr) {
-        const unsigned i = *iItr;
-        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-          const unsigned firstGhostNodej = position[nodeListj]->nodeList().firstGhostNode();
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const unsigned j = *jItr;
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
-              const Scalar rij = (position(nodeListi, i) - position(nodeListj, j)).magnitude();
-              nodeScale(nodeListi, i) = min(nodeScale(nodeListi, i), rij);
-              nodeScale(nodeListj, j) = min(nodeScale(nodeListj, j), rij);
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 //------------------------------------------------------------------------------

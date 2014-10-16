@@ -115,7 +115,6 @@ dt(const DataBase<Dimension>& dataBase,
 
   // Get some useful fluid variables from the DataBase.
   const FieldList<Dimension, int> mask = state.fields(HydroFieldNames::timeStepMask, 1);
-  const FieldList<Dimension, Scalar> nodeScale = state.fields(HydroFieldNames::nodeScale, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -156,15 +155,14 @@ dt(const DataBase<Dimension>& dataBase,
       if (mask(nodeListi, i) == 1) {
 
         // Get this nodes minimum characteristic smoothing scale.
-        CHECK(nodeScale(nodeListi, i) > 0.0);
-        // CHECK2(H(nodeListi, i).Determinant() >  0.0,
-        //        "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
-        // const Scalar nodeScale = 1.0/(H(nodeListi, i).eigenValues().maxElement())/nPerh;
-        // // const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
-        // // const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
+        CHECK2(H(nodeListi, i).Determinant() >  0.0,
+               "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
+        const Scalar nodeScale = 1.0/(H(nodeListi, i).eigenValues().maxElement())/nPerh;
+        // const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
+        // const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
 
         // Sound speed limit.
-        const double csDt = nodeScale(nodeListi, i)/(soundSpeed(nodeListi, i) + FLT_MIN);
+        const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);
         if (csDt < minDt) {
           minDt = csDt;
           reason = "sound speed limit";
@@ -173,7 +171,7 @@ dt(const DataBase<Dimension>& dataBase,
         // Artificial viscosity effective sound speed.
         CHECK(rho(nodeListi, i) > 0.0);
         const Scalar csq = sqrt(maxViscousPressure(nodeListi, i)/rho(nodeListi, i));
-        const double csqDt = nodeScale(nodeListi, i)/(csq + FLT_MIN);
+        const double csqDt = nodeScale/(csq + FLT_MIN);
         if (csqDt < minDt) {
           minDt = csqDt;
           reason = "artificial viscosity sound speed limit";
@@ -208,7 +206,7 @@ dt(const DataBase<Dimension>& dataBase,
         //     }
 
         // Total acceleration limit.
-        const double dtAcc = sqrt(nodeScale(nodeListi, i)/(DvDt(nodeListi, i).magnitude() + FLT_MIN));
+        const double dtAcc = sqrt(nodeScale/(DvDt(nodeListi, i).magnitude() + FLT_MIN));
         if (dtAcc < minDt) {
           minDt = dtAcc;
           reason = "total acceleration";
@@ -216,7 +214,7 @@ dt(const DataBase<Dimension>& dataBase,
 
         // If requested, limit against the absolute velocity.
         if (useVelocityMagnitudeForDt()) {
-          const double velDt = nodeScale(nodeListi, i)/(velocity(nodeListi, i).magnitude() + 1.0e-10);
+          const double velDt = nodeScale/(velocity(nodeListi, i).magnitude() + 1.0e-10);
           if (velDt < minDt) {
             minDt = velDt;
             reason = "velocity magnitude";
@@ -227,7 +225,7 @@ dt(const DataBase<Dimension>& dataBase,
           lastMinDt = minDt;
           lastNodeID = i;
           lastNodeListName = fluidNodeList.name();
-          lastNodeScale = nodeScale(nodeListi, i);
+          lastNodeScale = nodeScale;
           lastCs = soundSpeed(nodeListi, i);
           lastAcc = DvDt(nodeListi, i);
           //      lastCsq = csq;

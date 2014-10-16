@@ -103,7 +103,6 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mxmin(xmin),
   mxmax(xmax),
   mTimeStepMask(FieldSpace::Copy),
-  mNodeScale(FieldSpace::Copy),
   mPressure(FieldSpace::Copy),
   mSoundSpeed(FieldSpace::Copy),
   mVolume(FieldSpace::Copy),
@@ -147,7 +146,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
-  mNodeScale = dataBase.newFluidFieldList(0.0, HydroFieldNames::nodeScale);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(0.0, HydroFieldNames::omegaGradh);
@@ -174,21 +172,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-
-  // Initialize the node scales.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
-  mNodeScale = 1e100;
-  const unsigned numNodeLists = H.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const unsigned i = *iItr;
-      CHECK(H(nodeListi, i).Determinant() >  0.0);
-      mNodeScale(nodeListi, i) = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
-    }
-  }
 
   // // In some cases we need the volume per node as well.
   // const bool updateVolume = (this->densityUpdate() == PhysicsSpace::VoronoiCellDensity or
@@ -237,7 +220,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  dataBase.resizeFluidFieldList(mNodeScale, 0.0, HydroFieldNames::nodeScale, false);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mOmegaGradh, 1.0, HydroFieldNames::omegaGradh);
@@ -323,7 +305,6 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the time step mask, initialized to 1 so that everything defaults to being
   // checked.
   state.enroll(mTimeStepMask);
-  state.enroll(mNodeScale);
 
   // Compute and register the pressure and sound speed.
   PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
@@ -951,22 +932,6 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
-  }
-
-  // Update the node scale now that the positions have been finalized.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, Scalar> nodeScale = state.fields(HydroFieldNames::nodeScale, 0.0);
-  mNodeScale = 1e100;
-  const unsigned numNodeLists = H.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-         iItr != connectivityMap.end(nodeListi);
-         ++iItr) {
-      const unsigned i = *iItr;
-      CHECK(H(nodeListi, i).Determinant() >  0.0);
-      nodeScale(nodeListi, i) = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
-    }
   }
 }
 
