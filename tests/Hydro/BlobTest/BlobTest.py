@@ -74,15 +74,12 @@ class SphericalRejecter:
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(
-    # Outer state.
-    rho1 = 1.0,
-    P1 = 1.0,
-    gamma1 = 1.5,
 
-    # Inner state
-    rho2 = 4.0,
-    P2 = 1.0,
-    gamma2 = 1.5,
+    #Set external state (Internal state is dependent so dont set it)
+    gamma = 5.0/3.0,
+    rhoext = 1.0,
+    Pequi = 1.0,
+    mach = 2.7,  #mach number 
 
     # Geometry Ambient medium box
     xb0 = 0.0,
@@ -225,8 +222,8 @@ if restoreCycle is None:
 # Material properties.
 #-------------------------------------------------------------------------------
 mu = 1.0
-eos1 = GammaLawGasMKS(gamma1, mu)
-eos2 = GammaLawGasMKS(gamma1, mu)
+eos1 = GammaLawGasMKS(gamma, mu)
+eos2 = GammaLawGasMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -265,7 +262,9 @@ del nodes
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rho1,
+#Blob density is defined to be 10 times the external density
+    rhoblob=rhoext*10.0
+    generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
                                                 distributionType = "lattice",
                                                 xmin = (xb0, yb0, zb0),
                                                 xmax = (xb1, yb1, zb1),
@@ -273,14 +272,14 @@ if restoreCycle is None:
                                                                              radius = br),
                                                 nNodePerh = nPerh,
                                                 SPH = SPH)
-    #generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rho1,
+    #generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
     #                                            distributionType = "lattice",
     #                                            xmin = (bx-br, by-br, bz-br),
     #                                            xmax = (bx+br, by+br, bz+br),
     #       				        rmin = br,
     #                                            nNodePerh = nPerh,
     #                                            SPH = SPH)
-    #generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rho2,
+    #generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
     #                                            distributionType = "lattice",
     #                                            xmin = (xb0, yb0, zb0),
     #                                            xmax = (xb1, yb1, zb1),
@@ -288,7 +287,7 @@ if restoreCycle is None:
     #                                                                         radius = br),
     #                                            nNodePerh = nPerh,
     #                                            SPH = SPH)
-    generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rho2,
+    generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
                                                 distributionType = "lattice",
                                                 xmin = (bx-br, by-br, bz-br),
                                                 xmax = (bx+br, by+br, bz+br),
@@ -312,9 +311,10 @@ if restoreCycle is None:
     del nodes
 
     # Set node specific thermal energies
-    for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
-                                   (innerNodes, gamma2, rho2, P2)):
-        eps0 = P/((gamma - 1.0)*rho)
+    for (nodes, rho) in ((outerNodes, rhoext),
+                                   (innerNodes, rhoblob)):
+        eps0 = Pequi/((gamma - 1.0)*rho)
+        cs = math.sqrt(gamma*(gamma-1.0)*eps0)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
     del nodes
 
@@ -322,9 +322,12 @@ if restoreCycle is None:
     #  vel = nodes.velocity()
     #  for i in xrange(nodes.numInternalNodes):
     #    vel[i]=Vector(velx,vely)
-    #vel = outerNodes.velocity()
-    #for i in xrange(outerNodes.numInternalNodes):
-    #    vel[i]=Vector(velx,vely)
+
+    vel = outerNodes.velocity() #wind velocity
+    for i in xrange(outerNodes.numInternalNodes):
+        cs = math.sqrt(gamma*Pequi/rho)
+        velz = mach*cs
+        vel[i]=Vector(0.0,0.0, velz)
     #vel = innerNodes.velocity()
     #for i in xrange(innerNodes.numInternalNodes):
     #    vel[i]=Vector(velx,vely)
