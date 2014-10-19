@@ -58,6 +58,7 @@ namespace Spheral {
 namespace CSPHSpace {
 
 using namespace std;
+using PhysicsSpace::Physics;
 using PhysicsSpace::GenericHydro;
 using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
@@ -424,6 +425,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
+
+  // We need to call our own evaluate derivatives method in order to initialize the 
+  // viscous pressure for use in choosing a timestep.
+  vector<Physics<Dimension>*> packages(1, this);
+  State<Dimension> state(dataBase, packages);
+  StateDerivatives<Dimension> derivs(dataBase, packages);
+  this->applyGhostBoundaries(state, derivs);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  this->initialize(0.0, 1.0, dataBase, state, derivs);
+  this->evaluateDerivatives(0.0, 1.0, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------
