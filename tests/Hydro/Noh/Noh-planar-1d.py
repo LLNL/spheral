@@ -71,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             dtMin = 1.0e-5, 
             dtMax = 0.1,
             dtGrowth = 2.0,
+            dtverbose = False,
             rigorousBoundaries = False,
             updateBoundaryFrequency = 1,
             maxSteps = None,
@@ -316,6 +317,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.updateBoundaryFrequency = updateBoundaryFrequency
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.cullGhostNodes = cullGhostNodes
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.lastDt")
 output("integrator.dtMin")
@@ -325,6 +327,7 @@ output("integrator.rigorousBoundaries")
 output("integrator.updateBoundaryFrequency")
 output("integrator.domainDecompositionIndependent")
 output("integrator.cullGhostNodes")
+output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
