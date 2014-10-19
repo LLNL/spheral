@@ -1,3 +1,10 @@
+Release notes for 2.0.5.
+
+Minor patch release, mostly just snapshoting our current state since the 2.0.4 
+release is so old now it won't compile for most folks anymore.
+
+================================================================================
+
 Release notes for 2.0.4.
 
 Another minor patch release, with two changes:
