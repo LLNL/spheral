@@ -282,7 +282,7 @@ if restoreCycle is None:
     #                                                                         radius = br),
     #                                            nNodePerh = nPerh,
     #                                            SPH = SPH)
-    generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
+    generatorInner = GenerateNodeDistribution3d(nx1, ny1, ny1, rhoblob,
                                                 distributionType = "lattice",
                                                 xmin = (bx-br, by-br, bz-br),
                                                 xmax = (bx+br, by+br, bz+br),
