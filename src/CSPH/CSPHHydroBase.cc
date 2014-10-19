@@ -894,10 +894,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
 
-      // Bizarrely, in CSPH there is a self-contribution to gradients.  We need this 
-      // term to compute those.
-      const Scalar W0 = W.kernelValue(0.0, Hdeti);
-      const Vector selfGradContrib = W0*(Ai*Bi + gradAi);
+      // // Bizarrely, in CSPH there is a self-contribution to gradients.  We need this 
+      // // term to compute those.
+      // const Scalar W0 = W.kernelValue(0.0, Hdeti);
+      // const Vector selfGradContrib = W0*(Ai*Bi + gradAi);
 
       // Iterate over the NodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -1451,19 +1451,18 @@ finalize(const typename Dimension::Scalar time,
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    // FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
 
     // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    FieldList<Dimension, Scalar> vol = mass/massDensity;
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, vol, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+    // FieldList<Dimension, Scalar> vol = mass/massDensity;
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
