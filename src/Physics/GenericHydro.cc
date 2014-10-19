@@ -145,6 +145,8 @@ dt(const DataBase<Dimension>& dataBase,
     const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
     const Scalar nPerh = fluidNodeList.nodesPerSmoothingScale();
     CHECK(nPerh > 0.0);
+    // const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
+    // CHECK(kernelExtent > 0.0);
 
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -157,9 +159,9 @@ dt(const DataBase<Dimension>& dataBase,
         // Get this nodes minimum characteristic smoothing scale.
         CHECK2(H(nodeListi, i).Determinant() >  0.0,
                "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
-        const Scalar nodeScale = 1.0/(H(nodeListi, i).eigenValues().maxElement())/nPerh;
+        const Scalar nodeScale = 1.0/H(nodeListi, i).eigenValues().maxElement()/nPerh;
         // const Scalar nodeScale = 1.0/Dimension::rootnu(H(nodeListi, i).Determinant());
-        // const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
+        //     const Scalar nodeScale = nodeExtent(nodeListi, i).minElement()/kernelExtent;
 
         // Sound speed limit.
         const double csDt = nodeScale/(soundSpeed(nodeListi, i) + FLT_MIN);
@@ -183,6 +185,26 @@ dt(const DataBase<Dimension>& dataBase,
         if (divvDt < minDt) {
           minDt = divvDt;
           reason = "velocity divergence";
+        }
+
+        // Maximum velocity difference limit.
+        const Vector& vi = velocity(nodeListi, i);
+        const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          const unsigned firstGhostNodej = velocity[nodeListj]->nodeList().firstGhostNode();
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
+            const Vector& vj = velocity(nodeListj, j);
+            const Scalar vij = (vi - vj).magnitude();
+            const Scalar dtVelDiff = nodeScale/max(1.0e-100, vij);
+            if (dtVelDiff < minDt) {
+              minDt = dtVelDiff;
+              reason = "pairwise velocity difference";
+            }
+          }
         }
 
         //     // Eigenvalues of the stress-strain tensor.
