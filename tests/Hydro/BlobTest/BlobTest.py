@@ -8,15 +8,11 @@ from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
-from CubicNodeGenerator import GenerateSquareNodeDistribution
-from CentroidalVoronoiRelaxation import *
-
 
 import mpi
 import DistributeNodes
 
 title("3-D integrated hydro test --  Blob Test")
-
 
 #-------------------------------------------------------------------------------
 # Rejecter to help establishing initial conditions.
@@ -151,7 +147,6 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = True,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
@@ -314,7 +309,7 @@ if restoreCycle is None:
     for (nodes, rho) in ((outerNodes, rhoext),
                                    (innerNodes, rhoblob)):
         eps0 = Pequi/((gamma - 1.0)*rho)
-        cs = math.sqrt(gamma*(gamma-1.0)*eps0)
+        cs = sqrt(gamma*(gamma-1.0)*eps0)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
     del nodes
 
@@ -325,7 +320,7 @@ if restoreCycle is None:
 
     vel = outerNodes.velocity() #wind velocity
     for i in xrange(outerNodes.numInternalNodes):
-        cs = math.sqrt(gamma*Pequi/rho)
+        cs = sqrt(gamma*Pequi/rho)
         velz = mach*cs
         vel[i]=Vector(0.0,0.0, velz)
     #vel = innerNodes.velocity()
@@ -472,18 +467,11 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
