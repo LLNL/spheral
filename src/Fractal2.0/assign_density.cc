@@ -54,6 +54,7 @@ namespace FractalSpace
 	//	    FileFractal << " testing " << "\n";
 	//	    point.dump();
 	point.add_density_at_points<double>(dens);
+	point.set_mass_points(true);
       }
     //--------------------------------------------------------------------------------------------------------------------------------
     // scale from mass at point to density at point
