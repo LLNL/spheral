@@ -1,0 +1,4 @@
+#!/bin/sh
+if test `uname -s` = "Linux" -a -x "/usr/bin/execstack"; then
+  execstack -s $1
+fi
