@@ -40,6 +40,7 @@ commandLine(
     # Resolution and node seeding.
     nx1 = 64,
     ny1 = 64,
+    seed = "lattice",
 
     nPerh = 1.51,
 
@@ -66,14 +67,14 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    XSPH = True,
+    XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
     IntegratorConstructor = CheapSynchronousRK2Integrator,
     goalTime = 1.0,
     steps = None,
-    vizCycle = 5,
+    vizCycle = 20,
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
@@ -95,6 +96,7 @@ commandLine(
     restoreCycle = None,
     restartStep = 200,
     dataDir = "dumps-greshovortex-xy",
+    graphics = True,
     )
 
 # Decide on our hydro algorithm.
@@ -191,11 +193,11 @@ output("    nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     generator = GenerateNodeDistribution2d(nx1, ny1, rho,
-                                                distributionType = "lattice",
-                                                xmin = (x0, y0),
-                                                xmax = (x1, y1),
-                                                nNodePerh = nPerh,
-                                                SPH = SPH)
+                                           distributionType = seed,
+                                           xmin = (x0, y0),
+                                           xmax = (x1, y1),
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -397,3 +399,7 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+# Plot the final velocity profile
+if graphics:
+    p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
