@@ -1059,8 +1059,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar Peffj = Pj + Rj;
               
               // Old CSPH.
-              const Vector deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
-              const Vector deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              // const Vector deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              // const Vector deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
 
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
@@ -1071,8 +1071,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
               // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*mi*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
-              // const Vector deltaDvDti = -forceij/mi;
-              // const Vector deltaDvDtj =  forceij/mj;
+              const Vector deltaDvDti = -forceij/mi;
+              const Vector deltaDvDtj =  forceij/mj;
 
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
