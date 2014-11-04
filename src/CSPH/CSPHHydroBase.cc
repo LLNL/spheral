@@ -1058,7 +1058,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar Peffi = Pi + Ri;
               // const Scalar Peffj = Pj + Rj;
               
-              // Old CSPH.
+              // // Old CSPH.
               // const Vector deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
               // const Vector deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
 
@@ -1066,11 +1066,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
-              const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
+
+              const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
 
               // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
               // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*mi*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+
+              // const Vector forceij = weightj*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj) - weighti*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+
+              // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
+
               const Vector deltaDvDti = -forceij/mi;
               const Vector deltaDvDtj =  forceij/mj;
 
