@@ -34,8 +34,8 @@ commandLine(
     y1 = 1.0,
    
     #Center of Vortex
-    xc=0.0,
-    yc=0.0,
+    xc=0.5,
+    yc=0.5,
 
     # Resolution and node seeding.
     nx1 = 64,
