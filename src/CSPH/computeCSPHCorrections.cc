@@ -154,29 +154,27 @@ computeCSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
               const Scalar& Wj = WWj.first;
               const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
-              const Scalar Wij = 0.5*(Wi + Wj);
-              const Vector gradWij = 0.5*(gradWj - gradWi);
 
               // Zeroth moment. 
-              const Scalar wwi = wi*Wij;
-              const Scalar wwj = wj*Wij;
+              const Scalar wwi = wi*Wi;
+              const Scalar wwj = wj*Wj;
               m0(nodeListi, i) += wwj;
               m0(nodeListj, j) += wwi;
-              gradm0(nodeListi, i) += wj*gradWij;
-              gradm0(nodeListj, j) -= wi*gradWij;
+              gradm0(nodeListi, i) += wj*gradWj;
+              gradm0(nodeListj, j) += wi*gradWi;
 
               // First moment. 
               m1(nodeListi, i) += wwj * rij;
               m1(nodeListj, j) -= wwi * rij;
-              gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij,  gradWij) + Tensor::one*Wij);
-              gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, -gradWij) + Tensor::one*Wij);
+              gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
+              gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
 
               // Second moment.
               const SymTensor thpt = rij.selfdyad();
               m2(nodeListi, i) += wwj*thpt;
               m2(nodeListj, j) += wwi*thpt;
-              gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWij);
-              gradm2(nodeListj, j) -= wi*outerProduct<Dimension>(thpt, gradWij);
+              gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
+              gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
 
               
               for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
