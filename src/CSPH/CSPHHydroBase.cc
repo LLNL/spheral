@@ -1057,19 +1057,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar Rj = fij*abs(Pj);
               // const Scalar Peffi = Pi + Ri;
               // const Scalar Peffj = Pj + Rj;
+              
+              // Old CSPH.
+              const Vector deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              const Vector deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
 
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
-              // const Vector deltagrad0 = gradW0j - gradW0i;
               const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);
 
-              // const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
+              // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
-              // const Vector forceij = 0.5*weighti*weightj*(Peffi + Peffj)*deltagrad + 0.5*(mi*mj*QPiij.first*gradWSPHi + mi*mj*QPiij.second*gradWSPHj);
-              Vector deltaDvDti = -forceij/mi;
-              Vector deltaDvDtj =  forceij/mj;
+              // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*mi*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              // const Vector deltaDvDti = -forceij/mi;
+              // const Vector deltaDvDtj =  forceij/mj;
+
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
@@ -1096,8 +1100,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*Qworkij;
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*Qworkij;
 
-              // DepsDti += 0.5*weighti*weightj*Peffj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
-              // DepsDtj += 0.5*weighti*weightj*Peffi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + 0.25*mj*(QPiij.first *vij).dot(gradWSPHi + gradWSPHj);
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + 0.25*mi*(QPiij.second*vij).dot(gradWSPHi + gradWSPHj);
               
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
