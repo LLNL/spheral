@@ -19,7 +19,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  using typename ArtificialViscosity<Dimension>::ConstBoundaryIterator;
+  typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
   TensorCSPHViscosity(Scalar Clinear, Scalar Cquadratic);
