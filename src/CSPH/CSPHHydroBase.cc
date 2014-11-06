@@ -674,6 +674,9 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
   }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Get the artificial viscosity and initialize it.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
@@ -1067,7 +1070,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const Vector deltagrad = gradWj - gradWi;
 
-              const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
+              const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
+
+//               const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad
+// );    // <- Type III, current default
 
               // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
@@ -1077,8 +1083,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
 
-              const Vector deltaDvDti = -forceij/mi;
-              const Vector deltaDvDtj =  forceij/mj;
+              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              const Vector deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
+              const Vector deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
 
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
@@ -1095,8 +1103,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
               // Q work based on the Q per point.
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
+              // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
+              // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
+
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
+              DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
+              DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
+
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*(QPiij.second*vij).dot(gradWSPHi);
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*(QPiij.first *vij).dot(gradWSPHj);
 
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad0))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad0))/mj;
