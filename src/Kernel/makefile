@@ -17,7 +17,8 @@ SRCTARGETS = \
 	QuarticSplineKernel.cc \
 	QuinticSplineKernel.cc \
 	TableKernelInst.cc \
-	VolumeIntegrationFunctionsInst.cc
+	VolumeIntegrationFunctionsInst.cc \
+	WendlandC4Kernel.cc
 
 LINKLIST = linklist
 PYFFLELIST = pyfflelist

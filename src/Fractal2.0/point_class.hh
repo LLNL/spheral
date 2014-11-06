@@ -18,6 +18,7 @@ namespace FractalSpace
     bool passive_point;
     bool buffer_point;
     bool edge_point;
+    bool mass_point;
     int number_in_list;
     //    int which_Slice;
     //
@@ -70,6 +71,7 @@ namespace FractalSpace
       passive_point(false),
       buffer_point(false),
       edge_point(false),
+      mass_point(false),
       number_in_list(-1),
       //      which_Slice(-1),
       potential_point(0.0),
@@ -91,6 +93,32 @@ namespace FractalSpace
     bool get_found_it()
     {
       return found_it;
+    }
+    void set_mass_point(bool what)
+    {
+      mass_point=what;
+    }
+    void set_mass_points(bool what)
+    {
+      mass_point=what;
+      Point* p=get_point_ud_0(1);
+      p->mass_point=what;
+      p=p->get_point_ud_0(3);
+      p->mass_point=what;
+      p=p->get_point_ud_0(0);
+      p->mass_point=what;
+      p=p->get_point_ud_0(5);
+      p->mass_point=what;
+      p=p->get_point_ud_0(1);
+      p->mass_point=what;
+      p=p->get_point_ud_0(2);
+      p->mass_point=what;
+      p=p->get_point_ud_0(0);
+      p->mass_point=what;
+    }
+    bool get_mass_point()
+    {
+      return mass_point;
     }
     void set_edge_buffer_passive_point(const bool& e,const bool& b,const bool& p)
     {
@@ -641,6 +669,15 @@ namespace FractalSpace
 	point_ud[3]->point_ud[2]=this;
       if(point_ud[5] != 0)
 	point_ud[5]->point_ud[4]=this;
+    }
+    void up_from_down()
+    {
+      if(point_ud[0] != 0)
+	point_ud[0]->point_ud[1]=this;
+      if(point_ud[2] != 0)
+	point_ud[2]->point_ud[3]=this;
+      if(point_ud[4] != 0)
+	point_ud[4]->point_ud[5]=this;
     }
     Point* get_point_down_y()
     {

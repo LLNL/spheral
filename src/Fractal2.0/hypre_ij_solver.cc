@@ -27,7 +27,6 @@ namespace FractalSpace
     FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     fprintf(PFH," enter hypre solver %d %d \n",level,mem.steps);
-    cout << " enter hypre solver " << level << " " << mem.steps << " " << FractalRank << "\n";
     Hypre_total_time=-mem.p_mess->Clock();
     Hypre_search_time=-mem.p_mess->Clock();
     vector <Point*>hypre_points;
@@ -35,7 +34,6 @@ namespace FractalSpace
     if(!hypre_ij_numbering(mem,frac,hypre_points,level,buffer_only))
       {
 	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
-	cout << " nothing here hypre solver " << level << " " << mem.p_mess->HypreRank << " " << FractalRank << "\n";
 	frac.timing(1,32);
 	return;
       }
@@ -49,7 +47,6 @@ namespace FractalSpace
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time Buffer" << "\n";
     int total=0;
     fprintf(PFH," Am I a Hypre Node %d %d %d \n",mem.p_mess->IAmAHypreNode,HypreRank,FractalRank);
-    cout << " Am I a Hypre Node " << mem.p_mess->IAmAHypreNode << " " << HypreRank << " " << FractalRank << "\n";
     if(mem.p_mess->IAmAHypreNode)
       {
 	Hypre_gen_time=-mem.p_mess->Clock();
@@ -65,8 +62,6 @@ namespace FractalSpace
 	const int jlower=ilower;
 	const int jupper=iupper;
 	fprintf(PFH," limits %d %d \n",ilower,iupper);
-	//	cout << " limits " << FractalRank << " " << HypreRank << " " << ilower << " " << iupper << "\n";
-	//	cout << " test H " << HypreRank << " " << ilower << " " << iupper << " " << mem.ij_offsetsB.size() << " " << mem.p_mess->HypreNodes << endl;
 	hypre_eror(PFH,level,0,HYPRE_IJMatrixCreate(HypreComm,ilower,iupper,jlower,jupper,&ij_matrix));
 	hypre_eror(PFH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
 	HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
@@ -107,6 +102,7 @@ namespace FractalSpace
 	total=hypre_points.size();
 	for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
 	  {
+	    vector <Point*> ud6(6);
 	    Point* p=*point_itr;
 	    p->get_hypre_info(ij_index,ij_ud,rho,pot);
 	    udsize=ij_ud.size();
@@ -135,15 +131,24 @@ namespace FractalSpace
 	      }
 	    else if(udsize == 6)
 	      {
-		inside=p->get_inside();
+		p->get_point_ud(ud6);
+		assert(p->get_inside());
 		rows[0]=ij_index;
 		cols[0]=ij_index;
 		potv[0]=pot;
-		assert(inside);
-		ncols[0]=7;
-		for(int ni=0;ni<6;ni++)
-		  cols[ni+1]=ij_ud[ni];
 		rhov[0]=rho*g_c;
+		int neighs=1;
+		for(int ni=0;ni<6;ni++)
+		  {
+		    if(ud6[ni]->get_inside())
+		      {
+			cols[neighs]=ij_ud[ni];
+			neighs++;
+		      }
+		    else
+		      rhov[0]-=ud6[ni]->get_potential_point();
+		  }
+		ncols[0]=neighs;
 		hypre_eror(PFH,level,18,HYPRE_IJMatrixAddToValues(ij_matrix,nrows,ncols,rows,cols,coef7));
 		hypre_eror(PFH,level,20,HYPRE_IJVectorAddToValues(ij_vector_pot,1,rows,potv));
 		hypre_eror(PFH,level,21,HYPRE_IJVectorAddToValues(ij_vector_rho,1,rows,rhov));

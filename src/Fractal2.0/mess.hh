@@ -45,6 +45,9 @@ namespace FractalSpace
     vector <MPI_Comm> MComms;
     vector <MPI_Comm> HComms;
     vector <MPI_Group> HG;
+    bool possibleDANGER;
+    int DANGERlevel;
+    int fftwTAG;
     bool time_trial;
     bool standalone;
     File* p_file;
@@ -58,7 +61,7 @@ namespace FractalSpace
       HypreRank(0),
       HypreNodes(0),
       MPI_SWITCH(512),
-      MPI_MAX_COMMS(768),
+      MPI_MAX_COMMS(4096),
       number_particles_total(-1),
       start_x(0),
       length_x(-1),
@@ -83,7 +86,7 @@ namespace FractalSpace
       HypreRank(0),
       HypreNodes(0),
       MPI_SWITCH(512),
-      MPI_MAX_COMMS(768),
+      MPI_MAX_COMMS(4096),
       number_particles_total(-1),
       start_x(0),
       length_x(GR),
@@ -124,7 +127,7 @@ namespace FractalSpace
       HypreRank(0),
       HypreNodes(0),
       MPI_SWITCH(512),
-      MPI_MAX_COMMS(768),
+      MPI_MAX_COMMS(4096),
       number_particles_total(-1),
       start_x(0),
       length_x(GR),
@@ -468,7 +471,8 @@ namespace FractalSpace
       //      cout << "calc_fftwa " << FFTRank << " " << start_x << " " << length_x << "\n";
       my_AllgatherI(paramsend,paramrecv,2);
       //      MPI_Allgather(paramsend,2,MPI_INT,paramrecv,2,MPI_INT,FractalWorld);
-      cout << "calc_fftwb " << FFTRank << " " << start_x << " " << length_x << "\n";
+      if(IAmAnFFTNode)
+	cout << "calc_fftwb " << FFTRank << " " << start_x << " " << length_x << "\n";
       Slices.resize(FractalNodes); // this is not an error.
       BoxS.resize(FractalNodes); // it must be dimensioned
       BoxSL.resize(FractalNodes); // this way
@@ -549,109 +553,10 @@ namespace FractalSpace
 				      vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
 				      vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
     {
-      ofstream& FF=p_file->FileFractal;
-      vector <int>displsI(FractalNodes,0);
-      vector <int>displsR(FractalNodes,0);
-      vector <int>countsI_in(FractalNodes,0);
-      vector <int>countsR_in(FractalNodes,0);
-      vector <int>countsI_out(FractalNodes,0);
-      vector <int>countsR_out(FractalNodes,0);
-      for(int FR=0;FR<FractalNodes;FR++)
-	{
-	  countsI_in[FR]=counts_in_send[FR]*integers;
-	  countsI_out[FR]=counts_out_send[FR]*integers;
-	  countsR_in[FR]=counts_in_send[FR]*doubles;
-	  countsR_out[FR]=counts_out_send[FR]*doubles;
-	  if(FR > 0)
-	    {
-	      displsI[FR]=displsI[FR-1]+counts_in_send[FR-1]*integers;
-	      displsR[FR]=displsR[FR-1]+counts_in_send[FR-1]*doubles;
-	    }
-	}
-      how_manyI=displsI[FractalNodes-1]+counts_in_send[FractalNodes-1]*integers;
-      how_manyR=displsR[FractalNodes-1]+counts_in_send[FractalNodes-1]*doubles;
-      int extraI=countsI_out[FractalRank];
-      int extraR=countsR_out[FractalRank];
-      int startI=displsI[FractalRank];
-      int startR=displsR[FractalRank];
-      const int tagI=0;
-      const int tagR=1;
-      vector <MPI_Request> requestIout;
-      vector <MPI_Request> requestRout;
-      vector <MPI_Request> requestIin;
-      vector <MPI_Request> requestRin;
-      FF << " howmanyIR " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
-      int answer=-1;
-      if(integers > 0)
-	{
-	  dataI_in_send.resize(how_manyI);
-	  for(int ni=0;ni<extraI;ni++)
-	    dataI_in_send[ni+startI]=dataI_out[FractalRank][ni];
-	  //	  std::copy(dataI_out[FractalRank].begin(),dataI_out[FractalRank].begin()+extraI,dataI_in_send.begin()+startI)
-	}
-      if(doubles > 0)
-	{
-	  dataR_in_send.resize(how_manyR);
-	  for(int ni=0;ni<extraR;ni++)
-	    dataR_in_send[ni+startR]=dataR_out[FractalRank][ni];
-	  //	  std::copy(dataR_out[FractalRank].begin(),dataR_out[FractalRank].begin()+extraR,dataR_in_send.begin()+startR)
-	}
-      for(int FR=0;FR<FractalNodes;FR++)
-	{
-	  if(FR == FractalRank || counts_in_send[FR] == 0)
-	    continue;
-	  if(integers > 0)
-	    {
-	      requestIin.push_back(MPI_Request());
-	      answer=MPI_Irecv(&(*(dataI_in_send.begin()+displsI[FR])),countsI_in[FR],MPI_INT,FR,tagI,FractalWorld,&requestIin.back());
-	      MPI_MYTest(0,answer);
-	    }
-	  if(doubles > 0)
-	    {
-	      requestRin.push_back(MPI_Request());
-	      answer=MPI_Irecv(&(*(dataR_in_send.begin()+displsR[FR])),countsR_in[FR],MPI_DOUBLE,FR,tagR,FractalWorld,&requestRin.back());
-	      MPI_MYTest(1,answer);
-	    }
-	}
-      //
-      Full_Stop_Do_Not_Argue();
-      //
-      for(int FR=0;FR<FractalNodes;FR++)
-	{
-	  if(FR == FractalRank || counts_out_send[FR] == 0)
-	    continue;
-	  if(integers > 0)
-	    {
-	      requestIout.push_back(MPI_Request());
-	      answer=MPI_Isend(&(*dataI_out[FR].begin()),countsI_out[FR],MPI_INT,FR,tagI,FractalWorld,&requestIout.back());
-	      MPI_MYTest(2,answer);
-	    }
-	  if(doubles > 0)
-	    {
-	      requestRout.push_back(MPI_Request());
-	      answer=MPI_Isend(&(*dataR_out[FR].begin()),countsR_out[FR],MPI_DOUBLE,FR,tagR,FractalWorld,&requestRout.back());
-	      MPI_MYTest(3,answer);
-	    }
-	}
-      if(integers > 0)
-	{
-	  vector <MPI_Status> statusIout(requestIout.size());
-	  vector <MPI_Status> statusIin(requestIin.size());
-	  answer=MPI_Waitall(requestIout.size(),&(*requestIout.begin()),&(*statusIout.begin()));
-	  MPI_MYTest(4,answer);
-	  answer=MPI_Waitall(requestIin.size(),&(*requestIin.begin()),&(*statusIin.begin()));
-	  MPI_MYTest(5,answer);
-	}
-      if(doubles > 0)
-	{
-	  vector <MPI_Status> statusRout(requestRout.size());
-	  vector <MPI_Status> statusRin(requestRin.size());
-	  answer=MPI_Waitall(requestRout.size(),&(*requestRout.begin()),&(*statusRout.begin()));
-	  MPI_MYTest(6,answer);
-	  answer=MPI_Waitall(requestRin.size(),&(*requestRin.begin()),&(*statusRin.begin()));
-	  MPI_MYTest(7,answer);
-	}
-      FF << " how many " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+      Send_Data_Somewhere_No_Block(FractalWorld,
+				   counts_out_send,counts_in_send,integers,doubles,
+				   dataI_out,dataI_in_send,how_manyI,
+				   dataR_out,dataR_in_send,how_manyR);
     }
     void Send_Data_Somewhere_No_Block(MPI_Comm& World,
 				      vector <int>& counts_out_send,vector <int>& counts_in_send,const int& integers,const int& doubles,
@@ -698,16 +603,16 @@ namespace FractalSpace
       if(integers > 0)
 	{
 	  dataI_in_send.resize(how_manyI);
-	  for(int ni=0;ni<extraI;ni++)
-	    dataI_in_send[ni+startI]=dataI_out[Rank][ni];
-	  //	  std::copy(dataI_out[Rank].begin(),dataI_out[Rank].begin()+extraI,dataI_in_send.begin()+startI)
+	  //	  for(int ni=0;ni<extraI;ni++)
+	  //	    dataI_in_send[ni+startI]=dataI_out[Rank][ni];
+	  std::copy(dataI_out[Rank].begin(),dataI_out[Rank].begin()+extraI,dataI_in_send.begin()+startI);
 	}
       if(doubles > 0)
 	{
 	  dataR_in_send.resize(how_manyR);
-	  for(int ni=0;ni<extraR;ni++)
-	    dataR_in_send[ni+startR]=dataR_out[Rank][ni];
-	  //	  std::copy(dataR_out[Rank].begin(),dataR_out[Rank].begin()+extraR,dataR_in_send.begin()+startR)
+	  //	  for(int ni=0;ni<extraR;ni++)
+	  //	    dataR_in_send[ni+startR]=dataR_out[Rank][ni];
+	  std::copy(dataR_out[Rank].begin(),dataR_out[Rank].begin()+extraR,dataR_in_send.begin()+startR);
 	}
       for(int FR=0;FR<Nodes;FR++)
 	{
@@ -900,10 +805,13 @@ namespace FractalSpace
 			    vector < vector <int> >& dataI_out,vector <int>& dataI_in_send,int& how_manyI,
 			    vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
     {
+      fftwTAG=tag;
       int Rank=what_is_my_rank(World);
       int Nodes=how_many_nodes(World);
       bool small=Nodes <= MPI_SWITCH;
       bool foreign=World != FractalWorld && World != HypreWorld;
+      possibleDANGER=Nodes >= MPI_MAX_COMMS && (fftwTAG == 0 || fftwTAG == 4 || fftwTAG == 7) && World == FractalWorld;
+      DANGERlevel=possibleDANGER ? 1:0;
       p_file->DUMPS << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << endl;
       cout << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << endl;
       if(Rank == 0)
@@ -1469,76 +1377,69 @@ namespace FractalSpace
       FF << " Send GG " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
-      dataI_out.resize(FractalNodes);
-      dataR_out.resize(FractalNodes);
       counts_in.assign(FractalNodes,0);
       countI=0;
       countR=0;
+      counterI=0;
+      counterR=0;
+      vector < vector <int> > dataI;
+      vector < vector <double> > dataR;
       try
 	{
 	  for(int FR2=0;FR2<FractalNodes2;FR2++)
 	    {
+	      dataI.clear();
+	      dataR.clear();
+	      dataI.resize(FractalNodes01);
+	      dataR.resize(FractalNodes01);
 	      for(int c=0;c<countsa_in[FR2];c++)
 		{
 		  int FRFrom=dataI_in[countI];
 		  countI++;
 		  counts_in[FRFrom]++;
+		  int FR01=FRFrom % FractalNodes01;
 		  for(int nI=0;nI<integers;nI++)
 		    {
-		      dataI_out[FRFrom].push_back(dataI_in[countI]);
+		      dataI[FR01].push_back(dataI_in[countI]);
 		      countI++;
 		    }
 		  for(int nR=0;nR<doubles;nR++)
 		    {
-		      dataR_out[FRFrom].push_back(dataR_in[countR]);
+		      dataR[FR01].push_back(dataR_in[countR]);
 		      countR++;
 		    }
 		}
+	      for(int FR01=0;FR01<FractalNodes01;FR01++)
+		{
+		  vector <int>::iterator pIb=dataI[FR01].begin();
+		  vector <int>::iterator pIe=dataI[FR01].end();
+		  while(pIb != pIe)
+		    {
+		      dataI_in[counterI]=*pIb;
+		      pIb++;
+		      counterI++;
+		    }
+		  vector <double>::iterator pRb=dataR[FR01].begin();
+		  vector <double>::iterator pRe=dataR[FR01].end();
+		  while(pRb != pRe)
+		    {
+		      dataR_in[counterR]=*pRb;
+		      pRb++;
+		      counterR++;
+		    }
+		}
 	    }
+	  dataI_in.resize(counterI);
+	  dataR_in.resize(counterR);
+	  how_manyI=counterI;
+	  how_manyR=counterR;
 	}
       catch(bad_alloc& ba)
 	{
 	  cout << " DUMP IT E " << FractalRank << " " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
 	  FF << " DUMP IT E " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  for(int FR=0;FR<FractalNodes;FR++)
-	    FF << FR << " " << dataI_out[FR].size() << " " << dataR_out[FR].size() << "\n";
-	  FF << endl;
-	  assert(0);
-	}
-      dataI_in.clear();
-      dataR_in.clear();
-      FF << " Send HH " << FractalRank <<  "\n";
-      how_manyI=0;
-      how_manyR=0;
-      try
-	{
-	  for(int FR=0;FR<FractalNodes;FR++)
-	    {
-	      countI=0;
-	      countR=0;
-	      for(int c=0;c<counts_in[FR];c++)
-		{
-		  for(int nI=0;nI<integers;nI++)
-		    {
-		      dataI_in.push_back(dataI_out[FR][countI]);
-		      countI++;
-		    }
-		  for(int nR=0;nR<doubles;nR++)
-		    {
-		      dataR_in.push_back(dataR_out[FR][countR]);
-		      countR++;
-		    }
-		}
-	      how_manyI+=countI;
-	      how_manyR+=countR;
-	    }
-	}
-      catch(bad_alloc& ba)
-	{
-	  cout << " DUMP IT F " << FractalRank << " " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  FF << " DUMP IT F " << ba.what() << " " << dataI_in.size() << " " << dataR_in.size() << "\n";
-	  for(int FR=0;FR<FractalNodes;FR++)
-	    FF << FR << " " << dataI_out[FR].size() << " " << dataR_out[FR].size() << "\n";
+	  for(int FR=0;FR<FractalNodes01;FR++)
+	    FF << FR << " " << dataI[FR].size() << " " << dataR[FR].size() << "\n";
 	  FF << endl;
 	  assert(0);
 	}

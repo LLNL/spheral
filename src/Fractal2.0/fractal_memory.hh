@@ -32,9 +32,12 @@ namespace FractalSpace
     vector < vector <int> > BBoxes;
     vector < vector <int> > PBoxes;
     vector < vector <int> > Buffers;
-    vector < vector < vector <int> > > BoxesLev;
-    vector < vector < vector <int> > > BBoxesLev;
-    vector < vector < vector <int> > > PBoxesLev;
+    vector < vector <int> > FRBoxesLev;
+    vector < vector <int> > FRBBoxesLev;
+    vector < vector <int> > FRPBoxesLev;
+    //    vector < vector < vector <int> > > BoxesLev;
+    //    vector < vector < vector <int> > > BBoxesLev;
+    //    vector < vector < vector <int> > > PBoxesLev;
     vector < vector < vector <int> > > HRBoxesLev;
     vector < vector < vector <int> > > HSBoxesLev;
     vector < vector <int> > PBoxesLength;
@@ -348,6 +351,9 @@ namespace FractalSpace
     }
     void calc_Buffers_and_more()
     {
+      vector < vector < vector <int> > > BoxesLev;
+      vector < vector < vector <int> > > BBoxesLev;
+      vector < vector < vector <int> > > PBoxesLev;
       Buffers.resize(FractalNodes);
       BBoxes.resize(FractalNodes);
       PBoxes.resize(FractalNodes);
@@ -358,71 +364,76 @@ namespace FractalSpace
       HRBoxesLev.resize(FractalNodes);
       HSBoxesLev.resize(FractalNodes);
 
-      for(int count=0;count<FractalNodes;count++)
+      for(int FR=0;FR<FractalNodes;FR++)
 	{
-	  Buffers[count].resize(6);
-	  BBoxes[count].resize(6);
-	  PBoxes[count].resize(6);
-	  PBoxesLength[count].resize(3);
+	  Buffers[FR].resize(6);
+	  BBoxes[FR].resize(6);
+	  PBoxes[FR].resize(6);
+	  PBoxesLength[FR].resize(3);
 	  for(int n=0;n<3;n++)
 	    {
-	      if(Boxes[count][2*n] == 0 && !periodic)
-		Buffers[count][2*n]=0;
+	      if(Boxes[FR][2*n] == 0 && !periodic)
+		Buffers[FR][2*n]=0;
 	      else
-		Buffers[count][2*n]=1;
-	      if(Boxes[count][2*n+1] == grid_length-1 && !periodic)
-		Buffers[count][2*n+1]=0;
+		Buffers[FR][2*n]=1;
+	      if(Boxes[FR][2*n+1] == grid_length-1 && !periodic)
+		Buffers[FR][2*n+1]=0;
 	      else
-		Buffers[count][2*n+1]=1;
-	      BBoxes[count][2*n]=Boxes[count][2*n]-Buffers[count][2*n];
-	      BBoxes[count][2*n+1]=Boxes[count][2*n+1]+Buffers[count][2*n+1];
-	      PBoxes[count][2*n]=BBoxes[count][2*n]-Buffers[count][2*n];
-	      PBoxes[count][2*n+1]=BBoxes[count][2*n+1]+Buffers[count][2*n+1];
-	      PBoxesLength[count][n]=PBoxes[count][2*n+1]-PBoxes[count][2*n]+1;
+		Buffers[FR][2*n+1]=1;
+	      BBoxes[FR][2*n]=Boxes[FR][2*n]-Buffers[FR][2*n];
+	      BBoxes[FR][2*n+1]=Boxes[FR][2*n+1]+Buffers[FR][2*n+1];
+	      PBoxes[FR][2*n]=BBoxes[FR][2*n]-Buffers[FR][2*n];
+	      PBoxes[FR][2*n+1]=BBoxes[FR][2*n+1]+Buffers[FR][2*n+1];
+	      PBoxesLength[FR][n]=PBoxes[FR][2*n+1]-PBoxes[FR][2*n]+1;
 	    }
-	  BoxesLev[count].resize(level_max+1);
-	  BBoxesLev[count].resize(level_max+1);
-	  PBoxesLev[count].resize(level_max+1);
-	  HRBoxesLev[count].resize(level_max+1);
-	  HSBoxesLev[count].resize(level_max+1);
-	  BoxesLev[count][0].resize(6);
-	  BBoxesLev[count][0].resize(6);
-	  PBoxesLev[count][0].resize(6);
+	  BoxesLev[FR].resize(level_max+1);
+	  BBoxesLev[FR].resize(level_max+1);
+	  PBoxesLev[FR].resize(level_max+1);
+	  HRBoxesLev[FR].resize(level_max+1);
+	  HSBoxesLev[FR].resize(level_max+1);
+	  BoxesLev[FR][0].resize(6);
+	  BBoxesLev[FR][0].resize(6);
+	  PBoxesLev[FR][0].resize(6);
 	  int zoom=Misc::pow(2,level_max);
 	  for(int n=0;n<6;n++)
 	    {
-	      BoxesLev[count][0][n]=Boxes[count][n]*zoom;
-	      BBoxesLev[count][0][n]=BBoxes[count][n]*zoom;
-	      PBoxesLev[count][0][n]=PBoxes[count][n]*zoom;
+	      BoxesLev[FR][0][n]=Boxes[FR][n]*zoom;
+	      BBoxesLev[FR][0][n]=BBoxes[FR][n]*zoom;
+	      PBoxesLev[FR][0][n]=PBoxes[FR][n]*zoom;
 	    }
 	  for(int lev=1;lev<=level_max;lev++)
 	    {
-	      BoxesLev[count][lev].resize(6);
-	      BBoxesLev[count][lev].resize(6);
-	      PBoxesLev[count][lev].resize(6);
-	      PBoxesLev[count][lev].resize(6);
-	      HRBoxesLev[count][lev].resize(6);
-	      HSBoxesLev[count][lev].resize(6);
+	      BoxesLev[FR][lev].resize(6);
+	      BBoxesLev[FR][lev].resize(6);
+	      PBoxesLev[FR][lev].resize(6);
+	      PBoxesLev[FR][lev].resize(6);
+	      HRBoxesLev[FR][lev].resize(6);
+	      HSBoxesLev[FR][lev].resize(6);
 	      zoom=Misc::pow(2,level_max-lev);
 	      for(int n=0;n<3;n++)
 		{
-		  BoxesLev[count][lev][2*n]=BoxesLev[count][lev-1][2*n];
-		  BBoxesLev[count][lev][2*n+1]=BBoxesLev[count][lev-1][2*n+1];
+		  BoxesLev[FR][lev][2*n]=BoxesLev[FR][lev-1][2*n];
+		  BBoxesLev[FR][lev][2*n+1]=BBoxesLev[FR][lev-1][2*n+1];
 		  
-		  BoxesLev[count][lev][2*n+1]=BBoxesLev[count][lev][2*n+1]-zoom*Buffers[count][2*n+1];
-		  BBoxesLev[count][lev][2*n]=BoxesLev[count][lev][2*n]-zoom*Buffers[count][2*n];
+		  BoxesLev[FR][lev][2*n+1]=BBoxesLev[FR][lev][2*n+1]-zoom*Buffers[FR][2*n+1];
+		  BBoxesLev[FR][lev][2*n]=BoxesLev[FR][lev][2*n]-zoom*Buffers[FR][2*n];
 		  
-		  PBoxesLev[count][lev][2*n+1]=BBoxesLev[count][lev][2*n+1]+zoom*Buffers[count][2*n+1];
-		  PBoxesLev[count][lev][2*n]=BBoxesLev[count][lev][2*n]-zoom*Buffers[count][2*n];
+		  PBoxesLev[FR][lev][2*n+1]=BBoxesLev[FR][lev][2*n+1]+zoom*Buffers[FR][2*n+1];
+		  PBoxesLev[FR][lev][2*n]=BBoxesLev[FR][lev][2*n]-zoom*Buffers[FR][2*n];
 		  
-		  HRBoxesLev[count][lev][2*n+1]=PBoxesLev[count][lev][2*n+1];
-		  HRBoxesLev[count][lev][2*n]=BBoxesLev[count][lev][2*n];
+		  HRBoxesLev[FR][lev][2*n+1]=PBoxesLev[FR][lev][2*n+1];
+		  HRBoxesLev[FR][lev][2*n]=BBoxesLev[FR][lev][2*n];
 		  
-		  HSBoxesLev[count][lev][2*n+1]=BoxesLev[count][lev][2*n+1];
-		  HSBoxesLev[count][lev][2*n]=BoxesLev[count][lev][2*n]+zoom*Buffers[count][2*n];
+		  HSBoxesLev[FR][lev][2*n+1]=BoxesLev[FR][lev][2*n+1];
+		  HSBoxesLev[FR][lev][2*n]=BoxesLev[FR][lev][2*n]+zoom*Buffers[FR][2*n];
 		}
 	    }
 	}
+      int RANKY;
+      MPI_Comm_rank(MPI_COMM_WORLD,&RANKY);
+      FRBoxesLev=BoxesLev[RANKY];
+      FRBBoxesLev=BBoxesLev[RANKY];
+      FRPBoxesLev=PBoxesLev[RANKY];
     }
     void calc_RealBoxes()
     {

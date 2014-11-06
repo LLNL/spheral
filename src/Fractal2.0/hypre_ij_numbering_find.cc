@@ -13,9 +13,11 @@ namespace FractalSpace
     vector <int>HBox=mem.HRBoxesLev[FractalRank][level];
     vector <int>HRBox=HBox;
     vector <int>HSBox=mem.HSBoxesLev[FractalRank][level];
+    vector <Point*> send_list;
+    vector <Point*> receive_list;
     fprintf(PFH," HBox %d %d %d %d %d %d \n",HBox[0],HBox[1],HBox[2],HBox[3],HBox[4],HBox[5]);
     fprintf(PFH," HSBox %d %d %d %d %d %d \n",HSBox[0],HSBox[1],HSBox[2],HSBox[3],HSBox[4],HSBox[5]);
-    vector <Point*>hypre_pointsB;
+    //    vector <Point*>hypre_pointsB;
     unsigned int minsize=mem.min_hypre_group_size;
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
@@ -26,10 +28,22 @@ namespace FractalSpace
 	  continue;
 	if(bg || !buffer_only)
 	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	    hypre_points.push_back(*point_itr);
+	    {
+	      Point* p=*point_itr;
+	      p->get_pos_point(pos);
+	      if(p->get_inside() || on_edge(pos,HSBox) || on_edge(pos,HRBox))
+		hypre_points.push_back(p);
+	    }
 	if(bg)
 	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	    hypre_pointsB.push_back(*point_itr);
+	    {
+	      Point* p=*point_itr;
+	      p->get_pos_point(pos);
+	      if(on_edge(pos,HSBox))
+		send_list.push_back(p);
+	      if(on_edge(pos,HRBox))
+		receive_list.push_back(p);
+	    }
       }
     double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
@@ -57,7 +71,7 @@ namespace FractalSpace
     int totals=mem.ij_offsets[FractalNodes];
     if(totals == 0)
       {
-	cout << " returning " << totals << "\n";
+	//	cout << " returning " << totals << "\n";
 	return false;
       }
     int HR=0;
@@ -94,6 +108,7 @@ namespace FractalSpace
 	Point* p=*point_itr;
 	p->set_ij_neighbors(HRBox);
       }
+    /*
     vector <Point*> send_list;
     vector <Point*> receive_list;
     for(vector<Point*>::const_iterator point_itr=hypre_pointsB.begin();point_itr !=hypre_pointsB.end();++point_itr)
@@ -105,6 +120,7 @@ namespace FractalSpace
 	if(on_edge(pos,HRBox))
 	  receive_list.push_back(p);
       }
+    */
     sort3_list(receive_list,0);
     double time4=mem.p_mess->Clock();
     vector <int> pos_lefts(3);

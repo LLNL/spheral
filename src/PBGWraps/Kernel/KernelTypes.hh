@@ -14,6 +14,7 @@
 #include "Kernel/QuarticSplineKernel.hh"
 #include "Kernel/QuinticSplineKernel.hh"
 #include "Kernel/TableKernel.hh"
+#include "Kernel/WendlandC4Kernel.hh"
 
 namespace Spheral {
 namespace KernelSpace {
@@ -68,6 +69,10 @@ typedef QuinticSplineKernel<Dim<3> > QuinticSplineKernel3d;
 typedef TableKernel<Dim<1> > TableKernel1d;
 typedef TableKernel<Dim<2> > TableKernel2d;
 typedef TableKernel<Dim<3> > TableKernel3d;
+    
+typedef WendlandC4Kernel<Dim<1> > WendlandC4Kernel1d;
+typedef WendlandC4Kernel<Dim<2> > WendlandC4Kernel2d;
+typedef WendlandC4Kernel<Dim<3> > WendlandC4Kernel3d;
 
 }
 }
