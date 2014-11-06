@@ -9,7 +9,7 @@ from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix
+    rotationMatrix, refinePolyhedron
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -26,7 +26,8 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
                  xmin = None,
                  xmax = None,
                  nNodePerh = 2.01,
-                 SPH = False):
+                 SPH = False,
+                 rejecter = None):
         self.surface = surface
         self.rho0 = rho
 
@@ -59,20 +60,44 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Determine the range of indices this domain will check.
         imin0, imax0 = self.globalIDRange(ntot0)
 
-        # Check our local range of IDs and find what points are inside the specified surface.
-        self.x, self.y, self.z = [], [], []
+        # Build the raw positions before we start culling them.
+        x, y, z = [], [], []
         for i in xrange(imin0, imax0):
             xi, yi, zi = self.hcpPosition(i, nx, ny, nz, dx, dy, dz, xmin, xmax)
-            if self.surface.contains(Vector(xi, yi, zi)):
-                self.x.append(xi)
-                self.y.append(yi)
-                self.z.append(zi)
+            x.append(xi)
+            y.append(yi)
+            z.append(zi)
+        n = len(x)
+        m = [self.m0]*n
+        H = [self.H0]*n
+
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            x, y, z, m, H = rejecter(x, y, z, m, H)
+            x, y, z, m, H = (mpi.allreduce(x, mpi.SUM),
+                             mpi.allreduce(y, mpi.SUM),
+                             mpi.allreduce(z, mpi.SUM),
+                             mpi.allreduce(m, mpi.SUM),
+                             mpi.allreduce(H, mpi.SUM))
+            ntot1 = len(x)
+            imin1, imax1 = self.globalIDRange(ntot1)
+            self._cullVars(imin1, imax1, x, y, z, m, H)
+
+        # Now check against the surface.
+        n = len(x)
+        self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
+        for i in xrange(n):
+            if self.surface.contains(Vector(x[i], y[i], z[i])):
+                self.x.append(x[i])
+                self.y.append(y[i])
+                self.z.append(z[i])
+                self.m.append(m[i])
+                self.H.append(H[i])
 
         # At this point we have a less than optimal domain decomposition, but this will
         # be redistributed later anyway so take it and run.
         n = len(self.x)
-        self.m = [self.m0]*n
-        self.H = [self.H0]*n
         self.rho = [self.rho0]*n
         NodeGeneratorBase.__init__(self, False, self.m)
         return
@@ -132,7 +157,8 @@ def VFSurfaceGenerator(filename,
                        nNodePerh = 2.01,
                        SPH = False,
                        scaleFactor = 1.0,
-                       refineFactor = 0):
+                       refineFactor = 0,
+                       rejecter = None):
     surface = None
     if mpi.rank == 0:
         surface = readPolyhedronOBJ(filename)
@@ -147,7 +173,8 @@ def VFSurfaceGenerator(filename,
             surface = Polyhedron(newverts, facets)
     surface = mpi.bcast(surface, 0)
     return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
-                                      nNodePerh, SPH)
+                                      nNodePerh, SPH,
+                                      rejecter = rejecter)
 
 #-------------------------------------------------------------------------------
 # Generate nodes inside a surface by extruding inward from the facets of a 
