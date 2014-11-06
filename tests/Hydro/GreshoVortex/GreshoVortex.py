@@ -124,6 +124,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
@@ -402,4 +403,11 @@ else:
 
 # Plot the final velocity profile
 if graphics:
-    p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
+    pos = nodes.positions()
+    vel = nodes.velocity()
+    vaz = db.newFluidScalarFieldList(0.0, "azimuthal velocity")
+    for i in xrange(nodes.numInternalNodes):
+        rhat = (pos[i] - Vector(xc, yc)).unitVector()
+        vaz[0][i] = (vel[i] - vel[i].dot(rhat)*rhat).magnitude()
+    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", winTitle="Velocity")
+    #p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")

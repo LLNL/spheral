@@ -11,6 +11,7 @@ SRCTARGETS = \
 	TensorMonaghanGingoldViscosityInst.cc \
 	FiniteVolumeViscosityInst.cc \
 	TensorSVPHViscosityInst.cc \
+	TensorCSPHViscosityInst.cc \
 	VonNeumanViscosityInst.cc
 #	MonaghanGingoldViscosityRZ.cc \
 #	GradPressureViscosity.cc \
