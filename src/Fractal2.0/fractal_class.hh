@@ -133,9 +133,12 @@ namespace FractalSpace
       PBox=mem.PBoxes[FractalRank];
       PBoxLength=mem.PBoxesLength[FractalRank];
       Buffer=mem.Buffers[FractalRank];
-      BoxLev=mem.BoxesLev[FractalRank];
-      BBoxLev=mem.BBoxesLev[FractalRank];
-      PBoxLev=mem.PBoxesLev[FractalRank];
+      //      BoxLev=mem.BoxesLev[FractalRank];
+      //      BBoxLev=mem.BBoxesLev[FractalRank];
+      //      PBoxLev=mem.PBoxesLev[FractalRank];
+      BoxLev=mem.FRBoxesLev;
+      BBoxLev=mem.FRBBoxesLev;
+      PBoxLev=mem.FRPBoxesLev;
       RealBox=mem.RealBoxes[FractalRank];
       //
       p_file->FileFractal << "Box frac " << Box[0] << " " << Box[1] << " " << Box[2] << " " << Box[3] << " " << Box[4] << " " << Box[5] << "\n";
@@ -225,9 +228,12 @@ namespace FractalSpace
       PBox=PFM->PBoxes[FractalRank];
       PBoxLength=PFM->PBoxesLength[FractalRank];
       Buffer=PFM->Buffers[FractalRank];
-      BoxLev=PFM->BoxesLev[FractalRank];
-      BBoxLev=PFM->BBoxesLev[FractalRank];
-      PBoxLev=PFM->PBoxesLev[FractalRank];
+      //      BoxLev=PFM->BoxesLev[FractalRank];
+      //      BBoxLev=PFM->BBoxesLev[FractalRank];
+      //      PBoxLev=PFM->PBoxesLev[FractalRank];
+      BoxLev=PFM->FRBoxesLev;
+      BBoxLev=PFM->FRBBoxesLev;
+      PBoxLev=PFM->FRPBoxesLev;
       RealBox=PFM->RealBoxes[FractalRank];
     }
     int get_FractalRank()

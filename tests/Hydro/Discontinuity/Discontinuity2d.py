@@ -10,8 +10,10 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil
-from Spheral1d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
+from GenerateNodeDistribution2d import *
+import DistributeNodes
 
 title("1-D integrated hydro test -- discontinuities")
 
@@ -20,6 +22,7 @@ title("1-D integrated hydro test -- discontinuities")
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
             nx1 = 100,
+            ny1 = 100,
             nPerh = 1.25,
             NeighborType = NestedGridNeighbor,
             
@@ -27,21 +30,23 @@ commandLine(KernelConstructor = BSplineKernel,
             rho1 = 1.0,
             x0 = 0.0,
             x1 = 1.0,
+            y0 = 0.0,
+            y1 = 1.0,
             xwall = 1.0,
             
             dfx1 = 0,   #positions of delta functions
             dfx2 = 0.5,
-            dfx3 = 1.0,
-            
+
             gamma = 5.0/3.0,
             mu = 1.0,
             
             SVPH = False,
             CSPH = False,
+            SPH = True,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             
-            linearConsistent = False,
+            linearConsistent = False,  #what does this do?
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
@@ -64,6 +69,8 @@ commandLine(KernelConstructor = BSplineKernel,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
             steps = 100,
+            vizCycle = None,
+            vizTime = 0.1,
             dt = 0.0001,
             dtMin = 1.0e-5,
             dtMax = 0.1,
@@ -76,7 +83,7 @@ commandLine(KernelConstructor = BSplineKernel,
             HUpdate = IdealH,
             #densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             densityUpdate = IntegrateDensity,
-            compatibleEnergy = False,
+            compatibleEnergy = True,
             gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
@@ -84,12 +91,14 @@ commandLine(KernelConstructor = BSplineKernel,
             bArtificialConduction = True,
             arCondAlpha = 0.5,
             
+            useVoronoiOutput = False,
             clearDirectories = True,
             checkError = True,
             checkRestart = False,
             checkEnergy = True,
             restoreCycle = None,
             restartStep = 10000,
+            redistributeStep = 200,
             dataDir = "dumps-planar",
             restartBaseName = "Noh-planar-1d",
             outputFile = "None",
@@ -99,7 +108,7 @@ commandLine(KernelConstructor = BSplineKernel,
             scalePressure = 5.0,
             scaleEnergy = 2.0,
             showDecay = False,
-            zerovpkg = True,
+            zerovpkg = False,
             
             graphics = "gnu",
             periodic = True
@@ -107,6 +116,8 @@ commandLine(KernelConstructor = BSplineKernel,
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "discontinuity-1d-%i" % nx1)
+vizBaseName = "DiscontinuityTest2d"
+vizDir = os.path.join(dataDir, "visit")
 
 dx = (x1 - x0)/nx1
 
@@ -150,10 +161,21 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
-                         nPerh = nPerh)
-output("nodes1.numNodes")
+if restoreCycle is None:
+    generator1 = GenerateNodeDistribution2d(nx1, ny1,
+                                            rho = rho1,
+                                            distributionType = "lattice",
+                                            xmin = (0.0,  0.0),
+                                            xmax = (1.0,  1.0),
+                                            nNodePerh = nPerh,
+                                            SPH = SPH)
+    if mpi.procs > 1:
+        from VoronoiDistributeNodes import distributeNodes2d
+    else:
+        from DistributeNodes import distributeNodes2d
+
+    distributeNodes2d((nodes1,generator1))
+
 
 # Set node specific thermal energies
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
@@ -163,17 +185,21 @@ nodeSet = [nodes1]
 
 # Set node specific thermal energies
 xeps = x1/nx1
-def specificEnergy(x):
-    if (abs(x-dfx1) < xeps) or (abs(x-dfx2) < xeps) or (abs(x-dfx3) < xeps):
-        return eps1*1.0 + scaleEnergy
-    else:
-        return eps1
 for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
+    vel = nodes.velocity()
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x)
+        x = pos[i].x
+        y = pos[i].y
+        vel[i][0] = sin(2*3.14159*y)
+        if ((abs(x-dfx2) < xeps and abs(y-dfx2) < xeps)):
+            eps[i] = eps1 + scaleEnergy
+            #vel[i][1] = 2.0
+        else:
+            eps[i] = eps1
+            
 #rho[i] = specificEnergy(pos[i].x)
 
 
@@ -313,16 +339,22 @@ if hourglass:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(0.0), Vector(1.0))
-xp2 = Plane(Vector(1.0), Vector(-1.0))
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xp2)
+xp1 = Plane(Vector(0.0, 0.0), Vector( 1.0, 0.0))
+xp2 = Plane(Vector(1.0, 0.0), Vector(-1.0, 0.0))
+yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
+yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
+xbc = PeriodicBoundary(xp1, xp2)
+ybc = PeriodicBoundary(yp1, yp2)
+ybc1 = ReflectingBoundary(yp1)
+ybc2 = ReflectingBoundary(yp2)
 if periodic:
-    xbc0 = PeriodicBoundary(xPlane0,xp2)
+    bcSet = [xbc,ybc]
+else:
+    bcSet = [xbc, ybc1, ybc2]
+
 for p in packages:
-    p.appendBoundary(xbc0)
-    if periodic==False:
-        p.appendBoundary(xbc1)
+    for bc in bcSet:
+        p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -352,44 +384,35 @@ output("integrator.cullGhostNodes")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralVisitDump
+    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            redistributeStep = redistributeStep,
+                            vizMethod = vizMethod,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime,
+                            SPH = SPH)
 output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is None:
-    control.smoothState(smoothIters)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-##     rho = db.fluidMassDensity
-##     pos = db.fluidPosition
-##     mass = db.fluidMass
-##     H = db.fluidHfield
-##     db.updateConnectivityMap()
-##     cm = db.connectivityMap()
-##     computeSPHSumMassDensity(cm, WT, pos, mass, H, rho)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-if showDecay:
-    eps50 = []
-    timeArray = []
-    if control.time() < goalTime:
-        step = 0
-        
-        while step < steps:
-            control.step(1)
-            step = step + 1
-            eps = nodes1.specificThermalEnergy()
-            eps50.append(float(eps[50]))
-            timeArray.append(float(control.time()))
-else:
+if not steps is None:
     control.step(steps)
+else:
+    control.advance(goalTime,maxSteps)
+    control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
+    control.dropRestartFile()
 #control.advance(goalTime, maxSteps)
 
 

@@ -26,64 +26,52 @@ namespace FractalSpace
     vector <vector <double> > dataR_out;
     vector <int> dataI_in;
     vector <double> dataR_in;
-    int LOOPS=(FractalNodes-1)/4096+1;
+    int LOOPS=1;
     vector <double>times;
-    for(int loop=0;loop<LOOPS;loop++)
+    times.push_back(mem.p_mess->Clock());
+    dataI_out.clear();
+    dataR_out.clear();
+    dataI_in.clear();
+    dataR_in.clear();
+    dataI_out.resize(FractalNodes);
+    dataR_out.resize(FractalNodes);
+    counts_out.assign(FractalNodes,0);
+    counts_in.assign(FractalNodes,0);
+    for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
       {
-	times.push_back(mem.p_mess->Clock());
-	dataI_out.clear();
-	dataR_out.clear();
-	dataI_in.clear();
-	dataR_in.clear();
-	dataI_out.resize(FractalNodes);
-	dataR_out.resize(FractalNodes);
-	counts_out.assign(FractalNodes,0);
-	counts_in.assign(FractalNodes,0);
-	int loopcount=0;
-	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+	Point* p_point=*point_itr;
+	if(p_point->get_passive_point())
+	  continue;
+	if(!p_point->get_mass_point())
+	  continue;
+	p_point->get_pos_point(pos_point);
+	int nx=(pos_point[0]/zoom+length_1) % length_1;
+	int ny=(pos_point[1]/zoom+length_1) % length_1;
+	int nz=(pos_point[2]/zoom+length_1) % length_1;
+	int S=mem.p_mess->WhichSlice[nx];
+	dataI_out[S].push_back(frac.where(nx,ny,nz,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]));
+	dataR_out[S].push_back(p_point->get_density_point());
+	counts_out[S]++;
+      }
+    int how_manyI=-1;
+    int how_manyR=-1;
+    int integers=1;
+    int doubles=1;
+    mem.p_file->note(true," dens to slices a ");
+    mem.p_mess->Send_Data_Some_How(0,counts_out,counts_in,integers,doubles,
+				   dataI_out,dataI_in,how_manyI,
+				   dataR_out,dataR_in,how_manyR);
+    mem.p_file->note(true," dens to slices c ");
+    dataI_out.clear();
+    dataR_out.clear();      
+    int counterIR=0;
+    for(int FR=0;FR<FractalNodes;FR++)
+      {
+	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    if(loopcount % LOOPS == loop)
-	      {
-		Point* p_point=*point_itr;
-		bool pass=p_point->get_passive_point();
-		p_point->get_pos_point(pos_point);
-		int nx=(pos_point[0]/zoom+length_1) % length_1;
-		int ny=(pos_point[1]/zoom+length_1) % length_1;
-		int nz=(pos_point[2]/zoom+length_1) % length_1;
-		int S=mem.p_mess->WhichSlice[nx];
-		int slice_point=frac.where(nx,ny,nz,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]);
-		if(pass)
-		  slice_point=-slice_point-1;
-		double density=p_point->get_density_point();
-		dataI_out[S].push_back(slice_point);
-		dataR_out[S].push_back(density);
-		counts_out[S]++;
-	      }
-	  }
-	int how_manyI=-1;
-	int how_manyR=-1;
-	int integers=1;
-	int doubles=1;
-	mem.p_file->note(true," dens to slices a ");
-	mem.p_mess->Send_Data_Some_How(0,counts_out,counts_in,integers,doubles,
-				       dataI_out,dataI_in,how_manyI,
-				       dataR_out,dataR_in,how_manyR);
-	mem.p_file->note(true," dens to slices c ");
-	dataI_out.clear();
-	dataR_out.clear();      
-	int counterIR=0;
-	for(int FR=0;FR<FractalNodes;FR++)
-	  {
-	    for(int c=0;c<counts_in[FR];c++)
-	      {
-		int n=dataI_in[counterIR];
-		bool pass=n < 0;
-		if(pass)
-		  n=-n-1;
-		if(!pass)
-		  mem.p_mess->potR[n]=dataR_in[counterIR];
-		counterIR++;
-	      }
+	    mem.p_mess->potR[dataI_in[counterIR]]=dataR_in[counterIR];
+	    //	    FF << " DS " << counterIR << " " << dataI_in[counterIR] << " " << dataR_in[counterIR] << "\n";
+	    counterIR++;
 	  }
       }
     times.push_back(mem.p_mess->Clock());

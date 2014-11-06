@@ -1,3 +1,18 @@
+Release notes for 2.0.6.
+
+Minor patch release, mostly just snapshoting our current state since the 2.0.4 
+release is so old now it won't compile for most folks anymore.
+
+================================================================================
+
+Release notes for 2.0.5.
+
+- Many small changes (updates to libraries and such).
+
+- Adding support for ANEOS if you have access to the ANEOS source (not supplied here).
+
+================================================================================
+
 Release notes for 2.0.4.
 
 Another minor patch release, with two changes:
