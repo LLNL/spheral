@@ -83,7 +83,6 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const int numNodeLists = dataBase.numFluidNodeLists();
-  CHECK(nodeLists.size() == numNodeLists);
 
   // Compute the basic velocity gradient.
   const FieldList<Dimension, Scalar> vol = mass/rho;
