@@ -50,7 +50,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   massDensity = 0.0;
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // Walk the FluidNodeLists and sum the new mass density.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -84,7 +83,6 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                        nodeListj, j,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
-            const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
 
@@ -98,24 +96,14 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             // Sum the pair-wise contributions.
             massDensity(nodeListi, i) += Wi;
             massDensity(nodeListj, j) += Wj;
-            // massDensity(nodeListi, i) += mj*(Wi + Wj);
-            // massDensity(nodeListj, j) += mi*(Wi + Wj);
-            // Veff(nodeListi, i) += Vj*(Wi + Wj);
-            // Veff(nodeListj, j) += Vi*(Wi + Wj);
           }
         }
       }
       
       // Finalize the density for node i.
-      // massDensity(nodeListi, i) = max(rhoMin, 
-      //                                 min(rhoMax,
-      //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
-      // massDensity(nodeListi, i) = max(rhoMin, 
-      //                                 min(rhoMax,
-      //                                     A0i*(massDensity(nodeListi, i) + mi*2.0*Hdeti*W0)));
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          mi*(massDensity(nodeListi, i) + Hdeti*W0)));
+                                          mi*(massDensity(nodeListi, i) + W.kernelValue(0.0, Hdeti))));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
