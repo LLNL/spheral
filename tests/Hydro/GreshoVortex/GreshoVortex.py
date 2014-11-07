@@ -49,6 +49,7 @@ commandLine(
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
     filter = 0.0,  # For CSPH
+    momentumConserving = True, # For CSPH
     KernelConstructor = BSplineKernel,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -288,7 +289,8 @@ elif CSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

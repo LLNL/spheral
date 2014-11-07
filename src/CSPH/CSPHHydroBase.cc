@@ -310,13 +310,15 @@ CSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const MassDensityType densityUpdate,
               const HEvolutionType HUpdate,
               const double epsTensile,
-              const double nTensile):
+              const double nTensile,
+              const bool momentumConserving):
   GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
   mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSPH(XSPH),
+  mMomentumConserving(momentumConserving),
   mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
@@ -983,19 +985,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar etaMagj = etaj.magnitude();
               CHECK(etaMagi >= 0.0);
               CHECK(etaMagj >= 0.0);
-
-              // if (i == 0) {
-              //   cerr << j << " " << rj << " " << Pj << " " << -rij << " " << -etaj << endl;
-              // }
-
-              // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-              maxViscousPressurei = max(maxViscousPressurei, Qi);
-              maxViscousPressurej = max(maxViscousPressurej, Qj);
+              const Vector vij = vi - vj;
 
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj;
@@ -1004,6 +994,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, Wi, gWi, gradWi);
               CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
 
@@ -1034,8 +1025,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
               massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
 
+              // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
+              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
+                                                        ri, etai, vi, rhoi, ci, Hi,
+                                                        rj, etaj, vj, rhoj, cj, Hj);
+              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
+              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+              maxViscousPressurei = max(maxViscousPressurei, Qi);
+              maxViscousPressurej = max(maxViscousPressurej, Qj);
+              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
+              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              const Scalar workQi = vij.dot(Qacci);
+              const Scalar workQj = vij.dot(Qaccj);
+
               // Velocity gradient.
-              const Vector vij = vi - vj;
               // const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
               // const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
@@ -1061,33 +1064,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar Peffi = Pi + Ri;
               // const Scalar Peffj = Pj + Rj;
               
-              // // Old CSPH.
-              // const Vector deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
-              // const Vector deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
-
               // Acceleration (CSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              const Vector deltagrad = gradWj - gradWi;
+              Vector deltaDvDti, deltaDvDtj;
+              if (mMomentumConserving) {
 
-              const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
+                const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
 
-//               const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad
-// );    // <- Type III, current default
+                // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
 
-              // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
+                // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
-              // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*mi*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+                // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.5*mi*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
 
-              // const Vector forceij = weightj*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj) - weighti*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
+                // const Vector forceij = weightj*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj) - weighti*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
 
-              // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
+                // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
 
-              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
-              const Vector deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
-              const Vector deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
+                deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
+                deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
 
+              } else {
+
+                // Old non-momentum conserving (but exactly linear consistent) CSPH.
+                deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+                deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+              }
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
               if (mCompatibleEnergyEvolution) {
@@ -1106,8 +1109,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
 
-              const Scalar workQi = vij.dot(Qacci);
-              const Scalar workQj = vij.dot(Qaccj);
               DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
               DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
 

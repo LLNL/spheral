@@ -342,7 +342,8 @@ class CSPH:
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("double", "epsTensile", default_value="0.0"),
-                           param("double", "nTensile", default_value="4.0")])
+                           param("double", "nTensile", default_value="4.0"),
+                           param("int", "momentumConserving", default_value="true")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
@@ -393,6 +394,7 @@ class CSPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
+        x.add_instance_attribute("momentumConserving", "bool", getter="momentumConserving", setter="momentumConserving")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")

@@ -140,6 +140,23 @@ nTensile(const typename Dimension::Scalar val) {
 }
 
 //------------------------------------------------------------------------------
+// Access the flag determining if we're using the momentum conserving algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CSPHHydroBase<Dimension>::momentumConserving() const {
+  return mMomentumConserving;
+}
+
+template<typename Dimension>
+inline
+void
+CSPHHydroBase<Dimension>::momentumConserving(const bool val) {
+  mMomentumConserving = val;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
