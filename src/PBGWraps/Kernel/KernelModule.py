@@ -148,7 +148,8 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
 
         # Constructors.
         for W in (bsplinekernel, w4splinekernel, gaussiankernel, supergaussiankernel, pigaussiankernel,
-                  hatkernel, sinckernel, nsincpolynomialkernel, quarticsplinekernel, quinticsplinekernel, nbsplinekernel):
+                  hatkernel, sinckernel, nsincpolynomialkernel, quarticsplinekernel, quinticsplinekernel, nbsplinekernel, 
+                  wendlandc4kernel):
             x.add_constructor([constrefparam(W, "kernel"),
                                param("int", "numPoints", default_value="1000"),
                                param("double", "hmult", default_value="1.0")])
