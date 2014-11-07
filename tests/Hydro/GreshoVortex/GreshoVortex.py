@@ -172,7 +172,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(KernelConstructor(), 1000)
 WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
 output("WT")
 output("WTPi")
