@@ -10,7 +10,7 @@ template<>
 inline
 WendlandC4Kernel< Dim<1> >::WendlandC4Kernel():
   Kernel<Dim<1>, WendlandC4Kernel< Dim<1> > >() {
-  setVolumeNormalization(54.0/37.0);
+  setVolumeNormalization(27.0/37.0);
   setKernelExtent(2.0);
   setInflectionPoint(1.0/3.0);
 }
