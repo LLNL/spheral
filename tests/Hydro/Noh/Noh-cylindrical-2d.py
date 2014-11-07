@@ -28,7 +28,8 @@ title("2-D integrated hydro test -- cylindrical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "constantDTheta",
+commandLine(KernelConstructor = BSplineKernel,
+            seed = "constantDTheta",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,

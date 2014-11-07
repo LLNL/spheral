@@ -49,6 +49,7 @@ commandLine(
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
     filter = 0.0,  # For CSPH
+    KernelConstructor = BSplineKernel,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -124,6 +125,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       KernelConstructor.__name__,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
