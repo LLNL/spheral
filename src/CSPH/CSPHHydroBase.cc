@@ -1033,8 +1033,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
-              const Vector Qacci = 0.5*(QPiij.first *gradWSPHi);
-              const Vector Qaccj = 0.5*(QPiij.second*gradWSPHj);
+              Vector Qacci, Qaccj;
+              for (unsigned ir = 0; ir != Dimension::nDim; ++ir) {
+                for (unsigned ic = 0; ic != Dimension::nDim; ++ic) {
+                  Qacci(ir) += QPiij.first (ic,ir)*gradWSPHi(ic);
+                  Qaccj(ir) += QPiij.second(ic,ir)*gradWSPHj(ic);
+                }
+              }
+              Qacci *= 0.5;
+              Qaccj *= 0.5;
+              // const Vector Qacci = 0.5*(QPiij.first.Transpose() *gradWSPHi);
+              // const Vector Qaccj = 0.5*(QPiij.second.Transpose()*gradWSPHj);
               const Scalar workQi = vij.dot(Qacci);
               const Scalar workQj = vij.dot(Qaccj);
 
@@ -1088,8 +1097,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               } else {
 
                 // Old non-momentum conserving (but exactly linear consistent) CSPH.
-                deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - 0.5*mj*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
-                deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + 0.5*mi*(QPiij.first*gradWSPHi + QPiij.second*gradWSPHj);
+                deltaDvDti = weightj*(Pi - Pj)/rhoi*gradWj - mj*(Qacci + Qaccj);
+                deltaDvDtj = weighti*(Pj - Pi)/rhoj*gradWi + mi*(Qacci + Qaccj);
               }
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
