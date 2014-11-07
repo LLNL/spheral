@@ -247,36 +247,48 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-1.1, -1.1),
-                             xmax = Vector( 1.1,  1.1))
+    if SPH:
+        constructor = SVPHFacetedHydro
+    else:
+        constructor = ASVPHFacetedHydro
+    hydro = constructor(WT, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        densityUpdate = densityUpdate,
+                        XSVPH = XSPH,
+                        linearConsistent = linearConsistent,
+                        generateVoid = False,
+                        HUpdate = HUpdate,
+                        fcentroidal = fcentroidal,
+                        fcellPressure = fcellPressure,
+                        xmin = Vector(-1.1, -1.1),
+                        xmax = Vector( 1.1,  1.1))
 elif CSPH:
-    hydro = CSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+    if SPH:
+        constructor = CSPHHydro
+    else:
+        constructor = ACSPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        filter = filter,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        XSPH = XSPH,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate)
 else:
-    hydro = SPHHydro(WT, WTPi, q,
-                     cfl = cfl,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     gradhCorrection = gradhCorrection,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HUpdate,
-                     XSPH = XSPH,
-                     epsTensile = epsilonTensile,
-                     nTensile = nTensile)
+    if SPH:
+        constructor = SPHHydro
+    else:
+        constructor = ASPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        gradhCorrection = gradhCorrection,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate,
+                        XSPH = XSPH,
+                        epsTensile = epsilonTensile,
+                        nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")

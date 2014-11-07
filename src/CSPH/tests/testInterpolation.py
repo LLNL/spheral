@@ -337,7 +337,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
-fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
+fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, True, A_fl, B_fl, 
                            cm, WT)
 dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
                          A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,
