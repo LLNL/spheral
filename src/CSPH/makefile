@@ -10,6 +10,7 @@ SRCTARGETS = \
 	computeCSPHCorrectionsInst.cc \
 	computeHullVolumesInst.cc \
 	computeHVolumesInst.cc \
+	computeNeighborHullInst.cc \
 	centerOfMass.cc \
 	CSPHHydroBaseInst.cc \
 	interpolateCSPHInst.cc \

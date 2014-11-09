@@ -9,6 +9,7 @@
 #include "CSPH/computeCSPHCorrections.hh"
 #include "CSPH/centerOfMass.hh"
 #include "CSPH/computeHullVolumes.hh"
+#include "CSPH/computeNeighborHull.hh"
 #include "CSPH/computeHVolumes.hh"
 #include "CSPH/gradientCSPH.hh"
 #include "CSPH/interpolateCSPH.hh"
