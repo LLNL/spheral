@@ -13,6 +13,7 @@
 #include "CSPHHydroBase.hh"
 #include "CSPHUtilities.hh"
 #include "computeHullVolumes.hh"
+#include "computeNeighborHull.hh"
 #include "computeCSPHSumMassDensity.hh"
 #include "computeHullSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
@@ -1426,31 +1427,81 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
-  // Add any filtering component to the node movement.
-  // Note that the FacetedVolumes are in coordinates with the node at the origin already!
+  // // Add any filtering component to the node movement.
+  // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
+  // if (mfilter > 0.0) {
+  //   const TableKernel<Dimension>& W = this->kernel();
+  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+
+  //   // Find the local hulls.
+  //   FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "faceted volumes");
+  //   FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+  //   computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, polyvol, vol);
+
+  //   // Displace everyone toward their hull centroids.
+  //   const unsigned numNodeLists = position.size();
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Vector deltai = mfilter*polyvol(nodeListi, i).centroid();
+  //         const Scalar deltamag = deltai.magnitude();
+  //         const Scalar effmag = min(mag0, deltamag);
+  //         position(nodeListi, i) += effmag*deltai.unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
+
+  // Move toward the hull neighbor centroids.
   if (mfilter > 0.0) {
     const TableKernel<Dimension>& W = this->kernel();
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+    const unsigned numNodeLists = mass.size();
+    const Scalar W0 = W.kernelValue(0.0, 1.0);
+    FieldList<Dimension, Vector> delta = dataBase.newFluidFieldList(Vector::zero, "delta position");
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+           iItr != connectivityMap.end(nodeListi);
+           ++iItr) {
+        const int i = *iItr;
+        const Vector& ri = position(nodeListi, i);
+        const Scalar mi = mass(nodeListi, i);
+        const Scalar rhoi = massDensity(nodeListi, i);
+        const Vector DrhoDxi = DrhoDx(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        const FacetedVolume polyvoli = computeNeighborHull(fullConnectivity, 1.0, ri, Hi, position);
+        const Vector com = centerOfMass(polyvoli, DrhoDxi);
+        delta(nodeListi, i) = mfilter*com;
+      }
+    }
 
-    // Find the local hulls.
-    FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "faceted volumes");
-    FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
-    computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, polyvol, vol);
-
-    // Displace everyone toward their hull centroids.
-    const unsigned numNodeLists = position.size();
+    // Apply the filtering.
+    const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
         const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
         if (mag0 > 0.0) {
-          const Vector deltai = mfilter*polyvol(nodeListi, i).centroid();
-          const Scalar deltamag = deltai.magnitude();
-          const Scalar effmag = min(mag0, deltamag);
-          position(nodeListi, i) += effmag*deltai.unitVector();
+          const Scalar deltamag = delta(nodeListi, i).magnitude();
+          const Scalar effmag = min(mfilter*mag0, deltamag);
+          position(nodeListi, i) -= effmag*delta(nodeListi, i).unitVector();
         }
       }
     }

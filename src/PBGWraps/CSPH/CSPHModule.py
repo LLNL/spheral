@@ -283,6 +283,15 @@ class CSPH:
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the H scaled volume for each point.")
 
+        # Compute the hull volume for a neighbor set.
+        Spheral.add_function("computeNeighborHull", polyvol,
+                             [constrefparam("vector_of_vector_of_int", "fullConnectivity"),
+                              param("double", "etaCutoff"),
+                              constrefparam(vector, "ri"),
+                              constrefparam(symtensor, "Hi"),
+                              constrefparam(vectorfieldlist, "position")],
+                             docstring = "Compute the hull volume for a given set of neighbors.")
+
         return
 
     #---------------------------------------------------------------------------
