@@ -1501,7 +1501,7 @@ finalize(const typename Dimension::Scalar time,
         if (mag0 > 0.0) {
           const Scalar deltamag = delta(nodeListi, i).magnitude();
           const Scalar effmag = min(mfilter*mag0, deltamag);
-          position(nodeListi, i) -= effmag*delta(nodeListi, i).unitVector();
+          position(nodeListi, i) += effmag*delta(nodeListi, i).unitVector();
         }
       }
     }
