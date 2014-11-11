@@ -28,14 +28,14 @@ commandLine(
     velTy=0.0,
 
     # Geometry of Box
-    x0 = 0.0,
-    x1 = 1.0,
-    y0 = 0.0,
-    y1 = 1.0,
+    x0 = -0.5,
+    x1 =  0.5,
+    y0 = -0.5,
+    y1 =  0.5,
    
     #Center of Vortex
-    xc=0.5,
-    yc=0.5,
+    xc=0.0,
+    yc=0.0,
 
     # Resolution and node seeding.
     nx1 = 64,
@@ -99,6 +99,7 @@ commandLine(
     restartStep = 200,
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
+    smooth = None,
     )
 
 # Decide on our hydro algorithm.
@@ -200,6 +201,9 @@ if restoreCycle is None:
                                            distributionType = seed,
                                            xmin = (x0, y0),
                                            xmax = (x1, y1),
+                                           rmin = 0.0,
+                                           theta = 2.0*pi,
+                                           rmax = sqrt(2.0)*(x1 - x0),
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 
@@ -370,6 +374,39 @@ output("integrator.dtGrowth")
 output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
+
+#-------------------------------------------------------------------------------
+# If requested, smooth the initial conditions.
+#-------------------------------------------------------------------------------
+if smooth:
+    for iter in xrange(smooth):
+        db.updateConnectivityMap(False)
+        cm = db.connectivityMap()
+        position_fl = db.fluidPosition
+        weight_fl = db.fluidMass
+        H_fl = db.fluidHfield
+        m0_fl = db.newFluidScalarFieldList(0.0, "m0")
+        m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
+        m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
+        A0_fl = db.newFluidScalarFieldList(0.0, "A0")
+        A_fl = db.newFluidScalarFieldList(0.0, "A")
+        B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
+        C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
+        D_fl = db.newFluidTensorFieldList(Tensor.zero, "D")
+        gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
+        gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
+        gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
+        computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
+                               m0_fl, m1_fl, m2_fl,
+                               A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
+        eps0 = db.fluidSpecificThermalEnergy
+        vel0 = db.fluidVelocity
+        eps1 = interpolateCSPH(eps0, position_fl, weight_fl, H_fl, True, 
+                               A_fl, B_fl, cm, WT)
+        vel1 = interpolateCSPH(vel0, position_fl, weight_fl, H_fl, True, 
+                               A_fl, B_fl, cm, WT)
+        eps0.assignFields(eps1)
+        vel0.assignFields(vel1)
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
