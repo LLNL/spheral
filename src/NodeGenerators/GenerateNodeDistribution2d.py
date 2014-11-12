@@ -931,9 +931,13 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
 
             # Now assign the nodes for this radius.
             for i in xrange(nTheta):
-                thetai = thetaMin + (i + 0.5)*dTheta
-                x.append(ri*cos(thetai))
-                y.append(ri*sin(thetai))
+                if nTheta > 1:
+                    thetai = thetaMin + (i + 0.5)*dTheta
+                    x.append(ri*cos(thetai))
+                    y.append(ri*sin(thetai))
+                else:
+                    x.append(0)
+                    y.append(0)
                 m.append(mi)
                 H.append(Hi)
 
