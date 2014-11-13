@@ -1105,6 +1105,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
                 const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
 
+                // const Vector forceij = 0.5*mi*mj*(Pi/(rhoi*rhoi) + Pj/(rhoj*rhoj))*deltagrad;    // <- Symmetrized version of SPH-inspired form.
+
                 // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
 
                 // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
