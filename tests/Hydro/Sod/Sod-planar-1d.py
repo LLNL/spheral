@@ -47,6 +47,7 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
+            momentumConserving = True, # For CSPH
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -192,7 +193,8 @@ elif CSPH:
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
 elif TSPH:
     hydro = TaylorSPHHydro(WT, q,
                            cfl = cfl,

@@ -35,7 +35,7 @@ commandLine(nx1 = 100,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
-            numNodeLists = 1,  # If 2, makes this a two material problem.
+            numNodeLists = 2,  # If 2, makes this a two material problem.
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -47,6 +47,7 @@ commandLine(nx1 = 100,
             ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
             filter = 0.0,   # CSPH filtering
+            momentumConserving = True, # For CSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -309,7 +310,8 @@ elif CSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

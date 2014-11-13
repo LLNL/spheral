@@ -63,6 +63,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
+            momentumConserving = True, # For CSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -231,7 +232,8 @@ elif CSPH:
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,
