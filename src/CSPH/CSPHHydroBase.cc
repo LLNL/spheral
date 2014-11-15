@@ -19,6 +19,7 @@
 #include "computeCSPHCorrections.hh"
 #include "computeHVolumes.hh"
 #include "centerOfMass.hh"
+#include "interpolateCSPH.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -800,6 +801,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
 
+  // // Compute a filtered pressure.
+  // const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  // FieldList<Dimension, Scalar> Peff = interpolateCSPH(pressure, position, vol, H, true, A, B, connectivityMap, W);
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(Peff);
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
   // // BLAGO!  As a sanity check recompute all the CSPH corrections now.
   // computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, const_cast<FieldList<Dimension, SymTensor>&>(mM2), A0, A, B, C, D, gradA, gradB);
   // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
@@ -1101,13 +1112,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
+              const Vector vijhat = vij.unitVector();
               if (mMomentumConserving) {
 
-                const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
+                // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
 
-                // const Vector forceij = 0.5*mi*mj*(Pi/(rhoi*rhoi) + Pj/(rhoj*rhoj))*deltagrad;    // <- Symmetrized version of SPH-inspired form.
+                // const Vector forceij = 0.5*mi*mj*((Pi/(rhoi*rhoi) + Pj/(rhoj*rhoj))*deltagrad + (QPiij.first + QPiij.second)*deltagrad);    // <- Symmetrized version of SPH-inspired form.
 
-                // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
+                // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad);    // <- Type III, with CSPH Q forces
+
+                const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+                                                            ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CSPH Q forces
+                                                            // ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad).dot(vijhat)*vijhat);    // <- Type III, with CSPH Q forces
 
                 // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
@@ -1117,8 +1133,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
                 // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
 
-                deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
-                deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
+                deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
+                deltaDvDtj =  forceij/mj; // + mi*(Qacci + Qaccj);
 
               } else {
 
@@ -1141,11 +1157,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
               // Q work based on the Q per point.
+              const Scalar Qworki = ((rhoj*rhoj*QPiij.second*deltagrad)).dot(vij);
+              const Scalar Qworkj = ((rhoi*rhoi*QPiij.first*deltagrad)).dot(vij);
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + Qworki)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + Qworkj)/mj;
+
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
 
-              DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
-              DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
 
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*(QPiij.second*vij).dot(gradWSPHi);
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*(QPiij.first *vij).dot(gradWSPHj);
