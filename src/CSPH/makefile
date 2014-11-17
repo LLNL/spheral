@@ -11,6 +11,7 @@ SRCTARGETS = \
 	computeHullVolumesInst.cc \
 	computeHVolumesInst.cc \
 	computeNeighborHullInst.cc \
+	computeVoronoiCentroids.cc \
 	centerOfMass.cc \
 	CSPHHydroBaseInst.cc \
 	interpolateCSPHInst.cc \
