@@ -19,6 +19,7 @@
 #include "computeCSPHCorrections.hh"
 #include "computeHVolumes.hh"
 #include "centerOfMass.hh"
+#include "computeVoronoiCentroids.hh"
 #include "interpolateCSPH.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -1625,6 +1626,32 @@ finalize(const typename Dimension::Scalar time,
          ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
     this->enforceBoundaries(state, derivs);
   }
+
+  // // This form looks uses Voronoi centroids.
+  // if (mfilter > 0.0) {
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //   const FieldList<Dimension, Vector> centroids = computeVoronoiCentroids(position);
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   const unsigned numNodeLists = position.size();
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Vector delta = centroids(nodeListi, i) - position(nodeListi, i);
+  //         const Scalar deltamag = delta.magnitude();
+  //         const Scalar effmag = mfilter*min(mfilter*mag0, deltamag);
+  //         position(nodeListi, i) += effmag*delta.unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.

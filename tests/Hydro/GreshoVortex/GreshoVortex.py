@@ -133,7 +133,7 @@ baseDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%1.3f" % fcentroidal,
+                       "fcentroidal=%1.3f" % max(fcentroidal, filter),
                        "fcellPressure = %1.3f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
