@@ -1123,8 +1123,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad);    // <- Type III, with CSPH Q forces
 
                 const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+                                                            // ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad));    // <- Type III, with CSPH Q forces
                                                             ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CSPH Q forces
-                                                            // ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad).dot(vijhat)*vijhat);    // <- Type III, with CSPH Q forces
 
                 // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
@@ -1188,6 +1188,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 XSPHDeltaVi -= weightj*Wj*vij;
 		XSPHDeltaVj += weighti*Wi*vij;
               }
+
+              // DxDti += weightj*((Pi - Pj)/rhoi*gradWj + (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi*gradWj);
+              // DxDtj += weighti*((Pj - Pi)/rhoj*gradWi - (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj*gradWi);
 
             }
           }

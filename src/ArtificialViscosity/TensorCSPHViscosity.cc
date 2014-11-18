@@ -107,7 +107,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
       typename SymTensor::EigenStructType eigeni = sigmai_s.eigenVectors();
       sigmai = constructTensorWithMinDiagonal(eigeni.eigenValues, 0.0);
       sigmai.rotationalTransform(eigeni.eigenVectors);
-      sigmai += sigmai_a;
+      // sigmai += sigmai_a;
 
     }
   }
