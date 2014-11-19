@@ -44,6 +44,8 @@ private:
   TensorCSPHViscosity();
   TensorCSPHViscosity(const TensorCSPHViscosity&);
   TensorCSPHViscosity& operator=(const TensorCSPHViscosity&) const;
+
+  FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 };
 
 }
