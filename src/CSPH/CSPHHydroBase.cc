@@ -19,6 +19,8 @@
 #include "computeCSPHCorrections.hh"
 #include "computeHVolumes.hh"
 #include "centerOfMass.hh"
+#include "computeVoronoiCentroids.hh"
+#include "interpolateCSPH.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -800,6 +802,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
 
+  // // Compute a filtered pressure.
+  // const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  // FieldList<Dimension, Scalar> Peff = interpolateCSPH(pressure, position, vol, H, true, A, B, connectivityMap, W);
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->applyFieldListGhostBoundary(Peff);
+  // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  //      boundItr != this->boundaryEnd();
+  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
   // // BLAGO!  As a sanity check recompute all the CSPH corrections now.
   // computeCSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, const_cast<FieldList<Dimension, SymTensor>&>(mM2), A0, A, B, C, D, gradA, gradB);
   // for (ConstBoundaryIterator boundItr = this->boundaryBegin();
@@ -1101,13 +1113,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
+              const Vector vijhat = vij.unitVector();
               if (mMomentumConserving) {
 
-                const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
+                // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad;    // <- Type III, current default
 
-                // const Vector forceij = 0.5*mi*mj*(Pi/(rhoi*rhoi) + Pj/(rhoj*rhoj))*deltagrad;    // <- Symmetrized version of SPH-inspired form.
+                // const Vector forceij = 0.5*mi*mj*((Pi/(rhoi*rhoi) + Pj/(rhoj*rhoj))*deltagrad + (QPiij.first + QPiij.second)*deltagrad);    // <- Symmetrized version of SPH-inspired form.
 
-                // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad);    // <- Type III, current default
+                // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + (rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad);    // <- Type III, with CSPH Q forces
+
+                const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+                                                            // ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second).Transpose()*deltagrad));    // <- Type III, with CSPH Q forces
+                                                            ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CSPH Q forces
 
                 // const Vector forceij = 0.5*weighti*weightj*(Pi + Pj)*deltagrad + 0.25*mi*mj*(QPiij.first + QPiij.second)*(gradWSPHi + gradWSPHj);
 
@@ -1117,8 +1134,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
                 // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
 
-                deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
-                deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
+                deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
+                deltaDvDtj =  forceij/mj; // + mi*(Qacci + Qaccj);
 
               } else {
 
@@ -1141,11 +1158,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + 0.5*workQ)/mj;
 
               // Q work based on the Q per point.
+              const Scalar Qworki = ((rhoj*rhoj*QPiij.second*deltagrad)).dot(vij);
+              const Scalar Qworkj = ((rhoi*rhoi*QPiij.first*deltagrad)).dot(vij);
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + Qworki)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + Qworkj)/mj;
+
               // DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + rhoi*rhoi*(QPiij.first*vij).dot(deltagrad))/mi;
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + rhoj*rhoj*(QPiij.second*vij).dot(deltagrad))/mj;
 
-              DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
-              DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
+              // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*workQi;
+              // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*workQj;
 
               // DepsDti += 0.5*weighti*weightj*Pj*vij.dot(deltagrad)/mi + mj*(QPiij.second*vij).dot(gradWSPHi);
               // DepsDtj += 0.5*weighti*weightj*Pi*vij.dot(deltagrad)/mj + mi*(QPiij.first *vij).dot(gradWSPHj);
@@ -1166,6 +1188,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 XSPHDeltaVi -= weightj*Wj*vij;
 		XSPHDeltaVj += weighti*Wi*vij;
               }
+
+              // DxDti += weightj*((Pi - Pj)/rhoi*gradWj + (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi*gradWj);
+              // DxDtj += weighti*((Pj - Pi)/rhoj*gradWi - (rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj*gradWi);
 
             }
           }
@@ -1604,6 +1629,32 @@ finalize(const typename Dimension::Scalar time,
          ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
     this->enforceBoundaries(state, derivs);
   }
+
+  // // This form looks uses Voronoi centroids.
+  // if (mfilter > 0.0) {
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //   const FieldList<Dimension, Vector> centroids = computeVoronoiCentroids(position);
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   const unsigned numNodeLists = position.size();
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Vector delta = centroids(nodeListi, i) - position(nodeListi, i);
+  //         const Scalar deltamag = delta.magnitude();
+  //         const Scalar effmag = mfilter*min(mfilter*mag0, deltamag);
+  //         position(nodeListi, i) += effmag*delta.unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.

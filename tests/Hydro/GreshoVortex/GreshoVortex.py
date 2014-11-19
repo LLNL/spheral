@@ -63,7 +63,7 @@ commandLine(
     Cl = 1.0, 
     Cq = 0.75,
     Qlimiter = False,
-    balsaraCorrection = True,
+    balsaraCorrection = False,
     epsilon2 = 1e-2,
     hmin = 1e-5,
     hmax = 0.5,
@@ -133,7 +133,7 @@ baseDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%1.3f" % fcentroidal,
+                       "fcentroidal=%1.3f" % max(fcentroidal, filter),
                        "fcellPressure = %1.3f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")

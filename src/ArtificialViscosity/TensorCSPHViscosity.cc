@@ -41,6 +41,7 @@ using NodeSpace::FluidNodeList;
 template<typename Dimension>
 TensorCSPHViscosity<Dimension>::
 TensorCSPHViscosity(Scalar Clinear, Scalar Cquadratic):
+  mGradVel(FieldSpace::Copy),
   TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic) {
 }
 
@@ -86,7 +87,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Compute the basic velocity gradient.
   const FieldList<Dimension, Scalar> vol = mass/rho;
-  sigma = CSPHSpace::gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+  mGradVel = CSPHSpace::gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
 
   // Compute sigma and build the velocity divergence.
   FieldList<Dimension, Scalar> divVel = dataBase.newFluidFieldList(0.0, "velocity divergence");
@@ -95,24 +96,24 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
          iItr != connectivityMap.end(nodeListi);
          ++iItr) {
       const int i = *iItr;
+      const Tensor& DvDxi = mGradVel(nodeListi, i);
       Tensor& sigmai = sigma(nodeListi, i);
 
       // Update the velocity divergence.
-      divVel(nodeListi, i) = sigmai.Trace();
+      divVel(nodeListi, i) = DvDxi.Trace();
 
       // Now limit to just negative eigen-values.  This is 'cause we only
       // care about convergent geometries for the Q.
-      const SymTensor sigmai_s = sigmai.Symmetric();
-      const Tensor sigmai_a = sigmai.SkewSymmetric();
+      const SymTensor sigmai_s = DvDxi.Symmetric();
+      const Tensor sigmai_a = DvDxi.SkewSymmetric();
       typename SymTensor::EigenStructType eigeni = sigmai_s.eigenVectors();
       sigmai = constructTensorWithMinDiagonal(eigeni.eigenValues, 0.0);
       sigmai.rotationalTransform(eigeni.eigenVectors);
-      sigmai += sigmai_a;
-
+      // sigmai += sigmai_a;
     }
   }
 
-  // Apply boundary conditions to div velocity.
+  // Apply boundary conditions.
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) (*boundItr)->applyFieldListGhostBoundary(divVel);
@@ -129,6 +130,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
        ++boundItr) {
     (*boundItr)->applyFieldListGhostBoundary(sigma);
     (*boundItr)->applyFieldListGhostBoundary(gradDivVelocity);
+    (*boundItr)->applyFieldListGhostBoundary(mGradVel);
   }
   // for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
   //      boundItr != boundaryEnd;
