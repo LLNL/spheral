@@ -1477,6 +1477,44 @@ finalize(const typename Dimension::Scalar time,
   // Base class finalization.
   GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
 
+  // Depending on the mass density advancement selected, we may want to replace the 
+  // mass density.
+  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+
+    // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    // FieldList<Dimension, Scalar> vol = mass/massDensity;
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
+    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+    //      boundaryItr != this->boundaryEnd();
+    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
+
+    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
+    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
+    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                                               HydroFieldNames::massDensity, 0.0);
+  //   massDensity.assignFields(massDensitySum);
+  }
+
   // // Add any filtering component to the node movement.
   // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
   // if (mfilter > 0.0) {
@@ -1656,44 +1694,6 @@ finalize(const typename Dimension::Scalar time,
   //   this->enforceBoundaries(state, derivs);
   // }
 
-  // Depending on the mass density advancement selected, we may want to replace the 
-  // mass density.
-  if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
-    const TableKernel<Dimension>& W = this->kernel();
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-
-    // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    // FieldList<Dimension, Scalar> vol = mass/massDensity;
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
-
-    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
-    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
-    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
-    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
-  // } else if (densityUpdate() == PhysicsSpace::SumDensity) {
-  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-  //                                                               HydroFieldNames::massDensity, 0.0);
-  //   massDensity.assignFields(massDensitySum);
-  }
-
 }
 
 //------------------------------------------------------------------------------
@@ -1727,6 +1727,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1749,6 +1750,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradA0);
     (*boundaryItr)->applyFieldListGhostBoundary(gradA);
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
+    (*boundaryItr)->applyFieldListGhostBoundary(DrhoDx);
   }
 }
 
