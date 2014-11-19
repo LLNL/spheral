@@ -8,6 +8,7 @@
 #include "CSPH/computeHullSumMassDensity.hh"
 #include "CSPH/computeCSPHCorrections.hh"
 #include "CSPH/centerOfMass.hh"
+#include "CSPH/computeVoronoiCentroids.hh"
 #include "CSPH/computeHullVolumes.hh"
 #include "CSPH/computeNeighborHull.hh"
 #include "CSPH/computeHVolumes.hh"
