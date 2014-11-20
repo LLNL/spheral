@@ -17,6 +17,7 @@
 #include "computeCSPHSumMassDensity.hh"
 #include "computeHullSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
+#include "computeCSPHIntegral.hh"
 #include "computeHVolumes.hh"
 #include "centerOfMass.hh"
 #include "computeVoronoiCentroids.hh"
@@ -1133,6 +1134,42 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 // const Vector forceij = weightj*(Pj*gradWj + rhoj*rhoj*QPiij.second*gradWj) - weighti*(Pi*gradWi + rhoi*rhoi*QPiij.first*gradWi);
 
                 // const Vector forceij = weighti*weightj*(Pj*gradWj - Pi*gradWi + rhoj*rhoj*QPiij.second*gradWj - rhoi*rhoi*QPiij.first*gradWi);    // <- Type IV
+//////////////ROMBERG INTEGRATION////////////////////
+
+                //calculate overlaped integrated region
+/*
+                const Scalar hmaxi = 1.0/Hi.eigenValues().minElement();
+                const Scalar rimax = hmaxi*W.kernelExtent();
+                const Scalar hmaxj = 1.0/Hj.eigenValues().minElement();
+                const Scalar rjmax = hmaxj*W.kernelExtent();
+                Vector rmin=Vector::zero;
+                Vector rmax=Vector::zero;
+                bool is_zero=false;
+                for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+                  rmin(ii)=max(rj(ii)-rjmax,ri(ii)-rimax);
+                  rmax(ii)=min(rj(ii)+rjmax,ri(ii)+rimax);
+                  if(rmin(ii) > rmax(ii)){
+                    is_zero=true;//If no overlap, integral is zero (probably cant happen cause then the two given points should not even be neighbors)
+                  }
+                }
+                Vector Aij = Vector::zero;
+                Vector Aji = Vector::zero;
+                if(!is_zero){
+                   const int order=4;//Order of the Romberg integral
+                   // Change CSPH weights here if need be!
+                   const std::pair<Vector,Vector> flux= computeCSPHIntegral(connectivityMap,W,vol,position,H,nodeListi, i, nodeListj, j, 1, order, rmin, rmax);
+                   Aij=flux.first;
+                   Aji=flux.second;
+                }
+                const Vector forceij = 0.5*(Pi + Pj)*(Aij-Aji);
+*/
+
+////////////////////////////////////////////////////
+
+                
+
+                //deltaDvDti = -forceij/mi - mj*(Qacci + Qaccj);
+                //deltaDvDtj =  forceij/mj + mi*(Qacci + Qaccj);
 
                 deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
                 deltaDvDtj =  forceij/mj; // + mi*(Qacci + Qaccj);

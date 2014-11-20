@@ -56,7 +56,24 @@ computeCSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
+  const Scalar wi = weight(nodeListi, i);
+  const Vector& ri = position(nodeListi, i);
+  const SymTensor& Hi = H(nodeListi, i);
+  const Scalar Hdeti = Hi.Determinant();
+  const Vector rei = reval - ri;
+  const Vector etai = Hi*rei;
+  
 
+  const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
+  const Scalar Wi = WWi.first;
+  const Scalar gradWSPH = WWi.second;
+  if(abs(WWi.first) < 1.0e-16 and abs(WWi.first) < 1.0e-16){//If SPH kernel and gradient are zero, no point in calculating corrected kernel
+    WCSPH = 0.0;
+    gradWCSPH = Vector::zero;
+    return;
+  }
+  
+  
 
   // Zero out the result.
   Scalar m0 = 0.0;
@@ -171,18 +188,9 @@ computeCSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   // // BLAGO!
 
   //}
-  const Scalar wi = weight(nodeListi, i);
-  const Vector& ri = position(nodeListi, i);
-  const SymTensor& Hi = H(nodeListi, i);
-  const Scalar Hdeti = Hi.Determinant();
-  const Vector rei = reval - ri;
-  const Vector etai = Hi*rei;
-  
 
-  const std::pair<Scalar, Scalar> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  const Scalar Wi = WWi.first;
+  //Finally Compute Kernel and Gradient 
   WCSPH = A*(1.0 + B.dot(rei))*Wi;
-  //gradWSPH = WWi.second;
   const Vector gradWi = Hi*etai.unitVector() * WWi.second;
   gradWCSPH = A*(1.0 + B.dot(rei))*gradWi + A*B*Wi + gradA*(1.0 + B.dot(rei))*Wi;
   for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
