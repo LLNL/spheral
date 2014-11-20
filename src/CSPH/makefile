@@ -9,6 +9,7 @@ SRCTARGETS = \
 	computeHullSumMassDensityInst.cc \
 	computeCSPHCorrectionsInst.cc \
 	computeCSPHEvaluationInst.cc \
+	computeCSPHIntegralInst.cc \
 	computeHullVolumesInst.cc \
 	computeHVolumesInst.cc \
 	computeNeighborHullInst.cc \
