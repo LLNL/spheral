@@ -27,6 +27,22 @@ public:
   // Destructor.
   ~TensorCSPHViscosity();
 
+  // Required method to compute the tensor viscous P/rho^2.
+  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
+                                         const unsigned nodeListj, const unsigned j,
+                                         const Vector& xi,
+                                         const Vector& etai,
+                                         const Vector& vi,
+                                         const Scalar rhoi,
+                                         const Scalar csi,
+                                         const SymTensor& Hi,
+                                         const Vector& xj,
+                                         const Vector& etaj,
+                                         const Vector& vj,
+                                         const Scalar rhoj,
+                                         const Scalar csj,
+                                         const SymTensor& Hj) const;
+
   // Restart methods.
   virtual std::string label() const { return "TensorCSPHViscosity"; }
 
