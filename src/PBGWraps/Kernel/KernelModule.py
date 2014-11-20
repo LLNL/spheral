@@ -24,7 +24,7 @@ class Kernel:
         # Expose types.
         self.types = ("BSpline", "W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",
                       "Hat", "Sinc", "NSincPolynomial", "NBSpline", "QuarticSpline",
-                      "QuinticSpline", "Table", "WendlandC4")
+                      "QuinticSpline", "Table", "WendlandC4", "WendlandC6")
         for type in self.types:
             for dim in ("1d", "2d", "3d"):
                 name = type + "Kernel" + dim
@@ -40,7 +40,7 @@ class Kernel:
             dim = "%id" % ndim
 
             # Generic Kernel types.
-            for type in ("BSpline", "W4Spline", "SuperGaussian", "WendlandC4"):
+            for type in ("BSpline", "W4Spline", "SuperGaussian", "WendlandC4", "WendlandC6"):
                 name = type + "Kernel" + dim
                 exec("self.generateDefaultKernelBindings(self.%s, %i)" % (name, ndim))
             # Now some specialized bindings for kernels.
@@ -145,11 +145,12 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
         quinticsplinekernel = "Spheral::KernelSpace::QuinticSplineKernel%id" % ndim
         nbsplinekernel = "Spheral::KernelSpace::NBSplineKernel%id" % ndim
         wendlandc4kernel = "Spheral::KernelSpace::WendlandC4Kernel%id" % ndim
+        wendlandc6kernel = "Spheral::KernelSpace::WendlandC6Kernel%id" % ndim
 
         # Constructors.
         for W in (bsplinekernel, w4splinekernel, gaussiankernel, supergaussiankernel, pigaussiankernel,
                   hatkernel, sinckernel, nsincpolynomialkernel, quarticsplinekernel, quinticsplinekernel, nbsplinekernel, 
-                  wendlandc4kernel):
+                  wendlandc4kernel,wendlandc6kernel):
             x.add_constructor([constrefparam(W, "kernel"),
                                param("int", "numPoints", default_value="1000"),
                                param("double", "hmult", default_value="1.0")])
