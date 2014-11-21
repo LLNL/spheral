@@ -153,8 +153,9 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar gradj = (DvDxj.dot(xijhat)).dot(xijhat);
   const Scalar r = gradj*safeInv(gradi);
   const Scalar phi = max(0.0, min(2.0*r, min(0.5*(1.0 + r), 2.0))); // Van Leer
-  const Vector vi1 = vi - phi*DvDxi.dot(xij);
-  const Vector vj1 = vj + phi*DvDxj.dot(xij);
+  const Vector delta = 0.5*phi*(DvDxi + DvDxj).dot(xij);
+  const Vector vi1 = vi - delta;
+  const Vector vj1 = vj + delta;
   vij = vi1 - vj1;
 
   // // Compute the corrected velocity difference.
