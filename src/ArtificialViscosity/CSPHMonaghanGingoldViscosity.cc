@@ -146,7 +146,32 @@ Piij(const unsigned nodeListi, const unsigned i,
   }
 
   // Compute the corrected velocity difference.
-  const Vector vij = vi - vj;
+  Vector vij = vi - vj;
+  const Vector xij = 0.5*(xi - xj);
+  const Vector xijhat = xij.unitVector();
+  const Scalar gradi = (DvDxi.dot(xijhat)).dot(xijhat);
+  const Scalar gradj = (DvDxj.dot(xijhat)).dot(xijhat);
+  const Scalar r = gradj*safeInv(gradi);
+  const Scalar phi = max(0.0, min(2.0*r, min(0.5*(1.0 + r), 2.0))); // Van Leer
+  const Vector vi1 = vi - phi*DvDxi.dot(xij);
+  const Vector vj1 = vj + phi*DvDxi.dot(xij);
+  vij = vi1 - vj1;
+
+  // // Compute the corrected velocity difference.
+  // Vector vij = vi - vj;
+  // const Vector xij = 0.5*(xi - xj);
+  // const Vector vi1 = vi - DvDxi.dot(xij);
+  // const Vector vj1 = vj + DvDxj.dot(xij);
+  // const Vector vij1 = vi1 - vj1;
+  // if (((vi1 - vj).dot(vij) > 0.0) and
+  //     ((vi - vj1).dot(vij) > 0.0)) {
+  //   if (vij1.dot(vij) < 0.0) {
+  //     vij = Vector::zero;
+  //   } else {
+  //     const Vector vij1hat = vij1.unitVector();
+  //     vij = min(vij.magnitude(), vij1.magnitude())*vij1hat;
+  //   }
+  // }
 
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
