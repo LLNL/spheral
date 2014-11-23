@@ -46,7 +46,7 @@ CSPHMonaghanGingoldViscosity(const Scalar Clinear,
                              const bool quadraticInExpansion):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
-  mGradVel(FieldSpace::Copy) {
+  mGradVel(FieldSpace::Reference) {
 }
 
 //------------------------------------------------------------------------------
@@ -75,28 +75,9 @@ initialize(const DataBase<Dimension>& dataBase,
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
-  // Get the necessary state.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-  const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
-
-  // Compute the basic velocity gradient.
-  const FieldList<Dimension, Scalar> vol = mass/rho;
-  mGradVel = CSPHSpace::gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W);
-
-  // Apply boundary conditions.
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr < boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mGradVel);
+  // Cache pointers to the velocity gradient.
+  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  mGradVel = DvDx;
 }
 
 //------------------------------------------------------------------------------
