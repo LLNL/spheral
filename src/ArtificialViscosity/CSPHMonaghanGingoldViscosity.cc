@@ -135,8 +135,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar ri = safeInv(rj);
   const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer
   const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer
-  const Vector vi1 = vi - phii*DvDxi*xij;
-  const Vector vj1 = vj + phij*DvDxj*xij;
+  const Vector vi1 = vi - min(phii, phij)*DvDxi*xij;
+  const Vector vj1 = vj + min(phii, phij)*DvDxj*xij;
   vij = vi1 - vj1;
 
   // Compute mu.
