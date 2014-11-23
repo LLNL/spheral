@@ -6,12 +6,21 @@ namespace FractalSpace
   void slices_to_potf(Fractal_Memory& mem,Fractal& frac,int lev)
   {
     ofstream& FF=mem.p_file->DUMPS;
+    bool period=frac.get_periodic();
     int FractalNodes=mem.p_mess->FractalNodes;
     int zoom=Misc::pow(2,frac.get_level_max());
     int length_1=frac.get_grid_length();
+    int length_11=length_1+1;
+    int length_S=2*length_1;
+    int length_S2=length_S+2;
     int division=Misc::pow(2,frac.get_level_max()-lev);
     int wrapping=length_1*division;
     int really_long=length_1*zoom;
+    if(!period)
+      {
+	wrapping*=2;
+	really_long=0;
+      }
     vector <int> pos_point(3);
     bool notZERO= lev > 0;
     vector <int>counts_in;
@@ -59,6 +68,8 @@ namespace FractalSpace
     int integers=3;
     int doubles=0;
     mem.p_file->note(true," info to slices a ");
+    //    vector <int>maxSR;
+    //    Max_Things_To_Send_Receive_I(World,counts_out,counts_in,maxSR);
     mem.p_mess->Send_Data_Some_How(4,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
@@ -73,14 +84,25 @@ namespace FractalSpace
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    dataR_out[FR].push_back(mem.p_mess->potR[dataI_in[counterI]]);
+	    int NN=dataI_in[counterI];
+	    if(!period)
+	      {
+		int nz=NN % length_S2;
+		int ny=(NN/length_S2) % length_S;
+		int nx=NN/(length_S2*length_S);
+		assert(nx < length_1);
+		assert(ny < length_1);
+		assert(nz < length_1);
+		NN=nz+(ny+nx*length_11)*length_11;
+	      }
+	    dataR_out[FR].push_back(mem.p_mess->potRS[NN]);
 	    dataI_out[FR].push_back(dataI_in[counterI+1]);
 	    dataI_out[FR].push_back(dataI_in[counterI+2]);
-	    //	    FF << " SPA " << counterI << " " << dataI_in[counterI] << " " << mem.p_mess->potR[dataI_in[counterI]] << " " << dataI_in[counterI+1] << "\n";
+	    //	    FF << " SPA " << lev << " " << counterI << " " << dataI_in[counterI] << " " << NN << " " << mem.p_mess->potRS[NN] << " " << dataI_in[counterI+1] << " " << dataI_in[counterI+2] << "\n";
 	    counterI+=integers;
 	  }
       }
-    
+    mem.p_mess->free_potRS();
     counts_out=counts_in;
     counts_in.assign(FractalNodes,0);
     dataI_in.clear();
@@ -91,6 +113,8 @@ namespace FractalSpace
     integers=2;
     doubles=1;
     mem.p_file->note(true," slices to potf a ");
+    //    maxSR.clear();
+    //    Max_Things_To_Send_Receive_I(World,counts_out,counts_in,maxSR);
     mem.p_mess->Send_Data_Some_How(7,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
@@ -111,7 +135,7 @@ namespace FractalSpace
 	    if(notZERO)
 	      potential+=p_point->get_potential_point();
 	    p_point->set_potential_point(potential);
-	    //	    FF << " SPB " << counterI << " " << dataI_in[counterI] << " " << dataR_in[counterR] << "\n";
+	    //	    FF << " SPB " << lev << " " << counterI << " " << dataI_in[counterI] << " " << dataI_in[counterI+1] << " " << dataR_in[counterR] << "\n";
 	    counterI+=integers;
 	    counterR++;
 	  }
