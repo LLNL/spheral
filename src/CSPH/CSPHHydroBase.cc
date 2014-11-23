@@ -707,6 +707,16 @@ initialize(const typename Dimension::Scalar time,
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
+  // Get the pressure and velocity gradients.
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  DvDx.assignFields(CSPHSpace::gradientCSPH(velocity, position, vol, H, A, B, C, D, gradA, gradB, connectivityMap, W));
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(DvDx);
+  }
+
   // Get the artificial viscosity and initialize it.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
   Q.initialize(dataBase, 
@@ -1085,16 +1095,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar workQj = vij.dot(Qaccj);
 
               // Velocity gradient.
-              // const Tensor deltaDvDxi = weightj*vj.dyad(gradWj);
-              // const Tensor deltaDvDxj = weighti*vi.dyad(gradWi);
-              const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
-              const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
-              DvDxi += deltaDvDxi;
-              DvDxj += deltaDvDxj;
-              if (nodeListi == nodeListj) {
-                localDvDxi += deltaDvDxi;
-                localDvDxj += deltaDvDxj;
-              }
+              // const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
+              // const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
+              // DvDxi += deltaDvDxi;
+              // DvDxj += deltaDvDxj;
+              // if (nodeListi == nodeListj) {
+              //   localDvDxi += deltaDvDxi;
+              //   localDvDxj += deltaDvDxj;
+              // }
 
               // Mass density gradient.
               // DrhoDxi += weightj*rhoj*gradWj;
