@@ -1674,8 +1674,8 @@ finalize(const typename Dimension::Scalar time,
             const Vector rjihat = rji.unitVector();
             const Scalar rhoij = rhoi + 0.5*DrhoDxi.dot(rji);
             const Scalar rhoji = rhoj - 0.5*DrhoDxj.dot(rji);
-            const Scalar deltaj = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
-            delta(nodeListj, j) += deltaj*rjihat;
+            const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
+            delta(nodeListi, i) -= deltai*rjihat;
             // const Scalar etai = (Hi*rji).magnitude();
             // const Scalar weight = W.kernelValue(etai, 1.0)/W0;
             // delta(nodeListi, i) -= weight*deltaj*rjihat;
@@ -1822,6 +1822,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1844,6 +1845,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(gradA0);
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
+    (*boundaryItr)->enforceFieldListBoundary(DrhoDx);
   }
 }
 

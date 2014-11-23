@@ -151,28 +151,13 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Vector xijhat = xij.unitVector();
   const Scalar gradi = (DvDxi.dot(xijhat)).dot(xijhat);
   const Scalar gradj = (DvDxj.dot(xijhat)).dot(xijhat);
-  const Scalar r = gradj*safeInv(gradi);
-  const Scalar phi = max(0.0, min(2.0*r, min(0.5*(1.0 + r), 2.0))); // Van Leer
-  const Vector delta = phi*(abs(gradi) < abs(gradj) ? DvDxi : DvDxj).dot(xij);
-  const Vector vi1 = vi - delta;
-  const Vector vj1 = vj + delta;
+  const Scalar rj = abs(gradj*safeInv(gradi));
+  const Scalar ri = safeInv(rj);
+  const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer
+  const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer
+  const Vector vi1 = vi - phii*DvDxi*xij;
+  const Vector vj1 = vj + phij*DvDxj*xij;
   vij = vi1 - vj1;
-
-  // // Compute the corrected velocity difference.
-  // Vector vij = vi - vj;
-  // const Vector xij = 0.5*(xi - xj);
-  // const Vector vi1 = vi - DvDxi.dot(xij);
-  // const Vector vj1 = vj + DvDxj.dot(xij);
-  // const Vector vij1 = vi1 - vj1;
-  // if (((vi1 - vj).dot(vij) > 0.0) and
-  //     ((vi - vj1).dot(vij) > 0.0)) {
-  //   if (vij1.dot(vij) < 0.0) {
-  //     vij = Vector::zero;
-  //   } else {
-  //     const Vector vij1hat = vij1.unitVector();
-  //     vij = min(vij.magnitude(), vij1.magnitude())*vij1hat;
-  //   }
-  // }
 
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
