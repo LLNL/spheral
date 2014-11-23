@@ -129,9 +129,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   // Compute the corrected velocity difference.
   Vector vij = vi - vj;
   const Vector xij = 0.5*(xi - xj);
-  const Vector xijhat = xij.unitVector();
-  const Scalar gradi = (DvDxi.dot(xijhat)).dot(xijhat);
-  const Scalar gradj = (DvDxj.dot(xijhat)).dot(xijhat);
+  const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
+  const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar rj = abs(gradj*safeInv(gradi));
   const Scalar ri = safeInv(rj);
   const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer
@@ -146,7 +145,7 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   // The artificial internal energy.
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
+                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
                              Cq *rvAlphaQ(nodeListj,j)    *(quadInExp     ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
