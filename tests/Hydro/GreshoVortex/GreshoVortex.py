@@ -450,5 +450,11 @@ if graphics:
     for i in xrange(nodes.numInternalNodes):
         rhat = (pos[i] - Vector(xc, yc)).unitVector()
         vaz[0][i] = (vel[i] - vel[i].dot(rhat)*rhat).magnitude()
-    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", winTitle="Velocity")
+    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", lineTitle="Simulation", winTitle="Velocity")
     #p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
+
+    # Plot the analytic answer.
+    xans = [0.0, 0.2, 0.4, 1.0]
+    yans = [0.0, 1.0, 0.0, 0.0]
+    ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
+    p.replot(ansData)
