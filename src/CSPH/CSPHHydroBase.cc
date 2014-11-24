@@ -1652,6 +1652,7 @@ finalize(const typename Dimension::Scalar time,
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
@@ -1664,6 +1665,7 @@ finalize(const typename Dimension::Scalar time,
            ++iItr) {
         const int i = *iItr;
         const Vector& ri = position(nodeListi, i);
+        const Vector& vi = velocity(nodeListi, i);
         const Scalar mi = mass(nodeListi, i);
         const Scalar rhoi = massDensity(nodeListi, i);
         const Vector DrhoDxi = DrhoDx(nodeListi, i);
@@ -1675,6 +1677,7 @@ finalize(const typename Dimension::Scalar time,
                ++jItr) {
             const unsigned j = *jItr;
             const Vector& rj = position(nodeListj, j);
+            const Vector& vj = velocity(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
             const Scalar rhoj = massDensity(nodeListj, j);
             const Vector DrhoDxj = DrhoDx(nodeListj, j);
@@ -1682,7 +1685,8 @@ finalize(const typename Dimension::Scalar time,
             const Vector rjihat = rji.unitVector();
             const Scalar rhoij = rhoi + 0.5*DrhoDxi.dot(rji);
             const Scalar rhoji = rhoj - 0.5*DrhoDxj.dot(rji);
-            const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
+            const Scalar maxdisp = mfilter*abs((vi - vj).dot(rjihat));
+            const Scalar deltai = max(0.0, min(maxdisp, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude()));
             delta(nodeListi, i) -= deltai*rjihat;
             // const Scalar etai = (Hi*rji).magnitude();
             // const Scalar weight = W.kernelValue(etai, 1.0)/W0;
@@ -1697,12 +1701,13 @@ finalize(const typename Dimension::Scalar time,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
-        const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
-        if (mag0 > 0.0) {
-          const Scalar deltamag = delta(nodeListi, i).magnitude();
-          const Scalar effmag = mfilter*min(mfilter*mag0, deltamag);
-          position(nodeListi, i) += effmag*delta(nodeListi, i).unitVector();
-        }
+        position(nodeListi, i) += delta(nodeListi, i);
+        // const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+        // if (mag0 > 0.0) {
+        //   const Scalar deltamag = delta(nodeListi, i).magnitude();
+        //   const Scalar effmag = mfilter*min(mfilter*mag0, deltamag);
+        //   position(nodeListi, i) += effmag*delta(nodeListi, i).unitVector();
+        // }
       }
     }
 
