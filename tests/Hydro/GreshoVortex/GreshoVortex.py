@@ -454,7 +454,7 @@ if graphics:
     #p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
 
     # Plot the analytic answer.
-    xans = [0.0, 0.2, 0.4, 1.0]
-    yans = [0.0, 1.0, 0.0, 0.0]
+    xans = [0.0, 0.1, 0.2, 0.4, 1.0]
+    yans = [0.0, 0.5, 1.0, 0.0, 0.0]
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
     p.replot(ansData)
