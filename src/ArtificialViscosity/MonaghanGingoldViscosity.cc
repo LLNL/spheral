@@ -86,14 +86,11 @@ Piij(const unsigned nodeListi, const unsigned i,
   const FieldSpace::FieldList<Dimension, Scalar>& rvAlphaL = this->reducingViscosityMultiplierL();
 
   // Are we applying the shear corrections?
-  const Vector vij = vi - vj;
-  Scalar fshear = 1.0;
-    
-  if (balsaraShearCorrection) {
-    fshear = abs(vij.unitVector().dot(vij.unitVector()));
-  }
+  const Scalar fsheari = (balsaraShearCorrection ? this->mShearMultiplier(nodeListi, i) : 1.0);
+  const Scalar fshearj = (balsaraShearCorrection ? this->mShearMultiplier(nodeListj, j) : 1.0);
 
   // Compute mu.
+  const Vector vij = vi - vj;
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
@@ -102,10 +99,10 @@ Piij(const unsigned nodeListi, const unsigned i,
   //                            Cq     *(mQuadraticInExpansion ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui))));
   // const Scalar ej = fshear*(-Cl*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
   //                            Cq     *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
-  const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
-  const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                             Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
+  const Scalar ei = fsheari*(-Cl*rvAlphaL(nodeListi,i)*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                              Cq *rvAlphaQ(nodeListi,i)   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
+  const Scalar ej = fshearj*(-Cl*rvAlphaL(nodeListj,j)*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                              Cq *rvAlphaQ(nodeListj,j)    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 
