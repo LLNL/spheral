@@ -60,6 +60,7 @@ public:
                const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const bool sumMassDensityOverAllNodeLists,
                const PhysicsSpace::MassDensityType densityUpdate,
                const PhysicsSpace::HEvolutionType HUpdate,
                const double epsTensile,
@@ -159,6 +160,10 @@ public:
   bool correctVelocityGradient() const;
   void correctVelocityGradient(const bool val);
 
+  // Flag to determine if the sum density definition extends over neighbor NodeLists.
+  bool sumMassDensityOverAllNodeLists() const;
+  void sumMassDensityOverAllNodeLists(const bool val);
+
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
   void epsilonTensile(const Scalar val);
@@ -217,7 +222,7 @@ protected:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient;
+  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
   // Tensile correction.
   Scalar mEpsTensile, mnTensile;

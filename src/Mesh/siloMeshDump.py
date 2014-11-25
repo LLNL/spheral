@@ -5,6 +5,7 @@
 import os, mpi
 from Spheral import *
 from SpheralModules import silo
+from SpheralModules.silo import SiloAttributes as SA
 
 # Parallel info.
 domainID = mpi.rank
@@ -29,6 +30,7 @@ OverlinkAttrs = {"ATTR_NODAL"        : 0,
 # writeSiloMesh -- this is the one the user should actually call!
 #-------------------------------------------------------------------------------
 def siloMeshDump(dirName, mesh,
+                 index2zone = None,
                  nodeLists = [],
                  label = "Spheral++ generated mesh",
                  time = 0.0,
@@ -42,8 +44,15 @@ def siloMeshDump(dirName, mesh,
                  faceArrays = None,
                  pretendRZ = False):
 
+    assert (isinstance(mesh, polytope.Tessellation2d) or
+            isinstance(mesh, polytope.Tessellation3d))
+    if isinstance(mesh, polytope.Tessellation2d):
+        nDim = 2
+    else:
+        nDim = 3
+
     # We can only pretend this is an RZ mesh if it's 2D.
-    assert (not pretendRZ) or (mesh.nDim == 2)
+    assert (not pretendRZ) or (nDim == 2)
     
     # Make sure the requested directory exists!
     if domainID == 0:
@@ -54,6 +63,21 @@ def siloMeshDump(dirName, mesh,
     # Extract all the fields we're going to write.
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       scalarFields, vectorFields, tensorFields, symTensorFields)
+
+    # If we have index2zones, remove any redundant values.
+    if index2zone:
+        ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
+        assert len(index2zone) == ntot
+        ntarget = len(mesh.cells)
+        assert max(index2zone) + 1 == ntarget
+        zone2index = range(len(mesh.cells))
+        for i, zi in enumerate(index2zone):
+            zone2index[zi] = i
+        for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            for subname, vals in subvars:
+                newvals = [vals[i] for i in xrange(ntarget)]
+                vals = newvals
+                assert len(vals) == ntarget
 
     # If we're domain 0 we write the master file.
     masterfile = None
@@ -89,7 +113,7 @@ def extractFieldComponents(nodeLists, time, cycle,
 # Write the master file.
 #-------------------------------------------------------------------------------
 def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
-                            meshType = silo._DB_UCDMESH):
+                            meshType = SA._DB_UCDMESH):
 
     nullOpts = silo.DBoptlist()
 
@@ -97,7 +121,7 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
     p0, p1 = os.path.split(dirName)
     fileName = os.path.join(dirName, "OvlTop.silo")
     db = silo.DBCreate(fileName, 
-                       silo._DB_CLOBBER, silo._DB_LOCAL, label, silo._DB_HDF5)
+                       SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
 
     # Pattern for constructing per domain variables.
     domainNamePatterns = [("%s/domain%i.silo:" % (p1, i)) + "%s" for i in xrange(numDomains)]
@@ -110,8 +134,8 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
         domainNames.append(p % "MESH")
         meshTypes.append(meshType)
     optlist = silo.DBoptlist(1024)
-    assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
+    assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
     assert silo.DBPutMultimesh(db, "MMESH", domainNames, meshTypes, optlist) == 0
 
     # Extract the material names, and write per material info if any.
@@ -131,10 +155,10 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
         assert len(matnames) == len(nodeLists)
         assert len(matnos) == len(nodeLists)
         optlist = silo.DBoptlist(1024)
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
-        assert optlist.addOption(silo._DBOPT_MATNOS, silo._DBOPT_NMATNOS, matnos) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
+        assert optlist.addOption(SA._DBOPT_MATNOS, SA._DBOPT_NMATNOS, matnos) == 0
         assert silo.DBPutMultimat(db, "MMATERIAL", material_names, optlist) == 0
 
         # Write the variable descriptions for non-scalar variables (vector and tensors).
@@ -159,7 +183,7 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
             silo.DBPutCompoundarray(db, "VAR_ATTRIBUTES", attrNames, attrs, nullOpts)
 
         # Write the variables descriptors.
-        ucdTypes = vector_of_int(numDomains, silo._DB_UCDVAR)
+        ucdTypes = vector_of_int(numDomains, SA._DB_UCDVAR)
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             domainVarNames = vector_of_string()
             for p in domainNamePatterns:
@@ -192,132 +216,95 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
 #-------------------------------------------------------------------------------
 def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays,
-                            meshType = silo._DB_UCDMESH):
+                            meshType = SA._DB_UCDMESH):
 
     # Create the file.
     fileName = os.path.join(dirName, "domain%i.silo" % domainID)
     db = silo.DBCreate(fileName, 
-                       silo._DB_CLOBBER, silo._DB_LOCAL, label, silo._DB_HDF5)
+                       SA._DB_CLOBBER, SA._DB_LOCAL, label, SA._DB_HDF5)
     nullOpts = silo.DBoptlist()
+
+    # Determine our dimensionality
+    if isinstance(mesh, polytope.Tessellation2d):
+        nDim = 2
+    else:
+        assert isinstance(mesh, polytope.Tessellation3d)
+        nDim = 3
 
     # Write a Polygonal zone list.
     zonelistName = { 2 : "zonelist",
                      3 : "PHzonelist" }
-    if mesh.nDim == 2:
+    numZones = len(mesh.cells)
+    if nDim == 2:
 
         # Read out the zone nodes.  We rely on these already being arranged
         # counter-clockwise.
         zoneNodes = vector_of_vector_of_int()
         shapesize = vector_of_int()
-        for zoneID in xrange(mesh.numZones):
-            zone = mesh.zone(zoneID)
+        for zoneID in xrange(numZones):
+            zone = mesh.cells[zoneID]
             nodes = vector_of_int()
-            for i in zone.nodeIDs:
-                nodes.append(i)
+            for iface in zone:
+                if iface < 0:
+                    nodes.append(mesh.faces[~iface][1])
+                else:
+                    nodes.append(mesh.faces[iface][0])
             zoneNodes.append(nodes)
             shapesize.append(len(nodes))
-        assert len(zoneNodes) == mesh.numZones
-        assert len(shapesize) == mesh.numZones
+        assert len(zoneNodes) == numZones
+        assert len(shapesize) == numZones
 
-        assert silo.DBPutZonelist2(db, zonelistName[mesh.nDim], mesh.nDim, zoneNodes, 0, 0,
-                                   vector_of_int(mesh.numZones, silo._DB_ZONETYPE_POLYGON),
+        assert silo.DBPutZonelist2(db, zonelistName[nDim], nDim, zoneNodes, 0, 0,
+                                   vector_of_int(numZones, SA._DB_ZONETYPE_POLYGON),
                                    shapesize,
-                                   vector_of_int(mesh.numZones, 1),
+                                   vector_of_int(numZones, 1),
                                    nullOpts) == 0
 
     # Write a Polyhedral zone list.
-    if mesh.nDim == 3:
+    if nDim == 3:
 
-        # Construct the face-node lists.  We rely here on the face nodes already being
-        # correctly sorted.
-        faceNodes = vector_of_vector_of_int()
-        for faceID in xrange(mesh.numFaces):
-            face = mesh.face(faceID)
-            nodeIDs = face.nodeIDs
-            faceNodes.append(vector_of_int())
-            for x in nodeIDs:
-                faceNodes[-1].append(x)
+        # Construct the face-node lists.
+        numFaces = len(mesh.faces)
+        faceNodes = vector_of_vector_of_int(numFaces)
+        for iface in xrange(numFaces):
+            for j in xrange(len(mesh.faces[iface])):
+                faceNodes[iface].append(mesh.faces[iface][j])
             assert len(faceNodes[-1]) == face.numNodes
-
-            # DEBUG!
-            if False:
-                xf = face.position()
-                fhat = face.unitNormal()
-                for i in xrange(len(faceNodes[-1])):
-                    j = (i + 1) % len(faceNodes[-1])
-                    assert (mesh.node(faceNodes[-1][i]).position() - xf).cross(mesh.node(faceNodes[-1][j]).position() - xf).dot(fhat) > 0.0
-            # DEBUG!
-
-        assert len(faceNodes) == mesh.numFaces
+        assert len(faceNodes) == numFaces
 
         # Construct the zone-face list.  We use the ones complement of a face ID
         # to indicate that face needs to be reversed in reference to this zone.
-        zoneFaces = vector_of_vector_of_int()
-        for zoneID in xrange(mesh.numZones):
-            zoneFaces.append(vector_of_int())
-            zone = mesh.zone(zoneID)
-            zonePosition = zone.position()
-            for faceID in zone.faceIDs:
-                face = mesh.face(faceID)
-                if (face.position() - zonePosition).dot(face.unitNormal()) > 0.0:
-                    zoneFaces[-1].append(faceID)
-                else:
-                    zoneFaces[-1].append(~faceID)
-            assert len(zoneFaces[-1]) == zone.numFaces
-        assert len(zoneFaces) == mesh.numZones
+        # This is the same convention as polytope, so just copy it.
+        zoneFaces = mesh.cells
+        assert len(zoneFaces) == numZones
 
-        # DEBUG!
-        # Check that the zone faces are correctly oriented (outward normals).
-        # As written this checking code assumes convex faces and zones.
-        if False:
-            for zid in xrange(mesh.numZones):
-                xz = mesh.zone(zid).position()
-                zfids = zoneFaces[zid]
-                assert len(zfids) >= 4  # At least a tetrahedron
-                for fid0 in zfids:
-                    if fid0 < 0:
-                        fid = ~fid0
-                        normalSign = -1.0
-                    else:
-                        fid = fid0
-                        normalSign = 1.0
-                    assert fid >= 0 and fid < mesh.numFaces
-                    nids = faceNodes[fid]
-                    assert len(nids) >= 3 # At least triangular faces.
-                    xf = mesh.face(fid).position()
-                    zfhat = (xf - xz).unitVector()
-                    for i in xrange(len(nids)):
-                        j = (i + 1) % len(nids)
-                        fhat = (mesh.node(nids[i]).position() - xf).cross(mesh.node(nids[j]).position() - xf).unitVector()
-                        assert zfhat.dot(fhat) * normalSign > 0.0
-        # DEBUG!
-
-        assert silo.DBPutPHZonelist(db, zonelistName[mesh.nDim], faceNodes, zoneFaces, 0, (mesh.numZones - 1), nullOpts) == 0
+        assert silo.DBPutPHZonelist(db, zonelistName[nDim], faceNodes, zoneFaces, 0, (numZones - 1), nullOpts) == 0
 
     # Construct the mesh node coordinates.
-    coords = vector_of_vector_of_double(mesh.nDim)
-    for nodeID in xrange(mesh.numNodes):
-        xnode = mesh.node(nodeID).position()
-        for idim in xrange(mesh.nDim):
-            coords[idim].append(xnode[idim])
-    assert len(coords) == mesh.nDim
+    assert len(mesh.nodes) % nDim == 0
+    numNodes = len(mesh.nodes)/nDim
+    coords = vector_of_vector_of_double(nDim, vector_of_double(numNodes))
+    for nodeID in xrange(numNodes):
+        for idim in xrange(nDim):
+            coords[idim][nodeID] = mesh.nodes[nDim*nodeID + idim]
+    assert len(coords) == nDim
 
     # Write the mesh itself.
     meshOpts = silo.DBoptlist(1024)
-    assert meshOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-    assert meshOpts.addOption(silo._DBOPT_DTIME, time) == 0
-    assert meshOpts.addOption(silo._DBOPT_COORDSYS, silo._DB_CARTESIAN) == 0
-    assert meshOpts.addOption(silo._DBOPT_NSPACE, mesh.nDim) == 0
-    assert meshOpts.addOption(silo._DBOPT_TV_CONNECTIVITY, 1) == 0
-    if mesh.nDim == 2:
+    assert meshOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+    assert meshOpts.addOption(SA._DBOPT_DTIME, time) == 0
+    assert meshOpts.addOption(SA._DBOPT_COORDSYS, SA._DB_CARTESIAN) == 0
+    assert meshOpts.addOption(SA._DBOPT_NSPACE, nDim) == 0
+    assert meshOpts.addOption(SA._DBOPT_TV_CONNECTIVITY, 1) == 0
+    if nDim == 2:
         if pretendRZ:
-            assert meshOpts.addOption(silo._DBOPT_COORDSYS, silo._DB_CYLINDRICAL) == 0
-            assert meshOpts.addOption(silo._DBOPT_XLABEL, "z") == 0
-            assert meshOpts.addOption(silo._DBOPT_YLABEL, "r") == 0
-        assert silo.DBPutUcdmesh(db, "MESH", coords, mesh.numZones, zonelistName[mesh.nDim], "NULL", meshOpts) == 0
+            assert meshOpts.addOption(SA._DBOPT_COORDSYS, SA._DB_CYLINDRICAL) == 0
+            assert meshOpts.addOption(SA._DBOPT_XLABEL, "z") == 0
+            assert meshOpts.addOption(SA._DBOPT_YLABEL, "r") == 0
+        assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, zonelistName[nDim], "NULL", meshOpts) == 0
     else:
-        assert meshOpts.addOption(silo._DBOPT_PHZONELIST, zonelistName[mesh.nDim]) == 0
-        assert silo.DBPutUcdmesh(db, "MESH", coords, mesh.numZones, "NULL", "NULL", meshOpts) == 0
+        assert meshOpts.addOption(SA._DBOPT_PHZONELIST, zonelistName[nDim]) == 0
+        assert silo.DBPutUcdmesh(db, "MESH", coords, numZones, "NULL", "NULL", meshOpts) == 0
 
     # Write materials.
     if len(nodeLists) > 0:
@@ -330,12 +317,12 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
             matlist += vector_of_int(nodeList.numInternalNodes, imat)
             matnames.append(nodeList.name)
-        assert len(matlist) == mesh.numZones
+        assert len(matlist) == numZones
         assert len(matnames) == len(nodeLists)
         matOpts = silo.DBoptlist(1024)
-        assert matOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert matOpts.addOption(silo._DBOPT_DTIME, time) == 0
-        assert matOpts.addOption(silo._DBOPT_MATNAMES, silo._DBOPT_NMATNOS, matnames) == 0
+        assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert matOpts.addOption(SA._DBOPT_DTIME, time) == 0
+        assert matOpts.addOption(SA._DBOPT_MATNAMES, SA._DBOPT_NMATNOS, matnames) == 0
         assert silo.DBPutMaterial(db, "MATERIAL", "MESH", matnos, matlist,
                                   vector_of_int(), vector_of_int(), vector_of_int(), vector_of_double(),
                                   matOpts) == 0
@@ -344,10 +331,10 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         writeDefvars(db, fieldwad)
 
         # Write the field components.
-        centering = silo._DB_ZONECENT
+        centering = SA._DB_ZONECENT
         varOpts = silo.DBoptlist(1024)
-        assert varOpts.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert varOpts.addOption(silo._DBOPT_DTIME, time) == 0
+        assert varOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert varOpts.addOption(SA._DBOPT_DTIME, time) == 0
         for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
             for subname, vals in subvars:
                 if len(vals) > 0:
@@ -486,10 +473,10 @@ def metaDataScalarField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-        assert optlist.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
-    return (None, silo._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+        assert optlist.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
+    return (None, SA._DB_VARTYPE_SCALAR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Vector field components.
@@ -540,17 +527,17 @@ def metaDataVectorField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistDef, optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-    assert optlistMV.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_VECTOR) == 0
-    assert optlistVar.addOption(silo._DBOPT_HIDE_FROM_GUI, 1) == 0
-    assert optlistVar.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+    assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_VECTOR) == 0
+    assert optlistVar.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{%s_x, %s_y}" % (name, name), silo._DB_VARTYPE_VECTOR,
+        return ("{%s_x, %s_y}" % (name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
     else:
-        return ("{%s_x, %s_y, %s_z}" % (name, name, name), silo._DB_VARTYPE_VECTOR,
+        return ("{%s_x, %s_y, %s_z}" % (name, name, name), SA._DB_VARTYPE_VECTOR,
                 optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
@@ -617,20 +604,20 @@ def metaDataTensorField(name, time, cycle, dim):
     optlistMV = silo.DBoptlist()
     optlistVar = silo.DBoptlist()
     for optlist in (optlistDef, optlistMV, optlistVar):
-        assert optlist.addOption(silo._DBOPT_CYCLE, cycle) == 0
-        assert optlist.addOption(silo._DBOPT_DTIME, time) == 0
-    assert optlistMV.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_TENSOR) == 0
-    assert optlistVar.addOption(silo._DBOPT_HIDE_FROM_GUI, 1) == 0
-    assert optlistVar.addOption(silo._DBOPT_TENSOR_RANK, silo._DB_VARTYPE_SCALAR) == 0
+        assert optlist.addOption(SA._DBOPT_CYCLE, cycle) == 0
+        assert optlist.addOption(SA._DBOPT_DTIME, time) == 0
+    assert optlistMV.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_TENSOR) == 0
+    assert optlistVar.addOption(SA._DBOPT_HIDE_FROM_GUI, 1) == 0
+    assert optlistVar.addOption(SA._DBOPT_TENSOR_RANK, SA._DB_VARTYPE_SCALAR) == 0
 
     if dim == 2:
-        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), silo._DB_VARTYPE_TENSOR,
+        return ("{{%s_xx, %s_xy}, {%s_yx, %s_yy}}" % (name, name, name, name), SA._DB_VARTYPE_TENSOR,
                 optlistDef, optlistMV, optlistVar)
     else:
         return ("{{%s_xx, %s_xy, %s_xz}, {%s_yx, %s_yy, %s_yz}, {%s_zx, %s_zy, %s_zz}}" % (name, name, name,
                                                                                            name, name, name,
                                                                                            name, name, name),
-                silo._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
+                SA._DB_VARTYPE_TENSOR, optlistDef, optlistMV, optlistVar)
 
 #-------------------------------------------------------------------------------
 # Write the variable descriptors for non-scalar types (vector and tensor).

@@ -318,9 +318,10 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     sort(coarseList.begin(), coarseList.end());
     coarseList.erase(unique(coarseList.begin(), coarseList.end()), coarseList.end());
 
-    // We don't allow ghost nodes to be masters.
-    const int firstGhostNode = this->nodeList().firstGhostNode();
-    masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
+    // Ghost have to be allowed to be master for boundary conditions to work!
+    // // We don't allow ghost nodes to be masters.
+    // const int firstGhostNode = this->nodeList().firstGhostNode();
+    // masterList.erase(lower_bound(masterList.begin(), masterList.end(), firstGhostNode), masterList.end());
   }
 }
 
@@ -346,7 +347,7 @@ updateNodes() {
   // CHECK(mBoxLength > 0.0);
   // mGridLevelConst0 = log(mBoxLength/this->kernelExtent())/log(2.0);
 
-  // Walk all the internal nodes and add them to the tree.
+  // Walk all the nodes and add them to the tree.
   const size_t n = nodes.numNodes();
   for (unsigned i = 0; i != n; ++i) {
     this->addNodeToTree(positions(i), H(i), i);
@@ -987,31 +988,45 @@ mapKey(const typename TreeNeighbor<Dimension>::LevelKey& ilevel,
        const typename TreeNeighbor<Dimension>::CellKey& key,
        const GeomPlane<Dimension>& enterPlane,
        const GeomPlane<Dimension>& exitPlane) const {
-  CellKey ix, iy, iz, newKey;
+  CellKey ix, iy, iz;
   this->extractCellIndices(key, ix, iy, iz);
   vector<Vector> vertices = findCellVertices(mXmin, mBoxLength,
                                              ilevel, ix, iy, iz);
   const unsigned n = vertices.size();
   CHECK(n == (1U << Dimension::nDim));
 
-  // Squeeze the vertices in smidgen so that if we are exactly overlaying a 
-  // new cell all the vertices have a better chance of landing in it.
-  const double smidgen = 1.0e-4*(mBoxLength/(1U << ilevel));
-  squeezeCell(vertices, smidgen);
-
-  // Now we can find the cells we map to.
-  vector<CellKey> result;
+  // Find the range of (ix,iy,iz) the mapped vertices cover.
+  CellKey ixmin = max1dKey, 
+          iymin = max1dKey, 
+          izmin = max1dKey,
+          ixmax = CellKey(0),
+          iymax = CellKey(0),
+          izmax = CellKey(0),
+          newKey;
   unsigned i;
   for (i = 0; i != n; ++i) {
     buildCellKey(ilevel,
                  mapPositionThroughPlanes(vertices[i], enterPlane, exitPlane),
                  newKey, ix, iy, iz);
-    result.push_back(newKey);
+    ixmin = min(ixmin, ix);
+    iymin = min(iymin, iy);
+    izmin = min(izmin, iz);
+    ixmax = max(ixmax, ix);
+    iymax = max(iymax, iy);
+    izmax = max(izmax, iz);
   }
 
-  // Reduce to the unique set.
-  sort(result.begin(), result.end());
-  result.erase(unique(result.begin(), result.end()), result.end());
+  // Now fill in the set of cells we map to.
+  vector<CellKey> result;
+  for (ix = ixmin; ix <= ixmax; ++ix) {
+    for (iy = iymin; iy <= iymax; ++iy) {
+      for (iz = izmin; iz <= izmax; ++iz) {
+        result.push_back((std::max(CellKey(0), std::min(max1dKey, iz)) << 2*num1dbits) +
+                         (std::max(CellKey(0), std::min(max1dKey, iy)) <<   num1dbits) +
+                         (std::max(CellKey(0), std::min(max1dKey, ix))));
+      }
+    }
+  }
 
   // That's it.
   return result;

@@ -29,6 +29,7 @@ interpolateCSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
                 const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                const bool coupleNodeLists,
                 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                 const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
@@ -87,51 +88,53 @@ interpolateCSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
       // Walk the neighbor nodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+        if (coupleNodeLists or (nodeListi == nodeListj)) {
       
-        // Connectivity of this node with this NodeList.  We only need to proceed if
-        // there are some nodes in this list.
-        const vector<int>& connectivity = fullConnectivity[nodeListj];
-        if (connectivity.size() > 0) {
-	  const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
+          // Connectivity of this node with this NodeList.  We only need to proceed if
+          // there are some nodes in this list.
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          if (connectivity.size() > 0) {
+            const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
-          // Loop over the neighbors.
+            // Loop over the neighbors.
 #pragma vector always
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
+            for (vector<int>::const_iterator jItr = connectivity.begin();
+                 jItr != connectivity.end();
+                 ++jItr) {
+              const int j = *jItr;
 
-            // Only proceed if this node pair has not been calculated yet.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
+              // Only proceed if this node pair has not been calculated yet.
+              if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                           nodeListj, j,
+                                                           firstGhostNodej)) {
 
-	      // Get the state for node j.
-	      const Scalar wj = weight(nodeListj, j);
-	      const Vector& rj = position(nodeListj, j);
-	      const SymTensor& Hj = H(nodeListj, j);
-	      const Scalar Hdetj = Hj.Determinant();
-	      const Scalar& Aj = A(nodeListj, j);
-	      const Vector& Bj = B(nodeListj, j);
-	      const DataType& Fj = fieldList(nodeListj, j);
-	      DataType& resultj = result(nodeListj, j);
+                // Get the state for node j.
+                const Scalar wj = weight(nodeListj, j);
+                const Vector& rj = position(nodeListj, j);
+                const SymTensor& Hj = H(nodeListj, j);
+                const Scalar Hdetj = Hj.Determinant();
+                const Scalar& Aj = A(nodeListj, j);
+                const Vector& Bj = B(nodeListj, j);
+                const DataType& Fj = fieldList(nodeListj, j);
+                DataType& resultj = result(nodeListj, j);
 
-              // Node displacement.
-              const Vector rij = ri - rj;
-              const Vector etai = Hi*rij;
-              const Vector etaj = Hj*rij;
+                // Node displacement.
+                const Vector rij = ri - rj;
+                const Vector etai = Hi*rij;
+                const Vector etaj = Hj*rij;
 
-              // Kernel weight.
-              const Scalar Wj = CSPHKernel(W,  rij,  etaj, Hdetj, Ai, Bi);
-              const Scalar Wi = CSPHKernel(W, -rij, -etai, Hdeti, Aj, Bj);
+                // Kernel weight.
+                const Scalar Wj = CSPHKernel(W,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi);
+                const Scalar Wi = CSPHKernel(W, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj);
 
-	      // Increment the pair-wise values.
-	      resulti += wj*Fj*Wj;
-	      resultj += wi*Fi*Wi;
+                // Increment the pair-wise values.
+                resulti += wj*Fj*Wj;
+                resultj += wi*Fi*Wi;
 
-	    }
-	  }
-	}
+              }
+            }
+          }
+        }
       }
     }
   }

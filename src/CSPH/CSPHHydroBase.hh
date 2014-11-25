@@ -61,7 +61,10 @@ public:
                 const bool compatibleEnergyEvolution,
                 const bool XSPH,
                 const PhysicsSpace::MassDensityType densityUpdate,
-                const PhysicsSpace::HEvolutionType HUpdate);
+                const PhysicsSpace::HEvolutionType HUpdate,
+                const double epsTensile,
+                const double nTensile,
+                const bool momentumConserving);
 
   // Destructor.
   virtual ~CSPHHydroBase();
@@ -162,6 +165,17 @@ public:
   double filter() const;
   void filter(const double val);
 
+  // Parameters for the tensile correction force at small scales.
+  Scalar epsilonTensile() const;
+  void epsilonTensile(const Scalar val);
+
+  Scalar nTensile() const;
+  void nTensile(const Scalar val);
+
+  // Flag to determine if we're using the original non-momentum conserving form of CSPH or not.
+  bool momentumConserving() const;
+  void momentumConserving(const bool val);
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -212,8 +226,9 @@ private:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
+  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mMomentumConserving;
   double mfilter;
+  Scalar mEpsTensile, mnTensile;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;

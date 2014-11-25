@@ -136,14 +136,14 @@ gradientCSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               // Kernel weight and gradient.
               Scalar Wi, gWi, Wj, gWj;
               Vector gradWi, gradWj;
-              CSPHKernelAndGradient(W, rij, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-              CSPHKernelAndGradient(W, -rij, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              CSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
+              CSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
 
 	      // Increment the pair-wise gradients.
 	      gradFi += wj*Fj*gradWj;
 	      gradFj += wi*Fi*gradWi;
 
-	    }
+            }
 	  }
 	}
       }

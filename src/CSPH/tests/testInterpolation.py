@@ -297,6 +297,7 @@ for i in xrange(nodes1.numInternalNodes):
 
         # The standard SPH kernel and it's gradient.
         rij = ri - rj
+        etai = Hi*rij
         etaj = Hj*rij
         Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
         gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
@@ -307,6 +308,9 @@ for i in xrange(nodes1.numInternalNodes):
         gradWRj = Vector()
         WRj, dummy = CSPHKernelAndGradient(WT,
                                            rij,
+                                           -etai,
+                                           Hi,
+                                           Hdeti,
                                            etaj,
                                            Hj,
                                            Hdetj,
@@ -315,7 +319,7 @@ for i in xrange(nodes1.numInternalNodes):
                                            gradAi,
                                            gradBi,
                                            gradWRj)
-        assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etaj, Hdetj, Ai, Bi), 1.0e-5)
+        assert fuzzyEqual(WRj, CSPHKernel(WT, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi), 1.0e-5)
 
         # Increment our interpolated values.
         fSPH[i] += fj * wj*Wj
@@ -326,14 +330,14 @@ for i in xrange(nodes1.numInternalNodes):
         dfCSPH[i] += fj * wj*gradWRj
 
     # We can now apply the integration correction (C) for CSPH.
-    dfCSPH[i] += Ci*(fi - fCSPH[i])
+    #dfCSPH[i] += Ci*(fi - fCSPH[i])
  
 #-------------------------------------------------------------------------------
 # We also check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
-fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
+fCSPH_fl = interpolateCSPH(f_fl, position_fl, weight_fl, H_fl, True, A_fl, B_fl, 
                            cm, WT)
 dfCSPH_fl = gradientCSPH(f_fl, position_fl, weight_fl, H_fl,
                          A_fl, B_fl, C_fl, D_fl, gradA_fl, gradB_fl,

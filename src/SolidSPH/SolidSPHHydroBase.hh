@@ -61,6 +61,7 @@ public:
                     const bool gradhCorrection,
                     const bool XSPH,
                     const bool correctVelocityGradient,
+                    const bool sumMassDensityOverAllNodeLists,
                     const PhysicsSpace::MassDensityType densityUpdate,
                     const PhysicsSpace::HEvolutionType HUpdate,
                     const double epsTensile,

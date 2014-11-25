@@ -102,7 +102,7 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = False,
+    useVoronoiOutput = True,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,

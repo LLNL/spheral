@@ -18,6 +18,8 @@ inline
 typename Dimension::Scalar
 CSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
            const typename Dimension::Vector& rij,
+           const typename Dimension::Vector& etai,
+           const typename Dimension::Scalar& Hdeti,
            const typename Dimension::Vector& etaj,
            const typename Dimension::Scalar& Hdetj,
            const typename Dimension::Scalar& Ai,
@@ -33,6 +35,9 @@ inline
 void
 CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
                       const typename Dimension::Vector& rij,
+                      const typename Dimension::Vector& etai,
+                      const typename Dimension::SymTensor& Hi,
+                      const typename Dimension::Scalar& Hdeti,
                       const typename Dimension::Vector& etaj,
                       const typename Dimension::SymTensor& Hj,
                       const typename Dimension::Scalar& Hdetj,
@@ -49,13 +54,13 @@ CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
   const Scalar Wj = WWj.first;
   WCSPH = Ai*(1.0 + Bi.dot(rij))*Wj;
   gradWSPH = WWj.second;
-  const Vector gradWj = Hj*etaj.unitVector() * gradWSPH;
+  const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
   //gradWCSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
   gradWCSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
   for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-      for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-          gradWCSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
-      }
+    for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+      gradWCSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
+    }
   }
 }
 
