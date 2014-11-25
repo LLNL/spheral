@@ -40,13 +40,13 @@ commandLine(nx1 = 100,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             SVPH = False,
             CSPH = False,
             ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
-            filter = 0.0,   # CSPH filtering
+            filter = 0.1,   # CSPH filtering
             momentumConserving = True, # For CSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,

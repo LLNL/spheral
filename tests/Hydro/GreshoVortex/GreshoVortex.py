@@ -48,7 +48,7 @@ commandLine(
     CSPH = False,
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
-    filter = 0.0,  # For CSPH
+    filter = 0.1,  # For CSPH
     momentumConserving = True, # For CSPH
     KernelConstructor = BSplineKernel,
     Qconstructor = MonaghanGingoldViscosity,
