@@ -82,6 +82,8 @@ class CSPH:
         # Helper to compute the CSPH kernel.
         self.space.add_function("CSPHKernel", "double", [constrefparam(tablekernel, "W"),
                                                          constrefparam(vector, "rij"),
+                                                         constrefparam(vector, "etai"),
+                                                         param("double", "Hdeti"),
                                                          constrefparam(vector, "etaj"),
                                                          param("double", "Hdetj"),
                                                          param("double", "Ai"),
@@ -93,6 +95,9 @@ class CSPH:
         # Simultaneously evaluate the CSPH kernel and it's gradient.
         self.space.add_function("CSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
                                                                           constrefparam(vector, "rij"),
+                                                                          constrefparam(vector, "etai"),
+                                                                          constrefparam(symtensor, "Hi"),
+                                                                          param("double", "Hdeti"),
                                                                           constrefparam(vector, "etaj"),
                                                                           constrefparam(symtensor, "Hj"),
                                                                           param("double", "Hdetj"),
@@ -111,7 +116,6 @@ class CSPH:
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
-                                 constrefparam(scalarfieldlist, "volume"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "massDensity")],
@@ -157,6 +161,7 @@ class CSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -170,6 +175,7 @@ class CSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -183,6 +189,7 @@ class CSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -196,6 +203,7 @@ class CSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -209,6 +217,7 @@ class CSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("bool", "coupleNodeLists"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -267,12 +276,26 @@ class CSPH:
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
 
+        # Compute the centroids.
+        Spheral.add_function("computeVoronoiCentroids", vectorfieldlist,
+                             [constrefparam(vectorfieldlist, "position")],
+                             docstring = "Compute the Voronoi based centroids for each point in a FieldList of positions.")
+
         # Compute the H scaled volume for each point.
         Spheral.add_function("computeHVolumes", None,
                              [param("double", "kernelExtent"),
                               constrefparam(symtensorfieldlist, "H"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the H scaled volume for each point.")
+
+        # Compute the hull volume for a neighbor set.
+        Spheral.add_function("computeNeighborHull", polyvol,
+                             [constrefparam("vector_of_vector_of_int", "fullConnectivity"),
+                              param("double", "etaCutoff"),
+                              constrefparam(vector, "ri"),
+                              constrefparam(symtensor, "Hi"),
+                              constrefparam(vectorfieldlist, "position")],
+                             docstring = "Compute the hull volume for a given set of neighbors.")
 
         return
 
@@ -331,7 +354,10 @@ class CSPH:
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "XSPH", default_value="true"),
                            param("MassDensityType", "densityUpdate", default_value="Spheral::PhysicsSpace::RigorousSumDensity"),
-                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH")])
+                           param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
+                           param("double", "epsTensile", default_value="0.0"),
+                           param("double", "nTensile", default_value="4.0"),
+                           param("int", "momentumConserving", default_value="true")])
 
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
@@ -382,6 +408,7 @@ class CSPH:
         x.add_instance_attribute("HEvolution", "HEvolutionType", getter="HEvolution", setter="HEvolution")
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
+        x.add_instance_attribute("momentumConserving", "bool", getter="momentumConserving", setter="momentumConserving")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
 
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")

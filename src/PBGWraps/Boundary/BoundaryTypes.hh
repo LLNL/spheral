@@ -101,6 +101,22 @@ violationNodesFromBoundaryNodes(typename Boundary<Dimension>::BoundaryNodes& bn)
   return &(bn.violationNodes);
 }
 
+//------------------------------------------------------------------------------
+// Support dynamic_casting from a Boundary to one of descendent types.  Kind of
+// an ugly collision between having C++ vector's of boundaries and needing
+// dynamic_cast at the python level.
+//------------------------------------------------------------------------------
+template<typename Boundary1, typename Boundary2>
+Boundary2*
+dynamicCastBoundary(Boundary1* boundPtr) {
+  if (Boundary2* result = dynamic_cast<Boundary2*>(boundPtr)) {
+    return result;
+  } else {
+    PyErr_SetString(PyExc_ValueError, "Failed attempt to dynamic_cast a Boundary class");
+    return NULL;
+  }
+}
+
 }
 }
 

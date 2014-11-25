@@ -28,7 +28,8 @@ class Silo:
         self.DBfile = addObject(self.space, "DBfile", allow_subclassing=True)
         self.DBoptlist = addObject(self.space, "DBoptlist_wrapper", custom_name="DBoptlist", allow_subclassing=True)
         self.DBmrgtree = addObject(self.space, "DBmrgtree_wrapper", custom_name="DBmrgtree", allow_subclassing=True)
-        self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
+        self.SiloAttributes = addStructAsEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
+        #self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
 
         self.vector_of_DBoptlist = addObject(mod, "vector_of_DBoptlist", allow_subclassing=True)
 
@@ -53,6 +54,15 @@ class Silo:
                                  param("int", "fileType")],
                                 custom_name = "DBCreate",
                                 docstring = "Create a SILO file.")
+
+        # DBOpen
+        self.space.add_function("DBOpen_wrap",
+                                retval("DBfile*", reference_existing_object=True),
+                                [param("std::string", "pathName"),
+                                 param("int", "type"),
+                                 param("int", "mode")],
+                                custom_name = "DBOpen",
+                                docstring = "Open an existing SILO file.")
 
         # # DBMakeMrgtree
         # self.space.add_function("DBMakeMrgtree_wrap", 

@@ -36,10 +36,13 @@ class ArtificialViscosity:
             exec('''
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.CSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
 self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.TensorCSPHViscosity%(dim)id = addObject(space, "TensorCSPHViscosity%(dim)id", allow_subclassing=True, parent=self.TensorMonaghanGingoldViscosity%(dim)id)
+self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
         return
 
@@ -51,10 +54,13 @@ self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addCSPHMonaghanGingoldViscosityMethods(self.CSPHMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
+self.addTensorCSPHViscosityMethods(self.TensorCSPHViscosity%(dim)id, %(dim)i)
+self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
         return
 
@@ -172,6 +178,22 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         return
     
     #---------------------------------------------------------------------------
+    # Add methods to the CSPHMonaghanGingoldViscosity.
+    #---------------------------------------------------------------------------
+    def addCSPHMonaghanGingoldViscosityMethods(self, x, ndim):
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false")])
+
+        # Add the local methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        return
+    
+    #---------------------------------------------------------------------------
     # Add methods to the MorrsMonaghanReducingViscosity.
     #---------------------------------------------------------------------------
     def addMorrisMonaghanReducingViscosityMethods(self, x, ndim):
@@ -259,6 +281,42 @@ self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::DvDx" % me, vector_of_tensor, [], "DvDx")
         const_ref_return_value(x, me, "%s::shearCorrection" % me, "vector_of_double", [], "shearCorrection")
         const_ref_return_value(x, me, "%s::Qface" % me, vector_of_tensor, [], "Qface")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Add methods to the TensorCSPHViscosity.
+    #---------------------------------------------------------------------------
+    def addTensorCSPHViscosityMethods(self, x, ndim):
+
+        me = "Spheral::ArtificialViscositySpace::TensorCSPHViscosity%id" % ndim
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0")])
+
+        # Add the abstract methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Add methods to the VonNeumanViscosity.
+    #---------------------------------------------------------------------------
+    def addVonNeumanViscosityMethods(self, x, ndim):
+
+        me = "Spheral::ArtificialViscositySpace::VonNeumanViscosity%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0")])
+
+        # Add the abstract methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
+
+        # Attributes
+        const_ref_return_value(x, me, "%s::viscousEnergy" % me, scalarfieldlist, [], "DvDx")
 
         return
 

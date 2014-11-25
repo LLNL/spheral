@@ -23,6 +23,8 @@ template<typename Dimension>
 typename Dimension::Scalar
 CSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
            const typename Dimension::Vector& rij,
+           const typename Dimension::Vector& etai,
+           const typename Dimension::Scalar& Hdeti,
            const typename Dimension::Vector& etaj,
            const typename Dimension::Scalar& Hdetj,
            const typename Dimension::Scalar& Ai,
@@ -34,6 +36,9 @@ template<typename Dimension>
 void
 CSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
                       const typename Dimension::Vector& rij,
+                      const typename Dimension::Vector& etai,
+                      const typename Dimension::SymTensor& Hi,
+                      const typename Dimension::Scalar& Hdeti,
                       const typename Dimension::Vector& etaj,
                       const typename Dimension::SymTensor& Hj,
                       const typename Dimension::Scalar& Hdetj,

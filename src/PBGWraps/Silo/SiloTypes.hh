@@ -117,369 +117,369 @@ struct ConvertStringToCharStar {
 //------------------------------------------------------------------------------
 // An struct to help exposing the many silo attributes.
 //------------------------------------------------------------------------------
-enum SiloAttributes {
-  _DB_ZONETYPE_POLYHEDRON = DB_ZONETYPE_POLYHEDRON,
-  _DB_ZONETYPE_TET = DB_ZONETYPE_TET,
-  _DB_ZONETYPE_PYRAMID = DB_ZONETYPE_PYRAMID,
-  _DB_ZONETYPE_PRISM = DB_ZONETYPE_PRISM,
-  _DB_ZONETYPE_HEX = DB_ZONETYPE_HEX,
+struct SiloAttributes {
+  const static long _DB_ZONETYPE_POLYHEDRON = DB_ZONETYPE_POLYHEDRON;
+  const static long _DB_ZONETYPE_TET = DB_ZONETYPE_TET;
+  const static long _DB_ZONETYPE_PYRAMID = DB_ZONETYPE_PYRAMID;
+  const static long _DB_ZONETYPE_PRISM = DB_ZONETYPE_PRISM;
+  const static long _DB_ZONETYPE_HEX = DB_ZONETYPE_HEX;
 
-  _DB_NETCDF = DB_NETCDF,
-  _DB_PDB = DB_PDB,
-  _DB_TAURUS = DB_TAURUS,
-  _DB_UNKNOWN = DB_UNKNOWN,
-  _DB_DEBUG = DB_DEBUG,
-  _DB_HDF5X = DB_HDF5X,
-  _DB_PDBP = DB_PDBP,
+  const static long _DB_NETCDF = DB_NETCDF;
+  const static long _DB_PDB = DB_PDB;
+  const static long _DB_TAURUS = DB_TAURUS;
+  const static long _DB_UNKNOWN = DB_UNKNOWN;
+  const static long _DB_DEBUG = DB_DEBUG;
+  const static long _DB_HDF5X = DB_HDF5X;
+  const static long _DB_PDBP = DB_PDBP;
 
-  _DB_HDF5_SEC2_OBSOLETE = DB_HDF5_SEC2_OBSOLETE,
-  _DB_HDF5_STDIO_OBSOLETE = DB_HDF5_STDIO_OBSOLETE,
-  _DB_HDF5_CORE_OBSOLETE = DB_HDF5_CORE_OBSOLETE,
-  _DB_HDF5_MPIO_OBSOLETE = DB_HDF5_MPIO_OBSOLETE,
-  _DB_HDF5_MPIOP_OBSOLETE = DB_HDF5_MPIOP_OBSOLETE,
+  const static long _DB_HDF5_SEC2_OBSOLETE = DB_HDF5_SEC2_OBSOLETE;
+  const static long _DB_HDF5_STDIO_OBSOLETE = DB_HDF5_STDIO_OBSOLETE;
+  const static long _DB_HDF5_CORE_OBSOLETE = DB_HDF5_CORE_OBSOLETE;
+  const static long _DB_HDF5_MPIO_OBSOLETE = DB_HDF5_MPIO_OBSOLETE;
+  const static long _DB_HDF5_MPIOP_OBSOLETE = DB_HDF5_MPIOP_OBSOLETE;
 
-  _DB_H5VFD_DEFAULT = DB_H5VFD_DEFAULT,
-  _DB_H5VFD_SEC2 = DB_H5VFD_SEC2,
-  _DB_H5VFD_STDIO = DB_H5VFD_STDIO,
-  _DB_H5VFD_CORE = DB_H5VFD_CORE,
-  _DB_H5VFD_LOG = DB_H5VFD_LOG,
-  _DB_H5VFD_SPLIT = DB_H5VFD_SPLIT,
-  _DB_H5VFD_DIRECT = DB_H5VFD_DIRECT,
-  _DB_H5VFD_FAMILY = DB_H5VFD_FAMILY,
-  _DB_H5VFD_MPIO = DB_H5VFD_MPIO,
-  _DB_H5VFD_MPIP = DB_H5VFD_MPIP,
-  _DB_H5VFD_SILO = DB_H5VFD_SILO,
+  const static long _DB_H5VFD_DEFAULT = DB_H5VFD_DEFAULT;
+  const static long _DB_H5VFD_SEC2 = DB_H5VFD_SEC2;
+  const static long _DB_H5VFD_STDIO = DB_H5VFD_STDIO;
+  const static long _DB_H5VFD_CORE = DB_H5VFD_CORE;
+  const static long _DB_H5VFD_LOG = DB_H5VFD_LOG;
+  const static long _DB_H5VFD_SPLIT = DB_H5VFD_SPLIT;
+  const static long _DB_H5VFD_DIRECT = DB_H5VFD_DIRECT;
+  const static long _DB_H5VFD_FAMILY = DB_H5VFD_FAMILY;
+  const static long _DB_H5VFD_MPIO = DB_H5VFD_MPIO;
+  const static long _DB_H5VFD_MPIP = DB_H5VFD_MPIP;
+  const static long _DB_H5VFD_SILO = DB_H5VFD_SILO;
 
-  _DB_FILE_OPTS_H5_DEFAULT_DEFAULT = DB_FILE_OPTS_H5_DEFAULT_DEFAULT,
-  _DB_FILE_OPTS_H5_DEFAULT_SEC2    = DB_FILE_OPTS_H5_DEFAULT_SEC2,
-  _DB_FILE_OPTS_H5_DEFAULT_STDIO   = DB_FILE_OPTS_H5_DEFAULT_STDIO,
-  _DB_FILE_OPTS_H5_DEFAULT_CORE    = DB_FILE_OPTS_H5_DEFAULT_CORE,
-  _DB_FILE_OPTS_H5_DEFAULT_LOG     = DB_FILE_OPTS_H5_DEFAULT_LOG,
-  _DB_FILE_OPTS_H5_DEFAULT_SPLIT   = DB_FILE_OPTS_H5_DEFAULT_SPLIT,
-  _DB_FILE_OPTS_H5_DEFAULT_DIRECT  = DB_FILE_OPTS_H5_DEFAULT_DIRECT,
-  _DB_FILE_OPTS_H5_DEFAULT_FAMILY  = DB_FILE_OPTS_H5_DEFAULT_FAMILY,
-  _DB_FILE_OPTS_H5_DEFAULT_MPIO    = DB_FILE_OPTS_H5_DEFAULT_MPIO,
-  _DB_FILE_OPTS_H5_DEFAULT_MPIP    = DB_FILE_OPTS_H5_DEFAULT_MPIP,
-  _DB_FILE_OPTS_H5_DEFAULT_SILO    = DB_FILE_OPTS_H5_DEFAULT_SILO,
-  _DB_FILE_OPTS_LAST               = DB_FILE_OPTS_H5_DEFAULT_SILO,
+  const static long _DB_FILE_OPTS_H5_DEFAULT_DEFAULT = DB_FILE_OPTS_H5_DEFAULT_DEFAULT;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_SEC2    = DB_FILE_OPTS_H5_DEFAULT_SEC2;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_STDIO   = DB_FILE_OPTS_H5_DEFAULT_STDIO;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_CORE    = DB_FILE_OPTS_H5_DEFAULT_CORE;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_LOG     = DB_FILE_OPTS_H5_DEFAULT_LOG;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_SPLIT   = DB_FILE_OPTS_H5_DEFAULT_SPLIT;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_DIRECT  = DB_FILE_OPTS_H5_DEFAULT_DIRECT;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_FAMILY  = DB_FILE_OPTS_H5_DEFAULT_FAMILY;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_MPIO    = DB_FILE_OPTS_H5_DEFAULT_MPIO;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_MPIP    = DB_FILE_OPTS_H5_DEFAULT_MPIP;
+  const static long _DB_FILE_OPTS_H5_DEFAULT_SILO    = DB_FILE_OPTS_H5_DEFAULT_SILO;
+  const static long _DB_FILE_OPTS_LAST               = DB_FILE_OPTS_H5_DEFAULT_SILO;
 
-  _DB_HDF5 = DB_HDF5,
-  _DB_HDF5_SEC2 = DB_HDF5_SEC2,
-  _DB_HDF5_STDIO = DB_HDF5_STDIO,
-  _DB_HDF5_CORE = DB_HDF5_CORE,
-  _DB_HDF5_LOG = DB_HDF5_LOG,
-  _DB_HDF5_SPLIT = DB_HDF5_SPLIT,
-  _DB_HDF5_DIRECT = DB_HDF5_DIRECT,
-  _DB_HDF5_FAMILY = DB_HDF5_FAMILY,
-  _DB_HDF5_MPIO = DB_HDF5_MPIO,
-  _DB_HDF5_MPIOP = DB_HDF5_MPIOP,
-  _DB_HDF5_MPIP = DB_HDF5_MPIP,
-  _DB_HDF5_SILO = DB_HDF5_SILO,
+  const static long _DB_HDF5 = DB_HDF5;
+  const static long _DB_HDF5_SEC2 = DB_HDF5_SEC2;
+  const static long _DB_HDF5_STDIO = DB_HDF5_STDIO;
+  const static long _DB_HDF5_CORE = DB_HDF5_CORE;
+  const static long _DB_HDF5_LOG = DB_HDF5_LOG;
+  const static long _DB_HDF5_SPLIT = DB_HDF5_SPLIT;
+  const static long _DB_HDF5_DIRECT = DB_HDF5_DIRECT;
+  const static long _DB_HDF5_FAMILY = DB_HDF5_FAMILY;
+  const static long _DB_HDF5_MPIO = DB_HDF5_MPIO;
+  const static long _DB_HDF5_MPIOP = DB_HDF5_MPIOP;
+  const static long _DB_HDF5_MPIP = DB_HDF5_MPIP;
+  const static long _DB_HDF5_SILO = DB_HDF5_SILO;
 
-  _DB_NFILES = DB_NFILES,
-  _DB_NFILTERS = DB_NFILTERS,
+  const static long _DB_NFILES = DB_NFILES;
+  const static long _DB_NFILTERS = DB_NFILTERS;
 
-  _DBAll = DBAll,
-  _DBNone = DBNone,
-  _DBCalc = DBCalc,
-  _DBMatMatnos = DBMatMatnos,
-  _DBMatMatlist = DBMatMatlist,
-  _DBMatMixList = DBMatMixList,
-  _DBCurveArrays = DBCurveArrays,
-  _DBPMCoords = DBPMCoords,
-  _DBPVData = DBPVData,
-  _DBQMCoords = DBQMCoords,
-  _DBQVData = DBQVData,
-  _DBUMCoords = DBUMCoords,
-  _DBUMFacelist = DBUMFacelist,
-  _DBUMZonelist = DBUMZonelist,
-  _DBUVData = DBUVData,
-  _DBFacelistInfo = DBFacelistInfo,
-  _DBZonelistInfo = DBZonelistInfo,
-  _DBMatMatnames = DBMatMatnames,
-  _DBUMGlobNodeNo = DBUMGlobNodeNo,
-  _DBZonelistGlobZoneNo = DBZonelistGlobZoneNo,
-  _DBMatMatcolors = DBMatMatcolors,
-  _DBCSGMBoundaryInfo = DBCSGMBoundaryInfo,
-  _DBCSGMZonelist = DBCSGMZonelist,
-  _DBCSGMBoundaryNames = DBCSGMBoundaryNames,
-  _DBCSGVData = DBCSGVData,
-  _DBCSGZonelistZoneNames = DBCSGZonelistZoneNames,
-  _DBCSGZonelistRegNames = DBCSGZonelistRegNames,
-  _DBMMADJNodelists = DBMMADJNodelists,
-  _DBMMADJZonelists = DBMMADJZonelists,
-  _DBPMGlobNodeNo = DBPMGlobNodeNo,
+  const static long _DBAll = DBAll;
+  const static long _DBNone = DBNone;
+  const static long _DBCalc = DBCalc;
+  const static long _DBMatMatnos = DBMatMatnos;
+  const static long _DBMatMatlist = DBMatMatlist;
+  const static long _DBMatMixList = DBMatMixList;
+  const static long _DBCurveArrays = DBCurveArrays;
+  const static long _DBPMCoords = DBPMCoords;
+  const static long _DBPVData = DBPVData;
+  const static long _DBQMCoords = DBQMCoords;
+  const static long _DBQVData = DBQVData;
+  const static long _DBUMCoords = DBUMCoords;
+  const static long _DBUMFacelist = DBUMFacelist;
+  const static long _DBUMZonelist = DBUMZonelist;
+  const static long _DBUVData = DBUVData;
+  const static long _DBFacelistInfo = DBFacelistInfo;
+  const static long _DBZonelistInfo = DBZonelistInfo;
+  const static long _DBMatMatnames = DBMatMatnames;
+  const static long _DBUMGlobNodeNo = DBUMGlobNodeNo;
+  const static long _DBZonelistGlobZoneNo = DBZonelistGlobZoneNo;
+  const static long _DBMatMatcolors = DBMatMatcolors;
+  const static long _DBCSGMBoundaryInfo = DBCSGMBoundaryInfo;
+  const static long _DBCSGMZonelist = DBCSGMZonelist;
+  const static long _DBCSGMBoundaryNames = DBCSGMBoundaryNames;
+  const static long _DBCSGVData = DBCSGVData;
+  const static long _DBCSGZonelistZoneNames = DBCSGZonelistZoneNames;
+  const static long _DBCSGZonelistRegNames = DBCSGZonelistRegNames;
+  const static long _DBMMADJNodelists = DBMMADJNodelists;
+  const static long _DBMMADJZonelists = DBMMADJZonelists;
+  const static long _DBPMGlobNodeNo = DBPMGlobNodeNo;
 
-  _DB_INVALID_OBJECT = DB_INVALID_OBJECT,
-  _DB_QUADRECT = DB_QUADRECT,
-  _DB_QUADCURV = DB_QUADCURV,
-  _DB_QUADMESH = DB_QUADMESH,
-  _DB_QUADVAR = DB_QUADVAR,
-  _DB_UCDMESH = DB_UCDMESH,
-  _DB_UCDVAR = DB_UCDVAR,
-  _DB_MULTIMESH = DB_MULTIMESH,
-  _DB_MULTIVAR = DB_MULTIVAR,
-  _DB_MULTIMAT = DB_MULTIMAT,
-  _DB_MULTIMATSPECIES = DB_MULTIMATSPECIES,
-  _DB_MULTIBLOCKMESH = DB_MULTIBLOCKMESH,
-  _DB_MULTIBLOCKVAR = DB_MULTIBLOCKVAR,
-  _DB_MULTIMESHADJ = DB_MULTIMESHADJ,
-  _DB_MATERIAL = DB_MATERIAL,
-  _DB_MATSPECIES = DB_MATSPECIES,
-  _DB_FACELIST = DB_FACELIST,
-  _DB_ZONELIST = DB_ZONELIST,
-  _DB_EDGELIST = DB_EDGELIST,
-  _DB_PHZONELIST = DB_PHZONELIST,
-  _DB_CSGZONELIST = DB_CSGZONELIST,
-  _DB_CSGMESH = DB_CSGMESH,
-  _DB_CSGVAR = DB_CSGVAR,
-  _DB_CURVE = DB_CURVE,
-  _DB_DEFVARS = DB_DEFVARS,
-  _DB_POINTMESH = DB_POINTMESH,
-  _DB_POINTVAR = DB_POINTVAR,
-  _DB_ARRAY = DB_ARRAY,
-  _DB_DIR = DB_DIR,
-  _DB_VARIABLE = DB_VARIABLE,
-  _DB_MRGTREE = DB_MRGTREE,
-  _DB_GROUPELMAP = DB_GROUPELMAP,
-  _DB_MRGVAR = DB_MRGVAR,
-  _DB_USERDEF = DB_USERDEF,
+  const static long _DB_INVALID_OBJECT = DB_INVALID_OBJECT;
+  const static long _DB_QUADRECT = DB_QUADRECT;
+  const static long _DB_QUADCURV = DB_QUADCURV;
+  const static long _DB_QUADMESH = DB_QUADMESH;
+  const static long _DB_QUADVAR = DB_QUADVAR;
+  const static long _DB_UCDMESH = DB_UCDMESH;
+  const static long _DB_UCDVAR = DB_UCDVAR;
+  const static long _DB_MULTIMESH = DB_MULTIMESH;
+  const static long _DB_MULTIVAR = DB_MULTIVAR;
+  const static long _DB_MULTIMAT = DB_MULTIMAT;
+  const static long _DB_MULTIMATSPECIES = DB_MULTIMATSPECIES;
+  const static long _DB_MULTIBLOCKMESH = DB_MULTIBLOCKMESH;
+  const static long _DB_MULTIBLOCKVAR = DB_MULTIBLOCKVAR;
+  const static long _DB_MULTIMESHADJ = DB_MULTIMESHADJ;
+  const static long _DB_MATERIAL = DB_MATERIAL;
+  const static long _DB_MATSPECIES = DB_MATSPECIES;
+  const static long _DB_FACELIST = DB_FACELIST;
+  const static long _DB_ZONELIST = DB_ZONELIST;
+  const static long _DB_EDGELIST = DB_EDGELIST;
+  const static long _DB_PHZONELIST = DB_PHZONELIST;
+  const static long _DB_CSGZONELIST = DB_CSGZONELIST;
+  const static long _DB_CSGMESH = DB_CSGMESH;
+  const static long _DB_CSGVAR = DB_CSGVAR;
+  const static long _DB_CURVE = DB_CURVE;
+  const static long _DB_DEFVARS = DB_DEFVARS;
+  const static long _DB_POINTMESH = DB_POINTMESH;
+  const static long _DB_POINTVAR = DB_POINTVAR;
+  const static long _DB_ARRAY = DB_ARRAY;
+  const static long _DB_DIR = DB_DIR;
+  const static long _DB_VARIABLE = DB_VARIABLE;
+  const static long _DB_MRGTREE = DB_MRGTREE;
+  const static long _DB_GROUPELMAP = DB_GROUPELMAP;
+  const static long _DB_MRGVAR = DB_MRGVAR;
+  const static long _DB_USERDEF = DB_USERDEF;
 
-  _DB_INT = DB_INT,
-  _DB_SHORT = DB_SHORT,
-  _DB_LONG = DB_LONG,
-  _DB_FLOAT = DB_FLOAT,
-  _DB_DOUBLE = DB_DOUBLE,
-  _DB_CHAR = DB_CHAR,
-  _DB_LONG_LONG = DB_LONG_LONG,
-  _DB_NOTYPE = DB_NOTYPE,
+  const static long _DB_INT = DB_INT;
+  const static long _DB_SHORT = DB_SHORT;
+  const static long _DB_LONG = DB_LONG;
+  const static long _DB_FLOAT = DB_FLOAT;
+  const static long _DB_DOUBLE = DB_DOUBLE;
+  const static long _DB_CHAR = DB_CHAR;
+  const static long _DB_LONG_LONG = DB_LONG_LONG;
+  const static long _DB_NOTYPE = DB_NOTYPE;
 
-  _DB_CLOBBER = DB_CLOBBER,
-  _DB_NOCLOBBER = DB_NOCLOBBER,
+  const static long _DB_CLOBBER = DB_CLOBBER;
+  const static long _DB_NOCLOBBER = DB_NOCLOBBER;
 
-  _DB_READ = DB_READ,
-  _DB_APPEND = DB_APPEND,
+  const static long _DB_READ = DB_READ;
+  const static long _DB_APPEND = DB_APPEND;
 
-  _DB_LOCAL = DB_LOCAL,
-  _DB_SUN3 = DB_SUN3,
-  _DB_SUN4 = DB_SUN4,
-  _DB_SGI = DB_SGI,
-  _DB_RS6000 = DB_RS6000,
-  _DB_CRAY = DB_CRAY,
-  _DB_INTEL = DB_INTEL,
+  const static long _DB_LOCAL = DB_LOCAL;
+  const static long _DB_SUN3 = DB_SUN3;
+  const static long _DB_SUN4 = DB_SUN4;
+  const static long _DB_SGI = DB_SGI;
+  const static long _DB_RS6000 = DB_RS6000;
+  const static long _DB_CRAY = DB_CRAY;
+  const static long _DB_INTEL = DB_INTEL;
 
-  _DBOPT_FIRST = DBOPT_FIRST,
-  _DBOPT_ALIGN = DBOPT_ALIGN,
-  _DBOPT_COORDSYS = DBOPT_COORDSYS,
-  _DBOPT_CYCLE = DBOPT_CYCLE,
-  _DBOPT_FACETYPE = DBOPT_FACETYPE,
-  _DBOPT_HI_OFFSET = DBOPT_HI_OFFSET,
-  _DBOPT_LO_OFFSET = DBOPT_LO_OFFSET,
-  _DBOPT_LABEL = DBOPT_LABEL,
-  _DBOPT_XLABEL = DBOPT_XLABEL,
-  _DBOPT_YLABEL = DBOPT_YLABEL,
-  _DBOPT_ZLABEL = DBOPT_ZLABEL,
-  _DBOPT_MAJORORDER = DBOPT_MAJORORDER,
-  _DBOPT_NSPACE = DBOPT_NSPACE,
-  _DBOPT_ORIGIN = DBOPT_ORIGIN,
-  _DBOPT_PLANAR = DBOPT_PLANAR,
-  _DBOPT_TIME = DBOPT_TIME,
-  _DBOPT_UNITS = DBOPT_UNITS,
-  _DBOPT_XUNITS = DBOPT_XUNITS,
-  _DBOPT_YUNITS = DBOPT_YUNITS,
-  _DBOPT_ZUNITS = DBOPT_ZUNITS,
-  _DBOPT_DTIME = DBOPT_DTIME,
-  _DBOPT_USESPECMF = DBOPT_USESPECMF,
-  _DBOPT_XVARNAME = DBOPT_XVARNAME,
-  _DBOPT_YVARNAME = DBOPT_YVARNAME,
-  _DBOPT_ZVARNAME = DBOPT_ZVARNAME,
-  _DBOPT_ASCII_LABEL = DBOPT_ASCII_LABEL,
-  _DBOPT_MATNOS = DBOPT_MATNOS,
-  _DBOPT_NMATNOS = DBOPT_NMATNOS,
-  _DBOPT_MATNAME = DBOPT_MATNAME,
-  _DBOPT_NMAT = DBOPT_NMAT,
-  _DBOPT_NMATSPEC = DBOPT_NMATSPEC,
-  _DBOPT_BASEINDEX = DBOPT_BASEINDEX,
-  _DBOPT_ZONENUM = DBOPT_ZONENUM,
-  _DBOPT_NODENUM = DBOPT_NODENUM,
-  _DBOPT_BLOCKORIGIN = DBOPT_BLOCKORIGIN,
-  _DBOPT_GROUPNUM = DBOPT_GROUPNUM,
-  _DBOPT_GROUPORIGIN = DBOPT_GROUPORIGIN,
-  _DBOPT_NGROUPS = DBOPT_NGROUPS,
-  _DBOPT_MATNAMES = DBOPT_MATNAMES,
-  _DBOPT_EXTENTS_SIZE = DBOPT_EXTENTS_SIZE,
-  _DBOPT_EXTENTS = DBOPT_EXTENTS,
-  _DBOPT_MATCOUNTS = DBOPT_MATCOUNTS,
-  _DBOPT_MATLISTS = DBOPT_MATLISTS,
-  _DBOPT_MIXLENS = DBOPT_MIXLENS,
-  _DBOPT_ZONECOUNTS = DBOPT_ZONECOUNTS,
-  _DBOPT_HAS_EXTERNAL_ZONES = DBOPT_HAS_EXTERNAL_ZONES,
-  _DBOPT_PHZONELIST = DBOPT_PHZONELIST,
-  _DBOPT_MATCOLORS = DBOPT_MATCOLORS,
-  _DBOPT_BNDNAMES = DBOPT_BNDNAMES,
-  _DBOPT_REGNAMES = DBOPT_REGNAMES,
-  _DBOPT_ZONENAMES = DBOPT_ZONENAMES,
-  _DBOPT_HIDE_FROM_GUI = DBOPT_HIDE_FROM_GUI,
-  _DBOPT_TOPO_DIM = DBOPT_TOPO_DIM,
-  _DBOPT_REFERENCE = DBOPT_REFERENCE,
-  _DBOPT_GROUPINGS_SIZE = DBOPT_GROUPINGS_SIZE,
-  _DBOPT_GROUPINGS = DBOPT_GROUPINGS,
-  _DBOPT_GROUPINGNAMES = DBOPT_GROUPINGNAMES,
-  _DBOPT_ALLOWMAT0 = DBOPT_ALLOWMAT0,
-  _DBOPT_MRGTREE_NAME = DBOPT_MRGTREE_NAME,
-  _DBOPT_REGION_PNAMES = DBOPT_REGION_PNAMES,
-  _DBOPT_TENSOR_RANK = DBOPT_TENSOR_RANK,
-  _DBOPT_MMESH_NAME = DBOPT_MMESH_NAME,
-  _DBOPT_TV_CONNECTIVITY = DBOPT_TV_CONNECTIVITY,
-  _DBOPT_DISJOINT_MODE = DBOPT_DISJOINT_MODE,
-  _DBOPT_MRGV_ONAMES = DBOPT_MRGV_ONAMES,
-  _DBOPT_MRGV_RNAMES = DBOPT_MRGV_RNAMES,
-  _DBOPT_SPECNAMES = DBOPT_SPECNAMES,
-  _DBOPT_SPECCOLORS = DBOPT_SPECCOLORS,
-  _DBOPT_LLONGNZNUM = DBOPT_LLONGNZNUM,
-  _DBOPT_CONSERVED = DBOPT_CONSERVED,
-  _DBOPT_EXTENSIVE = DBOPT_EXTENSIVE,
-  _DBOPT_MB_FILE_NS = DBOPT_MB_FILE_NS,
-  _DBOPT_MB_BLOCK_NS = DBOPT_MB_BLOCK_NS,
-  _DBOPT_MB_BLOCK_TYPE = DBOPT_MB_BLOCK_TYPE,
-  _DBOPT_MB_EMPTY_LIST = DBOPT_MB_EMPTY_LIST,
-  _DBOPT_MB_EMPTY_COUNT = DBOPT_MB_EMPTY_COUNT,
-  _DBOPT_LAST = DBOPT_LAST,
+  const static long _DBOPT_FIRST = DBOPT_FIRST;
+  const static long _DBOPT_ALIGN = DBOPT_ALIGN;
+  const static long _DBOPT_COORDSYS = DBOPT_COORDSYS;
+  const static long _DBOPT_CYCLE = DBOPT_CYCLE;
+  const static long _DBOPT_FACETYPE = DBOPT_FACETYPE;
+  const static long _DBOPT_HI_OFFSET = DBOPT_HI_OFFSET;
+  const static long _DBOPT_LO_OFFSET = DBOPT_LO_OFFSET;
+  const static long _DBOPT_LABEL = DBOPT_LABEL;
+  const static long _DBOPT_XLABEL = DBOPT_XLABEL;
+  const static long _DBOPT_YLABEL = DBOPT_YLABEL;
+  const static long _DBOPT_ZLABEL = DBOPT_ZLABEL;
+  const static long _DBOPT_MAJORORDER = DBOPT_MAJORORDER;
+  const static long _DBOPT_NSPACE = DBOPT_NSPACE;
+  const static long _DBOPT_ORIGIN = DBOPT_ORIGIN;
+  const static long _DBOPT_PLANAR = DBOPT_PLANAR;
+  const static long _DBOPT_TIME = DBOPT_TIME;
+  const static long _DBOPT_UNITS = DBOPT_UNITS;
+  const static long _DBOPT_XUNITS = DBOPT_XUNITS;
+  const static long _DBOPT_YUNITS = DBOPT_YUNITS;
+  const static long _DBOPT_ZUNITS = DBOPT_ZUNITS;
+  const static long _DBOPT_DTIME = DBOPT_DTIME;
+  const static long _DBOPT_USESPECMF = DBOPT_USESPECMF;
+  const static long _DBOPT_XVARNAME = DBOPT_XVARNAME;
+  const static long _DBOPT_YVARNAME = DBOPT_YVARNAME;
+  const static long _DBOPT_ZVARNAME = DBOPT_ZVARNAME;
+  const static long _DBOPT_ASCII_LABEL = DBOPT_ASCII_LABEL;
+  const static long _DBOPT_MATNOS = DBOPT_MATNOS;
+  const static long _DBOPT_NMATNOS = DBOPT_NMATNOS;
+  const static long _DBOPT_MATNAME = DBOPT_MATNAME;
+  const static long _DBOPT_NMAT = DBOPT_NMAT;
+  const static long _DBOPT_NMATSPEC = DBOPT_NMATSPEC;
+  const static long _DBOPT_BASEINDEX = DBOPT_BASEINDEX;
+  const static long _DBOPT_ZONENUM = DBOPT_ZONENUM;
+  const static long _DBOPT_NODENUM = DBOPT_NODENUM;
+  const static long _DBOPT_BLOCKORIGIN = DBOPT_BLOCKORIGIN;
+  const static long _DBOPT_GROUPNUM = DBOPT_GROUPNUM;
+  const static long _DBOPT_GROUPORIGIN = DBOPT_GROUPORIGIN;
+  const static long _DBOPT_NGROUPS = DBOPT_NGROUPS;
+  const static long _DBOPT_MATNAMES = DBOPT_MATNAMES;
+  const static long _DBOPT_EXTENTS_SIZE = DBOPT_EXTENTS_SIZE;
+  const static long _DBOPT_EXTENTS = DBOPT_EXTENTS;
+  const static long _DBOPT_MATCOUNTS = DBOPT_MATCOUNTS;
+  const static long _DBOPT_MATLISTS = DBOPT_MATLISTS;
+  const static long _DBOPT_MIXLENS = DBOPT_MIXLENS;
+  const static long _DBOPT_ZONECOUNTS = DBOPT_ZONECOUNTS;
+  const static long _DBOPT_HAS_EXTERNAL_ZONES = DBOPT_HAS_EXTERNAL_ZONES;
+  const static long _DBOPT_PHZONELIST = DBOPT_PHZONELIST;
+  const static long _DBOPT_MATCOLORS = DBOPT_MATCOLORS;
+  const static long _DBOPT_BNDNAMES = DBOPT_BNDNAMES;
+  const static long _DBOPT_REGNAMES = DBOPT_REGNAMES;
+  const static long _DBOPT_ZONENAMES = DBOPT_ZONENAMES;
+  const static long _DBOPT_HIDE_FROM_GUI = DBOPT_HIDE_FROM_GUI;
+  const static long _DBOPT_TOPO_DIM = DBOPT_TOPO_DIM;
+  const static long _DBOPT_REFERENCE = DBOPT_REFERENCE;
+  const static long _DBOPT_GROUPINGS_SIZE = DBOPT_GROUPINGS_SIZE;
+  const static long _DBOPT_GROUPINGS = DBOPT_GROUPINGS;
+  const static long _DBOPT_GROUPINGNAMES = DBOPT_GROUPINGNAMES;
+  const static long _DBOPT_ALLOWMAT0 = DBOPT_ALLOWMAT0;
+  const static long _DBOPT_MRGTREE_NAME = DBOPT_MRGTREE_NAME;
+  const static long _DBOPT_REGION_PNAMES = DBOPT_REGION_PNAMES;
+  const static long _DBOPT_TENSOR_RANK = DBOPT_TENSOR_RANK;
+  const static long _DBOPT_MMESH_NAME = DBOPT_MMESH_NAME;
+  const static long _DBOPT_TV_CONNECTIVITY = DBOPT_TV_CONNECTIVITY;
+  const static long _DBOPT_DISJOINT_MODE = DBOPT_DISJOINT_MODE;
+  const static long _DBOPT_MRGV_ONAMES = DBOPT_MRGV_ONAMES;
+  const static long _DBOPT_MRGV_RNAMES = DBOPT_MRGV_RNAMES;
+  const static long _DBOPT_SPECNAMES = DBOPT_SPECNAMES;
+  const static long _DBOPT_SPECCOLORS = DBOPT_SPECCOLORS;
+  const static long _DBOPT_LLONGNZNUM = DBOPT_LLONGNZNUM;
+  const static long _DBOPT_CONSERVED = DBOPT_CONSERVED;
+  const static long _DBOPT_EXTENSIVE = DBOPT_EXTENSIVE;
+  const static long _DBOPT_MB_FILE_NS = DBOPT_MB_FILE_NS;
+  const static long _DBOPT_MB_BLOCK_NS = DBOPT_MB_BLOCK_NS;
+  const static long _DBOPT_MB_BLOCK_TYPE = DBOPT_MB_BLOCK_TYPE;
+  const static long _DBOPT_MB_EMPTY_LIST = DBOPT_MB_EMPTY_LIST;
+  const static long _DBOPT_MB_EMPTY_COUNT = DBOPT_MB_EMPTY_COUNT;
+  const static long _DBOPT_LAST = DBOPT_LAST;
   
-  _DBOPT_H5_FIRST = DBOPT_H5_FIRST,
-  _DBOPT_H5_VFD = DBOPT_H5_VFD,
-  _DBOPT_H5_RAW_FILE_OPTS = DBOPT_H5_RAW_FILE_OPTS,
-  _DBOPT_H5_RAW_EXTENSION = DBOPT_H5_RAW_EXTENSION,
-  _DBOPT_H5_META_FILE_OPTS = DBOPT_H5_META_FILE_OPTS,
-  _DBOPT_H5_META_EXTENSION = DBOPT_H5_META_EXTENSION,
-  _DBOPT_H5_CORE_ALLOC_INC = DBOPT_H5_CORE_ALLOC_INC,
-  _DBOPT_H5_CORE_NO_BACK_STORE = DBOPT_H5_CORE_NO_BACK_STORE,
-  _DBOPT_H5_META_BLOCK_SIZE = DBOPT_H5_META_BLOCK_SIZE,
-  _DBOPT_H5_SMALL_RAW_SIZE = DBOPT_H5_SMALL_RAW_SIZE,
-  _DBOPT_H5_ALIGN_MIN = DBOPT_H5_ALIGN_MIN,
-  _DBOPT_H5_ALIGN_VAL = DBOPT_H5_ALIGN_VAL,
-  _DBOPT_H5_DIRECT_MEM_ALIGN = DBOPT_H5_DIRECT_MEM_ALIGN,
-  _DBOPT_H5_DIRECT_BLOCK_SIZE = DBOPT_H5_DIRECT_BLOCK_SIZE,
-  _DBOPT_H5_DIRECT_BUF_SIZE = DBOPT_H5_DIRECT_BUF_SIZE,
-  _DBOPT_H5_LOG_NAME = DBOPT_H5_LOG_NAME,
-  _DBOPT_H5_LOG_BUF_SIZE = DBOPT_H5_LOG_BUF_SIZE,
-  _DBOPT_H5_MPIO_COMM = DBOPT_H5_MPIO_COMM,
-  _DBOPT_H5_MPIO_INFO = DBOPT_H5_MPIO_INFO,
-  _DBOPT_H5_MPIP_NO_GPFS_HINTS = DBOPT_H5_MPIP_NO_GPFS_HINTS,
-  _DBOPT_H5_SIEVE_BUF_SIZE = DBOPT_H5_SIEVE_BUF_SIZE,
-  _DBOPT_H5_CACHE_NELMTS = DBOPT_H5_CACHE_NELMTS,
-  _DBOPT_H5_CACHE_NBYTES = DBOPT_H5_CACHE_NBYTES,
-  _DBOPT_H5_CACHE_POLICY = DBOPT_H5_CACHE_POLICY,
-  _DBOPT_H5_FAM_SIZE = DBOPT_H5_FAM_SIZE,
-  _DBOPT_H5_FAM_FILE_OPTS = DBOPT_H5_FAM_FILE_OPTS,
-  _DBOPT_H5_USER_DRIVER_ID = DBOPT_H5_USER_DRIVER_ID,
-  _DBOPT_H5_USER_DRIVER_INFO = DBOPT_H5_USER_DRIVER_INFO,
-  _DBOPT_H5_SILO_BLOCK_SIZE = DBOPT_H5_SILO_BLOCK_SIZE,
-  _DBOPT_H5_SILO_BLOCK_COUNT = DBOPT_H5_SILO_BLOCK_COUNT,
-  _DBOPT_H5_SILO_LOG_STATS = DBOPT_H5_SILO_LOG_STATS,
-  _DBOPT_H5_SILO_USE_DIRECT = DBOPT_H5_SILO_USE_DIRECT,
-  _DBOPT_H5_LAST = DBOPT_H5_LAST,
+  const static long _DBOPT_H5_FIRST = DBOPT_H5_FIRST;
+  const static long _DBOPT_H5_VFD = DBOPT_H5_VFD;
+  const static long _DBOPT_H5_RAW_FILE_OPTS = DBOPT_H5_RAW_FILE_OPTS;
+  const static long _DBOPT_H5_RAW_EXTENSION = DBOPT_H5_RAW_EXTENSION;
+  const static long _DBOPT_H5_META_FILE_OPTS = DBOPT_H5_META_FILE_OPTS;
+  const static long _DBOPT_H5_META_EXTENSION = DBOPT_H5_META_EXTENSION;
+  const static long _DBOPT_H5_CORE_ALLOC_INC = DBOPT_H5_CORE_ALLOC_INC;
+  const static long _DBOPT_H5_CORE_NO_BACK_STORE = DBOPT_H5_CORE_NO_BACK_STORE;
+  const static long _DBOPT_H5_META_BLOCK_SIZE = DBOPT_H5_META_BLOCK_SIZE;
+  const static long _DBOPT_H5_SMALL_RAW_SIZE = DBOPT_H5_SMALL_RAW_SIZE;
+  const static long _DBOPT_H5_ALIGN_MIN = DBOPT_H5_ALIGN_MIN;
+  const static long _DBOPT_H5_ALIGN_VAL = DBOPT_H5_ALIGN_VAL;
+  const static long _DBOPT_H5_DIRECT_MEM_ALIGN = DBOPT_H5_DIRECT_MEM_ALIGN;
+  const static long _DBOPT_H5_DIRECT_BLOCK_SIZE = DBOPT_H5_DIRECT_BLOCK_SIZE;
+  const static long _DBOPT_H5_DIRECT_BUF_SIZE = DBOPT_H5_DIRECT_BUF_SIZE;
+  const static long _DBOPT_H5_LOG_NAME = DBOPT_H5_LOG_NAME;
+  const static long _DBOPT_H5_LOG_BUF_SIZE = DBOPT_H5_LOG_BUF_SIZE;
+  const static long _DBOPT_H5_MPIO_COMM = DBOPT_H5_MPIO_COMM;
+  const static long _DBOPT_H5_MPIO_INFO = DBOPT_H5_MPIO_INFO;
+  const static long _DBOPT_H5_MPIP_NO_GPFS_HINTS = DBOPT_H5_MPIP_NO_GPFS_HINTS;
+  const static long _DBOPT_H5_SIEVE_BUF_SIZE = DBOPT_H5_SIEVE_BUF_SIZE;
+  const static long _DBOPT_H5_CACHE_NELMTS = DBOPT_H5_CACHE_NELMTS;
+  const static long _DBOPT_H5_CACHE_NBYTES = DBOPT_H5_CACHE_NBYTES;
+  const static long _DBOPT_H5_CACHE_POLICY = DBOPT_H5_CACHE_POLICY;
+  const static long _DBOPT_H5_FAM_SIZE = DBOPT_H5_FAM_SIZE;
+  const static long _DBOPT_H5_FAM_FILE_OPTS = DBOPT_H5_FAM_FILE_OPTS;
+  const static long _DBOPT_H5_USER_DRIVER_ID = DBOPT_H5_USER_DRIVER_ID;
+  const static long _DBOPT_H5_USER_DRIVER_INFO = DBOPT_H5_USER_DRIVER_INFO;
+  const static long _DBOPT_H5_SILO_BLOCK_SIZE = DBOPT_H5_SILO_BLOCK_SIZE;
+  const static long _DBOPT_H5_SILO_BLOCK_COUNT = DBOPT_H5_SILO_BLOCK_COUNT;
+  const static long _DBOPT_H5_SILO_LOG_STATS = DBOPT_H5_SILO_LOG_STATS;
+  const static long _DBOPT_H5_SILO_USE_DIRECT = DBOPT_H5_SILO_USE_DIRECT;
+  const static long _DBOPT_H5_LAST = DBOPT_H5_LAST;
 
-  _DB_TOP = DB_TOP,
-  _DB_NONE = DB_NONE,
-  _DB_ALL = DB_ALL,
-  _DB_ABORT = DB_ABORT,
-  _DB_SUSPEND = DB_SUSPEND,
-  _DB_RESUME = DB_RESUME,
-  _DB_ALL_AND_DRVR = DB_ALL_AND_DRVR,
+  const static long _DB_TOP = DB_TOP;
+  const static long _DB_NONE = DB_NONE;
+  const static long _DB_ALL = DB_ALL;
+  const static long _DB_ABORT = DB_ABORT;
+  const static long _DB_SUSPEND = DB_SUSPEND;
+  const static long _DB_RESUME = DB_RESUME;
+  const static long _DB_ALL_AND_DRVR = DB_ALL_AND_DRVR;
 
-  _DB_ROWMAJOR = DB_ROWMAJOR,
-  _DB_COLMAJOR = DB_COLMAJOR,
+  const static long _DB_ROWMAJOR = DB_ROWMAJOR;
+  const static long _DB_COLMAJOR = DB_COLMAJOR;
 
-  _DB_NOTCENT = DB_NOTCENT,
-  _DB_NODECENT = DB_NODECENT,
-  _DB_ZONECENT = DB_ZONECENT,
-  _DB_FACECENT = DB_FACECENT,
-  _DB_BNDCENT = DB_BNDCENT,
-  _DB_EDGECENT = DB_EDGECENT,
-  _DB_BLOCKCENT = DB_BLOCKCENT,
+  const static long _DB_NOTCENT = DB_NOTCENT;
+  const static long _DB_NODECENT = DB_NODECENT;
+  const static long _DB_ZONECENT = DB_ZONECENT;
+  const static long _DB_FACECENT = DB_FACECENT;
+  const static long _DB_BNDCENT = DB_BNDCENT;
+  const static long _DB_EDGECENT = DB_EDGECENT;
+  const static long _DB_BLOCKCENT = DB_BLOCKCENT;
 
-  _DB_CARTESIAN = DB_CARTESIAN,
-  _DB_CYLINDRICAL = DB_CYLINDRICAL,
-  _DB_SPHERICAL = DB_SPHERICAL,
-  _DB_NUMERICAL = DB_NUMERICAL,
-  _DB_OTHER = DB_OTHER,
+  const static long _DB_CARTESIAN = DB_CARTESIAN;
+  const static long _DB_CYLINDRICAL = DB_CYLINDRICAL;
+  const static long _DB_SPHERICAL = DB_SPHERICAL;
+  const static long _DB_NUMERICAL = DB_NUMERICAL;
+  const static long _DB_OTHER = DB_OTHER;
 
-  _DB_RECTILINEAR = DB_RECTILINEAR,
-  _DB_CURVILINEAR = DB_CURVILINEAR,
+  const static long _DB_RECTILINEAR = DB_RECTILINEAR;
+  const static long _DB_CURVILINEAR = DB_CURVILINEAR;
 
-  _DB_AREA = DB_AREA,
-  _DB_VOLUME = DB_VOLUME,
+  const static long _DB_AREA = DB_AREA;
+  const static long _DB_VOLUME = DB_VOLUME;
 
-  _DB_ON = DB_ON,
-  _DB_OFF = DB_OFF,
+  const static long _DB_ON = DB_ON;
+  const static long _DB_OFF = DB_OFF;
 
-  _DB_ABUTTING = DB_ABUTTING,
-  _DB_FLOATING = DB_FLOATING,
+  const static long _DB_ABUTTING = DB_ABUTTING;
+  const static long _DB_FLOATING = DB_FLOATING;
 
-  _DB_VARTYPE_SCALAR = DB_VARTYPE_SCALAR,
-  _DB_VARTYPE_VECTOR = DB_VARTYPE_VECTOR,
-  _DB_VARTYPE_TENSOR = DB_VARTYPE_TENSOR,
-  _DB_VARTYPE_SYMTENSOR = DB_VARTYPE_SYMTENSOR,
-  _DB_VARTYPE_ARRAY = DB_VARTYPE_ARRAY,
-  _DB_VARTYPE_MATERIAL = DB_VARTYPE_MATERIAL,
-  _DB_VARTYPE_SPECIES = DB_VARTYPE_SPECIES,
-  _DB_VARTYPE_LABEL = DB_VARTYPE_LABEL,
+  const static long _DB_VARTYPE_SCALAR = DB_VARTYPE_SCALAR;
+  const static long _DB_VARTYPE_VECTOR = DB_VARTYPE_VECTOR;
+  const static long _DB_VARTYPE_TENSOR = DB_VARTYPE_TENSOR;
+  const static long _DB_VARTYPE_SYMTENSOR = DB_VARTYPE_SYMTENSOR;
+  const static long _DB_VARTYPE_ARRAY = DB_VARTYPE_ARRAY;
+  const static long _DB_VARTYPE_MATERIAL = DB_VARTYPE_MATERIAL;
+  const static long _DB_VARTYPE_SPECIES = DB_VARTYPE_SPECIES;
+  const static long _DB_VARTYPE_LABEL = DB_VARTYPE_LABEL;
 
-  _DBCSG_QUADRIC_G = DBCSG_QUADRIC_G,
-  _DBCSG_SPHERE_PR = DBCSG_SPHERE_PR,
-  _DBCSG_ELLIPSOID_PRRR = DBCSG_ELLIPSOID_PRRR,
-  _DBCSG_PLANE_G = DBCSG_PLANE_G,
-  _DBCSG_PLANE_X = DBCSG_PLANE_X,
-  _DBCSG_PLANE_Y = DBCSG_PLANE_Y,
-  _DBCSG_PLANE_Z = DBCSG_PLANE_Z,
-  _DBCSG_PLANE_PN = DBCSG_PLANE_PN,
-  _DBCSG_PLANE_PPP = DBCSG_PLANE_PPP,
-  _DBCSG_CYLINDER_PNLR = DBCSG_CYLINDER_PNLR,
-  _DBCSG_CYLINDER_PPR = DBCSG_CYLINDER_PPR,
-  _DBCSG_BOX_XYZXYZ = DBCSG_BOX_XYZXYZ,
-  _DBCSG_CONE_PNLA = DBCSG_CONE_PNLA,
-  _DBCSG_CONE_PPA = DBCSG_CONE_PPA,
-  _DBCSG_POLYHEDRON_KF = DBCSG_POLYHEDRON_KF,
-  _DBCSG_HEX_6F = DBCSG_HEX_6F,
-  _DBCSG_TET_4F = DBCSG_TET_4F,
-  _DBCSG_PYRAMID_5F = DBCSG_PYRAMID_5F,
-  _DBCSG_PRISM_5F = DBCSG_PRISM_5F,
+  const static long _DBCSG_QUADRIC_G = DBCSG_QUADRIC_G;
+  const static long _DBCSG_SPHERE_PR = DBCSG_SPHERE_PR;
+  const static long _DBCSG_ELLIPSOID_PRRR = DBCSG_ELLIPSOID_PRRR;
+  const static long _DBCSG_PLANE_G = DBCSG_PLANE_G;
+  const static long _DBCSG_PLANE_X = DBCSG_PLANE_X;
+  const static long _DBCSG_PLANE_Y = DBCSG_PLANE_Y;
+  const static long _DBCSG_PLANE_Z = DBCSG_PLANE_Z;
+  const static long _DBCSG_PLANE_PN = DBCSG_PLANE_PN;
+  const static long _DBCSG_PLANE_PPP = DBCSG_PLANE_PPP;
+  const static long _DBCSG_CYLINDER_PNLR = DBCSG_CYLINDER_PNLR;
+  const static long _DBCSG_CYLINDER_PPR = DBCSG_CYLINDER_PPR;
+  const static long _DBCSG_BOX_XYZXYZ = DBCSG_BOX_XYZXYZ;
+  const static long _DBCSG_CONE_PNLA = DBCSG_CONE_PNLA;
+  const static long _DBCSG_CONE_PPA = DBCSG_CONE_PPA;
+  const static long _DBCSG_POLYHEDRON_KF = DBCSG_POLYHEDRON_KF;
+  const static long _DBCSG_HEX_6F = DBCSG_HEX_6F;
+  const static long _DBCSG_TET_4F = DBCSG_TET_4F;
+  const static long _DBCSG_PYRAMID_5F = DBCSG_PYRAMID_5F;
+  const static long _DBCSG_PRISM_5F = DBCSG_PRISM_5F;
 
-  _DBCSG_QUADRATIC_G = DBCSG_QUADRATIC_G,
-  _DBCSG_CIRCLE_PR = DBCSG_CIRCLE_PR,
-  _DBCSG_ELLIPSE_PRR = DBCSG_ELLIPSE_PRR,
-  _DBCSG_LINE_G = DBCSG_LINE_G,
-  _DBCSG_LINE_X = DBCSG_LINE_X,
-  _DBCSG_LINE_Y = DBCSG_LINE_Y,
-  _DBCSG_LINE_PN = DBCSG_LINE_PN,
-  _DBCSG_LINE_PP = DBCSG_LINE_PP,
-  _DBCSG_BOX_XYXY = DBCSG_BOX_XYXY,
-  _DBCSG_ANGLE_PNLA = DBCSG_ANGLE_PNLA,
-  _DBCSG_ANGLE_PPA = DBCSG_ANGLE_PPA,
-  _DBCSG_POLYGON_KP = DBCSG_POLYGON_KP,
-  _DBCSG_TRI_3P = DBCSG_TRI_3P,
-  _DBCSG_QUAD_4P = DBCSG_QUAD_4P,
+  const static long _DBCSG_QUADRATIC_G = DBCSG_QUADRATIC_G;
+  const static long _DBCSG_CIRCLE_PR = DBCSG_CIRCLE_PR;
+  const static long _DBCSG_ELLIPSE_PRR = DBCSG_ELLIPSE_PRR;
+  const static long _DBCSG_LINE_G = DBCSG_LINE_G;
+  const static long _DBCSG_LINE_X = DBCSG_LINE_X;
+  const static long _DBCSG_LINE_Y = DBCSG_LINE_Y;
+  const static long _DBCSG_LINE_PN = DBCSG_LINE_PN;
+  const static long _DBCSG_LINE_PP = DBCSG_LINE_PP;
+  const static long _DBCSG_BOX_XYXY = DBCSG_BOX_XYXY;
+  const static long _DBCSG_ANGLE_PNLA = DBCSG_ANGLE_PNLA;
+  const static long _DBCSG_ANGLE_PPA = DBCSG_ANGLE_PPA;
+  const static long _DBCSG_POLYGON_KP = DBCSG_POLYGON_KP;
+  const static long _DBCSG_TRI_3P = DBCSG_TRI_3P;
+  const static long _DBCSG_QUAD_4P = DBCSG_QUAD_4P;
 
-  _DBCSG_INNER = DBCSG_INNER,
-  _DBCSG_OUTER = DBCSG_OUTER,
-  _DBCSG_ON = DBCSG_ON,
-  _DBCSG_UNION = DBCSG_UNION,
-  _DBCSG_INTERSECT = DBCSG_INTERSECT,
-  _DBCSG_DIFF = DBCSG_DIFF,
-  _DBCSG_COMPLIMENT = DBCSG_COMPLIMENT,
-  _DBCSG_XFORM = DBCSG_XFORM,
-  _DBCSG_SWEEP = DBCSG_SWEEP,
+  const static long _DBCSG_INNER = DBCSG_INNER;
+  const static long _DBCSG_OUTER = DBCSG_OUTER;
+  const static long _DBCSG_ON = DBCSG_ON;
+  const static long _DBCSG_UNION = DBCSG_UNION;
+  const static long _DBCSG_INTERSECT = DBCSG_INTERSECT;
+  const static long _DBCSG_DIFF = DBCSG_DIFF;
+  const static long _DBCSG_COMPLIMENT = DBCSG_COMPLIMENT;
+  const static long _DBCSG_XFORM = DBCSG_XFORM;
+  const static long _DBCSG_SWEEP = DBCSG_SWEEP;
 
-  _DB_PREORDER = DB_PREORDER,
-  _DB_POSTORDER = DB_POSTORDER,
-  _DB_FROMCWR = DB_FROMCWR,
+  const static long _DB_PREORDER = DB_PREORDER;
+  const static long _DB_POSTORDER = DB_POSTORDER;
+  const static long _DB_FROMCWR = DB_FROMCWR;
 
-  _DB_ZONETYPE_BEAM = DB_ZONETYPE_BEAM,
+  const static long _DB_ZONETYPE_BEAM = DB_ZONETYPE_BEAM;
 
-  _DB_ZONETYPE_POLYGON = DB_ZONETYPE_POLYGON,
-  _DB_ZONETYPE_TRIANGLE = DB_ZONETYPE_TRIANGLE,
-  _DB_ZONETYPE_QUAD = DB_ZONETYPE_QUAD,
+  const static long _DB_ZONETYPE_POLYGON = DB_ZONETYPE_POLYGON;
+  const static long _DB_ZONETYPE_TRIANGLE = DB_ZONETYPE_TRIANGLE;
+  const static long _DB_ZONETYPE_QUAD = DB_ZONETYPE_QUAD;
 };
 
 //------------------------------------------------------------------------------
@@ -723,6 +723,17 @@ DBCreate_wrap(std::string pathName,
               std::string fileInfo,
               int fileType) {
   return DBCreate(pathName.c_str(), mode, target, fileInfo.c_str(), fileType);
+}
+
+//------------------------------------------------------------------------------
+// DBOpen
+//------------------------------------------------------------------------------
+inline
+DBfile*
+DBOpen_wrap(std::string pathName,
+              int type,
+              int mode) {
+  return DBOpen(pathName.c_str(), type, mode);
 }
 
 //------------------------------------------------------------------------------
@@ -1088,10 +1099,10 @@ DBPutUcdvar(DBfile& file,
             DBoptlist_wrapper& optlist) {
 
   // Preconditions.
-  VERIFY(centering == _DB_NODECENT or
-         centering == _DB_EDGECENT or
-         centering == _DB_FACECENT or
-         centering == _DB_ZONECENT);
+  VERIFY(centering == DB_NODECENT or
+         centering == DB_EDGECENT or
+         centering == DB_FACECENT or
+         centering == DB_ZONECENT);
 
   unsigned i, j;
 
@@ -1153,10 +1164,10 @@ DBPutUcdvar1(DBfile& file,
              DBoptlist_wrapper& optlist) {
 
   // Preconditions.
-  VERIFY(centering == _DB_NODECENT or
-         centering == _DB_EDGECENT or
-         centering == _DB_FACECENT or
-         centering == _DB_ZONECENT);
+  VERIFY(centering == DB_NODECENT or
+         centering == DB_EDGECENT or
+         centering == DB_FACECENT or
+         centering == DB_ZONECENT);
 
   return DBPutUcdvar1(&file,
                       name.c_str(),

@@ -25,7 +25,7 @@ from SpheralModules.Spheral.PhysicsSpace import *
 from SpheralModules.Spheral.GravitySpace import *
 from SpheralModules.Spheral.IntegratorSpace import *
 
-from generateMesh import *
+from PolytopeModules import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:
@@ -111,21 +111,71 @@ class SpheralVoronoiSiloDump:
 ##         if os.path.exists(filename):
 ##             raise ValueError, "File %s already exists!  Aborting." % filename
 
-        # Build the mesh.
+        # Build the set of generators from our points.
+        gens = vector_of_double()
+        nDim = eval("Vector%s.nDimensions" % self.dimension)
+        xmin = vector_of_double(nDim,  1e100)
+        xmax = vector_of_double(nDim, -1e100)
+        for nodes in self._nodeLists:
+            pos = nodes.positions()
+            for i in xrange(nodes.numInternalNodes):
+                for j in xrange(nDim):
+                    gens.append(pos[i][j])
+                    xmin[j] = min(xmin[j], pos[i][j])
+                    xmax[j] = max(xmax[j], pos[i][j])
+
+        # Check the boundaries for any additional points we want to use for the bounding box.
+        for bound in self._boundaries:
+            try:
+                pb = dynamicCastBoundaryToPlanarBoundary2d(bound)
+                for p in (pb.enterPlane.point, pb.exitPlane.point):
+                    for j in xrange(nDim):
+                        xmin[j] = min(xmin[j], p[j])
+                        xmax[j] = max(xmax[j], p[j])
+            except:
+                pass
+
+        # Globally reduce and puff up a bit.
+        for j in xrange(nDim):
+            xmin[j] = mpi.allreduce(xmin[j], mpi.MIN)
+            xmax[j] = mpi.allreduce(xmax[j], mpi.MAX)
+            delta = 0.01*(xmax[j] - xmin[j])
+            xmin[j] -= delta
+            xmax[j] += delta
+
+        # Build the PLC.
+        plc = polytope.PLC2d()
+        plc.facets.resize(4)
+        for i in xrange(4):
+            plc.facets[i].resize(2)
+            plc.facets[i][0] = i
+            plc.facets[i][1] = (i + 1) % 4
+        plccoords = vector_of_double(8)
+        plccoords[0] = xmin[0]
+        plccoords[1] = xmin[1]
+        plccoords[2] = xmax[0]
+        plccoords[3] = xmin[1]
+        plccoords[4] = xmax[0]
+        plccoords[5] = xmax[1]
+        plccoords[6] = xmin[0]
+        plccoords[7] = xmax[1]
+
+        # Build the tessellation.
         if self.dimension == "2d":
-            mesh, void = generatePolygonalMesh(self._nodeLists,
-                                               boundaries = self._boundaries,
-                                               generateVoid = False,
-                                               generateParallelConnectivity = False,
-                                               removeBoundaryZones = True,
-                                               voidThreshold = 10.0)
+            mesh = polytope.Tessellation2d()
+            if "TriangleTessellator2d" in dir(polytope):
+                serial_tessellator = polytope.TriangleTessellator2d()
+            else:
+                assert "BoostTessellator2d" in dir(polytope)
+                serial_tessellator = polytope.BoostTessellator2d()
         else:
             assert self.dimension == "3d"
-            mesh, void = generatePolyhedralMesh(self._nodeLists,
-                                                boundaries = self._boundaries,
-                                                generateVoid = False,
-                                                generateParallelConnectivity = False,
-                                                removeBoundaryZones = True)
+            raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
+        if mpi.procs > 1:
+            tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
+        else:
+            tessellator = serial_tessellator
+        index2zone = tessellator.tessellateDegenerate(gens, plccoords, plc, 1.0e-8, mesh)
 
         # Figure out how many of each type of field we're dumping.
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
@@ -150,7 +200,8 @@ class SpheralVoronoiSiloDump:
 
         # Write the output.
         timeslice = siloMeshDump(filename, mesh,
-                                 nodeLists = self._nodeLists + [void],
+                                 index2zone = index2zone,
+                                 nodeLists = self._nodeLists,
                                  time = simulationTime,
                                  cycle = cycle,
                                  scalarFields = scalarFields,
@@ -167,7 +218,7 @@ class SpheralVoronoiSiloDump:
         mpi.barrier()
 
         # That's it.
-        del mesh, void
+        del mesh
         while gc.collect():
             pass
         return

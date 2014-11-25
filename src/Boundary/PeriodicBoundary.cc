@@ -18,6 +18,9 @@ namespace Spheral {
 namespace BoundarySpace {
 
 using namespace std;
+using std::min;
+using std::max;
+using std::abs;
 
 using NodeSpace::NodeList;
 using FieldSpace::Field;
@@ -170,6 +173,9 @@ PeriodicBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
   copy(mPlane2Boundary.violationBegin(nodeList),
        mPlane2Boundary.violationEnd(nodeList),
        back_inserter(violationNodes));
+
+  // Update the positions and H for the nodes in violation.
+  updateViolationNodes(nodeList);
 }
 
 //------------------------------------------------------------------------------
@@ -179,8 +185,34 @@ PeriodicBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
-  mPlane1Boundary.updateViolationNodes(nodeList);
-  mPlane2Boundary.updateViolationNodes(nodeList);
+  // The sub-boundaries have already fired their updateViolationNodes!
+  // mPlane1Boundary.updateViolationNodes(nodeList);
+  // mPlane2Boundary.updateViolationNodes(nodeList);
+
+  // For periodic boundaries we have the peculiar situation that a point may
+  // wrap entirely around the entire volume more than once.  The underlying
+  // planar boundaries can't take this into account, so we do it here.
+  // Another solution is to limit the timestep by the absolute magnitude of 
+  // the velocity, but we hate to do that just for a boundary condition.
+  typedef GeomPlane<Dimension> Plane;
+  const Plane& plane1 = mPlane1Boundary.enterPlane();
+  const Plane& plane2 = mPlane1Boundary.exitPlane();
+  const Vector& origin = plane1.point();
+  const Vector& nhat = plane1.normal();
+  const Scalar L = plane1.minimumDistance(plane2.point());
+  const vector<int>& vNodes = this->violationNodes(nodeList);
+  Field<Dimension, Vector>& position = nodeList.positions();
+  for (vector<int>::const_iterator vItr = vNodes.begin();
+       vItr != vNodes.end();
+       ++vItr) {
+    const unsigned i = *vItr;
+    if (position(i) < plane1 or position(i) < plane2) {
+      const Vector p0 = position(i) + (origin - position(i)).dot(nhat)*nhat; // closest point on the plane.
+      const Scalar f = max(-1.0, min(1.0, fmod(plane1.signedDistance(position(i))/L, 1.0)));
+      position(i) = p0 + f*L*nhat;
+      CHECK((position(i) >= plane1) and (position(i) >= plane2));
+    }
+  }
 }
 
 //------------------------------------------------------------------------------

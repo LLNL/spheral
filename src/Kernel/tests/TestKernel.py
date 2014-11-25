@@ -17,7 +17,7 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     plot.ylabel('W(r)')
     if title:
         plot.title(title)
-    data = Gnuplot.Data(x, y, with='lines', title=lineTitle)
+    data = Gnuplot.Data(x, y, with_='lines', title=lineTitle)
     plot.replot(data)
     return
 
@@ -34,15 +34,9 @@ numPoints = 100
 kernelDict = {'spline': [BSplineKernel1d(),
                          BSplineKernel2d(),
                          BSplineKernel3d()],
-              'h': [HKernel1d(),
-                    HKernel2d(),
-                    HKernel3d()],
-              'h10': [HKernel1d(10.0),
-                      HKernel2d(10.0),
-                      HKernel3d(10.0)],
-##              'w4spline': [W4SplineKernel1d(),
-##                           W4SplineKernel2d(),
-##                           W4SplineKernel3d()],
+              'w4spline': [W4SplineKernel1d(),
+                           W4SplineKernel2d(),
+                           W4SplineKernel3d()],
 ##              'quartic': [QuarticSplineKernel1d(),
 ##                          QuarticSplineKernel2d(),
 ##                          QuarticSplineKernel3d()],

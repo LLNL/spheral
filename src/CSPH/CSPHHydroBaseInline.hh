@@ -103,6 +103,60 @@ CSPHHydroBase<Dimension>::filter(const double val) {
 }
 
 //------------------------------------------------------------------------------
+// Parameter to determine the magnitude of the tensile small scale correction.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+CSPHHydroBase<Dimension>::
+epsilonTensile() const {
+  return mEpsTensile;
+}
+
+template<typename Dimension>
+void
+CSPHHydroBase<Dimension>::
+epsilonTensile(const typename Dimension::Scalar val) {
+  mEpsTensile = val;
+}
+
+//------------------------------------------------------------------------------
+// Parameter to set the exponent used in the tensile small scale correction.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+CSPHHydroBase<Dimension>::
+nTensile() const {
+  return mnTensile;
+}
+
+template<typename Dimension>
+inline
+void
+CSPHHydroBase<Dimension>::
+nTensile(const typename Dimension::Scalar val) {
+  mnTensile = val;
+}
+
+//------------------------------------------------------------------------------
+// Access the flag determining if we're using the momentum conserving algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+CSPHHydroBase<Dimension>::momentumConserving() const {
+  return mMomentumConserving;
+}
+
+template<typename Dimension>
+inline
+void
+CSPHHydroBase<Dimension>::momentumConserving(const bool val) {
+  mMomentumConserving = val;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

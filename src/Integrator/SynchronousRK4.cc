@@ -113,7 +113,6 @@ step(typename Dimension::Scalar maxTime) {
   // Stage 2: 
   // Get derivs2(t_n + 0.5*dt, state(t_n + 0.5*dt*derivs1))
   tmpstate.update(derivs1, 0.5*dt, t, 0.5*dt);
-  this->enforceBoundaries(tmpstate, derivs1);
   this->applyGhostBoundaries(tmpstate, derivs1);
   this->postStateUpdate(db, tmpstate, derivs1);
   this->finalizeGhostBoundaries();
@@ -126,7 +125,6 @@ step(typename Dimension::Scalar maxTime) {
   tmpstate = state;
   tmpstate.copyState();
   tmpstate.update(derivs2, 0.5*dt, t, 0.5*dt);
-  this->enforceBoundaries(tmpstate, derivs2);
   this->applyGhostBoundaries(tmpstate, derivs2);
   this->postStateUpdate(db, tmpstate, derivs2);
   this->finalizeGhostBoundaries();
@@ -139,7 +137,6 @@ step(typename Dimension::Scalar maxTime) {
   tmpstate = state;
   tmpstate.copyState();
   tmpstate.update(derivs3, dt, t, dt);
-  this->enforceBoundaries(tmpstate, derivs3);
   this->applyGhostBoundaries(tmpstate, derivs3);
   this->postStateUpdate(db, tmpstate, derivs3);
   this->finalizeGhostBoundaries();
@@ -155,13 +152,15 @@ step(typename Dimension::Scalar maxTime) {
   state.update(derivs2, dt/3.0, t, dt);
   state.update(derivs3, dt/3.0, t, dt);
   state.update(derivs4, dt/6.0, t, dt);
-  this->enforceBoundaries(state, derivs4);
   this->applyGhostBoundaries(state, derivs4);
   this->postStateUpdate(db, state, derivs4);
   this->finalizeGhostBoundaries();
 
   // Apply any physics specific finalizations.
   this->finalize(t + dt, dt, state, derivs4);
+
+  // Enforce boundaries.
+  this->enforceBoundaries(state, derivs4);
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);

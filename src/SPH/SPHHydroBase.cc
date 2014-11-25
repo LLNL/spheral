@@ -82,6 +82,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool gradhCorrection,
              const bool XSPH,
              const bool correctVelocityGradient,
+             const bool sumMassDensityOverAllNodeLists,
              const MassDensityType densityUpdate,
              const HEvolutionType HUpdate,
              const double epsTensile,
@@ -96,6 +97,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradhCorrection(gradhCorrection),
   mXSPH(XSPH),
   mCorrectVelocityGradient(correctVelocityGradient),
+  mSumMassDensityOverAllNodeLists(sumMassDensityOverAllNodeLists),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mxmin(xmin),
@@ -897,7 +899,7 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
   } else if (densityUpdate() == PhysicsSpace::SumDensity) {
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
