@@ -197,6 +197,13 @@ output("    nodes.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
+    rmin = 0.0
+    rmax = sqrt(2.0)*(x1-x0)
+    
+    if(seed=="latticeCylindrical"):
+        rmin = x1-8.0*nPerh/nx1
+        rmax = x1-2.0*nPerh/nx1
+    
     generator = GenerateNodeDistribution2d(nx1, ny1, rho,
                                            distributionType = seed,
                                            xmin = (x0, y0),
@@ -204,8 +211,8 @@ if restoreCycle is None:
                                            #rmin = 0.0,
                                            theta = 2.0*pi,
                                            #rmax = sqrt(2.0)*(x1 - x0),
-                                           rmax = x1-2.0*nPerh/nx1,
-                                           rmin = x1-8.0*nPerh/nx1,
+                                           rmax = rmax,
+                                           rmin = rmin,
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 
