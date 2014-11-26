@@ -48,6 +48,9 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                  xmin[0] < xmax[0] and xmin[1] < xmax[1]) or
                 (distributionType == "offsetCylindrical" and
                  xmin is not None and xmax is not None and
+                 rmin is not None and rmax is not None) or
+                (distributionType == "latticeCylindrical" and
+                 xmin is not None and xmax is not None and
                  rmin is not None and rmax is not None))
         assert nNodePerh > 0.0
         assert offset is None or len(offset) == 2
@@ -145,6 +148,17 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                        self.rmin,
                                                        self.rmax,
                                                        self.nNodePerh)
+        
+        elif distributionType == "latticeCylindrical":
+            self.x, self.y, self.m, self.H = \
+                    self.latticeCylindricalDistribution(self.nRadial,
+                                                        self.nTheta,
+                                                        self.rho,
+                                                        self.xmin,
+                                                        self.xmax,
+                                                        self.rmin,
+                                                        self.rmax,
+                                                        self.nNodePerh)
 
         # If SPH has been specified, make sure the H tensors are round.
         if SPH:
@@ -525,6 +539,120 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     m.append(m0)
                     H.append(H0)
 
+        return x, y, m, H
+
+    #------------------------------------------------------------------------------
+    # Seed positions/masses on a cylindrical grid fading to a lattice at the edges
+    #------------------------------------------------------------------------------
+    def latticeCylindricalDistribution(self, nx, ny, rho,
+                            xmin = (0.0, 0.0),
+                            xmax = (1.0, 1.0),
+                            rmin = None,
+                            rmax = None,
+                            nNodePerh = 2.01):
+        k = 0
+        deltar = rmax - rmin
+        dx = (xmax[0] - xmin[0])/nx
+        dy = (xmax[1] - xmin[1])/ny
+        
+        hx = 1.0/(nNodePerh*dx)
+        hy = 1.0/(nNodePerh*dy)
+        H0 = SymTensor2d(hx, 0.0, 0.0, hy)
+        
+        x = []
+        y = []
+        m = []
+        H = []
+        
+        
+        ml = []
+        Hl = []
+        xl = []
+        yl = []
+        
+        xc = []
+        yc = []
+        mc = []
+        Hc = []
+        
+        for j in xrange(ny):
+            for i in xrange(nx):
+                xx = xmin[0] + (i + 0.5)*dx
+                yy = xmin[1] + (j + 0.5)*dy
+                r = sqrt(xx*xx + yy*yy)
+                m0 = dx*dy*rho(Vector2d(xx, yy))
+                if (r>=rmin):
+                    xl.append(xx)
+                    yl.append(yy)
+                    ml.append(m0)
+                    Hl.append(H0)
+                    k = k + 1
+                if (r>rmax):
+                    x.append(xx)
+                    y.append(yy)
+                    m.append(m0)
+                    H.append(H0)
+    
+        # Start at the outermost radius, and work our way inward.
+        theta = 2*3.14159
+        ri = rmax
+        
+        import random
+        random.seed()
+        
+        while ri > 0:
+            
+            # Get the nominal delta r, delta theta, number of nodes, and mass per
+            # node at this radius.
+            rhoi = rho(Vector2d(ri, 0.0))
+            dr = sqrt(m0/rhoi)
+            arclength = theta*ri
+            arcmass = arclength*dr*rhoi
+            nTheta = max(1, int(arcmass/m0))
+            dTheta = theta/nTheta
+            mi = arcmass/nTheta
+            hi = nNodePerh*0.5*(dr + ri*dTheta)
+            Hi = SymTensor2d(1.0/hi, 0.0,
+                             0.0, 1.0/hi)
+
+            # Now assign the nodes for this radius.
+            for i in xrange(nTheta):
+                thetai = (i + 0.5)*dTheta
+                xc.append(ri*cos(thetai))
+                yc.append(ri*sin(thetai))
+                mc.append(mi)
+                Hc.append(Hi)
+                if(ri < rmin):
+                    x.append(ri*cos(thetai))
+                    y.append(ri*sin(thetai))
+                    m.append(mi)
+                    H.append(Hi)
+                elif(ri>=rmin):
+                    eps = random.random()
+                    func = 1.0-((ri-rmin)/deltar)**2
+                    if (eps <= func):
+                        x.append(ri*cos(thetai))
+                        y.append(ri*sin(thetai))
+                        m.append(mi)
+                        H.append(Hi)
+                    else:
+                        minddr = nx
+                        mink = 2*k
+                        for j in xrange(k):
+                            ddr = sqrt((xl[j]-ri*cos(thetai))**2+(yl[j]-ri*sin(thetai))**2)
+                            if (ddr < minddr):
+                                minddr = ddr
+                                mink = j
+                        if(minddr > dx*0.1): # make sure we don't put two particles on the same location
+                            x.append(xl[mink])
+                            y.append(yl[mink])
+                            m.append(ml[mink])
+                            H.append(Hl[mink])
+        
+     
+            # Decrement to the next radial bin inward.
+            ri = max(0.0, ri - dr)
+    
         return x, y, m, H
 
     #---------------------------------------------------------------------------
