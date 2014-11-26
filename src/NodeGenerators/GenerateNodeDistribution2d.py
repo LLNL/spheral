@@ -637,7 +637,10 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     #eps = random.random()
                     #func = ((ri-rmin)/deltar)**2
                     func = 1-ri/(rmin-rmax) - rmax/(rmax-rmin)
-                    
+                    if(func>1.0):
+                        func = 1.0
+                    if(func<0.0):
+                        func = 0.0
                     #if (eps <= func):
                     #x.append(ri*cos(thetai))
                     #y.append(ri*sin(thetai))
