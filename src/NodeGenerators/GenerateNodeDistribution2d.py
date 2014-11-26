@@ -551,6 +551,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                             rmax = None,
                             nNodePerh = 2.01):
         k = 0
+        np = 0
         deltar = rmax - rmin
         dx = (xmax[0] - xmin[0])/nx
         dy = (xmax[1] - xmin[1])/ny
@@ -581,24 +582,25 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                 yy = xmin[1] + (j + 0.5)*dy
                 r = sqrt(xx*xx + yy*yy)
                 m0 = dx*dy*rho(Vector2d(xx, yy))
-                if (r>=rmin):
+                if (r>=rmin*0.8):
                     xl.append(xx)
                     yl.append(yy)
                     ml.append(m0)
                     Hl.append(H0)
                     k = k + 1
-                if (r>rmax):
+                if (r>=rmax):
                     x.append(xx)
                     y.append(yy)
                     m.append(m0)
                     H.append(H0)
+                    np = np + 1
     
         # Start at the outermost radius, and work our way inward.
         theta = 2*3.14159
-        ri = rmax
+        ri = rmax+2.0*nNodePerh/nx
         
-        import random
-        random.seed()
+        #import random
+        #random.seed()
         
         while ri > 0:
             
@@ -622,32 +624,46 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                 yc.append(ri*sin(thetai))
                 mc.append(mi)
                 Hc.append(Hi)
+                xi = ri*cos(thetai)
+                yi = ri*sin(thetai)
+                
                 if(ri < rmin):
-                    x.append(ri*cos(thetai))
-                    y.append(ri*sin(thetai))
+                    x.append(xi)
+                    y.append(yi)
                     m.append(mi)
                     H.append(Hi)
+                    np = np + 1
                 elif(ri>=rmin):
-                    eps = random.random()
-                    func = 1.0-((ri-rmin)/deltar)**2
-                    if (eps <= func):
-                        x.append(ri*cos(thetai))
-                        y.append(ri*sin(thetai))
-                        m.append(mi)
-                        H.append(Hi)
-                    else:
-                        minddr = nx
-                        mink = 2*k
-                        for j in xrange(k):
-                            ddr = sqrt((xl[j]-ri*cos(thetai))**2+(yl[j]-ri*sin(thetai))**2)
-                            if (ddr < minddr):
-                                minddr = ddr
-                                mink = j
-                        if(minddr > dx*0.1): # make sure we don't put two particles on the same location
-                            x.append(xl[mink])
-                            y.append(yl[mink])
-                            m.append(ml[mink])
-                            H.append(Hl[mink])
+                    #eps = random.random()
+                    #func = ((ri-rmin)/deltar)**2
+                    func = 1-ri/(rmin-rmax) - rmax/(rmax-rmin)
+                    
+                    #if (eps <= func):
+                    #x.append(ri*cos(thetai))
+                    #y.append(ri*sin(thetai))
+                    #m.append(mi)
+                    #H.append(Hi)
+                    #else:
+                    minddr = nx
+                    mink = 2*k
+                    for j in xrange(k):
+                        ddr = sqrt((xl[j]-xi)**2+(yl[j]-yi)**2)
+                        if (ddr < minddr):
+                            minddr = ddr
+                            mink = j
+                    xi = xi+(xl[mink]-xi)*func
+                    yi = yi+(yl[mink]-yi)*func
+                    
+                    minddr = nx
+                    for j in xrange(np):
+                        ddr = sqrt((x[j]-xi)**2 + (y[j]-yi)**2)
+                        if (ddr < minddr):
+                            minddr = ddr
+                    if(minddr > (1.0/hx)*0.5):
+                        x.append(xi+(xl[mink]-xi)*func)
+                        y.append(yi+(yl[mink]-yi)*func)
+                        m.append(ml[mink])
+                        H.append(Hl[mink])
         
      
             # Decrement to the next radial bin inward.
