@@ -201,9 +201,11 @@ if restoreCycle is None:
                                            distributionType = seed,
                                            xmin = (x0, y0),
                                            xmax = (x1, y1),
-                                           rmin = 0.0,
+                                           #rmin = 0.0,
                                            theta = 2.0*pi,
-                                           rmax = sqrt(2.0)*(x1 - x0),
+                                           #rmax = sqrt(2.0)*(x1 - x0),
+                                           rmax = x1-2.0*nPerh/nx1,
+                                           rmin = x1-8.0*nPerh/nx1,
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 
