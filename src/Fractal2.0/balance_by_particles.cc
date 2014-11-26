@@ -54,6 +54,8 @@ namespace FractalSpace
     double alength=real_length;
     vector <double> numbersz(real_length,0.0);
     vector <double> pos(3);
+    bool OKA=true;
+    bool OKB=true;
     for(int ni=0;ni < how_many_particles;++ni)
       {
 	PF->particle_list[ni]->get_pos(pos);
@@ -62,8 +64,17 @@ namespace FractalSpace
 	   pos[2] < 0.0 || pos[2] >= 1.0)
 	  continue;
 	int nz=pos[2]*alength;
-	assert(nz >= 0);
-	assert(nz < real_length);
+	if(nz < 0 || nz >= real_length)
+	  {
+	    fprintf(PFFM,"ERROR in balanceA %13.5E %13.5E %13.5E %d %d %d %d \n",pos[0],pos[1],pos[2],alength,ni,nz,real_length);
+	    cout << "ERROR in balanceA %13.5E %13.5E %13.5E %d %d %d %d "<< FractalRank << " " << pos[0]<< " " << pos[1]<< " " << pos[2]<< " " << alength<< " " << ni<< " " << nz<< " " << real_length << endl;
+	    if(nz < 0)
+	      OKA=false;;
+	    if(nz >= real_length)
+	      OKB=false;
+	    nz=max(nz,0);
+	    nz=min(nz,real_length-1);
+	  }
 	numbersz[nz]+=scalepart;
       }
 
@@ -80,6 +91,8 @@ namespace FractalSpace
     vector < vector < vector <double> > > numbersx(FractalNodes2);
     const int ROOTZ=FractalNodes/2;
     PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersz,real_length,ROOTZ);
+    assert(OKA);
+    assert(OKB);
     if(FractalRank == ROOTZ)
       {
 	double minimumz=alength*alength*scalepoint;
