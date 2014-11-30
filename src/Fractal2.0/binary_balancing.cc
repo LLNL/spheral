@@ -7,18 +7,24 @@ namespace FractalSpace
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers)
   {
     int too_few=3;
+    double VOLMAX=512.0;
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     static int COUNTS=0;
     srand(5700+rank);
     double ANodes=Nodes;
+    double Alength=length;
     double sum_total=std::accumulate(numbers.begin(),numbers.end(),0.0);
     double aver=sum_total/length;
-    minimum=max(aver/1.0e5,minimum);
     vector <double>snumbers(length+1);
+    minimum=sum_total/Alength/(pow(VOLMAX,1.0/3.0)-1.0)+1.0e-10;
     snumbers[0]=0.0;
     for(int L=1;L<=length;L++)
-      snumbers[L]=snumbers[L-1]+numbers[L-1]+minimum;
+      {
+	snumbers[L]=snumbers[L-1]+numbers[L-1]+minimum;
+	//	cout << " RANK" << rank << " " << L << " " << numbers[L-1] << " " << snumbers[L] << " " << minimum <<
+	//	" " << sum_total << "\n";
+      }
     lowers[0]=0;
     sum_total=snumbers[length];
     snumbers.resize(length);
@@ -28,7 +34,7 @@ namespace FractalSpace
 	double target=sum_total*targets[N];
 	lowers[N]=std::lower_bound(snumbers.begin(),snumbers.end(),target)-snumbers.begin();
 	uppers[N-1]=lowers[N];
-	//	cout << " SEARCH " << rank << " " << Nodes << " " << N << " " << target << " " << sum_total << " " << lowers[N] << "\n";
+	//	cout << " SEARCH" << rank << " " << Nodes << " " << N << " " << target << " " << sum_total << " " << lowers[N] << "\n";
       }
     uppers[Nodes-1]=length-1;
     bool spreading=false;
