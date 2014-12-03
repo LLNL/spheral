@@ -51,13 +51,11 @@ WendlandC6Kernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
+
     double eta2 = etaMagnitude*etaMagnitude;
     return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,8)*
                                              (1.0+8.0*etaMagnitude+25.0*eta2+32.0*etaMagnitude*eta2));
-  } else {
-    return 0.0;
-  }
+
 }
 
 //------------------------------------------------------------------------------
@@ -70,13 +68,11 @@ WendlandC6Kernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
+
     double eta2 = etaMagnitude*etaMagnitude;
     return  this->volumeNormalization()*Hdet*(22.0*pow(etaMagnitude-1.0,7)*
                                               etaMagnitude*(16.0*eta2+7.0*etaMagnitude+1.0));
-  } else {
-    return 0.0;
-  }
+
 }
 
 //------------------------------------------------------------------------------
@@ -89,13 +85,11 @@ WendlandC6Kernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const 
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 1.0) {
+
     const double eta2 = etaMagnitude*etaMagnitude;
     return this->volumeNormalization()*Hdet*(22.0*pow(etaMagnitude-1.0,6)*
                                                (160.0*eta2*etaMagnitude+15.0*eta2-6.0*etaMagnitude-1.0));
-  } else {
-    return 0.0;
-  }
+
 }
 
 }

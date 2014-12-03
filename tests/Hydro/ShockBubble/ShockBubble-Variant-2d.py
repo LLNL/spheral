@@ -363,23 +363,13 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             vizBaseName = vizName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
 output("control")
 
-# Smooth the initial conditions.
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
-else:
-    control.iterateIdealH(hydro)
-    control.smoothState(smoothIters)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-    control.dropRestartFile()
-    control.dropViz()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
