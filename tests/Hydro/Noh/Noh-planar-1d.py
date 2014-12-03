@@ -123,6 +123,7 @@ commandLine(KernelConstructor = BSplineKernel,
             tol = 1.0e-5,
 
             graphics = "gnu",
+            serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
 restartDir = os.path.join(dataDir, "restarts")
@@ -554,4 +555,16 @@ if checkError:
                 failure = True
         if failure:
             raise ValueError, "Error bounds violated."
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+
+    for j in xrange(nodes1.numInternalNodes):
+        serialData.append([nodes1.positions()[j],3.0/(nodes1.Hfield()[j].Trace()),nodes1.mass()[j],nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j]])
+    f = open(dataDir + "/serialDump.ascii",'w')
+    for i in xrange(len(serialData)):
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],0.0,0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+    f.close()
+
 
