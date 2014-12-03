@@ -131,6 +131,13 @@ restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 dx = (x1 - x0)/nx1
 
 #-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
+
+
+#-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 import os, sys

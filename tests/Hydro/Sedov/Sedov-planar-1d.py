@@ -28,6 +28,12 @@ commandLine(nx1 = 101,
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
+            
+            CSPH = False,
+            Qconstructor = MonaghanGingoldViscosity,
+            momentumConserving = True, # For CSPH
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -164,7 +170,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct a standard Monaghan-Gingold artificial viscosity.
 #-------------------------------------------------------------------------------
-qMG = MonaghanGingoldViscosity(Cl, Cq)
+qMG = Qconstructor(Cl, Cq)
 qMG.epsilon2 = epsilon2
 output("qMG")
 output("qMG.Cl")
@@ -174,12 +180,23 @@ output("qMG.epsilon2")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, qMG,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = sumForMassDensity,
-                         HUpdate = HEvolution)
+if CSPH:
+    hydro = CSPHHydro(WT, WTPi, qMG,
+                      filter = filter,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
+else:
+    hydro = HydroConstructor(WT, WTPi, qMG,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = sumForMassDensity,
+                             XSPH = XSPH,
+                             HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -225,7 +242,7 @@ output("control")
 if restoreCycle:
     control.loadRestartFile(restoreCycle)
 else:
-    control.iterateIdealH(hydro)
+    #control.iterateIdealH(hydro)
 ##     db.updateFluidMassDensity()
 
 ##     # This bit of craziness is needed to try and get the intial mass density
