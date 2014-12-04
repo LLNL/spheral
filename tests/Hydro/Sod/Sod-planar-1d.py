@@ -81,6 +81,7 @@ commandLine(nx1 = 400,
             outputFile = "None",
 
             graphics = "gnu",
+            serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
 dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
@@ -88,6 +89,12 @@ restartDir = dataDir + "/restarts"
 restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
 
 assert numNodeLists in (1, 2)
+
+#-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -470,6 +477,16 @@ if graphics in ("gnu", "matplot"):
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/sod-planar-1d-CSPH-" + str(CSPH) + ".ascii",'w')
+    f.write("i x m rho u rhoans uans\n")
+    for j in xrange(nodes1.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],rhoans[j],uans[j]))
+    f.close()
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
