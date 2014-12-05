@@ -304,24 +304,20 @@ xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 # Plot the specific entropy.
-if mpi.rank == 0:
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot = Gnuplot.Gnuplot()
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-else:
-    Aplot = fakeGnuplot()
-
-
+AsimData = Gnuplot.Data(xprof, A,
+                        with_ = "points",
+                        title = "Simulation",
+                        inline = True)
+AansData = Gnuplot.Data(xprof, Aans,
+                        with_ = "lines",
+                        title = "Solution",
+                        inline = True)
+    
+Aplot = generateNewGnuPlot()
+Aplot.plot(AsimData)
+Aplot.replot(AansData)
+Aplot.title("Specific entropy")
+Aplot.refresh()
 
 if serialDump:
     serialData = []
