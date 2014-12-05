@@ -133,8 +133,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar rj = gradj*safeInv(gradi);
   const Scalar ri = safeInv(rj);
-  const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
-  const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
+  // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
+  // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
   // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
   // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
   // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
@@ -143,14 +143,14 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar phij = max(0.0, max(min(1.5*rj, 1.0), min(rj, 1.5)));  // Sweby
   // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
   // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
-  // const Scalar phii = max(0.0, min(1.0, ri)); // minmod
-  // const Scalar phij = max(0.0, min(1.0, rj)); // minmod
+  const Scalar phii = max(0.0, min(1.0, ri)); // minmod
+  const Scalar phij = max(0.0, min(1.0, rj)); // minmod
   // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
   // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
   // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
   // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
-  const Vector vi1 = vi - min(phii, phij)*DvDxi*xij;
-  const Vector vj1 = vj + min(phii, phij)*DvDxj*xij;
+  const Vector vi1 = vi - phii*DvDxi*xij;
+  const Vector vj1 = vj + phij*DvDxj*xij;
   vij = vi1 - vj1;
 
   // Compute mu.
