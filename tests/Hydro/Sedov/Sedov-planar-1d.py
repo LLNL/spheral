@@ -34,6 +34,7 @@ commandLine(nx1 = 101,
             momentumConserving = True, # For CSPH
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
+            filter = 0.0,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -60,7 +61,7 @@ commandLine(nx1 = 101,
             restartStep = 1000,
 
             dataRoot = "dump-planar",
-
+            serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
 dataDir = os.path.join(dataRoot,
@@ -73,6 +74,12 @@ restartBaseName = os.path.join(dataDir, "Sedov-planar-1d-%i" % nx1)
 
 dx = (x1 - x0)/nx1
 H1 = SymTensor(1.0/(nPerh*dx))
+
+#-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -190,7 +197,7 @@ if CSPH:
                       HUpdate = HUpdate,
                       momentumConserving = momentumConserving)
 else:
-    hydro = HydroConstructor(WT, WTPi, qMG,
+    hydro = SPHHydro(WT, WTPi, qMG,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -202,12 +209,12 @@ output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
+#output("hydro.gradhCorrection")
 output("hydro.XSPH")
-output("hydro.sumForMassDensity")
+#output("hydro.sumForMassDensity")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
+#output("hydro.epsilonTensile")
+#output("hydro.nTensile")
 
 #-------------------------------------------------------------------------------
 # Construct a predictor corrector integrator, and add the one physics package.
@@ -313,3 +320,15 @@ if mpi.rank == 0:
     Aplot.refresh()
 else:
     Aplot = fakeGnuplot()
+
+
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/sod-planar-1d-CSPH-" + str(CSPH) + ".ascii",'w')
+    f.write("i x m rho u rhoans uans\n")
+    for j in xrange(nodes1.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],rhoans[j],uans[j]))
+    f.close()
