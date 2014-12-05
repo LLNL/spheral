@@ -123,7 +123,7 @@ commandLine(KernelConstructor = BSplineKernel,
             tol = 1.0e-5,
 
             graphics = "gnu",
-            serialDump = False, #whether to dump a serial ascii file at the end for viz
+            serialDump = False #whether to dump a serial ascii file at the end for viz
             )
 
 restartDir = os.path.join(dataDir, "restarts")
@@ -522,9 +522,11 @@ if serialDump:
     i,j = 0,0
     
     f = open(dataDir + "/noh-planar-1d.ascii",'w')
-    f.write("i x m rho u rhoans uans\n")
+    f.write("i x m rho u v rhoans uans vans\n")
     for j in xrange(nodes1.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],rhoans[j],uans[j]))
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],
+                                                               nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],
+                                                               nodes1.velocity()[j][0],rhoans[j],uans[j],vans[j]))
     f.close()
 
 #------------------------------------------------------------------------------
