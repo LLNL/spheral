@@ -8,15 +8,16 @@ namespace FractalSpace
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FF=mem.p_file->DUMPS;
-    //    ofstream& FF=mem.p_file->FileFractal;
     int zoom=Misc::pow(2,frac.get_level_max());
     int length_1=frac.get_grid_length();
     int length_S=length_1;
+    int length_S2=0;
     bool period=frac.get_periodic();
     if(!period)
       {
 	length_1++;
 	length_S*=2;
+	length_S2=length_S+2;
       }
 
     vector <int> pos_point(3);
@@ -58,19 +59,34 @@ namespace FractalSpace
     int integers=1;
     int doubles=1;
     mem.p_file->note(true," dens to slices a ");
+    //    vector <int>maxSR;
+    //    Max_Things_To_Send_Receive_I(World,counts_out,counts_in,maxSR);
     mem.p_mess->Send_Data_Some_How(0,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     mem.p_file->note(true," dens to slices c ");
     dataI_out.clear();
     dataR_out.clear();      
+    mem.p_mess->create_potRS();
+    mem.p_mess->zeroRS(-frac.get_density_0());
     int counterIR=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    mem.p_mess->potR[dataI_in[counterIR]]=dataR_in[counterIR];
-	    //	    FF << " DS " << counterIR << " " << dataI_in[counterIR] << " " << dataR_in[counterIR] << "\n";
+	    int NN=dataI_in[counterIR];
+	    if(!period)
+	      {
+		int nz=NN % length_S2;
+		int ny=(NN/length_S2) % length_S;
+		int nx=NN/(length_S2*length_S);
+		assert(nx < length_1);
+		assert(ny < length_1);
+		assert(nz < length_1);
+		NN=nz+(ny+nx*length_1)*length_1;
+	      }
+	    mem.p_mess->potRS[NN]=dataR_in[counterIR];
+	    //	    FF << " DS " << counterIR << " " << dataI_in[counterIR] << " " << NN << " " << dataR_in[counterIR] << "\n";
 	    counterIR++;
 	  }
       }

@@ -34,7 +34,6 @@ namespace FractalSpace
     vector <double> variance_force(real_length,0.0);
     vector <double> variance_force_s(real_length,0.0);
     double rand_max=static_cast<double>(RAND_MAX);
-    //    mem.p_mess->create_potRC();
     double pi=4.0*atan(1.0);
     double twopi=2.0*pi;
     double fourpi=4.0*pi;
@@ -92,17 +91,6 @@ namespace FractalSpace
 		    //
 		    mem.p_mess->potC[holy_grail][0]=pot_k*cos(angle);
 		    mem.p_mess->potC[holy_grail][1]=pot_k*sin(angle);
-		    /*
-		    double pot_k=amplitude_raw*step_wave;
-		    int holy_grail=mem.fftw_where(kx,ky,kz,length,length_c);
-		    mem.p_mess->potC[holy_grail][0]=pot_k*distributionG(generator);
-		    mem.p_mess->potC[holy_grail][1]=pot_k*distributionG(generator);
-		    if(nyquist)
-		      {
-			mem.p_mess->potC[holy_grail][0]*=sq2;
-			mem.p_mess->potC[holy_grail][1]=0.0;
-		      }
-		    */
 		  }
 	      }
 	  }
@@ -164,6 +152,10 @@ namespace FractalSpace
 	mem.p_mess->create_potR();
 	mem.p_mess->fftw_complex_to_real();
 	mem.p_mess->free_potC();
+	mem.p_mess->create_potRS();
+	FileFractal << " POTRS " << mem.p_mess->total_memory << " " << length << " " << mem.p_mess->length_x << endl;
+	std::copy(mem.p_mess->potR,mem.p_mess->potR+2*mem.p_mess->total_memory,mem.p_mess->potRS);
+	mem.p_mess->free_potR();
 	Full_Stop(mem,39);
 	if(!lev==0)
 	  for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
@@ -171,7 +163,6 @@ namespace FractalSpace
 	    potential_start(**group_itr);
 
 	slices_to_potf(mem,frac,lev);
-	mem.p_mess->free_potR();
 	for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
 	    group_itr!=mem.all_groups[lev].end();group_itr++)
 	  force_at_point(**group_itr,frac);
