@@ -6,6 +6,7 @@
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/FastMath.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace CSPHSpace {
@@ -40,7 +41,23 @@ centerOfMass(const Dim<1>::FacetedVolume& polyvol,
 Dim<2>::Vector
 centerOfMass(const Dim<2>::FacetedVolume& polyvol,
              const Dim<2>::Vector& gradRhoi) {
-  VERIFY2("Implement me!", false);
+  typedef Dim<2>::Vector Vector;
+  const std::vector<Vector>& verts = polyvol.vertices();
+  const unsigned n = verts.size();
+  Vector result;
+  double msum = 0.0;
+  for (unsigned i = 0; i != n; ++i) {
+    const unsigned j = (i + 1) % n;
+    const Vector rt = (verts[i] + verts[j])/3.0;
+    const Vector l1 = verts[i];
+    const Vector l2 = verts[j];
+    const double area = 0.5*l1.cross(l2).magnitude();
+    const double mt = gradRhoi.dot(rt)*area;
+    msum += mt;
+    result += mt*rt;
+  }
+  result *= safeInv(msum);
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -49,7 +66,9 @@ centerOfMass(const Dim<2>::FacetedVolume& polyvol,
 Dim<3>::Vector
 centerOfMass(const Dim<3>::FacetedVolume& polyvol,
              const Dim<3>::Vector& gradRhoi) {
+  typedef Dim<3>::Vector Vector;
   VERIFY2("Implement me!", false);
+  return Vector::zero;
 }
 
 }

@@ -36,6 +36,7 @@ class ArtificialViscosity:
             exec('''
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
+self.CSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
 self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
@@ -53,6 +54,7 @@ self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id",
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addCSPHMonaghanGingoldViscosityMethods(self.CSPHMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
@@ -172,6 +174,22 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         # Attributes
         x.add_instance_attribute("linearInExpansion", "bool", getter="linearInExpansion", setter="linearInExpansion")
         x.add_instance_attribute("quadraticInExpansion", "bool", getter="quadraticInExpansion", setter="quadraticInExpansion")
+
+        return
+    
+    #---------------------------------------------------------------------------
+    # Add methods to the CSPHMonaghanGingoldViscosity.
+    #---------------------------------------------------------------------------
+    def addCSPHMonaghanGingoldViscosityMethods(self, x, ndim):
+
+        # Constructors.
+        x.add_constructor([param("double", "Clinear", default_value="1.0"),
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("bool", "linearInExpansion", default_value="false"),
+                           param("bool", "quadraticInExpansion", default_value="false")])
+
+        # Add the local methods.
+        self.addArtificialViscosityVirtualMethods(x, ndim, False)
 
         return
     

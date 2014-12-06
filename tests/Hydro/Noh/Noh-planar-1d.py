@@ -63,6 +63,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
+            momentumConserving = True, # For CSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -122,12 +123,20 @@ commandLine(KernelConstructor = BSplineKernel,
             tol = 1.0e-5,
 
             graphics = "gnu",
+            serialDump = False #whether to dump a serial ascii file at the end for viz
             )
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
 dx = (x1 - x0)/nx1
+
+#-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
+
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -231,7 +240,8 @@ elif CSPH:
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,
@@ -506,43 +516,61 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/noh-planar-1d.ascii",'w')
+    f.write("i x m rho u v rhoans uans vans\n")
+    for j in xrange(nodes1.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],
+                                                               nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],
+                                                               nodes1.velocity()[j][0],rhoans[j],uans[j],vans[j]))
+    f.close()
+
 #------------------------------------------------------------------------------
 # Compute the error.
 #------------------------------------------------------------------------------
-if checkError:
-    if mpi.rank == 0:
-        xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-        import Pnorm
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-        failure = False
-        for (name, data, ans,
-             L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-                                                 ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-                                                 ("Velocity", vprof, vans, L1v, L2v, Linfv),
-                                                 ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-                                                 ("h       ", hprof, hans, L1h, L2h, Linfh)]:
-            assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
-            Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, rmin, rmax)
-            L2 = Pn.gridpnorm(2, rmin, rmax)
-            Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-            if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L1,
-                                                                                      L1expect)
-                failure = True
-            if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L2,
-                                                                                      L2expect)
-                failure = True
-            if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                        Linf,
-                                                                                        Linfexpect)
-                failure = True
+
+if mpi.rank == 0:
+    xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+    import Pnorm
+    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    failure = False
+    for (name, data, ans,
+         L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
+                                             ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
+                                             ("Velocity", vprof, vans, L1v, L2v, Linfv),
+                                             ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
+                                             ("h       ", hprof, hans, L1h, L2h, Linfh)]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in xrange(len(data))]
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+
+    if checkError:
+        if not fuzzyEqual(L1, L1expect, tol):
+            print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                  L1,
+                                                                                  L1expect)
+            failure = True
+        if not fuzzyEqual(L2, L2expect, tol):
+            print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                  L2,
+                                                                                  L2expect)
+            failure = True
+        if not fuzzyEqual(Linf, Linfexpect, tol):
+            print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                    Linf,
+                                                                                    Linfexpect)
+            failure = True
         if failure:
             raise ValueError, "Error bounds violated."
+
+
+
 

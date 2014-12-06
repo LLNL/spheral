@@ -1,18 +1,19 @@
 //---------------------------------Spheral++----------------------------------//
-// A specialized form of the TensorMonaghanGingoldViscosity for use with CSPH.
+// Modified form of the standard SPH pair-wise viscosity due to Monaghan &
+// Gingold.  This form is specialized for use with CSPH.
 //
-// Created by J. Michael Owen, Wed Nov  5 23:51:31 PST 2014
+// Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
-#ifndef TensorCSPHViscosity_HH
-#define TensorCSPHViscosity_HH
+#ifndef CSPHMonaghanGingoldViscosity_HH
+#define CSPHMonaghanGingoldViscosity_HH
 
-#include "TensorMonaghanGingoldViscosity.hh"
+#include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
 namespace ArtificialViscositySpace {
 
 template<typename Dimension>
-class TensorCSPHViscosity: public TensorMonaghanGingoldViscosity<Dimension> {
+class CSPHMonaghanGingoldViscosity: public MonaghanGingoldViscosity<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -22,12 +23,26 @@ public:
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  TensorCSPHViscosity(Scalar Clinear, Scalar Cquadratic);
+  CSPHMonaghanGingoldViscosity(const Scalar Clinear,
+                               const Scalar Cquadratic,
+                               const bool linearInExpansion,
+                               const bool quadraticInExpansion);
 
   // Destructor.
-  ~TensorCSPHViscosity();
+  virtual ~CSPHMonaghanGingoldViscosity();
 
-  // Required method to compute the tensor viscous P/rho^2.
+  // Initialize the artificial viscosity for all FluidNodeLists in the given
+  // DataBase.
+  virtual void initialize(const DataBaseSpace::DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          ConstBoundaryIterator boundaryBegin,
+                          ConstBoundaryIterator boundaryEnd,
+                          const Scalar time,
+                          const Scalar dt,
+                          const KernelSpace::TableKernel<Dimension>& W);
+
+  // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
                                          const unsigned nodeListj, const unsigned j,
                                          const Vector& xi,
@@ -44,24 +59,15 @@ public:
                                          const SymTensor& Hj) const;
 
   // Restart methods.
-  virtual std::string label() const { return "TensorCSPHViscosity"; }
-
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-  virtual void calculateSigmaAndGradDivV(const DataBaseSpace::DataBase<Dimension>& dataBase,
-                                         const State<Dimension>& state,
-                                         const StateDerivatives<Dimension>& derivs,
-                                         const KernelSpace::TableKernel<Dimension>& W,
-                                         ConstBoundaryIterator boundaryBegin,
-                                         ConstBoundaryIterator boundaryEnd);
+  virtual std::string label() const { return "CSPHMonaghanGingoldViscosity"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  TensorCSPHViscosity();
-  TensorCSPHViscosity(const TensorCSPHViscosity&);
-  TensorCSPHViscosity& operator=(const TensorCSPHViscosity&) const;
-
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
+
+  CSPHMonaghanGingoldViscosity();
+  CSPHMonaghanGingoldViscosity(const CSPHMonaghanGingoldViscosity&);
+  CSPHMonaghanGingoldViscosity& operator=(const CSPHMonaghanGingoldViscosity&) const;
 };
 
 }
@@ -69,10 +75,10 @@ private:
 
 #else
 
-// Forward declaration.
 namespace Spheral {
   namespace ArtificialViscositySpace {
-    template<typename Dimension> class TensorCSPHViscosity;
+    // Forward declaration.
+    template<typename Dimension> class CSPHMonaghanGingoldViscosity;
   }
 }
 
