@@ -6,10 +6,10 @@ namespace FractalSpace
 {
   void tree_start_mini(Group& group, Fractal& fractal,Fractal_Memory& mem,Misc& misc)
   {
-    bool dumpit=mem.p_mess->FractalRank == mem.p_mess->FractalNodes-1;
-    dumpit=false;
-    int minimum=fractal.get_minimum_number();
-    minimum=1;
+    //    bool dumpit=mem.p_mess->FractalRank == mem.p_mess->FractalNodes-1;
+    //    dumpit=false;
+    //    int minimum=fractal.get_minimum_number();
+    //    minimum=1;
     ofstream& FileFractal=fractal.p_file->DUMPS;
     ofstream* p_FilePoint=&fractal.p_file->DUMPS;
     double a_grid_length=(double)fractal.get_grid_length();
@@ -18,7 +18,6 @@ namespace FractalSpace
     double t0,t1,t2,t3;
     t0=fractal.p_mess->Clock();
     FileFractal << "enter treestart" << "\n";
-    //    bool period=fractal.get_periodic();
     int point_counter=0;
     mem.total_points_generated=0;
     mem.total_points_used=0;
@@ -157,6 +156,7 @@ namespace FractalSpace
 	  }
       }
     int total_points=0;
+    vector <int>total_pointsZ(PBox[5]+1,0);
     for(int nz=PBox[4];nz <= PBox[5];nz++)
       {
 	for(int ny=PBox[2];ny <= PBox[3];ny++)
@@ -164,45 +164,45 @@ namespace FractalSpace
 	    for(int nx=PBox[0];nx <= PBox[1];nx++)
 	      {
 		if(it_is_a_point[fractal.where_1(nx,ny,nz)])
-		  total_points++;
+		  {
+		    total_pointsZ[nz]++;
+		    total_points++;
+		  }
 	      }
 	  }
       }
     //
     FileFractal << " To generate point OK in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
-    try
-      {    
-	new_points=new Point[total_points];
-      }
-    catch(bad_alloc& ba)
-      {
-	cerr << " bad Point allocation in tree start mini " << mem.p_mess->FractalRank;
-	cerr << " " << total_points << " ";
-	cerr << ba.what() << "\n";
-	mem.p_file->FlushAll();
-	cerr << " generated points bad in treestart mini " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
-	int FR=mem.p_mess->FractalRank;
-	cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
-	cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
-	for(int FR=0;FR < mem.p_mess->FractalNodes;FR++)
-	  {
-	    cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
-	    cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
-	  }
-	cerr.flush();
-	assert(0);
-      }
-    mem.total_points_generated=total_points;
     group.set_group_number(0);
-    group.list_new_points.push_back(new_points);
-    FileFractal << " generated points in treestart " << mem.p_mess->FractalRank << " " << total_points << " " << volume << " " << fractal.get_number_particles() << "\n";
-    //
-    //
     vector <int>grid(3);
     bool inside,edge,buff,pass;
-    int new_counter=0;
+    int countit=0;
     for(int gridz=PBox[4];gridz <= PBox[5];gridz++)
       {
+	int new_counter=0;
+	try
+	  {    
+	    countit+=total_pointsZ[gridz];
+	    new_points=new Point[total_pointsZ[gridz]];
+	    group.list_new_points.push_back(new_points);
+	    mem.total_points_generated=countit;
+	  }
+	catch(bad_alloc& ba)
+	  {
+	    cerr << " bad Point allocation in tree start mini " << mem.p_mess->FractalRank << " " << total_points << " " << gridz << " " << total_pointsZ[gridz] << " " << ba.what() << "\n";
+	    cerr << " generated points bad in treestart mini " << mem.p_mess->FractalRank << " " << countit << " " << volume << " " << fractal.get_number_particles() << "\n";
+	    cerr << " gen bad " << PBox[4] << " " << gridz << " " << PBox[5] << "\n";
+	    int FR=mem.p_mess->FractalRank;
+	    cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+	    cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
+	    for(int FR=0;FR < mem.p_mess->FractalNodes;FR++)
+	      {
+		cerr << " crash res " << FR << " " << mem.PBoxes[FR][0] << " " << mem.PBoxes[FR][1] << " " << mem.PBoxes[FR][2] << " ";
+		cerr << mem.PBoxes[FR][3] << " " << mem.PBoxes[FR][4] << " " << mem.PBoxes[FR][5] << "\n";
+	      }
+	    cerr.flush();
+	    assert(0);
+	  }
 	grid[2]=gridz;
 	for(int gridy=PBox[2];gridy <= PBox[3];gridy++)
 	  {
