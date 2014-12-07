@@ -45,8 +45,12 @@ commandLine(air2He1 = 2.0,            # Ratio of zone lengths in Air/He
             HeSeed = "constantDTheta",
 
             # Hydro parameters.
-            nPerh = 2.01,
-            HydroConstructor = SPHHydro,
+            nPerh = 1.51,
+            SVPH = False,
+            CSPH = False,
+            ASPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
+            filter = 0.0,   # CSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             Cl = 1.0, 
@@ -65,7 +69,7 @@ commandLine(air2He1 = 2.0,            # Ratio of zone lengths in Air/He
             hourglassOrder = 0,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
-            densityUpdate = IntegrateDensity,
+            densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
 
@@ -82,11 +86,12 @@ commandLine(air2He1 = 2.0,            # Ratio of zone lengths in Air/He
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 50,
@@ -126,6 +131,24 @@ dyAir2 = (y1 - y0)/nyAir2
 # the expected smooth surface.
 nintHe = 1
 r1He = rHe + nintHe*drHe
+
+# Decide on our hydro algorithm.
+if SVPH:
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
+elif CSPH:
+    if ASPH:
+        HydroConstructor = ACSPHHydro
+    else:
+        HydroConstructor = CSPHHydro
+    Qconstructor = CSPHMonaghanGingoldViscosity
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
                        "nrHe=%i" % nrHe,
@@ -291,28 +314,49 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if SVPH:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-2.0, -2.0),
+                             xmax = Vector(3.0, 3.0))
+                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif CSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             momentumConserving = True)
+else:
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
+
 output("hydro")
 output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
 
@@ -359,11 +403,18 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            vizMethod = vizMethod,
                             vizBaseName = vizName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
