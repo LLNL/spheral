@@ -2,6 +2,7 @@ from Spheral import *
 from SpheralTestUtilities import *
 import Gnuplot
 import numpy
+from SpheralGnuPlotUtilities import *
 
 ################################################################################
 def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
@@ -9,9 +10,16 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     dx = (xmax - xmin)/(numPnts - 1)
     x = numpy.array(range(numPnts))
     y = numpy.array([0.0]*numPnts)
+    i1,i2,i3 = 0,0,0
     x = dx*x + xmin
     for i in xrange(numPnts):
         y[i] = W(x[i], Hdet)
+        if (i>0):
+            i1 += abs(y[i]+y[i-1])/2.0 * dx
+            i2 += abs(y[i]+y[i-1])/2.0 * dx * x[i]
+            i3 += abs(y[i]+y[i-1])/2.0 * dx * x[i]*x[i]
+    Pi = 3.14159
+    print "{0:3.3f} {1:3.3f} {2:3.3f}".format(i1*2.0,i2*2.0,i3)
     plot('set xrange [%f:%f]' % (xmin, xmax))
     plot.xlabel('r')
     plot.ylabel('W(r)')
@@ -37,6 +45,9 @@ kernelDict = {'spline': [BSplineKernel1d(),
               'w4spline': [W4SplineKernel1d(),
                            W4SplineKernel2d(),
                            W4SplineKernel3d()],
+              'wendlandc6': [WendlandC6Kernel1d(),
+                             WendlandC6Kernel2d(),
+                             WendlandC6Kernel3d()],
 ##              'quartic': [QuarticSplineKernel1d(),
 ##                          QuarticSplineKernel2d(),
 ##                          QuarticSplineKernel3d()],
@@ -96,39 +107,40 @@ titleDict = {'spline':  'B Spline Kernel',
              'spline7': '7th order b spline Kernel',
              'spline9': '9th order b spline Kernel',
              'spline11': '11th order b spline Kernel',
+             'wendlandc6': 'Wendland C6 Kernel',
              }
 
 plots = []
 for kernel in kernels:
     title(titleDict[kernel])
     for i in xrange(6):
-        plots.append(Gnuplot.Gnuplot())
+        plots.append(generateNewGnuPlot())
     for W in kernelDict[kernel]:
         output("W")
-        output("W.volumeNormalization()")
-        output("W.kernelExtent()")
-        plotW(plots[-6], W.kernelValue, 0.0, W.kernelExtent(),
+        output("W.volumeNormalization")
+        output("W.kernelExtent")
+        plotW(plots[-6], W.kernelValue, 0.0, W.kernelExtent,
               title = titleDict[kernel],
               lineTitle = str(W))
-        plotW(plots[-5], W.gradValue, 0.0, W.kernelExtent(),
+        plotW(plots[-5], W.gradValue, 0.0, W.kernelExtent,
               title = titleDict[kernel] + ' Gradient',
               lineTitle = str(W))
-        plotW(plots[-4], W.grad2Value, 0.0, W.kernelExtent(),
+        plotW(plots[-4], W.grad2Value, 0.0, W.kernelExtent,
               title = titleDict[kernel] + ' second derivative',
               lineTitle = str(W))
 
         # Build a tabular version of the kernel
         WT = eval('TableKernel' + str(W).split()[0][-2:] + '(W, numPoints)')
         output("WT")
-        output("WT.volumeNormalization()")
-        output("WT.kernelExtent()")
-        plotW(plots[-3], WT.kernelValue, 0.0, W.kernelExtent(),
+        output("WT.volumeNormalization")
+        output("WT.kernelExtent")
+        plotW(plots[-3], WT.kernelValue, 0.0, W.kernelExtent,
               title='Table ' + titleDict[kernel],
               lineTitle = str(W))
-        plotW(plots[-2], WT.gradValue, 0.0, W.kernelExtent(),
+        plotW(plots[-2], WT.gradValue, 0.0, W.kernelExtent,
               title = 'Table ' + titleDict[kernel] + ' Gradient',
               lineTitle = str(W))
-        plotW(plots[-1], WT.grad2Value, 0.0, W.kernelExtent(),
+        plotW(plots[-1], WT.grad2Value, 0.0, W.kernelExtent,
               title = 'Table ' + titleDict[kernel] + ' second derivative',
               lineTitle = str(W))
 
