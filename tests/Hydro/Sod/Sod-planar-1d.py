@@ -48,6 +48,7 @@ commandLine(nx1 = 400,
             hourglassLimiter = 1,
             filter = 0.00,
             momentumConserving = True, # For CSPH
+            KernelConstructor = BSplineKernel,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -182,6 +183,8 @@ output("q.epsilon2")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
+WT = TableKernel(KernelConstructor(), 1000)
+
 if SVPH:
     hydro = SVPHFacetedHydro(WT, q,
                              cfl = cfl,
