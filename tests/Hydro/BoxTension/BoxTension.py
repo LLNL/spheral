@@ -70,7 +70,7 @@ commandLine(
     Cl = 1.0, 
     Cq = 0.75,
     Qlimiter = False,
-    balsaraCorrection = True,
+    balsaraCorrection = False,
     epsilon2 = 1e-2,
     hmin = 1e-5,
     hmax = 0.5,
