@@ -496,20 +496,21 @@ if serialDump:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
-    outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
-    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-    P = ScalarField("pressure", nodes1)
-    nodes1.pressure(P)
-    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-    if mpi.rank == 0:
-        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
+
+from SpheralGnuPlotUtilities import multiSort
+mof = mortonOrderIndices(db)
+mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+P = ScalarField("pressure", nodes1)
+nodes1.pressure(P)
+Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+if mpi.rank == 0:
+    multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
+    if outputFile != "None":
+        outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
         f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
                                                "rhoans", "Pans", "vans", "hans",
@@ -527,3 +528,26 @@ if outputFile != "None":
                      unpackElementUL(packElementDouble(epsi)),
                      unpackElementUL(packElementDouble(hi))))
         f.close()
+
+    import Pnorm
+    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    failure = False
+    hD = []
+    for (name, data, ans,
+         L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
+                                             ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
+                                             ("Velocity", vprof, vans, L1v, L2v, Linfv),
+                                             ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
+                                             ("h       ", hprof, hans, L1h, L2h, Linfh)]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in xrange(len(data))]
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        hD.append([L1,L2,Linf])
+
+    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+                                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])

@@ -538,6 +538,7 @@ if mpi.rank == 0:
     import Pnorm
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
+    hD = []
     for (name, data, ans,
          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -551,6 +552,11 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        hD.append([L1,L2,Linf])
+                                             
+    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+                                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
     if checkError:
         if not fuzzyEqual(L1, L1expect, tol):
