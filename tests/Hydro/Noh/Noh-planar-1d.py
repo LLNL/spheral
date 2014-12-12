@@ -553,29 +553,30 @@ if mpi.rank == 0:
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
         hD.append([L1,L2,Linf])
+        if checkError:
+            if not fuzzyEqual(L1, L1expect, tol):
+                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect)
+                failure = True
+            if not fuzzyEqual(L2, L2expect, tol):
+                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect)
+                failure = True
+            if not fuzzyEqual(Linf, Linfexpect, tol):
+                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect)
+                failure = True
+            if failure:
+                raise ValueError, "Error bounds violated."
                                              
     print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                                 hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
-    if checkError:
-        if not fuzzyEqual(L1, L1expect, tol):
-            print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                  L1,
-                                                                                  L1expect)
-            failure = True
-        if not fuzzyEqual(L2, L2expect, tol):
-            print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                  L2,
-                                                                                  L2expect)
-            failure = True
-        if not fuzzyEqual(Linf, Linfexpect, tol):
-            print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                    Linf,
-                                                                                    Linfexpect)
-            failure = True
-        if failure:
-            raise ValueError, "Error bounds violated."
+
 
 
 
