@@ -533,12 +533,11 @@ if mpi.rank == 0:
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []
-    for (name, data, ans,
-         L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-                                             ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-                                             ("Velocity", vprof, vans, L1v, L2v, Linfv),
-                                             ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-                                             ("h       ", hprof, hans, L1h, L2h, Linfh)]:
+    for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
+                                             ("Pressure", Pprof, Pans),
+                                             ("Velocity", vprof, vans),
+                                             ("Thermal E", epsprof, epsans),
+                                             ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)
