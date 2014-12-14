@@ -15,7 +15,7 @@ namespace FractalSpace
     double ANodes=Nodes;
     double Alength=length;
     double sum_total=std::accumulate(numbers.begin(),numbers.end(),0.0);
-    double aver=sum_total/length;
+    //    double aver=sum_total/length;
     vector <double>snumbers(length+1);
     minimum=sum_total/Alength/(pow(VOLMAX,1.0/3.0)-1.0)+1.0e-10;
     snumbers[0]=0.0;
