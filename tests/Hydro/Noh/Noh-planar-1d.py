@@ -55,7 +55,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hmin = 0.0001, 
             hmax = 0.1,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.3,
             nTensile = 4.0,
             hourglass = None,
@@ -66,7 +66,7 @@ commandLine(KernelConstructor = BSplineKernel,
             momentumConserving = True, # For CSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 0.6,
+            goalTime = 0.3,
             steps = None,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -464,7 +464,7 @@ if checkEnergy and abs(Eerror) > 1e-13:
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
 #-------------------------------------------------------------------------------
-rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
+rmin, rmax = 0.05, 0.15   # Throw away anything with r < rwall to avoid wall heating.
 rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
 P = ScalarField("pressure", nodes1)
 nodes1.pressure(P)

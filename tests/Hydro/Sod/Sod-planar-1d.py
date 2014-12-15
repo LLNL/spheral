@@ -507,6 +507,9 @@ Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
 vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
 epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
 hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+
+rmin = x0
+rmax = x2
 if mpi.rank == 0:
     multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
     if outputFile != "None":
@@ -536,7 +539,7 @@ if mpi.rank == 0:
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                              ("Pressure", Pprof, Pans),
                                              ("Velocity", vprof, vans),
-                                             ("Thermal E", epsprof, epsans),
+                                             ("Thermal E", epsprof, uans),
                                              ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
@@ -547,6 +550,6 @@ if mpi.rank == 0:
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
         hD.append([L1,L2,Linf])
 
-    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                                 hD[0][2],hD[1][2],hD[2][2],hD[3][2])
