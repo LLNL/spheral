@@ -1435,7 +1435,7 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
 		$(CP) -f $(TETGENDIR)/tetgen.h $(POLYTOPEDIR)/src; \
 		$(CP) -f $(TETGENDIR)/tetgen.cxx $(POLYTOPEDIR)/src; \
 	fi
-	$(SHELL) -ec "cd $(POLYTOPEDIR); \
+	env PATH=$(SPHERALDIR)/bin:$$PATH $(SHELL) -ec "cd $(POLYTOPEDIR); \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) config; \
 	$(MAKE) MAKEFLAGS= $(POLYTOPEFLAGS) install"
 	@if ! test -e $(SPHERALDIR)/lib/libpolytope.a -a \
