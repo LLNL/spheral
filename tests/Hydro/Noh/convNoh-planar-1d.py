@@ -19,14 +19,14 @@ title("1-D integrated hydro test -- planar Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
-            nxlist = [25,50,100,200,400,800,1600,3200],
+            nxlist = [25,50,100,200,400,800,1600],
             #nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
-            nPerh = 1.25,
+            nPerh = 2.0,
             NeighborType = NestedGridNeighbor,
 
             vr0 = -1.0, 
@@ -66,7 +66,7 @@ commandLine(KernelConstructor = BSplineKernel,
             momentumConserving = True, # For CSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 0.3,
+            goalTime = 0.6,
             steps = None,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -409,7 +409,7 @@ for nx1 in nxlist:
     #-------------------------------------------------------------------------------
     # Measure the difference between the simulation and analytic answer.
     #-------------------------------------------------------------------------------
-    rmin, rmax = 0.05, 0.15   # Throw away anything with r < rwall to avoid wall heating.
+    rmin, rmax = 0.05, 0.8   # Throw away anything with r < rwall to avoid wall heating.
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
