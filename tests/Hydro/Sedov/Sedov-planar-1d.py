@@ -28,6 +28,13 @@ commandLine(nx1 = 101,
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
+            
+            CSPH = False,
+            Qconstructor = MonaghanGingoldViscosity,
+            momentumConserving = True, # For CSPH
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
+            filter = 0.0,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -54,7 +61,7 @@ commandLine(nx1 = 101,
             restartStep = 1000,
 
             dataRoot = "dump-planar",
-
+            serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
 dataDir = os.path.join(dataRoot,
@@ -67,6 +74,12 @@ restartBaseName = os.path.join(dataDir, "Sedov-planar-1d-%i" % nx1)
 
 dx = (x1 - x0)/nx1
 H1 = SymTensor(1.0/(nPerh*dx))
+
+#-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -164,7 +177,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct a standard Monaghan-Gingold artificial viscosity.
 #-------------------------------------------------------------------------------
-qMG = MonaghanGingoldViscosity(Cl, Cq)
+qMG = Qconstructor(Cl, Cq)
 qMG.epsilon2 = epsilon2
 output("qMG")
 output("qMG.Cl")
@@ -174,23 +187,34 @@ output("qMG.epsilon2")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, qMG,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = sumForMassDensity,
-                         HUpdate = HEvolution)
+if CSPH:
+    hydro = CSPHHydro(WT, WTPi, qMG,
+                      filter = filter,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
+else:
+    hydro = SPHHydro(WT, WTPi, qMG,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = sumForMassDensity,
+                             XSPH = XSPH,
+                             HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
+#output("hydro.gradhCorrection")
 output("hydro.XSPH")
-output("hydro.sumForMassDensity")
+#output("hydro.sumForMassDensity")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
+#output("hydro.epsilonTensile")
+#output("hydro.nTensile")
 
 #-------------------------------------------------------------------------------
 # Construct a predictor corrector integrator, and add the one physics package.
@@ -225,7 +249,7 @@ output("control")
 if restoreCycle:
     control.loadRestartFile(restoreCycle)
 else:
-    control.iterateIdealH(hydro)
+    #control.iterateIdealH(hydro)
 ##     db.updateFluidMassDensity()
 
 ##     # This bit of craziness is needed to try and get the intial mass density
@@ -280,19 +304,34 @@ xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 # Plot the specific entropy.
-if mpi.rank == 0:
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot = Gnuplot.Gnuplot()
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-else:
-    Aplot = fakeGnuplot()
+AsimData = Gnuplot.Data(xprof, A,
+                        with_ = "points",
+                        title = "Simulation",
+                        inline = True)
+AansData = Gnuplot.Data(xprof, Aans,
+                        with_ = "lines",
+                        title = "Solution",
+                        inline = True)
+    
+Aplot = generateNewGnuPlot()
+Aplot.plot(AsimData)
+Aplot.replot(AansData)
+Aplot.title("Specific entropy")
+Aplot.refresh()
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/sedov-planar-1d-CSPH-" + str(CSPH) + ".ascii",'w')
+    f.write("i x m rho u v rhoans uans vans\n")
+    for j in xrange(nodes1.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],
+                                                               nodes1.mass()[j],
+                                                               nodes1.massDensity()[j],
+                                                               nodes1.specificThermalEnergy()[j],
+                                                               nodes1.velocity()[j][0],
+                                                               rhoans[j],
+                                                               uans[j],
+                                                               vans[j]))
+    f.close()

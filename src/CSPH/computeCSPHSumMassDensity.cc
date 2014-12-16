@@ -4,6 +4,7 @@
 
 #include "computeCSPHSumMassDensity.hh"
 #include "computeCSPHCorrections.hh"
+#include "interpolateCSPH.hh"
 #include "CSPHUtilities.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -49,10 +50,37 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-  massDensity = 0.0;
-  const Scalar W0 = W.kernelValue(0.0, 1.0);
+  // // Compute an effective mass per point.
+  // FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
+  // FieldList<Dimension, Vector> m1(FieldSpace::Copy);
+  // FieldList<Dimension, SymTensor> m2(FieldSpace::Copy);
+  // FieldList<Dimension, Scalar> A0(FieldSpace::Copy);
+  // FieldList<Dimension, Scalar> A(FieldSpace::Copy);
+  // FieldList<Dimension, Vector> B(FieldSpace::Copy);
+  // FieldList<Dimension, Vector> C(FieldSpace::Copy);
+  // FieldList<Dimension, Tensor> D(FieldSpace::Copy);
+  // FieldList<Dimension, Vector> gradA0(FieldSpace::Copy);
+  // FieldList<Dimension, Vector> gradA(FieldSpace::Copy);
+  // FieldList<Dimension, Tensor> gradB(FieldSpace::Copy);
+  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   m0.appendNewField(HydroFieldNames::m0_CSPH, position[nodeListi]->nodeList(), 0.0);
+  //   m1.appendNewField(HydroFieldNames::m1_CSPH, position[nodeListi]->nodeList(), Vector::zero);
+  //   m2.appendNewField(HydroFieldNames::m2_CSPH, position[nodeListi]->nodeList(), SymTensor::zero);
+  //   A0.appendNewField(HydroFieldNames::A0_CSPH, position[nodeListi]->nodeList(), 0.0);
+  //   A.appendNewField(HydroFieldNames::A_CSPH, position[nodeListi]->nodeList(), 0.0);
+  //   B.appendNewField(HydroFieldNames::B_CSPH, position[nodeListi]->nodeList(), Vector::zero);
+  //   C.appendNewField(HydroFieldNames::C_CSPH, position[nodeListi]->nodeList(), Vector::zero);
+  //   D.appendNewField(HydroFieldNames::D_CSPH, position[nodeListi]->nodeList(), Tensor::zero);
+  //   gradA0.appendNewField(HydroFieldNames::gradA0_CSPH, position[nodeListi]->nodeList(), Vector::zero);
+  //   gradA.appendNewField(HydroFieldNames::gradA_CSPH, position[nodeListi]->nodeList(), Vector::zero);
+  //   gradB.appendNewField(HydroFieldNames::gradB_CSPH, position[nodeListi]->nodeList(), Tensor::zero);
+  // }
+  // computeCSPHCorrections(connectivityMap, W, mass, position, H, false, m0, m1, m2,
+  //                        A0, A, B, C, D, gradA0, gradA, gradB);
+  // const FieldList<Dimension, Scalar> mavg = interpolateCSPH(mass, position, mass, H, false, A, B, connectivityMap, W);
 
   // Walk the FluidNodeLists and sum the new mass density.
+  massDensity = 0.0;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
     const Scalar rhoMin = nodeList.rhoMin();
@@ -96,26 +124,16 @@ computeCSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
-            massDensity(nodeListi, i) += Wi;
-            massDensity(nodeListj, j) += Wj;
-            // massDensity(nodeListi, i) += mj*(Wi + Wj);
-            // massDensity(nodeListj, j) += mi*(Wi + Wj);
-            // Veff(nodeListi, i) += Vj*(Wi + Wj);
-            // Veff(nodeListj, j) += Vi*(Wi + Wj);
+            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Wi;
+            massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Wj;
           }
         }
       }
       
       // Finalize the density for node i.
-      // massDensity(nodeListi, i) = max(rhoMin, 
-      //                                 min(rhoMax,
-      //                                     mi/(massDensity(nodeListi, i) + Vi*Vi*A0i*Hdeti*W0)));
-      // massDensity(nodeListi, i) = max(rhoMin, 
-      //                                 min(rhoMax,
-      //                                     A0i*(massDensity(nodeListi, i) + mi*2.0*Hdeti*W0)));
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          mi*(massDensity(nodeListi, i) + Hdeti*W0)));
+                                          massDensity(nodeListi, i) + mi*W.kernelValue(0.0, Hdeti)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }

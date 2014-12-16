@@ -23,12 +23,14 @@ namespace FractalSpace
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;
     vector < vector <int> > BoxSL;
+    int glength;
     pint start_x;
     pint length_x;
     pint total_memory;
     fftw_plan plan_rc;
     fftw_plan plan_cr;
     double* potR;
+    double* potRS;
     fftw_complex* potC; 
     vector <int> WhichSlice;
     vector <double> green;
@@ -38,6 +40,7 @@ namespace FractalSpace
     MPI_Group FractalGroup;
     MPI_Group FFTGroup;
     MPI_Group HypreGroup;
+    bool IAmPeriodic;
     bool IAmAnFFTNode;
     bool IAmAHypreNode;
     vector <int>Hranks;
@@ -63,9 +66,11 @@ namespace FractalSpace
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
+      glength(1),
       start_x(0),
       length_x(-1),
       total_memory(-1),
+      IAmPeriodic(true),
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
       time_trial(true),
@@ -88,10 +93,12 @@ namespace FractalSpace
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
+      glength(GR),
       start_x(0),
       length_x(GR),
       total_memory(1),
       FractalWorld(FW),
+      IAmPeriodic(PR),
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
       time_trial(true),
@@ -99,6 +106,7 @@ namespace FractalSpace
     {
       //      cout << " Making a Mess with parameters" << "\n";
       int grid_length=GR;
+      IAmPeriodic=PR;
       bool periodic=PR;
       WallTime=Clock();
       if(MR)
@@ -129,10 +137,12 @@ namespace FractalSpace
       MPI_SWITCH(512),
       MPI_MAX_COMMS(4096),
       number_particles_total(-1),
+      glength(GR),
       start_x(0),
       length_x(GR),
       total_memory(1),
       FractalWorld(FW),
+      IAmPeriodic(PR),
       IAmAnFFTNode(true),
       IAmAHypreNode(true),
       time_trial(true),
@@ -434,6 +444,18 @@ namespace FractalSpace
     {
       fftw_free(potR);
     }
+    void create_potRS()
+    {
+      size_t sizeR=sizeof(double);
+      if(IAmPeriodic)
+	potRS=(double*) fftw_malloc(sizeR*2*total_memory);
+      else
+	potRS=(double*) fftw_malloc(sizeR*(glength+1)*(glength+1)*length_x);
+    }
+    void free_potRS()
+    {
+      fftw_free(potRS);
+    }
     void create_potC()
     {
       size_t sizeC=sizeof(fftw_complex);
@@ -527,6 +549,18 @@ namespace FractalSpace
       counts_out.push_back(count);
       my_AllgatherI(counts_out,counts,1);
     }
+    //
+    //
+    void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR)
+    {
+      How_Many_Things_To_Send_I(counts_out_send,counts_in_send);
+      maxSR.clear();
+      maxSR.push_back(std::accumulate(counts_out_send.begin(),counts_out_send.end(),0));
+      maxSR.push_back(std::accumulate(counts_in_send.begin(),counts_in_send.end(),0));
+      Find_Max_INT(maxSR,2);
+    }
+    //
+    //
     void How_Many_Things_To_Send_I(vector <int>& counts_out_send,vector <int>& counts_in_send)
     {
       How_Many_Things_To_Send_I(FractalWorld,counts_out_send,counts_in_send);
@@ -1777,6 +1811,27 @@ namespace FractalSpace
       Find_Sum_INT_to_ROOT(integers,how_long,ROOT);
       Send_INT_from_ROOT(integers,how_long,ROOT);
     }
+    /*
+    void Find_Sum_DOUBLE(vector <double>& doubles,int how_long)
+    {
+      ofstream& FF=p_file->FileFractal;
+      int ROOT=FractalNodes/2;
+      FF << " DOUBLEA " << FractalRank;
+      for(int ni=0;ni<how_long;ni++)
+	FF << " " << doubles[ni];
+      FF << "\n";
+      Find_Sum_DOUBLE_to_ROOT(doubles,how_long,ROOT);
+      FF << " DOUBLEB " << FractalRank;
+      for(int ni=0;ni<how_long;ni++)
+	FF << " " << doubles[ni];
+      FF << "\n";
+      Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
+      FF << " DOUBLEC " << FractalRank;
+      for(int ni=0;ni<how_long;ni++)
+	FF << " " << doubles[ni];
+      FF << "\n";
+    }
+    */
     void Find_Sum_DOUBLE(vector <double>& doubles,int how_long)
     {
       int ROOT=FractalNodes/2;
@@ -1849,11 +1904,22 @@ namespace FractalSpace
     }
     void zeroR()
     {
-      std::fill(potR,potR+2*total_memory,0.0);
+      zeroR(0.0);
     }
     void zeroR(double grail)
     {
       std::fill(potR,potR+2*total_memory,grail);
+    }
+    void zeroRS()
+    {
+      zeroRS(0.0);
+    }
+    void zeroRS(double grail)
+    {
+      if(IAmPeriodic)
+	std::fill(potRS,potRS+2*total_memory,grail);
+      else
+	std::fill(potRS,potRS+(glength+1)*(glength+1)*length_x,grail);
     }
     double Clock()
     {
