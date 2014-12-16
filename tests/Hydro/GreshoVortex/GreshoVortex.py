@@ -28,14 +28,14 @@ commandLine(
     velTy=0.0,
 
     # Geometry of Box
-    x0 = 0.0,
-    x1 = 1.0,
-    y0 = 0.0,
-    y1 = 1.0,
+    x0 = -0.5,
+    x1 =  0.5,
+    y0 = -0.5,
+    y1 =  0.5,
    
     #Center of Vortex
-    xc=0.5,
-    yc=0.5,
+    xc=0.0,
+    yc=0.0,
 
     # Resolution and node seeding.
     nx1 = 64,
@@ -49,6 +49,8 @@ commandLine(
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
     filter = 0.0,  # For CSPH
+    momentumConserving = True, # For CSPH
+    KernelConstructor = BSplineKernel,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -61,7 +63,7 @@ commandLine(
     Cl = 1.0, 
     Cq = 0.75,
     Qlimiter = False,
-    balsaraCorrection = True,
+    balsaraCorrection = False,
     epsilon2 = 1e-2,
     hmin = 1e-5,
     hmax = 0.5,
@@ -91,12 +93,13 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
+    smooth = None,
     )
 
 # Decide on our hydro algorithm.
@@ -124,12 +127,13 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        HydroConstructor.__name__,
                        Qconstructor.__name__,
+                       KernelConstructor.__name__,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%1.3f" % fcentroidal,
+                       "fcentroidal=%1.3f" % max(fcentroidal, filter),
                        "fcellPressure = %1.3f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
@@ -169,7 +173,7 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(KernelConstructor(), 1000)
 WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
 output("WT")
 output("WTPi")
@@ -197,6 +201,9 @@ if restoreCycle is None:
                                            distributionType = seed,
                                            xmin = (x0, y0),
                                            xmax = (x1, y1),
+                                           rmin = 0.0,
+                                           theta = 2.0*pi,
+                                           rmax = sqrt(2.0)*(x1 - x0),
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 
@@ -286,7 +293,8 @@ elif CSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,
@@ -368,6 +376,39 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# If requested, smooth the initial conditions.
+#-------------------------------------------------------------------------------
+if smooth:
+    for iter in xrange(smooth):
+        db.updateConnectivityMap(False)
+        cm = db.connectivityMap()
+        position_fl = db.fluidPosition
+        weight_fl = db.fluidMass
+        H_fl = db.fluidHfield
+        m0_fl = db.newFluidScalarFieldList(0.0, "m0")
+        m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
+        m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
+        A0_fl = db.newFluidScalarFieldList(0.0, "A0")
+        A_fl = db.newFluidScalarFieldList(0.0, "A")
+        B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
+        C_fl = db.newFluidVectorFieldList(Vector.zero, "C")
+        D_fl = db.newFluidTensorFieldList(Tensor.zero, "D")
+        gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
+        gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
+        gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
+        computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
+                               m0_fl, m1_fl, m2_fl,
+                               A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
+        eps0 = db.fluidSpecificThermalEnergy
+        vel0 = db.fluidVelocity
+        eps1 = interpolateCSPH(eps0, position_fl, weight_fl, H_fl, True, 
+                               A_fl, B_fl, cm, WT)
+        vel1 = interpolateCSPH(vel0, position_fl, weight_fl, H_fl, True, 
+                               A_fl, B_fl, cm, WT)
+        eps0.assignFields(eps1)
+        vel0.assignFields(vel1)
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 if useVoronoiOutput:
@@ -409,5 +450,11 @@ if graphics:
     for i in xrange(nodes.numInternalNodes):
         rhat = (pos[i] - Vector(xc, yc)).unitVector()
         vaz[0][i] = (vel[i] - vel[i].dot(rhat)*rhat).magnitude()
-    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", winTitle="Velocity")
+    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", lineTitle="Simulation", winTitle="Velocity")
     #p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
+
+    # Plot the analytic answer.
+    xans = [0.0, 0.1, 0.2, 0.4, 1.0]
+    yans = [0.0, 0.5, 1.0, 0.0, 0.0]
+    ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
+    p.replot(ansData)

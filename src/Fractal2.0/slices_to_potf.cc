@@ -23,6 +23,7 @@ namespace FractalSpace
       }
     vector <int> pos_point(3);
     bool notZERO= lev > 0;
+    bool simpleGROUPS= mem.all_groups[lev].size() == 1;
     vector <int>counts_in;
     vector <int>counts_out;
     vector <vector <int> > dataI_out;
@@ -40,12 +41,13 @@ namespace FractalSpace
     dataR_out.resize(FractalNodes);
     counts_out.assign(FractalNodes,0);
     counts_in.assign(FractalNodes,0);
-    int group_number=0;  
+    int number=0;  
+    vector <int> point_counter;
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
 	group_itr!=mem.all_groups[lev].end();group_itr++)
       {
 	Group& group=**group_itr;
-	int point_number=0;
+	point_counter.push_back(number);
 	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
 	  {
 	    Point& point=**point_itr;
@@ -56,20 +58,16 @@ namespace FractalSpace
 	    int S=mem.p_mess->WhichSlice[p_xi];
 	    int slice_point=frac.where(p_xi,p_yi,p_zi,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]);
 	    dataI_out[S].push_back(slice_point);
-	    dataI_out[S].push_back(group_number);
-	    dataI_out[S].push_back(point_number);
+	    dataI_out[S].push_back(number);
 	    counts_out[S]++;
-	    point_number++;
+	    number++;
 	  }
-	    group_number++;
       }
     int how_manyI=-1;
     int how_manyR=-1;
-    int integers=3;
+    int integers=2;
     int doubles=0;
     mem.p_file->note(true," info to slices a ");
-    //    vector <int>maxSR;
-    //    Max_Things_To_Send_Receive_I(World,counts_out,counts_in,maxSR);
     mem.p_mess->Send_Data_Some_How(4,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
@@ -97,7 +95,6 @@ namespace FractalSpace
 	      }
 	    dataR_out[FR].push_back(mem.p_mess->potRS[NN]);
 	    dataI_out[FR].push_back(dataI_in[counterI+1]);
-	    dataI_out[FR].push_back(dataI_in[counterI+2]);
 	    //	    FF << " SPA " << lev << " " << counterI << " " << dataI_in[counterI] << " " << NN << " " << mem.p_mess->potRS[NN] << " " << dataI_in[counterI+1] << " " << dataI_in[counterI+2] << "\n";
 	    counterI+=integers;
 	  }
@@ -110,7 +107,7 @@ namespace FractalSpace
     //
     how_manyI=-1;
     how_manyR=-1;
-    integers=2;
+    integers=1;
     doubles=1;
     mem.p_file->note(true," slices to potf a ");
     //    maxSR.clear();
@@ -122,22 +119,30 @@ namespace FractalSpace
     dataI_out.clear();
     dataR_out.clear();      
     
-    counterI=0;
-    int counterR=0;
+    int number_group=-1;
+    int number_point=-1;
+    int counterIR=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    int number_group=dataI_in[counterI];
-	    int number_point=dataI_in[counterI+1];
-	    double potential=dataR_in[counterR];
+	    if(simpleGROUPS)
+	      {
+		number_group=0;
+		number_point=dataI_in[counterIR];
+	      }
+	    else
+	      {
+		number_group=std::upper_bound(point_counter.begin(),point_counter.end(),dataI_in[counterIR])-point_counter.begin()-1;
+		number_point=dataI_in[counterIR]-point_counter[number_group];
+	      }
+	    double potential=dataR_in[counterIR];
 	    Point* p_point=mem.all_groups[lev][number_group]->list_points[number_point];
 	    if(notZERO)
 	      potential+=p_point->get_potential_point();
 	    p_point->set_potential_point(potential);
 	    //	    FF << " SPB " << lev << " " << counterI << " " << dataI_in[counterI] << " " << dataI_in[counterI+1] << " " << dataR_in[counterR] << "\n";
-	    counterI+=integers;
-	    counterR++;
+	    counterIR++;
 	  }
       }
     times.push_back(mem.p_mess->Clock());

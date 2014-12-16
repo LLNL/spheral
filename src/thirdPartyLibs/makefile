@@ -22,14 +22,14 @@ AR = ar
 # Targets.
 #-------------------------------------------------------------------------------
 # Python
-PYTHONDIST = Python-2.7.6.tgz
-PYTHONURL = http://www.python.org/ftp/python/2.7.6/$(PYTHONDIST)
+PYTHONDIST = Python-2.7.8.tgz
+PYTHONURL = http://www.python.org/ftp/python/2.7.8/$(PYTHONDIST)
 PYTHONDIR = $(PYTHONDIST:.tgz=)
 PYTHONBUILDDATE = $(patsubst %.tgz, .%.date, $(PYTHONDIST))
 
 # Numpy
-NUMPYDIST = numpy-1.7.2.tar.gz
-NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.7.2/$(NUMPYDIST)/download
+NUMPYDIST = numpy-1.9.1.tar.gz
+NUMPYURL = http://sourceforge.net/projects/numpy/files/NumPy/1.9.1/$(NUMPYDIST)/download
 NUMPYDIR = $(NUMPYDIST:.tar.gz=)
 NUMPYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(NUMPYDIST))
 
@@ -309,9 +309,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(PETSCTARGETS) \
 	$(VISITWRITERBUILDDATE) \
 	$(ATSBUILDDATE) \
-	$(FFTWBUILDDATE) \
-	$(FFTWPPBUILDDATE) \
-	$(ARRAYBUILDDATE) \
 	$(ZLIBBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
 	$(QHULLDATE) \
@@ -404,7 +401,9 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	$(SHELL) -ec 'cd $(NUMPYDIR); $(PYTHONEXE) setup.py install;'
+	env PATH=$(SPHERALDIR)/bin:$$PATH $(SHELL) -ec 'cd $(NUMPYDIR); \
+	$(PYTHONEXE) setup.py build; \
+	$(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
 	rm -f $(NUMPYBUILDDATE); \

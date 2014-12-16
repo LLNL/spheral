@@ -4,6 +4,7 @@
 #include "Geometry/Dimension.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
+#include "ArtificialViscosity/CSPHMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/MorrisMonaghanReducingViscosity.hh"
 #include "ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/FiniteVolumeViscosity.hh"
@@ -24,6 +25,10 @@ typedef ArtificialViscosity<Dim<3> > ArtificialViscosity3d;
 typedef MonaghanGingoldViscosity<Dim<1> > MonaghanGingoldViscosity1d;
 typedef MonaghanGingoldViscosity<Dim<2> > MonaghanGingoldViscosity2d;
 typedef MonaghanGingoldViscosity<Dim<3> > MonaghanGingoldViscosity3d;
+    
+typedef CSPHMonaghanGingoldViscosity<Dim<1> > CSPHMonaghanGingoldViscosity1d;
+typedef CSPHMonaghanGingoldViscosity<Dim<2> > CSPHMonaghanGingoldViscosity2d;
+typedef CSPHMonaghanGingoldViscosity<Dim<3> > CSPHMonaghanGingoldViscosity3d;
     
 typedef MorrisMonaghanReducingViscosity<Dim<1> > MorrisMonaghanReducingViscosity1d;
 typedef MorrisMonaghanReducingViscosity<Dim<2> > MorrisMonaghanReducingViscosity2d;
