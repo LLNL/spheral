@@ -84,9 +84,9 @@ commandLine(nxlist = [20,40,80,160,320,640,1280],
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
-dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
+dataDir = dataDirBase
 restartDir = dataDir + "/restarts"
-restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
+restartBaseName = restartDir + "/Sod-planar-1d"
 
 assert numNodeLists in (1, 2)
 
@@ -108,7 +108,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Create the file we're going to record the error norms in.
 #-------------------------------------------------------------------------------
-pnormFileName = "Noh-planar-convergence-test-nperh=%4.2f-CSPH-%s.csv" % (nPerh, CSPH)
+pnormFileName = "Sod-planar-convergence-test-nperh=%4.2f-CSPH-%s.csv" % (nPerh, CSPH)
 if mpi.rank == 0:
     resultFile = open(pnormFileName, "w")
     resultFile.write("N,rhoL1,PrL1,vL1,eL1,rhoL2,PrL2,vL2,eL2,rhoLi,PrLi,vLi,eLi\n")
@@ -141,39 +141,7 @@ nodes2 = makeFluidNodeList("nodes2", eos,
                            rhoMin = rhoMin)
 nodeSet = [nodes1, nodes2]
 
-#-------------------------------------------------------------------------------
-# Set the node properties.
-#-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-if numNodeLists == 1:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)), (nx2, rho2, (x1, x2))])])
-else:
-    distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1))]),
-                              (nodes2, [(nx2, rho2, (x1, x2))])])
-output("nodes1.numNodes")
-output("nodes2.numNodes")
 
-# Set node specific thermal energies
-def specificEnergy(x):
-    if x < x1:
-        return P1/((gammaGas - 1.0)*rho1)
-    else:
-        return P2/((gammaGas - 1.0)*rho2)
-for nodes in nodeSet:
-    pos = nodes.positions()
-    eps = nodes.specificThermalEnergy()
-    for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x)
-
-#-------------------------------------------------------------------------------
-# Construct a DataBase to hold our node list
-#-------------------------------------------------------------------------------
-db = DataBase()
-output("db")
-for nodes in nodeSet:
-    output("db.appendNodeList(nodes)")
-output("db.numNodeLists")
-output("db.numFluidNodeLists")
 
 for nx1 in nxlist:
     nx2 = nx1/4
@@ -189,6 +157,40 @@ for nx1 in nxlist:
     output("q.Cq")
     output("q.limiter")
     output("q.epsilon2")
+    
+    #-------------------------------------------------------------------------------
+    # Set the node properties.
+    #-------------------------------------------------------------------------------
+    from DistributeNodes import distributeNodesInRange1d
+    if numNodeLists == 1:
+        distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1)), (nx2, rho2, (x1, x2))])])
+    else:
+        distributeNodesInRange1d([(nodes1, [(nx1, rho1, (x0, x1))]),
+                                  (nodes2, [(nx2, rho2, (x1, x2))])])
+    output("nodes1.numNodes")
+    output("nodes2.numNodes")
+
+    # Set node specific thermal energies
+    def specificEnergy(x):
+        if x < x1:
+            return P1/((gammaGas - 1.0)*rho1)
+        else:
+            return P2/((gammaGas - 1.0)*rho2)
+    for nodes in nodeSet:
+        pos = nodes.positions()
+        eps = nodes.specificThermalEnergy()
+        for i in xrange(nodes.numInternalNodes):
+            eps[i] = specificEnergy(pos[i].x)
+
+    #-------------------------------------------------------------------------------
+    # Construct a DataBase to hold our node list
+    #-------------------------------------------------------------------------------
+    db = DataBase()
+    output("db")
+    for nodes in nodeSet:
+        output("db.appendNodeList(nodes)")
+    output("db.numNodeLists")
+    output("db.numFluidNodeLists")
 
     #-------------------------------------------------------------------------------
     # Construct the hydro physics object.
@@ -379,7 +381,22 @@ for nx1 in nxlist:
     else:
         control.advance(goalTime, maxSteps)
         control.dropRestartFile()
-
+        # Now overplot the analytic solution.
+        dx1 = (x1 - x0)/nx1
+        dx2 = (x2 - x1)/nx2
+        h1 = 1.0/(nPerh*dx1)
+        h2 = 1.0/(nPerh*dx2)
+        answer = SodSolution(nPoints=nx1 + nx2,
+                             gamma = gammaGas,
+                             rho1 = rho1,
+                             P1 = P1,
+                             rho2 = rho2,
+                             P2 = P2,
+                             x0 = x0,
+                             x1 = x1,
+                             x2 = x2,
+                             h1 = 1.0/h1,
+                             h2 = 1.0/h2)
 
         def createList(x):
             xx = x
