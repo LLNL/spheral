@@ -14,6 +14,7 @@
 #include "Mesh/Mesh.hh"
 
 #include "Utilities/DBC.hh"
+#include "Utilities/allReduce.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -120,7 +121,7 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
   // Here we switch between using the Neighbor magic or just doing an O(N)
   // search for anyone who overlaps the exit plane.
-  if (true) {
+  if (false) {
 
     // Begin by identifying the set of master and neighbor nodes, where master
     // nodes see through the enter plane, and neighbors see through the exit plane.
@@ -128,22 +129,38 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Set the list of control nodes.
     // std::copy(neighbor.masterBegin(), neighbor.masterEnd(), std::back_inserter(controlNodes));
-    std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
+    // std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
+    const Field<Dimension, Vector>& pos = nodeList.positions();
+    for (typename Neighbor<Dimension>::const_iterator itr = neighbor.coarseNeighborBegin();
+         itr < neighbor.coarseNeighborEnd();
+         ++itr) {
+      if (mExitPlane.signedDistance(pos(*itr)) >= 0.0) controlNodes.push_back(*itr);
+    }
 
   } else {
 
-    const unsigned n = nodeList.numNodes();
+    // Find the maximum smoothing scale of any point touching either plane.
     const double kernelExtent = neighbor.kernelExtent();
+    const unsigned n = nodeList.numNodes();
     const Field<Dimension, Vector>& pos = nodeList.positions();
     const Field<Dimension, SymTensor>& H = nodeList.Hfield();
+    Scalar hmax = 0.0;
     for (unsigned i = 0; i != n; ++i) {
       const Vector& ri = pos(i);
       const SymTensor& Hi = H(i);
-      // const GeomPlane<Dimension> enterPlanePrime(Hi*(mEnterPlane.point() - ri),
-      //                                            (Hi*mEnterPlane.normal()).unitVector());
-      const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
-                                                (Hi*mExitPlane.normal()).unitVector());
-      if (exitPlanePrime.minimumDistance(Vector::zero) <= kernelExtent) controlNodes.push_back(i);
+      const Scalar hmaxi = 1.0/Hi.eigenValues().minElement();
+      if (hmaxi > hmax and min(mExitPlane.minimumDistance(ri), mEnterPlane.minimumDistance(ri)) < kernelExtent*hmaxi) hmax = hmaxi;
+    }
+    hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+
+    // Now find all points within this range of the exit plane.
+    for (unsigned i = 0; i != n; ++i) {
+      const Vector& ri = pos(i);
+      const Scalar disti = mExitPlane.signedDistance(ri)/hmax;
+      // const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
+      //                                           (Hi*mExitPlane.normal()).unitVector());
+      // const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
+      if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
       // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
     }
 
@@ -373,8 +390,8 @@ PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
   Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
   this->applyGhostBoundary(Hfield);
 
-//   // Update the neighbor information.
-//   nodeList.neighbor().updateNodes(); // (ghostNodes);
+  // // Update the neighbor information.
+  // nodeList.neighbor().updateNodes(); // (ghostNodes);
 }
 
 //------------------------------------------------------------------------------

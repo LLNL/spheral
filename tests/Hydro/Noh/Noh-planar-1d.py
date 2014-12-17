@@ -89,7 +89,7 @@ commandLine(KernelConstructor = BSplineKernel,
             arCondAlpha = 0.5,
 
             clearDirectories = True,
-            checkError = True,
+            checkError = False,
             checkRestart = False,
             checkEnergy = True,
             restoreCycle = None,
@@ -100,25 +100,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0624615     ,
-            L2rho =   0.225547      ,
-            Linfrho = 1.52638       ,
-                                                          
-            L1P =     0.0222233     ,
-            L2P =     0.0880893     ,
-            LinfP =   0.617046      ,
-                                                          
-            L1v =     0.0230697     ,
-            L2v =     0.113367      ,
-            Linfv =   0.808396      ,
-                                                          
-            L1eps =   0.0111188     ,
-            L2eps =   0.0519972     ,
-            Linfeps = 0.366362      ,
-                                              
-            L1h =     0.000333426   ,
-            L2h =     0.00126556    ,
-            Linfh =   0.00743923    ,
+            L1rho =   0.059517       ,
+            L2rho =   0.234803       ,
+            Linfrho = 1.69835        ,
+                                                           
+            L1P =     0.0218862      ,
+            L2P =     0.0915099      ,
+            LinfP =   0.667126       ,
+                                                           
+            L1v =     0.023729       ,
+            L2v =     0.117924       ,
+            Linfv =   0.848251       ,
+                                                           
+            L1eps =   0.0114841      ,
+            L2eps =   0.0535023      ,
+            Linfeps = 0.370852       ,
+                                               
+            L1h =     0.000315869    ,
+            L2h =     0.00125931     ,
+            Linfh =   0.00761168     ,
 
             tol = 1.0e-5,
 
@@ -136,7 +136,6 @@ dx = (x1 - x0)/nx1
 #-------------------------------------------------------------------------------
 if CSPH:
     Qconstructor = CSPHMonaghanGingoldViscosity
-
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -464,7 +463,7 @@ if checkEnergy and abs(Eerror) > 1e-13:
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
 #-------------------------------------------------------------------------------
-rmin, rmax = 0.05, 0.8   # Throw away anything with r < rwall to avoid wall heating.
+rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
 rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
 P = ScalarField("pressure", nodes1)
 nodes1.pressure(P)
@@ -572,9 +571,9 @@ if mpi.rank == 0:
             if failure:
                 raise ValueError, "Error bounds violated."
                                              
-    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-                                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+    #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
 
 
