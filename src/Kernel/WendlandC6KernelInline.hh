@@ -10,7 +10,7 @@ template<>
 inline
 WendlandC6Kernel< Dim<1> >::WendlandC6Kernel():
   Kernel<Dim<1>, WendlandC6Kernel< Dim<1> > >() {
-  setVolumeNormalization(15.0/4.0);
+  setVolumeNormalization(15.0/8.0);
   setKernelExtent(1.0);
   setInflectionPoint(1.0/3.0);
 }
@@ -19,7 +19,7 @@ template<>
 inline
 WendlandC6Kernel< Dim<2> >::WendlandC6Kernel():
   Kernel<Dim<2>, WendlandC6Kernel< Dim<2> > >() {
-  setVolumeNormalization(78.0/(7.0*M_PI));
+  setVolumeNormalization(78.0/(14.0*M_PI));
   setKernelExtent(1.0);
   setInflectionPoint(1.0/3.0);
 }
@@ -28,7 +28,7 @@ template<>
 inline
 WendlandC6Kernel< Dim<3> >::WendlandC6Kernel():
   Kernel<Dim<3>, WendlandC6Kernel< Dim<3> > >() {
-  setVolumeNormalization(1365.0/(64.0*M_PI));
+  setVolumeNormalization(1365.0/(128.0*M_PI));
   setKernelExtent(1.0);
   setInflectionPoint(1.0/3.0);
 }

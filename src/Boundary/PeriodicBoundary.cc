@@ -88,15 +88,8 @@ template<typename Dimension>
 void
 PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
-  // Let mPlane1Boundary do the work with the neighbor object to select all the
-  // control and ghost nodes.
   mPlane1Boundary.setGhostNodes(nodeList);
-
-  // We assume that the neighbor searches are symmetric -- not true if you're using
-  // either pure gather or scatter!  In the symmetric case, we can avoid the work
-  // of another neighbor search, because we know that the master nodes from the 
-  // neighbor search just performed for boundary1 are the neighbor set for boundary2.
-  mPlane2Boundary.setGhostNodes(nodeList, nodeList.neighbor().masterList());
+  mPlane2Boundary.setGhostNodes(nodeList);
 
   BEGIN_CONTRACT_SCOPE;
   {

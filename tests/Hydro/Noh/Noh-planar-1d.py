@@ -55,7 +55,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hmin = 0.0001, 
             hmax = 0.1,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.3,
             nTensile = 4.0,
             hourglass = None,
@@ -89,7 +89,7 @@ commandLine(KernelConstructor = BSplineKernel,
             arCondAlpha = 0.5,
 
             clearDirectories = True,
-            checkError = True,
+            checkError = False,
             checkRestart = False,
             checkEnergy = True,
             restoreCycle = None,
@@ -100,25 +100,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0624615     ,
-            L2rho =   0.225547      ,
-            Linfrho = 1.52638       ,
-                                                          
-            L1P =     0.0222233     ,
-            L2P =     0.0880893     ,
-            LinfP =   0.617046      ,
-                                                          
-            L1v =     0.0230697     ,
-            L2v =     0.113367      ,
-            Linfv =   0.808396      ,
-                                                          
-            L1eps =   0.0111188     ,
-            L2eps =   0.0519972     ,
-            Linfeps = 0.366362      ,
-                                              
-            L1h =     0.000333426   ,
-            L2h =     0.00126556    ,
-            Linfh =   0.00743923    ,
+            L1rho =   0.059517       ,
+            L2rho =   0.234803       ,
+            Linfrho = 1.69835        ,
+                                                           
+            L1P =     0.0218862      ,
+            L2P =     0.0915099      ,
+            LinfP =   0.667126       ,
+                                                           
+            L1v =     0.023729       ,
+            L2v =     0.117924       ,
+            Linfv =   0.848251       ,
+                                                           
+            L1eps =   0.0114841      ,
+            L2eps =   0.0535023      ,
+            Linfeps = 0.370852       ,
+                                               
+            L1h =     0.000315869    ,
+            L2h =     0.00125931     ,
+            Linfh =   0.00761168     ,
 
             tol = 1.0e-5,
 
@@ -136,7 +136,6 @@ dx = (x1 - x0)/nx1
 #-------------------------------------------------------------------------------
 if CSPH:
     Qconstructor = CSPHMonaghanGingoldViscosity
-
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -538,6 +537,7 @@ if mpi.rank == 0:
     import Pnorm
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
+    hD = []
     for (name, data, ans,
          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -551,25 +551,31 @@ if mpi.rank == 0:
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        hD.append([L1,L2,Linf])
+        if checkError:
+            if not fuzzyEqual(L1, L1expect, tol):
+                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect)
+                failure = True
+            if not fuzzyEqual(L2, L2expect, tol):
+                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect)
+                failure = True
+            if not fuzzyEqual(Linf, Linfexpect, tol):
+                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect)
+                failure = True
+            if failure:
+                raise ValueError, "Error bounds violated."
+                                             
+    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
+    #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
-    if checkError:
-        if not fuzzyEqual(L1, L1expect, tol):
-            print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                  L1,
-                                                                                  L1expect)
-            failure = True
-        if not fuzzyEqual(L2, L2expect, tol):
-            print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                  L2,
-                                                                                  L2expect)
-            failure = True
-        if not fuzzyEqual(Linf, Linfexpect, tol):
-            print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                    Linf,
-                                                                                    Linfexpect)
-            failure = True
-        if failure:
-            raise ValueError, "Error bounds violated."
+
 
 
 

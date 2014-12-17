@@ -3,11 +3,11 @@
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
-from Spheral3d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution3d import *
+from GenerateNodeDistribution2d import *
 
 import mpi
 import DistributeNodes
@@ -16,55 +16,49 @@ title("3-D integrated hydro test --  Blob Test")
 
 #-------------------------------------------------------------------------------
 # Rejecter to help establishing initial conditions.
-# This is used by GenerateNodeDistrubtion3d to carve out a spherical region.
+# This is used by GenerateNodeDistrubtion2d to carve out a spherical region.
 #-------------------------------------------------------------------------------
 class SphericalRejecterBlob:
     def __init__(self, origin, radius):
         self.origin = origin
         self.radius = radius
         return
-    def __call__(self, x, y, z, m, H):
+    def __call__(self, x, y, m, H):
         n = len(x)
-        assert (len(y) == n and len(z) == n and len(m) == n and len(H) == n)
-        xnew, ynew, znew, mnew, Hnew = [], [], [], [], []
+        assert (len(y) == n and len(m) == n and len(H) == n)
+        xnew, ynew, mnew, Hnew = [], [], [], []
         R2 = self.radius**2
         for i in xrange(n):
             if ((x[i] - self.origin[0])**2 +
-                (y[i] - self.origin[1])**2 +
-                (z[i] - self.origin[2])**2 < R2):
+                (y[i] - self.origin[1])**2 < R2):
                 xnew.append(x[i])
                 ynew.append(y[i])
-                znew.append(z[i])
                 mnew.append(m[i])
                 Hnew.append(H[i])
-        return xnew, ynew, znew, mnew, Hnew
+        return xnew, ynew, mnew, Hnew
 
 #-------------------------------------------------------------------------------
 # Rejecter to help establishing initial conditions.
-# This is used by GenerateNodeDistrubtion3d to cut out a spherical region cavity
+# This is used by GenerateNodeDistrubtion2d to cut out a spherical region cavity
 #-------------------------------------------------------------------------------
 class SphericalRejecter:
     def __init__(self, origin, radius):
         self.origin = origin
         self.radius = radius
         return
-    def __call__(self, x, y, z, m, H):
+    def __call__(self, x, y, m, H):
         n = len(x)
-        assert (len(y) == n and len(z) == n and len(m) == n and len(H) == n)
-        xnew, ynew, znew, mnew, Hnew = [], [], [], [], []
+        assert (len(y) == n and len(m) == n and len(H) == n)
+        xnew, ynew, mnew, Hnew = [], [], [], []
         R2 = self.radius**2
         for i in xrange(n):
             if ((x[i] - self.origin[0])**2 +
-                (y[i] - self.origin[1])**2 +
-                (z[i] - self.origin[2])**2 >= R2):
+                (y[i] - self.origin[1])**2 >= R2):
                 xnew.append(x[i])
                 ynew.append(y[i])
-                znew.append(z[i])
                 mnew.append(m[i])
                 Hnew.append(H[i])
-        return xnew, ynew, znew, mnew, Hnew
-
-
+        return xnew, ynew, mnew, Hnew
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -79,22 +73,18 @@ commandLine(
 
     # Geometry Ambient medium box
     xb0 = 0.0,
-    xb1 = 10.0,
+    xb1 = 40.0,
     yb0 = 0.0,
     yb1 = 10.0,
-    zb0 = 0.0,
-    zb1 = 40.0,
 
     #Blob radius and central location
     br = 1.0,
     bx = 5.0,
     by = 5.0, 
-    bz = 5.0,
 
     # Resolution and node seeding.
-    nx1 = 64,
+    nx1 = 256,
     ny1 = 64,
-    nz1 = 256,
 
     nPerh = 1.51,
 
@@ -148,7 +138,7 @@ commandLine(
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
-    dataDir = "dumps-blobtest-3d",
+    dataDir = "dumps-blobtest-2d",
     )
 
 # Decide on our hydro algorithm.
@@ -182,15 +172,15 @@ baseDir = os.path.join(dataDir,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure = %1.3f" % fcellPressure,
-                       "%ix%ix%i" % (nx1, ny1, nz1))
+                       "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
-restartBaseName = os.path.join(restartDir, "blob-3d-%ix%ix%i" % (nx1, ny1, nz1))
+restartBaseName = os.path.join(restartDir, "blob-2d-%ix%i" % (nx1, ny1))
 
 vizDir = os.path.join(baseDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
-    vizBaseName = "blobtest-3d-%ix%ix%i" % (nx1, ny1, nz1)
+    vizBaseName = "blobtest-2d-%ix%i" % (nx1, ny1)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -257,22 +247,22 @@ del nodes
 if restoreCycle is None:
 #Blob density is defined to be 10 times the external density
     rhoblob=rhoext*10.0
-    generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
+    generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rhoext,
                                                 distributionType = "lattice",
-                                                xmin = (xb0, yb0, zb0),
-                                                xmax = (xb1, yb1, zb1),
-    						rejecter = SphericalRejecter(origin = (bx, by, bz),
+                                                xmin = (xb0, yb0),
+                                                xmax = (xb1, yb1),
+    						rejecter = SphericalRejecter(origin = (bx, by),
                                                                              radius = br),
                                                 nNodePerh = nPerh,
                                                 SPH = SPH)
-    #generatorOuter = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoext,
+    #generatorOuter = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoext,
     #                                            distributionType = "lattice",
     #                                            xmin = (bx-br, by-br, bz-br),
     #                                            xmax = (bx+br, by+br, bz+br),
     #       				        rmin = br,
     #                                            nNodePerh = nPerh,
     #                                            SPH = SPH)
-    #generatorInner = GenerateNodeDistribution3d(nx1, ny1, nz1, rhoblob,
+    #generatorInner = GenerateNodeDistribution2d(nx1, ny1, nz1, rhoblob,
     #                                            distributionType = "lattice",
     #                                            xmin = (xb0, yb0, zb0),
     #                                            xmax = (xb1, yb1, zb1),
@@ -282,23 +272,23 @@ if restoreCycle is None:
     #                                            SPH = SPH)
 
     # Figure out a mass matched resolution for the blob.
-    mouter = (xb1 - xb0)*(yb1 - yb0)*(zb1 - zb0)*rhoext/(nx1*ny1*nz1)
+    mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
     nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
-    generatorInner = GenerateNodeDistribution3d(nxinner, nxinner, nxinner, rhoblob,
+    generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
                                                 distributionType = "lattice",
-                                                xmin = (bx-br, by-br, bz-br),
-                                                xmax = (bx+br, by+br, bz+br),
- 				                origin = (bx, by, bz),
-           				        rmax = br,
+                                                xmin = (bx-br, by-br),
+                                                xmax = (bx+br, by+br),
+ 				                originreject = (bx, by),
+           				        rreject = br,
                                                 nNodePerh = nPerh,
                                                 SPH = SPH)
 
     if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes3d
+        from VoronoiDistributeNodes import distributeNodes2d
     else:
-        from DistributeNodes import distributeNodes3d
+        from DistributeNodes import distributeNodes2d
 
-    distributeNodes3d((outerNodes, generatorOuter),
+    distributeNodes2d((outerNodes, generatorOuter),
                       (innerNodes, generatorInner))
     for nodes in nodeSet:
         print nodes.name, ":"
@@ -309,7 +299,7 @@ if restoreCycle is None:
 
     # Set node specific thermal energies
     for (nodes, rho) in ((outerNodes, rhoext),
-                                   (innerNodes, rhoblob)):
+                         (innerNodes, rhoblob)):
         eps0 = Pequi/((gamma - 1.0)*rho)
         cs = sqrt(gamma*(gamma-1.0)*eps0)
         nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
@@ -323,12 +313,11 @@ if restoreCycle is None:
     vel = outerNodes.velocity() #wind velocity
     for i in xrange(outerNodes.numInternalNodes):
         cs = sqrt(gamma*Pequi/rho)
-        velz = mach*cs
-        vel[i]=Vector(0.0,0.0, velz)
+        velx = mach*cs
+        vel[i].x = velx
     #vel = innerNodes.velocity()
     #for i in xrange(innerNodes.numInternalNodes):
     #    vel[i]=Vector(velx,vely)
-
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
@@ -369,8 +358,8 @@ if SVPH:
                              HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
-                             xmin = Vector(xb0 - (xb1 - xb0), yb0 - (yb1 - yb0), zb0 - (zb1 - zb0)),
-                             xmax = Vector(xb1 + (xb1 - xb0), yb1 + (yb1 - yb0), zb1 + (zb1 - zb0)))
+                             xmin = Vector(xb0 - (xb1 - xb0), yb0 - (yb1 - yb0)),
+                             xmax = Vector(xb1 + (xb1 - xb0), yb1 + (yb1 - yb0)))
 elif CSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
@@ -417,27 +406,15 @@ if boolReduceViscosity:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane(Vector(xb0, yb0, zb0), Vector( 1.0,  0.0, 0.0))
-xPlane1 = Plane(Vector(xb1, yb0, zb0), Vector(-1.0,  0.0, 0.0))
-yPlane0 = Plane(Vector(xb0, yb0, zb0), Vector( 0.0,  1.0, 0.0))
-yPlane1 = Plane(Vector(xb0, yb1, zb0), Vector( 0.0, -1.0, 0.0))
-zPlane0 = Plane(Vector(xb0, yb0, zb0), Vector( 0.0,  0.0, 1.0))
-zPlane1 = Plane(Vector(xb0, yb0, zb1), Vector( 0.0,  0.0, -1.0))
+xPlane0 = Plane(Vector(xb0, yb0), Vector( 1.0,  0.0))
+xPlane1 = Plane(Vector(xb1, yb0), Vector(-1.0,  0.0))
+yPlane0 = Plane(Vector(xb0, yb0), Vector( 0.0,  1.0))
+yPlane1 = Plane(Vector(xb0, yb1), Vector( 0.0, -1.0))
 
 xbc = PeriodicBoundary(xPlane0, xPlane1)
 ybc = PeriodicBoundary(yPlane0, yPlane1)
-zbc = PeriodicBoundary(zPlane0, zPlane1)
 
-bcSet = [xbc, ybc, zbc]
-
-# xbc0 = ReflectingBoundary(xPlane0)
-# xbc1 = ReflectingBoundary(xPlane1)
-# ybc0 = ReflectingBoundary(yPlane0)
-# ybc1 = ReflectingBoundary(yPlane1)
-# zbc0 = ReflectingBoundary(zPlane0)
-# zbc1 = ReflectingBoundary(zPlane1)
-
-# bcSet = [xbc0, xbc1, ybc0, ybc1, zbc0, zbc1]
+bcSet = [xbc, ybc]
 
 for p in packages:
     for bc in bcSet:

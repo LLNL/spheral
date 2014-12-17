@@ -48,6 +48,9 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                  xmin[0] < xmax[0] and xmin[1] < xmax[1]) or
                 (distributionType == "offsetCylindrical" and
                  xmin is not None and xmax is not None and
+                 rmin is not None and rmax is not None) or
+                (distributionType == "latticeCylindrical" and
+                 xmin is not None and xmax is not None and
                  rmin is not None and rmax is not None))
         assert nNodePerh > 0.0
         assert offset is None or len(offset) == 2
@@ -145,6 +148,17 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                        self.rmin,
                                                        self.rmax,
                                                        self.nNodePerh)
+        
+        elif distributionType == "latticeCylindrical":
+            self.x, self.y, self.m, self.H = \
+                    self.latticeCylindricalDistribution(self.nRadial,
+                                                        self.nTheta,
+                                                        self.rho,
+                                                        self.xmin,
+                                                        self.xmax,
+                                                        self.rmin,
+                                                        self.rmax,
+                                                        self.nNodePerh)
 
         # If SPH has been specified, make sure the H tensors are round.
         if SPH:
@@ -527,6 +541,139 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
 
         return x, y, m, H
 
+    #------------------------------------------------------------------------------
+    # Seed positions/masses on a cylindrical grid fading to a lattice at the edges
+    #------------------------------------------------------------------------------
+    def latticeCylindricalDistribution(self, nx, ny, rho,
+                            xmin = (0.0, 0.0),
+                            xmax = (1.0, 1.0),
+                            rmin = None,
+                            rmax = None,
+                            nNodePerh = 2.01):
+        k = 0
+        np = 0
+        deltar = rmax - rmin
+        dx = (xmax[0] - xmin[0])/nx
+        dy = (xmax[1] - xmin[1])/ny
+        
+        hx = 1.0/(nNodePerh*dx)
+        hy = 1.0/(nNodePerh*dy)
+        H0 = SymTensor2d(hx, 0.0, 0.0, hy)
+        
+        x = []
+        y = []
+        m = []
+        H = []
+        
+        
+        ml = []
+        Hl = []
+        xl = []
+        yl = []
+        
+        xc = []
+        yc = []
+        mc = []
+        Hc = []
+        
+        for j in xrange(ny):
+            for i in xrange(nx):
+                xx = xmin[0] + (i + 0.5)*dx
+                yy = xmin[1] + (j + 0.5)*dy
+                r = sqrt(xx*xx + yy*yy)
+                m0 = dx*dy*rho(Vector2d(xx, yy))
+                if (r>=rmin*0.8):
+                    xl.append(xx)
+                    yl.append(yy)
+                    ml.append(m0)
+                    Hl.append(H0)
+                    k = k + 1
+                if (r>=rmax):
+                    x.append(xx)
+                    y.append(yy)
+                    m.append(m0)
+                    H.append(H0)
+                    np = np + 1
+    
+        # Start at the outermost radius, and work our way inward.
+        theta = 2*3.14159
+        ri = rmax+2.0*nNodePerh/nx
+        
+        #import random
+        #random.seed()
+        
+        while ri > 0:
+            
+            # Get the nominal delta r, delta theta, number of nodes, and mass per
+            # node at this radius.
+            rhoi = rho(Vector2d(ri, 0.0))
+            dr = sqrt(m0/rhoi)
+            arclength = theta*ri
+            arcmass = arclength*dr*rhoi
+            nTheta = max(1, int(arcmass/m0))
+            dTheta = theta/nTheta
+            mi = arcmass/nTheta
+            hi = nNodePerh*0.5*(dr + ri*dTheta)
+            Hi = SymTensor2d(1.0/hi, 0.0,
+                             0.0, 1.0/hi)
+
+            # Now assign the nodes for this radius.
+            for i in xrange(nTheta):
+                thetai = (i + 0.5)*dTheta
+                xc.append(ri*cos(thetai))
+                yc.append(ri*sin(thetai))
+                mc.append(mi)
+                Hc.append(Hi)
+                xi = ri*cos(thetai)
+                yi = ri*sin(thetai)
+                
+                if(ri < rmin):
+                    x.append(xi)
+                    y.append(yi)
+                    m.append(mi)
+                    H.append(Hi)
+                    np = np + 1
+                elif(ri>=rmin):
+                    #eps = random.random()
+                    #func = ((ri-rmin)/deltar)**2
+                    func = 1-ri/(rmin-rmax) - rmax/(rmax-rmin)
+                    if(func>1.0):
+                        func = 1.0
+                    if(func<0.0):
+                        func = 0.0
+                    #if (eps <= func):
+                    #x.append(ri*cos(thetai))
+                    #y.append(ri*sin(thetai))
+                    #m.append(mi)
+                    #H.append(Hi)
+                    #else:
+                    minddr = nx
+                    mink = 2*k
+                    for j in xrange(k):
+                        ddr = sqrt((xl[j]-xi)**2+(yl[j]-yi)**2)
+                        if (ddr < minddr):
+                            minddr = ddr
+                            mink = j
+                    xi = xi+(xl[mink]-xi)*func
+                    yi = yi+(yl[mink]-yi)*func
+                    
+                    minddr = nx
+                    for j in xrange(np):
+                        ddr = sqrt((x[j]-xi)**2 + (y[j]-yi)**2)
+                        if (ddr < minddr):
+                            minddr = ddr
+                    if(minddr > (1.0/hx)*0.5):
+                        x.append(xi+(xl[mink]-xi)*func)
+                        y.append(yi+(yl[mink]-yi)*func)
+                        m.append(ml[mink])
+                        H.append(Hl[mink])
+        
+     
+            # Decrement to the next radial bin inward.
+            ri = max(0.0, ri - dr)
+    
+        return x, y, m, H
+
     #---------------------------------------------------------------------------
     # Seed positions on a staggered (or offset) lattice
     #---------------------------------------------------------------------------
@@ -579,11 +726,195 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
 # only supports the equivalent of the constant Dtheta method.
 #-------------------------------------------------------------------------------
 class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
+    
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, n, densityProfileMethod,
+                 rmin = 0.0,
+                 rmax = 1.0,
+                 thetaMin = 0.0,
+                 thetaMax = pi/2.0,
+                 nNodePerh = 2.01):
+        
+        assert n > 0
+        assert rmin < rmax
+        assert thetaMin < thetaMax
+        assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
+        assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
+        assert nNodePerh > 0.0
+        
+        self.n = n
+        self.rmin = rmin
+        self.rmax = rmax
+        self.thetaMin = thetaMin
+        self.thetaMax = thetaMax
+        self.nNodePerh = nNodePerh
+        
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(densityProfileMethod) == type(1.0):
+            self.densityProfileMethod = ConstantRho(densityProfileMethod)
+        else:
+            self.densityProfileMethod = densityProfileMethod
+        
+        # Determine how much total mass there is in the system.
+        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+                                                 rmin, rmax,
+                                                 thetaMin, thetaMax)
+        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax)
+
+        # Now set the nominal mass per node.
+        self.m0 = self.totalMass/self.n
+        assert self.m0 > 0.0
+        print "Nominal mass per node of %g." % self.m0
+
+        # OK, we now know enough to generate the node positions.
+        self.x, self.y, self.m, self.H = \
+            self.constantDThetaCylindricalDistribution(self.densityProfileMethod,
+                                                       self.massProfileMethod,
+                                                       rmin, rmax,
+                                                       thetaMin, thetaMax,
+                                                       nNodePerh)
+        print "Generated a total of %i nodes." % len(self.x)
+
+        # Make sure the total mass is what we intend it to be, by applying
+        # a multiplier to the particle masses.
+        sumMass = 0.0
+        for m in self.m:
+            sumMass += m
+        assert sumMass > 0.0
+        massCorrection = self.totalMass/sumMass
+        for i in xrange(len(self.m)):
+            self.m[i] *= massCorrection
+        print "Applied a mass correction of %f to ensure total mass is %f." % (
+                                                                               massCorrection, self.totalMass)
+
+        # Have the base class break up the serial node distribution
+        # for parallel cases.
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.y, self.m, self.H)
+        return
+
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y)
+        return Vector2d(self.x[i], self.y[i])
+    
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+    
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        return self.densityProfileMethod(self.localPosition(i).magnitude())
+    
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
+    
+    #---------------------------------------------------------------------------
+    # Numerically integrate the given density profile to determine the total
+    # enclosed mass.
+    #---------------------------------------------------------------------------
+    def integrateTotalMass(self, densityProfileMethod,
+                           rmin, rmax,
+                           thetaMin, thetaMax,
+                           nbins = 10000):
+        assert nbins > 0
+        assert nbins % 2 == 0
+        
+        theta = thetaMax - thetaMin
+        h = (rmax - rmin)/nbins
+        result = (rmin*densityProfileMethod(rmin) +
+                  rmax*densityProfileMethod(rmax))
+        for i in xrange(1, nbins):
+            ri = rmin + i*h
+            if i % 2 == 0:
+                result += 4.0*ri*densityProfileMethod(ri)
+            else:
+                result += 2.0*ri*densityProfileMethod(ri)
+
+        result *= theta*h/3.0
+        return result
+    
+    #---------------------------------------------------------------------------
+    # Seed positions/masses for circular symmetry
+    # This version tries to seed nodes in circular rings with constant spacing.
+    #---------------------------------------------------------------------------
+    def constantDThetaCylindricalDistribution(self, densityProfileMethod,
+                                              m0,
+                                              rmin, rmax,
+                                              thetaMin, thetaMax,
+                                              nNodePerh = 2.01):
+        
+        from Spheral import SymTensor2d
+        
+        # Return lists for positions, masses, and H's.
+        x = []
+        y = []
+        m = []
+        H = []
+        
+        # Start at the outermost radius, and work our way inward.
+        theta = thetaMax - thetaMin
+        ri = rmax
+        while ri > rmin:
+            
+            # Get the nominal delta r, delta theta, number of nodes, and mass per
+            # node at this radius.
+            rhoi = densityProfileMethod(ri)
+            dr = sqrt(m0/rhoi)
+            arclength = theta*ri
+            arcmass = arclength*dr*rhoi
+            nTheta = max(1, int(arcmass/m0))
+            dTheta = theta/nTheta
+            mi = arcmass/nTheta
+            hi = nNodePerh*0.5*(dr + ri*dTheta)
+            Hi = SymTensor2d(1.0/hi, 0.0,
+                             0.0, 1.0/hi)
+                             
+            # Now assign the nodes for this radius.
+            for i in xrange(nTheta):
+                thetai = thetaMin + (i + 0.5)*dTheta
+                x.append(ri*cos(thetai))
+                y.append(ri*sin(thetai))
+                m.append(mi)
+                H.append(Hi)
+
+            # Decrement to the next radial bin inward.
+            ri = max(0.0, ri - dr)
+        
+        return x, y, m, H
+
+
+
+
+#-------------------------------------------------------------------------------
+# Specialized version that generates a variable mass distribution to try
+# and match a given mass function with a constant density.  This
+# only supports the equivalent of the constant Dtheta method.
+#-------------------------------------------------------------------------------
+class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
 
     #---------------------------------------------------------------------------
     # Constructor
     #---------------------------------------------------------------------------
     def __init__(self, n, densityProfileMethod,
+                 massProfileMethod,
                  rmin = 0.0,
                  rmax = 1.0,
                  thetaMin = 0.0,
@@ -606,10 +937,15 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
 
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
+        # CR: i'm currently going to assume this is used in constantRho form
+        # every time. i may come back to this and make it work with both profiles
+        # later.
         if type(densityProfileMethod) == type(1.0):
             self.densityProfileMethod = ConstantRho(densityProfileMethod)
         else:
             self.densityProfileMethod = densityProfileMethod
+        
+        self.massProfileMethod = massProfileMethod
 
         # Determine how much total mass there is in the system.
         self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
@@ -626,7 +962,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.m, self.H = \
                 self.constantDThetaCylindricalDistribution(self.densityProfileMethod,
-                                                           self.m0,
+                                                           self.massProfileMethod,
                                                            rmin, rmax,
                                                            thetaMin, thetaMax,
                                                            nNodePerh)
@@ -708,7 +1044,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
     # This version tries to seed nodes in circular rings with constant spacing.
     #---------------------------------------------------------------------------
     def constantDThetaCylindricalDistribution(self, densityProfileMethod,
-                                              m0,
+                                              massProfileMethod,
                                               rmin, rmax,
                                               thetaMin, thetaMax,
                                               nNodePerh = 2.01):
@@ -729,10 +1065,11 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
             # Get the nominal delta r, delta theta, number of nodes, and mass per
             # node at this radius.
             rhoi = densityProfileMethod(ri)
-            dr = sqrt(m0/rhoi)
+            mpi = massProfileMethod(ri)
+            dr = sqrt(mpi/rhoi)
             arclength = theta*ri
             arcmass = arclength*dr*rhoi
-            nTheta = max(1, int(arcmass/m0))
+            nTheta = max(1, int(arcmass/mpi))
             dTheta = theta/nTheta
             mi = arcmass/nTheta
             hi = nNodePerh*0.5*(dr + ri*dTheta)
@@ -741,9 +1078,13 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
 
             # Now assign the nodes for this radius.
             for i in xrange(nTheta):
-                thetai = thetaMin + (i + 0.5)*dTheta
-                x.append(ri*cos(thetai))
-                y.append(ri*sin(thetai))
+                if nTheta > 1:
+                    thetai = thetaMin + (i + 0.5)*dTheta
+                    x.append(ri*cos(thetai))
+                    y.append(ri*sin(thetai))
+                else:
+                    x.append(0)
+                    y.append(0)
                 m.append(mi)
                 H.append(Hi)
 
