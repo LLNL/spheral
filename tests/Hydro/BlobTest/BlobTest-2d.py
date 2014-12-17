@@ -273,7 +273,7 @@ if restoreCycle is None:
 
     # Figure out a mass matched resolution for the blob.
     mouter = (xb1 - xb0)*(yb1 - yb0)*rhoext/(nx1*ny1)
-    nxinner = max(2, int(((2*br)**3*rhoblob/mouter)**(1.0/3.0) + 0.5))
+    nxinner = max(2, int(((2*br)**2*rhoblob/mouter)**(1.0/2.0) + 0.5))
     generatorInner = GenerateNodeDistribution2d(nxinner, nxinner, rhoblob,
                                                 distributionType = "lattice",
                                                 xmin = (bx-br, by-br),
