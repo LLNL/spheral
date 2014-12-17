@@ -292,22 +292,22 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
         if (exitCheck and cell.members.size() > 0) {
           copy(cell.members.begin(), cell.members.end(), back_inserter(coarseList));
 
-          // // Map the cell key through to the entrance plane.  Any nodes we interact
-          // // with on that side are potential masters.
-          // const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, exitPlane, enterPlane);
-          // for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
-          //      keyItr != mappedKeys.end();
-          //      ++keyItr) {
-          //   this->extractCellIndices(*keyItr, ix, iy, iz);
-          //   const vector<int> neighbors = this->findTreeNeighbors(ilevel, ix, iy, iz);
-          //   copy(neighbors.begin(), neighbors.end(), back_inserter(masterList));
-          //   // TreeLevel::const_iterator cellItr = mTree[ilevel].find(*keyItr);
-          //   // if (cellItr != mTree[ilevel].end()) {
-          //   //   this->extractCellIndices(*keyItr, ix, iy, iz);
-          //   //   const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
-          //   //   copy(masters.begin(), masters.end(), back_inserter(masterList));
-          //   // }
-          // }
+          // Map the cell key through to the entrance plane.  Any nodes we interact
+          // with on that side are potential masters.
+          const vector<CellKey> mappedKeys = this->mapKey(ilevel, cell.key, exitPlane, enterPlane);
+          for (typename vector<CellKey>::const_iterator keyItr = mappedKeys.begin();
+               keyItr != mappedKeys.end();
+               ++keyItr) {
+            this->extractCellIndices(*keyItr, ix, iy, iz);
+            const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
+            copy(masters.begin(), masters.end(), back_inserter(masterList));
+            // TreeLevel::const_iterator cellItr = mTree[ilevel].find(*keyItr);
+            // if (cellItr != mTree[ilevel].end()) {
+            //   this->extractCellIndices(*keyItr, ix, iy, iz);
+            //   const vector<int> masters = this->findTreeNeighbors(ilevel, ix, iy, iz);
+            //   copy(masters.begin(), masters.end(), back_inserter(masterList));
+            // }
+          }
         }
       }
 

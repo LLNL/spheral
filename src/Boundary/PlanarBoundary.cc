@@ -14,6 +14,7 @@
 #include "Mesh/Mesh.hh"
 
 #include "Utilities/DBC.hh"
+#include "Utilities/allReduce.hh"
 
 namespace Spheral {
 namespace BoundarySpace {
@@ -138,18 +139,27 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
   } else {
 
-    const unsigned n = nodeList.numNodes();
+    // Find the maximum smoothing scale of any point touching either plane.
     const double kernelExtent = neighbor.kernelExtent();
+    const unsigned n = nodeList.numNodes();
     const Field<Dimension, Vector>& pos = nodeList.positions();
     const Field<Dimension, SymTensor>& H = nodeList.Hfield();
+    Scalar hmax = 0.0;
     for (unsigned i = 0; i != n; ++i) {
       const Vector& ri = pos(i);
       const SymTensor& Hi = H(i);
-      // const GeomPlane<Dimension> enterPlanePrime(Hi*(mEnterPlane.point() - ri),
-      //                                            (Hi*mEnterPlane.normal()).unitVector());
-      const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
-                                                (Hi*mExitPlane.normal()).unitVector());
-      const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
+      const Scalar hmaxi = 1.0/Hi.eigenValues().minElement();
+      if (hmaxi > hmax and min(mExitPlane.minimumDistance(ri), mEnterPlane.minimumDistance(ri)) < kernelExtent*hmaxi) hmax = hmaxi;
+    }
+    hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+
+    // Now find all points within this range of the exit plane.
+    for (unsigned i = 0; i != n; ++i) {
+      const Vector& ri = pos(i);
+      const Scalar disti = mExitPlane.signedDistance(ri)/hmax;
+      // const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
+      //                                           (Hi*mExitPlane.normal()).unitVector());
+      // const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
       if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
       // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
     }
