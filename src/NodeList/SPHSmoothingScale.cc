@@ -152,10 +152,10 @@ idealSmoothingScale(const SymTensor& H,
     }
   }
 
-  // We compute an upper-bound for h depending on if we're getting too many neighbors.
-  const double targetRadius = kernelExtent*nPerh;
-  double currentActualRadius = equivalentRadius<Dimension>(double(n0));  // This is radius in number of nodes.
-  const double maxNeighborLimit = 1.25*targetRadius/(currentActualRadius + 1.0e-30);
+  // // We compute an upper-bound for h depending on if we're getting too many neighbors.
+  // const double targetRadius = kernelExtent*nPerh;
+  // double currentActualRadius = equivalentRadius<Dimension>(double(n0));  // This is radius in number of nodes.
+  // const double maxNeighborLimit = 1.25*targetRadius/(currentActualRadius + 1.0e-30);
 
   // Determine the current effective number of nodes per smoothing scale.
   Scalar currentNodesPerSmoothingScale;
@@ -174,7 +174,8 @@ idealSmoothingScale(const SymTensor& H,
   CHECK(currentNodesPerSmoothingScale > 0.0);
 
   // The ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
+  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+  // const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
   CHECK(s > 0.0);
 
   // Now determine how to scale the current H to the desired value.
