@@ -193,19 +193,21 @@ output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
-#-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
+
 
 for nx1 in nxlist:
+    
+    #-------------------------------------------------------------------------------
+    # Construct the artificial viscosity.
+    #-------------------------------------------------------------------------------
+    q = Qconstructor(Cl, Cq)
+    q.epsilon2 = epsilon2
+    q.limiter = Qlimiter
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
 
     nodes1.numInternalNodes = 0
     nodes1.numGhostNodes = 0
@@ -523,6 +525,39 @@ for nx1 in nxlist:
         resultFile.write("%d,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                        hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                                        hD[0][2],hD[1][2],hD[2][2],hD[3][2]))
+
+    #-------------------------------------------------------------------------------
+    # Plot the final state.
+    #-------------------------------------------------------------------------------
+    if graphics == "matplot":
+        import pylab
+        from SpheralMatplotlibUtilities import *
+        rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+        plotEHistory(control.conserve)
+
+    elif graphics == "gnu":
+        from SpheralGnuPlotUtilities import *
+        rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+        EPlot = plotEHistory(control.conserve)
+        
+        # Plot the specific entropy.
+        Aplot = generateNewGnuPlot()
+        AsimData = Gnuplot.Data(xprof, A,
+                                with_ = "points",
+                                title = "Simulation",
+                                inline = True)
+        AansData = Gnuplot.Data(xprof, Aans,
+                                with_ = "lines",
+                                title = "Solution",
+                                inline = True)
+        Aplot.plot(AsimData)
+        Aplot.replot(AansData)
+        Aplot.title("Specific entropy")
+        Aplot.refresh()
+            
+        dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
 
 
 
