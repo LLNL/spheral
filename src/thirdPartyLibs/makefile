@@ -551,7 +551,7 @@ $(CMAKEEXE):	$(CMAKEDIST)
 	rm -fr $(CMAKEDIR)
 	$(GZIP) -dc $(CMAKEDIST) | $(TAR) -xf -
 	$(SHELL) -ec 'cd $(CMAKEDIR); \
-	env CC='$(CMAKECC)' CXX='$(CMAKECXX)' ./bootstrap --prefix=$(SPHERALDIR); \
+	env PATH="$(SPHERALDIR)/bin:$$PATH" CC='$(CMAKECC)' CXX='$(CMAKECXX)' ./bootstrap --prefix=$(SPHERALDIR); \
 	$(MAKE); \
 	$(MAKE) install'
 	@if ! test -e $(CMAKEEXE); then \
@@ -1098,7 +1098,7 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
 	$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(QHULLDIR)-qhull_a.h-patch
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
-	env CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
+	env PATH=$(SPHERALDIR)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(SPHERALDIR) .. ; \
 	$(MAKE); \
 	$(MAKE) install"
 	@if ! test -e $(SPHERALDIR)/lib/libqhullstatic.a; then \
@@ -1122,7 +1122,7 @@ $(MPI4PYBUILDDATE):  $(PYTHONBUILDDATE) $(MPI4PYDIST)
 	rm -fr $(MPI4PYDIR)
 	$(GZIP) -dc $(MPI4PYDIST) | $(TAR) -xf -
 	$(PATCH) $(MPI4PYDIR)/setup.cfg mpi4py-1.2.2_setup_dot_cfg.patch
-	$(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install"
+	env MPICC='$(MPICC) $(MPICCFLAGS)' $(SHELL) -ec "cd $(MPI4PYDIR); $(PYTHONEXE) setup.py install"
 	@if test -n "`$(PYTHONEXE) -c 'from mpi4py import MPI'`"; then \
 	echo "ERROR building mpi4py python extension."; \
 	rm -f $(MPI4PYBUILDDATE); \
