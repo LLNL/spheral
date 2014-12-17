@@ -145,7 +145,8 @@ nodeSet = [nodes1, nodes2]
 
 for nx1 in nxlist:
     nx2 = nx1/4
-
+    nodes1.numInternalNodes = 0
+    nodes1.numGhostNodes = 0
     #-------------------------------------------------------------------------------
     # Construct the artificial viscosity.
     #-------------------------------------------------------------------------------
@@ -510,6 +511,6 @@ for nx1 in nxlist:
         print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                     hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                                     hD[0][2],hD[1][2],hD[2][2],hD[3][2])
-        resultFile.write("%d,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+        resultFile.write("%d,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2]))
