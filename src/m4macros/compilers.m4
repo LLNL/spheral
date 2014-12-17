@@ -85,6 +85,7 @@ AC_MSG_RESULT($COMPILERS)
 OSNAME=`uname -s`
 AC_CHECK_PROG(GCCTEST, gcc, `which gcc`, nope)
 AC_CHECK_PROG(GCC446TEST, gcc-4.4.6, `which gcc-4.4.6`, nope)
+AC_CHECK_PROG(MPICXXTEST, mpicxx, `which mpicxx`, nope)
 case $COMPILERS in
    gnu)
       if test $OSNAME = "Linux" -a "$GCC446TEST" != "nope"; then
@@ -92,9 +93,14 @@ case $COMPILERS in
          CXX=g++-4.4.6
          FORT=gfortran
          MPICC=mpicc
-         MPICXX=mpig++
          MPICCFLAGS="-cc=$CC"
-         MPICXXFLAGS="-cc=$CXX"
+         if test "$MPICXXTEST" != "nope"; then
+            MPICXX=mpicxx
+            MPICXXFLAGS="-cxx=$CXX"
+         else
+            MPICXX=mpig++
+            MPICXXFLAGS="-cc=$CXX"
+         fi
          CMAKECC=$CC
          CMAKECXX=$CXX
          GCCXMLCC=$CMAKECC
@@ -109,13 +115,13 @@ case $COMPILERS in
          CXX=g++
          FORT=gfortran
          MPICC=mpicc
-         MPICXX=mpiCC
-         if test "$GCC333TEST" != "nope"; then
-            CMAKECC=gcc-3.3.3
-            CMAKECXX=g++-3.3.3
+         MPICCFLAGS="-cc=$CC"
+         if test "$MPICXXTEST" != "nope"; then
+            MPICXX=mpicxx
+            MPICXXFLAGS="-cxx=$CXX"
          else
-            CMAKECC=$CC
-            CMAKECXX=$CXX
+            MPICXX=mpig++
+            MPICXXFLAGS="-cc=$CXX"
          fi
          GCCXMLCC=$CMAKECC
          GCCXMLCXX=$CMAKECXX

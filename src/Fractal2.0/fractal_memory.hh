@@ -2,6 +2,8 @@
 #define _Fractal_Memory_Defined_
 namespace FractalSpace
 {
+  //  typedef HYPRE_Int HINT;
+  typedef int HINT;
   class Fractal_Memory
   {
   public:
@@ -47,10 +49,10 @@ namespace FractalSpace
     vector < vector <double> > RealIBoxes;
     vector <vector <int> > LeftCorners;
     vector <double> BigBox;
-    vector <int>ij_offsets;
-    vector <int>ij_counts;
-    vector <int>ij_offsetsB;
-    vector <int>ij_countsB;
+    vector <HINT>ij_offsets;
+    vector <HINT>ij_counts;
+    vector <HINT>ij_offsetsB;
+    vector <HINT>ij_countsB;
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
@@ -341,9 +343,12 @@ namespace FractalSpace
 		}
 	    }
 	}
+      int RANKY;
+      MPI_Comm_rank(FractalWorld,&RANKY);
       for(int FR=0;FR < FractalNodes;FR++)
 	{
-	  p_file->FileFractal << "Box fracAA " << Boxes[FR][0] << " " << Boxes[FR][1] << " " << Boxes[FR][2] << " " 
+	  if(RANKY == 0)
+	    p_file->FileFractal << "Box fracAA " << Boxes[FR][0] << " " << Boxes[FR][1] << " " << Boxes[FR][2] << " " 
 			      << Boxes[FR][3] << " " << Boxes[FR][4] << " " << Boxes[FR][5] << "\n";
 
 	}
