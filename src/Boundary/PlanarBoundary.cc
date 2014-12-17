@@ -120,7 +120,7 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
   // Here we switch between using the Neighbor magic or just doing an O(N)
   // search for anyone who overlaps the exit plane.
-  if (true) {
+  if (false) {
 
     // Begin by identifying the set of master and neighbor nodes, where master
     // nodes see through the enter plane, and neighbors see through the exit plane.
@@ -128,7 +128,13 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Set the list of control nodes.
     // std::copy(neighbor.masterBegin(), neighbor.masterEnd(), std::back_inserter(controlNodes));
-    std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
+    // std::copy(neighbor.coarseNeighborBegin(), neighbor.coarseNeighborEnd(), std::back_inserter(controlNodes));
+    const Field<Dimension, Vector>& pos = nodeList.positions();
+    for (typename Neighbor<Dimension>::const_iterator itr = neighbor.coarseNeighborBegin();
+         itr < neighbor.coarseNeighborEnd();
+         ++itr) {
+      if (mExitPlane.signedDistance(pos(*itr)) >= 0.0) controlNodes.push_back(*itr);
+    }
 
   } else {
 
@@ -143,7 +149,8 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
       //                                            (Hi*mEnterPlane.normal()).unitVector());
       const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
                                                 (Hi*mExitPlane.normal()).unitVector());
-      if (exitPlanePrime.minimumDistance(Vector::zero) <= kernelExtent) controlNodes.push_back(i);
+      const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
+      if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
       // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
     }
 
@@ -373,8 +380,8 @@ PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
   Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
   this->applyGhostBoundary(Hfield);
 
-//   // Update the neighbor information.
-//   nodeList.neighbor().updateNodes(); // (ghostNodes);
+  // // Update the neighbor information.
+  // nodeList.neighbor().updateNodes(); // (ghostNodes);
 }
 
 //------------------------------------------------------------------------------
