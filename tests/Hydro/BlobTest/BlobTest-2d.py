@@ -1,5 +1,10 @@
 #-------------------------------------------------------------------------------
 # The Blob Test
+# Based on the test presented in 
+# 1.	Agertz O, Moore B, Stadel J, Potter D, Miniati F, Read J, et al. 
+#       Fundamental differences between SPH and grid methods. Monthly Notices of
+#       the Royal Astronomical Society. 2007; 380(3):963-978.
+#       doi:10.1111/j.1365-2966.2007.12183.x.
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
@@ -82,6 +87,10 @@ commandLine(
     bx = 5.0,
     by = 5.0, 
 
+    chi = 10.0,  # Ratio of rhoblob/rhoext
+
+    goalTKH = 2.5,  # Goal time in units of t_KH
+
     # Resolution and node seeding.
     nx1 = 256,
     ny1 = 64,
@@ -116,9 +125,8 @@ commandLine(
     nTensile = 8,
 
     IntegratorConstructor = CheapSynchronousRK2Integrator,
-    goalTime = 7.0,
     steps = None,
-    vizCycle = 5,
+    vizCycle = 20,
     vizTime = 0.1,
     dt = 0.0001,
     dtMin = 1.0e-5, 
@@ -181,6 +189,15 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "blobtest-2d-%ix%i" % (nx1, ny1)
+
+# Figure out the goal time.
+csext = sqrt(gamma*Pequi/rhoext)
+vext = mach*csext
+tCrush = 2.0*br*sqrt(chi)/vext
+tKH = 1.6*tCrush
+goalTime = goalTKH * tKH
+
+print "Computed times (tCrush, tKH, goalTime) = (%g, %g, %g)" % (tCrush, tKH, goalTime)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -246,7 +263,7 @@ del nodes
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
 #Blob density is defined to be 10 times the external density
-    rhoblob=rhoext*10.0
+    rhoblob=rhoext*chi
     generatorOuter = GenerateNodeDistribution2d(nx1, ny1, rhoext,
                                                 distributionType = "lattice",
                                                 xmin = (xb0, yb0),
@@ -312,12 +329,7 @@ if restoreCycle is None:
 
     vel = outerNodes.velocity() #wind velocity
     for i in xrange(outerNodes.numInternalNodes):
-        cs = sqrt(gamma*Pequi/rho)
-        velx = mach*cs
-        vel[i].x = velx
-    #vel = innerNodes.velocity()
-    #for i in xrange(innerNodes.numInternalNodes):
-    #    vel[i]=Vector(velx,vely)
+        vel[i].x = vext
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists
