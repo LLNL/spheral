@@ -6,11 +6,8 @@
 #include "iterateIdealH.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
-
-#ifdef USE_MPI
-#include "mpi.h"
+#include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-#endif
 
 namespace Spheral {
 
@@ -246,22 +243,15 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // Assign the new H's.
     H.assignFields(H1);
 
-#ifdef USE_MPI
-    {
-      // Globally reduce the max H change.
-      double tmp = maxDeltaH;
-      MPI_Allreduce(&tmp, &maxDeltaH, 1, MPI_DOUBLE, MPI_MAX, Communicator::communicator());
-    }
-#endif
+    // Globally reduce the max H change.
+    maxDeltaH = allReduce(maxDeltaH, MPI_MAX, Communicator::communicator());
 
     // Output the statitics.
-#ifdef USE_MPI
-    if (rank == 0)
-#endif
-    cerr << "iterateIdealH: (iteration, deltaH) = ("
-         << itr << ", "
-         << maxDeltaH << ")"
-         << endl;
+    if (Process::getRank() == 0)
+      cerr << "iterateIdealH: (iteration, deltaH) = ("
+           << itr << ", "
+           << maxDeltaH << ")"
+           << endl;
 
   }
 
