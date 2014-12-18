@@ -9,6 +9,7 @@ from Spheral1d import *
 from SpheralTestUtilities import *
 import mpi
 import numpy as np
+#import matplotlib.pyplot as plt
 
 from CSPH_mod_package import *
 
@@ -82,6 +83,7 @@ commandLine(nx1 = 100,
             compatibleEnergy = True,
             gradhCorrection = True,
             linearConsistent = False,
+            ComputeL1Norm = False,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -303,6 +305,7 @@ xglobal = mpi.reduce(xlocal, mpi.SUM)
 dx = (x1 - x0)/nx1
 h1 = 1.0/(nPerh*dx)
 answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, twopi*kfreq, h1)
+#print "\n\nPERIOD=",1.0/(kfreq*cs)
 
 ### Compute the simulated specific entropy.
 ##rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
@@ -373,6 +376,22 @@ if graphics == "gnu":
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
+    if ComputeL1Norm:
+       xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
+       #rho = hydro.massDensity() 
+       fieldList = state.scalarFields(HydroFieldNames.massDensity)
+       #rho = field.internalValues()
+       for field in fieldList:
+          rho = [eval("%s" % "y") for y in field.internalValues()]
+          #plt.figure()
+          #plt.plot(xans,rhoans)
+          #plt.scatter(xans,rho)
+          #plt.xlim([np.min(xans),np.max(xans)])
+          #plt.ylim([np.min(rhoans),np.max(rhoans)])
+          #plt.show()
+          diff=np.array(rho)-np.array(rhoans)
+          L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
+          print "\n\nL1Norm=",L1Norm, "\n\n"
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
