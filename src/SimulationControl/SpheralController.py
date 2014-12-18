@@ -552,14 +552,14 @@ class SpheralController(RestartableObject):
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-##             from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary1d, \
-##                                                              NestedGridDistributedBoundary2d, \
-##                                                              NestedGridDistributedBoundary3d
-##             self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
-            from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
-                                                             BoundingVolumeDistributedBoundary2d, \
-                                                             BoundingVolumeDistributedBoundary3d
-            self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
+            from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary1d, \
+                                                             NestedGridDistributedBoundary2d, \
+                                                             NestedGridDistributedBoundary3d
+            self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
+            # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
+            #                                                  BoundingVolumeDistributedBoundary2d, \
+            #                                                  BoundingVolumeDistributedBoundary3d
+            # self.domainbc = eval("BoundingVolumeDistributedBoundary%s.instance()" % self.dim)
 
             # Iterate over each of the physics packages.
             for package in physicsPackages:
