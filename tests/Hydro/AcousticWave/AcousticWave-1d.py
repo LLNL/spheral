@@ -61,7 +61,7 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
-            filter = 0.01,
+            filter = 0.0,
 
             SVPH = False,
             CSPH = False,
@@ -164,23 +164,19 @@ cs = sqrt(cs2)
 pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
+mass = nodes1.mass()
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
     xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
     xi1 = newtonRaphsonFindRoot(func1, 0.0, 1.0, 1.0e-15, 1.0e-15)
-    xi = x0 + (x1 - x0)*0.5*(xi0 + xi1)
+    rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
+    rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
+    xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
     pos[i].x = xi
-    vel[i].x = 0.5*(A*cs*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)) +
-                    A*cs*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
-    rho[i] = rho1*0.5*((1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0))) +
-                       (1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0))))
-
-##    # Set the specific thermal energy.
-##    P1 = cs2*rhoi
-##    nodes1.specificThermalEnergy()[i] = P1/((gamma - 1.0)*rhoi)
-
-#nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
+    vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
+    rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
+    mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
