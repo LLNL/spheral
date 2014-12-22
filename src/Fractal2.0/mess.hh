@@ -348,44 +348,37 @@ namespace FractalSpace
 	  free_potRC();
 	}
     }
-    void doFFTWorld(int length_1,bool periodic)
+    void doFFTWorld(int how_long,bool periodic)
     {
-      //      cout << " messya " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
-      FFTRank=FractalRank;
-      int howlong=length_1;
       if(!periodic)
-	howlong*=2;
-      int maxFFT=howlong/2;
-      maxFFT=min(maxFFT,FractalNodes);
-      FFTNodes=min(FFTNodes,maxFFT);
-      while(howlong % FFTNodes != 0)
+	how_long*=2;
+      int each=2;
+      bool keep_trying=true;
+      while(keep_trying)
 	{
-	  FFTNodes--;
-	  assert(FFTNodes > 1);
+	  FFTNodes=how_long/each;
+	  keep_trying=!(how_long % each == 0 && FFTNodes <= FractalNodes);
+	  each+=2;
+	  assert(each < 12);
 	}
-      IAmAnFFTNode=FFTRank < FFTNodes;
-      //      cout << " messyb " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
-      vector <int>Franks(FFTNodes,-1);
-      if(FFTNodes == FractalNodes)
+      if(FractalRank < FFTNodes)
 	{
-	  for(int ni=0;ni < FFTNodes;ni++)
-	    Franks[ni]=ni;
+	  FFTRank=FractalRank;
+	  IAmAnFFTNode=true;
 	}
       else
 	{
+	  FFTRank=-1;
 	  IAmAnFFTNode=false;
-	  for(int ni=0;ni < FFTNodes;ni++)
-	    {
-	      Franks[ni]=ni;
-	      IAmAnFFTNode=IAmAnFFTNode || Franks[ni] == FractalRank;
-	    }
 	}
+      vector <int>Franks(FFTNodes,-1);
+      for(int ni=0;ni < FFTNodes;ni++)
+	Franks[ni]=ni;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Group_incl(FractalGroup, FFTNodes,&(*Franks.begin()), &FFTGroup);
       MPI_Comm_create(FractalWorld, FFTGroup, &FFTWorld);
       if(!IAmAnFFTNode)
 	{
-	  FFTRank=-1;
 	  start_x=9876543;
 	  length_x=0;
 	  total_memory=1;
@@ -396,8 +389,8 @@ namespace FractalSpace
 	  assert(FFTNodes == how_many_FFT_nodes());
 	}
       if(FractalRank == 0)
-	cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
-    }
+	cout << " messyc " << FractalRank << " " << how_long << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
+}
     void FFTWFinal()
     {
       if(IAmAnFFTNode)
@@ -636,14 +629,34 @@ namespace FractalSpace
       int answer=-1;
       if(integers > 0)
 	{
-	  dataI_in_send.resize(how_manyI);
+	  try
+	    {
+	      dataI_in_send.resize(how_manyI);
+	    }
+	  catch(bad_alloc& ba)
+	    {
+	      cout << "BAAD DATAI_IN " << ba.what() << " " << Rank << " " << Nodes << " " << how_manyI << " " << how_manyR << endl;
+	      for(int FR=0;FR<Nodes;FR++)
+		cout << " COUNTSI " << FR << " " << counts_out_send[FR] << " " << counts_in_send[FR] << "\n";
+	      assert(0);
+	    }
 	  //	  for(int ni=0;ni<extraI;ni++)
 	  //	    dataI_in_send[ni+startI]=dataI_out[Rank][ni];
 	  std::copy(dataI_out[Rank].begin(),dataI_out[Rank].begin()+extraI,dataI_in_send.begin()+startI);
 	}
       if(doubles > 0)
 	{
-	  dataR_in_send.resize(how_manyR);
+	  try
+	    {
+	      dataR_in_send.resize(how_manyR);
+	    }
+	  catch(bad_alloc& ba)
+	    {
+	      cout << "BAAD DATAR_IN " << ba.what() << " " << Rank << " " << Nodes << " " << how_manyI << " " << how_manyR << endl;
+	      for(int FR=0;FR<Nodes;FR++)
+		cout << " COUNTSR " << FR << " " << counts_out_send[FR] << " " << counts_in_send[FR] << "\n";
+	      assert(0);
+	    }
 	  //	  for(int ni=0;ni<extraR;ni++)
 	  //	    dataR_in_send[ni+startR]=dataR_out[Rank][ni];
 	  std::copy(dataR_out[Rank].begin(),dataR_out[Rank].begin()+extraR,dataR_in_send.begin()+startR);
