@@ -841,6 +841,7 @@ namespace FractalSpace
     {
       potential_point=p0.potential_point;
     }
+    /*
     void copy_force_shear_point_6()
     {
       force_shear_point.resize(6);
@@ -848,6 +849,15 @@ namespace FractalSpace
 	force_shear_point[ni]=(point_ud[0]->force_shear_point[ni]+point_ud[1]->force_shear_point[ni]+point_ud[2]->force_shear_point[ni]+
 			       point_ud[3]->force_shear_point[ni]+point_ud[4]->force_shear_point[ni]+point_ud[5]->force_shear_point[ni])/6.0;
     }
+    */
+    void copy_force_shear_point_6()
+    {
+      force_shear_point.resize(6);
+      for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+	force_shear_point[ni]=(get_point_ud_0(0)->force_shear_point[ni]+get_point_ud_0(1)->force_shear_point[ni]+get_point_ud_0(2)->force_shear_point[ni]+
+			       get_point_ud_0(3)->force_shear_point[ni]+get_point_ud_0(4)->force_shear_point[ni]+get_point_ud_0(5)->force_shear_point[ni])/6.0;
+    }
+    /*
     void copy_force_shear_point_4(vector <int>& witch)
     {
       force_shear_point.resize(6);
@@ -855,11 +865,27 @@ namespace FractalSpace
 	force_shear_point[ni]=(point_ud[witch[0]]->force_shear_point[ni]+point_ud[witch[1]]->force_shear_point[ni]+
 			       point_ud[witch[2]]->force_shear_point[ni]+point_ud[witch[3]]->force_shear_point[ni])*0.25;
     }
+    */
+    void copy_force_shear_point_4(vector <int>& witch)
+    {
+      force_shear_point.resize(6);
+      for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+	force_shear_point[ni]=(get_point_ud_0(witch[0])->force_shear_point[ni]+get_point_ud_0(witch[1])->force_shear_point[ni]+
+			       get_point_ud_0(witch[2])->force_shear_point[ni]+get_point_ud_0(witch[3])->force_shear_point[ni])*0.25;
+    }
+    /*
     void copy_force_shear_point_2(vector <int>& witch)
     {
       force_shear_point.resize(6);
       for(unsigned int ni=0;ni<force_shear_point.size();ni++)
 	force_shear_point[ni]=(point_ud[witch[0]]->force_shear_point[ni]+point_ud[witch[1]]->force_shear_point[ni])*0.5;
+    }
+    */
+    void copy_force_shear_point_2(vector <int>& witch)
+    {
+      force_shear_point.resize(6);
+      for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+	force_shear_point[ni]=(get_point_ud_0(witch[0])->force_shear_point[ni]+get_point_ud_0(witch[1])->force_shear_point[ni])*0.5;
     }
     void copy_force_shear_point_1()
     {
@@ -872,22 +898,45 @@ namespace FractalSpace
       dump();
       assert(point_pointer);
     }
+    /*
     void copy_force_point_6()
     {
       for(int ni=0;ni<3;ni++)
 	force_point[ni]=(point_ud[0]->force_point[ni]+point_ud[1]->force_point[ni]+point_ud[2]->force_point[ni]+
 		       point_ud[3]->force_point[ni]+point_ud[4]->force_point[ni]+point_ud[5]->force_point[ni])/6.0;
     }
+    */
+    void copy_force_point_6()
+    {
+      for(int ni=0;ni<3;ni++)
+	force_point[ni]=(get_point_ud_0(0)->force_point[ni]+get_point_ud_0(1)->force_point[ni]+get_point_ud_0(2)->force_point[ni]+
+			 get_point_ud_0(3)->force_point[ni]+get_point_ud_0(4)->force_point[ni]+get_point_ud_0(5)->force_point[ni])/6.0;
+    }
+    /*
     void copy_force_point_4(vector <int>& witch)
     {
       for(int ni=0;ni<3;ni++)
 	force_point[ni]=(point_ud[witch[0]]->force_point[ni]+point_ud[witch[1]]->force_point[ni]+
 		       point_ud[witch[2]]->force_point[ni]+point_ud[witch[3]]->force_point[ni])*0.25;
     }
+    */
+    void copy_force_point_4(vector <int>& witch)
+    {
+      for(int ni=0;ni<3;ni++)
+	force_point[ni]=(get_point_ud_0(witch[0])->force_point[ni]+get_point_ud_0(witch[1])->force_point[ni]+
+			 get_point_ud_0(witch[2])->force_point[ni]+get_point_ud_0(witch[3])->force_point[ni])*0.25;
+    }
+    /*
     void copy_force_point_2(vector <int>& witch)
     {
       for(int ni=0;ni<3;ni++)
 	force_point[ni]=(point_ud[witch[0]]->force_point[ni]+point_ud[witch[1]]->force_point[ni])*0.5;
+    }
+    */
+    void copy_force_point_2(vector <int>& witch)
+    {
+      for(int ni=0;ni<3;ni++)
+	force_point[ni]=(get_point_ud_0(witch[0])->force_point[ni]+get_point_ud_0(witch[1])->force_point[ni])*0.5;
     }
     void copy_force_point_1()
     {
@@ -902,17 +951,30 @@ namespace FractalSpace
     }
     void copy_potential_point_6()
     {
-      potential_point=(point_ud[0]->potential_point+point_ud[1]->potential_point+point_ud[2]->potential_point+
-		       point_ud[3]->potential_point+point_ud[4]->potential_point+point_ud[5]->potential_point)/6.0;
+      potential_point=(get_point_ud_0(0)->potential_point+get_point_ud_0(1)->potential_point+get_point_ud_0(2)->potential_point+
+		       get_point_ud_0(3)->potential_point+get_point_ud_0(4)->potential_point+get_point_ud_0(5)->potential_point)/6.0;
     }
+    /*
     void copy_potential_point_4(vector <int>& witch)
     {
       potential_point=(point_ud[witch[0]]->potential_point+point_ud[witch[1]]->potential_point+
 		       point_ud[witch[2]]->potential_point+point_ud[witch[3]]->potential_point)*0.25;
     }
+    */
+    void copy_potential_point_4(vector <int>& witch)
+    {
+      potential_point=(get_point_ud_0(witch[0])->potential_point+get_point_ud_0(witch[1])->potential_point+
+		       get_point_ud_0(witch[2])->potential_point+get_point_ud_0(witch[3])->potential_point)*0.25;
+    }
+    /*
     void copy_potential_point_2(vector <int>& witch)
     {
       potential_point=(point_ud[witch[0]]->potential_point+point_ud[witch[1]]->potential_point)*0.5;
+    }
+    */
+    void copy_potential_point_2(vector <int>& witch)
+    {
+      potential_point=(get_point_ud_0(witch[0])->potential_point+get_point_ud_0(witch[1])->potential_point)*0.5;
     }
     void copy_potential_point_1()
     {

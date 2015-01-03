@@ -166,11 +166,13 @@ namespace FractalSpace
 	for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
 	    group_itr!=mem.all_groups[lev].end();group_itr++)
 	  force_at_point(**group_itr,frac);
+	FileFractal << " Finished LEVEL " << lev << "\n";
       }
     if(highest_level_fft < highest_level_used)
       {
 	for(int lev=highest_level_fft+1;lev <= highest_level_used;++lev)
 	  {
+	    FileFractal << " Starting A LEVEL " << lev << "\n";
 	    for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
 		group_itr!=mem.all_groups[lev].end();group_itr++)
 	      {
@@ -178,10 +180,12 @@ namespace FractalSpace
 		potential_start(group);
 		force_at_point(group,frac);
 	      } 
+	    FileFractal << " Finishing A LEVEL " << lev << "\n";
 	  }
       }
     for(int level=0;level <= frac.get_level_max();level++)
       {
+	FileFractal << " Starting B LEVEL " << level << "\n";
 	for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	    group_itr!=mem.all_groups[level].end();group_itr++)
 	  {
@@ -194,6 +198,7 @@ namespace FractalSpace
 	    force_at_particle_sharp(group,frac); 		
 	    //	    FileFractal << "sharpieb " << frac.get_level_max() << "\n";
 	  }
+	FileFractal << " Finishing B LEVEL " << level << "\n";
       }
     FileFractal << "calling fractal " << &frac << "\n";
     sum_pot_forces(frac);

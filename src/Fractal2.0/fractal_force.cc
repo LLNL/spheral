@@ -51,6 +51,9 @@
 ***  TC Villumsen at 13 y.o.:
 ***   Mom, Dad does not do any work, all he does is read magazines, play on the computer and talk with his friends.
 
+***  Nina at 11 y.o.
+***  I am not a kid, I am a highly sophisticated child.
+
 ***  Mike Owen:
 ***  Our simulations are better than reality..
 ***  As soon as you get a program to work 
@@ -540,6 +543,7 @@ namespace FractalSpace
 	*/
 	Full_Stop(fractal_memory,41);
 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
+	//	fractal_memory.global_level_max=0;// *****************************
 	//	fractal_memory.global_level_max=2;
 	// *****
 	// loop over all levels > 0 
