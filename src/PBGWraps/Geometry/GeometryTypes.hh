@@ -1,6 +1,7 @@
 #ifndef __PBGWRAPS_GEOMETRYTYPES__
 #define __PBGWRAPS_GEOMETRYTYPES__
 
+#include "Python.h"
 #include <vector>
 #include <string>
 #include <sstream>
@@ -203,6 +204,34 @@ printReprThirdRankTensor(const TRTensor& val) {
   }
   s << ")";
   return s.str();
+}
+
+//------------------------------------------------------------------------------
+// Provide a function to construct a Geometry type (Vector, Tensor, etc.) from
+// a sequence.
+//------------------------------------------------------------------------------
+template<typename GeomType>
+GeomType*
+constructGeomTypeFromSequence(PyObject* obj) {
+  GeomType* result = new GeomType;
+  if (PySequence_Check(obj) != 1) {
+    PyErr_SetString(PyExc_ValueError, "Error: attempt to construct a GeomType from a non-sequence");
+    return result;
+  }
+  const Py_ssize_t n = PySequence_Size(obj);
+  if (n != DataTypeTraits<GeomType>::numElements(*result)) {
+    PyErr_SetString(PyExc_ValueError, "Error: attempt to construct a GeomType from a sequence of incorrect size.");
+    return result;
+  }
+  for (Py_ssize_t i = 0; i != n; ++i) {
+    PyObject* numobj = PySequence_GetItem(obj, i);
+    if (PyNumber_Check(numobj) != 1) {
+      PyErr_SetString(PyExc_ValueError, "Error: attempt to construct a GeomType from a sequence containing non-numbers.");
+      return result;
+    }
+    *(result->begin() + i) = PyFloat_AsDouble(numobj);
+  }
+  return result;
 }
 
 }
