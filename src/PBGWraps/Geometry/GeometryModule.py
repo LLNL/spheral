@@ -75,9 +75,6 @@ class Geometry:
         self.addVectorMethods(self.Vector3d, 3)
 
         # Add methods to Tensors.
-        self.addTensorMethods(self.Tensor1d, "Tensor1d", 1)
-        self.addTensorMethods(self.Tensor2d, "Tensor2d", 2)
-        self.addTensorMethods(self.Tensor3d, "Tensor3d", 3)
         self.Tensor1d.add_constructor([param("double", "xx", default_value = "0.0")])
         self.Tensor2d.add_constructor([param("double", "xx", default_value = "0.0"),
                                        param("double", "xy", default_value = "0.0"),
@@ -92,11 +89,11 @@ class Geometry:
                                        param("double", "zx", default_value = "0.0"),
                                        param("double", "zy", default_value = "0.0"),
                                        param("double", "zz", default_value = "0.0")])
+        self.addTensorMethods(self.Tensor1d, "Tensor1d", 1)
+        self.addTensorMethods(self.Tensor2d, "Tensor2d", 2)
+        self.addTensorMethods(self.Tensor3d, "Tensor3d", 3)
 
         # Add methods to SymTensors.
-        self.addSymTensorMethods(self.SymTensor1d, "SymTensor1d", 1)
-        self.addSymTensorMethods(self.SymTensor2d, "SymTensor2d", 2)
-        self.addSymTensorMethods(self.SymTensor3d, "SymTensor3d", 3)
         self.SymTensor1d.add_constructor([param("double", "xx", default_value = "0.0")])
         self.SymTensor2d.add_constructor([param("double", "xx", default_value = "0.0"),
                                           param("double", "xy", default_value = "0.0"),
@@ -111,6 +108,9 @@ class Geometry:
                                           param("double", "zx", default_value = "0.0"),
                                           param("double", "zy", default_value = "0.0"),
                                           param("double", "zz", default_value = "0.0")])
+        self.addSymTensorMethods(self.SymTensor1d, "SymTensor1d", 1)
+        self.addSymTensorMethods(self.SymTensor2d, "SymTensor2d", 2)
+        self.addSymTensorMethods(self.SymTensor3d, "SymTensor3d", 3)
 
         # Add methods to ThirdRankTensors.
         self.addThirdRankTensorMethods(self.ThirdRankTensor1d, 1)
@@ -178,6 +178,9 @@ class Geometry:
         x.add_constructor([param("double", "x"), param("double", "y")])
         x.add_constructor([param("double", "x"), param("double", "y"), param("double", "z")])
         x.add_constructor([param(me, "rhs")])
+        x.add_function_as_constructor("constructGeomTypeFromSequence<%s>" % vecName,
+                                      retval(ptr(vecName), caller_owns_return=True),
+                                      [param("PyObject*", "sequence", transfer_ownership=False)])
     
         # x, y, z
         x.add_instance_attribute("x", "double", False, "x", "x")
@@ -283,7 +286,10 @@ class Geometry:
         x.add_constructor([])
         x.add_constructor([param(ten, "rhs")])
         x.add_constructor([param(symten, "rhs")])
-    
+        x.add_function_as_constructor("constructGeomTypeFromSequence<%s>" % me,
+                                      retval(ptr(me), caller_owns_return=True),
+                                      [param("PyObject*", "sequence", transfer_ownership=False)])
+
         # Components.
         x.add_instance_attribute("xx", "double", False, "xx", "xx")
         x.add_instance_attribute("xy", "double", False, "xy", "xy")
@@ -430,6 +436,9 @@ class Geometry:
         x.add_constructor([])
         x.add_constructor([param("double", "val")])
         x.add_constructor([param(me, "rhs")])
+        x.add_function_as_constructor("constructGeomTypeFromSequence<%s>" % me,
+                                      retval(ptr(me), caller_owns_return=True),
+                                      [param("PyObject*", "sequence", transfer_ownership=False)])
     
         # Index by indicies.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k")], custom_name="__call__")
