@@ -153,7 +153,7 @@ namespace FractalSpace
 	mem.p_mess->fftw_complex_to_real();
 	mem.p_mess->free_potC();
 	mem.p_mess->create_potRS();
-	FileFractal << " POTRS " << mem.p_mess->total_memory << " " << length << " " << mem.p_mess->length_x << endl;
+	FileFractal << " POTRS " << mem.p_mess->total_memory << " " << length << " " << mem.p_mess->length_x << "\n";
 	std::copy(mem.p_mess->potR,mem.p_mess->potR+2*mem.p_mess->total_memory,mem.p_mess->potRS);
 	mem.p_mess->free_potR();
 	Full_Stop(mem,39);
