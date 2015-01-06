@@ -1124,7 +1124,7 @@ namespace FractalSpace
       countR=0;
       try
 	{
-	  cout << " testtetsA " << FractalNodes0 << " " << countsa_in[FractalRank] << " " << integers << " " << doubles << "\n";
+	  //	  cout << " testtestA " << FractalNodes0 << " " << integers << " " << doubles << "\n";
 	  for(int FR0=0;FR0<FractalNodes0;FR0++)
 	    {
 	      for(int c=0;c<countsa_in[FR0];c++)
@@ -1144,7 +1144,7 @@ namespace FractalSpace
 		    }
 		}
 	    }
-	  cout << "testtestB " << FractalNodes0 << " " << countsa_in[FractalRank] << " " << integers << " " << doubles << endl;
+	  //	  cout << "testtestB " << FractalNodes0 << " " << integers << " " << doubles << endl;
 	}
       catch(bad_alloc& ba)
 	{
@@ -1155,7 +1155,7 @@ namespace FractalSpace
 	  FF << endl;
 	  assert(0);
 	}
-      FF << "testtestC " << FractalNodes0 << " " << countsa_in[FractalRank] << " " << integers << " " << doubles << endl;
+      FF << "testtestC " << FractalNodes0 <<  " " << integers << " " << doubles << endl;
       dataI_in.clear();
       dataR_in.clear();
       FF << " SendOne HH " << FractalRank <<  "\n";
