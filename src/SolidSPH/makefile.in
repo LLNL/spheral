@@ -1,0 +1,19 @@
+# -*-makefile-*-
+# SolidSpheral++ SolidSPH package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = SolidSPH
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/SolidSPHHydroBaseInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/SolidSPHHydros.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

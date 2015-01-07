@@ -19,13 +19,15 @@ PKGS = \
 	@PYTHONPKGDIR@
 
 #-------------------------------------------------------------------------------
-SPHERALDIR = @SPHERALDIR@
+srcdir = @srcdir@
+VPATH = @srcdir@
+SPHERALINSTALLDIR = @SPHERALINSTALLDIR@
 LIBDIR = @LIBDIR@
 PYTHONDIR  = @PYINCLUDEDIR@
 PYTHONLIB  = @PYLIBS@
 PYTHONEXE  = @PYTHON@
-BOOSTDIR = $(SPHERALDIR)/boost
-HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
+BOOSTDIR = $(prefix)/boost
+HTMLDOCDIR = $(prefix)/PythonInterfaceDoc
 
 PYFFLEDIR = $(SRCTOP)/Pyffle
 HDFINCDIR = /usr/local/Spheral++/include
@@ -86,7 +88,7 @@ $(LIB):
 	rm -fr $(PYFFLEMODULE) $(LINKLIST).1
 
 pycompileall:  force_build
-	$(PYTHONEXE) $(SPHERALDIR)/lib/python$(PYTHONVERSION)/compileall.py $(LIBDIR)
+	$(PYTHONEXE) $(prefix)/lib/python$(PYTHONVERSION)/compileall.py $(LIBDIR)
 
 cxxonly:
 	for pckg in $(CXXPKGS); do \
@@ -106,7 +108,7 @@ clean:
 distclean:
 	$(MAKE) clean
 	$(MAKE) -C thirdPartyLibs clean
-	rm -fr $(SPHERALDIR)/bin $(SPHERALDIR)/doc $(SPHERALDIR)/include $(SPHERALDIR)/lib $(SPHERALDIR)/share $(SPHERALDIR)/man $(SPHERALDIR)/info $(SPHERALDIR)/Applications $(SPHERALDIR)/Python.framework $(SPHERALDIR)/atsMachines
+	rm -fr $(prefix)/bin $(prefix)/doc $(prefix)/include $(prefix)/lib $(prefix)/share $(prefix)/man $(prefix)/info $(prefix)/Applications $(prefix)/Python.framework $(prefix)/atsMachines
 
 spotless:
 	for pckg in $(CXXPKGS); do \

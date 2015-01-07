@@ -130,9 +130,40 @@ SETUP_ANEOS
 SETUP_HELMHOLTZ
 
 # -----------------------------------------------
-# Output the makefile
+# Output the processed AC files
 # -----------------------------------------------
 AC_OUTPUT(helpers/makefile_master \
           makefile \
+          thirdPartyLibs/makefile \
+          Geometry/makefile \
+          NodeList/makefile \
+          Field/makefile \
+          FieldOperations/makefile \
+          Kernel/makefile \
+          Material/makefile \
+          Neighbor/makefile \
+          DataBase/makefile \
+          Boundary/makefile \
+          Physics/makefile \
+          ArtificialViscosity/makefile \
+          Hydro/makefile \
+          ExternalForce/makefile \
+          Gravity/makefile \
+          Integrator/makefile \
+          FileIO/makefile \
+          DataOutput/makefile \
+          Utilities/makefile \
+          NodeGenerators/makefile \
+          SimulationControl/makefile \
+          SPH/makefile \
+          CSPH/makefile \
+          SVPH/makefile \
+          TaylorSPH/makefile \
+          Mesh/makefile \
+          Damage/makefile \
+          SolidMaterial/makefile \
+          SolidSPH/makefile \
+          Strength/makefile \
+          ArtificialConduction/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py)

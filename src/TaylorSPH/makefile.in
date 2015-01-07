@@ -1,0 +1,20 @@
+# -*-makefile-*-
+# Spheral++ TaylorSPH package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = TaylorSPH
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/computeTaylorSPHCorrectionsInst.cc \
+	$(srcdir)/TaylorSPHHydroBaseInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/TaylorSPHHydros.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

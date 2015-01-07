@@ -1,0 +1,29 @@
+# -*-makefile-*-
+# Spheral++ Material package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Material
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/PhysicalConstants.cc \
+	$(srcdir)/EquationOfStateInst.cc \
+	$(srcdir)/GammaLawGasInst.cc \
+	$(srcdir)/PolytropicEquationOfStateInst.cc \
+	$(srcdir)/IsothermalEquationOfStateInst.cc \
+	$(HELMSRCS)
+
+F90SRCTARGETS = \
+	$(HELMFSRCS)
+
+PYTHONTARGETS = \
+	$(srcdir)/MaterialUnits.py \
+	$(srcdir)/MaterialEquationsOfState.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+EXTRALIBS = $(HELMLIBS)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

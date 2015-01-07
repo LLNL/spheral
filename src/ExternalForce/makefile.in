@@ -1,0 +1,20 @@
+# -*-makefile-*-
+# Spheral++ ExternalForce package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = ExternalForce
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/PointPotentialInst.cc \
+	$(srcdir)/NFWPotentialInst.cc \
+	$(srcdir)/ConstantAccelerationInst.cc \
+	$(srcdir)/LinearAccelerationInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+##EXTRAFLAGS = -DDEBUG
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

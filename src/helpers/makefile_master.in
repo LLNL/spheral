@@ -9,13 +9,12 @@ includedir =   @includedir@
 libdir = @libdir@
 
 INSTALL = @INSTALL@
-SPHERALDIR = @SPHERALDIR@
-SRCTOP = @SRCDIR@
+SPHERALBUILDDIR = @SPHERALBUILDDIR@
 TOPLIBDIR =  @TOPLIBDIR@
 LIBDIR =     @LIBDIR@
 PYTHONLIBDIR   = @PYLIBDIR@
-THIRDPARTYLIBDIR = $(SPHERALDIR)/lib
-THIRDPARTYINCDIR = $(SPHERALDIR)/include
+THIRDPARTYLIBDIR = $(prefix)/lib
+THIRDPARTYINCDIR = $(prefix)/include
 BUILDWILDMAGIC = @BUILDWILDMAGIC@
 WILDMAGICTARGET = @WILDMAGICTARGET@
 SILOFLAGS = @SILOFLAGS@
@@ -46,7 +45,7 @@ TAUTARGET = # @TAUTARGET@
 TAUCONFIGUREFLAGS = # @TAUCONFIGUREFLAGS@
 TAUARCH = # @TAUARCH@
 PYSTE = $(PYSTEPATH)/pyste.py
-HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
+HTMLDOCDIR = $(prefix)/PythonInterfaceDoc
 BPLINCS = @BPLINCS@
 HDF5FLAGS = @HDF5FLAGS@
 POLYTOPEFLAGS = @POLYTOPEFLAGS@
@@ -66,13 +65,13 @@ HELMLIBS = @HELMLIBS@
 OPENSUBDIVTARGETS = @OPENSUBDIVTARGETS@
 OPENSUBDIVLIBS = @OPENSUBDIVLIBS@
 
-UTILDIR = $(SRCTOP)/Utilities
+UTILDIR = $(SPHERALTOP)/Utilities
 HDFINCDIR = /usr/local/Spheral++/include
 HDFLIBDIR = /usr/local/Spheral++/lib
 
 WMLIBEXT = @WMLIBEXT@
-WILDMAGICINCDIR = $(SPHERALDIR)/WildMagic5/Include
-WILDMAGICLIBDIR = $(SPHERALDIR)/WildMagic5/Library/$(WILDMAGICTARGET)
+WILDMAGICINCDIR = $(prefix)/WildMagic5/Include
+WILDMAGICLIBDIR = $(prefix)/WildMagic5/Library/$(WILDMAGICTARGET)
 WILDMAGICLIBS = -lWm5Core -lWm5Imagics -lWm5Mathematics -lWm5Physics
 
 PYTHONDATEFILE = lastpythonmake
@@ -90,7 +89,7 @@ DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
 # g++ flags
 
-INCS = $(EXTRAINCLUDES) -I$(SRCTOP) -I$(BOOSTROOT) -I$(SRCTOP)/../../include
+INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(BOOSTROOT) -I$(SPHERALTOP)/../../include
 
 # Allow developers to override optimization flag
 ifneq ("$(opt_override)","")
@@ -158,7 +157,7 @@ PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 # Pybindgen stuff
 PYTHONBINDING = @PYTHONBINDING@
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
-  EXTRAINCLUDES += -I$(SPHERALDIR)/include/python$(PYTHONVERSION)
+  EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
   PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS))
@@ -267,7 +266,7 @@ force_build:
 
 #.$(PKGNAME)/%.cpp:  %.pyste
 #	$(SHELL) -ec 'if ! test -a $(LASTPYSTEMAKE); then \
-#        export PATH=$(SPHERALDIR)/bin:$$PATH; \
+#        export PATH=$(prefix)/bin:$$PATH; \
 #	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS); \
 #	touch $(LASTPYSTEMAKE); fi'
 #	mv .$(PKGNAME)/_$*.cpp .$(PKGNAME)/$*.cpp
@@ -282,7 +281,7 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
 
 # Machine dependent rules for generating dependency files.
-include $(SRCTOP)/helpers/@DEPENDRULES@
+include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
 .INTERMEDIATE:	Methods.cc
 .DELETE_ON_ERROR: Methods.cc
@@ -356,7 +355,7 @@ $(PYSTEDATE): $(PYSTETARGETS)
 	@echo "################################################################################"
 	@echo "# Generating Boost.Python source for $(MODTARGET)"
 	@echo "################################################################################"
-	$(SHELL) -ec 'export PATH=$(SPHERALDIR)/bin:$$PATH; \
+	$(SHELL) -ec 'export PATH=$(prefix)/bin:$$PATH; \
 	env GCCXML_COMPILER=$(GCCXMLCXX) $(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS); \
 	for f in $(PYSTEBASES); do \
 	mv .$(PKGNAME)/_$$f.cpp .$(PKGNAME)/$$f.cpp; \
@@ -405,7 +404,7 @@ $(PBGMODTARGET): $(PBGOBJS)
 #-------------------------------------------------------------------------------
 $(LINKLIST):	$(OBJS)
 	rm -fr $(LINKLIST)
-	$(PYTHONEXE) $(SRCTOP)/helpers/prepend_dir.py -c "prepend('$(LIBTARGET)', '$(PKGDIR)')" > $(LINKLIST)
+	$(PYTHONEXE) $(SPHERALTOP)/helpers/prepend_dir.py -c "prepend('$(LIBTARGET)', '$(PKGDIR)')" > $(LINKLIST)
 
 #-------------------------------------------------------------------------------
 $(PYTHONTARGETS):	$(PYTHONDATEFILE)
@@ -419,7 +418,7 @@ $(PYTHONDATEFILE):
 
 #-------------------------------------------------------------------------------
 docs:
-	pushd $(SRCTOP) && doxygen spheral.doxygen && popd
+	pushd $(SPHERALTOP) && doxygen spheral.doxygen && popd
 
 #-------------------------------------------------------------------------------
 clean:

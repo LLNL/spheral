@@ -1,0 +1,30 @@
+# -*-makefile-*-
+# Spheral++ SVPH package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = SVPH
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/computeSVPHCorrectionsInst.cc \
+	$(srcdir)/computeSVPHCorrectionsOnFacesInst.cc \
+	$(srcdir)/computeSumVoronoiCellMassDensityFromFacesInst.cc \
+	$(srcdir)/sampleFieldListSVPHInst.cc \
+	$(srcdir)/gradientFieldListSVPHInst.cc \
+	$(srcdir)/SVPHFacetedHydroBaseInst.cc \
+	$(srcdir)/SVPHCorrectionsPolicyInst.cc \
+	$(srcdir)/SVPHMassDensityPolicyInst.cc \
+	$(srcdir)/CompatibleFaceSpecificThermalEnergyPolicyInst.cc \
+	$(srcdir)/MeshIdealHPolicyInst.cc \
+	$(srcdir)/SpecificThermalEnergyVolumePolicyInst.cc \
+	$(srcdir)/CellPressurePolicyInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/SVPHHydros.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

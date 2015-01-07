@@ -1,0 +1,38 @@
+# -*-makefile-*-
+# SolidSpheral++ SolidMaterial package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = SolidMaterial
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/LinearPolynomialEquationOfStateInst.cc \
+	$(srcdir)/GruneisenEquationOfStateInst.cc \
+	$(srcdir)/MurnahanEquationOfStateInst.cc \
+	$(srcdir)/TillotsonEquationOfStateInst.cc \
+	$(srcdir)/StrengthModelInst.cc \
+	$(srcdir)/SteinbergGuinanStrengthInst.cc \
+	$(srcdir)/SteinbergGuinanLundStrengthInst.cc \
+	$(srcdir)/PorousEquationOfStateInst.cc \
+	$(srcdir)/PorousStrengthModelInst.cc \
+	$(srcdir)/StrainPorosityInst.cc \
+	$(ANEOSSRCS)
+
+FSRCTARGETS = \
+	$(ANEOSFSRCS)
+
+PYTHONTARGETS = \
+	$(srcdir)/MaterialPropertiesLib.py \
+	$(srcdir)/SolidMaterialUnits.py \
+	$(srcdir)/SolidMaterialEquationsOfState.py \
+	$(srcdir)/ShadowTillotsonEquationOfState.py \
+	$(srcdir)/ShadowConstantStrength.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+EXTRALIBS = $(ANEOSLIBS)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

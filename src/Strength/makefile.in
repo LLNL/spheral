@@ -1,0 +1,26 @@
+# -*-makefile-*-
+# SolidSpheral++ Strength package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Strength
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/SolidFieldNames.cc \
+	$(srcdir)/SolidNodeListInst.cc \
+	$(srcdir)/DeviatoricStressPolicyInst.cc \
+	$(srcdir)/PlasticStrainPolicyInst.cc \
+	$(srcdir)/BulkModulusPolicyInst.cc \
+	$(srcdir)/ShearModulusPolicyInst.cc \
+	$(srcdir)/YieldStrengthPolicyInst.cc \
+	$(srcdir)/StrengthSoundSpeedPolicyInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/SolidNodeLists.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

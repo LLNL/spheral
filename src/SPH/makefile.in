@@ -1,0 +1,25 @@
+# -*-makefile-*-
+# Spheral++ SPH package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = SPH
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/computeSPHSumMassDensityInst.cc \
+	$(srcdir)/computeSPHOmegaGradhCorrectionInst.cc \
+	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc \
+	$(srcdir)/computeHydrostaticEquilibriumPressure.cc \
+	$(srcdir)/SPHHydroBaseInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/SPHHydros.py \
+	$(srcdir)/SPHUtilities.py \
+	$(srcdir)/FacetedSurfaceASPHHydro.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

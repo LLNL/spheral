@@ -1,0 +1,21 @@
+# -*-makefile-*-
+# Spheral++ Neighbor package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Neighbor
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/GridCellIndexInst.cc \
+	$(srcdir)/GridCellPlaneInst.cc \
+	$(srcdir)/NeighborInst.cc \
+	$(srcdir)/NestedGridNeighborInst.cc \
+	$(srcdir)/TreeNeighborInst.cc \
+	$(srcdir)/ConnectivityMapInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

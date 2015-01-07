@@ -1,0 +1,25 @@
+# -*-makefile-*-
+# Spheral++ ArtificialViscosity package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = ArtificialViscosity
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/ArtificialViscosityInst.cc \
+	$(srcdir)/MonaghanGingoldViscosityInst.cc \
+	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc \
+	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc \
+	$(srcdir)/FiniteVolumeViscosityInst.cc \
+	$(srcdir)/CSPHMonaghanGingoldViscosityInst.cc \
+	$(srcdir)/TensorSVPHViscosityInst.cc \
+	$(srcdir)/TensorCSPHViscosityInst.cc \
+	$(srcdir)/VonNeumanViscosityInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+##EXTRAFLAGS = -DDEBUG
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master
