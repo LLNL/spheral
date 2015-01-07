@@ -1,0 +1,30 @@
+# -*-makefile-*-
+# Spheral++ DataBase package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = DataBase
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/StateBaseInst.cc \
+	$(srcdir)/StateInst.cc \
+	$(srcdir)/StateDerivativesInst.cc \
+	$(srcdir)/DataBaseInst.cc \
+	$(srcdir)/IncrementStateInst.cc \
+	$(srcdir)/IncrementBoundedStateInst.cc \
+	$(srcdir)/ReplaceStateInst.cc \
+	$(srcdir)/ReplaceBoundedStateInst.cc \
+	$(srcdir)/CopyStateInst.cc \
+	$(srcdir)/IncrementFieldListInst.cc \
+	$(srcdir)/IncrementBoundedFieldListInst.cc \
+	$(srcdir)/ReplaceFieldListInst.cc \
+	$(srcdir)/ReplaceBoundedFieldListInst.cc \
+	$(srcdir)/CopyFieldListInst.cc \
+	$(srcdir)/CompositeFieldListPolicyInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

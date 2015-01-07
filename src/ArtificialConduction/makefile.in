@@ -1,0 +1,19 @@
+# -*-makefile-*-
+# Spheral++ Artificial Conduction package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = ArtificialConduction
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/ArtificialConductionInst.cc \
+	$(srcdir)/ArtificialConductionPolicyInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+# EXTRAFLAGS = -DDEBUG
+# EXTRAFLAGS = -DVERBOSEDT
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

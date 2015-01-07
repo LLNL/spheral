@@ -1,0 +1,32 @@
+# -*-makefile-*-
+# Spheral++ CSPH package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = CSPH
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/computeCSPHSumMassDensityInst.cc \
+	$(srcdir)/computeHullSumMassDensityInst.cc \
+	$(srcdir)/computeCSPHCorrectionsInst.cc \
+	$(srcdir)/computeCSPHEvaluationInst.cc \
+	$(srcdir)/computeCSPHIntegralInst.cc \
+	$(srcdir)/computeHullVolumesInst.cc \
+	$(srcdir)/computeHVolumesInst.cc \
+	$(srcdir)/computeNeighborHullInst.cc \
+	$(srcdir)/computeVoronoiCentroids.cc \
+	$(srcdir)/centerOfMass.cc \
+	$(srcdir)/CSPHHydroBaseInst.cc \
+	$(srcdir)/interpolateCSPHInst.cc \
+	$(srcdir)/gradientCSPHInst.cc \
+	$(srcdir)/HVolumePolicyInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/CSPHHydros.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

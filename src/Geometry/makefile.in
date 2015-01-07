@@ -1,0 +1,34 @@
+# -*-makefile-*-
+# Spheral++ Geometry package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Geometry
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/Dimension.cc \
+	$(srcdir)/GeomVector.cc \
+	$(srcdir)/GeomTensor.cc \
+	$(srcdir)/GeomSymmetricTensor.cc \
+	$(srcdir)/Geom3Vector.cc \
+	$(srcdir)/GeomThirdRankTensor.cc \
+	$(srcdir)/GeomPlane.cc \
+	$(srcdir)/Jacobi.cc \
+	$(srcdir)/Jacobi2.cc \
+	$(srcdir)/buildEigenVector.cc \
+	$(srcdir)/EigenStruct.cc \
+	$(srcdir)/computeEigenValues.cc \
+	$(srcdir)/fakemain.cc \
+	$(srcdir)/GeomFacet2d.cc \
+	$(srcdir)/GeomFacet3d.cc \
+	$(srcdir)/GeomPolygon.cc \
+	$(srcdir)/GeomPolyhedron.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+EXTRALIBS = -lqhullstatic
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

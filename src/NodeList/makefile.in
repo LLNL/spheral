@@ -1,0 +1,32 @@
+# -*-makefile-*-
+# Spheral++ NodeList package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = NodeList
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/NodeListRegistrarInst.cc \
+	$(srcdir)/NodeListInst.cc \
+	$(srcdir)/FluidNodeListInst.cc \
+	$(srcdir)/SmoothingScaleBaseInst.cc \
+	$(srcdir)/FixedSmoothingScaleInst.cc \
+	$(srcdir)/SPHSmoothingScaleInst.cc \
+	$(srcdir)/ASPHSmoothingScaleInst.cc \
+	$(srcdir)/nthNodalMomentInst.cc \
+	$(srcdir)/generateVoidNodesInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/FluidNodeLists.py \
+	$(srcdir)/VoidNodeLists.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master
+
+#-------------------------------------------------------------------------------
+TestSphNodeList:  tests/TestSphNodeList.cc $(HDRS)
+	$(CXX) $(CXXFLAGS) -I/home/owen/Spheral++ -o tests/TestSphNodeList tests/TestSphNodeList.cc ${SRCTARGETS:.cc=.o} /home/owen/Spheral++/Field/FieldBase.o /home/owen/Spheral++/Field/Field.o $(LIBS)

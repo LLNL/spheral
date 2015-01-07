@@ -1,0 +1,18 @@
+# -*-makefile-*-
+# Spheral++ Physics package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Physics
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/PhysicsInst.cc \
+	$(srcdir)/GenericHydroInst.cc \
+	$(srcdir)/GenericBodyForceInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

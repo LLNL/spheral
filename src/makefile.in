@@ -1,0 +1,125 @@
+# -*-makefile-*-
+# Spheral++ toplevel makefile
+#-------------------------------------------------------------------------------
+PKGNAME = Spheral
+SPHERALTOP = .
+comma:= ,
+export EXTRAINCLUDES
+export EXTRALIBS
+export EXTRAFLAGS
+export LIBDIR
+
+include helpers/makefile_master
+
+# Packages that must be built
+PKGS = \
+	thirdPartyLibs \
+	$(CXXPKGS) \
+	@PYFFLE@ \
+	@PYTHONPKGDIR@
+
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+SPHERALINSTALLDIR = @SPHERALINSTALLDIR@
+LIBDIR = @LIBDIR@
+PYTHONDIR  = @PYINCLUDEDIR@
+PYTHONLIB  = @PYLIBS@
+PYTHONEXE  = @PYTHON@
+BOOSTDIR = $(prefix)/boost
+HTMLDOCDIR = $(prefix)/PythonInterfaceDoc
+
+PYFFLEDIR = $(SRCTOP)/Pyffle
+HDFINCDIR = /usr/local/Spheral++/include
+HDFLIBDIR = /usr/local/Spheral++/lib
+
+IMPFILES = $(join $(IMPPKGS), $(patsubst %, /lib%.imp, $(IMPPKGS)))
+
+#-------------------------------------------------------------------------------
+PKGLINKPATHS := $(patsubst %, -L%, $(CXXPKGS))
+PKGLIBS := $(patsubst %, -l%, $(CXXPKGS))
+PKGCLEAN = $(PKGS)
+PKGSPOTLESS = $(PKGS)
+
+LINKLIST = linklist
+
+#-------------------------------------------------------------------------------
+.PHONY:	all rmlists clean spotless grease
+
+force_build:
+
+all:	@PYTHONPKGDIR@ $(CXXPKGS)
+	$(MAKE) pycompileall
+
+thirdPartyLibs:	force_build
+	cd $(SRCTOP)/$@; \
+	$(MAKE) all
+
+$(IMPFILES):	thirdPartyLibs force_build
+	cd $(@D); \
+	$(MAKE) $(@F)
+
+$(CXXPKGS):	$(IMPFILES) thirdPartyLibs force_build
+	cd $(SRCTOP)/$@; \
+	$(MAKE) all
+
+@PYTHONPKGDIR@:	$(CXXPKGS) $(IMPFILES) thirdPartyLibs force_build
+	cd $(SRCTOP)/$@; \
+	$(MAKE) all
+
+DistributedMake: thirdPartyLibs force_build
+	@SUBMITDISTRIBUTEDMAKE@ @PYMPI@ $(SRCTOP)/helpers/DistributedMake @DISTRIBUTEDMAKEOPTS@ buildDirectories='[$(patsubst %, "%"$(comma), $(CXXPKGS))]'
+	$(MAKE) -C BPLWraps DistributedMake
+	$(MAKE) all
+
+rmlists:
+	rm -fr $(PYFFLELIST)
+	touch $(PYFFLELIST)
+
+$(PYFFLEMODULE):
+	python $(SRCTOP)/helpers/concat_names.py -c "concat('$(PYFFLELIST)')" > $(PYFFLELIST).1
+	python $(PYFFLEDIR)/pyffle.py -compose $(PKGNAME) `cat $(PYFFLELIST).1`
+	$(CC) $(CCFLAGS) -w -c $(PYFFLEMODULESRC) -o $(PYFFLEMODULE)
+	rm -fr $(PYFFLEMODULESRC) $(PYFFLELIST).1
+
+$(LIB):
+	mkdir -p $(LIBDIR)
+	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) -o $(LIB) $(PYFFLEMODULE) $(LIBS) $(LIBS) -L$(LIBDIR) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
+	rm -fr $(PYFFLEMODULE) $(LINKLIST).1
+
+pycompileall:  force_build
+	$(PYTHONEXE) $(prefix)/lib/python$(PYTHONVERSION)/compileall.py $(LIBDIR)
+
+cxxonly:
+	for pckg in $(CXXPKGS); do \
+	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(SRCTOP)/$$pckg cxxonly install-headers; \
+	done
+
+cxxclean:
+	for pckg in $(CXXPKGS); do \
+	$(MAKE) -C $(SRCTOP)/$$pckg clean; \
+	done
+
+clean:
+	$(MAKE) cxxclean
+	$(MAKE) -C @PYTHONPKGDIR@ clean
+	rm -fr $(PYFFLELIST) $(LINKLIST) lib/* 
+
+distclean:
+	$(MAKE) clean
+	$(MAKE) -C thirdPartyLibs clean
+	rm -fr $(prefix)/bin $(prefix)/doc $(prefix)/include $(prefix)/lib $(prefix)/share $(prefix)/man $(prefix)/info $(prefix)/Applications $(prefix)/Python.framework $(prefix)/atsMachines
+
+spotless:
+	for pckg in $(CXXPKGS); do \
+	(cd $(SRCTOP)/$$pckg;$(MAKE) spotless);\
+	done
+	rm -fr $(PYFFLELIST) $(LINKLIST) lib/* 
+
+grease:
+	find . -name '*.d' -exec rm -f {}  ';'
+
+static_libs:	$(PKGS)
+	for pkg in $(CXXPKGS); do \
+	$(MAKE) -C $$pkg static_lib; \
+	done

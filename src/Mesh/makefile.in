@@ -1,0 +1,39 @@
+# -*-makefile-*-
+# Spheral++ Mesh package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Mesh
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/MeshConstructionUtilities.cc \
+	$(srcdir)/findMatchingVertexInst.cc \
+	$(srcdir)/LineMesh.cc \
+	$(srcdir)/LineEdge.cc \
+	$(srcdir)/LineFace.cc \
+	$(srcdir)/LineZone.cc \
+	$(srcdir)/PolygonalMesh.cc \
+	$(srcdir)/PolygonalEdge.cc \
+	$(srcdir)/PolygonalFace.cc \
+	$(srcdir)/PolygonalZone.cc \
+	$(srcdir)/PolyhedralMesh.cc \
+	$(srcdir)/PolyhedralEdge.cc \
+	$(srcdir)/PolyhedralFace.cc \
+	$(srcdir)/PolyhedralZone.cc \
+	$(srcdir)/computeGeneratorsInst.cc \
+	$(srcdir)/generateMeshInst.cc \
+	$(srcdir)/MeshPolicyInst.cc \
+	$(srcdir)/computeElementOwner.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/generateMesh.py \
+	$(srcdir)/siloMeshDump.py
+
+EXTRAFLAGS = -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master

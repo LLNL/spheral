@@ -1,0 +1,38 @@
+# -*-makefile-*-
+# Spheral++ FileIO package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = FileIO
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/FileIO.cc \
+	$(srcdir)/FlatFileIO.cc \
+	$(srcdir)/PyFileIO.cc \
+	$(srcdir)/vectorstringUtilities.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/GzipFileIO.py
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+# Include the python path.
+EXTRAINCLUDES = -I$(PYTHONROOT)/include/python$(PYTHONVERSION)
+
+# Postgres includes and libs -- should not be necessary.
+#EXTRAINCLUDES = -I/usr/include/postgresql/libpq++ -I/usr/include/postgresql
+#EXTRALIBS = -lpq++ -lpq
+
+#EXTRAINCLUDES = -I${HDFINCDIR} 
+#EXTRALIBS = -L${HDFLIBDIR} -lhdf5_cpp -lhdf5
+#EXTRAFLAGS = -DDEBUG
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master
+
+# For some reason, optimizing FlatFileIO on AIX with g++ 3.2.1 causes a segv 
+# when we try and new up the fstream in open()?!  For now just override to build
+# debug in this package, since this package is going to be disk access limited
+# anyway.
+# OPTFLAGS = -g

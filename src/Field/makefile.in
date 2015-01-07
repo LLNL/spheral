@@ -1,0 +1,22 @@
+# -*-makefile-*-
+# Spheral++ Field package makefile
+#-------------------------------------------------------------------------------
+srcdir = @srcdir@
+VPATH = @srcdir@
+PKGNAME = Field
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/NodeIteratorBaseInst.cc \
+	$(srcdir)/AllNodeIteratorInst.cc \
+	$(srcdir)/InternalNodeIteratorInst.cc \
+	$(srcdir)/GhostNodeIteratorInst.cc \
+	$(srcdir)/MasterNodeIteratorInst.cc \
+	$(srcdir)/CoarseNodeIteratorInst.cc \
+	$(srcdir)/RefineNodeIteratorInst.cc
+
+SPHERALTOP = $(srcdir)/..
+ARCH = $(SPHERALARCH)
+
+#-------------------------------------------------------------------------------
+include $(SPHERALTOP)/helpers/makefile_master
