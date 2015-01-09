@@ -1,11 +1,11 @@
 # -*-makefile-*-
 # Spheral++ thirdPartyLibs package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
 
-SPHERALTOP = @srcdir@/..
-BUILDTOP = ..
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
 
 #-------------------------------------------------------------------------------
 # Include the master file to get compilers and such.
@@ -387,7 +387,7 @@ $(PYTHONBUILDDATE):	$(PYTHON) $(PYTHONDIST)
 	rm -f $(PYTHONBUILDDATE); \
 	exit 1; \
 	fi
-	$(SRCTOP)/helpers/runexecstack $(PYTHONEXE)
+	$(SPHERALTOP)/helpers/runexecstack $(PYTHONEXE)
 	rm -fr $(PYTHONDIR)
 	touch $(PYTHONBUILDDATE)
 
@@ -781,9 +781,9 @@ $(PETSCBUILDDATE):	$(PETSCIDIST)
 	fi
 	@if ! test -e $(PETSC_DIR)/lib/$(PETSC_ARCH)/libpetsc.a ; then \
 	$(SHELL) -ec "cd $(PETSC_DIR)/.. ; \
-	$(GZIP) -dc $(SRCTOP)/thirdPartyLibs/$(PETSCDIST) | $(TAR) -xf - ; \
-   cd $(PETSC_DIR); \
-	$(PYTHONEXE) config/configure.py --prefix=$(prefix) $(PETSCOPTS) ; \
+	$(GZIP) -dc $(BUILDTOP)/thirdPartyLibs/$(PETSCDIST) | $(TAR) -xf - ; \
+	cd $(PETSC_DIR); \
+	$(PYTHONEXE) config/configure.py --prefix=$(SPHERALDIR) $(PETSCOPTS) ; \
 	$(MAKE) ; \
 	$(MAKE) test ; \
 	$(MAKE) python ; \
@@ -805,7 +805,7 @@ $(PETSC4PYBUILDDATE): $(PETSC4PYDIST)
 	$(GZIP) -dc $(PETSC4PYDIST) | $(TAR) -xf -
 #	$(PATCH) $(SCIPYDIR)/setup.py $(srcdir)/$(SCIPYDIR)-setup.py-patch 
 	$(SHELL) -ec "cd $(PETSC4PYDIR); \
-	env CC=$(SRCTOP)/helpers/mpicc $(PYTHONEXE) setup.py install"
+	env CC=$(srcdir)/helpers/mpicc $(PYTHONEXE) setup.py install"
 	@if test -n "`$(PYTHONEXE) -c 'import petsc4py'`"; then \
 	echo "ERROR building petsc4py extension."; \
 	rm -f $(PETSC4PYBUILDDATE); \
@@ -849,7 +849,7 @@ $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	$(GZIP) -dc $(VISITWRITERDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE)"
+	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE) BUILDTOP=$(BUILDTOP) SPHERALTOP=$(SPHERALTOP)"
 	@if ! test -e $(prefix)/include/visit_writer.h -a \
 	           -e $(prefix)/lib/libvisit_writer.$(DYLIBEXT); then \
 	echo "ERROR building visit_writer."; \
