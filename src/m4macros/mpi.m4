@@ -79,13 +79,13 @@ AC_SUBST(PARMETISTARGET)
 AC_SUBST(PARMETISBPLTARGET)
 AC_SUBST(PARMETISINCS)
 AC_SUBST(PARMETISLIBS)
-PARMETISPATH=$prefix
+PARMETISPATH="\$(prefix)"
 AC_MSG_CHECKING(for --with-parmetis)
 AC_ARG_WITH(parmetis,
 [  --with-parmetis .......................... compile with ParMETIS],
 [
     EXTRATHIRDPARTYTARGETS+=" .parmetis-4.0.3.date"
-    PARMETISPATH=$prefix
+    PARMETISPATH="\$(prefix)"
     PARMETISTARGET="ParmetisRedistributeNodesInst.cc"
     PARMETISBPLTARGET="ParmetisRedistributeNodes.pyste"
     PARMETISINCS="-I$PARMETISPATH/include"
@@ -94,7 +94,7 @@ AC_ARG_WITH(parmetis,
     AC_MSG_RESULT(yes)
 ],
 [
-    PARMETISPATH="$prefix"
+    PARMETISPATH="\$(prefix)"
     PARMETISTARGET=
     PARMETISBPLTARGET=
     PARMETISINCS=
