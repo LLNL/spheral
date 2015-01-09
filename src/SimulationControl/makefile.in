@@ -37,8 +37,7 @@ PYTHONTARGETS = \
 	$(srcdir)/SpheralPointmeshSiloDump.py \
 	$(srcdir)/PolyhedronFileUtilities.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

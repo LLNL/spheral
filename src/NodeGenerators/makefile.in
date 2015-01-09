@@ -34,7 +34,7 @@ PYTHONTARGETS = \
 	$(srcdir)/FacetedSurfaceGenerator.py \
 	$(srcdir)/AsciiFileNodeGenerator.py
 
-SPHERALTOP = $(srcdir)/..
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

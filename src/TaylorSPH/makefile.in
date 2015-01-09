@@ -13,8 +13,7 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/TaylorSPHHydros.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

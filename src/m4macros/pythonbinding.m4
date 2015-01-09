@@ -78,7 +78,7 @@ AC_ARG_WITH(boostroot,
   ],
   [
     AC_MSG_RESULT(none)
-    BOOSTROOT="$prefix/include/boost"
+    BOOSTROOT="\$(prefix)/include/boost"
   ]
 )
 

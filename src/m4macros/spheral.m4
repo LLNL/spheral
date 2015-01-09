@@ -85,8 +85,8 @@ AC_SUBST(CONFIG_SHELL)
 IMPMODS=""
 AIXLIBS=""
 PYFFLEENTRY=""
-MAKEIMPORTFILE="$(srcdir)/helpers/generateDummyImportFile"
-CHECKLIBS="$(srcdir)/helpers/checkLibsForUndefined"
+MAKEIMPORTFILE="$srcdir/helpers/generateDummyImportFile"
+CHECKLIBS="$srcdir/helpers/checkLibsForUndefined"
 DEPENDRULES="dependrules.generic"
 AIXSHELL=""
 CONFIG_SHELL=$SHELL
@@ -95,7 +95,7 @@ AC_MSG_CHECKING(python.exp required for linking)
 if test "`uname -s`" = "AIX"; then
   #IMPMODS="$CXXPKGS"
   #PYFFLEENTRY="-e initlibPyffle"
-  #MAKEIMPORTFILE=$(srcdir)/helpers/generateImportFile"
+  #MAKEIMPORTFILE=$srcdir/helpers/generateImportFile"
   LIBS=
 
   # 32 bit

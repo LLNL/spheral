@@ -8,6 +8,8 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(Physics/Physics.hh)
 
+AC_PREFIX_DEFAULT("`pwd`/`uname -s`_`uname -i`")
+
 # All mcaro files are stored in macros/
 AC_CONFIG_AUX_DIR(m4macros)
 
@@ -34,11 +36,6 @@ SETUP_SPHERAL_ENV
 # (m4macros/distributedmake.m4)
 # -------------------------------------------------
 SETUP_DISTRIBUTEDMAKE
-
-# -------------------------------------------------
-# setup the mympKCC script (m4macros/kcc.m4)
-# -------------------------------------------------
-# SETUP_KCC
 
 # -------------------------------------------------
 # setup geommem (m4macros/geommem.m4)

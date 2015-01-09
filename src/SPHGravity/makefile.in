@@ -10,7 +10,6 @@ SRCTARGETS = \
 LINKLIST = linklist
 PYFFLELIST = pyfflelist
 SPHERALTOP = ..
-ARCH = $(SPHERALARCH)
 
 EXTRALIBS = -L$(PETSC_DIR)/lib/$(PETSC_ARCH) -lpetscksp -lpetscmat -lpetscvec -lpetsc
 

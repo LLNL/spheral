@@ -15,8 +15,7 @@ SRCTARGETS = \
 	$(srcdir)/CheapSynchronousRK2Inst.cc \
 	$(srcdir)/VerletInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

@@ -22,10 +22,7 @@ SRCTARGETS = \
 	$(srcdir)/CylindricalBoundary.cc \
 	$(srcdir)/AxialSymmetryBoundary.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
-
-#EXTRAFLAGS = -DDEBUG
+SPHERALTOP = ..
 
 #------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

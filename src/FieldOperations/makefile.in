@@ -30,8 +30,7 @@ SRCTARGETS = \
 	$(srcdir)/sampleMultipleFields2LatticeMashInst.cc \
 	$(srcdir)/binFieldList2LatticeInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

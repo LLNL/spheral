@@ -29,8 +29,7 @@ PYTHONTARGETS = \
 	$(srcdir)/ShadowTillotsonEquationOfState.py \
 	$(srcdir)/ShadowConstantStrength.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 EXTRALIBS = $(ANEOSLIBS)
 

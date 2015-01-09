@@ -23,8 +23,7 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/SVPHHydros.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

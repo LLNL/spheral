@@ -27,8 +27,8 @@ AC_ARG_WITH(python,[  --with-python=/usr/local/2.6/bin/python .. use non-standar
   LIBDIR=$PYLIBDIR/Spheral
 ],[
   AC_MSG_RESULT(no)
-  PYTHONROOT=`echo $PWD | sed -e "s/spheral\/src$//g;"`
-  PYTHON=$PYTHONROOT/bin/python
+  PYTHONROOT="\$(prefix)"
+  PYTHON="\$(exec_prefix)/bin/python"
   PYTHONVERSION=2.7
   PYLIBDIR=$PYTHONROOT/lib/python$PYTHONVERSION/site-packages
   TOPLIBDIR=$PYTHONROOT/lib
