@@ -10,7 +10,7 @@ SRCTARGETS = \
 	$(srcdir)/ArtificialConductionInst.cc \
 	$(srcdir)/ArtificialConductionPolicyInst.cc
 
-SPHERALTOP = $(srcdir)/..
+SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
 
 # EXTRAFLAGS = -DDEBUG

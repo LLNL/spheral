@@ -15,8 +15,7 @@ SRCTARGETS = \
 	$(srcdir)/CoarseNodeIteratorInst.cc \
 	$(srcdir)/RefineNodeIteratorInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

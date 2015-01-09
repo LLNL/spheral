@@ -19,9 +19,7 @@ SRCTARGETS = \
 	$(srcdir)/SecondMomentHourglassControlInst.cc \
 	$(srcdir)/ThirdMomentHourglassControlInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
-##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

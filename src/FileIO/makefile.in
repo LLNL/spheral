@@ -15,8 +15,7 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/GzipFileIO.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 # Include the python path.
 EXTRAINCLUDES = -I$(PYTHONROOT)/include/python$(PYTHONVERSION)

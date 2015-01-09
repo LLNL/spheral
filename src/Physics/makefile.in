@@ -11,8 +11,7 @@ SRCTARGETS = \
 	$(srcdir)/GenericHydroInst.cc \
 	$(srcdir)/GenericBodyForceInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

@@ -12,8 +12,7 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/SolidSPHHydros.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

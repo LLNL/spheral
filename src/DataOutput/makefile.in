@@ -10,8 +10,7 @@ SRCTARGETS = \
 	$(srcdir)/RestartRegistrar.cc \
 	$(srcdir)/RestartableObject.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

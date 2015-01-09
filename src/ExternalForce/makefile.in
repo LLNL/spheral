@@ -12,9 +12,7 @@ SRCTARGETS = \
 	$(srcdir)/ConstantAccelerationInst.cc \
 	$(srcdir)/LinearAccelerationInst.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
-##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

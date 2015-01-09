@@ -19,8 +19,7 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/SolidNodeLists.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master

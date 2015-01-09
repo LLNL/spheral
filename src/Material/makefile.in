@@ -21,8 +21,7 @@ PYTHONTARGETS = \
 	$(srcdir)/MaterialUnits.py \
 	$(srcdir)/MaterialEquationsOfState.py
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 EXTRALIBS = $(HELMLIBS)
 
 #-------------------------------------------------------------------------------

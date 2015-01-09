@@ -25,8 +25,7 @@ SRCTARGETS = \
 	$(srcdir)/GeomPolygon.cc \
 	$(srcdir)/GeomPolyhedron.cc
 
-SPHERALTOP = $(srcdir)/..
-ARCH = $(SPHERALARCH)
+SPHERALTOP = ..
 
 EXTRALIBS = -lqhullstatic
 

@@ -17,7 +17,7 @@ SRCTARGETS = \
 	$(srcdir)/TensorCSPHViscosityInst.cc \
 	$(srcdir)/VonNeumanViscosityInst.cc
 
-SPHERALTOP = $(srcdir)/..
+SPHERALTOP = ..
 ARCH = $(SPHERALARCH)
 
 ##EXTRAFLAGS = -DDEBUG

@@ -8,7 +8,6 @@ PYTHONTARGETS = \
 INSTALLTARGETS = mpi.py
 
 SPHERALTOP = ..
-ARCH = $(SPHERALARCH)
 
 #-------------------------------------------------------------------------------
 include $(SPHERALTOP)/helpers/makefile_master
