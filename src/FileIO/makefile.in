@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ FileIO package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = FileIO
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -15,8 +18,6 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/GzipFileIO.py
 
-SPHERALTOP = ..
-
 # Include the python path.
 EXTRAINCLUDES = -I$(PYTHONROOT)/include/python$(PYTHONVERSION)
 
@@ -28,7 +29,7 @@ EXTRAINCLUDES = -I$(PYTHONROOT)/include/python$(PYTHONVERSION)
 #EXTRALIBS = -L${HDFLIBDIR} -lhdf5_cpp -lhdf5
 #EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 
 # For some reason, optimizing FlatFileIO on AIX with g++ 3.2.1 causes a segv 
 # when we try and new up the fstream in open()?!  For now just override to build

@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ Mesh package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = Mesh
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -32,7 +35,5 @@ PYTHONTARGETS = \
 
 EXTRAFLAGS = -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

@@ -1,6 +1,11 @@
 # -*-makefile-*-
 # Spheral++ MHD package makefile
 #-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = FVPM
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -12,15 +17,10 @@ SRCTARGETS = \
 	gauss_legendre.cc \
 	FVPMFluidDerivatives.cc 
 
-LINKLIST = linklist
-PYFFLELIST = pyfflelist
-SPHERALTOP = ..
-ARCH = $(SPHERALARCH)
-
 EXTRALIBS =
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 
 #TestSod:
 #	$(CXX) $(PURIFY) $(CXXFLAGS) $(EXTRAFLAGS) -Bstatic -o tests/TestSod tests/TestSod.cc -L$(SRCTOP)/lib $(PKGLIBS) $(PKGLIBS) $(PKGLIBS) -lm

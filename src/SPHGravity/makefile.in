@@ -1,19 +1,20 @@
 # -*-makefile-*-
 # Spheral++ Kernel package makefile
 #-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = SPHGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	SPHGravityInst.cc 
 
-LINKLIST = linklist
-PYFFLELIST = pyfflelist
-SPHERALTOP = ..
-
 EXTRALIBS = -L$(PETSC_DIR)/lib/$(PETSC_ARCH) -lpetscksp -lpetscmat -lpetscvec -lpetsc
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 EXTRAINCLUDES = -I$(PETSC_DIR)/include -I$(PETSC_DIR)/bmake/$(PETSC_ARCH) \
-	-I$(SPHERALTOP)/../../include/pyMPI2.4 -I$(SPHERALTOP)/../../include/python$(PYTHONVERSION)
+	-I$(BUILDTOP)/../../include/pyMPI2.4 -I$(BUILDTOP)/../../include/python$(PYTHONVERSION)

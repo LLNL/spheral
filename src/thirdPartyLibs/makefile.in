@@ -848,6 +848,7 @@ $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
+	rm -fr $(VISITWRITEDIR)
 	$(GZIP) -dc $(VISITWRITERDIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE) BUILDTOP=$(BUILDTOP) SPHERALTOP=$(SPHERALTOP)"
 	@if ! test -e $(prefix)/include/visit_writer.h -a \

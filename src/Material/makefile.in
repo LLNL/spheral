@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ Material package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = Material
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -21,8 +24,7 @@ PYTHONTARGETS = \
 	$(srcdir)/MaterialUnits.py \
 	$(srcdir)/MaterialEquationsOfState.py
 
-SPHERALTOP = ..
 EXTRALIBS = $(HELMLIBS)
 
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

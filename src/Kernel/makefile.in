@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ Kernel package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = Kernel
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -23,7 +26,5 @@ SRCTARGETS = \
 	$(srcdir)/WendlandC4Kernel.cc \
 	$(srcdir)/WendlandC6Kernel.cc
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
