@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # SolidSpheral++ Damage package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = Damage
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -22,7 +25,5 @@ PYTHONTARGETS = \
 	$(srcdir)/WeibullDamage.py \
 	$(srcdir)/GradyKippTensorDamage.py
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

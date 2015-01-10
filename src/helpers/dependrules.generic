@@ -1,33 +1,24 @@
 # -*-makefile-*-
 %.d:	%.cc
-	@$(SHELL) -ec 'echo "Building dependencies for $*.cc"; \
-	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -c $< > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
-
-%.d:	.$(PKGNAME)/%.cpp
-	@$(SHELL) -ec 'echo "Building dependencies for $*.pyste"; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(BPLINCS) $(CXXFLAGS) $(BPLOPT) $(EXTRAFLAGS) $(EXTRAINCLUDES) -I. -c .$(PKGNAME)/$*.cpp > $*.u; \
-	cat $*.u | \
-	sed '\''s/\($*\).o[ :]*/$*.o $@ $(PYSTEDATE) : /g'\'' | \
-        sed '\''s/\.$(PKGNAME)\/$*.cpp/ /g'\'' > $@; \
-	[ -s $@ ] || rm -f $@'
-	@rm -rf $*.u
+	@$(SHELL) -ec 'echo "Building dependencies for $(*F).cc"; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -c $< > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'
 
 %.py.d:	%.py
-	@$(SHELL) -ec 'echo "Building dependencies for $*.py"; \
+	@$(SHELL) -ec 'echo "Building dependencies for $(*F).py"; \
 	echo "PYTHONPKGS are $(PYTHONPKGS)"; \
-	$(PYTHONEXE) $*.py $*.C; \
-	echo "$*.C $*.py.d : $(MODPKGS)" > $@; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
+	$(PYTHONEXE) $*.py $(*F).C; \
+	echo "$(*F).C $(*F).py.d : $(MODPKGS)" > $(@F); \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(*F).C > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' >> $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'
 
 %.d:	%.C
 	@$(SHELL) -ec 'echo "Building dependencies for $*.C"; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'

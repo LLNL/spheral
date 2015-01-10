@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ NodeList package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = NodeList
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -21,10 +24,8 @@ PYTHONTARGETS = \
 	$(srcdir)/FluidNodeLists.py \
 	$(srcdir)/VoidNodeLists.py
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 
 #-------------------------------------------------------------------------------
 TestSphNodeList:  tests/TestSphNodeList.cc $(HDRS)

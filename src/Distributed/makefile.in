@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ Distributed package makefile
 #-------------------------------------------------------------------------------
-PKGNAME = Distributed
-PKGDIR = $(PKGNAME)/
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	Communicator.cc \
@@ -23,10 +26,8 @@ SRCTARGETS = \
 	waitAllWithDeadlockDetection.cc \
 	$(PARMETISTARGET)
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 
 #EXTRAFLAGS += $(PARMETISINCS) -std=c++0x
 EXTRALIBS += $(PARMETISLIBS)

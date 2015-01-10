@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ Hydro package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = Hydro
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -19,7 +22,5 @@ SRCTARGETS = \
 	$(srcdir)/SecondMomentHourglassControlInst.cc \
 	$(srcdir)/ThirdMomentHourglassControlInst.cc
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

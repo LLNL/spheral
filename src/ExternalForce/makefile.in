@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ ExternalForce package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = ExternalForce
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -12,7 +15,5 @@ SRCTARGETS = \
 	$(srcdir)/ConstantAccelerationInst.cc \
 	$(srcdir)/LinearAccelerationInst.cc
 
-SPHERALTOP = ..
-
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

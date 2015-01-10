@@ -1,8 +1,11 @@
 # -*-makefile-*-
 # Spheral++ ArtificialViscosity package makefile
 #-------------------------------------------------------------------------------
-srcdir = @srcdir@
-VPATH = @srcdir@
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
 PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
@@ -17,9 +20,6 @@ SRCTARGETS = \
 	$(srcdir)/TensorCSPHViscosityInst.cc \
 	$(srcdir)/VonNeumanViscosityInst.cc
 
-SPHERALTOP = ..
-ARCH = $(SPHERALARCH)
-
 ##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
-include $(SPHERALTOP)/helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master

@@ -78,7 +78,7 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
-OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o)
+OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))
 
 TAULIBS = # @TAULIBS@
 LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
@@ -219,64 +219,31 @@ force_build:
 # 	chmod 644 $(LIBDIR)/$*.py
 
 %.exe: %.cc force_build
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS)  $(PKGLIBS) $(LDFLAGS) $< -o $*.exe
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS)  $(PKGLIBS) $(LDFLAGS) $< -o $(*F).exe
 
 %Methods.o: %Methods.pw
 	@mkdir -p .MethodsSource
 	@rm -f .MethodsSource/$*Methods.cc
-	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$*Methods.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$*Methods.cc -o $*Methods.o
+	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$(*F)Methods.cc
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$(*F)Methods.cc -o $(*F)Methods.o
 
 %Wrap.o: %Wrap.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F)Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f90
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
-
-# %.C: %.py # $(MODPKGS)
-# 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
-
-# %.C: SpheralModules.py
-# 	$(PYTHONEXE) SpheralModules.py $(PYTHONPKGS) SpheralModules.C
-
-# %.o: %.py
-# 	$(PYTHONEXE) $< $(PYTHONPKGS) .$*.C
-# 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$*.C -o $*.o
-# 	@rm -f .$*.C
-
-#%.cpp:	%.pyste
-#	@rm -fr $(PKGNAME)
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple $(PYSTETARGETS)
-#	@$(PYTHONEXE) -c 'import os, string; \
-#	[os.rename(x[0], x[1]) for x in zip(string.split("$(GENERATEDPYSTECPPS)"), string.split("$(PYSTECPPS)"))]'
-#	@rm -fr $(PKGNAME)
-
-#%.o:	%.pyste
-#	@rm -fr .$(PKGNAME)
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS)
-#	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/_$*.cpp -o $*.o
-
-#.$(PKGNAME)/%.cpp:  %.pyste
-#	$(SHELL) -ec 'if ! test -a $(LASTPYSTEMAKE); then \
-#        export PATH=$(prefix)/bin:$$PATH; \
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS); \
-#	touch $(LASTPYSTEMAKE); fi'
-#	mv .$(PKGNAME)/_$*.cpp .$(PKGNAME)/$*.cpp
-
-%.o:	.$(PKGNAME)/%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/$*.cpp -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o:	%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 %.o:	%.C
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
@@ -286,32 +253,31 @@ include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
 #-------------------------------------------------------------------------------
 ifneq "$(SRCTARGETS)" ""
--include $(SRCTARGETS:.cc=.d)
+-include $(notdir $(SRCTARGETS:.cc=.d))
 endif
 
 ifneq "$(F90SRCTARGETS)" ""
--include $(F90SRCTARGETS:.f90=.d)
+-include $(notdir $(F90SRCTARGETS:.f90=.d))
 endif
 
 ifneq "$(FSRCTARGETS)" ""
--include $(FSRCTARGETS:.f=.d)
+-include $(notdir $(FSRCTARGETS:.f=.d))
 endif
 
 ifneq "$(BPLTARGETS)" "" 
--include $(BPLTARGETS:.cpp=.d)
+-include $(notdir $(BPLTARGETS:.cpp=.d))
 endif
 
 ifneq "$(PYSTETARGETS)" "" 
--include $(PYSTETARGETS:.pyste=.d)
+-include $(notdir $(PYSTETARGETS:.pyste=.d))
 endif
 
 ifneq "$(PYFFLETARGETS)" ""
--include $(PYFFLETARGETS:.pw=.d)
+-include $(notdir $(PYFFLETARGETS:.pw=.d))
 endif
 
 ifneq "$(PBGTARGET)" ""
--include $(PBGTARGET:.py=.py.d)
-#-include $(PBGTARGET:.py=.d)
+-include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
 #-------------------------------------------------------------------------------
@@ -407,9 +373,9 @@ $(LINKLIST):	$(OBJS)
 #-------------------------------------------------------------------------------
 $(PYTHONTARGETS):	$(PYTHONDATEFILE)
 	@mkdir -p $(LIBDIR)
-	rm -f $(LIBDIR)/$*.py
+	rm -f $(LIBDIR)/$(*F).py
 	cp -f $*.py $(LIBDIR)
-	chmod 644 $(LIBDIR)/$*.py
+	chmod 644 $(LIBDIR)/$(*F).py
 
 #-------------------------------------------------------------------------------
 $(PYTHONDATEFILE):
