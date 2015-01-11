@@ -131,7 +131,8 @@ def dumpPhysicsState(stateThingy,
                       fields = fields,
                       fieldLists = fieldLists,
                       time = currentTime,
-                      cycle = currentCycle)
+                      cycle = currentCycle,
+                      dumpGhosts = dumpGhosts)
 
     # Add to the master file.
     if mpi.rank == 0:
