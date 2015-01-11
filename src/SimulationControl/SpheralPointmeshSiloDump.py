@@ -102,7 +102,10 @@ def dumpPhysicsState(stateThingy,
             fmin.name = "hmin"
             fmax.name = "hmax"
             fratio.name = "hmin_hmax_ratio"
-            n = H.nodeList().numInternalNodes
+            if dumpGhosts:
+                n = H.nodeList().numNodes
+            else:
+                n = H.nodeList().numInternalNodes
             for i in xrange(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
@@ -118,7 +121,11 @@ def dumpPhysicsState(stateThingy,
         domains = dataBase.newGlobalScalarFieldList()
         for f in domains:
             f.name = "Domains"
-            for i in xrange(f.nodeList().numInternalNodes):
+            if dumpGhosts:
+                n = f.nodeList().numNodes
+            else:
+                n = f.nodeList().numInternalNodes
+            for i in xrange(n):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:
