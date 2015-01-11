@@ -48,6 +48,9 @@ public:
   // Calculate the minimum distance between a given point and the plane.
   double minimumDistance(const Vector& point) const;
 
+  // Closest point on the plane to a point.
+  Vector closestPointOnPlane(const Vector& p) const;
+
   // Various tests which can be applied between planes.
   bool parallel(const GeomPlane& rhs) const;
   bool operator==(const GeomPlane& rhs) const;
