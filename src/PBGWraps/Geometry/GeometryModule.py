@@ -540,6 +540,7 @@ class Geometry:
         # Methods.
         x.add_method("signedDistance", "double", [param(vec, "point")], is_const = True)
         x.add_method("minimumDistance", "double", [param(vec, "point")], is_const = True)
+        x.add_method("closestPointOnPlane", vec, [param(vec, "point")], is_const = True)
         x.add_method("parallel", "bool", [param(me, "rhs")], is_const = True)
         x.add_method("valid", "bool", [], is_const = True)
         x.add_method("compare", "int", [constrefparam(vec, "point")], is_const=True)
