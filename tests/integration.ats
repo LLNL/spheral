@@ -11,6 +11,10 @@ source("../src/Geometry/tests/testEigen3d.py")
 source("../src/Geometry/tests/testPolygon.py")
 source("../src/Geometry/tests/testPolyhedron.py")
 
+# Boundary unit tests
+source("../src/Boundary/tests/testPeriodicBoundary-1d.py")
+source("../src/Boundary/tests/testPeriodicBoundary-2d.py")
+
 # CSPH unit tests
 source("../src/CSPH/tests/testInterpolation.py")
 
