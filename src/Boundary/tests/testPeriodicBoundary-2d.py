@@ -15,8 +15,8 @@ title("1D periodic boundary test.")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            ny1 = 100,
+commandLine(nx1 = 20,
+            ny1 = 20,
             x0 = 0.0,
             x1 = 1.0,
             y0 = 0.0,
@@ -31,10 +31,10 @@ commandLine(nx1 = 100,
             nPerh = 2.01,
 
             hmin = 0.0001, 
-            hmax = 0.1,
+            hmax = 0.5,
             cfl = 0.5,
 
-            tol = 1.0e-4,
+            tol = 1.0e-3,
             steps = 500,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -146,14 +146,16 @@ def checkRho(steps, t, dt):
     rho = nodes1.massDensity()
     rhoMin = rho.min()
     rhoMax = rho.max()
-    dumpPhysicsState(integrator,
+    fluc = abs(rhoMin/rhoMax - 1.0)
+    print "rho bounds : [%g, %g], variation %g" % (rhoMin, rhoMax, fluc)
+    if fluc > tol:
+        dumpPhysicsState(integrator,
                          baseFileName = "periodic_boundary_2d",
                          fieldLists = [db.fluidMass, db.fluidMassDensity, db.fluidVelocity, db.fluidHfield],
                          currentTime = t,
                          currentCycle = steps,
-                         dumpGhosts = True)
-    if abs(rhoMin/rhoMax - 1.0) > tol:
-        raise ValueError, "rho outside bounds : [%g, %g]" % (rhoMin, rhoMax)
+                         dumpGhosts = False)
+        raise ValueError, "rho fluctuation outside bounds"
     return
 
 #-------------------------------------------------------------------------------
