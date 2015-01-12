@@ -24,7 +24,7 @@ AC_ARG_WITH(triangle,
 [
    AC_MSG_RESULT(no)
    USE_TRIANGLE=1
-   POLYTOPELIBS="$POLYTOPELIBS -ltriangle"
+   #POLYTOPELIBS="$POLYTOPELIBS -ltriangle"
 ]
 )
 
