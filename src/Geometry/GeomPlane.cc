@@ -7,6 +7,7 @@
 #include "GeomPlane.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/pointDistances.hh"
 #include "Dimension.hh"
 
 namespace Spheral {
@@ -121,6 +122,33 @@ GeomPlane<Dimension>::
 minimumDistance(const typename Dimension::Vector& point) const {
   CHECK(valid());
   return std::abs(mNormal.dot(point - mPoint));
+}
+
+//------------------------------------------------------------------------------
+// Find the closest point on the plane to a given point.
+//------------------------------------------------------------------------------
+template<>
+Dim<1>::Vector
+GeomPlane<Dim<1> >::
+closestPointOnPlane(const Dim<1>::Vector& point) const {
+  return mPoint;
+}
+
+template<>
+Dim<2>::Vector
+GeomPlane<Dim<2> >::
+closestPointOnPlane(const Dim<2>::Vector& point) const {
+  const Vector a0p = point - mPoint;
+  const Vector direction(-mNormal.y(), mNormal.x());
+  const double s = a0p.dot(direction);
+  return mPoint + s*direction;
+}
+
+template<>
+Dim<3>::Vector
+GeomPlane<Dim<3> >::
+closestPointOnPlane(const Dim<3>::Vector& point) const {
+  return Spheral::closestPointOnPlane(point, mPoint, mNormal);
 }
 
 //------------------------------------------------------------------------------

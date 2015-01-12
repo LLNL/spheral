@@ -31,6 +31,8 @@ commandLine(nx1 = 100,
             P2 = 2.5,
             vx1 = 0.5,
             vx2 = -0.5,
+            vxboost = 0.0,
+            vyboost = 0.0,
             freq = 4.0,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
@@ -59,7 +61,7 @@ commandLine(nx1 = 100,
             aMax = 2.0,
             Qhmult = 1.0,
             Cl = 1.0, 
-            Cq = 0.75,
+            Cq = 1.0,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -67,6 +69,7 @@ commandLine(nx1 = 100,
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
+            useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -85,11 +88,11 @@ commandLine(nx1 = 100,
             smoothIters = 0,
             HUpdate = IdealH,
             domainIndependent = False,
-            rigorousBoundaries = True,
+            rigorousBoundaries = False,
             dtverbose = False,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = False,           # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
+            compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
 
             useVoronoiOutput = True,
@@ -125,6 +128,7 @@ else:
 dataDir = os.path.join(dataDir,
                        "rho1=%g-rho2=%g" % (rho1, rho2),
                        "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
+                       "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
@@ -229,7 +233,6 @@ if restoreCycle is None:
     else:
         gen = CompositeNodeDistribution(generator1, generator2)
         distributeNodes2d((nodes1, gen))
-        
 
     # A helpful method for setting y velocities.
     def vy(ri):
@@ -249,7 +252,7 @@ if restoreCycle is None:
             pos = nodes.positions()
             vel = nodes.velocity()
             for i in xrange(nodes.numInternalNodes):
-                vel[i] = Vector(vx, vy(pos[i]))
+                vel[i] = Vector(vx + vxboost, vy(pos[i]) + vyboost)
     else:
         pos = nodes1.positions()
         vel = nodes1.velocity()
@@ -257,10 +260,10 @@ if restoreCycle is None:
         for i in xrange(nodes1.numInternalNodes):
             if pos[i].y > 0.25 and pos[i].y < 0.75:
                 eps[i] = eps1
-                vel[i] = Vector(vx1, vy(pos[i]))
+                vel[i] = Vector(vx1 + vxboost, vy(pos[i]) + vyboost)
             else:
                 eps[i] = eps2
-                vel[i] = Vector(vx2, vy(pos[i]))
+                vel[i] = Vector(vx2 + vxboost, vy(pos[i]) + vyboost)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -292,6 +295,7 @@ output("q.balsaraShearCorrection")
 if SVPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
                              XSVPH = XSPH,
@@ -308,6 +312,7 @@ elif CSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
                              cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -318,6 +323,7 @@ else:
                              WTPi,
                              q,
                              cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
@@ -353,9 +359,9 @@ yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
 yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
 ybc = PeriodicBoundary(yp1, yp2)
-ybc1 = ReflectingBoundary(yp1)
-ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc1, ybc2]
+#ybc1 = ReflectingBoundary(yp1)
+#ybc2 = ReflectingBoundary(yp2)
+bcSet = [xbc, ybc]
 
 for p in packages:
     for bc in bcSet:
@@ -395,9 +401,10 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
+                            initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,

@@ -7,7 +7,8 @@ AC_SUBST(POLYTOPELIBS)
 AC_SUBST(USE_TRIANGLE)
 AC_SUBST(USE_TETGEN)
 
-POLYTOPEFLAGS="prefix=$SPHERALDIR boost_root=$SPHERALDIR use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+#POLYTOPEFLAGS="prefix=$SPHERALDIR boost_root=$SPHERALDIR use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+POLYTOPEFLAGS="prefix=$SPHERALDIR debug=1 boost_root=$SPHERALDIR use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
 POLYTOPELIBS="-lpolytope"
 # -----------------------------------------------------------------
 # Optionally build polytope without Triangle
@@ -23,6 +24,7 @@ AC_ARG_WITH(triangle,
 [
    AC_MSG_RESULT(no)
    USE_TRIANGLE=1
+   #POLYTOPELIBS="$POLYTOPELIBS -ltriangle"
 ]
 )
 
