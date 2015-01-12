@@ -288,7 +288,7 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.21
+POLYTOPEVER = 0.5.22
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
@@ -1443,7 +1443,7 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
                    -e $(PYTHONLIBDIR)/polytope/PolytopeModules.so -a \
 	           -e $(SPHERALDIR)/include/polytope/polytope.hh; then \
 	echo "ERROR building Polytope."; \
-	rm -f $(POLYTOPEBUILDDATE); \
+	#rm -f $(POLYTOPEBUILDDATE); \
 	exit 1; \
 	fi
 	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR) $(TETGENDIR)
