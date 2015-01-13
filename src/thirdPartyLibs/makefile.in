@@ -311,7 +311,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(MATPLOTLIBTARGETS) \
 	$(SCIPYTARGETS) \
 	$(PETSCTARGETS) \
-	$(VISITWRITERBUILDDATE) \
 	$(ATSBUILDDATE) \
 	$(ZLIBBUILDDATE) \
 	$(PYBINDGENBUILDDATE) \
@@ -850,7 +849,7 @@ $(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
 	@$(MKDIR) $(LIBDIR) $(prefix)/include $(prefix)/bin
 	rm -fr $(VISITWRITEDIR)
 	$(GZIP) -dc $(VISITWRITERDIST) | $(TAR) -xf -
-	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE) BUILDTOP=$(BUILDTOP) SPHERALTOP=$(SPHERALTOP)"
+	$(SHELL) -ec "cd $(VISITWRITERDIR); $(MAKE) BUILDTOP=$(BUILDTOP) SPHERALTOP=$(SPHERALTOP) srcdir=$(BUILDTOP)/thirdPartyLibs/visit_writer"
 	@if ! test -e $(prefix)/include/visit_writer.h -a \
 	           -e $(prefix)/lib/libvisit_writer.$(DYLIBEXT); then \
 	echo "ERROR building visit_writer."; \
