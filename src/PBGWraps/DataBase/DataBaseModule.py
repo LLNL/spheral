@@ -1,5 +1,8 @@
 from pybindgen import *
 
+import sys
+srcdir = sys.argv[2]
+
 from PBGutils import *
 from ref_return_value import *
 
@@ -14,7 +17,7 @@ class DataBase:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"DataBase/DataBaseTypes.hh"')
+        mod.add_include('"%s/DataBase/DataBaseTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

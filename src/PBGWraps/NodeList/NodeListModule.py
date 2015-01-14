@@ -4,7 +4,9 @@ from PBGutils import *
 from ref_return_value import *
 
 import sys
-sys.path.append("../CXXTypes")
+srcdir = sys.argv[2]
+
+sys.path.append("%s/CXXTypes" % srcdir)
 from CXXTypesModule import generateStdPairBindings, generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
@@ -18,7 +20,7 @@ class NodeList:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"NodeList/NodeListTypes.hh"')
+        mod.add_include('"%s/NodeList/NodeListTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

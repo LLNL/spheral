@@ -1,3 +1,6 @@
+import sys
+srcdir = sys.argv[2]
+
 from pybindgen import *
 from PBGutils import *
 
@@ -12,7 +15,7 @@ class Utilities:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"Utilities/UtilitiesTypes.hh"')
+        mod.add_include('"%s/Utilities/UtilitiesTypes.hh"' % srcdir)
         self.Spheral = mod.add_cpp_namespace("Spheral")
         self.NodeSpace = self.Spheral.add_cpp_namespace("NodeSpace")
 

@@ -1,7 +1,9 @@
 from pybindgen import *
 
 import sys
-sys.path.extend(["..", "CXXTypes"])
+srcdir = sys.argv[2]
+
+sys.path.append("%s/CXXTypes" % srcdir)
 from PBGutils import *
 from CXXTypesModule import generateStdVectorBindings
 from ref_return_value import *
@@ -69,8 +71,8 @@ class Boundary:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"Boundary/BoundaryTypes.hh"')
-        mod.add_include('"Boundary/Boundary.hh"')
+        mod.add_include('"%s/Boundary/BoundaryTypes.hh"' % srcdir)
+        mod.add_include('"%s/Boundary/Boundary.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
