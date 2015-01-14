@@ -68,10 +68,10 @@ class TestPolyhedron(unittest.TestCase):
                                            self.xmin, self.xmax,
                                            self.ymin, self.ymax,
                                            self.zmin, self.zmax)
-        t0 = time.clock()
+        #t0 = time.clock()
         self.polyhedron = Polyhedron(self.points)
-        t1 = time.clock()
-        print "Required %s seconds to generate polyhedron." % (t1 - t0)
+        #t1 = time.clock()
+        #print "Required %s seconds to generate polyhedron." % (t1 - t0)
         return
 
     #---------------------------------------------------------------------------
