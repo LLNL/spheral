@@ -37,7 +37,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 
   // Are we checking the surface?
   vector<Vector> vertices = polyhedron.vertices();
-  if (pointOnPolyhedron(p, vertices, tol)) return countBoundary;
+  if (pointOnPolyhedron(p, polyhedron, tol)) return countBoundary;
 
   // We're going to take O'Rourke's advice here and look for a ray that doesn't 
   // have any degeneracies -- i.e., it doesn't intersect any edges or vertices
@@ -64,7 +64,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   //   CHECK2(iter < maxSearchIterations, "Failed to find a safe ray!  " << maxSearchIterations << " " << p1 - p << " " << p);
   // }
   // const Vector pp1 = p1 - p;
-//   cerr << "Chose ray:  " << pp1 << endl;
+  //   cerr << "Chose ray:  " << pp1 << endl;
 
   // Walk the facets, and test each one.
   bool filter;
@@ -78,14 +78,25 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   for (ifacet = 0; ifacet != facets.size(); ++ifacet) {
     const Facet& facet = facets[ifacet];
     const vector<unsigned>& ipts = facet.ipoints();
+    npts = ipts.size();
+
+    // Find the bounding box for the facet.
+    fxmin =  1e50; fymin =  1e50; fzmin =  1e50;
+    fxmax = -1e50; fymax = -1e50; fzmax = -1e50;
+    for (i = 0; i != npts; ++i) {
+      fxmin = min(fxmin, vertices[ipts[i]].x());
+      fymin = min(fymin, vertices[ipts[i]].y());
+      fzmin = min(fzmin, vertices[ipts[i]].z());
+      fxmax = max(fxmax, vertices[ipts[i]].x());
+      fymax = max(fymax, vertices[ipts[i]].y());
+      fzmax = max(fzmax, vertices[ipts[i]].z());
+    }
 
     // NOTE!  This culling stage only works so long as we are checking rays in the (1,0,0) direction
     // like currently hardwired.
-    filter = false;
-    i = 0;
-    j = ipts.size();
-    while (i < j and not filter) filter = (facet.point(i++).x() >= p.x());
-    if (filter) {
+    if (fxmax >= p.x() - tol and
+        fymin <= p.y() + tol and fymax >= p.y() - tol and
+        fzmin <= p.z() + tol and fzmax >= p.z() - tol) {
 
       normal = facet.normal().unitVector();
       //     cerr << "Point-facet distance: " << pointPlaneDistance(p, facet.position(), normal) << endl;
@@ -94,23 +105,10 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
       code = segmentPlaneIntersection(p, p1, facet.position(), normal, planeIntercept);
       //     cerr << "Code : " << code << " " << (planeIntercept - facet.position()).dot(normal) << " " << (planeIntercept - p).dot(pp1) << endl;
       if (code != '0') { // and (planeIntercept - p).dot(pp1) >= 0.0) {
-        npts = ipts.size();
         facetTest = false;
         px = planeIntercept.x();
         py = planeIntercept.y();
         pz = planeIntercept.z();
-
-        // Find the bounding box for the facet.
-        fxmin =  1e50; fymin =  1e50; fzmin =  1e50;
-        fxmax = -1e50; fymax = -1e50; fzmax = -1e50;
-        for (i = 0; i != npts; ++i) {
-          fxmin = min(fxmin, vertices[ipts[i]].x());
-          fymin = min(fymin, vertices[ipts[i]].y());
-          fzmin = min(fzmin, vertices[ipts[i]].z());
-          fxmax = max(fxmax, vertices[ipts[i]].x());
-          fymax = max(fymax, vertices[ipts[i]].y());
-          fzmax = max(fzmax, vertices[ipts[i]].z());
-        }
 
         // The plane intersection is in the positive direction of the ray, so we 
         // project the facet and intercept point to one of the primary planes and

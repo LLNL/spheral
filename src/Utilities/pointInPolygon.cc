@@ -175,9 +175,9 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       j = (i + 1) % npts;
       k = (i + 2) % npts;
       normi = (vertices[ipoints[j]] - vertices[ipoints[i]]).cross(vertices[ipoints[k]] - vertices[ipoints[i]]);
-      REQUIRE(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-10));
+      REQUIRE2(fuzzyEqual(abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-5), normi << " " << normal << " " << normi.dot(normal) << " " << normi.dot(normal));
     }
-    REQUIRE(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-10));
+    REQUIRE2(fuzzyEqual(pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()), 0.0, 1.0e-3), pointPlaneDistance(p, vertices[ipoints[0]], normal.unitVector()));
   }
   END_CONTRACT_SCOPE;
 
