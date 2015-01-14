@@ -1,11 +1,12 @@
 from pybindgen import *
 
 import sys
-sys.path.append("..")
+srcdir = sys.argv[2]
+
 from PBGutils import *
 from ref_return_value import *
 
-sys.path.append("../CXXTypes")
+sys.path.append("%s/CXXTypes" % srcdir)
 from CXXTypesModule import generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
@@ -19,7 +20,7 @@ class Neighbor:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"Neighbor/NeighborTypes.hh"')
+        mod.add_include('"%s/Neighbor/NeighborTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

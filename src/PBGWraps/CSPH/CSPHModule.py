@@ -4,7 +4,10 @@ from pybindgen import *
 from PBGutils import *
 from ref_return_value import *
 
-sys.path.append("../Physics")
+import sys
+srcdir = sys.argv[2]
+
+sys.path.append("%s/Physics" % srcdir)
 from PhysicsModule import generatePhysicsVirtualBindings
 
 #-------------------------------------------------------------------------------
@@ -18,7 +21,7 @@ class CSPH:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"CSPH/CSPHTypes.hh"')
+        mod.add_include('"%s/CSPH/CSPHTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

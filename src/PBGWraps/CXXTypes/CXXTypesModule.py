@@ -1,6 +1,9 @@
 from pybindgen import *
 from PBGutils import *
 
+import sys
+srcdir = sys.argv[2]
+
 #-------------------------------------------------------------------------------
 # Helper method to add std::vectors.
 #-------------------------------------------------------------------------------
@@ -183,7 +186,7 @@ class CXXTypes:
     def __init__(self, mod):
 
         # Includes
-        mod.add_include('"CXXTypes/CXXTypes.hh"')
+        mod.add_include('"%s/CXXTypes/CXXTypes.hh"' % srcdir)
 
         # Namespace.
         std = mod.add_cpp_namespace("std")

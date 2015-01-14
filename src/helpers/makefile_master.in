@@ -348,8 +348,7 @@ $(PBGTARGETDATE):  $(PBGTARGET)
 	@echo "################################################################################"
 	@echo "# Building sources $(PBGTARGET) $(PBGSRCS)"
 	@echo "################################################################################"
-	$(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
-	cp -f $(SPHERALMODULES).hh $(THIRDPARTYINCDIR)
+	$(PYTHONEXE) $(srcdir)/$(PBGTARGET) $(SPHERALMODULES).C $(srcdir)
 	touch $(PBGTARGETDATE)
 
 $(PBGSRCS):	$(PBGTARGETDATE)

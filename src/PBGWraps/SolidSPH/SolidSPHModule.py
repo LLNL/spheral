@@ -3,6 +3,9 @@ from pybindgen import *
 from ref_return_value import *
 from PhysicsModule import generatePhysicsVirtualBindings
 
+import sys
+srcdir = sys.argv[2]
+
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -14,7 +17,7 @@ class SolidSPH:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"SolidSPH/SolidSPHTypes.hh"')
+        mod.add_include('"%s/SolidSPH/SolidSPHTypes.hh"' % srcdir)
     
         # Namespace.
         SolidSpheral = mod.add_cpp_namespace("Spheral")

@@ -1,5 +1,8 @@
 from pybindgen import *
 
+import sys
+srcdir = sys.argv[2]
+
 from ref_return_value import *
 from MaterialModule import  generateEquationOfStateVirtualBindings
 from PhysicsModule import generatePhysicsVirtualBindings
@@ -15,7 +18,7 @@ class SolidMaterial:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"SolidMaterial/SolidMaterialTypes.hh"')
+        mod.add_include('"%s/SolidMaterial/SolidMaterialTypes.hh"' % srcdir)
 
         # Namespace.
         SolidSpheral = mod.add_cpp_namespace("Spheral")
