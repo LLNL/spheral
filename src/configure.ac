@@ -141,6 +141,7 @@ AC_OUTPUT(helpers/makefile_master \
           Neighbor/makefile \
           DataBase/makefile \
           Boundary/makefile \
+          Distributed/makefile \
           Physics/makefile \
           ArtificialViscosity/makefile \
           Hydro/makefile \
@@ -162,5 +163,6 @@ AC_OUTPUT(helpers/makefile_master \
           SolidSPH/makefile \
           Strength/makefile \
           ArtificialConduction/makefile \
+          PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py)

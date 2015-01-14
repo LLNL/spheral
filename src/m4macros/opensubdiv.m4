@@ -17,8 +17,8 @@ AC_ARG_WITH(opensubdiv,
 [
     AC_MSG_RESULT(no)
     OPENSUBDIVTARGETS=".OpenSubdiv-2_5_0.date"
-    OPENSUBDIVLIBS="\$prefix/lib/libosdCPU.a \$prefix/lib/libosdutil.a"
-    #OPENSUBDIVLIBS="-losdCPU -losdutil"
+    #OPENSUBDIVLIBS="$(prefix)/lib/libosdCPU.a $(prefix)/lib/libosdutil.a"
+    OPENSUBDIVLIBS="-losdCPU -losdutil"
     CXXFLAGS="$CXXFLAGS -DHAVE_OPENSUBDIV"
 ])
 

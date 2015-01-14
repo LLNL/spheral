@@ -15,6 +15,6 @@ INSTALLTARGETS = mpi.py
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 
-mpi.py:	$(MPIPYTHONINTERFACETARGET)
-	rm -f $(LIBDIR)/mpi.py
-	ln -s $(LIBDIR)/$(MPIPYTHONINTERFACETARGET) $(LIBDIR)/mpi.py
+mpi.py:	$(srcdir)/$(MPIPYTHONINTERFACETARGET)
+	rm -f $(PYTHONLIBDIR)/Spheral/mpi.py
+	ln -s $(PYTHONLIBDIR)/Spheral/$(MPIPYTHONINTERFACETARGET) $(PYTHONLIBDIR)/Spheral/mpi.py
