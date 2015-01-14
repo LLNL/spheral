@@ -60,45 +60,37 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Determine the range of indices this domain will check.
         imin0, imax0 = self.globalIDRange(ntot0)
 
-        # Build the raw positions before we start culling them.
-        x, y, z = [], [], []
+        # Build the positions.
+        self.x, self.y, self.z = [], [], []
+        nsurface = 0
         for i in xrange(imin0, imax0):
             xi, yi, zi = self.hcpPosition(i, nx, ny, nz, dx, dy, dz, xmin, xmax)
-            x.append(xi)
-            y.append(yi)
-            z.append(zi)
-        n = len(x)
-        m = [self.m0]*n
-        H = [self.H0]*n
+            if self.surface.contains(Vector(xi, yi, zi)):
+                nsurface += 1
+                if not rejecter:
+                    self.x.append(xi)
+                    self.y.append(yi)
+                    self.z.append(zi)
+                elif rejecter.accept(xi, yi, zi):
+                    self.x.append(xi)
+                    self.y.append(yi)
+                    self.z.append(zi)
+        nsurface = mpi.allreduce(nsurface, mpi.SUM)
+        n = len(self.x)
 
-        # If the user provided a "rejecter", give it a pass
-        # at the nodes.
-        if rejecter:
-            x, y, z, m, H = rejecter(x, y, z, m, H)
-            x, y, z, m, H = (mpi.allreduce(x, mpi.SUM),
-                             mpi.allreduce(y, mpi.SUM),
-                             mpi.allreduce(z, mpi.SUM),
-                             mpi.allreduce(m, mpi.SUM),
-                             mpi.allreduce(H, mpi.SUM))
-            ntot1 = len(x)
-            imin1, imax1 = self.globalIDRange(ntot1)
-            self._cullVars(imin1, imax1, x, y, z, m, H)
-
-        # Now check against the surface.
-        n = len(x)
-        self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
-        for i in xrange(n):
-            if self.surface.contains(Vector(x[i], y[i], z[i])):
-                self.x.append(x[i])
-                self.y.append(y[i])
-                self.z.append(z[i])
-                self.m.append(m[i])
-                self.H.append(H[i])
+        # Scale the masses so the total mass would exactly match the surface expectation.
+        # We use nsurface here to take into account the effect of any rejecters.
+        M0 = surface.volume * self.rho0
+        M1 = nsurface*self.m0
+        mscale = M0/M1
+        self.m0 *= mscale
+        self.m = [self.m0]*n
+        print "PolyhedralFacetedSurfaceGenerator: scaled point masses by %g" % mscale
 
         # At this point we have a less than optimal domain decomposition, but this will
         # be redistributed later anyway so take it and run.
-        n = len(self.x)
         self.rho = [self.rho0]*n
+        self.H = [self.H0]*n
         NodeGeneratorBase.__init__(self, False, self.m)
         return
 
