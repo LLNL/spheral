@@ -773,7 +773,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.m, self.H = \
             self.constantDThetaCylindricalDistribution(self.densityProfileMethod,
-                                                       self.massProfileMethod,
+                                                       self.m0,
                                                        rmin, rmax,
                                                        thetaMin, thetaMax,
                                                        nNodePerh)

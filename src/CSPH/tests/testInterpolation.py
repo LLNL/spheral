@@ -471,6 +471,29 @@ if graphics:
                        yFunction = "%s.x",
                        winTitle = "C++ grad CSPH",
                        colorNodeLists = False)
+                       
+    p7 = generateNewGnuPlot()
+    j = 15
+    rj = positions[j]
+    Hj = H[j]
+    Hdetj = H[j].Determinant()
+    wj = weight[j]
+    Aj = A[j]
+    Bj = B[j]
+    dx = 2.0/50.0
+    x = -2.0
+    W = []
+    WR = []
+    for i in range(100):
+        etaj = Hj.Trace()*x
+        Wj = WT.kernelValue(abs(x), Hdetj)
+        W.append(Wj)
+        WR.append(Wj*Aj*(1+Bj.magnitude()*x))
+        x = x+dx
+    p7.plot(W)
+    p7.replot(WR)
+    p7.title("Kernel")
+    p7.refresh()
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":
