@@ -4,6 +4,30 @@ namespace Spheral {
 
 using namespace std;
 
+namespace {
+//------------------------------------------------------------------------------
+// Compute an individual HCP position.
+//------------------------------------------------------------------------------
+inline
+Dim<3>::Vector HCPposition(const unsigned i,
+                           const unsigned nx,
+                           const unsigned ny,
+                           const unsigned nz,
+                           const double dx,
+                           const double dy,
+                           const double dz,
+                           const Dim<3>::Vector& xmin,
+                           const Dim<3>::Vector& xmax) {
+  const unsigned nxy = nx*ny;
+  const unsigned ix = i % nx;
+  const unsigned iy = (i / nx) % ny;
+  const unsigned iz = i / nxy;
+  return Dim<3>::Vector(xmin.x() + (ix + 0.5*((iy % 2) + (iz % 2)))*dx,
+                        xmin.y() + (iy + 0.5*(iz % 2))*dy,
+                        xmin.z() + (iz + 0.5)*dz);
+}
+}
+
 //------------------------------------------------------------------------------
 // Fill an outer bounding volume.
 //------------------------------------------------------------------------------
@@ -44,33 +68,10 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
   CHECK(domain < numDomains - 1 or imax == nxyz);
   result.reserve(ndomain);
 
-  if (outerBoundary.convex()) {
-
-    for (i = imin; i != imax; ++i) {
-      ix = i % nx;
-      iy = (i / nx) % ny;
-      iz = i / nxy;
-      const Vector pos(xmin.x() + (ix + 0.5)*dx,
-                       xmin.y() + (iy + 0.5)*dx,
-                       xmin.z() + (iz + 0.5)*dx);
-      if (outerBoundary.contains(pos)) result.push_back(pos);
-    }
-
-  } else {
-
-    // We'll try using the much faster convex contains method as a pre-filter
-    // before using the expensive general contains.
-    const FacetedVolume convexOuterBoundary(outerBoundary.vertices());
-    for (i = imin; i != imax; ++i) {
-      ix = i % nx;
-      iy = (i / nx) % ny;
-      iz = i / nxy;
-      const Vector pos(xmin.x() + (ix + 0.5)*dx,
-                       xmin.y() + (iy + 0.5)*dx,
-                       xmin.z() + (iz + 0.5)*dx);
-      if (convexOuterBoundary.convexContains(pos) and outerBoundary.contains(pos)) result.push_back(pos);
-    }
-
+  // Use an HCP lattice to do the filling.
+  for (i = imin; i != imax; ++i) {
+    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
+    if (outerBoundary.contains(pos)) result.push_back(pos);
   }
   return result;
 }
@@ -112,29 +113,10 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& innerBoundary,
   CHECK(domain < numDomains - 1 or imax == nxyz);
   result.reserve(ndomain);
 
-  const bool innerConvex = innerBoundary.convex();
-  const bool outerConvex = outerBoundary.convex();
-  const FacetedVolume convexInnerBoundary = innerConvex ? innerBoundary : FacetedVolume(innerBoundary.vertices());
-  const FacetedVolume convexOuterBoundary = outerConvex ? outerBoundary : FacetedVolume(outerBoundary.vertices());
-
-  bool outerTest, innerTest;
   for (i = imin; i != imax; ++i) {
-    ix = i % nx;
-    iy = (i / nx) % ny;
-    iz = i / nxy;
-    const Vector pos(xmin.x() + (ix + 0.5)*dx,
-                     xmin.y() + (iy + 0.5)*dx,
-                     xmin.z() + (iz + 0.5)*dx);
-    outerTest = convexOuterBoundary.contains(pos);
-    if (outerTest and not outerConvex) outerTest = outerBoundary.contains(pos);
-    if (outerTest) {
-      innerTest = convexInnerBoundary.contains(pos);
-      if (not innerTest) {
+    const Vector pos = HCPposition(i, nx, ny, nz, dx, dx, dx, xmin, xmax);    
+    if (outerBoundary.contains(pos) and not innerBoundary.contains(pos)) {
         result.push_back(pos);
-      } else {
-        if (not innerConvex) innerTest = innerBoundary.contains(pos);
-        if (not innerTest) result.push_back(pos);
-      }
     }
   }
 

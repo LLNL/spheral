@@ -9,7 +9,7 @@ from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix, refinePolyhedron
+    rotationMatrix, refinePolyhedron, fillFacetedVolume
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -20,11 +20,6 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
                  surface,
                  rho,
                  nx,
-                 ny = None,
-                 nz = None,
-                 seed = "hcp",
-                 xmin = None,
-                 xmax = None,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -32,17 +27,13 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         self.rho0 = rho
 
         # Figure out bounds and numbers of nodes to scan the volume with.
-        if xmin is None:
-            xmin = surface.xmin
-        if xmax is None:
-            xmax = surface.xmax
+        xmin = surface.xmin
+        xmax = surface.xmax
         box = xmax - xmin
         assert box.minElement > 0.0
         dx = box.x/nx
-        if ny is None:
-            ny = int(box.y/dx + 0.5)
-        if nz is None:
-            nz = int(box.z/dx + 0.5)
+        ny = int(box.y/dx + 0.5)
+        nz = int(box.z/dx + 0.5)
 
         # Some local geometry.
         ntot0 = nx*ny*nz
@@ -60,22 +51,19 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Determine the range of indices this domain will check.
         imin0, imax0 = self.globalIDRange(ntot0)
 
-        # Build the positions.
+        # Build the intial positions.
+        pos = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
+        nsurface = mpi.allreduce(len(pos), mpi.SUM)
+        print "Initial filled volume with %i points." % nsurface
+
+        # Apply any rejecter.
         self.x, self.y, self.z = [], [], []
-        nsurface = 0
-        for i in xrange(imin0, imax0):
-            xi, yi, zi = self.hcpPosition(i, nx, ny, nz, dx, dy, dz, xmin, xmax)
-            if self.surface.contains(Vector(xi, yi, zi)):
-                nsurface += 1
-                if not rejecter:
-                    self.x.append(xi)
-                    self.y.append(yi)
-                    self.z.append(zi)
-                elif rejecter.accept(xi, yi, zi):
-                    self.x.append(xi)
-                    self.y.append(yi)
-                    self.z.append(zi)
-        nsurface = mpi.allreduce(nsurface, mpi.SUM)
+        for ri in pos:
+            if rejecter.accept(ri.x, ri.y, ri.z):
+                nsurface
+                self.x.append(ri.x)
+                self.y.append(ri.y)
+                self.z.append(ri.z)
         n = len(self.x)
 
         # Scale the masses so the total mass would exactly match the surface expectation.
@@ -141,11 +129,6 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
 def VFSurfaceGenerator(filename,
                        rho,
                        nx,
-                       ny = None,
-                       nz = None,
-                       seed = "hcp",
-                       xmin = None,
-                       xmax = None,
                        nNodePerh = 2.01,
                        SPH = False,
                        scaleFactor = 1.0,
@@ -164,9 +147,7 @@ def VFSurfaceGenerator(filename,
                 newverts[i] = verts[i] * scaleFactor
             surface = Polyhedron(newverts, facets)
     surface = mpi.bcast(surface, 0)
-    return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
-                                      nNodePerh, SPH,
-                                      rejecter = rejecter)
+    return PolyhedralSurfaceGenerator(surface, rho, nx, nNodePerh, SPH, rejecter)
 
 #-------------------------------------------------------------------------------
 # Generate nodes inside a surface by extruding inward from the facets of a 
