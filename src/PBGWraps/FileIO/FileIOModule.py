@@ -46,10 +46,10 @@ class FileIO:
     def __init__(self, mod):
 
         # Includes.
-        mod.add_include('"%s/FileIO/FileIO.hh"' % srcdir)
-        mod.add_include('"%s/FileIO/FlatFileIO.hh"' % srcdir)
-        mod.add_include('"%s/FileIO/PyFileIO.hh"' % srcdir)
-        mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % srcdir)
+        mod.add_include('"%s/FileIO/FileIO.hh"' % SPHERALTOP)
+        mod.add_include('"%s/FileIO/FlatFileIO.hh"' % SPHERALTOP)
+        mod.add_include('"%s/FileIO/PyFileIO.hh"' % SPHERALTOP)
+        mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % SPHERALTOP)
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
