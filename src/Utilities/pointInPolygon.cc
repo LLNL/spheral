@@ -33,7 +33,7 @@ bool pointInPolygon(const Dim<2>::Vector& p,
   // Check if the point is on the boundary (within tolerance).
   // The succeeding code sometimes (but uniquely) includes boundary points, so 
   // we need to check for boundary first.
-  if (pointOnPolygon(p, vertices, tol)) return countBoundary;
+  if (countBoundary and pointOnPolygon(p, vertices, tol)) return true;
 
   // Now we do the test of casting a semi-infinite ray in the x direction from 
   // the point and counting intersections with the polygon.
