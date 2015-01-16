@@ -37,13 +37,15 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 
   // Are we checking the surface?
   vector<Vector> vertices = polyhedron.vertices();
-  if (pointOnPolyhedron(p, polyhedron, tol)) return countBoundary;
+  if (countBoundary and pointOnPolyhedron(p, polyhedron, tol)) return true;
+
+  // Build our ray for projecting through the polyhedron.
+  const double length = (polyhedron.xmax() - polyhedron.xmin()).magnitude();
+  Vector p1 = p + Vector(length, length, length);
 
   // We're going to take O'Rourke's advice here and look for a ray that doesn't 
   // have any degeneracies -- i.e., it doesn't intersect any edges or vertices
   // of the polyhedron.
-  const double length = (polyhedron.xmax() - polyhedron.xmin()).magnitude();
-  Vector p1 = p + Vector(length, 0.0, 0.0);
   // {
   //   // Construct a random number generator.
   //   boost::mt19937 seed;
@@ -67,10 +69,9 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
   //   cerr << "Chose ray:  " << pp1 << endl;
 
   // Walk the facets, and test each one.
-  bool filter;
   unsigned numIntersections = 0;
   const vector<Facet>& facets = polyhedron.facets();
-  bool facetTest;
+  bool filter, facetTest, boundTest;
   unsigned ifacet, npts, i, j;
   double px, py, pz, fxmin, fymin, fzmin, fxmax, fymax, fzmax;
   char code;
@@ -80,90 +81,118 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
     const vector<unsigned>& ipts = facet.ipoints();
     npts = ipts.size();
 
-    // Find the bounding box for the facet.
-    fxmin =  1e50; fymin =  1e50; fzmin =  1e50;
-    fxmax = -1e50; fymax = -1e50; fzmax = -1e50;
-    for (i = 0; i != npts; ++i) {
-      fxmin = min(fxmin, vertices[ipts[i]].x());
-      fymin = min(fymin, vertices[ipts[i]].y());
-      fzmin = min(fzmin, vertices[ipts[i]].z());
-      fxmax = max(fxmax, vertices[ipts[i]].x());
-      fymax = max(fymax, vertices[ipts[i]].y());
-      fzmax = max(fzmax, vertices[ipts[i]].z());
-    }
+    // // Find the bounding box for the facet.
+    // fxmin =  1e50; fymin =  1e50; fzmin =  1e50;
+    // fxmax = -1e50; fymax = -1e50; fzmax = -1e50;
+    // for (i = 0; i != npts; ++i) {
+    //   fxmin = min(fxmin, vertices[ipts[i]].x());
+    //   fymin = min(fymin, vertices[ipts[i]].y());
+    //   fzmin = min(fzmin, vertices[ipts[i]].z());
+    //   fxmax = max(fxmax, vertices[ipts[i]].x());
+    //   fymax = max(fymax, vertices[ipts[i]].y());
+    //   fzmax = max(fzmax, vertices[ipts[i]].z());
+    // }
 
     // NOTE!  This culling stage only works so long as we are checking rays in the (1,0,0) direction
     // like currently hardwired.
-    if (fxmax >= p.x() - tol and
-        fymin <= p.y() + tol and fymax >= p.y() - tol and
-        fzmin <= p.z() + tol and fzmax >= p.z() - tol) {
+    // filter = (fxmax >= p.x() - tol and
+    //     fymin <= p.y() + tol and fymax >= p.y() - tol and
+    //     fzmin <= p.z() + tol and fzmax >= p.z() - tol);
+
+    filter = false;
+    i = 0;
+    while (i != npts and not filter) {
+      filter = ((vertices[ipts[i++]] - p).dot(p1 - p) >= 0.0);
+    }
+
+    if (filter) {
 
       normal = facet.normal().unitVector();
       //     cerr << "Point-facet distance: " << pointPlaneDistance(p, facet.position(), normal) << endl;
 
+      // vector<Vector> pverts;
+      // for (i = 0; i != npts; ++i) pverts.push_back(vertices[ipts[i]]);
+      // Vector thpt;
+      // code = segmentPlanarSectionIntersection(p, p1, pverts, thpt, tol);
+      // if (code == '1') numIntersections += 2;
+
       // Find the intersection of the line corresponding to our ray and the facet plane.
-      code = segmentPlaneIntersection(p, p1, facet.position(), normal, planeIntercept);
+      code = segmentPlaneIntersection(p, p1, facet.position(), normal, planeIntercept, tol);
       //     cerr << "Code : " << code << " " << (planeIntercept - facet.position()).dot(normal) << " " << (planeIntercept - p).dot(pp1) << endl;
       if (code != '0') { // and (planeIntercept - p).dot(pp1) >= 0.0) {
-        facetTest = false;
-        px = planeIntercept.x();
-        py = planeIntercept.y();
-        pz = planeIntercept.z();
 
-        // The plane intersection is in the positive direction of the ray, so we 
-        // project the facet and intercept point to one of the primary planes and
-        // do a 2-D polygon interior test.
-        if (abs(normal.x()) > 0.5) {
+        // Check if we landed on the boundary of the projected facet.
+        boundTest = false;
+        while (i != npts and not boundTest) {
+          j = (i + 1) % npts;
+          CHECK(i < npts and j < npts);
+          boundTest = between(vertices[ipts[i]], vertices[ipts[j]], planeIntercept, tol);
+          ++i;
+        }
 
-          // x plane -- use (y,z) coordinates.
-          if (py >= fymin and py <= fymax and pz >= fzmin and pz <= fzmax) {
+        if (boundTest) {
+
+          // If we landed exactly on the boundary of this facet we want to add 1/2 an intersection since we 
+          // should hit it again.
+          numIntersections += 1;
+
+        } else {
+
+          // Test the interior of the facet.
+          facetTest = false;
+          px = planeIntercept.x();
+          py = planeIntercept.y();
+          pz = planeIntercept.z();
+
+          // The plane intersection is in the positive direction of the ray, so we 
+          // project the facet and intercept point to one of the primary planes and
+          // do a 2-D polygon interior test.
+          if (abs(normal.x()) > 0.1) {
+
+            // x plane -- use (y,z) coordinates.
             for (i = 0, j = npts - 1; i < npts; j = i++) {
               if ( ((vertices[ipts[i]].z() > pz) != (vertices[ipts[j]].z() > pz)) &&
                    (py < (vertices[ipts[j]].y() - vertices[ipts[i]].y()) * (pz - vertices[ipts[i]].z()) / (vertices[ipts[j]].z() - vertices[ipts[i]].z()) + vertices[ipts[i]].y()) )
                 facetTest = not facetTest;
             }
-          }
 
-          //         cerr << "x test: " << facetTest << endl;
-          //         vector<Dim<2>::Vector> v2d;
-          //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].y(), vertices[ipts[i]].z()));
-          //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(py, pz), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(py, pz), v2d, true) << endl;
+            //         cerr << "x test: " << facetTest << endl;
+            //         vector<Dim<2>::Vector> v2d;
+            //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].y(), vertices[ipts[i]].z()));
+            //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(py, pz), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(py, pz), v2d, true) << endl;
 
-        } else if (abs(normal.y()) > 0.5) {
-
-          // y plane -- use (x,z) coordinates.
-          if (px >= fxmin and px <= fxmax and pz >= fzmin and pz <= fzmax) {
+          } else if (abs(normal.y()) > 0.1) {
+       
+            // y plane -- use (x,z) coordinates.
             for (i = 0, j = npts - 1; i < npts; j = i++) {
               if ( ((vertices[ipts[i]].z() > pz) != (vertices[ipts[j]].z() > pz)) &&
                    (px < (vertices[ipts[j]].x() - vertices[ipts[i]].x()) * (pz - vertices[ipts[i]].z()) / (vertices[ipts[j]].z() - vertices[ipts[i]].z()) + vertices[ipts[i]].x()) )
                 facetTest = not facetTest;
             }
-          }
 
-          //         cerr << "y test: " << facetTest << endl;
-          //         vector<Dim<2>::Vector> v2d;
-          //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].x(), vertices[ipts[i]].z()));
-          //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(px, pz), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(px, pz), v2d, true) << endl;
+            //         cerr << "y test: " << facetTest << endl;
+            //         vector<Dim<2>::Vector> v2d;
+            //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].x(), vertices[ipts[i]].z()));
+            //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(px, pz), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(px, pz), v2d, true) << endl;
 
-        } else {
-          CHECK(abs(normal.z()) > 0.5);
+          } else {
+            CHECK(abs(normal.z()) > 0.1);
 
-          // z plane -- use (x,y) coordinate.
-          if (px >= fxmin and px <= fxmax and py >= fymin and py <= fymax) {
+            // z plane -- use (x,y) coordinate.
             for (i = 0, j = npts - 1; i < npts; j = i++) {
               if ( ((vertices[ipts[i]].y() > py) != (vertices[ipts[j]].y() > py)) &&
                    (px < (vertices[ipts[j]].x() - vertices[ipts[i]].x()) * (py - vertices[ipts[i]].y()) / (vertices[ipts[j]].y() - vertices[ipts[i]].y()) + vertices[ipts[i]].x()) )
                 facetTest = not facetTest;
             }
+
+            //         cerr << "z test: " << facetTest << endl;
+            //         vector<Dim<2>::Vector> v2d;
+            //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].x(), vertices[ipts[i]].y()));
+            //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(px, py), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(px, py), v2d, true) << endl;
+
           }
-
-          //         cerr << "z test: " << facetTest << endl;
-          //         vector<Dim<2>::Vector> v2d;
-          //         for (i = 0; i != npts; ++i) v2d.push_back(Dim<2>::Vector(vertices[ipts[i]].x(), vertices[ipts[i]].y()));
-          //         cerr << "Polygonal test:  " << pointInPolygon(Dim<2>::Vector(px, py), v2d, false) << " " << pointInPolygon(Dim<2>::Vector(px, py), v2d, true) << endl;
-
+          if (facetTest) numIntersections += 2;
         }
-        if (facetTest) ++numIntersections;
 
         //       cerr << "Code: " << code << " " << p << " " << planeIntercept << " " << (planeIntercept - p) << " " << (planeIntercept - p).dot(pp1) << endl;
         //       if (facetTest) {
@@ -173,6 +202,10 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
       }
     }
   }
+
+  // At this point we effectively should have twice the number of intersections.
+  CHECK(numIntersections % 2 == 0);
+  numIntersections /= 2;
 
   // If the ray passed through an even number of intersections the point is external to the 
   // polyhedron.
@@ -186,9 +219,9 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
 //     }
 //     cerr << endl
 //          << testPointInBox(p, polyhedron.xmin(), polyhedron.xmax(), tol) << endl;
-//   }
+// }
 
-  return not (numIntersections % 2 == 0);
+  return (numIntersections % 2 != 0);
 }
 
 }
