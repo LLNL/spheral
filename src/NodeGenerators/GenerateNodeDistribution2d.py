@@ -766,7 +766,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
             (self.totalMass, rmin, rmax, thetaMin, thetaMax)
 
         # Now set the nominal mass per node.
-        self.m0 = self.totalMass/self.n
+        self.m0 = self.totalMass/(self.n*self.n*pi)
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
