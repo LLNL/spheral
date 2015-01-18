@@ -12,7 +12,7 @@ PBGMODTARGET = $(PKGNAME).$(SHLIBEXT)
 PBGTARGET = SpheralModulesBindings.py
 INSTALLTARGETS = Spheral.pth
 
-EXTRALIBS = -lvisit_writer -lsiloh5 -lhdf5
+EXTRALIBS = -lsiloh5 -lhdf5 $(OPENSUBDIVLIBS)
 
 PYTHONPKGS = @PYTHONPKGS@
 PBGPKGS = @PYTHONPKGS@
@@ -27,4 +27,4 @@ CP = cp
 force_build:
 
 Spheral.pth:	force_build
-	cp -f Spheral.pth $(LIBDIR)/..
+	cp -f $(srcdir)/Spheral.pth $(PYTHONLIBDIR)

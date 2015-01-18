@@ -6,6 +6,7 @@ VPATH = @abs_srcdir@
 SPHERALTOP = @abs_top_srcdir@
 BUILDTOP = @abs_top_builddir@
 
+PKGNAME = Distributed
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	Communicator.cc \
