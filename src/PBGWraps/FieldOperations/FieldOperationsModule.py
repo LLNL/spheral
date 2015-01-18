@@ -1,8 +1,5 @@
 from pybindgen import *
 
-import sys
-srcdir = sys.argv[2]
-
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -13,8 +10,8 @@ class FieldOperations:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
-        mod.add_include('"%s/FieldOperations/FieldOperationsTypes.hh"' % srcdir)
+    def __init__(self, mod, srcdir, topsrcdir):
+        mod.add_include('"%s/FieldOperationsTypes.hh"' % srcdir)
         Spheral = mod.add_cpp_namespace("Spheral")
         self.space = Spheral.add_cpp_namespace("FieldSpace")
         return

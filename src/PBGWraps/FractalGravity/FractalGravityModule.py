@@ -1,7 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.append("..")
 from PBGutils import *
 from ref_return_value import *
 
@@ -13,10 +11,10 @@ class FractalGravity:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"FractalGravity/FractalGravity.hh"')
+        mod.add_include('"%s/FractalGravity/FractalGravity.hh"' % topsrcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

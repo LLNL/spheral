@@ -1,9 +1,5 @@
 from pybindgen import *
 
-import sys
-srcdir = sys.argv[2]
-
-sys.path.append(srcdir)
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -43,13 +39,13 @@ class FileIO:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/FileIO/FileIO.hh"' % SPHERALTOP)
-        mod.add_include('"%s/FileIO/FlatFileIO.hh"' % SPHERALTOP)
-        mod.add_include('"%s/FileIO/PyFileIO.hh"' % SPHERALTOP)
-        mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % SPHERALTOP)
+        mod.add_include('"%s/FileIO/FileIO.hh"' % topsrcdir)
+        mod.add_include('"%s/FileIO/FlatFileIO.hh"' % topsrcdir)
+        mod.add_include('"%s/FileIO/PyFileIO.hh"' % topsrcdir)
+        mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % topsrcdir)
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

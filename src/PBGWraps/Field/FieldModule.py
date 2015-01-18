@@ -1,9 +1,5 @@
 from pybindgen import *
 
-import sys
-srcdir = sys.argv[2]
-
-sys.path.append(srcdir)
 from PBGutils import *
 from CXXTypesModule import generateStdVectorBindings
 from ref_return_value import *
@@ -16,10 +12,10 @@ class Field:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/Field/FieldTypes.hh"' % srcdir)
+        mod.add_include('"%s/FieldTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

@@ -1,8 +1,5 @@
 from pybindgen import *
 
-import sys
-srcdir = sys.argv[2]
-
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -13,8 +10,8 @@ class NodeGenerators:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
-        mod.add_include('"%s/NodeGenerators/NodeGeneratorsTypes.hh"' % srcdir)
+    def __init__(self, mod, srcdir, topsrcdir):
+        mod.add_include('"%s/NodeGeneratorsTypes.hh"' % srcdir)
         Spheral = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
