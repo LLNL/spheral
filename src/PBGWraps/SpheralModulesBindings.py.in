@@ -4,6 +4,14 @@
 #-------------------------------------------------------------------------------
 import os
 import sys
+
+# Path variables.
+global topsrcdir
+global srcdir
+topsrcdir = "@abs_top_srcdir@"
+srcdir = "@abs_srcdir@"
+sys.path.extend([topsrcdir, srcdir])
+
 from pybindgen import *
 from SpheralMultiSectionFactory import SpheralMultiSectionFactory
 
@@ -19,7 +27,7 @@ pkgs_string = "@PYTHONPKGS@"
 pkgs = pkgs_string.split()
 
 # Extract the desired output files.
-outfile = sys.argv[-1].replace("Bindings", "")
+outfile = sys.argv[1].replace("Bindings", "")
 assert outfile[-2:] == ".C"
 print "Parsing pybindgen packages: ", pkgs
 
@@ -27,16 +35,15 @@ print "Parsing pybindgen packages: ", pkgs
 # Create the SpheralModules module.
 #-------------------------------------------------------------------------------
 mod = Module("SpheralModules")
-mod.add_include('"referenceAsPointer.hh"')
+mod.add_include('"%s"' % os.path.join(srcdir, "referenceAsPointer.hh"))
 
 # Go through each package and add its stuff to the module.
 for p in pkgs:
     print "Generating types for %s" % p
     modname = "%sModule" % p
-    exec("sys.path.append('%s')" % p)
     exec("import %s" % modname)
     mod.begin_section("SpheralModules_%s" % p)
-    exec("%s = %s.%s(mod)" % (p, modname, p))
+    exec("%s = %s.%s(mod, '%s', '%s')" % (p, modname, p, "%s/%s" % (srcdir, p), topsrcdir))
     mod.end_section("SpheralModules_%s" % p)
 
 # Now bind methods to the objects.

@@ -1,8 +1,5 @@
 from pybindgen import *
 
-import sys
-srcdir = sys.argv[2]
-
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -13,10 +10,10 @@ class Kernel:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/Kernel/KernelTypes.hh"' % srcdir)
+        mod.add_include('"%s/KernelTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

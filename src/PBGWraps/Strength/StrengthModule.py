@@ -3,9 +3,6 @@ from pybindgen import *
 from ref_return_value import *
 from PhysicsModule import generatePhysicsVirtualBindings
 
-import sys
-srcdir = sys.argv[2]
-
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -14,10 +11,10 @@ class Strength:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/Strength/StrengthTypes.hh"' % srcdir)
+        mod.add_include('"%s/StrengthTypes.hh"' % srcdir)
     
         # Namespace.
         SolidSpheral = mod.add_cpp_namespace("Spheral")

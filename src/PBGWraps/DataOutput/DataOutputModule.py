@@ -1,9 +1,6 @@
 from pybindgen import *
 from PBGutils import *
 
-import sys
-srcdir = sys.argv[2]
-
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
 #-------------------------------------------------------------------------------
@@ -12,10 +9,10 @@ class DataOutput:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/DataOutput/DataOutputTypes.hh"' % srcdir)
+        mod.add_include('"%s/DataOutputTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

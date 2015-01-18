@@ -3,10 +3,6 @@ from pybindgen import *
 from PBGutils import *
 from ref_return_value import *
 
-import sys
-srcdir = sys.argv[2]
-
-sys.path.append("%s/CXXTypes" % srcdir)
 from CXXTypesModule import generateStdPairBindings, generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
@@ -17,10 +13,10 @@ class NodeList:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"%s/NodeList/NodeListTypes.hh"' % srcdir)
+        mod.add_include('"%s/NodeListTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

@@ -138,6 +138,9 @@ MODULELINK = @MODULELINK@
 LIBTARGETFLAGS = @LIBTARGETFLAGS@
 SHLIBEXT = @SHLIBEXT@
 
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+
 #-------------------------------------------------------------------------------
 # Static lib based on the dynamic library.
 STATICLIBTARGET = $(LIBTARGET:.$(DYLIBEXT)=.a)
@@ -243,7 +246,7 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 %.o:	%.C
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
@@ -348,7 +351,7 @@ $(PBGTARGETDATE):  $(PBGTARGET)
 	@echo "################################################################################"
 	@echo "# Building sources $(PBGTARGET) $(PBGSRCS)"
 	@echo "################################################################################"
-	$(PYTHONEXE) $(srcdir)/$(PBGTARGET) $(SPHERALMODULES).C $(srcdir)
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
 	touch $(PBGTARGETDATE)
 
 $(PBGSRCS):	$(PBGTARGETDATE)
@@ -360,8 +363,8 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
