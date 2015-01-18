@@ -54,26 +54,21 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Build the intial positions.
         pos = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
-        print "Initial filled volume with %i points." % nsurface
 
         # Apply any rejecter.
         self.x, self.y, self.z = [], [], []
         for ri in pos:
             if rejecter.accept(ri.x, ri.y, ri.z):
-                nsurface
                 self.x.append(ri.x)
                 self.y.append(ri.y)
                 self.z.append(ri.z)
         n = len(self.x)
 
-        # Scale the masses so the total mass would exactly match the surface expectation.
-        # We use nsurface here to take into account the effect of any rejecters.
+        # Pick a mass per point so we get exactly the correct total mass inside the surface
+        # before any rejection.
         M0 = surface.volume * self.rho0
-        M1 = nsurface*self.m0
-        mscale = M0/M1
-        self.m0 *= mscale
+        self.m0 = M0/nsurface
         self.m = [self.m0]*n
-        print "PolyhedralFacetedSurfaceGenerator: scaled point masses by %g" % mscale
 
         # At this point we have a less than optimal domain decomposition, but this will
         # be redistributed later anyway so take it and run.
