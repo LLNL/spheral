@@ -166,7 +166,7 @@ ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   PBGMODHEADERS = $(SPHERALMODULES).hh
   PBGMODSRCS = $(SPHERALMODULES).C $(PBGMODHEADERS)
   PBGMODOBJ = $(SPHERALMODULES).o
-  MODPKGS = $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS)))
+  MODPKGS = $(patsubst %, $(srcdir)/%, $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS))))
 
   ifneq "$(PBGTARGET)" ""
     PBGTARGETDATE = $(patsubst %, .%.date, $(PBGTARGET:.py=))

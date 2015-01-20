@@ -6,19 +6,19 @@
 	rm -f $(*F).u; \
 	[ -s $(@F) ] || rm -f $(@F)'
 
-%.py.d:	%.py
-	@$(SHELL) -ec 'echo "Building dependencies for $(*F).py"; \
+%Bindings.py.d:	%Bindings.py
+	@$(SHELL) -ec 'echo "Building dependencies for $*Bindings.py"; \
 	echo "PYTHONPKGS are $(PYTHONPKGS)"; \
-	$(PYTHONEXE) $*.py $(*F).C; \
-	echo "$(*F).C $(*F).py.d : $(MODPKGS)" > $(@F); \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(*F).C > $(*F).u; \
-	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' >> $(@F); \
-	rm -f $(*F).u; \
-	[ -s $(@F) ] || rm -f $(@F)'
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $*Bindings.py $*.C; \
+	echo "$*.C $*Bindings.py.d : $(MODPKGS)" > $@; \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $*Bindings.u; \
+	cat $*Bindings.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
+	rm -f $*Bindings.u; \
+	[ -s $@ ] || rm -f $@'
 
 %.d:	%.C
 	@$(SHELL) -ec 'echo "Building dependencies for $*.C"; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $(*F).u; \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $(*F).u; \
 	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
 	rm -f $(*F).u; \
 	[ -s $(@F) ] || rm -f $(@F)'
