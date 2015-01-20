@@ -1177,5 +1177,247 @@ class GenerateNodesMatchingProfile3d(NodeGeneratorBase):
         
         return x, y, z, m, H
 
+#-------------------------------------------------------------------------------
+# Specialized version that generates a variable radial stepping to try
+# and match a given density profile with (nearly) constant mass nodes
+# on a variable resolution Icosahedron.
+# It is recommended for now that you use 0-pi and 0-2pi for theta,phi.
+#-------------------------------------------------------------------------------
+class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
+    
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, n, densityProfileMethod,
+                 rmin = 0.0,
+                 rmax = 1.0,
+                 thetaMin = 0.0,
+                 thetaMax = pi,
+                 phiMin = 0.0,
+                 phiMax = 2.0*pi,
+                 nNodePerh = 2.01):
+        
+        assert n > 0
+        assert rmin < rmax
+        assert thetaMin < thetaMax
+        assert thetaMin >= 0.0 and thetaMin <= 2.0*pi
+        assert thetaMax >= 0.0 and thetaMax <= 2.0*pi
+        assert phiMin < phiMax
+        assert phiMin >= 0.0 and phiMin <= 2.0*pi
+        assert phiMax >= 0.0 and phiMax <= 2.0*pi
+        assert nNodePerh > 0.0
+        
+        self.n = n
+        self.rmin = rmin
+        self.rmax = rmax
+        self.thetaMin = thetaMin
+        self.thetaMax = thetaMax
+        self.phiMin = phiMin
+        self.phiMax = phiMax
+        self.nNodePerh = nNodePerh
+        
+        # If the user provided a constant for rho, then use the constantRho
+        # class to provide this value.
+        if type(densityProfileMethod) == type(1.0):
+            self.densityProfileMethod = ConstantRho(densityProfileMethod)
+        else:
+            self.densityProfileMethod = densityProfileMethod
+        
+        # Determine how much total mass there is in the system.
+        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+                                                 rmin, rmax,
+                                                 thetaMin, thetaMax,
+                                                 phiMin, phiMax)
+        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
 
+        # Now set the nominal mass per node.
+        self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
+        assert self.m0 > 0.0
+        print "Nominal mass per node of %g." % self.m0
+        
+        
+        # Create the rotation matrices
+        self.R = []
+        for i in xrange(20):
+            self.R.append([[0 for x in xrange(3)] for x in xrange(3)])
+        self.compute_matrices()
+        self.v = []
+        for i in xrange(12):
+            self.v.append([0,0,0])
+        self.compute_corners()
+        
+        return
+
+    #---------------------------------------------------------------------------
+    # Numerically integrate the given density profile to determine the total
+    # enclosed mass.
+    #---------------------------------------------------------------------------
+    def integrateTotalMass(self, densityProfileMethod,
+                           rmin, rmax,
+                           thetaMin, thetaMax,
+                           phiMin, phiMax,
+                           nbins = 10000):
+        assert nbins > 0
+        assert nbins % 2 == 0
+        
+        result = 0
+        dr = (rmax-rmin)/nbins
+        for i in xrange(1,nbins):
+            r1 = rmin + (i-1)*dr
+            r2 = rmin + i*dr
+            result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
+        result = result * (phiMax-phiMin) * (cos(thetaMin)-cos(thetaMax))
+        return result
+
+    
+
+    def compute_matrices(self):
+        self.A = [[0 for x in xrange(3)] for x in xrange(3)]
+        self.B = [[0 for x in xrange(3)] for x in xrange(3)]
+        self.C = [[0 for x in xrange(3)] for x in xrange(3)]
+        self.D = [[0 for x in xrange(3)] for x in xrange(3)]
+        self.E = [[0 for x in xrange(3)] for x in xrange(3)]
+
+        x = 2.0/5.0*pi
+        cs = cos(x)
+        sn = sin(x)
+        self.A[0][0] = cs
+        self.A[0][1] = -sn
+        self.A[1][0] = sn
+        self.A[1][1] = cs
+        self.A[2][2] = 1.0
+        # A rotates 72 degrees around the z-axis
+        x = pi/5.0
+        ct = cos(x)/sin(x)
+        cs = ct/sqrt(3.0)
+        sn = sqrt(1.0-ct*ct/3.0)
+        self.C[0][0] = 1.0
+        self.C[1][1] = cs
+        self.C[1][2] = -sn
+        self.C[2][1] = sn
+        self.C[2][2] = cs
+        # C rotates around the x-axis so the north pole
+        # ends up at the center of face 1
+        cs = -0.5
+        sn = sqrt(3.0)/2.0
+        self.D[0][0] = cs
+        self.D[0][1] = -sn
+        self.D[1][0] = sn
+        self.D[1][1] = cs
+        self.D[2][2] = 1.0
+        # D rotates 120 degrees around z-axis
+        self.matmul1(self.C,self.D,self.E)
+        self.matmul2(self.E,self.C,self.B)
+        # B rotates faces 1 by 120 degrees
+        for i in xrange(3):
+            for j in xrange(3):
+                self.E[i][j] = 0.0
+            self.E[i][i] = 1.0
+        # Now E is the identity matrix
+        self.putMatrix(0,self.E)
+        self.matmul1(self.B,self.A,self.E)
+        self.matmul1(self.B,self.E,self.E)
+        self.putMatrix(5,self.E)
+        self.matmul1(self.E,self.A,self.E)
+        self.putMatrix(10,self.E)
+        self.matmul1(self.E,self.B,self.E)
+        self.matmul1(self.E,self.B,self.E)
+        self.matmul1(self.E,self.A,self.E)
+        self.putMatrix(15,self.E)
+        for n in xrange(4):
+            nn = n*5
+            self.getMatrix(nn,self.E)
+            for i in xrange(1,5):
+                self.matmul1(self.A,self.E,self.E)
+                self.putMatrix(nn+i,self.E)
+            
+        for n in xrange(20):
+            self.getMatrix(n,self.E)
+            self.matmul1(self.E,self.C,self.E)
+            self.putMatrix(n,self.E)
+        return
+            
+    def compute_corners(self):
+        dph = 2.0/5.0*pi
+        # First corner is the north pole
+        self.v[0][0] = 0
+        self.v[0][1] = 0
+        self.v[0][2] = 1
+        # Next 5 lie on a circle with one on the y-axis
+        z = 0.447213595 # This is 1/(2 sin^2(pi/5)) - 1
+        rho = sqrt(1.0-z*z)
+        for i in xrange(5):
+            self.v[1+i][0] = -rho*sin(i*dph)
+            self.v[1+i][1] = rho*cos(i*dph)
+            self.v[1+i][2] = z
+        # Second half are opposite of first half
+        for i in xrange(6):
+            for j in xrange(3):
+                self.v[6+i][j] = -self.v[i][j]
+        return
+    #---------------------------------------------------------------------------
+    # Linear Algebra follows. You have been warned!!!
+    #---------------------------------------------------------------------------
+    def copymatrix(self,M1,M2):
+        for i in xrange(3):
+            for j in xrange(3):
+                M2[i][j] = M1[i][j]
+        return
+                
+    def copyvector(self,v1,v2):
+        for i in xrange(3):
+            v2[i] = v1[i]
+        return
+
+    def getMatrix(self,n,M1):
+        for i in xrange(3):
+            for j in xrange(3):
+                M1[i][j] = self.R[n][i][j]
+        return
+
+    def putMatrix(self,n,M1):
+        for i in xrange(3):
+            for j in xrange(3):
+                self.R[n][i][j] = M1[i][j]
+        return
+
+    def matmul1(self,M1,M2,M3):
+        # M3 = M1*M2
+        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
+        sum = 0
+        for i in xrange(3):
+            for j in xrange(3):
+                sum = 0
+                for k in xrange(3):
+                    sum = sum + M1[i][k] * M2[k][j]
+                M4[i][j] = sum
+        self.copymatrix(M4,M3)
+        return
+
+    def matmul2(self,M1,M2,M3):
+        # M3 = M1*M2^t
+        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
+        sum = 0
+        for i in xrange(3):
+            for j in xrange(3):
+                sum = 0
+                for k in xrange(3):
+                    sum = sum + M1[i][k] * M2[j][k]
+                M4[i][j] = sum
+        self.copymatrix(M4,M3)
+        return
+
+    def matmul3(self,M1,M2,M3):
+        # M3 = M1^t *M2
+        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
+        sum = 0
+        for i in xrange(3):
+            for j in xrange(3):
+                sum = 0
+                for k in xrange(3):
+                    sum = sum + M1[k][i] * M2[k][j]
+                M4[i][j] = sum
+        self.copymatrix(M4,M3)
+        return
 
