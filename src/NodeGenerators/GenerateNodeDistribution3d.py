@@ -1247,6 +1247,38 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.v.append([0,0,0])
         self.compute_corners()
         
+        # pixel count goes as 40*res*(res-1)+12
+        # res = 1 -> 0  pixels per face,  12 pixels total
+        # res = 2 -> 4  pixels per face,  92 pixels total
+        # res = 3 -> 12 pixels per face, 252 pixels total
+        # res = 4 -> 24 pixels per face, 492 pixels total
+        
+        from Spheral import SymTensor3d
+        self.x = []
+        self.y = []
+        self.z = []
+        self.m = []
+        self.H = []
+        ri = rmax
+        
+        while ri > rmin:
+            
+            # Get the nominal delta r, number of nodes,
+            # and mass per node at this radius.
+            rhoi = densityProfileMethod(ri)
+            dr = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
+            mshell = rhoi * 4.0*pi*ri*ri*dr
+            nshell = int(mshell / self.m0)
+            res = int((1+sqrt(1+4*(nshell-12)/40))/2)
+            nc = (40*res*(res-1)+12)
+            print "nominal shell node count = %d" % nc
+            print "resulting in m0 scaling by %2.2f" % (mshell/(nc*self.m0))
+            mi = self.m0 * (mshell/(nc*self.m0))
+            
+            
+            
+            ri = max(0.0, ri - dr)
+        
         return
 
     #---------------------------------------------------------------------------
@@ -1356,8 +1388,15 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             for j in xrange(3):
                 self.v[6+i][j] = -self.v[i][j]
         return
+
+    def vector2pixel(self,v1,res):
+        A = [[0 for x in xrange(3)] for x in xrange(3)]
+        pix,face,pixperface,ifail = 0,0,0,0
+        assert res > 0
+        pixperface = 2*res*(res-1)
+        find_face(v1)
     #---------------------------------------------------------------------------
-    # Linear Algebra follows. You have been warned!!!
+    # Lots of Linear Algebra follows. You have been warned!!!
     #---------------------------------------------------------------------------
     def copymatrix(self,M1,M2):
         for i in xrange(3):
@@ -1420,4 +1459,244 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 M4[i][j] = sum
         self.copymatrix(M4,M3)
         return
+
+    def find_face(self,v1):
+        # Locates the face to which the vector v1 points
+        max,face = 0,0
+        for n in xrange(20):
+            dot = 0
+            for i in xrange(3):
+                dot = dot + self.R[n][i][2] * v1[i]
+            if (dot > max):
+                max = dot
+                face = n
+        return face
+
+    def find_another_face(self,v1,face):
+        # Computes the dot product with the vectors
+        # pointing to the center of each face and picks the
+        # largest one other than face.
+        max = -17
+        facetoavoid = face
+        for n in xrange(20):
+            if (n!=facetoavoid):
+                dot = 0
+                for i in xrange(3):
+                    dot = dot + self.R[n][i][2] * v1[i]
+                if (dot>max):
+                    face = n
+                    max = dot
+        return face
+
+    def find_corner(self,v1):
+    	# Locates the corner to which v1 points.
+        # Computes the dot product with the vectors
+        # pointing to each corner and picks the
+        # largest one.
+        max = -17
+        corner = 0
+        for n in xrange(12):
+            dot = 0
+            for i in xrange(3):
+                dot = dot + self.v[n][i] * v1[i]
+            if (dot > max):
+                corner = n
+                max = dot
+        return corner
+
+    def find_mn(self,pixel,res):
+        # Computes the integer coordinates (m,n) of the pixel
+        # numbered pix on the basic triangle.
+        found = 0
+        pix, m, n = 0,0,0
+        interiorpix, pixperedge = 0,0
+        pix 	    = pixel
+        interiorpix = (2*res-3)*(res-1)
+        pixperedge  = (res)-1
+        if (pix < interiorpix) and (found == 0):
+            # The pixel lies in the interior of the triangle.
+            m = (sqrt(1.+8.*pix)-1.)/2. + 0.5/res
+            # 0.5/resolution was added to avoid problems with
+            # rounding errors for the case when n=0.
+            # As long as you don't add more than 2/m, you're OK.
+            n = pix - m*(m+1)/2
+            m = m + 2
+            n = n + 1
+            found = 1
+        pix = pix - interiorpix
+        if (pix < pixperedge) and (found == 0):
+            # The pixel lies on the bottom edge.
+            m = 2*res-1
+            n = pix+1
+            found = 1
+        pix = pix - pixperedge
+        if (pix < pixperedge) and (found == 0):
+            # The pixel lies on the right edge.
+            m = 2*resolution-(pix+2)
+            n = m
+            found = 1
+        pix = pix - pixperedge
+        # The pixel lies on the left edge.
+        if (found == 0):
+            m = pix+1
+            n = 0
+        return m,n
+
+    def tangentPlanePixel(self,res,x,y):
+        # Finds the hexagon in which the point (x,y) lies
+        # and computes the corresponding pixel number pix.
+        # if (x,y) lies on face, ifail = 0
+        c=0.866025404
+        edgelength=1.3231690765
+        # The edge length of the icosahedron is
+        # sqrt(9 tan^2(pi/5) - 3) when scaled so that
+        # it circumscribes the unit sphere.
+        r2	= 2*res
+        a 	= 0.5*x
+        b 	= c*y
+        d 	= 0.5*edgelength/(r2-1)
+        i 	= x/d 	  + r2
+        j 	= (a+b)/d + r2
+        k 	= (a-b)/d + r2
+        m 	= (r2+r2-j+k-1)/3
+        n 	= (i+k+1-r2)/3
+        pix = (m-2)*(m-1)/2 + (n-1)
+        ifail = 0
+        correct = 0
+        if (m  == (r2-1)) and (correct == 0):
+            # On bottom row
+            if ((n < 0) or (n > res)):
+                ifail=1
+            correct = 1
+        if (n == m) and (correct == 0):
+            # On right edge
+            k = (r2-1) - m
+            if ((k < 0) or (k> res)):
+                ifail = 1
+            else:
+                pix = (r2-2)*(resolution-1) + k - 1
+            correct = 1
+        if (n == 0) and (correct == 0):
+            # On left edge
+            if ((m < 0) or (m > res)):
+                ifail = 1
+            else:
+                pix = (r2-1)*(res-1) + m - 1
+        return ifail
+
+    def tangentPlaneVector(self,res,pix):
+        # Computes the coords(x,y) of pixel(pix)
+        c1 = 0.577350269
+        c2 = 0.866025404
+        edgelength=1.3231690765
+        m,n = self.find_mn(pix,res)
+        x	= edgelength*(n-0.5*m)/(2*resolution-1)
+        y 	= edgelength*(c1-(c2/(2*resolution-1))*m)
+        return x,y
+
+    def find_sixth(self,x,y):
+        # Find which sixth of the basic triangle the point (x,y)
+        # lies in.
+        c=1.73205081
+        d = c*y
+        rot, flip = 0
+        if (x>0):
+            if (x<-d):
+                rot  = 0
+                flip = 0
+            else:
+                if (x>d):
+                    rot  = 2
+                    flip = 1
+                else:
+                    rot  = 2
+                    flip = 0
+        else:
+            if (x>-d):
+                rot  = 1
+                flip = 1
+            else:
+                if (x<d):
+                    rot  = 1
+                    flip = 0
+                else:
+                    rot  = 0
+                    flip = 1
+        return rot,flip
+
+    def rotate_and_flip(self,rot,flip,x,y):
+        cs = -0.5
+        c  = 0.866025404
+        sn = 0
+        if (rot>0):
+            if (rot == 1):
+                # rotate by 120 degrees counter-clockwise
+                sn = c
+            else:
+                sn = -c
+            x1 = x
+            x  = cs*x1 - sn*y
+            y  = sn*x1 + cs*y
+        if (flip>0):
+            x = -x
+        return x,y
+
+    def adjust(self,x,y):
+        # Maps the triangle onto the sphere (sort of)
+        rot,flip    = self.find_sixth(x,y)
+        x,y         = self.rotate_and_flip(rot,flip,x,y)
+        x,y         = self.adjust_sixth(x,y)
+        # Now rotate and flip the sixth back to original position
+        if ((flip ==0) and (rot > 0)):
+            x,y = self.rotate_and_flip(3-rot,flip,x,y)
+        else:
+            x,y = self.rotate_and_flip(rot,flip,x,y)
+        return x,y
+
+    def unadjust(self,x,y):
+        # Does the inverse of adjust
+        rot,flip    = self.find_sixth(x,y)
+        x,y         = self.rotate_and_flip(rot,flip,x,y)
+        x,y         = self.unadjust_sixth(x,y)
+        # Now rotate and flip the sixth back to original position
+        if ((flip ==0) and (rot > 0)):
+            x,y = self.rotate_and_flip(3-rot,flip,x,y)
+        else:
+            x,y = self.rotate_and_flip(rot,flip,x,y)
+        return x,y
+
+    def adjust_sixth(self,x,y):
+        # Maps the basic right triangle (the sixth of the face that
+        # is in the lower right corner) onto itself in such a way
+        # that pixels will have equal area when mapped onto the sphere.
+        eps     = 1.e-14
+        scale   = 1.09844
+        g       = 1.7320508075689
+        u 		= x  + eps
+        v		= -y + eps
+        v2		= v*v
+        root	= sqrt(1.+4.*v2)
+        trig	= atan((g*root-g)/(root+3.))
+        y		= sqrt(trig*2./g)
+        x		= sqrt((1.+4.*v2)/(1.+u*u+v2))*u*y/v
+        x		= scale*x
+        y 		= -scale*y	
+        return x,y
+
+    def unadjust_sixth(self,x,y):
+        # Performs the inverse of what adjust_sixth does.
+        eps     = 1.e-14
+        scale   = 1.09844
+        g       = 1.7320508075689
+        u 		=  x/scale + eps
+        v		= -y/scale + eps
+        v2		= v*v
+        trig	= tan(g*v2/2.)
+        tmp		= (g+3.*trig)/(g-trig)
+        y2		= (tmp*tmp-1.)/4.
+        y		= sqrt(y2)
+        tmp		= v2*(1.+4.*y2) - u*u*y2
+        x	 	= u*y*sqrt((1.+y2)/tmp)
+        y 		= -y
+        return x,y
 
