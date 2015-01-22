@@ -1236,7 +1236,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
         
-        
         # Create the rotation matrices
         self.R = []
         for i in xrange(20):
@@ -1269,17 +1268,63 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             dr = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
             mshell = rhoi * 4.0*pi*ri*ri*dr
             nshell = int(mshell / self.m0)
+            if (nshell<12):
+                nshell = 12
             res = int((1+sqrt(1+4*(nshell-12)/40))/2)
             nc = (40*res*(res-1)+12)
+            print "@r = %g resolution = %d" %(ri,res)
             print "nominal shell node count = %d" % nc
             print "resulting in m0 scaling by %2.2f" % (mshell/(nc*self.m0))
             mi = self.m0 * (mshell/(nc*self.m0))
-            
-            
+            hi = nNodePerh*(dr)
+            Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
+                             0.0, 1.0/hi, 0.0,
+                             0.0, 0.0, 1.0/hi)
+                
+            for n in xrange(nc):
+                v1 = self.pixel2vector(n,res)
+                pix = self.vector2pixel(v1,res)
+                #print "[%g %g %g]" % (v1[0],v1[1],v1[2])
+                self.x.append(ri*v1[0])
+                self.y.append(ri*v1[1])
+                self.z.append(ri*v1[2])
+                self.m.append(mi)
+                self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
-        
+                
+        print "Generated a total of %i nodes." % len(self.x)
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.y, self.z, self.m, self.H)
         return
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y) == len(self.z)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        return self.densityProfileMethod(self.localPosition(i).magnitude())
+
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
 
     #---------------------------------------------------------------------------
     # Numerically integrate the given density profile to determine the total
@@ -1339,8 +1384,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.D[1][1] = cs
         self.D[2][2] = 1.0
         # D rotates 120 degrees around z-axis
-        self.matmul1(self.C,self.D,self.E)
-        self.matmul2(self.E,self.C,self.B)
+        self.E = self.matmul1(self.C,self.D)
+        self.B = self.matmul2(self.E,self.C)
         # B rotates faces 1 by 120 degrees
         for i in xrange(3):
             for j in xrange(3):
@@ -1348,25 +1393,25 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.E[i][i] = 1.0
         # Now E is the identity matrix
         self.putMatrix(0,self.E)
-        self.matmul1(self.B,self.A,self.E)
-        self.matmul1(self.B,self.E,self.E)
+        self.E = self.matmul1(self.B,self.A)
+        self.E = self.matmul1(self.B,self.E)
         self.putMatrix(5,self.E)
-        self.matmul1(self.E,self.A,self.E)
+        self.E = self.matmul1(self.E,self.A)
         self.putMatrix(10,self.E)
-        self.matmul1(self.E,self.B,self.E)
-        self.matmul1(self.E,self.B,self.E)
-        self.matmul1(self.E,self.A,self.E)
+        self.E = self.matmul1(self.E,self.B)
+        self.E = self.matmul1(self.E,self.B)
+        self.E = self.matmul1(self.E,self.A)
         self.putMatrix(15,self.E)
         for n in xrange(4):
             nn = n*5
-            self.getMatrix(nn,self.E)
+            self.E = self.getMatrix(nn)
             for i in xrange(1,5):
-                self.matmul1(self.A,self.E,self.E)
+                self.E = self.matmul1(self.A,self.E)
                 self.putMatrix(nn+i,self.E)
             
         for n in xrange(20):
-            self.getMatrix(n,self.E)
-            self.matmul1(self.E,self.C,self.E)
+            self.E = self.getMatrix(n)
+            self.E = self.matmul1(self.E,self.C)
             self.putMatrix(n,self.E)
         return
             
@@ -1390,11 +1435,60 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         return
 
     def vector2pixel(self,v1,res):
-        A = [[0 for x in xrange(3)] for x in xrange(3)]
-        pix,face,pixperface,ifail = 0,0,0,0
-        assert res > 0
+        #assert res > 0
         pixperface = 2*res*(res-1)
-        find_face(v1)
+        face    = self.find_face(v1)
+        A       = self.getMatrix(face)
+        v2      = self.vecmatmul2(A,v1)
+        x       = v2[0]/v2[2]
+        y       = v2[1]/v2[2]
+        x,y     = self.adjust(x,y)
+        ifail,pix   = self.tangentPlanePixel(res,x,y)
+        if (ifail > 0):
+            # try the runner-up face
+            face    = self.find_another_face(v1,face)
+            A       = self.getMatrix(face)
+            v2      = self.vecmatmul2(A,v1)
+            x       = v2[0]/v2[2]
+            y       = v2[1]/v2[2]
+            x,y     = self.adjust(x,y)
+            ifail,pix  = self.tangentPlanePixel(res,x,y)
+        pixel = face*pixperface + pix
+        if (ifail > 0):
+            # the pixel wasn't either of those, so must be a corner
+            pix = self.find_corner(v1)
+            pixel = 20*pixperface + pix
+        return pixel
+            
+    def pixel2vector(self,pixel,res):
+        # returns a unit vector pointing to pixel
+        v1 = []
+        pixperface = 2*res*(res-1)
+        if (pixperface>0):
+            face = pixel/pixperface
+            if (face>20):
+                face = 20
+        else:
+            print "it's all corners!"
+            face = 20
+        pix = pixel - face*pixperface
+        print "passed in %d -> %d" % (pixel,pix)
+        if (face<20):
+            # This pixel is on a face
+            x,y     = self.tangentPlaneVector(res,pix)
+            x,y     = self.unadjust(x,y)
+            norm    = sqrt(x*x + y*y + 1.0)
+            v1.append(x/norm)
+            v1.append(y/norm)
+            v1.append(1.0/norm)
+            A       = self.getMatrix(face)
+            v1      = self.vecmatmul1(A,v1)
+        else:
+            # This is a corner pixel
+            v1.append(self.v[pix][0])
+            v1.append(self.v[pix][1])
+            v1.append(self.v[pix][2])
+        return v1
     #---------------------------------------------------------------------------
     # Lots of Linear Algebra follows. You have been warned!!!
     #---------------------------------------------------------------------------
@@ -1409,11 +1503,12 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             v2[i] = v1[i]
         return
 
-    def getMatrix(self,n,M1):
+    def getMatrix(self,n):
+        M1 = [[0 for x in xrange(3)] for x in xrange(3)]
         for i in xrange(3):
             for j in xrange(3):
                 M1[i][j] = self.R[n][i][j]
-        return
+        return M1
 
     def putMatrix(self,n,M1):
         for i in xrange(3):
@@ -1421,7 +1516,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 self.R[n][i][j] = M1[i][j]
         return
 
-    def matmul1(self,M1,M2,M3):
+    def matmul1(self,M1,M2):
         # M3 = M1*M2
         M4 = [[0 for x in xrange(3)] for x in xrange(3)]
         sum = 0
@@ -1431,10 +1526,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 for k in xrange(3):
                     sum = sum + M1[i][k] * M2[k][j]
                 M4[i][j] = sum
-        self.copymatrix(M4,M3)
-        return
+        return M4
 
-    def matmul2(self,M1,M2,M3):
+    def matmul2(self,M1,M2):
         # M3 = M1*M2^t
         M4 = [[0 for x in xrange(3)] for x in xrange(3)]
         sum = 0
@@ -1444,10 +1538,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 for k in xrange(3):
                     sum = sum + M1[i][k] * M2[j][k]
                 M4[i][j] = sum
-        self.copymatrix(M4,M3)
-        return
+        return M4
 
-    def matmul3(self,M1,M2,M3):
+    def matmul3(self,M1,M2):
         # M3 = M1^t *M2
         M4 = [[0 for x in xrange(3)] for x in xrange(3)]
         sum = 0
@@ -1457,8 +1550,29 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 for k in xrange(3):
                     sum = sum + M1[k][i] * M2[k][j]
                 M4[i][j] = sum
-        self.copymatrix(M4,M3)
-        return
+        return M4
+
+    def vecmatmul1(self,M1,v1):
+        # v2 = M1*v1
+        sum = 0
+        v2 = []
+        for i in xrange(3):
+            sum = 0
+            for j in xrange(3):
+                sum = sum + M1[i][j]*v1[j]
+            v2.append(sum)
+        return v2
+
+    def vecmatmul2(self,M1,v1):
+        # v2 = M1^t * v1
+        sum = 0
+        v2 = []
+        for i in xrange(3):
+            sum = 0
+            for j in xrange(3):
+                sum = sum + M1[j][i]*v1[j]
+            v2.append(sum)
+        return v2
 
     def find_face(self,v1):
         # Locates the face to which the vector v1 points
@@ -1514,7 +1628,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         interiorpix = (2*res-3)*(res-1)
         pixperedge  = (res)-1
         if (pix < interiorpix) and (found == 0):
-            # The pixel lies in the interior of the triangle.
+            #pixel %d lies in the interior of the triangle." % pixel
             m = (sqrt(1.+8.*pix)-1.)/2. + 0.5/res
             # 0.5/resolution was added to avoid problems with
             # rounding errors for the case when n=0.
@@ -1525,18 +1639,18 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             found = 1
         pix = pix - interiorpix
         if (pix < pixperedge) and (found == 0):
-            # The pixel lies on the bottom edge.
+            #pixel %d lies on the bottom edge." % pixel
             m = 2*res-1
             n = pix+1
             found = 1
         pix = pix - pixperedge
         if (pix < pixperedge) and (found == 0):
-            # The pixel lies on the right edge.
-            m = 2*resolution-(pix+2)
+            #pixel %d lies on the right edge." % pixel
+            m = 2*res-(pix+2)
             n = m
             found = 1
         pix = pix - pixperedge
-        # The pixel lies on the left edge.
+        #pixel %d lies on the left edge." % pixel
         if (found == 0):
             m = pix+1
             n = 0
@@ -1582,7 +1696,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 ifail = 1
             else:
                 pix = (r2-1)*(res-1) + m - 1
-        return ifail
+        return ifail, pix
 
     def tangentPlaneVector(self,res,pix):
         # Computes the coords(x,y) of pixel(pix)
@@ -1590,8 +1704,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         c2 = 0.866025404
         edgelength=1.3231690765
         m,n = self.find_mn(pix,res)
-        x	= edgelength*(n-0.5*m)/(2*resolution-1)
-        y 	= edgelength*(c1-(c2/(2*resolution-1))*m)
+        x	= edgelength*(n-0.5*m)/(2*res-1)
+        y 	= edgelength*(c1-(c2/(2*res-1))*m)
         return x,y
 
     def find_sixth(self,x,y):
@@ -1599,7 +1713,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         # lies in.
         c=1.73205081
         d = c*y
-        rot, flip = 0
+        rot, flip = 0, 0
         if (x>0):
             if (x<-d):
                 rot  = 0
