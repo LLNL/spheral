@@ -95,12 +95,8 @@ cxxonly:
 	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(BUILDTOP)/$$pckg cxxonly install-headers; \
 	done
 
-cxxwithpy:
-	for pckg in $(CXXPKGS); do \
-	$(MAKE) -C $(BUILDTOP)/$$pckg install-headers; \
-	done
-	$(MAKE) -C PBGWraps
-	$(PYTHONEXE) $(THIRDPARTYLIBDIR)/python$(PYTHONVERSION)/compileall.py $(THIRDPARTYLIBDIR)/python$(PYTHONVERSION)/site-packages/Spheral
+cxxwithpy:	@PYTHONPKGDIR@ $(CXXPKGS)
+	$(MAKE) pycompileall
 
 cxxclean:
 	for pckg in $(CXXPKGS); do \
