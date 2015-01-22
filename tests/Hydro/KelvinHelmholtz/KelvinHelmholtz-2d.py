@@ -104,6 +104,11 @@ commandLine(nx1 = 100,
             dataDir = "dumps-KelvinHelmholtz-2d",
             outputFile = "None",
             comparisonFile = "None",
+            
+            serialDump = False, #whether to dump a serial ascii file at the end for viz
+            
+            bArtificialConduction = False,
+            arCondAlpha = 0.5,
             )
 
 assert numNodeLists in (1, 2)
@@ -351,6 +356,16 @@ if boolReduceViscosity:
     packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
+# Construct the Artificial Conduction physics object.
+#-------------------------------------------------------------------------------
+
+if bArtificialConduction:
+    #q.reducingViscosityCorrection = True
+    ArtyCond = ArtificialConduction(WT,arCondAlpha)
+    
+    packages.append(ArtyCond)
+
+#-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 xp1 = Plane(Vector(0.0, 0.0), Vector( 1.0, 0.0))
@@ -428,3 +443,21 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if serialDump:
+    procs = mpi.procs
+    rank = mpi.rank
+    serialData = []
+    i,j = 0,0
+    for i in xrange(procs):
+        for nodeL in nodeSet:
+            if rank == i:
+                for j in xrange(nodeL.numInternalNodes):
+                    serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
+    serialData = mpi.reduce(serialData,mpi.SUM)
+    if rank == 0:
+        f = open(dataDir + "/serialDump.ascii",'w')
+        for i in xrange(len(serialData)):
+            f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+        f.close()
+
