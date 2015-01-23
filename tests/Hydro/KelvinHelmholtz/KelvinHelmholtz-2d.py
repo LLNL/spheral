@@ -95,7 +95,7 @@ commandLine(nx1 = 100,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
 
-            useVoronoiOutput = True,
+            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,

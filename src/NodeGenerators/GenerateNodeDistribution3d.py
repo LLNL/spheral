@@ -1151,7 +1151,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
 # and match a given density profile with (nearly) constant mass nodes.  This
 # only supports the equivalent of the constant DthetaDphi method.
 #-------------------------------------------------------------------------------
-class GenerateNodesMatchingProfile3d(NodeGeneratorBase):
+class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
 
     #---------------------------------------------------------------------------
     # Constructor
