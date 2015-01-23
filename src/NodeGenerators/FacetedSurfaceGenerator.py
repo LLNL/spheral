@@ -56,12 +56,17 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
         # Apply any rejecter.
-        self.x, self.y, self.z = [], [], []
-        for ri in pos:
-            if rejecter.accept(ri.x, ri.y, ri.z):
-                self.x.append(ri.x)
-                self.y.append(ri.y)
-                self.z.append(ri.z)
+        if rejecter:
+            self.x, self.y, self.z = [], [], []
+            for ri in pos:
+                if rejecter.accept(ri.x, ri.y, ri.z):
+                    self.x.append(ri.x)
+                    self.y.append(ri.y)
+                    self.z.append(ri.z)
+        else:
+            self.x = [ri.x for ri in pos]
+            self.y = [ri.y for ri in pos]
+            self.z = [ri.z for ri in pos]
         n = len(self.x)
 
         # Pick a mass per point so we get exactly the correct total mass inside the surface
