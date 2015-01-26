@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     {
       if(FractalRank < FFTNodes)
 	{
-	  NumberParticles*=0.1;
+	  NumberParticles/=10;
 	  PFM->setNumberParticles(NumberParticles);
 	}
       PFM->p_mess->calc_total_particles(NumberParticles);

@@ -348,44 +348,37 @@ namespace FractalSpace
 	  free_potRC();
 	}
     }
-    void doFFTWorld(int length_1,bool periodic)
+    void doFFTWorld(int how_long,bool periodic)
     {
-      //      cout << " messya " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
-      FFTRank=FractalRank;
-      int howlong=length_1;
       if(!periodic)
-	howlong*=2;
-      int maxFFT=howlong/2;
-      maxFFT=min(maxFFT,FractalNodes);
-      FFTNodes=min(FFTNodes,maxFFT);
-      while(howlong % FFTNodes != 0)
+	how_long*=2;
+      int each=2;
+      bool keep_trying=true;
+      while(keep_trying)
 	{
-	  FFTNodes--;
-	  assert(FFTNodes > 1);
+	  FFTNodes=how_long/each;
+	  keep_trying=!(how_long % each == 0 && FFTNodes <= FractalNodes);
+	  each+=2;
+	  assert(each < 12);
 	}
-      IAmAnFFTNode=FFTRank < FFTNodes;
-      //      cout << " messyb " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
-      vector <int>Franks(FFTNodes,-1);
-      if(FFTNodes == FractalNodes)
+      if(FractalRank < FFTNodes)
 	{
-	  for(int ni=0;ni < FFTNodes;ni++)
-	    Franks[ni]=ni;
+	  FFTRank=FractalRank;
+	  IAmAnFFTNode=true;
 	}
       else
 	{
+	  FFTRank=-1;
 	  IAmAnFFTNode=false;
-	  for(int ni=0;ni < FFTNodes;ni++)
-	    {
-	      Franks[ni]=ni;
-	      IAmAnFFTNode=IAmAnFFTNode || Franks[ni] == FractalRank;
-	    }
 	}
+      vector <int>Franks(FFTNodes,-1);
+      for(int ni=0;ni < FFTNodes;ni++)
+	Franks[ni]=ni;
       MPI_Comm_group(FractalWorld,&FractalGroup);
       MPI_Group_incl(FractalGroup, FFTNodes,&(*Franks.begin()), &FFTGroup);
       MPI_Comm_create(FractalWorld, FFTGroup, &FFTWorld);
       if(!IAmAnFFTNode)
 	{
-	  FFTRank=-1;
 	  start_x=9876543;
 	  length_x=0;
 	  total_memory=1;
@@ -396,8 +389,8 @@ namespace FractalSpace
 	  assert(FFTNodes == how_many_FFT_nodes());
 	}
       if(FractalRank == 0)
-	cout << " messyc " << FractalRank << " " << length_1 << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << maxFFT << " " << IAmAnFFTNode << "\n";
-    }
+	cout << " messyc " << FractalRank << " " << how_long << " " << periodic << " " << FFTRank << " " << FFTNodes << " " << IAmAnFFTNode << "\n";
+}
     void FFTWFinal()
     {
       if(IAmAnFFTNode)
@@ -636,14 +629,34 @@ namespace FractalSpace
       int answer=-1;
       if(integers > 0)
 	{
-	  dataI_in_send.resize(how_manyI);
+	  try
+	    {
+	      dataI_in_send.resize(how_manyI);
+	    }
+	  catch(bad_alloc& ba)
+	    {
+	      cout << "BAAD DATAI_IN " << ba.what() << " " << Rank << " " << Nodes << " " << how_manyI << " " << how_manyR << endl;
+	      for(int FR=0;FR<Nodes;FR++)
+		cout << " COUNTSI " << FR << " " << counts_out_send[FR] << " " << counts_in_send[FR] << "\n";
+	      assert(0);
+	    }
 	  //	  for(int ni=0;ni<extraI;ni++)
 	  //	    dataI_in_send[ni+startI]=dataI_out[Rank][ni];
 	  std::copy(dataI_out[Rank].begin(),dataI_out[Rank].begin()+extraI,dataI_in_send.begin()+startI);
 	}
       if(doubles > 0)
 	{
-	  dataR_in_send.resize(how_manyR);
+	  try
+	    {
+	      dataR_in_send.resize(how_manyR);
+	    }
+	  catch(bad_alloc& ba)
+	    {
+	      cout << "BAAD DATAR_IN " << ba.what() << " " << Rank << " " << Nodes << " " << how_manyI << " " << how_manyR << endl;
+	      for(int FR=0;FR<Nodes;FR++)
+		cout << " COUNTSR " << FR << " " << counts_out_send[FR] << " " << counts_in_send[FR] << "\n";
+	      assert(0);
+	    }
 	  //	  for(int ni=0;ni<extraR;ni++)
 	  //	    dataR_in_send[ni+startR]=dataR_out[Rank][ni];
 	  std::copy(dataR_out[Rank].begin(),dataR_out[Rank].begin()+extraR,dataR_in_send.begin()+startR);
@@ -904,7 +917,7 @@ namespace FractalSpace
       dataR_in.clear();
       vector <int>countsa_out(FractalNodes2,0);
       vector <int>countsa_in(FractalNodes2);
-      FF << " Send AA " << FractalRank << "\n";
+      FF << " SendOne AA " << FractalRank << "\n";
       int totals=0;
       int nIdata=0;
       int nRdata=0;
@@ -960,7 +973,7 @@ namespace FractalSpace
 	  FF << endl;
 	  assert(0);
 	}
-      FF << " Send BB " << FractalRank << "\n";
+      FF << " SendOne BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
       int total_in=0;
       int total_out=0;
@@ -974,7 +987,7 @@ namespace FractalSpace
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " Send CC " << FractalRank << endl;
+      FF << " SendOne CC " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1019,7 +1032,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[2]);
       Full_Stop_Do_Not_Argue(MComms[1]);
-      FF << " Send DD " << FractalRank << "\n";
+      FF << " SendOne DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1038,7 +1051,7 @@ namespace FractalSpace
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send EE " << FractalRank << endl;
+      FF << " SendOne EE " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes0);
@@ -1083,7 +1096,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[1]);
       Full_Stop_Do_Not_Argue(MComms[0]);
-      FF << " Send FF " << FractalRank << "\n";
+      FF << " SendOne FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes0,0);
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1101,7 +1114,7 @@ namespace FractalSpace
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send GG " << FractalRank << endl;
+      FF << " SendOne GG " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes);
@@ -1111,6 +1124,7 @@ namespace FractalSpace
       countR=0;
       try
 	{
+	  //	  cout << " testtestA " << FractalNodes0 << " " << integers << " " << doubles << "\n";
 	  for(int FR0=0;FR0<FractalNodes0;FR0++)
 	    {
 	      for(int c=0;c<countsa_in[FR0];c++)
@@ -1130,6 +1144,7 @@ namespace FractalSpace
 		    }
 		}
 	    }
+	  //	  cout << "testtestB " << FractalNodes0 << " " << integers << " " << doubles << endl;
 	}
       catch(bad_alloc& ba)
 	{
@@ -1140,9 +1155,10 @@ namespace FractalSpace
 	  FF << endl;
 	  assert(0);
 	}
+      FF << "testtestC " << FractalNodes0 <<  " " << integers << " " << doubles << endl;
       dataI_in.clear();
       dataR_in.clear();
-      FF << " Send HH " << FractalRank <<  "\n";
+      FF << " SendOne HH " << FractalRank <<  "\n";
       how_manyI=0;
       how_manyR=0;
       try
@@ -1178,7 +1194,7 @@ namespace FractalSpace
 	  assert(0);
 	}
       Full_Stop_Do_Not_Argue();
-      FF << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+      FF << " SendOne II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
     }
     //
     void Send_Data_Other_Directions(vector <int>& counts_out,vector <int>& counts_in,int integers,int doubles,
@@ -1192,7 +1208,7 @@ namespace FractalSpace
       dataR_in.clear();
       vector <int>countsa_out(FractalNodes0,0);
       vector <int>countsa_in(FractalNodes0);
-      FF << " Send AA " << FractalRank << "\n";
+      FF << " SendOther AA " << FractalRank << "\n";
       int totals=0;
       try
 	{
@@ -1265,7 +1281,7 @@ namespace FractalSpace
 	}
       dataI_in.clear();
       dataR_in.clear();
-      FF << " Send BB " << FractalRank << "\n";
+      FF << " SendOther BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
 
       int total_in=0;
@@ -1281,7 +1297,7 @@ namespace FractalSpace
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " Send CC " << FractalRank << endl;
+      FF << " SendOther CC " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1326,7 +1342,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[0]);
       Full_Stop_Do_Not_Argue(MComms[1]);
-      FF << " Send DD " << FractalRank << "\n";
+      FF << " SendOther DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1345,7 +1361,7 @@ namespace FractalSpace
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send EE " << FractalRank << endl;
+      FF << " SendOther EE " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes2);
@@ -1390,7 +1406,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[1]);
       Full_Stop_Do_Not_Argue(MComms[2]);
-      FF << " Send FF " << FractalRank << "\n";
+      FF << " SendOther FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes2,0);
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1408,7 +1424,7 @@ namespace FractalSpace
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " Send GG " << FractalRank << endl;
+      FF << " SendOther GG " << FractalRank << endl;
       dataI_out.clear();
       dataR_out.clear();
       counts_in.assign(FractalNodes,0);
@@ -1478,7 +1494,7 @@ namespace FractalSpace
 	  assert(0);
 	}
       Full_Stop_Do_Not_Argue();
-      FF << " Send II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
+      FF << " SendOther II " << FractalRank << " " << how_manyI << " " << how_manyR << "\n";
     }
     //
     void Send_Data_Hypre_Directions(vector <int>& counts_out,vector <int>& counts_in,const int& integers,const int& doubles,

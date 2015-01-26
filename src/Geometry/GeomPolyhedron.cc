@@ -42,6 +42,8 @@ GeomPolyhedron():
   mFacetFacetConnectivity(),
   mXmin(),
   mXmax(),
+  mCentroid(),
+  mRinterior2(-1.0),
   mConvex(true) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 }
@@ -58,6 +60,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mFacetFacetConnectivity(),
   mXmin(),
   mXmax(),
+  mCentroid(),
+  mRinterior2(-1.0),
   mConvex(true) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
@@ -194,6 +198,17 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     // Compute the ancillary geometry.
     GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
 
+    // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
+    // we set this internal radius to zero to disable this accelerated containment checking.
+    mCentroid = this->centroid();
+    if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
+      mRinterior2 = numeric_limits<double>::max();
+      BOOST_FOREACH(const Facet& facet, mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+      mRinterior2 = FastMath::square(mRinterior2);
+    } else {
+      mRinterior2 = -1.0;
+    }
+
     // Post-conditions.
     BEGIN_CONTRACT_SCOPE;
     {
@@ -229,6 +244,13 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
                const vector<vector<unsigned> >& facetIndices):
   mVertices(points),
   mFacets(),
+  mVertexUnitNorms(),
+  mVertexFacetConnectivity(),
+  mFacetFacetConnectivity(),
+  mXmin(),
+  mXmax(),
+  mCentroid(),
+  mRinterior2(-1.0),
   mConvex(false) {
 
   unsigned i;
@@ -264,6 +286,17 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 
   // Compute the ancillary geometry.
   GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms);
+
+  // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
+  // we set this internal radius to zero to disable this accelerated containment checking.
+  mCentroid = this->centroid();
+  if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
+    mRinterior2 = numeric_limits<double>::max();
+    BOOST_FOREACH(const Facet& facet, mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
+    mRinterior2 = FastMath::square(mRinterior2);
+  } else {
+    mRinterior2 = -1.0;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -278,6 +311,8 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mVertexUnitNorms(rhs.mVertexUnitNorms),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
+  mCentroid(rhs.mCentroid),
+  mRinterior2(rhs.mRinterior2),
   mConvex(rhs.mConvex) {
   mFacets.reserve(rhs.mFacets.size());
   BOOST_FOREACH(const Facet& facet, rhs.mFacets) mFacets.push_back(Facet(mVertices,
@@ -304,6 +339,8 @@ operator=(const GeomPolyhedron& rhs) {
     mVertexUnitNorms = rhs.mVertexUnitNorms;
     mXmin = rhs.mXmin;
     mXmax = rhs.mXmax;
+    mCentroid = rhs.mCentroid;
+    mRinterior2 = rhs.mRinterior2;
     mConvex = rhs.mConvex;
   }
   ENSURE(mFacets.size() == rhs.mFacets.size());
@@ -325,6 +362,8 @@ GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
          const double tol) const {
+  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
+  if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);
   } else {
@@ -342,6 +381,7 @@ convexContains(const GeomPolyhedron::Vector& point,
                const bool countBoundary,
                const double tol) const {
   if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
+  if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   vector<Facet>::const_iterator facetItr = mFacets.begin();
   bool result = true;
   if (countBoundary) {

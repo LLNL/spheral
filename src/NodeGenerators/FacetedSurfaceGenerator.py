@@ -9,7 +9,7 @@ from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
     vector_of_Vector, vector_of_unsigned, vector_of_vector_of_unsigned, \
-    rotationMatrix, refinePolyhedron
+    rotationMatrix, refinePolyhedron, fillFacetedVolume
 
 #-------------------------------------------------------------------------------
 # General case where you hand in the surface polyhedron.
@@ -20,11 +20,6 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
                  surface,
                  rho,
                  nx,
-                 ny = None,
-                 nz = None,
-                 seed = "hcp",
-                 xmin = None,
-                 xmax = None,
                  nNodePerh = 2.01,
                  SPH = False,
                  rejecter = None):
@@ -32,17 +27,13 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         self.rho0 = rho
 
         # Figure out bounds and numbers of nodes to scan the volume with.
-        if xmin is None:
-            xmin = surface.xmin
-        if xmax is None:
-            xmax = surface.xmax
+        xmin = surface.xmin
+        xmax = surface.xmax
         box = xmax - xmin
         assert box.minElement > 0.0
         dx = box.x/nx
-        if ny is None:
-            ny = int(box.y/dx + 0.5)
-        if nz is None:
-            nz = int(box.z/dx + 0.5)
+        ny = int(box.y/dx + 0.5)
+        nz = int(box.z/dx + 0.5)
 
         # Some local geometry.
         ntot0 = nx*ny*nz
@@ -60,45 +51,34 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         # Determine the range of indices this domain will check.
         imin0, imax0 = self.globalIDRange(ntot0)
 
-        # Build the raw positions before we start culling them.
-        x, y, z = [], [], []
-        for i in xrange(imin0, imax0):
-            xi, yi, zi = self.hcpPosition(i, nx, ny, nz, dx, dy, dz, xmin, xmax)
-            x.append(xi)
-            y.append(yi)
-            z.append(zi)
-        n = len(x)
-        m = [self.m0]*n
-        H = [self.H0]*n
+        # Build the intial positions.
+        pos = fillFacetedVolume(surface, nx, mpi.rank, mpi.procs)
+        nsurface = mpi.allreduce(len(pos), mpi.SUM)
 
-        # If the user provided a "rejecter", give it a pass
-        # at the nodes.
+        # Apply any rejecter.
         if rejecter:
-            x, y, z, m, H = rejecter(x, y, z, m, H)
-            x, y, z, m, H = (mpi.allreduce(x, mpi.SUM),
-                             mpi.allreduce(y, mpi.SUM),
-                             mpi.allreduce(z, mpi.SUM),
-                             mpi.allreduce(m, mpi.SUM),
-                             mpi.allreduce(H, mpi.SUM))
-            ntot1 = len(x)
-            imin1, imax1 = self.globalIDRange(ntot1)
-            self._cullVars(imin1, imax1, x, y, z, m, H)
+            self.x, self.y, self.z = [], [], []
+            for ri in pos:
+                if rejecter.accept(ri.x, ri.y, ri.z):
+                    self.x.append(ri.x)
+                    self.y.append(ri.y)
+                    self.z.append(ri.z)
+        else:
+            self.x = [ri.x for ri in pos]
+            self.y = [ri.y for ri in pos]
+            self.z = [ri.z for ri in pos]
+        n = len(self.x)
 
-        # Now check against the surface.
-        n = len(x)
-        self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
-        for i in xrange(n):
-            if self.surface.contains(Vector(x[i], y[i], z[i])):
-                self.x.append(x[i])
-                self.y.append(y[i])
-                self.z.append(z[i])
-                self.m.append(m[i])
-                self.H.append(H[i])
+        # Pick a mass per point so we get exactly the correct total mass inside the surface
+        # before any rejection.
+        M0 = surface.volume * self.rho0
+        self.m0 = M0/nsurface
+        self.m = [self.m0]*n
 
         # At this point we have a less than optimal domain decomposition, but this will
         # be redistributed later anyway so take it and run.
-        n = len(self.x)
         self.rho = [self.rho0]*n
+        self.H = [self.H0]*n
         NodeGeneratorBase.__init__(self, False, self.m)
         return
 
@@ -149,11 +129,6 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
 def VFSurfaceGenerator(filename,
                        rho,
                        nx,
-                       ny = None,
-                       nz = None,
-                       seed = "hcp",
-                       xmin = None,
-                       xmax = None,
                        nNodePerh = 2.01,
                        SPH = False,
                        scaleFactor = 1.0,
@@ -172,9 +147,7 @@ def VFSurfaceGenerator(filename,
                 newverts[i] = verts[i] * scaleFactor
             surface = Polyhedron(newverts, facets)
     surface = mpi.bcast(surface, 0)
-    return PolyhedralSurfaceGenerator(surface, rho, nx, ny, nz, seed, xmin, xmax,
-                                      nNodePerh, SPH,
-                                      rejecter = rejecter)
+    return PolyhedralSurfaceGenerator(surface, rho, nx, nNodePerh, SPH, rejecter)
 
 #-------------------------------------------------------------------------------
 # Generate nodes inside a surface by extruding inward from the facets of a 
