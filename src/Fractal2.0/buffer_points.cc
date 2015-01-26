@@ -73,9 +73,18 @@ namespace FractalSpace
 		if(n_x > 1 || n_y > 1 || n_z > 1 || n_x < 0 || n_y < 0 || n_z < 0)
 		  {
 		    fractal.p_mess->Full_Stop();
-		    FileFractal << " buffer badd " << "\n";
+		    FileFractal << " buffer badda " << endl;
 		    point.dump();
 		    particle.dump(*point.p_FILE);
+		    FileFractal << " buffer baddb " << endl;
+		    FileFractal << " buffer baddc " << endl;
+		    FileFractal << " buffer baddd " << endl;
+		    FileFractal << " buffer badde " << endl;
+		    FileFractal << " buffer baddf " << endl;
+		    FileFractal << " buffer baddg " << endl;
+		    FileFractal << " buffer baddh " << endl;
+		    FileFractal << " buffer baddi " << endl;
+		    FileFractal << " buffer baddj " << endl;
 		  }
 		assert(n_x==0 || n_x==1);
 		assert(n_y==0 || n_y==1);
