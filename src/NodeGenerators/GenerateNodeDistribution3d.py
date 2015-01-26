@@ -1384,6 +1384,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.phiMax = phiMax
         self.nNodePerh = nNodePerh
         
+        
+        
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
         if type(densityProfileMethod) == type(1.0):
@@ -1404,22 +1406,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
         
-        # Create the rotation matrices
-        self.R = []
-        for i in xrange(20):
-            self.R.append([[0 for x in xrange(3)] for x in xrange(3)])
-        self.compute_matrices()
-        self.v = []
-        for i in xrange(12):
-            self.v.append([0,0,0])
-        self.compute_corners()
-        
-        # pixel count goes as 40*res*(res-1)+12
-        # res = 1 -> 0  pixels per face,  12 pixels total
-        # res = 2 -> 4  pixels per face,  92 pixels total
-        # res = 3 -> 12 pixels per face, 252 pixels total
-        # res = 4 -> 24 pixels per face, 492 pixels total
-        
         from Spheral import SymTensor3d
         self.x = []
         self.y = []
@@ -1429,6 +1415,11 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         ri = rmax
         
         while ri > rmin:
+            # create the database of faces and positions
+            self.positions      = []     # [index,[point]]
+            self.middlePoints   = []  # [i,[key,index]]
+            self.faces          = []
+            self.index          = 0
             
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
@@ -1436,26 +1427,19 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             dr = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
             mshell = rhoi * 4.0*pi*ri*ri*dr
             nshell = int(mshell / self.m0)
-            if (nshell<12):
-                nshell = 12
-            res = int((1+sqrt(1+4*(nshell-12)/40))/2)
-            nc = (40*res*(res-1)+12)
-            print "@r = %g resolution = %d" %(ri,res)
-            print "nominal shell node count = %d" % nc
-            print "resulting in m0 scaling by %2.2f" % (mshell/(nc*self.m0))
-            mi = self.m0 * (mshell/(nc*self.m0))
             hi = nNodePerh*(dr)
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-                
-            for n in xrange(nc):
-                v1 = self.pixel2vector(n,res)
-                pix = self.vector2pixel(v1,res)
-                #print "[%g %g %g]" % (v1[0],v1[1],v1[2])
-                self.x.append(ri*v1[0])
-                self.y.append(ri*v1[1])
-                self.z.append(ri*v1[2])
+            
+            self.createIcoSphere(nshell)
+            mi = self.m0 * (float(nshell)/float(len(self.positions)))
+            print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
+            for n in xrange(len(self.positions)):
+
+                self.x.append(ri*self.positions[n][0])
+                self.y.append(ri*self.positions[n][1])
+                self.z.append(ri*self.positions[n][2])
                 self.m.append(mi)
                 self.H.append(Hi)
             
@@ -1515,470 +1499,111 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         result = result * (phiMax-phiMin) * (cos(thetaMin)-cos(thetaMax))
         return result
 
+    #---------------------------------------------------------------------------
+    # Numerically integrate the given density profile to determine the total
+    # enclosed mass.
+    #---------------------------------------------------------------------------
+    def addVertex(self,point):
+        length = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2])
+        self.positions.append([point[0]/length,point[1]/length,point[2]/length])
+        self.index = self.index + 1
+        return self.index
+        
+    def checkMiddlePoint(self,key):
+        exists  = 0
+        myidx   = 0
+        for i in xrange(len(self.middlePoints)):
+            if (self.middlePoints[i][0] == key):
+                exists = 1
+                myidx = self.middlePoints[i][1]
+        return exists, myidx
     
-
-    def compute_matrices(self):
-        self.A = [[0 for x in xrange(3)] for x in xrange(3)]
-        self.B = [[0 for x in xrange(3)] for x in xrange(3)]
-        self.C = [[0 for x in xrange(3)] for x in xrange(3)]
-        self.D = [[0 for x in xrange(3)] for x in xrange(3)]
-        self.E = [[0 for x in xrange(3)] for x in xrange(3)]
-
-        x = 2.0/5.0*pi
-        cs = cos(x)
-        sn = sin(x)
-        self.A[0][0] = cs
-        self.A[0][1] = -sn
-        self.A[1][0] = sn
-        self.A[1][1] = cs
-        self.A[2][2] = 1.0
-        # A rotates 72 degrees around the z-axis
-        x = pi/5.0
-        ct = cos(x)/sin(x)
-        cs = ct/sqrt(3.0)
-        sn = sqrt(1.0-ct*ct/3.0)
-        self.C[0][0] = 1.0
-        self.C[1][1] = cs
-        self.C[1][2] = -sn
-        self.C[2][1] = sn
-        self.C[2][2] = cs
-        # C rotates around the x-axis so the north pole
-        # ends up at the center of face 1
-        cs = -0.5
-        sn = sqrt(3.0)/2.0
-        self.D[0][0] = cs
-        self.D[0][1] = -sn
-        self.D[1][0] = sn
-        self.D[1][1] = cs
-        self.D[2][2] = 1.0
-        # D rotates 120 degrees around z-axis
-        self.E = self.matmul1(self.C,self.D)
-        self.B = self.matmul2(self.E,self.C)
-        # B rotates faces 1 by 120 degrees
-        for i in xrange(3):
-            for j in xrange(3):
-                self.E[i][j] = 0.0
-            self.E[i][i] = 1.0
-        # Now E is the identity matrix
-        self.putMatrix(0,self.E)
-        self.E = self.matmul1(self.B,self.A)
-        self.E = self.matmul1(self.B,self.E)
-        self.putMatrix(5,self.E)
-        self.E = self.matmul1(self.E,self.A)
-        self.putMatrix(10,self.E)
-        self.E = self.matmul1(self.E,self.B)
-        self.E = self.matmul1(self.E,self.B)
-        self.E = self.matmul1(self.E,self.A)
-        self.putMatrix(15,self.E)
-        for n in xrange(4):
-            nn = n*5
-            self.E = self.getMatrix(nn)
-            for i in xrange(1,5):
-                self.E = self.matmul1(self.A,self.E)
-                self.putMatrix(nn+i,self.E)
-            
-        for n in xrange(20):
-            self.E = self.getMatrix(n)
-            self.E = self.matmul1(self.E,self.C)
-            self.putMatrix(n,self.E)
-        return
-            
-    def compute_corners(self):
-        dph = 2.0/5.0*pi
-        # First corner is the north pole
-        self.v[0][0] = 0
-        self.v[0][1] = 0
-        self.v[0][2] = 1
-        # Next 5 lie on a circle with one on the y-axis
-        z = 0.447213595 # This is 1/(2 sin^2(pi/5)) - 1
-        rho = sqrt(1.0-z*z)
-        for i in xrange(5):
-            self.v[1+i][0] = -rho*sin(i*dph)
-            self.v[1+i][1] = rho*cos(i*dph)
-            self.v[1+i][2] = z
-        # Second half are opposite of first half
-        for i in xrange(6):
-            for j in xrange(3):
-                self.v[6+i][j] = -self.v[i][j]
-        return
-
-    def vector2pixel(self,v1,res):
-        #assert res > 0
-        pixperface = 2*res*(res-1)
-        face    = self.find_face(v1)
-        A       = self.getMatrix(face)
-        v2      = self.vecmatmul2(A,v1)
-        x       = v2[0]/v2[2]
-        y       = v2[1]/v2[2]
-        x,y     = self.adjust(x,y)
-        ifail,pix   = self.tangentPlanePixel(res,x,y)
-        if (ifail > 0):
-            # try the runner-up face
-            face    = self.find_another_face(v1,face)
-            A       = self.getMatrix(face)
-            v2      = self.vecmatmul2(A,v1)
-            x       = v2[0]/v2[2]
-            y       = v2[1]/v2[2]
-            x,y     = self.adjust(x,y)
-            ifail,pix  = self.tangentPlanePixel(res,x,y)
-        pixel = face*pixperface + pix
-        if (ifail > 0):
-            # the pixel wasn't either of those, so must be a corner
-            pix = self.find_corner(v1)
-            pixel = 20*pixperface + pix
-        return pixel
-            
-    def pixel2vector(self,pixel,res):
-        # returns a unit vector pointing to pixel
-        v1 = []
-        pixperface = 2*res*(res-1)
-        if (pixperface>0):
-            face = pixel/pixperface
-            if (face>20):
-                face = 20
+    def getMiddlePoint(self,p1,p2):
+        firstIsSmaller = (p1<p2)
+        smallerIndex = 0
+        greaterIndex = 0
+        if firstIsSmaller:
+            smallerIndex = p1
+            greaterIndex = p2
         else:
-            print "it's all corners!"
-            face = 20
-        pix = pixel - face*pixperface
-        print "passed in %d -> %d" % (pixel,pix)
-        if (face<20):
-            # This pixel is on a face
-            x,y     = self.tangentPlaneVector(res,pix)
-            x,y     = self.unadjust(x,y)
-            norm    = sqrt(x*x + y*y + 1.0)
-            v1.append(x/norm)
-            v1.append(y/norm)
-            v1.append(1.0/norm)
-            A       = self.getMatrix(face)
-            v1      = self.vecmatmul1(A,v1)
-        else:
-            # This is a corner pixel
-            v1.append(self.v[pix][0])
-            v1.append(self.v[pix][1])
-            v1.append(self.v[pix][2])
-        return v1
-    #---------------------------------------------------------------------------
-    # Lots of Linear Algebra follows. You have been warned!!!
-    #---------------------------------------------------------------------------
-    def copymatrix(self,M1,M2):
-        for i in xrange(3):
-            for j in xrange(3):
-                M2[i][j] = M1[i][j]
-        return
+            smallerIndex = p2
+            greaterIndex = p1
+        key = smallerIndex * (1e10) + greaterIndex # some giant number
+        
+        # check if this key already exists in middlepoints
+        exists, idx = self.checkMiddlePoint(key)
+        if (exists):
+            return idx
+        
+        # otherwise, not already cached, time to add one
+        point1 = self.positions[p1]
+        point2 = self.positions[p2]
+        middle = [(point1[0]+point2[0])/2.0,(point1[1]+point2[1])/2.0,(point1[2]+point2[2])/2.0]
+        
+        idx = self.addVertex(middle)
+        self.middlePoints.append([key,idx-1])
+        
+        return idx-1
+    
+    def createIcoSphere(self,np):
+        n = 0
+        t = (1.0+sqrt(5.0))/2.0
+        # create 12 vertices of an icosahedron
+        self.addVertex([-1, t, 0])
+        self.addVertex([ 1, t, 0])
+        self.addVertex([-1,-t, 0])
+        self.addVertex([ 1,-t, 0])
+        
+        self.addVertex([ 0,-1, t])
+        self.addVertex([ 0, 1, t])
+        self.addVertex([ 0,-1,-t])
+        self.addVertex([ 0, 1,-t])
+        
+        self.addVertex([ t, 0,-1])
+        self.addVertex([ t, 0, 1])
+        self.addVertex([-t, 0,-1])
+        self.addVertex([-t, 0, 1])
+        
+        # create the 20 initial faces
+        # 5 faces around point 0
+        self.faces.append([ 0,11, 5])
+        self.faces.append([ 0, 5, 1])
+        self.faces.append([ 0, 1, 7])
+        self.faces.append([ 0, 7,10])
+        self.faces.append([ 0,10,11])
+        # 5 adjacent faces
+        self.faces.append([ 1, 5, 9])
+        self.faces.append([ 5,11, 4])
+        self.faces.append([11,10, 2])
+        self.faces.append([10, 7, 6])
+        self.faces.append([ 7, 1, 8])
+        # 5 faces around point 3
+        self.faces.append([ 3, 9, 4])
+        self.faces.append([ 3, 4, 2])
+        self.faces.append([ 3, 2, 6])
+        self.faces.append([ 3, 6, 8])
+        self.faces.append([ 3, 8, 9])
+        # 5 adjacent faces
+        self.faces.append([ 4, 9, 5])
+        self.faces.append([ 2, 4,11])
+        self.faces.append([ 6, 2,10])
+        self.faces.append([ 8, 6, 7])
+        self.faces.append([ 9, 8, 1])
+        
+        # now refine triangles until you're done
+        while (n<np):
+            faces2 = []
+            for j in xrange(len(self.faces)):
+                x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
+                a = self.getMiddlePoint(x,y)
+                b = self.getMiddlePoint(y,z)
+                c = self.getMiddlePoint(z,x)
                 
-    def copyvector(self,v1,v2):
-        for i in xrange(3):
-            v2[i] = v1[i]
-        return
+                faces2.append([x,a,c])
+                faces2.append([y,b,a])
+                faces2.append([z,c,b])
+                faces2.append([a,b,c])
+            self.faces = faces2
+            n = len(self.positions)
 
-    def getMatrix(self,n):
-        M1 = [[0 for x in xrange(3)] for x in xrange(3)]
-        for i in xrange(3):
-            for j in xrange(3):
-                M1[i][j] = self.R[n][i][j]
-        return M1
-
-    def putMatrix(self,n,M1):
-        for i in xrange(3):
-            for j in xrange(3):
-                self.R[n][i][j] = M1[i][j]
-        return
-
-    def matmul1(self,M1,M2):
-        # M3 = M1*M2
-        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
-        sum = 0
-        for i in xrange(3):
-            for j in xrange(3):
-                sum = 0
-                for k in xrange(3):
-                    sum = sum + M1[i][k] * M2[k][j]
-                M4[i][j] = sum
-        return M4
-
-    def matmul2(self,M1,M2):
-        # M3 = M1*M2^t
-        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
-        sum = 0
-        for i in xrange(3):
-            for j in xrange(3):
-                sum = 0
-                for k in xrange(3):
-                    sum = sum + M1[i][k] * M2[j][k]
-                M4[i][j] = sum
-        return M4
-
-    def matmul3(self,M1,M2):
-        # M3 = M1^t *M2
-        M4 = [[0 for x in xrange(3)] for x in xrange(3)]
-        sum = 0
-        for i in xrange(3):
-            for j in xrange(3):
-                sum = 0
-                for k in xrange(3):
-                    sum = sum + M1[k][i] * M2[k][j]
-                M4[i][j] = sum
-        return M4
-
-    def vecmatmul1(self,M1,v1):
-        # v2 = M1*v1
-        sum = 0
-        v2 = []
-        for i in xrange(3):
-            sum = 0
-            for j in xrange(3):
-                sum = sum + M1[i][j]*v1[j]
-            v2.append(sum)
-        return v2
-
-    def vecmatmul2(self,M1,v1):
-        # v2 = M1^t * v1
-        sum = 0
-        v2 = []
-        for i in xrange(3):
-            sum = 0
-            for j in xrange(3):
-                sum = sum + M1[j][i]*v1[j]
-            v2.append(sum)
-        return v2
-
-    def find_face(self,v1):
-        # Locates the face to which the vector v1 points
-        max,face = 0,0
-        for n in xrange(20):
-            dot = 0
-            for i in xrange(3):
-                dot = dot + self.R[n][i][2] * v1[i]
-            if (dot > max):
-                max = dot
-                face = n
-        return face
-
-    def find_another_face(self,v1,face):
-        # Computes the dot product with the vectors
-        # pointing to the center of each face and picks the
-        # largest one other than face.
-        max = -17
-        facetoavoid = face
-        for n in xrange(20):
-            if (n!=facetoavoid):
-                dot = 0
-                for i in xrange(3):
-                    dot = dot + self.R[n][i][2] * v1[i]
-                if (dot>max):
-                    face = n
-                    max = dot
-        return face
-
-    def find_corner(self,v1):
-    	# Locates the corner to which v1 points.
-        # Computes the dot product with the vectors
-        # pointing to each corner and picks the
-        # largest one.
-        max = -17
-        corner = 0
-        for n in xrange(12):
-            dot = 0
-            for i in xrange(3):
-                dot = dot + self.v[n][i] * v1[i]
-            if (dot > max):
-                corner = n
-                max = dot
-        return corner
-
-    def find_mn(self,pixel,res):
-        # Computes the integer coordinates (m,n) of the pixel
-        # numbered pix on the basic triangle.
-        found = 0
-        pix, m, n = 0,0,0
-        interiorpix, pixperedge = 0,0
-        pix 	    = pixel
-        interiorpix = (2*res-3)*(res-1)
-        pixperedge  = (res)-1
-        if (pix < interiorpix) and (found == 0):
-            #pixel %d lies in the interior of the triangle." % pixel
-            m = (sqrt(1.+8.*pix)-1.)/2. + 0.5/res
-            # 0.5/resolution was added to avoid problems with
-            # rounding errors for the case when n=0.
-            # As long as you don't add more than 2/m, you're OK.
-            n = pix - m*(m+1)/2
-            m = m + 2
-            n = n + 1
-            found = 1
-        pix = pix - interiorpix
-        if (pix < pixperedge) and (found == 0):
-            #pixel %d lies on the bottom edge." % pixel
-            m = 2*res-1
-            n = pix+1
-            found = 1
-        pix = pix - pixperedge
-        if (pix < pixperedge) and (found == 0):
-            #pixel %d lies on the right edge." % pixel
-            m = 2*res-(pix+2)
-            n = m
-            found = 1
-        pix = pix - pixperedge
-        #pixel %d lies on the left edge." % pixel
-        if (found == 0):
-            m = pix+1
-            n = 0
-        return m,n
-
-    def tangentPlanePixel(self,res,x,y):
-        # Finds the hexagon in which the point (x,y) lies
-        # and computes the corresponding pixel number pix.
-        # if (x,y) lies on face, ifail = 0
-        c=0.866025404
-        edgelength=1.3231690765
-        # The edge length of the icosahedron is
-        # sqrt(9 tan^2(pi/5) - 3) when scaled so that
-        # it circumscribes the unit sphere.
-        r2	= 2*res
-        a 	= 0.5*x
-        b 	= c*y
-        d 	= 0.5*edgelength/(r2-1)
-        i 	= x/d 	  + r2
-        j 	= (a+b)/d + r2
-        k 	= (a-b)/d + r2
-        m 	= (r2+r2-j+k-1)/3
-        n 	= (i+k+1-r2)/3
-        pix = (m-2)*(m-1)/2 + (n-1)
-        ifail = 0
-        correct = 0
-        if (m  == (r2-1)) and (correct == 0):
-            # On bottom row
-            if ((n < 0) or (n > res)):
-                ifail=1
-            correct = 1
-        if (n == m) and (correct == 0):
-            # On right edge
-            k = (r2-1) - m
-            if ((k < 0) or (k> res)):
-                ifail = 1
-            else:
-                pix = (r2-2)*(resolution-1) + k - 1
-            correct = 1
-        if (n == 0) and (correct == 0):
-            # On left edge
-            if ((m < 0) or (m > res)):
-                ifail = 1
-            else:
-                pix = (r2-1)*(res-1) + m - 1
-        return ifail, pix
-
-    def tangentPlaneVector(self,res,pix):
-        # Computes the coords(x,y) of pixel(pix)
-        c1 = 0.577350269
-        c2 = 0.866025404
-        edgelength=1.3231690765
-        m,n = self.find_mn(pix,res)
-        x	= edgelength*(n-0.5*m)/(2*res-1)
-        y 	= edgelength*(c1-(c2/(2*res-1))*m)
-        return x,y
-
-    def find_sixth(self,x,y):
-        # Find which sixth of the basic triangle the point (x,y)
-        # lies in.
-        c=1.73205081
-        d = c*y
-        rot, flip = 0, 0
-        if (x>0):
-            if (x<-d):
-                rot  = 0
-                flip = 0
-            else:
-                if (x>d):
-                    rot  = 2
-                    flip = 1
-                else:
-                    rot  = 2
-                    flip = 0
-        else:
-            if (x>-d):
-                rot  = 1
-                flip = 1
-            else:
-                if (x<d):
-                    rot  = 1
-                    flip = 0
-                else:
-                    rot  = 0
-                    flip = 1
-        return rot,flip
-
-    def rotate_and_flip(self,rot,flip,x,y):
-        cs = -0.5
-        c  = 0.866025404
-        sn = 0
-        if (rot>0):
-            if (rot == 1):
-                # rotate by 120 degrees counter-clockwise
-                sn = c
-            else:
-                sn = -c
-            x1 = x
-            x  = cs*x1 - sn*y
-            y  = sn*x1 + cs*y
-        if (flip>0):
-            x = -x
-        return x,y
-
-    def adjust(self,x,y):
-        # Maps the triangle onto the sphere (sort of)
-        rot,flip    = self.find_sixth(x,y)
-        x,y         = self.rotate_and_flip(rot,flip,x,y)
-        x,y         = self.adjust_sixth(x,y)
-        # Now rotate and flip the sixth back to original position
-        if ((flip ==0) and (rot > 0)):
-            x,y = self.rotate_and_flip(3-rot,flip,x,y)
-        else:
-            x,y = self.rotate_and_flip(rot,flip,x,y)
-        return x,y
-
-    def unadjust(self,x,y):
-        # Does the inverse of adjust
-        rot,flip    = self.find_sixth(x,y)
-        x,y         = self.rotate_and_flip(rot,flip,x,y)
-        x,y         = self.unadjust_sixth(x,y)
-        # Now rotate and flip the sixth back to original position
-        if ((flip ==0) and (rot > 0)):
-            x,y = self.rotate_and_flip(3-rot,flip,x,y)
-        else:
-            x,y = self.rotate_and_flip(rot,flip,x,y)
-        return x,y
-
-    def adjust_sixth(self,x,y):
-        # Maps the basic right triangle (the sixth of the face that
-        # is in the lower right corner) onto itself in such a way
-        # that pixels will have equal area when mapped onto the sphere.
-        eps     = 1.e-14
-        scale   = 1.09844
-        g       = 1.7320508075689
-        u 		= x  + eps
-        v		= -y + eps
-        v2		= v*v
-        root	= sqrt(1.+4.*v2)
-        trig	= atan((g*root-g)/(root+3.))
-        y		= sqrt(trig*2./g)
-        x		= sqrt((1.+4.*v2)/(1.+u*u+v2))*u*y/v
-        x		= scale*x
-        y 		= -scale*y	
-        return x,y
-
-    def unadjust_sixth(self,x,y):
-        # Performs the inverse of what adjust_sixth does.
-        eps     = 1.e-14
-        scale   = 1.09844
-        g       = 1.7320508075689
-        u 		=  x/scale + eps
-        v		= -y/scale + eps
-        v2		= v*v
-        trig	= tan(g*v2/2.)
-        tmp		= (g+3.*trig)/(g-trig)
-        y2		= (tmp*tmp-1.)/4.
-        y		= sqrt(y2)
-        tmp		= v2*(1.+4.*y2) - u*u*y2
-        x	 	= u*y*sqrt((1.+y2)/tmp)
-        y 		= -y
-        return x,y
 
