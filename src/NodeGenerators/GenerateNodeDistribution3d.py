@@ -1414,20 +1414,27 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.H = []
         ri = rmax
         
-        resolution = [[6    ,0,0],
-                      [12   ,0,1],
-                      [18   ,1,0],
-                      [42   ,1,1],
-                      [66   ,2,0],
-                      [162  ,2,1],
-                      [258  ,3,0],
-                      [642  ,3,1],
-                      [1026 ,4,0],
-                      [2562 ,4,1],
-                      [4098 ,5,0],
-                      [10242,5,1],
-                      [16386,6,0],
-                      [40962,6,1]]
+        resolution = [[5    ,0,0],
+                      [6    ,0,1],
+                      [12   ,0,2],
+                      [14   ,1,0],
+                      [18   ,1,1],
+                      [42   ,1,2],
+                      [50   ,2,0],
+                      [66   ,2,1],
+                      [162  ,2,2],
+                      [194  ,3,0],
+                      [258  ,3,1],
+                      [642  ,3,2],
+                      [770  ,4,0],
+                      [1026 ,4,1],
+                      [2562 ,4,2],
+                      [3074 ,5,0],
+                      [4098 ,5,1],
+                      [10242,5,2],
+                      [12290,6,0],
+                      [16386,6,1],
+                      [40962,6,2]]
         
         while ri > rmin:
             # create the database of faces and positions
@@ -1444,7 +1451,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             nshell  = int(mshell / self.m0)
             nr      = 0
             ver     = 0
-            for i in xrange(14):
+            for i in xrange(21):
                 if (resolution[i][0] > nshell):
                     nr  = resolution[i][1]
                     ver = resolution[i][2]
@@ -1455,6 +1462,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
             if (ver<1):
+                self.createHexaSphere(nr)
+            elif (ver==1):
                 self.createTetraSphere(nr)
             else:
                 self.createIcoSphere(nr)
@@ -1652,6 +1661,42 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.faces.append([ 5, 3, 2])
         self.faces.append([ 5, 4, 3])
         self.faces.append([ 5, 1, 4])
+        
+        # now refine triangles until you're done
+        for i in xrange(np):
+            faces2 = []
+            for j in xrange(len(self.faces)):
+                x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
+                a = self.getMiddlePoint(x,y)
+                b = self.getMiddlePoint(y,z)
+                c = self.getMiddlePoint(z,x)
+                
+                faces2.append([x,a,c])
+                faces2.append([y,b,a])
+                faces2.append([z,c,b])
+                faces2.append([a,b,c])
+            self.faces = faces2
+            n = len(self.positions)
+
+    def createHexaSphere(self,np):
+        n = 0
+        t = sqrt(3.0)/2.0
+        # create the 5 vertices of the hexahedron
+        self.addVertex([ 0, 0, 1])
+        self.addVertex([ 0, 1, 0])
+        self.addVertex([ t,-0.5,0])
+        self.addVertex([-t,-0.5,0])
+        self.addVertex([ 0, 0,-1])
+        
+        # create the 6 initial faces
+        # 3 faces around point 0
+        self.faces.append([ 0, 1, 2])
+        self.faces.append([ 0, 2, 3])
+        self.faces.append([ 0, 3, 1])
+        # 3 faces around point 4
+        self.faces.append([ 4, 2, 1])
+        self.faces.append([ 4, 3, 2])
+        self.faces.append([ 4, 1, 3])
         
         # now refine triangles until you're done
         for i in xrange(np):
