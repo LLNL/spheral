@@ -1500,8 +1500,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         return result
 
     #---------------------------------------------------------------------------
-    # Numerically integrate the given density profile to determine the total
-    # enclosed mass.
+    # Mechanics for creating and refining the icosahedron
     #---------------------------------------------------------------------------
     def addVertex(self,point):
         length = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2])
