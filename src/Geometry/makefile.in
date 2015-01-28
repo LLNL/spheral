@@ -28,7 +28,6 @@ SRCTARGETS = \
 	$(srcdir)/GeomPolygon.cc \
 	$(srcdir)/GeomPolyhedron.cc
 
-EXTRALIBS = -lqhullstatic
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+LIBS += -lqhullstatic

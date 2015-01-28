@@ -12,14 +12,13 @@ PBGMODTARGET = $(PKGNAME).$(SHLIBEXT)
 PBGTARGET = SpheralModulesBindings.py
 INSTALLTARGETS = Spheral.pth
 
-EXTRALIBS = -lsiloh5 -lhdf5 $(LDRPATH)
-
 PYTHONPKGS = @PYTHONPKGS@
 PBGPKGS = @PYTHONPKGS@
 SPHERALMODULES = SpheralModules
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+LIBS += -lsiloh5 -lhdf5 $(LDRPATH)
 
 #-------------------------------------------------------------------------------
 CP = cp

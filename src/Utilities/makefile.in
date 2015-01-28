@@ -38,7 +38,6 @@ SRCTARGETS = \
 PYTHONTARGETS = \
 	$(srcdir)/fitspline.py
 
-EXTRALIBS = $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+LIBS += $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)

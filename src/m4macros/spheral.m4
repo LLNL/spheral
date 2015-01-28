@@ -197,6 +197,22 @@ AC_ARG_WITH(gsl,
 )
 
 # -----------------------------------------------------------------
+# Optionally do not build third party libs.
+# -----------------------------------------------------------------
+AC_SUBST(BUILDTHIRDPARTYTARGET)
+AC_MSG_CHECKING(for --without-thirdPartyLibs)
+AC_ARG_WITH(thirdPartyLibs,
+[  --without-thirdPartyLibs ................. do not build the third party libraries],
+[
+    AC_MSG_RESULT(yes)
+    BUILDTHIRDPARTYTARGET=""
+],
+[
+    AC_MSG_RESULT(no)
+    BUILDTHIRDPARTYTARGET="thirdPartyLibs"
+])
+
+# -----------------------------------------------------------------
 # Optionally do a cxxonly build.
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-cxxonly)
