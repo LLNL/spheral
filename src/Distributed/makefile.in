@@ -29,9 +29,8 @@ SRCTARGETS = \
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
-
 #EXTRAFLAGS += $(PARMETISINCS) -std=c++0x
-EXTRALIBS += $(PARMETISLIBS)
+LIBS += $(PARMETISLIBS)
 
 #-------------------------------------------------------------------------------
 # Override the default PYFFLEOPT flag, because using g++ with -g on the OSF Dec

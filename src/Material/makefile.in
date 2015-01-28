@@ -24,7 +24,6 @@ PYTHONTARGETS = \
 	$(srcdir)/MaterialUnits.py \
 	$(srcdir)/MaterialEquationsOfState.py
 
-EXTRALIBS = $(HELMLIBS)
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+LIBS += $(HELMLIBS)

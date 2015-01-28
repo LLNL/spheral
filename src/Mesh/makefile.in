@@ -33,7 +33,6 @@ PYTHONTARGETS = \
 	$(srcdir)/generateMesh.py \
 	$(srcdir)/siloMeshDump.py
 
-EXTRAFLAGS = -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+EXTRAFLAGS += -DUSE_TRIANGLE=$(USE_TRIANGLE) -DUSE_TETGEN=$(USE_TETGEN)

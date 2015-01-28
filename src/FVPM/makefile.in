@@ -17,8 +17,6 @@ SRCTARGETS = \
 	gauss_legendre.cc \
 	FVPMFluidDerivatives.cc 
 
-EXTRALIBS =
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
 

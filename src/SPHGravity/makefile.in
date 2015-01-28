@@ -12,9 +12,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	SPHGravityInst.cc 
 
-EXTRALIBS = -L$(PETSC_DIR)/lib/$(PETSC_ARCH) -lpetscksp -lpetscmat -lpetscvec -lpetsc
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
-EXTRAINCLUDES = -I$(PETSC_DIR)/include -I$(PETSC_DIR)/bmake/$(PETSC_ARCH) \
+INCS += -I$(PETSC_DIR)/include -I$(PETSC_DIR)/bmake/$(PETSC_ARCH) \
 	-I$(BUILDTOP)/../../include/pyMPI2.4 -I$(BUILDTOP)/../../include/python$(PYTHONVERSION)
+LIBS += -L$(PETSC_DIR)/lib/$(PETSC_ARCH) -lpetscksp -lpetscmat -lpetscvec -lpetsc

@@ -508,10 +508,10 @@ if test "$OSNAME" = "AIX"; then
 elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
   # On the gnu linker we can throw the rpath flag to avoid having to set the LD_LIBRARY_PATH
   # variable.
-  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath=$TOPLIBDIR ${LDPASSTHROUGH}-rpath=$LIBDIR"
+  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath=\$(libdir)"
 
 elif test "$OSNAME" = "Darwin"; then
-  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
+  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath \$(libdir)"
   LDINSTALLNAME="-install_name @rpath/\${@} -o"
 
 #   # On Mac OS X Darwin, you install libraries with an "dylib_install_name" flag to avoid

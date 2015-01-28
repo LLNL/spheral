@@ -20,6 +20,5 @@ SRCTARGETS = \
 	$(srcdir)/TensorCSPHViscosityInst.cc \
 	$(srcdir)/VonNeumanViscosityInst.cc
 
-##EXTRAFLAGS = -DDEBUG
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

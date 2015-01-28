@@ -32,7 +32,6 @@ PYTHONTARGETS = \
 	$(srcdir)/ShadowTillotsonEquationOfState.py \
 	$(srcdir)/ShadowConstantStrength.py
 
-EXTRALIBS = $(ANEOSLIBS)
-
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
+LIBS += $(ANEOSLIBS)
