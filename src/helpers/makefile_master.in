@@ -146,6 +146,10 @@ SPACE := $(EMPTY) $(EMPTY)
 STATICLIBTARGET = $(LIBTARGET:.$(DYLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
+# Static Python bindings based on the dynamic library.
+STATICPBGMODTARGET = $(PBGMODTARGET:.$(DYLIBEXT)=.a)
+
+#-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
 HEADERS = $(wildcard *.hh)
 
@@ -362,10 +366,18 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
-	mkdir -p $(PYTHONLIBDIR)/Spheral
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(PYTHONLIBDIR)/Spheral
+
+$(STATICPBGMODTARGET): $(PBGMODTARGET)
+	@echo "################################################################################"
+	@echo "# Building module $(STATICPBGMODTARGET)"
+	@echo "################################################################################"
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
+	ar -rvs $(STATICPBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ)
+	cp -f $(STATICPBGMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
 $(LINKLIST):	$(OBJS)

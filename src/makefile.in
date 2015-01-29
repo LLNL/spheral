@@ -83,20 +83,6 @@ cxxonly:
 	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(BUILDTOP)/$$pckg cxxonly install-headers; \
 	done
 
-# cxxwithpy_old:	@PYTHONPKGDIR@ $(CXXPKGS)
-# 	$(MAKE) pycompileall
-
-# cxxwithpy_new:
-# 	for pckg in $(CXXPKGS); do \
-# 		cd $(BUILDTOP)/$$pckg; \
-# 		$(MAKE) all; \
-# 		if [ -a libSpheral_$$pckg.so ]; then \
-# 			cp -f libSpheral_$$pckg.so $(libdir); \
-# 		fi; \
-# 		done
-# 	cd $(BUILDTOP)/PBGWraps; \
-# 	$(MAKE) all
-
 cxxclean:
 	for pckg in $(CXXPKGS); do \
 	$(MAKE) -C $(BUILDTOP)/$$pckg clean; \
