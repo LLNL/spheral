@@ -400,7 +400,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:
