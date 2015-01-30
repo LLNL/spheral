@@ -23,8 +23,6 @@ title("3D Cu taylor anvil impact strength test")
 # Generic problem parameters
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
-units = PhysicalConstants
-
 commandLine(seed = "cylindrical",
 
             # Geometry
@@ -401,6 +399,7 @@ if siloSnapShotFile:
     integrator.initialize(state, derivs)
     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
     integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
+    integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
 
     # Grab the fields and their derivatives.
     mass = state.scalarFields(HydroFieldNames.mass)
@@ -423,7 +422,7 @@ if siloSnapShotFile:
     DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
     Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
-    DSDt = state.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
+    DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
 
     # Write the sucker.
     siloPointmeshDump(siloSnapShotFile, 
