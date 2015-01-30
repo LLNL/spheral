@@ -1470,12 +1470,18 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
             print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
             for n in xrange(len(self.positions)):
-
-                self.x.append(ri*self.positions[n][0])
-                self.y.append(ri*self.positions[n][1])
-                self.z.append(ri*self.positions[n][2])
-                self.m.append(mi)
-                self.H.append(Hi)
+                x       = ri*self.positions[n][0]
+                y       = ri*self.positions[n][1]
+                z       = ri*self.positions[n][2]
+                theta   = acos(z/sqrt(x*x+y*y+z*z))
+                phi     = atan2(y,x)
+                
+                if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
+                    self.x.append(ri*self.positions[n][0])
+                    self.y.append(ri*self.positions[n][1])
+                    self.z.append(ri*self.positions[n][2])
+                    self.m.append(mi)
+                    self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
                 

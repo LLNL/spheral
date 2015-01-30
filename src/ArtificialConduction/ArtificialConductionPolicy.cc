@@ -84,7 +84,7 @@ namespace Spheral {
                 nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
         
         FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-        const FieldSpace::FieldList<Dimension, Scalar> DepsDt = derivs.fields("Artificial Cond. DepsDt", 0.0);
+        const FieldSpace::FieldList<Dimension, Scalar> DepsDt = derivs.fields("Artificial Cond DepsDt", 0.0);
         CHECK(eps.size() == DepsDt.size());
 
         // Loop over the internal values of the field.
