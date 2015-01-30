@@ -65,8 +65,8 @@ void
 ArtificialConduction<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mGradP = dataBase.newFluidFieldList(Vector::zero, "Pressure Gradient");
-    mDepsDtArty = dataBase.newFluidFieldList(0.0, "Artificial Cond. DepsDt");
-    mVsigMax = dataBase.newFluidFieldList(0.0, "Maximum Artificial Cond. Signal Speed");
+    mDepsDtArty = dataBase.newFluidFieldList(0.0, "Artificial Cond DepsDt");
+    mVsigMax = dataBase.newFluidFieldList(0.0, "Maximum Artificial Cond Signal Speed");
 }
 
 //------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-    FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond. Signal Speed", 0.0);
+    FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond Signal Speed", 0.0);
     CHECK(mass.size() == numNodeLists);
     CHECK(position.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
@@ -136,7 +136,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK(pressure.size() == numNodeLists);
     
     // The relevant derivatives
-    FieldList<Dimension, Scalar> DepsDt = derivatives.fields("Artificial Cond. DepsDt", 0.0);
+    FieldList<Dimension, Scalar> DepsDt = derivatives.fields("Artificial Cond DepsDt", 0.0);
     FieldList<Dimension, Vector> gradP = derivatives.fields("Pressure Gradient", Vector::zero);
     CHECK(DepsDt.size() == numNodeLists);
     CHECK(gradP.size() == numNodeLists);
@@ -293,7 +293,7 @@ dt(const DataBase<Dimension>& dataBase,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
     const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-    const FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond. Signal Speed", 0.0);
+    const FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond Signal Speed", 0.0);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity());
     const int numNodeLists = connectivityMap.nodeLists().size();
 
