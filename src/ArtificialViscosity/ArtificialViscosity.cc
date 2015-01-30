@@ -73,7 +73,7 @@ ArtificialViscosity(Scalar Clinear, Scalar Cquadratic):
   mReducingViscosityMultiplierL(FieldSpace::Copy),
   mCalculateSigma(false),
   mLimiterSwitch(false),
-  mEpsilon2(1.0e-4),
+  mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mCsMultiplier(1e-2),
   mEnergyMultiplier(1.0),
