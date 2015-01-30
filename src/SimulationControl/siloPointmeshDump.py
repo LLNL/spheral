@@ -67,8 +67,6 @@ def siloPointmeshDump(baseName,
             scalarFields.append(f)
         elif isinstance(f, eval("VectorField%id" % ndim)):
             vectorFields.append(f)
-        elif isinstance(f, eval("VectorField%id" % ndim)):
-            vectorFields.append(f)
         elif isinstance(f, eval("TensorField%id" % ndim)):
             tensorFields.append(f)
         elif isinstance(f, eval("SymTensorField%id" % ndim)):
