@@ -76,7 +76,7 @@ $(LIB):
 	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) -o $(LIB) $(LIBS) $(LIBS) -L$(LIBDIR) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
 
 pycompileall:  force_build
-	$(PYTHONEXE) $(prefix)/lib/python$(PYTHONVERSION)/compileall.py $(PYTHONLIBDIR)/Spheral
+	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
 
 cxxonly:
 	for pckg in $(CXXPKGS); do \
