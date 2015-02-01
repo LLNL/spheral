@@ -147,7 +147,7 @@ STATICLIBTARGET = $(LIBTARGET:.$(DYLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Static Python bindings based on the dynamic library.
-STATICPBGMODTARGET = $(PBGMODTARGET:.$(DYLIBEXT)=.a)
+STATICPBGMODTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
@@ -165,11 +165,10 @@ ifeq "$(PYTHONBINDING)" "PYBINDGEN"
   EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
-  PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS))
+  PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS)) $(SPHERALMODULES).C
   PBGOBJS = $(PBGSRCS:.C=.o)
   PBGMODHEADERS = $(SPHERALMODULES).hh
   PBGMODSRCS = $(SPHERALMODULES).C $(PBGMODHEADERS)
-  PBGMODOBJ = $(SPHERALMODULES).o
   MODPKGS = $(patsubst %, $(srcdir)/%, $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS))))
 
   ifneq "$(PBGTARGET)" ""
@@ -368,7 +367,7 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PBGMODTARGET) $(PBGOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
 	cp -f $(PBGMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 $(STATICPBGMODTARGET): $(PBGMODTARGET)
@@ -376,7 +375,7 @@ $(STATICPBGMODTARGET): $(PBGMODTARGET)
 	@echo "# Building module $(STATICPBGMODTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(PYTHONLIBDIR)/Spheral
-	ar -rvs $(STATICPBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ)
+	ar -rvs $(STATICPBGMODTARGET) $(PBGOBJS)
 	cp -f $(STATICPBGMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
@@ -400,7 +399,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:
