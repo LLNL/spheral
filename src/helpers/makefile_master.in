@@ -208,7 +208,7 @@ CONFIG_SHELL=@CONFIG_SHELL@
 
 all:	@ALL@
 
-cxxonly:	$(STATICLIBTARGET)
+cxxonly:	$(STATICLIBTARGET) install-headers
 
 install-headers:
 ifneq ($(HEADERS),)
@@ -399,7 +399,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:

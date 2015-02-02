@@ -30,6 +30,7 @@ AC_SUBST(LDRPATH)
 AC_SUBST(LIBS)
 AC_SUBST(GEOMETRY_ONLY)
 AC_SUBST(ALL)
+AC_SUBST(ALLTOP)
 
 LDRPATH=
 HEADERDIR=
@@ -220,12 +221,15 @@ AC_ARG_WITH(cxxonly,
 [  --with-cxxonly ........................... optionally do a cxxonly build (no third party, no python extensions)],
 [
    AC_MSG_RESULT(yes)
-   ALL="cxxonly install-headers"
+   ALL="\$(LIBTARGET) \$(STATICLIBTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS) install-headers"
+   ALLTOP="\$(CXXPKGS)"
+   CXXFLAGS+=" -DCXXONLY"
    LIBDIR="$libdir"
 ],
 [
    AC_MSG_RESULT(no)
    ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
+   ALLTOP="$PYTHONPKGDIR \$(CXXPKGS) pycompileall"
 ]
 )
 
