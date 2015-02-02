@@ -19,6 +19,32 @@ from GenerateNodeDistribution2d import *
 
 title("2-D Keplerian disk with arbitrary pressure support.")
 
+# serialDump thing for external viz
+class sDump(object):
+    def __init__(self,nodeSet,directory):
+        self.nodeSet = nodeSet
+        self.directory = directory
+    def __call__(self, cycle, time, dt):
+        procs = mpi.procs
+        rank = mpi.rank
+        serialData = []
+        i,j = 0,0
+        for i in xrange(procs):
+            for nodeL in self.nodeSet:
+                if rank == i:
+                    for j in xrange(nodeL.numInternalNodes):
+                        serialData.append([nodeL.positions()[j],
+                                           3.0/(nodeL.Hfield()[j].Trace()),
+                                           nodeL.mass()[j],nodeL.massDensity()[j],
+                                           nodeL.specificThermalEnergy()[j]])
+
+        serialData = mpi.reduce(serialData,mpi.SUM)
+        if rank == 0:
+            f = open(self.directory + "/serialDump" + str(cycle) + ".ascii",'w')
+            for i in xrange(len(serialData)):
+                f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+            f.close()
+
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
@@ -96,6 +122,9 @@ commandLine(asph = False,
             smoothIters = 0,
             rigorousBoundaries = True,
             dtverbose = False,
+            
+            serialDump = False,
+            serialDumpEach = 10
             )
 
 polytropicConstant = G0*M0/(3.0*Rc*sqrt(rho0))
@@ -368,6 +397,11 @@ control = SpheralController(integrator, WT,
                             redistributeStep = redistributeStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName)
+
+
+if serialDump:
+    dump = sDump([diskNodes],dataDir)
+    control.appendPeriodicWork(dump,serialDumpEach)
 output('control')
 
 # Smooth the initial conditions.
@@ -381,39 +415,41 @@ else:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
+control.advance(goalTime)
 
-for localGoalTime in xrange(1.0, goalTime + 1.0, 1.0):
-    if control.time() < localGoalTime:
-        print "Advancing to time %f" % localGoalTime
-        control.step(5)
-        control.advance(localGoalTime)
-        control.dropRestartFile()
-
-        # Report the cumulative angular momentum error.
-        lz = [x.z for x in control.conserve.amomHistory]
-        print "Lz error: ", (max(lz) - min(lz))/lz[0]
-
-        # Plot the current state.
-        rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
-
-        # Plot the final state.
-        rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-        va = azimuthalVelocityFieldList(db.fluidPosition, db.fluidVelocity)
-        velPlot = plotFieldList(va,
-                                xFunction = "%s.magnitude()",
-                                plotStyle = "points",
-                                winTitle = "Velocity",
-                                lineTitle = "Simulation")
-
-        # Overplot the analytic solution.
-        import KeplerianPressureDiskSolution
-        answer = KeplerianPressureDiskSolution.KeplerianPressureDiskSolution(fractionPressureSupport,
-                                                                             polytropicConstant,
-                                                                             polytropicIndex,
-                                                                             G0,
-                                                                             M0,
-                                                                             Rc,
-                                                                             rmin = rmin,
-                                                                             rmax = rmax)
-        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot)
+#rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
+#
+#for localGoalTime in xrange(1.0, goalTime + 1.0, 1.0):
+#    if control.time() < localGoalTime:
+#        print "Advancing to time %f" % localGoalTime
+#        control.step(5)
+#        control.advance(localGoalTime)
+#        control.dropRestartFile()
+#
+#        # Report the cumulative angular momentum error.
+#        lz = [x.z for x in control.conserve.amomHistory]
+#        print "Lz error: ", (max(lz) - min(lz))/lz[0]
+#
+#        # Plot the current state.
+#        rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
+#
+#        # Plot the final state.
+#        rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
+#        va = azimuthalVelocityFieldList(db.fluidPosition, db.fluidVelocity)
+#        velPlot = plotFieldList(va,
+#                                xFunction = "%s.magnitude()",
+#                                plotStyle = "points",
+#                                winTitle = "Velocity",
+#                                lineTitle = "Simulation")
+#
+#        # Overplot the analytic solution.
+#        import KeplerianPressureDiskSolution
+#        answer = KeplerianPressureDiskSolution.KeplerianPressureDiskSolution(fractionPressureSupport,
+#                                                                             polytropicConstant,
+#                                                                             polytropicIndex,
+#                                                                             G0,
+#                                                                             M0,
+#                                                                             Rc,
+#                                                                             rmin = rmin,
+#                                                                             rmax = rmax)
+#        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot)
