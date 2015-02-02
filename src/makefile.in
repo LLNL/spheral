@@ -47,7 +47,7 @@ LINKLIST = linklist
 
 force_build:
 
-all:	@PYTHONPKGDIR@ $(CXXPKGS)
+all:	@ALLTOP@
 	$(MAKE) pycompileall
 
 thirdPartyLibs:	force_build
@@ -78,10 +78,10 @@ $(LIB):
 pycompileall:  force_build
 	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
 
-cxxonly:
-	for pckg in $(CXXPKGS); do \
-	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(BUILDTOP)/$$pckg cxxonly install-headers; \
-	done
+# cxxonly:
+# 	for pckg in $(CXXPKGS); do \
+# 	$(MAKE) -C $(BUILDTOP)/$$pckg cxxonly install-headers; \
+# 	done
 
 cxxclean:
 	for pckg in $(CXXPKGS); do \
@@ -105,7 +105,7 @@ spotless:
 	rm -fr $(LINKLIST) lib/* 
 
 grease:
-	find . -name '*.d' -exec rm -f {}  ';'
+	find $(srcdir) -name '*.d' -exec rm -f {}  ';'
 
 static_libs:	$(PKGS)
 	for pkg in $(CXXPKGS); do \
