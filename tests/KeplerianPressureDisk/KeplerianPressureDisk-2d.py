@@ -10,6 +10,7 @@ from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from math import *
+import SpheralPointmeshSiloDump
 
 # Load the mpi module if we're parallel.
 import mpi
@@ -124,7 +125,11 @@ commandLine(asph = False,
             dtverbose = False,
             
             serialDump = False,
-            serialDumpEach = 10
+            serialDumpEach = 10,
+            
+            vizCycle = None,
+            vizTime = 0.1,
+            vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
 polytropicConstant = G0*M0/(3.0*Rc*sqrt(rho0))
@@ -152,6 +157,9 @@ restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
                                                   n)
 
+vizDir = os.path.join(dataDir, "visit")
+vizBaseName = "Kepler-disk-2d"
+
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
@@ -159,6 +167,8 @@ import os, sys
 if mpi.rank == 0:
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -367,6 +377,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 for p in packages:
+    integrator.appendPhysicsPackage(gravity)
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
@@ -396,7 +407,12 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             redistributeStep = redistributeStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            vizMethod = vizMethod,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
 
 
 if serialDump:
