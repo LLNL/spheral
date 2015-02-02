@@ -12,8 +12,8 @@ from findLastRestart import *
 from math import *
 
 # Load the mpi module if we're parallel.
-import loadmpi
-mpi, rank, procs = loadmpi.loadmpi()
+import mpi
+#mpi, rank, procs = mpi.loadmpi()
 
 from GenerateNodeDistribution2d import *
 
@@ -24,7 +24,7 @@ title("2-D Keplerian disk with arbitrary pressure support.")
 #-------------------------------------------------------------------------------
 commandLine(asph = False,
 
-            n = 5000,
+            n = 100,
             thetaMin = 0.0,
             thetaMax = 2.0*pi,
             rmin = 0.0,
@@ -46,6 +46,16 @@ commandLine(asph = False,
             polytropicIndex = 2.0,
             mu = 1.0,
 
+            SVPH = False,
+            CSPH = False,
+            ASPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
+            
+            XSPH = False,
+            
+            epsilonTensile = 0.0,
+            nTensile = 8,
+            
             # Hydro
             Qconstructor = MonaghanGingoldViscosity2d,
             #Qconstructor = TensorMonaghanGingoldViscosity2d,
@@ -63,6 +73,8 @@ commandLine(asph = False,
             gradhCorrection = False,
             HEvolution = IdealH,
             sumForMassDensity = RigorousSumDensity,
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
 
             # Timestep constraints
             cfl = 0.5,
@@ -70,6 +82,7 @@ commandLine(asph = False,
             domainIndependent = False,
 
             # Integrator and run time.
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 10.0,
             dt = 0.0001,
             dtMin = 1.0e-5,
@@ -81,9 +94,28 @@ commandLine(asph = False,
             restartStep = 100,
             restoreCycle = None,
             smoothIters = 0,
+            rigorousBoundaries = True,
+            dtverbose = False,
             )
 
 polytropicConstant = G0*M0/(3.0*Rc*sqrt(rho0))
+
+# Decide on our hydro algorithm.
+if SVPH:
+    if ASPH:
+        HydroConstructor = ASVPHFacetedHydro
+    else:
+        HydroConstructor = SVPHFacetedHydro
+elif CSPH:
+    if ASPH:
+        HydroConstructor = ACSPHHydro
+    else:
+        HydroConstructor = CSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 # Data output info.
 dataDir = "cylindrical-%i" % n
@@ -151,20 +183,25 @@ output('WTPi')
 diskNodes = None
 if asph:
     diskNodes = AsphNodeList("diskNodes", eos, WT, WTPi)
+    diskNodes.hmin = hmin
+    diskNodes.hmax = hmax
+    diskNodes.hminratio = hminratio
+    diskNodes.nodesPerSmoothingScale = nPerh
 else:
-    diskNodes = SphNodeList("diskNodes", eos, WT, WTPi)
-diskNodes.hmin = hmin
-diskNodes.hmax = hmax
-diskNodes.hminratio = hminratio
-diskNodes.nodesPerSmoothingScale = nPerh
+    diskNodes = makeFluidNodeList("diskNodes", eos,
+                                  hmin = hmin,
+                                  hmax = hmax,
+                                  hminratio = hminratio,
+                                  nPerh = nPerh)
+
 output("diskNodes")
 output("diskNodes.hmin")
 output("diskNodes.hmax")
 output("diskNodes.hminratio")
 output("diskNodes.nodesPerSmoothingScale")
-output("diskNodes.epsilonTensile")
-output("diskNodes.nTensile")
-output("diskNodes.XSPH")
+#output("diskNodes.epsilonTensile")
+#output("diskNodes.nTensile")
+#output("diskNodes.XSPH")
 
 # Construct the neighbor object and associate it with the node list.
 neighbor1 = NestedGridNeighbor(diskNodes,
@@ -251,50 +288,77 @@ output("gravity.deltaPotentialFraction")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro2d(WT,
-                WTPi,
-                q,
-                compatibleEnergy,
-                gradhCorrection,
-                sumForMassDensity,
-                HEvolution,
-                hmin,
-                hmax,
-                hminratio)
-hydro.cfl = cfl
+if SVPH:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-2.0, -2.0),
+                             xmax = Vector(3.0, 3.0))
+# xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+# xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif CSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
-output("hydro.cfl")
-output("hydro.HEvolution")
-output("hydro.sumForMassDensity")
-output("hydro.hmin")
-output("hydro.hmax")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
-output("hydro.hratiomin")
-output("hydro.valid()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
 
 #-------------------------------------------------------------------------------
-# Construct a time integrator.
+# Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
-integrator.appendPhysicsPackage(gravity)
-integrator.appendPhysicsPackage(hydro)
+integrator = IntegratorConstructor(db)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.verbose = dtverbose
+integrator.rigorousBoundaries = rigorousBoundaries
+
+# Blago!  Currently a problem with periodic boundaries.
+integrator.cullGhostNodes = False
+
 output("integrator")
-output("integrator.havePhysicsPackage(gravity)")
 output("integrator.havePhysicsPackage(hydro)")
-output("integrator.valid()")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
 output("integrator.domainDecompositionIndependent")
+output("integrator.rigorousBoundaries")
+output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
 # Build the controller to run the simulation.
