@@ -26,6 +26,11 @@ INSTALL=`pwd`/m4macros/install-sh
 AC_PROG_PYTHON
 
 # -------------------------------------------------
+# setup python binding (m4macros/pythonbinding.m4)
+# -------------------------------------------------
+SETUP_PYTHONBINDING
+
+# -------------------------------------------------
 # Setup the Spheral Environment 
 # (m4macros/spheral.m4)
 # -------------------------------------------------
@@ -95,11 +100,6 @@ SETUP_FRACTALGRAVITY
 # setup PETSc (m4macros/petsc.m4)
 # -------------------------------------------------
 SETUP_PETSC
-
-# -------------------------------------------------
-# setup python binding (m4macros/pythonbinding.m4)
-# -------------------------------------------------
-SETUP_PYTHONBINDING
 
 # -------------------------------------------------
 # setup matplotlib (m4macros/matplotlib.m4)
