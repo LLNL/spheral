@@ -48,7 +48,6 @@ LINKLIST = linklist
 force_build:
 
 all:	@ALLTOP@
-	$(MAKE) pycompileall
 
 thirdPartyLibs:	force_build
 	cd $(BUILDTOP)/$@; \
@@ -77,11 +76,6 @@ $(LIB):
 
 pycompileall:  force_build
 	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
-
-# cxxonly:
-# 	for pckg in $(CXXPKGS); do \
-# 	$(MAKE) -C $(BUILDTOP)/$$pckg cxxonly install-headers; \
-# 	done
 
 cxxclean:
 	for pckg in $(CXXPKGS); do \
