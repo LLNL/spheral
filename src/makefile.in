@@ -74,7 +74,7 @@ $(LIB):
 	mkdir -p $(LIBDIR)
 	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) -o $(LIB) $(LIBS) $(LIBS) -L$(LIBDIR) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
 
-pycompileall:  force_build
+pycompileall:  $(CXXPGS) @PYTHONPKGDIR@
 	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
 
 cxxclean:
