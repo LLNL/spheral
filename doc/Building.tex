@@ -20,7 +20,9 @@ one could use:
 \begin{verbatim}
 cd spheral/src
 ./boot
-./configure
+mkdir BUILD
+cd BUILD
+../configure
 make
 \end{verbatim}
 
@@ -29,7 +31,9 @@ For a build to run on a serial computer, you need to explicitly tell
 \begin{verbatim}
 cd spheral/src
 ./boot
-./configure --without-mpi
+mkdir BUILD
+cd BUILD
+../configure --without-mpi
 make
 \end{verbatim}
 Notes:
@@ -50,26 +54,58 @@ Notes:
   \S\ref{thirdParty.sec}).
 \end{itemize}
 
+In this example we choose to build in a local subdirectory of the {\tt
+  spheral/src} directory called {\tt BUILD}.  In general we can make a build
+tree anyplace though.  For instance, if the \Spheral\ source is installed under
+{\tt /Users/bill/codestuff/spheral} and we want to build in {\tt
+  /tmp/trashheap} and install to {\tt /usr/local/simcodes/Spheral}, the
+following configuration would work:
+\begin{verbatim}
+cd /Users/bill/codestuff/spheral/src
+./boot
+mkdir /tmp/trashheap
+cd /tmp/trashheap
+/Users/bill/codestuff/spheral/src/configure --prefix=/usr/local/simcodes/Spheral
+make
+\end{verbatim}
+
 %-------------------------------------------------------------------------------
 \section{Detailed build instructions.}
 
 %-------------------------------------------------------------------------------
 \subsection{Generic configuration.}
-\Spheral\ uses a fairly standard autoconf based build system originally
-provided by Martin Casado.  Executing this system consists of running the
-following commands in the {\tt spheral/src} directory:
+\Spheral\ uses a fairly standard autoconf based build system originally provided
+by Martin Casado.  The local {\tt ./boot} script runs autoconf to generate the
+a configure script in the {\tt src/} directory.  The user should make a separate
+build tree wherever they like, and run this configure script in that build
+tree.
+
+Executing this system consists of running the following commands in the {\tt
+  spheral/src} directory:
 \begin{verbatim}
 ./boot
-./configure <options>
+mkdir BUILD
+../configure <options>
 \end{verbatim}
 {\tt configure} has many options, which can be listed with the command
 \begin{verbatim}
-./configure --help
+configure --help
 \end{verbatim}
 The options you will most likely need to set are whether to build the MPI
 parallel enabled version of \Spheral, the compiler choices, optimization level,
 and whether or not you want the Design By Contract (DBC) correctness testing
 enabled.
+
+Another important option is where to install all the \Spheral\ components as it
+is built.  This is specified with the standard \verb.--prefix=. option.  For
+instance, if we wanted to install in {\tt /usr/local/Spheral}, we might
+configure with the line
+\begin{verbatim}
+configure --prefix=/usr/local/Spheral
+\end{verbatim}
+If no \verb.--prefix. option is specified \Spheral's build system defaults to
+installing a subdirectory of the build tree whose name is built from the local
+machine OS and chip architecture names.
 
 \subsubsection{Selecting whether to build a parallel or a serial code.}
 \Spheral\ defaults to building the parallel (MPI-enabled) code.  If you want to
@@ -86,14 +122,12 @@ tried to simplify the compiler selection process through the use of the
 \item \verb+--with-compilers=<gnu,intel,vacpp,emsolve>+
 \end{itemize}
 {\tt configure} option.  Currently the only valid options are {\tt gnu}, {\tt
-  intel}, {\tt vacpp}, or {\tt emsolve} -- the default is {\tt gnu}.  The {\tt
-  intel} option selects the {\tt icc} compiler suite, only appropriate on intel
-environments where this compiler has been installed.  Similarly {\tt vacpp} runs
-the {\tt xlC} compile suite on IBM AIX systems.  At the time of this writing,
-however, {\tt xlC} does not correctly build the {\tt Boost} third party library
-set (\S \ref{free.sec}.\ref{boost.item}) , so this option cannot be used.  The
-{\tt emsolve} compiler suite is a very specialized option that will probably not
-be of general use.
+  intel}, or {\tt vacpp} -- the default is {\tt gnu}.  The {\tt intel} option
+selects the {\tt icc} compiler suite, only appropriate on intel environments
+where this compiler has been installed.  Similarly {\tt vacpp} runs the {\tt
+  xlC} compile suite on IBM AIX systems.  At the time of this writing, however,
+{\tt xlC} does not correctly build the {\tt Boost} third party library set (\S
+\ref{free.sec}.\ref{boost.item}) , so this option cannot be used.
 
 If the set of compilers selected by one of the above options is not quite right
 for a particular installation, it is also possible to specify the individual
@@ -112,6 +146,12 @@ necessary if you're building the parallel code.
 Manually select the C++ compiler to build python with.  Defaults to
 the C++ compiler selected by \verb+--with-CXX+.
 \end{itemize}
+
+OS X/Darwin note: on the Darwin platform we currently default to building with
+{\tt clang} and {\tt clang++}, though this is not currently a convenient
+compiler set selectable via \verb.--with-compilers..  The {\tt clang} compilers
+appear to be a viable option on platforms where they are available, and can be
+selected via the individual \verb.--with-CC. options listed above.
 
 \subsubsection{Options affecting optimization level}
 Options that are useful for determining the optimization are
@@ -150,8 +190,8 @@ do this you must specify two options
 An example configuration to build an optimized \Spheral\ that can use ANEOS
 might look like
 \begin{verbatim}
-./configure --with-opt=3 --with-dbc=none --with-aneos \
-            --with-aneos-link="-L/usr/local/ANEOS -lmaneos"
+configure --with-opt=3 --with-dbc=none --with-aneos \
+          --with-aneos-link="-L/usr/local/ANEOS -lmaneos"
 \end{verbatim}
 assuming you have a library called \verb+libmaneos.a+ in directory
 \verb+/usr/local/ANEOS+.
@@ -163,8 +203,6 @@ it if employing this option.
 \subsubsection{Miscellaneous options}
 Some lesser used options that may be of interest include
 \begin{itemize}
-\item \verb+--with-debug+: Turn on debug print statements.  Beware, this is a
-very verbose option!
 \item \verb+--without-triangle+: Disable building the Triangle extensions to the
   polytope tessellation package.
 \item \verb+--without-tetgen+: Disable building the Tetgen extensions to the
@@ -204,33 +242,33 @@ The following are some generic configuration examples:
 \item To build a serial debugable version, assuming the default compiler choices
 are OK:
 \begin{verbatim}
-./configure --with-compilers=gnu --without-mpi
+configure --with-compilers=gnu --without-mpi
 \end{verbatim}
 
 \item To build a similar serial optimized code
 \begin{verbatim}
-./configure --with-compilers=gnu --without-mpi --with-opt=2 --with-dbc=none
+configure --with-compilers=gnu --without-mpi --with-opt=2 --with-dbc=none
 \end{verbatim}
 
 \item To build an optimized parallel executable, manually setting the compiler
 choices:
 \begin{verbatim}
-./configure --with-opt=2 --with-dbc=none \
-            --with-CC=gcc --with-CXX=g++ \
-            --with-MPICC=mpicc --with-MPICXX=mpiCC
+configure --with-opt=2 --with-dbc=none \
+          --with-CC=gcc --with-CXX=g++ \
+          --with-MPICC=mpicc --with-MPICXX=mpiCC
 \end{verbatim}
 
 \item To build optimized with the intel compiler suite:
 \begin{verbatim}
-./configure --with-compilers=intel --with-opt=2 --with-dbc=none
+configure --with-compilers=intel --with-opt=2 --with-dbc=none
 \end{verbatim}
 
 \item You can override any of the individual compiler choices as needed:
 \begin{verbatim}
-./configure --with-compilers=gnu --with-opt=2 --with-dbc=none \
-    --with-CC=gcc-3.4.3 --with-CXX=g++-3.4.3 \
-    --with-MPICC=/usr/local/wackycompilerfrontend/mpicc \
-    --with-MPICXX=/usr/local/wackycompilerfrontend/mpiCC
+configure --with-compilers=gnu --with-opt=2 --with-dbc=none \
+          --with-CC=gcc-3.4.3 --with-CXX=g++-3.4.3 \
+          --with-MPICC=/usr/local/wackycompilerfrontend/mpicc \
+          --with-MPICXX=/usr/local/wackycompilerfrontend/mpiCC
 \end{verbatim}
 
 \end{itemize}
@@ -245,10 +283,7 @@ while on many other systems Gnu make is installed as \verb+gmake+.  Building the
 code from scratch can be quite a long process, particularly while building all
 the third party packages.  Fortunately, if you are building on a multiprocessor
 SMP machine you can take advantage of Gnu make's parallel build facilities via
-the \verb+-j+ option to vastly speed up the compile process.  For instance, on a
-typical AIX machine at LLNL a serial build might take several hours.  However,
-by building 10 way (\verb+gmake -j 10+), the full compile can be completed in
-less than half an hour.
+the \verb+-j+ option to vastly speed up the compile process.
 
 %-------------------------------------------------------------------------------
 \section{C++ only builds}
@@ -267,18 +302,16 @@ third party libraries (with their headers) under some place we'll refer to as
 \verb.TPL_TOP..  We can configure and build as
 
 \begin{verbatim}
-./configure --with-cxxonly --prefix=/usr/local/Spheral/cxx \
-            --with-opt=3 --with-dbc=none 
-make cxxonly EXTRAINCLUDES='-I TPL_TOP/include \
-             EXTRALIBS='-L TPL_TOP/lib'
+configure --with-cxxonly --without-thirdPartyLibs \
+          --prefix=/usr/local/Spheral/cxx \
+          --with-opt=3 --with-dbc=none 
+make EXTRAINCLUDES='-I TPL_TOP/include EXTRALIBS='-L TPL_TOP/lib'
 \end{verbatim}
 
 This will resulting \Spheral\ headers will be installed under
 \verb./usr/local/Spheral/cxx/include. and the corresponding libraries in
-\verb./usr/local/Spheral/cxx/lib..
-Note that in C++ only mode \Spheral\ builds and installs both static and shared
-versions of the libraries.  This is different than the standard build which
-currently only suports shared libraries.
+\verb./usr/local/Spheral/cxx/lib..  Note that in C++ only mode \Spheral\ builds
+and installs both static and shared versions of the libraries.
 
 %-------------------------------------------------------------------------------
 \section{Running \Spheral}
@@ -287,20 +320,18 @@ currently only suports shared libraries.
 problem using the \Spheral\ extension objects (available via the
 \verb+import Spheral+ command).  The \Spheral\ distribution includes several
 example and test scripts which demonstrate setups for several standard test
-cases.  The results of one such test (the Sod shock tube) can be found
-at \newline \url{http://spheral.sf.net/SodExample.html}.
+cases.
 
-When you build \Spheral\ it installs all of its components in the top directory
-where you installed the source, including Python.  For instance, if you
-installed the source in \verb+/home/username/Spheral+, then after you finish
-building \Spheral\ there will be a \verb+/home/username/Spheral/bin+ directory
-containing a \verb+python+ executable.  To use \Spheral\ you simply fire up this
-version of \verb+python+ and issue the command \verb+import Spheral+ and all of
-the components will be available in the module \verb+Spheral+.  Exactly how you
-run the executable will depend on your architecture (and whether you configured
-for parallel or serial).  Here are some example invocations assuming you have a
-python script \verb+example.py+ which contains the setup for your problem, and
-your source was installed in {\tt /home/username/Spheral}:
+When you build \Spheral\ it installs all of its components wherever specified
+with the \verb.--prefix=. option as described previously.  For instance, if you
+installed to \verb+/home/username/Spheral+, then after you finish building
+\Spheral\ there will be a \verb+/home/username/Spheral/bin+ directory containing
+a \verb+python+ executable.  To use \Spheral\ you simply fire up this
+\verb+python+ and issue the command \verb+import Spheral+ and all of the
+components will be available in the module \verb+Spheral+.  Exactly how you run
+the executable will depend on your architecture (and whether you configured for
+parallel or serial).  Here are some example invocations assuming you wish to
+execute a simulation script \verb+example.py+:
 \begin{itemize}
 \item If you configured for a serial executable:
 \begin{verbatim}
@@ -335,29 +366,31 @@ variable to this path when you want to run \Spheral.
 
 %-------------------------------------------------------------------------------
 \section{Testing}
-\Spheral\ includes a python based automated testing system: \verb+ats+.  You
-can use this to run a set of test cases included with the distribution.
-\verb+ats+ is installed in the same \verb+bin+ directory where \verb+python+
-and \verb+python+ are installed.  In the \verb+spheral/tests+ directory there is
-a file called \verb+integration.ats+ which runs the set of automated tests we
-currently support.  You can generate a simple help/usage description for {\tt
-  ats} by executing \verb+ats -h+.  Here's an example of running the automated
-tests for a serial build assuming you downloaded the \Spheral\ source into the
-directory \verb+/home/username/Spheral+:
+\Spheral\ includes a python based automated testing system: \verb+ats+.  You can
+use this to run a set of test cases included with the distribution.  \verb+ats+
+is installed in the same \verb+bin+ directory where \verb+python+ is installed.
+In the \verb+spheral/tests+ directory there is a file called
+\verb+integration.ats+ which runs the set of automated tests we currently
+support.  You can generate a simple help/usage description for {\tt ats} by
+executing \verb+ats -h+.  As an example, suppose the \Spheral\ source is
+downloaded to the directory \verb./home/bill/Spheral. and the executables were
+installed in \verb./usr/local/projects/Spheral.:
 \begin{verbatim}
-cd /home/username/Spheral/spheral/tests
-/home/username/Spheral/bin/ats -f 'np < 2' \
-                               -e /home/username/Spheral/bin/python integration.ats
+cd /home/bill/Spheral/spheral/tests
+/usr/local/projects/Spheral/bin/ats -f 'np < 2' \
+                     -e /usr/local/projects/Spheral/bin/python integration.ats
 \end{verbatim}
 Note that we added a filter (\verb+-f 'np < 2'+) to remove any tests requiring
 more than one processor.
 
-If you built the parallel MPI enabled version of the code you would execute
+If you built the parallel MPI enabled version of the code you might execute
 \begin{verbatim}
-cd /home/username/Spheral/spheral/tests
+cd /home/bill/Spheral/spheral/tests
+/usr/local/projects/Spheral/bin/ats \
+                     -e /usr/local/projects/Spheral/bin/python integration.ats
 /home/username/Spheral/bin/ats -e /home/username/Spheral/bin/python integration.ats
 \end{verbatim}
-which will run all the tests, including the parallel cases.
+which will run all the tests including the parallel cases.
 
 %-------------------------------------------------------------------------------
 \appendix
@@ -404,18 +437,18 @@ language facility to Python.
   it requires that the \verb+gnuplot+ package already be installed on your
   machine.
 
-\item Gnu Scientific Library:
-  \url{http://www.gnu.org/software/gsl/} \label{gsl.item} \newline A collection
-  of useful scientific numerical algorithms coded in C.  This is one of the
-  packages the user is required to download separately.  Download the 1.7
-  release, which can be found at \newline
-  \url{ftp://ftp.gnu.org/gnu/gsl/gsl-1.10.tar.gz}
+%% \item Gnu Scientific Library:
+%%   \url{http://www.gnu.org/software/gsl/} \label{gsl.item} \newline A collection
+%%   of useful scientific numerical algorithms coded in C.  This is one of the
+%%   packages the user is required to download separately.  Download the 1.7
+%%   release, which can be found at \newline
+%%   \url{ftp://ftp.gnu.org/gnu/gsl/gsl-1.10.tar.gz}
 
-\item \verb+SciPy+: \url{http://www.scipy.org/} \newline A python based
-  collection of numerical algorithms.  This not actually required by \Spheral
-  (and is not included in the distribution), but if you install {\tt SciPy} in
-  the \verb+spheral/src/thirdPartyLibs+ directory and configure
-  \Spheral\ appropriately, \Spheral\ will build and install it.
+%% \item \verb+SciPy+: \url{http://www.scipy.org/} \newline A python based
+%%   collection of numerical algorithms.  This not actually required by \Spheral
+%%   (and is not included in the distribution), but if you install {\tt SciPy} in
+%%   the \verb+spheral/src/thirdPartyLibs+ directory and configure
+%%   \Spheral\ appropriately, \Spheral\ will build and install it.
 
 \item \verb+pybindgen+: \url{http://pybindgen.googlecode.com} \newline
   The code generator we use to bind/expose the C++ \Spheral\ code to python.
