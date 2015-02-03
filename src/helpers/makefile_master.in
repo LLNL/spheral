@@ -151,7 +151,7 @@ STATICPBGMODTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
-HEADERS = $(wildcard *.hh)
+HEADERS = $(wildcard $(srcdir)/*.hh)
 
 #-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
@@ -208,13 +208,15 @@ CONFIG_SHELL=@CONFIG_SHELL@
 
 all:	@ALL@
 
-cxxonly:	$(STATICLIBTARGET) install-headers
-
-install-headers:
-ifneq ($(HEADERS),)
-	@mkdir -p $(includedir)/spheral/$(PKGNAME)
-	cp -f $(HEADERS) $(includedir)/spheral/$(PKGNAME)
-endif
+install_headers:
+	@mkdir -p $(includedir)/$(PKGNAME)
+	@if test "$(HEADERS)" != "" ; then \
+		it="$(HEADERS)" ; \
+	        for i in $$it ; do \
+			$(INSTALL) $$i $(includedir)/$(PKGNAME) ; \
+	                echo "installing $$i in $(includedir)/$(PKGNAME)" ; \
+	        done \
+	fi
 
 force_build:
 

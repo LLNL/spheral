@@ -14,10 +14,9 @@ AC_PREFIX_DEFAULT("`pwd`/`uname -s`_`uname -p`")
 AC_CONFIG_AUX_DIR(m4macros)
 
 # We want the INSTALL script.
-# AC_PROG_INSTALL <-- this doesn't work.
-# FIXME: The method below is non-portable... we'll fix this sometime. :-)
 AC_SUBST(INSTALL)
-INSTALL=`pwd`/m4macros/install-sh
+#INSTALL=`pwd`/m4macros/install-sh
+INSTALL=`which install`
 
 # -------------------------------------------------
 # Setup python
