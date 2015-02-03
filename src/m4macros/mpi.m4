@@ -22,28 +22,33 @@ AC_ARG_WITH(mpi,
 [  --without-mpi ............................ turn off mpi],
 [
     AC_MSG_RESULT(yes)
-    MPIPYTHONINTERFACETARGET="fakempi.py"
     MPIENABLED="no"
     MPICC=$CC
     MPICXX=$CXX
-    CXXPKGS="$CXXPKGS PythonMPIInterfaces"
     POLYTOPEFLAGS="$POLYTOPEFLAGS CC='\$(CC)' CXX='\$(CXX)'"
+    if test $CXXONLY = "no"; then
+      MPIPYTHONINTERFACETARGET="fakempi.py"
+      CXXPKGS+=" PythonMPIInterfaces"
+    fi
 ],
 [
     AC_MSG_RESULT(no)
-    EXTRATHIRDPARTYTARGETS+=" .mpi4py-1.3.date"
-    MPIPYTHONINTERFACETARGET="mpi_mpi4py.py"
     #HDF5FLAGS="$HDF5FLAGS --enable-parallel"
-    CXXFLAGS="$CXXFLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
-    CFLAGS="$CFLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
-    CPPFLAGS="$CPPFLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
-    CXXPKGS="$CXXPKGS Distributed PythonMPIInterfaces"
-    CXXPKGLIBS="$CXXPKGLIBS Distributed"
-    PYTHONPKGS="$PYTHONPKGS Distributed"
+    CXXFLAGS+=" -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
+    CFLAGS+=" -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
+    CPPFLAGS+=" -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX"
+    CXXPKGS+=" Distributed"
+    CXXPKGLIBS+=" Distributed"
     MPICC=$CC
     MPICXX=$CXX
     MPIENABLED="yes"
     POLYTOPEFLAGS="$POLYTOPEFLAGS CC='\$(MPICC)' CXX='\$(MPICXX)' CFLAGS='\$(MPICCFLAGS)' CXXFLAGS='\$(MPICXXFLAGS)' MPI=1"
+    if test $CXXONLY = "no"; then
+      EXTRATHIRDPARTYTARGETS+=" .mpi4py-1.3.date"
+      MPIPYTHONINTERFACETARGET="mpi_mpi4py.py"
+      CXXPKGS+=" PythonMPIInterfaces"
+      PYTHONPKGS+=" Distributed"
+    fi
 
     # # On Apple we will exclude the C++ bindings.
     # if test "`uname -s`" = "Darwin"; then

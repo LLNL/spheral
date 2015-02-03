@@ -95,8 +95,7 @@ clean:
 
 distclean:
 	$(MAKE) clean
-	$(MAKE) -C thirdPartyLibs clean
-	rm -fr $(prefix)/bin $(prefix)/doc $(prefix)/include $(prefix)/lib $(prefix)/share $(prefix)/man $(prefix)/info $(prefix)/Applications $(prefix)/Python.framework $(prefix)/atsMachines
+	$(MAKE) -C @PYTHONPKGDIR@ clean
 
 spotless:
 	for pckg in $(CXXPKGS); do \
