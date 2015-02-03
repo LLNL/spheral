@@ -1451,7 +1451,6 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
 	exit 1; \
 	fi
 	rm -fr $(POLYTOPEDIR) $(TRIANGLEDIR) $(TETGENDIR)
-	ln -f -s $(prefix)/lib/PolytopeModules.$(DYLIBEXT) $(LIBDIR)/PolytopeModules.$(DYLIBEXT)
 	touch $(POLYTOPEBUILDDATE)
 
 #-------------------------------------------------------------------------------
