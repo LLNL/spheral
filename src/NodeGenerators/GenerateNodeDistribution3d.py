@@ -1414,6 +1414,28 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.H = []
         ri = rmax
         
+        resolution = [[5    ,0,0],
+                      [6    ,0,1],
+                      [12   ,0,2],
+                      [14   ,1,0],
+                      [18   ,1,1],
+                      [42   ,1,2],
+                      [50   ,2,0],
+                      [66   ,2,1],
+                      [162  ,2,2],
+                      [194  ,3,0],
+                      [258  ,3,1],
+                      [642  ,3,2],
+                      [770  ,4,0],
+                      [1026 ,4,1],
+                      [2562 ,4,2],
+                      [3074 ,5,0],
+                      [4098 ,5,1],
+                      [10242,5,2],
+                      [12290,6,0],
+                      [16386,6,1],
+                      [40962,6,2]]
+        
         while ri > rmin:
             # create the database of faces and positions
             self.positions      = []     # [index,[point]]
@@ -1423,25 +1445,43 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
-            rhoi = densityProfileMethod(ri)
-            dr = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
-            mshell = rhoi * 4.0*pi*ri*ri*dr
-            nshell = int(mshell / self.m0)
+            rhoi    = densityProfileMethod(ri)
+            dr      = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
+            mshell  = rhoi * 4.0*pi*ri*ri*dr
+            nshell  = int(mshell / self.m0)
+            nr      = 0
+            ver     = 0
+            for i in xrange(21):
+                if (resolution[i][0] > nshell):
+                    nr  = resolution[i][1]
+                    ver = resolution[i][2]
+                    break
+        
             hi = nNodePerh*(dr)
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-            
-            self.createIcoSphere(nshell)
+            if (ver<1):
+                self.createHexaSphere(nr)
+            elif (ver==1):
+                self.createTetraSphere(nr)
+            else:
+                self.createIcoSphere(nr)
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
             print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
             for n in xrange(len(self.positions)):
-
-                self.x.append(ri*self.positions[n][0])
-                self.y.append(ri*self.positions[n][1])
-                self.z.append(ri*self.positions[n][2])
-                self.m.append(mi)
-                self.H.append(Hi)
+                x       = ri*self.positions[n][0]
+                y       = ri*self.positions[n][1]
+                z       = ri*self.positions[n][2]
+                theta   = acos(z/sqrt(x*x+y*y+z*z))
+                phi     = atan2(y,x)
+                
+                if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
+                    self.x.append(ri*self.positions[n][0])
+                    self.y.append(ri*self.positions[n][1])
+                    self.z.append(ri*self.positions[n][2])
+                    self.m.append(mi)
+                    self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
                 
@@ -1500,8 +1540,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         return result
 
     #---------------------------------------------------------------------------
-    # Numerically integrate the given density profile to determine the total
-    # enclosed mass.
+    # Mechanics for creating and refining the icosahedron
     #---------------------------------------------------------------------------
     def addVertex(self,point):
         length = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2])
@@ -1591,7 +1630,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.faces.append([ 9, 8, 1])
         
         # now refine triangles until you're done
-        while (n<np):
+        for i in xrange(np):
             faces2 = []
             for j in xrange(len(self.faces)):
                 x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
@@ -1606,4 +1645,78 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.faces = faces2
             n = len(self.positions)
 
+    def createTetraSphere(self,np):
+        n = 0
+        t = sqrt(2.0)/2.0
+        # create the 6 vertices of the double-tetrahedron
+        self.addVertex([ 0, 0, 1])
+        self.addVertex([ t, t, 0])
+        self.addVertex([ t,-t, 0])
+        self.addVertex([-t,-t, 0])
+        self.addVertex([-t, t, 0])
+        self.addVertex([ 0, 0,-1])
+        
+        # create the 8 initial faces
+        # 4 faces around point 0
+        self.faces.append([ 0, 1, 2])
+        self.faces.append([ 0, 2, 3])
+        self.faces.append([ 0, 3, 4])
+        self.faces.append([ 0, 4, 1])
+        # 4 faces around point 5
+        self.faces.append([ 5, 2, 1])
+        self.faces.append([ 5, 3, 2])
+        self.faces.append([ 5, 4, 3])
+        self.faces.append([ 5, 1, 4])
+        
+        # now refine triangles until you're done
+        for i in xrange(np):
+            faces2 = []
+            for j in xrange(len(self.faces)):
+                x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
+                a = self.getMiddlePoint(x,y)
+                b = self.getMiddlePoint(y,z)
+                c = self.getMiddlePoint(z,x)
+                
+                faces2.append([x,a,c])
+                faces2.append([y,b,a])
+                faces2.append([z,c,b])
+                faces2.append([a,b,c])
+            self.faces = faces2
+            n = len(self.positions)
+
+    def createHexaSphere(self,np):
+        n = 0
+        t = sqrt(3.0)/2.0
+        # create the 5 vertices of the hexahedron
+        self.addVertex([ 0, 0, 1])
+        self.addVertex([ 0, 1, 0])
+        self.addVertex([ t,-0.5,0])
+        self.addVertex([-t,-0.5,0])
+        self.addVertex([ 0, 0,-1])
+        
+        # create the 6 initial faces
+        # 3 faces around point 0
+        self.faces.append([ 0, 1, 2])
+        self.faces.append([ 0, 2, 3])
+        self.faces.append([ 0, 3, 1])
+        # 3 faces around point 4
+        self.faces.append([ 4, 2, 1])
+        self.faces.append([ 4, 3, 2])
+        self.faces.append([ 4, 1, 3])
+        
+        # now refine triangles until you're done
+        for i in xrange(np):
+            faces2 = []
+            for j in xrange(len(self.faces)):
+                x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
+                a = self.getMiddlePoint(x,y)
+                b = self.getMiddlePoint(y,z)
+                c = self.getMiddlePoint(z,x)
+                
+                faces2.append([x,a,c])
+                faces2.append([y,b,a])
+                faces2.append([z,c,b])
+                faces2.append([a,b,c])
+            self.faces = faces2
+            n = len(self.positions)
 
