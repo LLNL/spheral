@@ -26,7 +26,7 @@ commandLine(KernelConstructor = BSplineKernel,
             x0 = 0.0,
             x1 = 1.0,
             xwall = 0.0,
-            nPerh = 1.25,
+            nPerh = 2.01,
             NeighborType = NestedGridNeighbor,
 
             vr0 = -1.0, 
@@ -37,8 +37,8 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CSPH = False,
-            #Qconstructor = MonaghanGingoldViscosity,
-            Qconstructor = TensorMonaghanGingoldViscosity,
+            Qconstructor = MonaghanGingoldViscosity,
+            #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nhQ = 5.0,
             nhL = 10.0,
@@ -441,6 +441,9 @@ elif graphics == "gnu":
     Aplot.refresh()
     
     dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
+    viscPlot = plotFieldList(hydro.maxViscousPressure(),
+                             winTitle = "max(rho^2 Piij)",
+                             colorNodeLists = False)
 
     if boolReduceViscosity:
         alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
@@ -516,16 +519,24 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 
+
+
 if serialDump:
     serialData = []
     i,j = 0,0
     
     f = open(dataDir + "/noh-planar-1d.ascii",'w')
-    f.write("i x m rho u v rhoans uans vans\n")
+    f.write("i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],nodes1.mass()[j],
-                                                               nodes1.massDensity()[j],nodes1.specificThermalEnergy()[j],
-                                                               nodes1.velocity()[j][0],rhoans[j],uans[j],vans[j]))
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
+                                                                   nodes1.mass()[j],
+                                                                   nodes1.massDensity()[j],
+                                                                   nodes1.specificThermalEnergy()[j],
+                                                                   nodes1.velocity()[j][0],
+                                                                   rhoans[j],
+                                                                   uans[j],
+                                                                   vans[j],
+                                                                   hydro.maxViscousPressure()[0][j]))
     f.close()
 
 #------------------------------------------------------------------------------
