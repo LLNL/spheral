@@ -54,7 +54,8 @@ commandLine(
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
-    nh = 5.0,
+    nhQ = 5.0,
+    nhL = 10.0,
     aMin = 0.1,
     aMax = 2.0,
     linearConsistent = False,
@@ -100,6 +101,8 @@ commandLine(
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
     smooth = None,
+            
+    serialDump = False #whether to dump a serial ascii file at the end for viz
     )
 
 # Decide on our hydro algorithm.
@@ -144,6 +147,12 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "greshovortex-xy-%ix%i" % (nx1, ny1)
+
+#-------------------------------------------------------------------------------
+# CSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CSPH:
+    Qconstructor = CSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -332,7 +341,7 @@ packages = [hydro]
 
 if boolReduceViscosity:
     #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
 
@@ -467,3 +476,20 @@ if graphics:
     yans = [0.0, 0.5, 1.0, 0.0, 0.0]
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
     p.replot(ansData)
+
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/Gresho-CSPH-" + str(CSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
+    f.write("i x m rho u v visc\n")
+    for j in xrange(nodes.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes.positions()[j].magnitude(),
+                                                                   nodes.mass()[j],
+                                                                   nodes.massDensity()[j],
+                                                                   nodes.specificThermalEnergy()[j],
+                                                                   abs(nodes.velocity()[j].magnitude()),
+                                                                   hydro.maxViscousPressure()[0][j]))
+    f.close()
+
