@@ -103,7 +103,8 @@ private:
   std::vector<Facet> mFacets;
   std::vector<Vector> mVertexUnitNorms;
   std::vector<std::vector<unsigned> > mVertexFacetConnectivity, mFacetFacetConnectivity;
-  Vector mXmin, mXmax;
+  Vector mXmin, mXmax, mCentroid;
+  double mRinterior2;
   bool mConvex;
 
   // Set the bounding box.

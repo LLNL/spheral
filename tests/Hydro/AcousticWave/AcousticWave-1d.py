@@ -9,6 +9,7 @@ from Spheral1d import *
 from SpheralTestUtilities import *
 import mpi
 import numpy as np
+#import matplotlib.pyplot as plt
 
 from CSPH_mod_package import *
 
@@ -60,7 +61,7 @@ commandLine(nx1 = 100,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
-            filter = 0.01,
+            filter = 0.0,
 
             SVPH = False,
             CSPH = False,
@@ -82,6 +83,7 @@ commandLine(nx1 = 100,
             compatibleEnergy = True,
             gradhCorrection = True,
             linearConsistent = False,
+            ComputeL1Norm = False,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -162,23 +164,19 @@ cs = sqrt(cs2)
 pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
+mass = nodes1.mass()
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
     xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
     xi1 = newtonRaphsonFindRoot(func1, 0.0, 1.0, 1.0e-15, 1.0e-15)
-    xi = x0 + (x1 - x0)*0.5*(xi0 + xi1)
+    rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
+    rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
+    xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
     pos[i].x = xi
-    vel[i].x = 0.5*(A*cs*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)) +
-                    A*cs*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
-    rho[i] = rho1*0.5*((1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0))) +
-                       (1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0))))
-
-##    # Set the specific thermal energy.
-##    P1 = cs2*rhoi
-##    nodes1.specificThermalEnergy()[i] = P1/((gamma - 1.0)*rhoi)
-
-#nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
+    vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
+    rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
+    mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -303,6 +301,7 @@ xglobal = mpi.reduce(xlocal, mpi.SUM)
 dx = (x1 - x0)/nx1
 h1 = 1.0/(nPerh*dx)
 answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, twopi*kfreq, h1)
+#print "\n\nPERIOD=",1.0/(kfreq*cs)
 
 ### Compute the simulated specific entropy.
 ##rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
@@ -373,6 +372,22 @@ if graphics == "gnu":
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
+    if ComputeL1Norm:
+       xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
+       #rho = hydro.massDensity() 
+       fieldList = state.scalarFields(HydroFieldNames.massDensity)
+       #rho = field.internalValues()
+       for field in fieldList:
+          rho = [eval("%s" % "y") for y in field.internalValues()]
+          #plt.figure()
+          #plt.plot(xans,rhoans)
+          #plt.scatter(xans,rho)
+          #plt.xlim([np.min(xans),np.max(xans)])
+          #plt.ylim([np.min(rhoans),np.max(rhoans)])
+          #plt.show()
+          diff=np.array(rho)-np.array(rhoans)
+          L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
+          print "\n\nL1Norm=",L1Norm, "\n\n"
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror

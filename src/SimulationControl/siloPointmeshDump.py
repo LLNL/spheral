@@ -17,7 +17,8 @@ def siloPointmeshDump(baseName,
                       procDirBaseName = "proc-%06i",
                       label = "Spheral++ point mesh",
                       time = 0.0,
-                      cycle = 0):
+                      cycle = 0,
+                      dumpGhosts = False):
 
     # You have to give us something!
     if len(fields) + len(fieldLists) == 0:
@@ -66,8 +67,6 @@ def siloPointmeshDump(baseName,
             scalarFields.append(f)
         elif isinstance(f, eval("VectorField%id" % ndim)):
             vectorFields.append(f)
-        elif isinstance(f, eval("VectorField%id" % ndim)):
-            vectorFields.append(f)
         elif isinstance(f, eval("TensorField%id" % ndim)):
             tensorFields.append(f)
         elif isinstance(f, eval("SymTensorField%id" % ndim)):
@@ -82,7 +81,11 @@ def siloPointmeshDump(baseName,
         det = eval("ScalarField%id('%s_determinant', n)" % (ndim, f.name))
         mineigen = eval("ScalarField%id('%s_eigen_min', n)" % (ndim, f.name))
         maxeigen = eval("ScalarField%id('%s_eigen_max', n)" % (ndim, f.name))
-        for i in xrange(n.numInternalNodes):
+        if dumpGhosts:
+            nvals = n.numNodes
+        else:
+            nvals = n.numInternalNodes
+        for i in xrange(nvals):
             eigen = f[i].eigenValues()
             tr[i] = f[i].Trace()
             det[i] = f[i].Determinant()
@@ -91,31 +94,31 @@ def siloPointmeshDump(baseName,
         scalarFields += [tr, det, mineigen, maxeigen]
 
     # Extract all the fields we're going to write.
-    fieldwad = extractFieldComponents(nodeLists, time, cycle, 
+    fieldwad = extractFieldComponents(nodeLists, time, cycle, dumpGhosts,
                                       intFields, scalarFields, vectorFields, tensorFields, symTensorFields)
 
     # If we're domain 0 we write the master file.
     if mpi.rank == 0:
-        writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists, label, time, cycle, fieldwad)
+        writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists, label, time, cycle, dumpGhosts, fieldwad)
 
     # Each domain writes it's domain file.
-    writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists, label, time, cycle, fieldwad)
+    writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists, label, time, cycle, dumpGhosts, fieldwad)
 
 #-------------------------------------------------------------------------------
 # Extract the fields we're going to write.  This requires exploding vector and
 # tensor fields into their components.
 #-------------------------------------------------------------------------------
-def extractFieldComponents(nodeLists, time, cycle,
+def extractFieldComponents(nodeLists, time, cycle, dumpGhosts,
                            intFields, scalarFields, vectorFields, tensorFields, symTensorFields):
-    result = extractFields(nodeLists, time, cycle, intFields,
+    result = extractFields(nodeLists, time, cycle, dumpGhosts, intFields, 
                            metaDataIntField, extractIntField, dummyIntField)
-    result += extractFields(nodeLists, time, cycle, scalarFields,
+    result += extractFields(nodeLists, time, cycle, dumpGhosts, scalarFields, 
                            metaDataScalarField, extractScalarField, dummyScalarField)
-    result += extractFields(nodeLists, time, cycle, vectorFields,
+    result += extractFields(nodeLists, time, cycle, dumpGhosts, vectorFields, 
                             metaDataVectorField, extractVectorField, dummyVectorField)
-    result += extractFields(nodeLists, time, cycle, tensorFields,
+    result += extractFields(nodeLists, time, cycle, dumpGhosts, tensorFields,
                             metaDataTensorField, extractTensorField, dummyTensorField)
-    result += extractFields(nodeLists, time, cycle, symTensorFields,
+    result += extractFields(nodeLists, time, cycle, dumpGhosts, symTensorFields,
                             metaDataTensorField, extractTensorField, dummyTensorField)
     return result
 
@@ -123,7 +126,7 @@ def extractFieldComponents(nodeLists, time, cycle,
 # Write the master file.
 #-------------------------------------------------------------------------------
 def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists,
-                        label, time, cycle, fieldwad):
+                        label, time, cycle, dumpGhosts, fieldwad):
 
     nullOpts = silo.DBoptlist()
 
@@ -196,7 +199,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 # Write the domain file.
 #-------------------------------------------------------------------------------
 def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeLists,
-                        label, time, cycle, fieldwad):
+                        label, time, cycle, dumpGhosts, fieldwad):
 
     # Create the file.
     fileName = os.path.join(baseDirectory, procDirBaseName % mpi.rank, baseName + ".silo")
@@ -205,10 +208,16 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     nullOpts = silo.DBoptlist()
 
     # Read the per material info.
-    ntot = sum([n.numInternalNodes for n in nodeLists])
+    if dumpGhosts:
+        ntot = sum([n.numNodes for n in nodeLists])
+    else:
+        ntot = sum([n.numInternalNodes for n in nodeLists])
     coords = vector_of_vector_of_double(ndim)
     for nodes in nodeLists:
-        pos = nodes.positions().internalValues()
+        if dumpGhosts:
+            pos = nodes.positions().allValues()
+        else:
+            pos = nodes.positions().internalValues()
         n = len(pos)
         for j in xrange(ndim):
             for i in xrange(n):
@@ -230,7 +239,10 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
     matlist = vector_of_int()
     matnames = vector_of_string()
     for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
-        matlist += vector_of_int(nodeList.numInternalNodes, imat)
+        if dumpGhosts:
+            matlist += vector_of_int(nodeList.numNodes, imat)
+        else:
+            matlist += vector_of_int(nodeList.numInternalNodes, imat)
         matnames.append(nodeList.name)
     assert len(matlist) == ntot
     assert len(matnames) == len(nodeLists)
@@ -264,7 +276,7 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
 #-------------------------------------------------------------------------------
 # Generic master method to extract full sets of field values.
 #-------------------------------------------------------------------------------
-def extractFields(nodeLists, time, cycle, fields,
+def extractFields(nodeLists, time, cycle, dumpGhosts, fields,
                   metaDataMethod,
                   extractMethod,
                   dudMethod):
@@ -273,7 +285,10 @@ def extractFields(nodeLists, time, cycle, fields,
         dim = dimension(fields[0])
 
         # Figure out how many values we should have for each field.
-        nvals = sum([nodes.numInternalNodes for nodes in nodeLists])
+        if dumpGhosts:
+            nvals = sum([nodes.numNodes for nodes in nodeLists])
+        else:
+            nvals = sum([nodes.numInternalNodes for nodes in nodeLists])
 
         # Group the fields by name (across all NodeLists).
         fieldsByName = {}
@@ -296,9 +311,15 @@ def extractFields(nodeLists, time, cycle, fields,
             vals = []
             for nodes in nodeLists:
                 if nodes.name in subfields:
-                    vals = extractMethod(name, subfields[nodes.name].internalValues(), vals, dim)
+                    if dumpGhosts:
+                        vals = extractMethod(name, subfields[nodes.name].allValues(), vals, dim)
+                    else:
+                        vals = extractMethod(name, subfields[nodes.name].internalValues(), vals, dim)
                 else:
-                    vals = dudMethod(name, nodes.numInternalNodes, vals, dim)
+                    if dumpGhosts:
+                        vals = dudMethod(name, nodes.numNodes, vals, dim)
+                    else:
+                        vals = dudMethod(name, nodes.numInternalNodes, vals, dim)
             for thpt in vals:
                 assert len(thpt) == 2
                 assert len(thpt[1]) == nvals

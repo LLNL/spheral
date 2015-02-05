@@ -735,7 +735,8 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
                  rmax = 1.0,
                  thetaMin = 0.0,
                  thetaMax = pi/2.0,
-                 nNodePerh = 2.01):
+                 nNodePerh = 2.01,
+                 offset = [0,0]):
         
         assert n > 0
         assert rmin < rmax
@@ -750,6 +751,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         self.thetaMin = thetaMin
         self.thetaMax = thetaMax
         self.nNodePerh = nNodePerh
+        self.offset = offset
         
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
@@ -766,14 +768,14 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
             (self.totalMass, rmin, rmax, thetaMin, thetaMax)
 
         # Now set the nominal mass per node.
-        self.m0 = self.totalMass/self.n
+        self.m0 = self.totalMass/(self.n*self.n*pi)
         assert self.m0 > 0.0
         print "Nominal mass per node of %g." % self.m0
 
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.m, self.H = \
             self.constantDThetaCylindricalDistribution(self.densityProfileMethod,
-                                                       self.massProfileMethod,
+                                                       self.m0,
                                                        rmin, rmax,
                                                        thetaMin, thetaMax,
                                                        nNodePerh)
@@ -793,6 +795,11 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
+        
+        for i in xrange(len(self.m)):
+            self.x[i] = self.x[i] + self.offset[0]
+            self.y[i] = self.y[i] + self.offset[1]
+        
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.m, self.H)
         return
@@ -817,7 +824,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.densityProfileMethod(self.localPosition(i).magnitude())
+        return self.densityProfileMethod(sqrt(pow(self.localPosition(i)[0]-self.offset[0],2.0)+pow(self.localPosition(i)[1]-self.offset[1],2.0)))
     
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
