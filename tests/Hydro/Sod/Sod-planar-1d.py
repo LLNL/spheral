@@ -424,10 +424,10 @@ if graphics in ("gnu", "matplot"):
                              winTitle = "max(rho^2 Piij)",
                              colorNodeLists = False)
     
-    if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
-                                  winTitle = "rvAlpha",
-                                  colorNodeLists = False)
+    #if boolReduceViscosity:
+    #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
+    #                              winTitle = "rvAlpha",
+    #                              colorNodeLists = False)
 
 
 
@@ -491,7 +491,7 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/sod-planar-1d.ascii",'w')
+    f = open(dataDir + "/sod-planar-1d-CSPH-" + str(CSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
     f.write("i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
