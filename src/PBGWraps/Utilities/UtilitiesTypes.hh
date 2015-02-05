@@ -18,7 +18,7 @@
 #include "Utilities/segmentIntersectEdges.hh"
 #include "Utilities/integrateThroughMeshAlongSegment.hh"
 #include "Utilities/numberDensity.hh"
-#include "Utilities/writeRectilinearMesh.hh"
+//#include "Utilities/writeRectilinearMesh.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/KeyTraits.hh"
 #include "Utilities/pointInPolygon.hh"

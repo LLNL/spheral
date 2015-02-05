@@ -9,10 +9,10 @@ class Utilities:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Utilities/UtilitiesTypes.hh"')
+        mod.add_include('"%s/UtilitiesTypes.hh"' % srcdir)
         self.Spheral = mod.add_cpp_namespace("Spheral")
         self.NodeSpace = self.Spheral.add_cpp_namespace("NodeSpace")
 
@@ -196,37 +196,37 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                                                   param("double", "tol", default_value="1.0e-10")],
                              docstring = "Test if a line segment intersects a planar section.")
 
-        # Rectlinear mesh stuff.
-        Spheral.add_function("writeRectilinearMesh", None, [constrefparam("std::string", "fileName"),
-                                                            param("bool", "binaryFile"),
-                                                            constrefparam("vector_of_int", "dimensions"),
-                                                            constrefparam("vector_of_vector_of_double", "coords"),
-                                                            constrefparam("vector_of_string", "scalarNames"),
-                                                            constrefparam("vector_of_string", "vectorNames"),
-                                                            constrefparam("vector_of_string", "tensorNames"),
-                                                            constrefparam("vector_of_string", "symTensorNames"),
-                                                            constrefparam("vector_of_vector_of_double", "sampledScalars"),
-                                                            constrefparam("vector_of_vector_of_Vector2d", "sampledVectors"),
-                                                            constrefparam("vector_of_vector_of_Tensor2d", "sampledTensors"),
-                                                            constrefparam("vector_of_vector_of_SymTensor2d", "sampledSymTensors")],
-                             template_parameters = ["Dim<2>"],
-                             custom_name = "writeRectilinearMesh2d",
-                             docstring="Write out an XY VISIT rectilinear mesh file.")
-        Spheral.add_function("writeRectilinearMesh", None, [constrefparam("std::string", "fileName"),
-                                                            param("bool", "binaryFile"),
-                                                            constrefparam("vector_of_int", "dimensions"),
-                                                            constrefparam("vector_of_vector_of_double", "coords"),
-                                                            constrefparam("vector_of_string", "scalarNames"),
-                                                            constrefparam("vector_of_string", "vectorNames"),
-                                                            constrefparam("vector_of_string", "tensorNames"),
-                                                            constrefparam("vector_of_string", "symTensorNames"),
-                                                            constrefparam("vector_of_vector_of_double", "sampledScalars"),
-                                                            constrefparam("vector_of_vector_of_Vector3d", "sampledVectors"),
-                                                            constrefparam("vector_of_vector_of_Tensor3d", "sampledTensors"),
-                                                            constrefparam("vector_of_vector_of_SymTensor3d", "sampledSymTensors")],
-                             template_parameters = ["Dim<3>"],
-                             custom_name = "writeRectilinearMesh3d",
-                             docstring="Write out an XYZ VISIT rectilinear mesh file.")
+        # # Rectlinear mesh stuff.
+        # Spheral.add_function("writeRectilinearMesh", None, [constrefparam("std::string", "fileName"),
+        #                                                     param("bool", "binaryFile"),
+        #                                                     constrefparam("vector_of_int", "dimensions"),
+        #                                                     constrefparam("vector_of_vector_of_double", "coords"),
+        #                                                     constrefparam("vector_of_string", "scalarNames"),
+        #                                                     constrefparam("vector_of_string", "vectorNames"),
+        #                                                     constrefparam("vector_of_string", "tensorNames"),
+        #                                                     constrefparam("vector_of_string", "symTensorNames"),
+        #                                                     constrefparam("vector_of_vector_of_double", "sampledScalars"),
+        #                                                     constrefparam("vector_of_vector_of_Vector2d", "sampledVectors"),
+        #                                                     constrefparam("vector_of_vector_of_Tensor2d", "sampledTensors"),
+        #                                                     constrefparam("vector_of_vector_of_SymTensor2d", "sampledSymTensors")],
+        #                      template_parameters = ["Dim<2>"],
+        #                      custom_name = "writeRectilinearMesh2d",
+        #                      docstring="Write out an XY VISIT rectilinear mesh file.")
+        # Spheral.add_function("writeRectilinearMesh", None, [constrefparam("std::string", "fileName"),
+        #                                                     param("bool", "binaryFile"),
+        #                                                     constrefparam("vector_of_int", "dimensions"),
+        #                                                     constrefparam("vector_of_vector_of_double", "coords"),
+        #                                                     constrefparam("vector_of_string", "scalarNames"),
+        #                                                     constrefparam("vector_of_string", "vectorNames"),
+        #                                                     constrefparam("vector_of_string", "tensorNames"),
+        #                                                     constrefparam("vector_of_string", "symTensorNames"),
+        #                                                     constrefparam("vector_of_vector_of_double", "sampledScalars"),
+        #                                                     constrefparam("vector_of_vector_of_Vector3d", "sampledVectors"),
+        #                                                     constrefparam("vector_of_vector_of_Tensor3d", "sampledTensors"),
+        #                                                     constrefparam("vector_of_vector_of_SymTensor3d", "sampledSymTensors")],
+        #                      template_parameters = ["Dim<3>"],
+        #                      custom_name = "writeRectilinearMesh3d",
+        #                      docstring="Write out an XYZ VISIT rectilinear mesh file.")
                                                             
 
         # Polygon/Polyhedron containment.

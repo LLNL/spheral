@@ -1,14 +1,9 @@
 from pybindgen import *
 
-import sys
-sys.path.append("..")
 from PBGutils import *
 from ref_return_value import *
 
-sys.path.append("../CXXTypes")
 from CXXTypesModule import generateStdVectorBindings
-
-sys.path.append("../Physics")
 from PhysicsModule import generatePhysicsVirtualBindings
 
 #-------------------------------------------------------------------------------
@@ -19,10 +14,10 @@ class ArtificialConduction:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"ArtificialConduction/ArtificialConductionTypes.hh"')
+        mod.add_include('"%s/ArtificialConductionTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

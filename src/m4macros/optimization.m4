@@ -114,7 +114,7 @@ echo "DISTRIBUTEDOPT is $DISTRIBUTEDOPT"
 echo "BPLOPT is $BPLOPT"
 ], [
 AC_MSG_RESULT(no)
-OPT="-O"
+OPT="-O3"
 PYFFLE_OPT="-g"
 DISTRIBUTEDOPT=$OPT
 echo "Defaulting optimization to $OPT"
