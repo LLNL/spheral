@@ -22,7 +22,7 @@ commandLine(nx1 = 400,
 
             smoothDiscontinuity = False,
 
-            nPerh = 2.01,
+            nPerh = 1.25,
 
             gammaGas = 5.0/3.0,
             mu = 1.0,
