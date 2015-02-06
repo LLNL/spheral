@@ -1,7 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.append("..")
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -12,10 +10,10 @@ class Material:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Material/MaterialTypes.hh"')
+        mod.add_include('"%s/MaterialTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

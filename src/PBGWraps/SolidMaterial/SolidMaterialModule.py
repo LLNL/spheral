@@ -12,10 +12,10 @@ class SolidMaterial:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"SolidMaterial/SolidMaterialTypes.hh"')
+        mod.add_include('"%s/SolidMaterialTypes.hh"' % srcdir)
 
         # Namespace.
         SolidSpheral = mod.add_cpp_namespace("Spheral")

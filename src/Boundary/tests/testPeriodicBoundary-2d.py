@@ -50,6 +50,7 @@ commandLine(nx1 = 20,
             compatibleEnergy = True,
             gradhCorrection = True,
             linearConsistent = False,
+            domainIndependent = False,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -136,6 +137,7 @@ integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 
 #-------------------------------------------------------------------------------

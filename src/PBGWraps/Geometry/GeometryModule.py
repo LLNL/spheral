@@ -1,7 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.append("CXXTypes")
 from PBGutils import *
 from CXXTypesModule import generateStdVectorBindings
 
@@ -15,10 +13,10 @@ class Geometry:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Geometry/GeometryTypes.hh"')
+        mod.add_include('"%s/GeometryTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

@@ -1,8 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.append("..")
-sys.path.append("../Material")
 from PBGutils import *
 from MaterialModule import generateEquationOfStateVirtualBindings
 
@@ -14,10 +11,10 @@ class Helmholtz:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Helmholtz/HelmholtzTypes.hh"')
+        mod.add_include('"%s/HelmholtzTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

@@ -149,8 +149,8 @@ case $COMPILERS in
          CC=gcc
          CXX=g++
          FORT=gfortran
-         MPICC=mpicc # $SRCDIR/helpers/mpicc
-         MPICXX=mpic++ # $SRCDIR/helpers/mpic++
+         MPICC=mpicc
+         MPICXX=mpic++
          CMAKECC=$CC
          CMAKECXX=$CXX
          GCCXMLCC=$CMAKECC
@@ -193,20 +193,6 @@ case $COMPILERS in
       PARMETISCC=$MPICC
       ;;
 
-   emsolve)
-      CC=icc
-      CXX=icpc
-      MPICC=$SRCDIR/helpers/mpiicc.emsolve
-      MPICXX=$SRCDIR/helpers/mpiicpc.emsolve
-      PYTHONCC=icc
-      PYTHONCXX=icpc
-      GCCXMLCC=gcc-3.2.1
-      GCCXMLCXX=g++-3.2.1
-      CMAKECC=gcc-3.2.1
-      CMAKECXX=g++-3.2.1
-      PARMETISCC=$MPICC
-      ;;
-
    *)
       CC=gcc
       CXX=g++
@@ -235,8 +221,8 @@ fi
 
 ## On 64 bit Darwin we have to diddle the python configure 
 #if test $OSNAME = "Darwin"; then
-#   PYTHONCONFFLAGS="--enable-framework=$SPHERALDIR DESTDIR=$SPHERALDIR"
-#   #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$SPHERALDIR --enable-universalsdk" # --disable-toolbox-glue"
+#   PYTHONCONFFLAGS="--enable-framework=$prefix DESTDIR=$prefix"
+#   #PYTHONCONFFLAGS="'MACOSX_DEPLOYMENT_TARGET=10.5' --enable-framework=$prefix --enable-universalsdk" # --disable-toolbox-glue"
 #fi
 
 # =======================================================================
@@ -522,10 +508,10 @@ if test "$OSNAME" = "AIX"; then
 elif test "$OSNAME" = "Linux"; then # -a "$CXXCOMPILERTYPE" != "INTEL"; then
   # On the gnu linker we can throw the rpath flag to avoid having to set the LD_LIBRARY_PATH
   # variable.
-  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath=$TOPLIBDIR ${LDPASSTHROUGH}-rpath=$LIBDIR"
+  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath=\$(libdir)"
 
 elif test "$OSNAME" = "Darwin"; then
-  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath $TOPLIBDIR ${LDPASSTHROUGH}-rpath $LIBDIR"
+  LDRPATH="$LDRPATH ${LDPASSTHROUGH}-rpath \$(libdir)"
   LDINSTALLNAME="-install_name @rpath/\${@} -o"
 
 #   # On Mac OS X Darwin, you install libraries with an "dylib_install_name" flag to avoid
@@ -628,7 +614,7 @@ fi
 # On Darwin we build with frameworks, which means passing more flags to the
 # jam build.
 # if test "$OSNAME" = "Darwin"; then
-#   JAMTOOLSETOPTS="$JAMTOOLSETOPTS : : $SPHERALDIR/Python.framework "
+#   JAMTOOLSETOPTS="$JAMTOOLSETOPTS : : $prefix/Python.framework "
 # fi
 
 # Shared library extensions.

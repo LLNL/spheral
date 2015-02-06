@@ -39,7 +39,7 @@ AC_ARG_WITH(bpl,
       PYTHONPKGS="$PYTHONPKGS Geometry DataOutput NodeList NodeIterators Field FieldOperations Kernel SplineKernel Neighbor Material FileIO DataBase Boundary ArtificialViscosity Physics Hydro ExternalForce Gravity Integrator CXXTypes Utilities Python NodeGenerators"
     fi
     PYOPT="$PYOPT -w"
-    BPLINCS="-DPYSTE -I\$(BOOSTROOT) -I\$(SPHERALDIR)/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
+    BPLINCS="-DPYSTE -I\$(BOOSTROOT) -I\$prefix/include/python\$(PYTHONVERSION) \$(patsubst %, -I\$(SRCTOP)/%, \$(CXXPKGS))"
     MODULELINK="-L\$(LIBDIR) -lboost_python \$(PKGLIBS)"
     if test "`uname -s`" = "AIX"; then
        MODULELINK="$MODULELINK -e init\$(PKGNAME)"
@@ -78,7 +78,7 @@ AC_ARG_WITH(boostroot,
   ],
   [
     AC_MSG_RESULT(none)
-    BOOSTROOT="$SPHERALDIR/include/boost"
+    BOOSTROOT="\$(prefix)/include/boost"
   ]
 )
 
@@ -91,7 +91,7 @@ AC_ARG_WITH(pyste,
   ],
   [
     AC_MSG_RESULT(none)
-    PYSTEPATH=$SRCDIR/BPLWraps/Pyste
+    PYSTEPATH=$(SPHERALTOP)/BPLWraps/Pyste
   ]
 )
 

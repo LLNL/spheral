@@ -8,20 +8,26 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(Physics/Physics.hh)
 
+AC_PREFIX_DEFAULT("`pwd`/`uname -s`_`uname -p`")
+
 # All mcaro files are stored in macros/
 AC_CONFIG_AUX_DIR(m4macros)
 
 # We want the INSTALL script.
-# AC_PROG_INSTALL <-- this doesn't work.
-# FIXME: The method below is non-portable... we'll fix this sometime. :-)
 AC_SUBST(INSTALL)
-INSTALL=`pwd`/m4macros/install-sh
+#INSTALL=`pwd`/m4macros/install-sh
+INSTALL=`which install`
 
 # -------------------------------------------------
 # Setup python
 # macro definitions are in m4macros/python.m4
 # -------------------------------------------------
 AC_PROG_PYTHON
+
+# -------------------------------------------------
+# setup python binding (m4macros/pythonbinding.m4)
+# -------------------------------------------------
+SETUP_PYTHONBINDING
 
 # -------------------------------------------------
 # Setup the Spheral Environment 
@@ -34,11 +40,6 @@ SETUP_SPHERAL_ENV
 # (m4macros/distributedmake.m4)
 # -------------------------------------------------
 SETUP_DISTRIBUTEDMAKE
-
-# -------------------------------------------------
-# setup the mympKCC script (m4macros/kcc.m4)
-# -------------------------------------------------
-# SETUP_KCC
 
 # -------------------------------------------------
 # setup geommem (m4macros/geommem.m4)
@@ -100,11 +101,6 @@ SETUP_FRACTALGRAVITY
 SETUP_PETSC
 
 # -------------------------------------------------
-# setup python binding (m4macros/pythonbinding.m4)
-# -------------------------------------------------
-SETUP_PYTHONBINDING
-
-# -------------------------------------------------
 # setup matplotlib (m4macros/matplotlib.m4)
 # -------------------------------------------------
 SETUP_MATPLOTLIB
@@ -130,9 +126,42 @@ SETUP_ANEOS
 SETUP_HELMHOLTZ
 
 # -----------------------------------------------
-# Output the makefile
+# Output the processed AC files
 # -----------------------------------------------
 AC_OUTPUT(helpers/makefile_master \
           makefile \
+          thirdPartyLibs/makefile \
+          Geometry/makefile \
+          NodeList/makefile \
+          Field/makefile \
+          FieldOperations/makefile \
+          Kernel/makefile \
+          Material/makefile \
+          Neighbor/makefile \
+          DataBase/makefile \
+          Boundary/makefile \
+          Distributed/makefile \
+          Physics/makefile \
+          ArtificialViscosity/makefile \
+          Hydro/makefile \
+          ExternalForce/makefile \
+          Gravity/makefile \
+          Integrator/makefile \
+          FileIO/makefile \
+          DataOutput/makefile \
+          Utilities/makefile \
+          NodeGenerators/makefile \
+          SimulationControl/makefile \
+          SPH/makefile \
+          CSPH/makefile \
+          SVPH/makefile \
+          TaylorSPH/makefile \
+          Mesh/makefile \
+          Damage/makefile \
+          SolidMaterial/makefile \
+          SolidSPH/makefile \
+          Strength/makefile \
+          ArtificialConduction/makefile \
+          PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
           PBGWraps/SpheralModulesBindings.py)

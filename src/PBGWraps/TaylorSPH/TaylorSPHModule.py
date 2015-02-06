@@ -1,10 +1,8 @@
-import sys
 from pybindgen import *
 
 from PBGutils import *
 from ref_return_value import *
 
-sys.path.append("../Physics")
 from PhysicsModule import generatePhysicsVirtualBindings
 
 #-------------------------------------------------------------------------------
@@ -15,10 +13,10 @@ class TaylorSPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"TaylorSPH/TaylorSPHTypes.hh"')
+        mod.add_include('"%s/TaylorSPHTypes.hh"' % srcdir)
     
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")

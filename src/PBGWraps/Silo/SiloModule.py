@@ -4,8 +4,6 @@ from PBGutils import *
 from enumUtilities import *
 from ref_return_value import *
 
-import sys
-sys.path.append("../CXXTypes")
 from CXXTypesModule import generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
@@ -16,10 +14,10 @@ class Silo:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Silo/SiloTypes.hh"')
+        mod.add_include('"%s/SiloTypes.hh"' % srcdir)
     
         # Namespace
         self.space = mod.add_cpp_namespace("silo")
@@ -28,7 +26,7 @@ class Silo:
         self.DBfile = addObject(self.space, "DBfile", allow_subclassing=True)
         self.DBoptlist = addObject(self.space, "DBoptlist_wrapper", custom_name="DBoptlist", allow_subclassing=True)
         self.DBmrgtree = addObject(self.space, "DBmrgtree_wrapper", custom_name="DBmrgtree", allow_subclassing=True)
-        self.SiloAttributes = addStructAsEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
+        self.SiloAttributes = addStructAsEnumDefinition(self.space, "SiloAttributes", "%s/SiloTypes.hh" % srcdir)
         #self.SiloAttributes = addEnumDefinition(self.space, "SiloAttributes", "Silo/SiloTypes.hh")
 
         self.vector_of_DBoptlist = addObject(mod, "vector_of_DBoptlist", allow_subclassing=True)

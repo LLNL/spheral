@@ -1,7 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.extend(["..", "Boundary", "CXXTypes"])
 from PBGutils import *
 from BoundaryModule import generateBoundaryVirtualBindings
 from CXXTypesModule import generateStdVectorBindings, generateStdPairBindings
@@ -14,10 +12,10 @@ class Distributed:
     #---------------------------------------------------------------------------
     # Add the types to the module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Distributed/DistributedTypes.hh"')
+        mod.add_include('"%s/DistributedTypes.hh"' % srcdir)
 
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")
