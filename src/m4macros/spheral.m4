@@ -19,8 +19,7 @@
    
 AC_DEFUN([SETUP_SPHERAL_ENV],[
 
-AC_SUBST(SPHERALDIR)
-AC_SUBST(SRCDIR)
+AC_SUBST(SPHERALBUILDDIR)
 AC_SUBST(HEADERDIR)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CXXPKGS)
@@ -31,6 +30,8 @@ AC_SUBST(LDRPATH)
 AC_SUBST(LIBS)
 AC_SUBST(GEOMETRY_ONLY)
 AC_SUBST(ALL)
+AC_SUBST(ALLTOP)
+AC_SUBST(CXXONLY)
 
 LDRPATH=
 HEADERDIR=
@@ -39,11 +40,14 @@ HEADERDIR=
 AC_SUBST(EXTRATHIRDPARTYTARGETS)
 EXTRATHIRDPARTYTARGETS=""
 
-AC_MSG_CHECKING(for spheral directory)
-SRCDIR=`echo $PWD`
-SPHERALDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
-AC_MSG_RESULT($SPHERALDIR)
+AC_MSG_CHECKING(for spheral build directory)
+#SPHERALBUILDDIR=`echo $PWD | sed -e "s/\/spheral\/src$//g;"`
+SPHERALBUILDDIR=`echo $PWD`
+AC_MSG_RESULT($SPHERALBUILDDIR)
 
+# We default prefix to a system subdirectory of the build tree.
+HOST="`uname -s`"
+#AC_PREFIX_DEFAULT($SPHERALBUILDDIR)
 
 # Choose the packages we're building.
 AC_MSG_CHECKING(for --with-geometry-only)
@@ -61,6 +65,9 @@ AC_ARG_WITH(geometry-only,
    GEOMETRY_ONLY=0
 ])
 
+echo "prefix is $prefix"
+echo "HOST is $HOST"
+echo "SPHERALBUILDDIR is $SPHERALBUILDDIR"
 echo "LIBDIR is $LIBDIR"
 echo "CXXPKGS is $CXXPKGS"
 echo "CXXPKGLIBS is $CXXPKGLIBS"
@@ -80,8 +87,8 @@ AC_SUBST(CONFIG_SHELL)
 IMPMODS=""
 AIXLIBS=""
 PYFFLEENTRY=""
-MAKEIMPORTFILE="$SRCDIR/helpers/generateDummyImportFile"
-CHECKLIBS="$SRCDIR/helpers/checkLibsForUndefined"
+MAKEIMPORTFILE="$srcdir/helpers/generateDummyImportFile"
+CHECKLIBS="$srcdir/helpers/checkLibsForUndefined"
 DEPENDRULES="dependrules.generic"
 AIXSHELL=""
 CONFIG_SHELL=$SHELL
@@ -90,7 +97,7 @@ AC_MSG_CHECKING(python.exp required for linking)
 if test "`uname -s`" = "AIX"; then
   #IMPMODS="$CXXPKGS"
   #PYFFLEENTRY="-e initlibPyffle"
-  #MAKEIMPORTFILE=$SRCDIR/helpers/generateImportFile"
+  #MAKEIMPORTFILE=$srcdir/helpers/generateImportFile"
   LIBS=
 
   # 32 bit
@@ -192,6 +199,22 @@ AC_ARG_WITH(gsl,
 )
 
 # -----------------------------------------------------------------
+# Optionally do not build third party libs.
+# -----------------------------------------------------------------
+AC_SUBST(BUILDTHIRDPARTYTARGET)
+AC_MSG_CHECKING(for --without-thirdPartyLibs)
+AC_ARG_WITH(thirdPartyLibs,
+[  --without-thirdPartyLibs ................. do not build the third party libraries],
+[
+    AC_MSG_RESULT(yes)
+    BUILDTHIRDPARTYTARGET=""
+],
+[
+    AC_MSG_RESULT(no)
+    BUILDTHIRDPARTYTARGET="thirdPartyLibs"
+])
+
+# -----------------------------------------------------------------
 # Optionally do a cxxonly build.
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-cxxonly)
@@ -199,12 +222,17 @@ AC_ARG_WITH(cxxonly,
 [  --with-cxxonly ........................... optionally do a cxxonly build (no third party, no python extensions)],
 [
    AC_MSG_RESULT(yes)
-   ALL="cxxonly install-headers"
+   CXXONLY="yes"
+   ALL="\$(LIBTARGET) \$(STATICLIBTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS) install_headers"
+   ALLTOP="\$(CXXPKGS) install_headers"
+   CXXFLAGS+=" -DCXXONLY"
    LIBDIR="$libdir"
 ],
 [
    AC_MSG_RESULT(no)
-   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
+   CXXONLY="no"
+   ALL="\$(PYTHONTARGETS) \$(LIBTARGET) \$(STATICLIBTARGET) \$(MODTARGET) \$(BPLMODTARGET) \$(PBGMODTARGET) \$(STATICPBGMODTARGET) \$(EXETARGETS) \$(THIRDPARTYLIBTARGET) \$(INCTARGETS) \$(INSTALLTARGETS)"
+   ALLTOP="$PYTHONPKGDIR \$(CXXPKGS) pycompileall"
 ]
 )
 

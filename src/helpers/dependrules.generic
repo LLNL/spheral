@@ -1,92 +1,24 @@
 # -*-makefile-*-
 %.d:	%.cc
-	@$(SHELL) -ec 'echo "Building dependencies for $*.cc"; \
-	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -c $< > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
-
-%.d:	.$(PKGNAME)/%.cpp
-	@$(SHELL) -ec 'echo "Building dependencies for $*.pyste"; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(BPLINCS) $(CXXFLAGS) $(BPLOPT) $(EXTRAFLAGS) $(EXTRAINCLUDES) -I. -c .$(PKGNAME)/$*.cpp > $*.u; \
-	cat $*.u | \
-	sed '\''s/\($*\).o[ :]*/$*.o $@ $(PYSTEDATE) : /g'\'' | \
-        sed '\''s/\.$(PKGNAME)\/$*.cpp/ /g'\'' > $@; \
-	[ -s $@ ] || rm -f $@'
-	@rm -rf $*.u
+	@$(SHELL) -ec 'echo "Building dependencies for $(*F).cc"; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -c $< > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'
 
 %Bindings.py.d:	%Bindings.py
 	@$(SHELL) -ec 'echo "Building dependencies for $*Bindings.py"; \
 	echo "PYTHONPKGS are $(PYTHONPKGS)"; \
-	$(PYTHONEXE) $*Bindings.py $*.C; \
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $*Bindings.py $*.C; \
 	echo "$*.C $*Bindings.py.d : $(MODPKGS)" > $@; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $*Bindings.u; \
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $*Bindings.u; \
 	cat $*Bindings.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
 	rm -f $*Bindings.u; \
 	[ -s $@ ] || rm -f $@'
 
-%.py.d:	%.py
-	@$(SHELL) -ec 'echo "Building dependencies for $*.py"; \
-	echo "PYTHONPKGS are $(PYTHONPKGS)"; \
-	$(PYTHONEXE) $*.py $*.C; \
-	echo "$*.C $*.py.d : $(MODPKGS)" > $@; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' >> $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
-
 %.d:	%.C
 	@$(SHELL) -ec 'echo "Building dependencies for $*.C"; \
-	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $*.C > $*.u; \
-	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
-	rm -f $*.u; \
-	[ -s $@ ] || rm -f $@'
-
-# %.d:	%.py
-# 	@$(SHELL) -ec 'echo "Building dependencies for $*.py"'
-# 	@$(PYTHONEXE) $< $(PYTHONPKGS) .$*.C
-# 	@$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$*.C > $*.u
-# 	@$(SHELL) -ec 'cat $*.u | \
-# 	sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' | \
-# 	sed '\''s/\.$*.C/$*.py $(MODPKGS)/g'\'' | \
-# 	sed '\''s/$*\.cc/$*\.py/g'\'' > $@; \
-# 	rm -f $*.u; \
-# 	[ -s $@ ] || rm -f $@'
-
-# %.d:	%.py
-# 	@$(SHELL) -ec 'echo "Building dependencies for $*.py"; \
-# 	$(PYTHONEXE) $< > .$*.cc; \
-# 	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w .$*.cc > $*.u; \
-# 	cat $*.u | \
-# 	sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' | \
-# 	sed '\''s/\.$*/$*/g'\'' | \
-# 	sed '\''s/$*\.cc/$*\.py/g'\'' > $@; \
-# 	rm -f $*.u .$*.cc; \
-# 	[ -s $@ ] || rm -f $@'
-
-
-%Methods.d: %Methods.pw
-	@mkdir -p .MethodsSource
-	@rm -f .MethodsSource/$*Methods.cc
-	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$*Methods.cc
-	@$(SHELL) -ec 'echo "Building dependencies for $*Methods.pw"; \
-	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -w -I. -c .MethodsSource/$*Methods.cc > $*Methods.u; \
-	cat $*Methods.u | \
-	sed '\''s/\($*\)\Methods.o[ :]*/\1Methods.o $@ : /g'\'' | \
-	sed '\''s/\.MethodsSource\/$*Methods.cc/$*Methods.pw/g'\'' > $@; \
-	[ -s $@ ] || rm -f $@'
-	@rm -f $*Methods.u
-	@rm -f .MethodsSource/$*Methods.cc
-
-#%.d:	%.pyste
-#	@rm -rf .$(PKGNAME)depend
-#	@$(SHELL) -ec 'echo "Building dependencies for $*.pyste"; \
-#        export PATH=$(SPHERALDIR)/bin:$$PATH; \
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --out=.$(PKGNAME)depend --multiple $*.pyste; \
-#	$(MPICXX) $(DEPFLAG) $(INCS) $(BPLINCS) $(CXXFLAGS) $(BPLOPT) $(EXTRAFLAGS) $(EXTRAINCLUDES) -I. -c .$(PKGNAME)depend/_$*.cpp > $*.u; \
-#	cat $*.u | \
-#	sed '\''s/_\($*\).o[ :]*/$*.o .$(PKGNAME)\/$*.cpp $@ : /g'\'' | \
-#        sed '\''s/_$*.o/$*.o/g'\'' | \
-#        sed '\''s/\.$(PKGNAME)depend\/_$*.cpp/$*.pyste/g'\'' > $@; \
-#	[ -s $@ ] || rm -f $@'
-#	@rm -rf $*.u .$(PKGNAME)depend
+	$(MPICXX) $(DEPFLAG) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I$(srcdir) -c $*.C > $(*F).u; \
+	cat $(*F).u | sed '\''s/\($(*F)\)\.o[ :]*/\1.o $(@F) : /g'\'' > $(@F); \
+	rm -f $(*F).u; \
+	[ -s $(@F) ] || rm -f $(@F)'

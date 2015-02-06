@@ -9,22 +9,20 @@ includedir =   @includedir@
 libdir = @libdir@
 
 INSTALL = @INSTALL@
-SPHERALDIR = @SPHERALDIR@
-SRCTOP = @SRCDIR@
-TOPLIBDIR =  @TOPLIBDIR@
-LIBDIR =     @LIBDIR@
-PYTHONLIBDIR   = @PYLIBDIR@
-THIRDPARTYLIBDIR = $(SPHERALDIR)/lib
-THIRDPARTYINCDIR = $(SPHERALDIR)/include
-BUILDWILDMAGIC = @BUILDWILDMAGIC@
-WILDMAGICTARGET = @WILDMAGICTARGET@
-SILOFLAGS = @SILOFLAGS@
+SPHERALBUILDDIR = @SPHERALBUILDDIR@
 PYTHONEXE  = @PYTHON@
 PYTHONVERSION = @PYTHONVERSION@
 PYTHONCFLAGS = @PYTHONCFLAGS@ @OPT@
 PYTHONCONFFLAGS = @PYTHONCONFFLAGS@
+TOPLIBDIR =  $(libdir)
+LIBDIR =     $(libdir)
+PYTHONLIBDIR   = $(libdir)/python$(PYTHONVERSION)/site-packages
+THIRDPARTYLIBDIR = $(prefix)/lib
+THIRDPARTYINCDIR = $(prefix)/include
+BUILDWILDMAGIC = @BUILDWILDMAGIC@
+WILDMAGICTARGET = @WILDMAGICTARGET@
+SILOFLAGS = @SILOFLAGS@
 BOOSTROOT = @BOOSTROOT@
-PYSTEPATH = @PYSTEPATH@
 JAMTOOLSET = @JAMTOOLSET@
 JAMTOOLSETOPTS = @JAMTOOLSETOPTS@
 JAMOPTS = @JAMOPTS@
@@ -45,8 +43,7 @@ TAUVERSION = # @TAUVERSION@
 TAUTARGET = # @TAUTARGET@
 TAUCONFIGUREFLAGS = # @TAUCONFIGUREFLAGS@
 TAUARCH = # @TAUARCH@
-PYSTE = $(PYSTEPATH)/pyste.py
-HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
+HTMLDOCDIR = $(prefix)/PythonInterfaceDoc
 BPLINCS = @BPLINCS@
 HDF5FLAGS = @HDF5FLAGS@
 POLYTOPEFLAGS = @POLYTOPEFLAGS@
@@ -66,13 +63,13 @@ HELMLIBS = @HELMLIBS@
 OPENSUBDIVTARGETS = @OPENSUBDIVTARGETS@
 OPENSUBDIVLIBS = @OPENSUBDIVLIBS@
 
-UTILDIR = $(SRCTOP)/Utilities
+UTILDIR = $(SPHERALTOP)/Utilities
 HDFINCDIR = /usr/local/Spheral++/include
 HDFLIBDIR = /usr/local/Spheral++/lib
 
 WMLIBEXT = @WMLIBEXT@
-WILDMAGICINCDIR = $(SPHERALDIR)/WildMagic5/Include
-WILDMAGICLIBDIR = $(SPHERALDIR)/WildMagic5/Library/$(WILDMAGICTARGET)
+WILDMAGICINCDIR = $(prefix)/WildMagic5/Include
+WILDMAGICLIBDIR = $(prefix)/WildMagic5/Library/$(WILDMAGICTARGET)
 WILDMAGICLIBS = -lWm5Core -lWm5Imagics -lWm5Mathematics -lWm5Physics
 
 PYTHONDATEFILE = lastpythonmake
@@ -81,16 +78,16 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
-OBJS = $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o)
+OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))
 
 TAULIBS = # @TAULIBS@
-LIBS = -L$(TOPLIBDIR) -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
+LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS)
 
 DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
 # g++ flags
 
-INCS = $(EXTRAINCLUDES) -I$(SRCTOP) -I$(BOOSTROOT) -I$(SRCTOP)/../../include
+INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(BOOSTROOT) -I$(prefix)/include
 
 # Allow developers to override optimization flag
 ifneq ("$(opt_override)","")
@@ -141,13 +138,20 @@ MODULELINK = @MODULELINK@
 LIBTARGETFLAGS = @LIBTARGETFLAGS@
 SHLIBEXT = @SHLIBEXT@
 
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+
 #-------------------------------------------------------------------------------
 # Static lib based on the dynamic library.
 STATICLIBTARGET = $(LIBTARGET:.$(DYLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
+# Static Python bindings based on the dynamic library.
+STATICPBGMODTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.a)
+
+#-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
-HEADERS = $(wildcard *.hh)
+HEADERS = $(wildcard $(srcdir)/*.hh)
 
 #-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
@@ -158,15 +162,14 @@ PKGLIBS := $(patsubst %, -l%, $(CXXPKGLIBS))
 # Pybindgen stuff
 PYTHONBINDING = @PYTHONBINDING@
 ifeq "$(PYTHONBINDING)" "PYBINDGEN"
-  EXTRAINCLUDES += -I$(SPHERALDIR)/include/python$(PYTHONVERSION)
+  EXTRAINCLUDES += -I$(prefix)/include/python$(PYTHONVERSION)
   FILTEREDPYTHONPKGS = $(filter-out $(PKGNAME), $(filter-out Python, $(PYTHONPKGS)))
 
-  PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS))
+  PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS)) $(SPHERALMODULES).C
   PBGOBJS = $(PBGSRCS:.C=.o)
   PBGMODHEADERS = $(SPHERALMODULES).hh
   PBGMODSRCS = $(SPHERALMODULES).C $(PBGMODHEADERS)
-  PBGMODOBJ = $(SPHERALMODULES).o
-  MODPKGS = $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS)))
+  MODPKGS = $(patsubst %, $(srcdir)/%, $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS))))
 
   ifneq "$(PBGTARGET)" ""
     PBGTARGETDATE = $(patsubst %, .%.date, $(PBGTARGET:.py=))
@@ -205,13 +208,15 @@ CONFIG_SHELL=@CONFIG_SHELL@
 
 all:	@ALL@
 
-cxxonly:	$(STATICLIBTARGET)
-
-install-headers:
-ifneq ($(HEADERS),)
-	@mkdir -p $(includedir)/spheral/$(PKGNAME)
-	cp -f $(HEADERS) $(includedir)/spheral/$(PKGNAME)
-endif
+install_headers:
+	@mkdir -p $(includedir)/$(PKGNAME)
+	@if test "$(HEADERS)" != "" ; then \
+		it="$(HEADERS)" ; \
+	        for i in $$it ; do \
+			$(INSTALL) $$i $(includedir)/$(PKGNAME) ; \
+	                echo "installing $$i in $(includedir)/$(PKGNAME)" ; \
+	        done \
+	fi
 
 force_build:
 
@@ -222,99 +227,65 @@ force_build:
 # 	chmod 644 $(LIBDIR)/$*.py
 
 %.exe: %.cc force_build
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS)  $(PKGLIBS) $(LDFLAGS) $< -o $*.exe
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAINCLUDES) $(LIBS) $(EXTRALIBS) $(PKGLIBS) $(LDFLAGS) $< -o $(*F).exe
 
 %Methods.o: %Methods.pw
 	@mkdir -p .MethodsSource
 	@rm -f .MethodsSource/$*Methods.cc
-	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$*Methods.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$*Methods.cc -o $*Methods.o
+	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$(*F)Methods.cc
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$(*F)Methods.cc -o $(*F)Methods.o
 
 %Wrap.o: %Wrap.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $*Wrap.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F)Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f90
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $*.o
-
-# %.C: %.py # $(MODPKGS)
-# 	$(PYTHONEXE) $< $(PYTHONPKGS) $*.C
-
-# %.C: SpheralModules.py
-# 	$(PYTHONEXE) SpheralModules.py $(PYTHONPKGS) SpheralModules.C
-
-# %.o: %.py
-# 	$(PYTHONEXE) $< $(PYTHONPKGS) .$*.C
-# 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$*.C -o $*.o
-# 	@rm -f .$*.C
-
-#%.cpp:	%.pyste
-#	@rm -fr $(PKGNAME)
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple $(PYSTETARGETS)
-#	@$(PYTHONEXE) -c 'import os, string; \
-#	[os.rename(x[0], x[1]) for x in zip(string.split("$(GENERATEDPYSTECPPS)"), string.split("$(PYSTECPPS)"))]'
-#	@rm -fr $(PKGNAME)
-
-#%.o:	%.pyste
-#	@rm -fr .$(PKGNAME)
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS)
-#	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/_$*.cpp -o $*.o
-
-#.$(PKGNAME)/%.cpp:  %.pyste
-#	$(SHELL) -ec 'if ! test -a $(LASTPYSTEMAKE); then \
-#        export PATH=$(SPHERALDIR)/bin:$$PATH; \
-#	$(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS); \
-#	touch $(LASTPYSTEMAKE); fi'
-#	mv .$(PKGNAME)/_$*.cpp .$(PKGNAME)/$*.cpp
-
-%.o:	.$(PKGNAME)/%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c .$(PKGNAME)/$*.cpp -o $*.o
+	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o:	%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 %.o:	%.C
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $*.o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
 
 # Machine dependent rules for generating dependency files.
-include $(SRCTOP)/helpers/@DEPENDRULES@
+include $(SPHERALTOP)/helpers/@DEPENDRULES@
 
 .INTERMEDIATE:	Methods.cc
 .DELETE_ON_ERROR: Methods.cc
 
 #-------------------------------------------------------------------------------
 ifneq "$(SRCTARGETS)" ""
--include $(SRCTARGETS:.cc=.d)
+-include $(notdir $(SRCTARGETS:.cc=.d))
 endif
 
 ifneq "$(F90SRCTARGETS)" ""
--include $(F90SRCTARGETS:.f90=.d)
+-include $(notdir $(F90SRCTARGETS:.f90=.d))
 endif
 
 ifneq "$(FSRCTARGETS)" ""
--include $(FSRCTARGETS:.f=.d)
+-include $(notdir $(FSRCTARGETS:.f=.d))
 endif
 
 ifneq "$(BPLTARGETS)" "" 
--include $(BPLTARGETS:.cpp=.d)
+-include $(notdir $(BPLTARGETS:.cpp=.d))
 endif
 
 ifneq "$(PYSTETARGETS)" "" 
--include $(PYSTETARGETS:.pyste=.d)
+-include $(notdir $(PYSTETARGETS:.pyste=.d))
 endif
 
 ifneq "$(PYFFLETARGETS)" ""
--include $(PYFFLETARGETS:.pw=.d)
+-include $(notdir $(PYFFLETARGETS:.pw=.d))
 endif
 
 ifneq "$(PBGTARGET)" ""
--include $(PBGTARGET:.py=.py.d)
-#-include $(PBGTARGET:.py=.d)
+-include $(notdir $(PBGTARGET:.py=.py.d))
 endif
 
 #-------------------------------------------------------------------------------
@@ -356,7 +327,7 @@ $(PYSTEDATE): $(PYSTETARGETS)
 	@echo "################################################################################"
 	@echo "# Generating Boost.Python source for $(MODTARGET)"
 	@echo "################################################################################"
-	$(SHELL) -ec 'export PATH=$(SPHERALDIR)/bin:$$PATH; \
+	$(SHELL) -ec 'export PATH=$(prefix)/bin:$$PATH; \
 	env GCCXML_COMPILER=$(GCCXMLCXX) $(PYTHONEXE) $(PYSTE) $(INCS) $(BPLINCS) --module=$(PKGNAME) --multiple --out=.$(PKGNAME) $(PYSTETARGETS); \
 	for f in $(PYSTEBASES); do \
 	mv .$(PKGNAME)/_$$f.cpp .$(PKGNAME)/$$f.cpp; \
@@ -369,7 +340,7 @@ $(MODTARGET): $(BPLOBJS) $(OBJS) $(PYSTEDATE)
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(MODTARGET) $(PYSTEOBJS) $(BPLOBJS) .$(PKGNAME)/_main.o $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
-	cp -f $(MODTARGET) $(LIBDIR)
+	cp -f $(MODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
 $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
@@ -378,15 +349,14 @@ $(BPLMODTARGET): $(BPLOBJS) $(OBJS)
 	@echo "################################################################################"
 	mkdir -p $(LIBDIR)
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(BPLMODTARGET) $(BPLOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
-	cp -f $(BPLMODTARGET) $(LIBDIR)
+	cp -f $(BPLMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
 $(PBGTARGETDATE):  $(PBGTARGET)
 	@echo "################################################################################"
 	@echo "# Building sources $(PBGTARGET) $(PBGSRCS)"
 	@echo "################################################################################"
-	$(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
-	cp -f $(SPHERALMODULES).hh $(THIRDPARTYINCDIR)
+	env PYTHONPATH="$(srcdir):$(subst $(SPACE),:,$(patsubst %,$(srcdir)/%,$(PYTHONPKGS)))" $(PYTHONEXE) $(PBGTARGET) $(SPHERALMODULES).C
 	touch $(PBGTARGETDATE)
 
 $(PBGSRCS):	$(PBGTARGETDATE)
@@ -397,33 +367,41 @@ $(PBGMODTARGET): $(PBGOBJS)
 	@echo "################################################################################"
 	@echo "# Building module $(PBGMODTARGET)"
 	@echo "################################################################################"
-	mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -o $(PBGMODTARGET) $(PBGOBJS) $(PBGMODOBJ) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
-	cp -f $(PBGMODTARGET) $(LIBDIR)
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $(SPHERALMODULES).C -o $(SPHERALMODULES).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(SHAREDFLAG) $(EXTRAINCLUDES) -I$(srcdir) -o $(PBGMODTARGET) $(PBGOBJS) $(OBJS) $(MODULELINK) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) 
+	cp -f $(PBGMODTARGET) $(PYTHONLIBDIR)/Spheral
+
+$(STATICPBGMODTARGET): $(PBGMODTARGET)
+	@echo "################################################################################"
+	@echo "# Building module $(STATICPBGMODTARGET)"
+	@echo "################################################################################"
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
+	ar -rvs $(STATICPBGMODTARGET) $(PBGOBJS)
+	cp -f $(STATICPBGMODTARGET) $(PYTHONLIBDIR)/Spheral
 
 #-------------------------------------------------------------------------------
 $(LINKLIST):	$(OBJS)
 	rm -fr $(LINKLIST)
-	$(PYTHONEXE) $(SRCTOP)/helpers/prepend_dir.py -c "prepend('$(LIBTARGET)', '$(PKGDIR)')" > $(LINKLIST)
+	$(PYTHONEXE) $(SPHERALTOP)/helpers/prepend_dir.py -c "prepend('$(LIBTARGET)', '$(PKGDIR)')" > $(LINKLIST)
 
 #-------------------------------------------------------------------------------
 $(PYTHONTARGETS):	$(PYTHONDATEFILE)
-	@mkdir -p $(LIBDIR)
-	rm -f $(LIBDIR)/$*.py
-	cp -f $*.py $(LIBDIR)
-	chmod 644 $(LIBDIR)/$*.py
+	@mkdir -p $(PYTHONLIBDIR)/Spheral
+	rm -f $(PYTHONLIBDIR)/Spheral/$(*F).py
+	cp -f $*.py $(PYTHONLIBDIR)/Spheral
+	chmod 644 $(PYTHONLIBDIR)/Spheral/$(*F).py
 
 #-------------------------------------------------------------------------------
 $(PYTHONDATEFILE):
 
 #-------------------------------------------------------------------------------
 docs:
-	pushd $(SRCTOP) && doxygen spheral.doxygen && popd
+	pushd $(SPHERALTOP) && doxygen spheral.doxygen && popd
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(LINKLIST) $(SRCTARGETS:.cc=.d) $(FSRCTARGETS:.f=.d) $(F90SRCTARGETS:.f90=.d) $(PYSTETARGETS:.pyste=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PBGMODOBJ) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) .MethodsSource ti_files $(PYTHONDATEFILE) $(PYSTEDATE) $(PYSTEDEPENDDATE) $(PYSTEOBJSDATE) .InterfaceOrder $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
 
 #-------------------------------------------------------------------------------
 spotless:

@@ -1,7 +1,5 @@
 from pybindgen import *
 
-import sys
-sys.path.extend(["..", "Boundary", "CXXTypes"])
 from PBGutils import *
 
 #-------------------------------------------------------------------------------
@@ -12,10 +10,10 @@ class Parmetis:
     #---------------------------------------------------------------------------
     # Add the types to the module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes.
-        mod.add_include('"Parmetis/ParmetisTypes.hh"')
+        mod.add_include('"%s/ParmetisTypes.hh"' % srcdir)
 
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")

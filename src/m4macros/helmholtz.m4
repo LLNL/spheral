@@ -13,7 +13,7 @@ AC_SUBST(LDFLAGS)
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-helmholtz)
 AC_ARG_WITH(helmholtz,
-[  --with-helmholtz ............................. optionally build the interface to HELMHOLTZ (requires the external HELMHOLTZ library)],
+[  --with-helmholtz ......................... optionally build the interface to HELMHOLTZ (requires the external HELMHOLTZ library)],
 [
    AC_MSG_RESULT(yes)
    HELMSRCS="HelmholtzEquationOfStateInst.cc"
@@ -33,7 +33,7 @@ AC_ARG_WITH(helmholtz,
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-helmholtz-link)
 AC_ARG_WITH(helmholtz-link,
-[  --with-helmholtz-link=ARG .................... change how to link with the external HELMHOLTZ library],
+[  --with-helmholtz-link=ARG ................ change how to link with the external HELMHOLTZ library],
 [
    AC_MSG_RESULT($withval)
    HELMLIBS="$withval"

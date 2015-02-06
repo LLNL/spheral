@@ -1,0 +1,43 @@
+# -*-makefile-*-
+# Spheral++ Utilities package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Utilities
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/DBC.cc \
+	$(srcdir)/Process.cc \
+	$(srcdir)/iterateIdealHInst.cc \
+	$(srcdir)/KeyTraits.cc \
+	$(srcdir)/mortonOrderIndicesInst.cc \
+	$(srcdir)/peanoHilbertOrderIndicesInst.cc \
+	$(srcdir)/PeanoHilbertTransform.cc \
+	$(srcdir)/nodeOrderingInst.cc \
+	$(srcdir)/RegisterMPIDataTypes.cc \
+	$(srcdir)/RedistributionRegistrar.cc \
+	$(srcdir)/nodeBoundingBoxesInst.cc \
+	$(srcdir)/boundingBoxInst.cc \
+	$(srcdir)/globalBoundingVolumesInst.cc \
+	$(srcdir)/lineSegmentIntersections.cc \
+	$(srcdir)/integrateThroughMeshAlongSegmentInst.cc \
+	$(srcdir)/numberDensityInst.cc \
+	$(srcdir)/medianPositionInst.cc \
+	$(srcdir)/coarsenBinnedValuesInst.cc \
+	$(srcdir)/segmentIntersectEdges.cc \
+	$(srcdir)/pointOnPolygon.cc \
+	$(srcdir)/pointInPolygon.cc \
+	$(srcdir)/pointOnPolyhedron.cc \
+	$(srcdir)/pointInPolyhedron.cc \
+	$(srcdir)/refinePolyhedron.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/fitspline.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+LIBS += $(OPENSUBDIVLIBS) $(OPENSUBDIVLIBS)

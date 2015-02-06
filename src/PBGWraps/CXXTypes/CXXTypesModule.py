@@ -180,10 +180,10 @@ class CXXTypes:
     #---------------------------------------------------------------------------
     # Add all out stuff.
     #---------------------------------------------------------------------------
-    def __init__(self, mod):
+    def __init__(self, mod, srcdir, topsrcdir):
 
         # Includes
-        mod.add_include('"CXXTypes/CXXTypes.hh"')
+        mod.add_include('"%s/CXXTypes.hh"' % srcdir)
 
         # Namespace.
         std = mod.add_cpp_namespace("std")

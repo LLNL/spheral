@@ -1,35 +1,36 @@
 # -*-makefile-*-
 # Spheral++ toplevel makefile
 #-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+
 PKGNAME = Spheral
-SPHERALTOP = .
+SPHERALTOP = $(srcdir)
+BUILDTOP = @abs_top_builddir@
 comma:= ,
 export EXTRAINCLUDES
 export EXTRALIBS
 export EXTRAFLAGS
 export LIBDIR
 
-include helpers/makefile_master
+include $(BUILDTOP)/helpers/makefile_master
 
 # Packages that must be built
 PKGS = \
-	thirdPartyLibs \
 	$(CXXPKGS) \
-	@PYFFLE@ \
+	@BUILDTHIRDPARTYTARGET@ \
 	@PYTHONPKGDIR@
 
 #-------------------------------------------------------------------------------
-SPHERALDIR = @SPHERALDIR@
+srcdir = @srcdir@
+VPATH = @srcdir@
+SPHERALINSTALLDIR = @SPHERALINSTALLDIR@
 LIBDIR = @LIBDIR@
 PYTHONDIR  = @PYINCLUDEDIR@
 PYTHONLIB  = @PYLIBS@
 PYTHONEXE  = @PYTHON@
-BOOSTDIR = $(SPHERALDIR)/boost
-HTMLDOCDIR = $(SPHERALDIR)/PythonInterfaceDoc
-
-PYFFLEDIR = $(SRCTOP)/Pyffle
-HDFINCDIR = /usr/local/Spheral++/include
-HDFLIBDIR = /usr/local/Spheral++/lib
+BOOSTDIR = $(prefix)/boost
+HTMLDOCDIR = $(prefix)/PythonInterfaceDoc
 
 IMPFILES = $(join $(IMPPKGS), $(patsubst %, /lib%.imp, $(IMPPKGS)))
 
@@ -46,76 +47,58 @@ LINKLIST = linklist
 
 force_build:
 
-all:	@PYTHONPKGDIR@ $(CXXPKGS)
-	$(MAKE) pycompileall
+all:	@ALLTOP@
 
 thirdPartyLibs:	force_build
-	cd $(SRCTOP)/$@; \
+	cd $(BUILDTOP)/$@; \
 	$(MAKE) all
 
-$(IMPFILES):	thirdPartyLibs force_build
+$(IMPFILES):	@BUILDTHIRDPARTYTARGET@ force_build
 	cd $(@D); \
 	$(MAKE) $(@F)
 
-$(CXXPKGS):	$(IMPFILES) thirdPartyLibs force_build
-	cd $(SRCTOP)/$@; \
+$(CXXPKGS):	$(IMPFILES) @BUILDTHIRDPARTYTARGET@ force_build
+	cd $(BUILDTOP)/$@; \
 	$(MAKE) all
 
-@PYTHONPKGDIR@:	$(CXXPKGS) $(IMPFILES) thirdPartyLibs force_build
-	cd $(SRCTOP)/$@; \
+@PYTHONPKGDIR@:	$(CXXPKGS) $(IMPFILES) @BUILDTHIRDPARTYTARGET@  force_build
+	cd $(BUILDTOP)/$@; \
 	$(MAKE) all
 
-DistributedMake: thirdPartyLibs force_build
-	@SUBMITDISTRIBUTEDMAKE@ @PYMPI@ $(SRCTOP)/helpers/DistributedMake @DISTRIBUTEDMAKEOPTS@ buildDirectories='[$(patsubst %, "%"$(comma), $(CXXPKGS))]'
+DistributedMake: @BUILDTHIRDPARTYTARGET@  force_build
+	@SUBMITDISTRIBUTEDMAKE@ @PYMPI@ $(SPHERALTOP)/helpers/DistributedMake @DISTRIBUTEDMAKEOPTS@ buildDirectories='[$(patsubst %, "%"$(comma), $(CXXPKGS))]'
 	$(MAKE) -C BPLWraps DistributedMake
 	$(MAKE) all
 
-rmlists:
-	rm -fr $(PYFFLELIST)
-	touch $(PYFFLELIST)
-
-$(PYFFLEMODULE):
-	python $(SRCTOP)/helpers/concat_names.py -c "concat('$(PYFFLELIST)')" > $(PYFFLELIST).1
-	python $(PYFFLEDIR)/pyffle.py -compose $(PKGNAME) `cat $(PYFFLELIST).1`
-	$(CC) $(CCFLAGS) -w -c $(PYFFLEMODULESRC) -o $(PYFFLEMODULE)
-	rm -fr $(PYFFLEMODULESRC) $(PYFFLELIST).1
-
 $(LIB):
 	mkdir -p $(LIBDIR)
-	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) -o $(LIB) $(PYFFLEMODULE) $(LIBS) $(LIBS) -L$(LIBDIR) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
-	rm -fr $(PYFFLEMODULE) $(LINKLIST).1
+	$(CXX) $(CXXFLAGS) $(SHAREDFLAG) -o $(LIB) $(LIBS) $(LIBS) -L$(LIBDIR) $(PKGLIBS) $(PKGLIBS) $(PKGLIBS)
 
-pycompileall:  force_build
-	$(PYTHONEXE) $(SPHERALDIR)/lib/python$(PYTHONVERSION)/compileall.py $(LIBDIR)
-
-cxxonly:
-	for pckg in $(CXXPKGS); do \
-	$(MAKE) EXTRAFLAGS=-DCXXONLY -C $(SRCTOP)/$$pckg cxxonly install-headers; \
-	done
+pycompileall:  $(CXXPGS) @PYTHONPKGDIR@
+	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
 
 cxxclean:
 	for pckg in $(CXXPKGS); do \
-	$(MAKE) -C $(SRCTOP)/$$pckg clean; \
+	$(MAKE) -C $(BUILDTOP)/$$pckg clean; \
 	done
 
 clean:
 	$(MAKE) cxxclean
 	$(MAKE) -C @PYTHONPKGDIR@ clean
-	rm -fr $(PYFFLELIST) $(LINKLIST) lib/* 
+	rm -fr $(LINKLIST) lib/* 
 
 distclean:
 	$(MAKE) clean
-	$(MAKE) -C thirdPartyLibs clean
-	rm -fr $(SPHERALDIR)/bin $(SPHERALDIR)/doc $(SPHERALDIR)/include $(SPHERALDIR)/lib $(SPHERALDIR)/share $(SPHERALDIR)/man $(SPHERALDIR)/info $(SPHERALDIR)/Applications $(SPHERALDIR)/Python.framework $(SPHERALDIR)/atsMachines
+	$(MAKE) -C @PYTHONPKGDIR@ clean
 
 spotless:
 	for pckg in $(CXXPKGS); do \
-	(cd $(SRCTOP)/$$pckg;$(MAKE) spotless);\
+	(cd $(BUILDTOP)/$$pckg;$(MAKE) spotless);\
 	done
-	rm -fr $(PYFFLELIST) $(LINKLIST) lib/* 
+	rm -fr $(LINKLIST) lib/* 
 
 grease:
-	find . -name '*.d' -exec rm -f {}  ';'
+	find $(srcdir) -name '*.d' -exec rm -f {}  ';'
 
 static_libs:	$(PKGS)
 	for pkg in $(CXXPKGS); do \
