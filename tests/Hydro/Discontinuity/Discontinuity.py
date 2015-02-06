@@ -37,7 +37,7 @@ commandLine(KernelConstructor = BSplineKernel,
             mu = 1.0,
             
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             
@@ -214,8 +214,8 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
-elif CSPH:
-    hydro = CSPHHydro(WT, WTPi, q,
+elif CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, q,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,

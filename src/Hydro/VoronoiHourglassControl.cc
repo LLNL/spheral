@@ -13,8 +13,8 @@
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "CSPH/CSPHUtilities.hh"
-#include "CSPH/computeCSPHCorrections.hh"
+#include "CRKSPH/CRKSPHUtilities.hh"
+#include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/allReduce.hh"
@@ -263,14 +263,14 @@ finalize(const typename Dimension::Scalar time,
   rhoMin = allReduce(rhoMin, MPI_MIN, Communicator::communicator());
   rhoMax = allReduce(rhoMax, MPI_MAX, Communicator::communicator());
 
-  // Compute the CSPH limited gradient of the density if we're doing first order.
+  // Compute the CRKSPH limited gradient of the density if we're doing first order.
   if (mOrder > 0) {
-    dataBase.resizeFluidFieldList(mA, 0.0,              HydroFieldNames::A_CSPH);
-    dataBase.resizeFluidFieldList(mB, Vector::zero,     HydroFieldNames::B_CSPH);
-    dataBase.resizeFluidFieldList(mC, Vector::zero,     HydroFieldNames::C_CSPH);
-    dataBase.resizeFluidFieldList(mD, Tensor::zero,     HydroFieldNames::D_CSPH);
-    dataBase.resizeFluidFieldList(mGradA, Vector::zero, HydroFieldNames::gradA_CSPH);
-    dataBase.resizeFluidFieldList(mGradB, Tensor::zero, HydroFieldNames::gradB_CSPH);
+    dataBase.resizeFluidFieldList(mA, 0.0,              HydroFieldNames::A_CRKSPH);
+    dataBase.resizeFluidFieldList(mB, Vector::zero,     HydroFieldNames::B_CRKSPH);
+    dataBase.resizeFluidFieldList(mC, Vector::zero,     HydroFieldNames::C_CRKSPH);
+    dataBase.resizeFluidFieldList(mD, Tensor::zero,     HydroFieldNames::D_CRKSPH);
+    dataBase.resizeFluidFieldList(mGradA, Vector::zero, HydroFieldNames::gradA_CRKSPH);
+    dataBase.resizeFluidFieldList(mGradB, Tensor::zero, HydroFieldNames::gradB_CRKSPH);
     mWeight = mass/rho;
     for (i = 0; i != mA.size(); ++i) {
       state.enroll(*mA[i]);
@@ -282,10 +282,10 @@ finalize(const typename Dimension::Scalar time,
       state.enroll(*mWeight[i]);
     }
 
-    // Compute the CSPH correction terms.
+    // Compute the CRKSPH correction terms.
     dataBase.updateConnectivityMap();
     const ConnectivityMap<Dimension>& cm = dataBase.connectivityMap();
-    CSPHSpace::computeCSPHCorrections(cm, mW, mWeight, position, H, 
+    CRKSPHSpace::computeCRKSPHCorrections(cm, mW, mWeight, position, H, 
                                       mA, mA, mB, mC, mD, mGradA, mGradB);
 
     // Find the gradient of the density.
@@ -312,7 +312,7 @@ finalize(const typename Dimension::Scalar time,
             Hj = H(nodeListj, j);
             rij = ri - position(nodeListj, j);
             etaj = Hj*rij;
-            CSPHSpace::CSPHKernelAndGradient(mW, rij, etaj, Hj, Hj.Determinant(), 
+            CRKSPHSpace::CRKSPHKernelAndGradient(mW, rij, etaj, Hj, Hj.Determinant(), 
                                              Ai, Bi, gradAi, gradBi,
                                              Wj, gWj, gradWj);
             mGradRho(nodeListi, i) += rho(nodeListj, j) * mWeight(nodeListj, j)*gradWj;

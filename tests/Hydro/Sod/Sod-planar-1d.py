@@ -47,14 +47,14 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            momentumConserving = True, # For CSPH
+            momentumConserving = True, # For CRKSPH
             KernelConstructor = BSplineKernel,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
 
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             TSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
@@ -92,10 +92,10 @@ restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
 assert numNodeLists in (1, 2)
 
 #-------------------------------------------------------------------------------
-# CSPH Switches to ensure consistency
+# CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
-if CSPH:
-    Qconstructor = CSPHMonaghanGingoldViscosity
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -196,8 +196,8 @@ if SVPH:
                              HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
-elif CSPH:
-    hydro = CSPHHydro(WT, WTPi, q,
+elif CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, q,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
@@ -402,7 +402,7 @@ if graphics in ("gnu", "matplot"):
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
 
-    if CSPH:
+    if CRKSPH:
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
@@ -424,10 +424,10 @@ if graphics in ("gnu", "matplot"):
                              winTitle = "max(rho^2 Piij)",
                              colorNodeLists = False)
     
-    if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
-                                  winTitle = "rvAlpha",
-                                  colorNodeLists = False)
+    #if boolReduceViscosity:
+    #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
+    #                              winTitle = "rvAlpha",
+    #                              colorNodeLists = False)
 
 
 
@@ -491,7 +491,7 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/sod-planar-1d.ascii",'w')
+    f = open(dataDir + "/sod-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
     f.write("i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],

@@ -15,8 +15,8 @@ source("../src/Geometry/tests/testPolyhedron.py")
 source("../src/Boundary/tests/testPeriodicBoundary-1d.py")
 source("../src/Boundary/tests/testPeriodicBoundary-2d.py")
 
-# CSPH unit tests
-source("../src/CSPH/tests/testInterpolation.py")
+# CRKSPH unit tests
+source("../src/CRKSPH/tests/testInterpolation.py")
 
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")

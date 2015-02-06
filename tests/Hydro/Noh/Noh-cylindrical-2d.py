@@ -45,8 +45,8 @@ commandLine(KernelConstructor = BSplineKernel,
             mu = 1.0,
 
             SVPH = False,
-            CSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
+            CRKSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -263,11 +263,11 @@ if SVPH:
                         fcellPressure = fcellPressure,
                         xmin = Vector(-1.1, -1.1),
                         xmax = Vector( 1.1,  1.1))
-elif CSPH:
+elif CRKSPH:
     if SPH:
-        constructor = CSPHHydro
+        constructor = CRKSPHHydro
     else:
-        constructor = ACSPHHydro
+        constructor = ACRKSPHHydro
     hydro = constructor(WT, WTPi, q,
                         filter = filter,
                         cfl = cfl,
