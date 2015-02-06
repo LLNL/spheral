@@ -98,10 +98,10 @@ commandLine(
     nPerh = 1.51,
 
     SVPH = False,
-    CSPH = False,
+    CRKSPH = False,
     ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
-    filter = 0.0,  # For CSPH
+    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    filter = 0.0,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -155,11 +155,11 @@ if SVPH:
         HydroConstructor = ASVPHFacetedHydro
     else:
         HydroConstructor = SVPHFacetedHydro
-elif CSPH:
+elif CRKSPH:
     if ASPH:
-        HydroConstructor = ACSPHHydro
+        HydroConstructor = ACRKSPHHydro
     else:
-        HydroConstructor = CSPHHydro
+        HydroConstructor = CRKSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -372,7 +372,7 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(xb0 - (xb1 - xb0), yb0 - (yb1 - yb0)),
                              xmax = Vector(xb1 + (xb1 - xb0), yb1 + (yb1 - yb0)))
-elif CSPH:
+elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
                              epsTensile = epsilonTensile,

@@ -45,16 +45,17 @@ commandLine(
     nPerh = 1.51,
 
     SVPH = False,
-    CSPH = False,
+    CRKSPH = False,
     ASPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
-    filter = 0.0,  # For CSPH
-    momentumConserving = True, # For CSPH
+    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    filter = 0.0,  # For CRKSPH
+    momentumConserving = True, # For CRKSPH
     KernelConstructor = BSplineKernel,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
-    nh = 5.0,
+    nhQ = 5.0,
+    nhL = 10.0,
     aMin = 0.1,
     aMax = 2.0,
     linearConsistent = False,
@@ -100,6 +101,8 @@ commandLine(
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
     smooth = None,
+            
+    serialDump = False #whether to dump a serial ascii file at the end for viz
     )
 
 # Decide on our hydro algorithm.
@@ -108,11 +111,11 @@ if SVPH:
         HydroConstructor = ASVPHFacetedHydro
     else:
         HydroConstructor = SVPHFacetedHydro
-elif CSPH:
+elif CRKSPH:
     if ASPH:
-        HydroConstructor = ACSPHHydro
+        HydroConstructor = ACRKSPHHydro
     else:
-        HydroConstructor = CSPHHydro
+        HydroConstructor = CRKSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -144,6 +147,12 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "greshovortex-xy-%ix%i" % (nx1, ny1)
+
+#-------------------------------------------------------------------------------
+# CRKSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -293,7 +302,7 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(x0 - (x1 - x0), y0 - (y1 - y0)),
                              xmax = Vector(x1 + (x1 - x0), y3 + (y1 - y0)))
-elif CSPH:
+elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
                              epsTensile = epsilonTensile,
@@ -332,7 +341,7 @@ packages = [hydro]
 
 if boolReduceViscosity:
     #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
 
@@ -405,14 +414,14 @@ if smooth:
         gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
         gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
         gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
-        computeCSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
+        computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, True,
                                m0_fl, m1_fl, m2_fl,
                                A0_fl, A_fl, B_fl, C_fl, D_fl, gradA0_fl, gradA_fl, gradB_fl)
         eps0 = db.fluidSpecificThermalEnergy
         vel0 = db.fluidVelocity
-        eps1 = interpolateCSPH(eps0, position_fl, weight_fl, H_fl, True, 
+        eps1 = interpolateCRKSPH(eps0, position_fl, weight_fl, H_fl, True, 
                                A_fl, B_fl, cm, WT)
-        vel1 = interpolateCSPH(vel0, position_fl, weight_fl, H_fl, True, 
+        vel1 = interpolateCRKSPH(vel0, position_fl, weight_fl, H_fl, True, 
                                A_fl, B_fl, cm, WT)
         eps0.assignFields(eps1)
         vel0.assignFields(vel1)
@@ -467,3 +476,20 @@ if graphics:
     yans = [0.0, 0.5, 1.0, 0.0, 0.0]
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
     p.replot(ansData)
+
+
+if serialDump:
+    serialData = []
+    i,j = 0,0
+    
+    f = open(dataDir + "/Gresho-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
+    f.write("i x m rho u v visc\n")
+    for j in xrange(nodes.numInternalNodes):
+        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes.positions()[j].magnitude(),
+                                                                   nodes.mass()[j],
+                                                                   nodes.massDensity()[j],
+                                                                   nodes.specificThermalEnergy()[j],
+                                                                   abs(nodes.velocity()[j].magnitude()),
+                                                                   hydro.maxViscousPressure()[0][j]))
+    f.close()
+

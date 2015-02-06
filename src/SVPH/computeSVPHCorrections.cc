@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Modified ideas from CSPH using the SVPH normalized kernel estimates.
+// Modified ideas from CRKSPH using the SVPH normalized kernel estimates.
 //------------------------------------------------------------------------------
 #include "computeSVPHCorrections.hh"
 #include "Field/Field.hh"

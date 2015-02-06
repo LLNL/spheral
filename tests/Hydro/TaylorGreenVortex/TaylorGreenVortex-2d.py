@@ -30,9 +30,9 @@ commandLine(
 
     # Hydro
     SVPH = False,
-    CSPH = False,
+    CRKSPH = False,
     ASPH = False,
-    filter = 0.01,  # For CSPH
+    filter = 0.01,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     linearConsistent = False,
@@ -85,11 +85,11 @@ if SVPH:
         HydroConstructor = ASVPHFacetedHydro
     else:
         HydroConstructor = SVPHFacetedHydro
-elif CSPH:
+elif CRKSPH:
     if ASPH:
-        HydroConstructor = ACSPHHydro
+        HydroConstructor = ACRKSPHHydro
     else:
-        HydroConstructor = CSPHHydro
+        HydroConstructor = CRKSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -252,7 +252,7 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(0.0, 0.0),
                              xmax = Vector(1.0, 1.0))
-elif CSPH:
+elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
                              cfl = cfl,

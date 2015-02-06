@@ -33,12 +33,12 @@ class ArtificialViscosity:
             exec('''
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
-self.CSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
+self.CRKSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CRKSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
 self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
-self.TensorCSPHViscosity%(dim)id = addObject(space, "TensorCSPHViscosity%(dim)id", allow_subclassing=True, parent=self.TensorMonaghanGingoldViscosity%(dim)id)
+self.TensorCRKSPHViscosity%(dim)id = addObject(space, "TensorCRKSPHViscosity%(dim)id", allow_subclassing=True, parent=self.TensorMonaghanGingoldViscosity%(dim)id)
 self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 ''' % {"dim" : dim})
         return
@@ -51,12 +51,12 @@ self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id",
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
-self.addCSPHMonaghanGingoldViscosityMethods(self.CSPHMonaghanGingoldViscosity%(dim)id, %(dim)i)
+self.addCRKSPHMonaghanGingoldViscosityMethods(self.CRKSPHMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
-self.addTensorCSPHViscosityMethods(self.TensorCSPHViscosity%(dim)id, %(dim)i)
+self.addTensorCRKSPHViscosityMethods(self.TensorCRKSPHViscosity%(dim)id, %(dim)i)
 self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
         return
@@ -175,9 +175,9 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         return
     
     #---------------------------------------------------------------------------
-    # Add methods to the CSPHMonaghanGingoldViscosity.
+    # Add methods to the CRKSPHMonaghanGingoldViscosity.
     #---------------------------------------------------------------------------
-    def addCSPHMonaghanGingoldViscosityMethods(self, x, ndim):
+    def addCRKSPHMonaghanGingoldViscosityMethods(self, x, ndim):
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
@@ -282,11 +282,11 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         return
 
     #---------------------------------------------------------------------------
-    # Add methods to the TensorCSPHViscosity.
+    # Add methods to the TensorCRKSPHViscosity.
     #---------------------------------------------------------------------------
-    def addTensorCSPHViscosityMethods(self, x, ndim):
+    def addTensorCRKSPHViscosityMethods(self, x, ndim):
 
-        me = "Spheral::ArtificialViscositySpace::TensorCSPHViscosity%id" % ndim
+        me = "Spheral::ArtificialViscositySpace::TensorCRKSPHViscosity%id" % ndim
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
