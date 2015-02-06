@@ -1,9 +1,9 @@
 #-------------------------------------------------------------------------------
-# A mock physics package to mess around with the CSPH corrections.
+# A mock physics package to mess around with the CRKSPH corrections.
 #-------------------------------------------------------------------------------
 from Spheral1d import *
 
-class CSPH_mod_package(Physics):
+class CRKSPH_mod_package(Physics):
 
     def __init__(self):
         Physics.__init__(self)
@@ -22,14 +22,14 @@ class CSPH_mod_package(Physics):
         return
 
     def label(self):
-        return "CSPH_mod_package"
+        return "CRKSPH_mod_package"
 
     def initialize(self, t, dt, db, state, derivs):
 
-        # Grab the CSPH arrays.
-        A0_fl = state.scalarFields(HydroFieldNames.A0_CSPH)
-        A_fl = state.scalarFields(HydroFieldNames.A_CSPH)
-        B_fl = state.vectorFields(HydroFieldNames.B_CSPH)
+        # Grab the CRKSPH arrays.
+        A0_fl = state.scalarFields(HydroFieldNames.A0_CRKSPH)
+        A_fl = state.scalarFields(HydroFieldNames.A_CRKSPH)
+        B_fl = state.vectorFields(HydroFieldNames.B_CRKSPH)
 
         A0 = A0_fl[0]
         A = A_fl[0]

@@ -45,7 +45,7 @@ from SpheralModules.Spheral.PhysicsSpace import *
 from SpheralModules.Spheral.GravitySpace import *
 from SpheralModules.Spheral.IntegratorSpace import *
 from SpheralModules.Spheral.SPHSpace import *
-from SpheralModules.Spheral.CSPHSpace import *
+from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.MeshSpace import *
@@ -63,11 +63,11 @@ from FluidNodeLists import *
 from VoidNodeLists import *
 
 # ------------------------------------------------------------------------------
-# Import SPH, SVPH, and CSPH
+# Import SPH, SVPH, and CRKSPH
 # ------------------------------------------------------------------------------
 from SPHHydros import *
 from SVPHHydros import *
-from CSPHHydros import *
+from CRKSPHHydros import *
 from TaylorSPHHydros import *
 from SPHUtilities import *
 

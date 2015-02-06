@@ -153,7 +153,7 @@ AC_OUTPUT(helpers/makefile_master \
           NodeGenerators/makefile \
           SimulationControl/makefile \
           SPH/makefile \
-          CSPH/makefile \
+          CRKSPH/makefile \
           SVPH/makefile \
           TaylorSPH/makefile \
           Mesh/makefile \

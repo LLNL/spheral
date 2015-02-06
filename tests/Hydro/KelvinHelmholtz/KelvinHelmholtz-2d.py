@@ -45,11 +45,11 @@ commandLine(nx1 = 100,
             nPerh = 1.51,
 
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CSPH for instance.
-            filter = 0.0,   # CSPH filtering
-            momentumConserving = True, # For CSPH
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            filter = 0.0,   # CRKSPH filtering
+            momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -119,11 +119,11 @@ if SVPH:
         HydroConstructor = ASVPHFacetedHydro
     else:
         HydroConstructor = SVPHFacetedHydro
-elif CSPH:
+elif CRKSPH:
     if ASPH:
-        HydroConstructor = ACSPHHydro
+        HydroConstructor = ACRKSPHHydro
     else:
-        HydroConstructor = CSPHHydro
+        HydroConstructor = CRKSPHHydro
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -313,7 +313,7 @@ if SVPH:
                              xmax = Vector(3.0, 3.0))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
-elif CSPH:
+elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
                              cfl = cfl,

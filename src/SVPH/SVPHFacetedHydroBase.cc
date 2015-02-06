@@ -248,9 +248,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CSPH);
-  // dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CSPH);
-  // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CSPH);
+  // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), HydroFieldNames::A_CRKSPH);
+  // dataBase.resizeFluidFieldList(mB, vector<Vector>(), HydroFieldNames::B_CRKSPH);
+  // dataBase.resizeFluidFieldList(mGradB, vector<Tensor>(), HydroFieldNames::gradB_CRKSPH);
   dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);

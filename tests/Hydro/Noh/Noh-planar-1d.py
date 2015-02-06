@@ -36,7 +36,7 @@ commandLine(KernelConstructor = BSplineKernel,
             mu = 1.0,
 
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             #Qconstructor = MonaghanGingoldViscosity,
             Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -63,7 +63,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
-            momentumConserving = True, # For CSPH
+            momentumConserving = True, # For CRKSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -132,10 +132,10 @@ restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 dx = (x1 - x0)/nx1
 
 #-------------------------------------------------------------------------------
-# CSPH Switches to ensure consistency
+# CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
-if CSPH:
-    Qconstructor = CSPHMonaghanGingoldViscosity
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -232,8 +232,8 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
-elif CSPH:
-    hydro = CSPHHydro(WT, WTPi, q,
+elif CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, q,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
@@ -525,7 +525,7 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/noh-planar-1d-CSPH-" + str(CSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
+    f = open(dataDir + "/noh-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
     f.write("i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],

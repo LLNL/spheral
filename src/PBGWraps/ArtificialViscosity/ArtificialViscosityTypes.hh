@@ -4,12 +4,12 @@
 #include "Geometry/Dimension.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
-#include "ArtificialViscosity/CSPHMonaghanGingoldViscosity.hh"
+#include "ArtificialViscosity/CRKSPHMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/MorrisMonaghanReducingViscosity.hh"
 #include "ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/FiniteVolumeViscosity.hh"
 #include "ArtificialViscosity/TensorSVPHViscosity.hh"
-#include "ArtificialViscosity/TensorCSPHViscosity.hh"
+#include "ArtificialViscosity/TensorCRKSPHViscosity.hh"
 #include "ArtificialViscosity/VonNeumanViscosity.hh"
 
 namespace Spheral {
@@ -26,9 +26,9 @@ typedef MonaghanGingoldViscosity<Dim<1> > MonaghanGingoldViscosity1d;
 typedef MonaghanGingoldViscosity<Dim<2> > MonaghanGingoldViscosity2d;
 typedef MonaghanGingoldViscosity<Dim<3> > MonaghanGingoldViscosity3d;
     
-typedef CSPHMonaghanGingoldViscosity<Dim<1> > CSPHMonaghanGingoldViscosity1d;
-typedef CSPHMonaghanGingoldViscosity<Dim<2> > CSPHMonaghanGingoldViscosity2d;
-typedef CSPHMonaghanGingoldViscosity<Dim<3> > CSPHMonaghanGingoldViscosity3d;
+typedef CRKSPHMonaghanGingoldViscosity<Dim<1> > CRKSPHMonaghanGingoldViscosity1d;
+typedef CRKSPHMonaghanGingoldViscosity<Dim<2> > CRKSPHMonaghanGingoldViscosity2d;
+typedef CRKSPHMonaghanGingoldViscosity<Dim<3> > CRKSPHMonaghanGingoldViscosity3d;
     
 typedef MorrisMonaghanReducingViscosity<Dim<1> > MorrisMonaghanReducingViscosity1d;
 typedef MorrisMonaghanReducingViscosity<Dim<2> > MorrisMonaghanReducingViscosity2d;
@@ -46,9 +46,9 @@ typedef TensorSVPHViscosity<Dim<1> > TensorSVPHViscosity1d;
 typedef TensorSVPHViscosity<Dim<2> > TensorSVPHViscosity2d;
 typedef TensorSVPHViscosity<Dim<3> > TensorSVPHViscosity3d;
 
-typedef TensorCSPHViscosity<Dim<1> > TensorCSPHViscosity1d;
-typedef TensorCSPHViscosity<Dim<2> > TensorCSPHViscosity2d;
-typedef TensorCSPHViscosity<Dim<3> > TensorCSPHViscosity3d;
+typedef TensorCRKSPHViscosity<Dim<1> > TensorCRKSPHViscosity1d;
+typedef TensorCRKSPHViscosity<Dim<2> > TensorCRKSPHViscosity2d;
+typedef TensorCRKSPHViscosity<Dim<3> > TensorCRKSPHViscosity3d;
 
 typedef VonNeumanViscosity<Dim<1> > VonNeumanViscosity1d;
 typedef VonNeumanViscosity<Dim<2> > VonNeumanViscosity2d;

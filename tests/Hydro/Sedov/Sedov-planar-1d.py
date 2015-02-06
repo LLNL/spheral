@@ -29,9 +29,9 @@ commandLine(nx1 = 101,
             Cq = 0.75,
             epsilon2 = 1e-2,
             
-            CSPH = False,
+            CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
-            momentumConserving = True, # For CSPH
+            momentumConserving = True, # For CRKSPH
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
@@ -76,10 +76,10 @@ dx = (x1 - x0)/nx1
 H1 = SymTensor(1.0/(nPerh*dx))
 
 #-------------------------------------------------------------------------------
-# CSPH Switches to ensure consistency
+# CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
-if CSPH:
-    Qconstructor = CSPHMonaghanGingoldViscosity
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -187,8 +187,8 @@ output("qMG.epsilon2")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if CSPH:
-    hydro = CSPHHydro(WT, WTPi, qMG,
+if CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, qMG,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
@@ -323,7 +323,7 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/sedov-planar-1d-CSPH-" + str(CSPH) + ".ascii",'w')
+    f = open(dataDir + "/sedov-planar-1d-CRKSPH-" + str(CRKSPH) + ".ascii",'w')
     f.write("i x m rho u v rhoans uans vans\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],

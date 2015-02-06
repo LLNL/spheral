@@ -10,7 +10,7 @@
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FieldOperations/FieldListFunctions.hh"
-#include "CSPH/gradientCSPH.hh"
+#include "CRKSPH/gradientCRKSPH.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
@@ -30,7 +30,7 @@ using NodeSpace::FluidNodeList;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
     
-using CSPHSpace::gradientCSPH;
+using CRKSPHSpace::gradientCRKSPH;
 using FieldSpace::gradient;
 
 //------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     
     const TableKernel<Dimension>& W = mKernel;
     
-    bool CSPHisOn = 0;
+    bool CRKSPHisOn = 0;
     
     // The connectivity map
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -141,17 +141,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     CHECK(DepsDt.size() == numNodeLists);
     CHECK(gradP.size() == numNodeLists);
     
-    // Now check if CSPH is active
-    if (state.registered(HydroFieldNames::A_CSPH))
+    // Now check if CRKSPH is active
+    if (state.registered(HydroFieldNames::A_CRKSPH))
     {
-        CSPHisOn = 1;
-        const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-        const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-        const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-        const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-        const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CSPH, Vector::zero);
-        const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-        const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+        CRKSPHisOn = 1;
+        const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+        const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+        const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
+        const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
+        const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
+        const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+        const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
         CHECK(A.size() == numNodeLists);
         CHECK(B.size() == numNodeLists);
         CHECK(C.size() == numNodeLists);
@@ -160,7 +160,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
         
-        gradP = gradientCSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
     }
     else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     

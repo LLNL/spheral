@@ -8,7 +8,7 @@
 #include "Field/FieldList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Boundary/Boundary.hh"
-#include "CSPH/gradientCSPH.hh"
+#include "CRKSPH/gradientCRKSPH.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FileIO/FileIO.hh"
 
@@ -58,7 +58,7 @@ initialize(const DataBase<Dimension>& dataBase,
 
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
-  // Make sure the CSPH corrections have had boundaries completed.
+  // Make sure the CRKSPH corrections have had boundaries completed.
   for (ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr != boundaryEnd;
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
@@ -78,16 +78,16 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CSPH, 0.0);
-  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CSPH, Vector::zero);
-  const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
-  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CSPH, Vector::zero);
-  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CSPH, Tensor::zero);
+  const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
+  const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
   // Get the fluid velocity gradient.
-  const FieldList<Dimension, Tensor> velocityGradient = CSPHSpace::gradientCSPH(velocity,
+  const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
                                                                                 position,
                                                                                 vol,
                                                                                 H,
