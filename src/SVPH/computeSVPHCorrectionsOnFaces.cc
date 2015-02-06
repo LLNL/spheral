@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Modified ideas from CSPH using the SVPH normalized kernel estimates.
+// Modified ideas from CRKSPH using the SVPH normalized kernel estimates.
 // This version computes the corrections on the faces of a mesh, rather than on
 // the points themselves.
 //------------------------------------------------------------------------------

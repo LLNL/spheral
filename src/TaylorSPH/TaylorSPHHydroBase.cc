@@ -133,7 +133,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
 
-  mD = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::D_CSPH);
+  mD = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::D_CRKSPH);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -155,7 +155,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.resizeFluidFieldList(mD, Tensor::zero, HydroFieldNames::D_CSPH);
+  dataBase.resizeFluidFieldList(mD, Tensor::zero, HydroFieldNames::D_CRKSPH);
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
@@ -314,7 +314,7 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> weight = mass/rho;
-  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
   computeTaylorSPHCorrections(connectivityMap, W, weight, position, H, D);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -373,7 +373,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -767,7 +767,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy0;
   if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
 
-  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CSPH, Tensor::zero);
+  FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -841,7 +841,7 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mD, pathName + "D_CSPH");
+  file.write(mD, pathName + "D_CRKSPH");
 }
 
 //------------------------------------------------------------------------------
@@ -869,7 +869,7 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.read(mD, pathName + "D_CSPH");
+  file.read(mD, pathName + "D_CRKSPH");
 }
 
 }

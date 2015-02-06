@@ -116,7 +116,7 @@ public:
   // Last gradient of the mass density.
   const FieldSpace::FieldList<Dimension, Vector>& gradRho() const;
 
-  // CSPH correction fields.
+  // CRKSPH correction fields.
   const FieldSpace::FieldList<Dimension, Scalar>& A() const;
   const FieldSpace::FieldList<Dimension, Vector>& B() const;
   const FieldSpace::FieldList<Dimension, Vector>& C() const;

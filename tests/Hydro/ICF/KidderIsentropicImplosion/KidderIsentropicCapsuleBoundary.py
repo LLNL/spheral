@@ -40,12 +40,12 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
                                  HydroFieldNames.positionWeight : self.positionWeightBoundary,
                                  HydroFieldNames.omegaGradh : self.omegaBoundary,
                                  HydroFieldNames.specificThermalEnergy + "0" : self.noopBoundary,
-                                 HydroFieldNames.A_CSPH : self.noopBoundary,
-                                 HydroFieldNames.B_CSPH : self.noopBoundary,
-                                 HydroFieldNames.C_CSPH : self.noopBoundary,
-                                 HydroFieldNames.D_CSPH : self.noopBoundary,
-                                 HydroFieldNames.gradA_CSPH : self.noopBoundary,
-                                 HydroFieldNames.gradB_CSPH : self.noopBoundary,
+                                 HydroFieldNames.A_CRKSPH : self.noopBoundary,
+                                 HydroFieldNames.B_CRKSPH : self.noopBoundary,
+                                 HydroFieldNames.C_CRKSPH : self.noopBoundary,
+                                 HydroFieldNames.D_CRKSPH : self.noopBoundary,
+                                 HydroFieldNames.gradA_CRKSPH : self.noopBoundary,
+                                 HydroFieldNames.gradB_CRKSPH : self.noopBoundary,
                                  }
 
         return

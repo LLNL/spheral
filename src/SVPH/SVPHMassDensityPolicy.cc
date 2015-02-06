@@ -27,7 +27,7 @@ SVPHMassDensityPolicy<Dimension>::
 SVPHMassDensityPolicy(const Scalar& rhoMin,
                       const Scalar& rhoMax):
   UpdatePolicyBase<Dimension>(HydroFieldNames::mass,
-                              HydroFieldNames::A_CSPH),
+                              HydroFieldNames::A_CRKSPH),
   mRhoMin(rhoMin),
   mRhoMax(rhoMax) {
 }
@@ -56,7 +56,7 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   CHECK(fieldKey == HydroFieldNames::massDensity);
-  const KeyType Akey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::A_CSPH, nodeListKey);
+  const KeyType Akey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::A_CRKSPH, nodeListKey);
   const KeyType massKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::mass, nodeListKey);
 
   Field<Dimension, Scalar>& rho = state.field(key, 0.0);

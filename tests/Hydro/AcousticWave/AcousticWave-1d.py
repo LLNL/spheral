@@ -11,7 +11,7 @@ import mpi
 import numpy as np
 #import matplotlib.pyplot as plt
 
-from CSPH_mod_package import *
+from CRKSPH_mod_package import *
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
@@ -64,7 +64,7 @@ commandLine(nx1 = 100,
             filter = 0.0,
 
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             TSPH = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
@@ -212,15 +212,15 @@ if SVPH:
                              HUpdate = HEvolution,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
-elif CSPH:
-    hydro = CSPHHydro(WT, WTPi, q,
+elif CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, q,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
                       HUpdate = HEvolution)
-    CSPH_mod = CSPH_mod_package()
+    CRKSPH_mod = CRKSPH_mod_package()
 
 elif TSPH:
     hydro = TaylorSPHHydro(WT, q,
@@ -253,8 +253,8 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 integrator.appendPhysicsPackage(hydro)
-#if CSPH:
-#   integrator.appendPhysicsPackage(CSPH_mod)
+#if CRKSPH:
+#   integrator.appendPhysicsPackage(CRKSPH_mod)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
@@ -333,7 +333,7 @@ if graphics == "gnu":
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
                                 colorNodeLists = False)
-    elif CSPH:
+    elif CRKSPH:
         A0=hydro.A0()
 	print("ARRAY LENGTH:")
         print(A0[0].__len__())

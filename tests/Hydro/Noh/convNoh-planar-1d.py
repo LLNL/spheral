@@ -36,7 +36,7 @@ commandLine(KernelConstructor = BSplineKernel,
             mu = 1.0,
 
             SVPH = False,
-            CSPH = False,
+            CRKSPH = False,
             #Qconstructor = MonaghanGingoldViscosity,
             Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -63,7 +63,7 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
-            momentumConserving = True, # For CSPH
+            momentumConserving = True, # For CRKSPH
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -132,10 +132,10 @@ restartBaseName = os.path.join(restartDir, "Noh-planar-1d")
 #dx = (x1 - x0)/nx1
 
 #-------------------------------------------------------------------------------
-# CSPH Switches to ensure consistency
+# CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
-if CSPH:
-    Qconstructor = CSPHMonaghanGingoldViscosity
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 
 #-------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Create the file we're going to record the error norms in.
 #-------------------------------------------------------------------------------
-pnormFileName = "Noh-planar-convergence-test-nperh=%4.2f-CSPH-%s.csv" % (nPerh, CSPH)
+pnormFileName = "Noh-planar-convergence-test-nperh=%4.2f-CRKSPH-%s.csv" % (nPerh, CRKSPH)
 if mpi.rank == 0:
     resultFile = open(pnormFileName, "w")
     resultFile.write("N,rhoL1,PrL1,vL1,eL1,rhoL2,PrL2,vL2,eL2,rhoLi,PrLi,vLi,eLi\n")
@@ -250,8 +250,8 @@ for nx1 in nxlist:
                                  fcellPressure = fcellPressure,
                                  xmin = Vector(-100.0),
                                  xmax = Vector( 100.0))
-    elif CSPH:
-        hydro = CSPHHydro(WT, WTPi, q,
+    elif CRKSPH:
+        hydro = CRKSPHHydro(WT, WTPi, q,
                           filter = filter,
                           cfl = cfl,
                           compatibleEnergyEvolution = compatibleEnergy,

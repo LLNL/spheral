@@ -1,6 +1,6 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the SVPH corrections.
-// Based on the reproducing kernel ideas, similar to CSPH.
+// Based on the reproducing kernel ideas, similar to CRKSPH.
 //------------------------------------------------------------------------------
 #ifndef __Spheral__computeSVPHCorrections__
 #define __Spheral__computeSVPHCorrections__

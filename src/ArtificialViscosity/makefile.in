@@ -15,9 +15,9 @@ SRCTARGETS = \
 	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc \
 	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc \
 	$(srcdir)/FiniteVolumeViscosityInst.cc \
-	$(srcdir)/CSPHMonaghanGingoldViscosityInst.cc \
+	$(srcdir)/CRKSPHMonaghanGingoldViscosityInst.cc \
 	$(srcdir)/TensorSVPHViscosityInst.cc \
-	$(srcdir)/TensorCSPHViscosityInst.cc \
+	$(srcdir)/TensorCRKSPHViscosityInst.cc \
 	$(srcdir)/VonNeumanViscosityInst.cc
 
 #-------------------------------------------------------------------------------
