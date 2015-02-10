@@ -188,6 +188,12 @@ public:
 
   // These methods are useful for the primitive types that are problematic
   // to return by reference from python.
+  virtual void write_unsigned_int(const unsigned value, const std::string pathName) { this->write(value, pathName); }
+  virtual void write_int(const int value, const std::string pathName)               { this->write(value, pathName); }
+  virtual void write_bool(const bool value, const std::string pathName)             { this->write(value, pathName); }
+  virtual void write_double(const double value, const std::string pathName)         { this->write(value, pathName); }
+  virtual void write_string(const std::string value, const std::string pathName)    { this->write(value, pathName); }
+
   virtual unsigned read_unsigned_int(const std::string pathName) const { unsigned result;    this->read(result, pathName); return result; }
   virtual int read_int(const std::string pathName) const               { int result;         this->read(result, pathName); return result; }
   virtual bool read_bool(const std::string pathName) const             { bool result;        this->read(result, pathName); return result; }

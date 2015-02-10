@@ -33,12 +33,6 @@ public:
   virtual ~PyFileIO();
 
   // Descendent python objects should provide these write methods.
-  virtual void write_unsigned_int(const unsigned value, const std::string pathName) = 0;
-  virtual void write_int(const int value, const std::string pathName) = 0;
-  virtual void write_bool(const bool value, const std::string pathName) = 0;
-  virtual void write_double(const double value, const std::string pathName) = 0;
-  virtual void write_string(const std::string value, const std::string pathName) = 0;
-
   virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName) = 0;
   virtual void write_SymTensor1d(const Dim<1>::SymTensor& value, const std::string pathName) = 0;
