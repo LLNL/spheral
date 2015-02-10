@@ -128,7 +128,7 @@ SiloFileIO::write(const string value, const string pathName) {
   const string varname = this->setDir(pathName);
   const char* cvalue = value.c_str();
   int dims[1] = {strlen(cvalue)};
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &cvalue, dims, 1, DB_CHAR) == 0,
+  VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
 }
 
@@ -280,9 +280,8 @@ SiloFileIO::read(unsigned& value, const string pathName) const {
 void
 SiloFileIO::read(int& value, const string pathName) const {
   const string varname = this->setDir(pathName);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value) == 0,
+  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), (void*) &value) == 0,
           "SiloFileIO ERROR: unable to read variable " << pathName);
-  cerr << "SiloFileIO read int : " << value << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -467,21 +466,30 @@ SiloFileIO::write(const vector<double>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<string>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
   const unsigned n = value.size();
-  int dims[n];
-  char* cvalue[n];
+  vector<int> dim_stuff(n);
+  string stuff;
   for (unsigned i = 0; i != n; ++i) {
-    dims[i] = value[i].size() + 1;
-    CHECK(strlen(value[i].c_str()) == dims[i]);
-    cvalue[i] = new char[dims[i]];
-    strcpy(cvalue[i], value[i].c_str());
+    dim_stuff[i] = value[i].size();
+    stuff += value[i];
   }
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
-  for (unsigned i = 0; i != n; ++i) {
-    delete cvalue[i];
-  }
+  this->write(dim_stuff, pathName + "/dim_stuff");
+  this->write(stuff, pathName + "/stuff");
+
+  // const string varname = this->setDir(pathName);
+  // int dims[n];
+  // char* cvalue[n];
+  // for (unsigned i = 0; i != n; ++i) {
+  //   dims[i] = value[i].size() + 1;
+  //   CHECK2(strlen(value[i].c_str()) == dims[i]-1, i << " " << value[i] << " " << strlen(value[i].c_str()) << " " << dims[i]);
+  //   cvalue[i] = new char[dims[i]];
+  //   strcpy(cvalue[i], value[i].c_str());
+  // }
+  // VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
+  //         "SiloFileIO ERROR: unable to write variable " << pathName);
+  // for (unsigned i = 0; i != n; ++i) {
+  //   delete cvalue[i];
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -683,19 +691,32 @@ SiloFileIO::read(vector<double>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<string>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  char** cvalue = (char**) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
+  vector<int> dim_stuff;
+  string stuff;
+  this->read(dim_stuff, pathName + "/dim_stuff");
+  this->read(stuff, pathName + "/stuff");
+  const unsigned n = dim_stuff.size();
   value = vector<string>(n);
-  for (unsigned i = 0; i != n; ++i) {
-    value[i] = string(cvalue[i]);
+  unsigned i = 0, j;
+  for (unsigned k = 0; k != n; ++k) {
+    j = i + dim_stuff[k];
+    value[k] = stuff.substr(i,j);
+    i = j;
   }
-  for (unsigned i = 0; i != n; ++i) {
-    delete cvalue[i];
-  }
-  delete[] cvalue;
+
+  // const string varname = this->setDir(pathName);
+  // const int n = DBGetVarLength(mFilePtr, varname.c_str());
+  // VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
+  // char** cvalue = (char**) DBGetVar(mFilePtr, varname.c_str());
+  // VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
+  // value = vector<string>(n);
+  // for (unsigned i = 0; i != n; ++i) {
+  //   value[i] = string(cvalue[i]);
+  // }
+  // for (unsigned i = 0; i != n; ++i) {
+  //   delete cvalue[i];
+  // }
+  // delete[] cvalue;
 }
 
 //------------------------------------------------------------------------------
@@ -1314,7 +1335,7 @@ SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
 string 
 SiloFileIO::setDir(const string& pathName) {
   REQUIRE(mFileOpen and mFilePtr != 0);
-  const unsigned i = pathName.find_last_of("/\\");
+  const unsigned i = pathName.find_last_of("/");
 
   // If there is no absolute path specified, we just go with the cwd.
   if (i >= pathName.size()) {
@@ -1322,10 +1343,29 @@ SiloFileIO::setDir(const string& pathName) {
   }
 
   // Otherwise set the path and return just the variable name.
-  const string dirName = pathName.substr(0,i);
-  const string varName = pathName.substr(i+1);
-  VERIFY2(DBMkDir(mFilePtr, dirName.c_str()) == 0,
-          "SiloFileIO ERROR: unable to create path " << dirName);
+  const string dirName = pathName.substr(0, i);
+  const string varName = pathName.substr(i+1, pathName.size());
+
+  // We have to make the directories one at a time, so progressively split
+  // the path.
+  if (dirName.size() > 0) {
+    unsigned pos0 = 0, pos1 = dirName.find_first_of("/");
+    while (pos1 < dirName.size()) {
+      const string partialdir = dirName.substr(0,pos1);
+      VERIFY2(DBMkDir(mFilePtr, partialdir.c_str()) == 0,
+              "SiloFileIO ERROR: unable to create path " << partialdir);
+      pos0 = pos1 + 1;
+      pos1 = dirName.substr(pos0, dirName.size()).find_first_of("/");
+      if (pos1 < dirName.size()) {
+        pos1 += pos0;
+      } else {
+        pos1 = dirName.size();
+      }
+    }
+    VERIFY2(DBMkDir(mFilePtr, dirName.c_str()) == 0,
+            "SiloFileIO ERROR: unable to create path " << dirName);
+  }
+
   VERIFY2(DBSetDir(mFilePtr, dirName.c_str()) == 0,
           "SiloFileIO ERROR: unable to change to path " << dirName);
   return varName;
@@ -1335,7 +1375,7 @@ SiloFileIO::setDir(const string& pathName) {
 string 
 SiloFileIO::setDir(const string& pathName) const {
   REQUIRE(mFileOpen and mFilePtr != 0);
-  const unsigned i = pathName.find_last_of("/\\");
+  const unsigned i = pathName.find_last_of("/");
 
   // If there is no absolute path specified, we just go with the cwd.
   if (i >= pathName.size()) {

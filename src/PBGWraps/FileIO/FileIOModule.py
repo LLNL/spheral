@@ -242,15 +242,21 @@ class FileIO:
     #---------------------------------------------------------------------------
     def _addFileIOReadWriteMethods(self, fio_obj, val, pureVirtual=True):
         if val in ["unsigned int", "int", "bool", "double", "std::string"]:
-            fio_obj.add_method("write", None, [param(val, "value"),
-                                               param("std::string", "pathName")],
+            valname = val.replace("std::", "").replace(" ", "_")
+            fio_obj.add_method("write_%s" % valname,
+                               None,
+                               [param(val, "value"), param("std::string", "pathName")],
                                is_virtual = True,
                                is_pure_virtual = pureVirtual)
-            fio_obj.add_method("read_%s" % val.replace("std::", "").replace(" ", "_"),
+            fio_obj.add_method("read_%s" % valname,
                                val,
                                [param("std::string", "pathName")],
                                is_const = True,
                                is_virtual = True)
+            fio_obj.add_method("write", None, [param(val, "value"),
+                                               param("std::string", "pathName")],
+                               is_virtual = True,
+                               is_pure_virtual = pureVirtual)
         else:
             fio_obj.add_method("write", None, [constrefparam(val, "value"),
                                                param("std::string", "pathName")],
@@ -269,20 +275,20 @@ class FileIO:
     #---------------------------------------------------------------------------
     def _addPyFileIOReadWriteMethods(self, pyfio_obj, val):
         stripval = val.split("::")[-1]
-        if val in ["unsigned int", "int", "bool", "double", "std::string"]:
-            pyfio_obj.add_method("write_%s" % stripval.replace(" ", "_"),
-                                 None,
-                                 [param(val, "value"), 
-                                  param("const std::string", "pathName")],
-                                 is_virtual = True,
-                                 is_pure_virtual = True)
+        if not val in ["unsigned int", "int", "bool", "double", "std::string"]:
+            # pyfio_obj.add_method("write_%s" % stripval.replace(" ", "_"),
+            #                      None,
+            #                      [param(val, "value"), 
+            #                       param("const std::string", "pathName")],
+            #                      is_virtual = True,
+            #                      is_pure_virtual = True)
             # pyfio_obj.add_method("read_%s" % stripval.replace(" ", "_"),
             #                      val,
             #                      [param("const std::string", "pathName")],
             #                      is_const = True,
             #                      is_virtual = True,
             #                      is_pure_virtual = True)
-        else:
+            # else:
             pyfio_obj.add_method("write_%s" % stripval,
                                  None,
                                  [constrefparam(val, "value"),
