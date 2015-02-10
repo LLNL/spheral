@@ -44,6 +44,7 @@ class FileIO:
         # Includes.
         mod.add_include('"%s/FileIO/FileIO.hh"' % topsrcdir)
         mod.add_include('"%s/FileIO/FlatFileIO.hh"' % topsrcdir)
+        mod.add_include('"%s/FileIO/SiloFileIO.hh"' % topsrcdir)
         mod.add_include('"%s/FileIO/PyFileIO.hh"' % topsrcdir)
         mod.add_include('"%s/FileIO/vectorstringUtilities.hh"' % topsrcdir)
 
@@ -54,6 +55,7 @@ class FileIO:
         # Expose types.
         self.FileIO = addObject(space, "FileIO", allow_subclassing=True)
         self.FlatFileIO = addObject(space, "FlatFileIO", parent=self.FileIO, allow_subclassing=True)
+        self.SiloFileIO = addObject(space, "SiloFileIO", parent=self.FileIO, allow_subclassing=True)
         self.PyFileIO = addObject(space, "PyFileIO", parent=self.FileIO, allow_subclassing=True)
         
         self.AccessType = space.add_enum("AccessType", 
@@ -74,6 +76,7 @@ class FileIO:
 
         self.addFileIOMethods()
         self.addFlatFileIOMethods()
+        self.addSiloFileIOMethods()
         self.addPyFileIOMethods()
 
         # Add the functions.
@@ -136,9 +139,8 @@ class FileIO:
         # Methods.
         x.add_method("open", None, [param("std::string", "name"),
                                     param("AccessType", "access")],
-                     is_virtual = True,
                      is_pure_virtual=True)
-        x.add_method("close", None, [], is_virtual=True, is_pure_virtual=True)
+        x.add_method("close", None, [], is_pure_virtual=True)
 
         # Add the standard read/write methods for the supported types.
         for val in self.FileIOTypes:
@@ -165,10 +167,14 @@ class FileIO:
         x.add_constructor([])
         x.add_constructor([param("std::string", "filename"),
                            param("AccessType", "access"),
-                           param("FlatFileFormat", "format", default_value="ascii")])
+                           param("FlatFileFormat", "format", default_value="Spheral::FileIOSpace::ascii")])
 
 
         # Methods.
+        x.add_method("open", None, [param("std::string", "name"),
+                                    param("AccessType", "access")],
+                     is_virtual=True)
+        x.add_method("close", None, [], is_virtual=True)
         x.add_method("findPathName", None, [constrefparam("std::string", "pathName")], is_const=True)
         x.add_method("beginningOfFile", None, [], is_const=True)
 
@@ -177,8 +183,36 @@ class FileIO:
         x.add_instance_attribute("readyToWrite", "bool", getter="readyToWrite", is_const=True)
         x.add_instance_attribute("readyToRead", "bool", getter="readyToRead", is_const=True)
 
+        # Add the standard read/write methods for the supported types.
+        for val in self.FileIOTypes:
+            self._addFileIOReadWriteMethods(x, val, False)
+
         return
 
+
+    #---------------------------------------------------------------------------
+    # Add SiloFileIO methods.
+    #---------------------------------------------------------------------------
+    def addSiloFileIOMethods(self):
+
+        x = self.SiloFileIO
+
+        # Constructors.
+        x.add_constructor([])
+        x.add_constructor([param("std::string", "filename"),
+                           param("AccessType", "access")])
+
+        # Methods.
+        x.add_method("open", None, [param("std::string", "name"),
+                                    param("AccessType", "access")],
+                     is_virtual=True)
+        x.add_method("close", None, [], is_virtual=True)
+
+        # Add the standard read/write methods for the supported types.
+        for val in self.FileIOTypes:
+            self._addFileIOReadWriteMethods(x, val, False)
+
+        return
 
     #---------------------------------------------------------------------------
     # Add PyFileIO methods.
@@ -212,6 +246,11 @@ class FileIO:
                                                param("std::string", "pathName")],
                                is_virtual = True,
                                is_pure_virtual = pureVirtual)
+            fio_obj.add_method("read_%s" % val.replace("std::", "").replace(" ", "_"),
+                               val,
+                               [param("std::string", "pathName")],
+                               is_const = True,
+                               is_virtual = True)
         else:
             fio_obj.add_method("write", None, [constrefparam(val, "value"),
                                                param("std::string", "pathName")],
@@ -237,12 +276,12 @@ class FileIO:
                                   param("const std::string", "pathName")],
                                  is_virtual = True,
                                  is_pure_virtual = True)
-            pyfio_obj.add_method("read_%s" % stripval.replace(" ", "_"),
-                                 val,
-                                 [param("const std::string", "pathName")],
-                                 is_const = True,
-                                 is_virtual = True,
-                                 is_pure_virtual = True)
+            # pyfio_obj.add_method("read_%s" % stripval.replace(" ", "_"),
+            #                      val,
+            #                      [param("const std::string", "pathName")],
+            #                      is_const = True,
+            #                      is_virtual = True,
+            #                      is_pure_virtual = True)
         else:
             pyfio_obj.add_method("write_%s" % stripval,
                                  None,

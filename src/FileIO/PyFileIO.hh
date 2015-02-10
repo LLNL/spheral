@@ -95,12 +95,6 @@ public:
   virtual void write_IntField3d(const FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) = 0;
 
   // Descendent python objects should provide these read methods.
-  virtual unsigned read_unsigned_int(const std::string pathName) const = 0;
-  virtual int read_int(const std::string pathName) const = 0;
-  virtual bool read_bool(const std::string pathName) const = 0;
-  virtual double read_double(const std::string pathName) const = 0;
-  virtual std::string read_string(const std::string pathName) const = 0;
-
   virtual void read_Vector1d(Dim<1>::Vector& value, const std::string pathName) const = 0;
   virtual void read_Tensor1d(Dim<1>::Tensor& value, const std::string pathName) const = 0;
   virtual void read_SymTensor1d(Dim<1>::SymTensor& value, const std::string pathName) const = 0;
