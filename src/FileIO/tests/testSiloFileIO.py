@@ -104,7 +104,7 @@ class FileIOTestBase:
                         "%s != %s in Vector1d test" % (str(x1), str(x0)))
         self.removeFile("TestVector1d")
         return
-  
+
     #---------------------------------------------------------------------------
     # Tensor1d
     #---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ class FileIOTestBase:
                         "%s != %s in Tensor1d test" % (str(x1), str(x0)))
         self.removeFile("TestTensor1d")
         return
-  
+
     #---------------------------------------------------------------------------
     # SymTensor1d
     #---------------------------------------------------------------------------
@@ -138,7 +138,7 @@ class FileIOTestBase:
                         "%s != %s in SymTensor1d test" % (str(x1), str(x0)))
         self.removeFile("TestSymTensor1d")
         return
-  
+
     #---------------------------------------------------------------------------
     # ThirdRankTensor1d
     #---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ class FileIOTestBase:
                         "%s != %s in ThirdRankTensor1d test" % (str(x1), str(x0)))
         self.removeFile("TestThirdRankTensor1d")
         return
-  
+
     #---------------------------------------------------------------------------
     # Vector2d
     #---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ class FileIOTestBase:
                         "%s != %s in Vector2d test" % (str(x1), str(x0)))
         self.removeFile("TestVector2d")
         return
-  
+
     #---------------------------------------------------------------------------
     # Tensor2d
     #---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ class FileIOTestBase:
                         "%s != %s in Tensor2d test" % (str(x1), str(x0)))
         self.removeFile("TestTensor2d")
         return
-  
+
     #---------------------------------------------------------------------------
     # SymTensor2d
     #---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ class FileIOTestBase:
                         "%s != %s in SymTensor2d test" % (str(x1), str(x0)))
         self.removeFile("TestSymTensor2d")
         return
-  
+
     #---------------------------------------------------------------------------
     # ThirdRankTensor2d
     #---------------------------------------------------------------------------
@@ -239,7 +239,7 @@ class FileIOTestBase:
                         "%s != %s in ThirdRankTensor2d test" % (str(x1), str(x0)))
         self.removeFile("TestThirdRankTensor2d")
         return
-  
+
     #---------------------------------------------------------------------------
     # Vector3d
     #---------------------------------------------------------------------------
@@ -258,7 +258,7 @@ class FileIOTestBase:
                         "%s != %s in Vector3d test" % (str(x1), str(x0)))
         self.removeFile("TestVector3d")
         return
-  
+
     #---------------------------------------------------------------------------
     # Tensor3d
     #---------------------------------------------------------------------------
@@ -283,7 +283,7 @@ class FileIOTestBase:
                         "%s != %s in Tensor3d test" % (str(x1), str(x0)))
         self.removeFile("TestTensor3d")
         return
-  
+
     #---------------------------------------------------------------------------
     # SymTensor3d
     #---------------------------------------------------------------------------
@@ -311,7 +311,7 @@ class FileIOTestBase:
                         "%s != %s in SymTensor3d test" % (str(x1), str(x0)))
         self.removeFile("TestSymTensor3d")
         return
-  
+
     #---------------------------------------------------------------------------
     # ThirdRankTensor3d
     #---------------------------------------------------------------------------
@@ -332,7 +332,7 @@ class FileIOTestBase:
                         "%s != %s in ThirdRankTensor3d test" % (str(x1), str(x0)))
         self.removeFile("TestThirdRankTensor3d")
         return
-  
+
     #---------------------------------------------------------------------------
     # vector<int>
     #---------------------------------------------------------------------------

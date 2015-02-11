@@ -1335,9 +1335,13 @@ SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
 string 
 SiloFileIO::setDir(const string& pathName) {
   REQUIRE(mFileOpen and mFilePtr != 0);
-  const unsigned i = pathName.find_last_of("/");
+
+  // We always start from the top.
+  VERIFY2(DBSetDir(mFilePtr, "/") == 0,
+          "SiloFileIO ERROR: unable to change to path /");
 
   // If there is no absolute path specified, we just go with the cwd.
+  const size_t i = pathName.find_last_of("/");
   if (i >= pathName.size()) {
     return pathName;
   }
@@ -1349,25 +1353,40 @@ SiloFileIO::setDir(const string& pathName) {
   // We have to make the directories one at a time, so progressively split
   // the path.
   if (dirName.size() > 0) {
-    unsigned pos0 = 0, pos1 = dirName.find_first_of("/");
-    while (pos1 < dirName.size()) {
-      const string partialdir = dirName.substr(0,pos1);
-      VERIFY2(DBMkDir(mFilePtr, partialdir.c_str()) == 0,
-              "SiloFileIO ERROR: unable to create path " << partialdir);
-      pos0 = pos1 + 1;
-      pos1 = dirName.substr(pos0, dirName.size()).find_first_of("/");
-      if (pos1 < dirName.size()) {
-        pos1 += pos0;
-      } else {
-        pos1 = dirName.size();
+    size_t pos0 = 0, pos1 = min(dirName.size(), dirName.find_first_of("/"));
+    bool done = false;
+    while (not done) {
+      done = (pos1 == dirName.size());
+      const string partialdir = dirName.substr(pos0, pos1-pos0);
+
+      // Check if this directory already exists or not.
+      DBtoc* toc = DBGetToc(mFilePtr);
+      bool exists = false;
+      size_t j = 0;
+      while (not exists and j != toc->ndir) {
+        exists = (partialdir == string(toc->dir_names[j]));
+        ++j;
+      }
+      if (not exists) {
+        VERIFY2(DBMkDir(mFilePtr, partialdir.c_str()) == 0,
+                "SiloFileIO ERROR: unable to create path " << partialdir);
+      }
+      VERIFY2(DBSetDir(mFilePtr, partialdir.c_str()) == 0,
+              "SiloFileIO ERROR: unable to change to path " << partialdir);
+
+      if (not done) {
+        pos0 = pos1 + 1;
+        const string tail = dirName.substr(pos0, dirName.size());
+        pos1 = tail.find_first_of("/");
+        if (pos1 >= tail.size()) {
+          pos1 = dirName.size();
+        } else {
+          pos1 += pos0;
+        }
       }
     }
-    VERIFY2(DBMkDir(mFilePtr, dirName.c_str()) == 0,
-            "SiloFileIO ERROR: unable to create path " << dirName);
   }
 
-  VERIFY2(DBSetDir(mFilePtr, dirName.c_str()) == 0,
-          "SiloFileIO ERROR: unable to change to path " << dirName);
   return varName;
 }
 
@@ -1375,9 +1394,13 @@ SiloFileIO::setDir(const string& pathName) {
 string 
 SiloFileIO::setDir(const string& pathName) const {
   REQUIRE(mFileOpen and mFilePtr != 0);
-  const unsigned i = pathName.find_last_of("/");
+
+  // We always start from the top.
+  VERIFY2(DBSetDir(mFilePtr, "/") == 0,
+          "SiloFileIO ERROR: unable to change to path /");
 
   // If there is no absolute path specified, we just go with the cwd.
+  const size_t i = pathName.find_last_of("/");
   if (i >= pathName.size()) {
     return pathName;
   }
