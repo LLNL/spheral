@@ -125,16 +125,15 @@ SiloFileIO::write(const double value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const string value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const char* cvalue;
   if (value.empty()) {
-    cvalue = "SILO FRICKIN CAN'T HANDLE EMTPY STRINGS";
+    this->write(1, pathName + "/empty");
   } else {
-    cvalue = value.c_str();
+    const string varname = this->setDir(pathName);
+    const char* cvalue = value.c_str();
+    int dims[1] = {strlen(cvalue)};
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
   }
-  int dims[1] = {strlen(cvalue)};
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -316,13 +315,17 @@ SiloFileIO::read(double& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(string& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL,
-          "SiloFileIO ERROR: unable to read variable " << pathName);
-  value = string(cvalue);
-  if (value == "SILO FRICKIN CANT HANDLE EMTPY STRINGS") value = "";
-  free(cvalue);
+  const string emptyPath = pathName + "/empty";
+  if (DBInqVarExists(mFilePtr, emptyPath.c_str()) != 0) {
+    value = "";
+  } else {
+    const string varname = this->setDir(pathName);
+    char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
+    VERIFY2(cvalue != NULL,
+            "SiloFileIO ERROR: unable to read variable " << pathName);
+    value = string(cvalue);
+    free(cvalue);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -703,11 +706,10 @@ SiloFileIO::read(vector<string>& value, const string pathName) const {
   this->read(stuff, pathName + "/stuff");
   const unsigned n = dim_stuff.size();
   value = vector<string>(n);
-  unsigned i = 0, j;
+  unsigned i = 0;
   for (unsigned k = 0; k != n; ++k) {
-    j = i + dim_stuff[k];
-    value[k] = stuff.substr(i,j);
-    i = j;
+    value[k] = stuff.substr(i, dim_stuff[k]);
+    i += dim_stuff[k];
   }
 
   // const string varname = this->setDir(pathName);
