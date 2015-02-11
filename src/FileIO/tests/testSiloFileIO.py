@@ -89,6 +89,22 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # empty string
+    #---------------------------------------------------------------------------
+    def testEmptyString(self):
+        x0 = ""
+        f = self.constructor("TestEmptyString", Write)
+        f.write_string(x0, "FileIOTestBase/TestEmptyString")
+        f.close()
+        f = self.constructor("TestEmptyString", Read)
+        x1 = f.read_string("FileIOTestBase/TestEmptyString")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in empty string test" % (x1, x0))
+        self.removeFile("TestEmptyString")
+        return
+
+    #---------------------------------------------------------------------------
     # Vector1d
     #---------------------------------------------------------------------------
     def testVector1d(self):
@@ -1229,7 +1245,7 @@ class FileIOTestBase:
 class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
 
     def setUp(self):
-        self.n = 2 # 1000
+        self.n = 10 # 1000
         self.intmin = -2**24
         self.intmax = 2**24
         self.doublemin = -1e50
