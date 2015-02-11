@@ -1193,15 +1193,15 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testWriteObjectString(self):
         x0 = "abcdefg"
-        f = self.constructor("TestString", Write)
-        f.writeObject(x0, "FileIOTestBase/TestString")
+        f = self.constructor("TestObject", Write)
+        f.writeObject(x0, "FileIOTestBase/TestObject")
         f.close()
-        f = self.constructor("TestString", Read)
-        x1 = f.readObject("FileIOTestBase/TestString")
+        f = self.constructor("TestObject", Read)
+        x1 = f.readObject("FileIOTestBase/TestObject")
         f.close()
         self.failUnless(x1 == x0,
                         "%s != %s in string OBJECT test" % (x1, x0))
-        self.removeFile("TestString")
+        self.removeFile("TestObject")
         return
 
     #---------------------------------------------------------------------------
