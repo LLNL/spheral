@@ -128,7 +128,7 @@ SiloFileIO::write(const string value, const string pathName) {
   const string varname = this->setDir(pathName);
   const char* cvalue;
   if (value.empty()) {
-    cvalue = "SILO FRICKIN CANT HANDLE EMTPY STRINGS";
+    cvalue = "SILO FRICKIN CAN'T HANDLE EMTPY STRINGS";
   } else {
     cvalue = value.c_str();
   }
