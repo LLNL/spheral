@@ -126,7 +126,12 @@ SiloFileIO::write(const double value, const string pathName) {
 void
 SiloFileIO::write(const string value, const string pathName) {
   const string varname = this->setDir(pathName);
-  const char* cvalue = value.c_str();
+  const char* cvalue;
+  if (value.empty()) {
+    cvalue = "SILO FRICKIN CANT HANDLE EMTPY STRINGS";
+  } else {
+    cvalue = value.c_str();
+  }
   int dims[1] = {strlen(cvalue)};
   VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
           "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -316,6 +321,7 @@ SiloFileIO::read(string& value, const string pathName) const {
   VERIFY2(cvalue != NULL,
           "SiloFileIO ERROR: unable to read variable " << pathName);
   value = string(cvalue);
+  if (value == "SILO FRICKIN CANT HANDLE EMTPY STRINGS") value = "";
   free(cvalue);
 }
 
