@@ -15,6 +15,7 @@ from SpheralModules.Spheral.KernelSpace import BSplineKernel1d, BSplineKernel2d,
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
 from SpheralModules.Spheral import BoundarySpace
 from SpheralModules.Spheral.FieldSpace import *
+from SpheralModules.Spheral.FileIOSpace import *
 from SpheralModules import vector_of_Physics1d, vector_of_Physics2d, vector_of_Physics3d
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
@@ -477,6 +478,8 @@ class SpheralController(RestartableObject):
         fileName = self.restartBaseName + "_cycle%i" % restoreCycle
         if self.restartFileConstructor is GzipFileIO:
             fileName += ".gz"
+        if self.restartFileConstructor is SiloFileIO:
+            fileName += ".silo"
         if not os.path.exists(fileName):
             raise RuntimeError("File %s does not exist or is inaccessible." %
                                fileName)
