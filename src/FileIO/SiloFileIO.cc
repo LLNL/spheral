@@ -139,12 +139,10 @@ SiloFileIO::write(const double value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const string value, const string pathName) {
-  if (value.empty()) {
-    this->write(1, pathName + "/empty");
-  } else {
-    const char* cvalue = value.c_str();
-    int dims[1] = {strlen(cvalue)};
-    this->write(dims[0], pathName + "/size");
+  const char* cvalue = value.c_str();
+  int dims[1] = {strlen(cvalue)};
+  this->write(dims[0], pathName + "/size");
+  if (dims[0] > 0) {
     const string varname = this->setDir(pathName + "/value");
     VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
             "SiloFileIO ERROR: unable to write variable " << pathName);
@@ -330,12 +328,11 @@ SiloFileIO::read(double& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(string& value, const string pathName) const {
-  const string emptyPath = pathName + "/empty";
-  if (DBInqVarExists(mFilePtr, emptyPath.c_str()) != 0) {
+  int valsize;
+  this->read(valsize, pathName + "/size");
+  if (valsize == 0) {
     value = "";
   } else {
-    int valsize;
-    this->read(valsize, pathName + "/size");
     const string varname = this->setDir(pathName + "/value");
     // char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
     // VERIFY2(cvalue != NULL,
