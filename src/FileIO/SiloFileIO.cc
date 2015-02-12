@@ -4,6 +4,7 @@
 // Created by JMO, Sat Feb  7 23:06:03 PST 2015
 //----------------------------------------------------------------------------//
 #include <algorithm>
+#include "boost/algorithm/string/replace.hpp"
 
 #include "SiloFileIO.hh"
 #include "Field/Field.hh"
@@ -13,6 +14,19 @@ namespace FileIOSpace {
 
 using namespace std;
 using FieldSpace::Field;
+
+namespace {
+//------------------------------------------------------------------------------
+// Empty constructor.
+//------------------------------------------------------------------------------
+string SILO_mangle(const string& x) {
+  string result = x;
+  boost::replace_all(result, " ", "_");
+  boost::replace_all(result, ".", "_p_");
+  boost::replace_all(result, ",", "_c_");
+  return result;
+}
+}
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -128,9 +142,10 @@ SiloFileIO::write(const string value, const string pathName) {
   if (value.empty()) {
     this->write(1, pathName + "/empty");
   } else {
-    const string varname = this->setDir(pathName);
     const char* cvalue = value.c_str();
     int dims[1] = {strlen(cvalue)};
+    this->write(dims[0], pathName + "/size");
+    const string varname = this->setDir(pathName + "/value");
     VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
             "SiloFileIO ERROR: unable to write variable " << pathName);
   }
@@ -319,12 +334,17 @@ SiloFileIO::read(string& value, const string pathName) const {
   if (DBInqVarExists(mFilePtr, emptyPath.c_str()) != 0) {
     value = "";
   } else {
-    const string varname = this->setDir(pathName);
-    char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
-    VERIFY2(cvalue != NULL,
-            "SiloFileIO ERROR: unable to read variable " << pathName);
+    int valsize;
+    this->read(valsize, pathName + "/size");
+    const string varname = this->setDir(pathName + "/value");
+    // char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
+    // VERIFY2(cvalue != NULL,
+    //         "SiloFileIO ERROR: unable to read variable " << pathName);
+    // free(cvalue);
+    char cvalue[valsize + 1];
+    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), cvalue) == 0,
+            "SiloFileIO ERROR: failed to read variable " << pathName);
     value = string(cvalue);
-    free(cvalue);
   }
 }
 
@@ -1341,8 +1361,10 @@ SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 // Non-const version creates directory.
 string 
-SiloFileIO::setDir(const string& pathName) {
+SiloFileIO::setDir(const string& ipathName) {
   REQUIRE(mFileOpen and mFilePtr != 0);
+
+  string pathName = SILO_mangle(ipathName);
 
   // We always start from the top.
   VERIFY2(DBSetDir(mFilePtr, "/") == 0,
@@ -1400,8 +1422,10 @@ SiloFileIO::setDir(const string& pathName) {
 
 // const version only changes directory.
 string 
-SiloFileIO::setDir(const string& pathName) const {
+SiloFileIO::setDir(const string& ipathName) const {
   REQUIRE(mFileOpen and mFilePtr != 0);
+
+  string pathName = SILO_mangle(ipathName);
 
   // We always start from the top.
   VERIFY2(DBSetDir(mFilePtr, "/") == 0,
