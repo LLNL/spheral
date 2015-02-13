@@ -1215,6 +1215,424 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # IntFieldList1d
+    #---------------------------------------------------------------------------
+    def testIntFieldList2d(self):
+        fl0 = IntFieldList2d()
+        fl0.copyFields()
+        fl0.appendNewField("int field 2d control", nodes2d, 0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.randint(self.intmin, self.intmax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestIntFieldList2d", Write)
+        f.write(fl0, "FileIOTestBase/IntFieldList2d")
+        f.close()
+        f = self.constructor("TestIntFieldList2d", Read)
+        fl = IntFieldList2d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/IntFieldList2d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%i != %i @ %i of %i in IntFieldList2d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        self.removeFile("TestIntFieldList2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # IntFieldList3d
+    #---------------------------------------------------------------------------
+    def testIntFieldList3d(self):
+        fl0 = IntFieldList3d()
+        fl0.copyFields()
+        fl0.appendNewField("int field 3d control", nodes3d, 0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.randint(self.intmin, self.intmax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestIntFieldList3d", Write)
+        f.write(fl0, "FileIOTestBase/IntFieldList3d")
+        f.close()
+        f = self.constructor("TestIntFieldList3d", Read)
+        fl = IntFieldList3d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/IntFieldList3d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%i != %i @ %i of %i in IntFieldList3d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        self.removeFile("TestIntFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
+    # ScalarFieldList1d
+    #---------------------------------------------------------------------------
+    def testScalarFieldList1d(self):
+        fl0 = ScalarFieldList1d()
+        fl0.copyFields()
+        fl0.appendNewField("scalar field 1d control", nodes1d, 0.0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestScalarFieldList1d", Write)
+        f.write(fl0, "FileIOTestBase/ScalarFieldList1d")
+        f.close()
+        f = self.constructor("TestScalarFieldList1d", Read)
+        fl = ScalarFieldList1d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/ScalarFieldList1d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%g != %g @ %i of %i in ScalarFieldList1d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        self.removeFile("TestScalarFieldList1d")
+        return
+
+    #---------------------------------------------------------------------------
+    # ScalarFieldList2d
+    #---------------------------------------------------------------------------
+    def testScalarFieldList2d(self):
+        fl0 = ScalarFieldList2d()
+        fl0.copyFields()
+        fl0.appendNewField("scalar field 2d control", nodes2d, 0.0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestScalarFieldList2d", Write)
+        f.write(fl0, "FileIOTestBase/ScalarFieldList2d")
+        f.close()
+        f = self.constructor("TestScalarFieldList2d", Read)
+        fl = ScalarFieldList2d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/ScalarFieldList2d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%g != %g @ %i of %i in ScalarFieldList2d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        self.removeFile("TestScalarFieldList2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # ScalarFieldList3d
+    #---------------------------------------------------------------------------
+    def testScalarFieldList3d(self):
+        fl0 = ScalarFieldList3d()
+        fl0.copyFields()
+        fl0.appendNewField("scalar field 3d control", nodes3d, 0.0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestScalarFieldList3d", Write)
+        f.write(fl0, "FileIOTestBase/ScalarFieldList3d")
+        f.close()
+        f = self.constructor("TestScalarFieldList3d", Read)
+        fl = ScalarFieldList3d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/ScalarFieldList3d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%g != %g @ %i of %i in ScalarFieldList3d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        self.removeFile("TestScalarFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
+    # VectorFieldList1d
+    #---------------------------------------------------------------------------
+    def testVectorFieldList1d(self):
+        fl0 = VectorFieldList1d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 1d control", nodes1d, Vector1d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Vector1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestVectorFieldList1d", Write)
+        f.write(fl0, "FileIOTestBase/VectorFieldList1d")
+        f.close()
+        f = self.constructor("TestVectorFieldList1d", Read)
+        fl = VectorFieldList1d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/VectorFieldList1d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl0[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in VectorFieldList1d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestVectorFieldList1d")
+        return
+
+    #---------------------------------------------------------------------------
+    # VectorFieldList2d
+    #---------------------------------------------------------------------------
+    def testVectorFieldList2d(self):
+        fl0 = VectorFieldList2d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 2d control", nodes2d, Vector2d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Vector2d(g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestVectorFieldList2d", Write)
+        f.write(fl0, "FileIOTestBase/VectorFieldList2d")
+        f.close()
+        f = self.constructor("TestVectorFieldList2d", Read)
+        fl = VectorFieldList2d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/VectorFieldList2d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in VectorFieldList2d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestVectorFieldList2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # VectorFieldList3d
+    #---------------------------------------------------------------------------
+    def testVectorFieldList3d(self):
+        fl0 = VectorFieldList3d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 3d control", nodes3d, Vector3d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Vector3d(g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestVectorFieldList3d", Write)
+        f.write(fl0, "FileIOTestBase/VectorFieldList3d")
+        f.close()
+        f = self.constructor("TestVectorFieldList3d", Read)
+        fl = VectorFieldList3d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/VectorFieldList3d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in VectorFieldList3d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestVectorFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
+    # TensorFieldList1d
+    #---------------------------------------------------------------------------
+    def testTensorFieldList1d(self):
+        fl0 = TensorFieldList1d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 1d control", nodes1d, Tensor1d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Tensor1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestTensorFieldList1d", Write)
+        f.write(fl0, "FileIOTestBase/TensorFieldList1d")
+        f.close()
+        f = self.constructor("TestTensorFieldList1d", Read)
+        fl = TensorFieldList1d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/TensorFieldList1d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl0[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in TensorFieldList1d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestTensorFieldList1d")
+        return
+
+    #---------------------------------------------------------------------------
+    # TensorFieldList2d
+    #---------------------------------------------------------------------------
+    def testTensorFieldList2d(self):
+        fl0 = TensorFieldList2d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 2d control", nodes2d, Tensor2d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Tensor2d(g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestTensorFieldList2d", Write)
+        f.write(fl0, "FileIOTestBase/TensorFieldList2d")
+        f.close()
+        f = self.constructor("TestTensorFieldList2d", Read)
+        fl = TensorFieldList2d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/TensorFieldList2d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in TensorFieldList2d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestTensorFieldList2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # TensorFieldList3d
+    #---------------------------------------------------------------------------
+    def testTensorFieldList3d(self):
+        fl0 = TensorFieldList3d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 3d control", nodes3d, Tensor3d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = Tensor3d(g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax),
+                                 g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestTensorFieldList3d", Write)
+        f.write(fl0, "FileIOTestBase/TensorFieldList3d")
+        f.close()
+        f = self.constructor("TestTensorFieldList3d", Read)
+        fl = TensorFieldList3d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/TensorFieldList3d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in TensorFieldList3d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestTensorFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
+    # SymTensorFieldList1d
+    #---------------------------------------------------------------------------
+    def testSymTensorFieldList1d(self):
+        fl0 = SymTensorFieldList1d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 1d control", nodes1d, SymTensor1d.zero)
+        for i in xrange(self.n):
+            fl0[0][i] = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestSymTensorFieldList1d", Write)
+        f.write(fl0, "FileIOTestBase/SymTensorFieldList1d")
+        f.close()
+        f = self.constructor("TestSymTensorFieldList1d", Read)
+        fl = SymTensorFieldList1d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/SymTensorFieldList1d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl0[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in SymTensorFieldList1d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestSymTensorFieldList1d")
+        return
+
+    #---------------------------------------------------------------------------
+    # SymTensorFieldList2d
+    #---------------------------------------------------------------------------
+    def testSymTensorFieldList2d(self):
+        fl0 = SymTensorFieldList2d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 2d control", nodes2d, SymTensor2d.zero)
+        for i in xrange(self.n):
+            xx = g.uniform(self.doublemin, self.doublemax)
+            xy = g.uniform(self.doublemin, self.doublemax)
+            yy = g.uniform(self.doublemin, self.doublemax)
+            fl0[0][i] = SymTensor2d(xx, xy,
+                                    xy, yy)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestSymTensorFieldList2d", Write)
+        f.write(fl0, "FileIOTestBase/SymTensorFieldList2d")
+        f.close()
+        f = self.constructor("TestSymTensorFieldList2d", Read)
+        fl = SymTensorFieldList2d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/SymTensorFieldList2d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in SymTensorFieldList2d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestSymTensorFieldList2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # SymTensorFieldList3d
+    #---------------------------------------------------------------------------
+    def testSymTensorFieldList3d(self):
+        fl0 = SymTensorFieldList3d()
+        fl0.copyFields()
+        fl0.appendNewField("vector field 3d control", nodes3d, SymTensor3d.zero)
+        for i in xrange(self.n):
+            xx = g.uniform(self.doublemin, self.doublemax)
+            xy = g.uniform(self.doublemin, self.doublemax)
+            xz = g.uniform(self.doublemin, self.doublemax)
+            yy = g.uniform(self.doublemin, self.doublemax)
+            yz = g.uniform(self.doublemin, self.doublemax)
+            zz = g.uniform(self.doublemin, self.doublemax)
+            fl0[0][i] = SymTensor3d(xx, xy, xz,
+                                    xy, yy, yz,
+                                    xz, yz, zz)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestSymTensorFieldList3d", Write)
+        f.write(fl0, "FileIOTestBase/SymTensorFieldList3d")
+        f.close()
+        f = self.constructor("TestSymTensorFieldList3d", Read)
+        fl = SymTensorFieldList3d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/SymTensorFieldList3d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%s != %s @ %i of %i in SymTensorFieldList3d test" %
+                            (str(fl[0][i]), str(fl0[0][i]), i, self.n))
+        self.removeFile("TestSymTensorFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
     # writeObject(int)
     #---------------------------------------------------------------------------
     def testWriteObjectInt(self):
