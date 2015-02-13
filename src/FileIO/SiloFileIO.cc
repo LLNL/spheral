@@ -334,14 +334,16 @@ SiloFileIO::read(string& value, const string pathName) const {
     value = "";
   } else {
     const string varname = this->setDir(pathName + "/value");
-    // char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
-    // VERIFY2(cvalue != NULL,
-    //         "SiloFileIO ERROR: unable to read variable " << pathName);
-    // free(cvalue);
-    char cvalue[valsize];
-    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), cvalue) == 0,
-            "SiloFileIO ERROR: failed to read variable " << pathName);
+    char* cvalue = (char*) DBGetVar(mFilePtr, varname.c_str());
+    VERIFY2(cvalue != NULL,
+            "SiloFileIO ERROR: unable to read variable " << pathName);
     value = string(cvalue);
+    CHECK2(value.size() == valsize, value << " " << value.size() << " " << valsize);
+    free(cvalue);
+    // char cvalue[valsize + 1];  // Do we need to allow space for trailing null?
+    // VERIFY2(DBReadVar(mFilePtr, varname.c_str(), cvalue) == 0,
+    //         "SiloFileIO ERROR: failed to read variable " << pathName);
+    // value = string(cvalue);
   }
 }
 
