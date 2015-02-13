@@ -108,7 +108,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
 }
 
 //------------------------------------------------------------------------------
-// Write a Field of std::vector<DataType).
+// Write a Field of std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -144,7 +144,7 @@ FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
 }
 
 //------------------------------------------------------------------------------
-// Read a Field of std::vector<DataType).
+// Read a Field of std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -185,7 +185,7 @@ FileIO::read(FieldSpace::Field<Dimension, std::vector<DataType> >& field,
 }
 
 //------------------------------------------------------------------------------
-// Write a std::vector<DataType).
+// Write a std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename DataType>
 inline
@@ -201,7 +201,7 @@ FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
 }
 
 //------------------------------------------------------------------------------
-// Read a std::vector<DataType).
+// Read a std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename DataType>
 inline
