@@ -38,7 +38,7 @@ class SpheralController(RestartableObject):
                  restartStep = None,
                  restartBaseName = "restart",
                  restartObjects = [],
-                 restartFileConstructor = SiloFileIO,
+                 restartFileConstructor = GzipFileIO,
                  restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,

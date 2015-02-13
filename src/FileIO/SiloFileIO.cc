@@ -338,7 +338,7 @@ SiloFileIO::read(string& value, const string pathName) const {
     // VERIFY2(cvalue != NULL,
     //         "SiloFileIO ERROR: unable to read variable " << pathName);
     // free(cvalue);
-    char cvalue[valsize + 1];
+    char cvalue[valsize];
     VERIFY2(DBReadVar(mFilePtr, varname.c_str(), cvalue) == 0,
             "SiloFileIO ERROR: failed to read variable " << pathName);
     value = string(cvalue);
