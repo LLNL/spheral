@@ -199,6 +199,11 @@ private:
   std::string setDir(const std::string& pathName);
   std::string setDir(const std::string& pathName) const;
 
+  // Helper methods to read/write sequential types.
+  template<typename Container>
+  void writeValueSequence(const Container& value, const std::string pathName, const int nvali);
+  template<typename Container> 
+  void readValueSequence(Container& value, const std::string pathName, const int nvali) const;
 };
 
 }

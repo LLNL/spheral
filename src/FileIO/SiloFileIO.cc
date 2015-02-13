@@ -17,7 +17,7 @@ using FieldSpace::Field;
 
 namespace {
 //------------------------------------------------------------------------------
-// Empty constructor.
+// Mangle a path name for silo consumption.
 //------------------------------------------------------------------------------
 string SILO_mangle(const string& x) {
   string result = x;
@@ -26,6 +26,7 @@ string SILO_mangle(const string& x) {
   boost::replace_all(result, ",", "_c_");
   return result;
 }
+
 }
 
 //------------------------------------------------------------------------------
@@ -472,10 +473,13 @@ SiloFileIO::read(Dim<3>::ThirdRankTensor& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<int>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
   int dims[1] = {value.size()};
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_INT) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->write(dims[0], pathName + "/size");
+  if (dims[0] > 0) {
+    const string varname = this->setDir(pathName + "/value");
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_INT) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -483,10 +487,13 @@ SiloFileIO::write(const vector<int>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<double>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
   int dims[1] = {value.size()};
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->write(dims[0], pathName + "/size");
+  if (dims[0] > 0) {
+    const string varname = this->setDir(pathName + "/value");
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*value.begin()), dims, 1, DB_DOUBLE) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -503,21 +510,6 @@ SiloFileIO::write(const vector<string>& value, const string pathName) {
   }
   this->write(dim_stuff, pathName + "/dim_stuff");
   this->write(stuff, pathName + "/stuff");
-
-  // const string varname = this->setDir(pathName);
-  // int dims[n];
-  // char* cvalue[n];
-  // for (unsigned i = 0; i != n; ++i) {
-  //   dims[i] = value[i].size() + 1;
-  //   CHECK2(strlen(value[i].c_str()) == dims[i]-1, i << " " << value[i] << " " << strlen(value[i].c_str()) << " " << dims[i]);
-  //   cvalue[i] = new char[dims[i]];
-  //   strcpy(cvalue[i], value[i].c_str());
-  // }
-  // VERIFY2(DBWrite(mFilePtr, varname.c_str(), cvalue, dims, 1, DB_CHAR) == 0,
-  //         "SiloFileIO ERROR: unable to write variable " << pathName);
-  // for (unsigned i = 0; i != n; ++i) {
-  //   delete cvalue[i];
-  // }
 }
 
 //------------------------------------------------------------------------------
@@ -525,13 +517,7 @@ SiloFileIO::write(const vector<string>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::Vector>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {n};
-  vector<double> cvalue(n);
-  for (unsigned i = 0; i != value.size(); ++i) cvalue[i] = value[i].x();
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -539,13 +525,7 @@ SiloFileIO::write(const vector<Dim<1>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::Tensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {n};
-  vector<double> cvalue(n);
-  for (unsigned i = 0; i != value.size(); ++i) cvalue[i] = value[i].xx();
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -553,13 +533,7 @@ SiloFileIO::write(const vector<Dim<1>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::SymTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {n};
-  vector<double> cvalue(n);
-  for (unsigned i = 0; i != value.size(); ++i) cvalue[i] = value[i].xx();
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -567,13 +541,7 @@ SiloFileIO::write(const vector<Dim<1>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<1>::ThirdRankTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {n};
-  vector<double> cvalue(n);
-  for (unsigned i = 0; i != value.size(); ++i) cvalue[i] = value[i](0,0,0);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -581,13 +549,7 @@ SiloFileIO::write(const vector<Dim<1>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::Vector>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {2*n};
-  vector<double> cvalue(2*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[2*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 2);
 }
 
 //------------------------------------------------------------------------------
@@ -595,13 +557,7 @@ SiloFileIO::write(const vector<Dim<2>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::Tensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {4*n};
-  vector<double> cvalue(4*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[4*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 4);
 }
 
 //------------------------------------------------------------------------------
@@ -609,13 +565,7 @@ SiloFileIO::write(const vector<Dim<2>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::SymTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {3*n};
-  vector<double> cvalue(3*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[3*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 3);
 }
 
 //------------------------------------------------------------------------------
@@ -623,13 +573,7 @@ SiloFileIO::write(const vector<Dim<2>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {8*n};
-  vector<double> cvalue(8*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[8*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 8);
 }
 
 //------------------------------------------------------------------------------
@@ -637,13 +581,7 @@ SiloFileIO::write(const vector<Dim<2>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::Vector>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {3*n};
-  vector<double> cvalue(3*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[3*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 3);
 }
 
 //------------------------------------------------------------------------------
@@ -651,13 +589,7 @@ SiloFileIO::write(const vector<Dim<3>::Vector>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::Tensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {9*n};
-  vector<double> cvalue(9*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[9*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 9);
 }
 
 //------------------------------------------------------------------------------
@@ -665,13 +597,7 @@ SiloFileIO::write(const vector<Dim<3>::Tensor>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::SymTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {6*n};
-  vector<double> cvalue(6*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[6*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 6);
 }
 
 //------------------------------------------------------------------------------
@@ -679,13 +605,7 @@ SiloFileIO::write(const vector<Dim<3>::SymTensor>& value, const string pathName)
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const vector<Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  const string varname = this->setDir(pathName);
-  const unsigned n = value.size();
-  int dims[1] = {27*n};
-  vector<double> cvalue(27*n);
-  for (unsigned i = 0; i != value.size(); ++i) copy(value[i].begin(), value[i].end(), &cvalue[27*i]);
-  VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  this->writeValueSequence(value, pathName, 27);
 }
 
 //------------------------------------------------------------------------------
@@ -693,12 +613,18 @@ SiloFileIO::write(const vector<Dim<3>::ThirdRankTensor>& value, const string pat
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<int>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  value = vector<int>(n);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value.front()) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  int valsize;
+  this->read(valsize, pathName + "/size");
+  if (valsize == 0) {
+    value = vector<int>();
+  } else {
+    const string varname = this->setDir(pathName + "/value");
+    const int n = DBGetVarLength(mFilePtr, varname.c_str());
+    VERIFY2(n == valsize, "SileFileIO ERROR: inconsistent size for " << pathName);
+    value = vector<int>(n);
+    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value.front()) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -706,12 +632,18 @@ SiloFileIO::read(vector<int>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<double>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  value = vector<double>(n);
-  VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value.front()) == 0,
-          "SiloFileIO ERROR: unable to write variable " << pathName);
+  int valsize;
+  this->read(valsize, pathName + "/size");
+  if (valsize == 0) {
+    value = vector<double>();
+  } else {
+    const string varname = this->setDir(pathName + "/value");
+    const int n = DBGetVarLength(mFilePtr, varname.c_str());
+    VERIFY2(n == valsize, "SileFileIO ERROR: inconsistent size for " << pathName);
+    value = vector<double>(n);
+    VERIFY2(DBReadVar(mFilePtr, varname.c_str(), &value.front()) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -730,20 +662,6 @@ SiloFileIO::read(vector<string>& value, const string pathName) const {
     value[k] = stuff.substr(i, dim_stuff[k]);
     i += dim_stuff[k];
   }
-
-  // const string varname = this->setDir(pathName);
-  // const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  // VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  // char** cvalue = (char**) DBGetVar(mFilePtr, varname.c_str());
-  // VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  // value = vector<string>(n);
-  // for (unsigned i = 0; i != n; ++i) {
-  //   value[i] = string(cvalue[i]);
-  // }
-  // for (unsigned i = 0; i != n; ++i) {
-  //   delete cvalue[i];
-  // }
-  // delete[] cvalue;
 }
 
 //------------------------------------------------------------------------------
@@ -751,13 +669,7 @@ SiloFileIO::read(vector<string>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::Vector>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<1>::Vector>(n);
-  for (unsigned i = 0; i != n; ++i) value[i].x(cvalue[i]);
+  this->readValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -765,13 +677,7 @@ SiloFileIO::read(vector<Dim<1>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::Tensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<1>::Tensor>(n);
-  for (unsigned i = 0; i != n; ++i) value[i].xx(cvalue[i]);
+  this->readValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -779,13 +685,7 @@ SiloFileIO::read(vector<Dim<1>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::SymTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<1>::SymTensor>(n);
-  for (unsigned i = 0; i != n; ++i) value[i].xx(cvalue[i]);
+  this->readValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -793,13 +693,7 @@ SiloFileIO::read(vector<Dim<1>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<1>::ThirdRankTensor>(n);
-  for (unsigned i = 0; i != n; ++i) value[i](0,0,0) = cvalue[i];
+  this->readValueSequence(value, pathName, 1);
 }
 
 //------------------------------------------------------------------------------
@@ -807,14 +701,7 @@ SiloFileIO::read(vector<Dim<1>::ThirdRankTensor>& value, const string pathName) 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::Vector>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 2 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<2>::Vector>(n/2);
-  for (unsigned i = 0; i != n/2; ++i) copy(&cvalue[2*i], &cvalue[2*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 2);
 }
 
 //------------------------------------------------------------------------------
@@ -822,14 +709,7 @@ SiloFileIO::read(vector<Dim<2>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::Tensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 4 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<2>::Tensor>(n/4);
-  for (unsigned i = 0; i != n/4; ++i) copy(&cvalue[4*i], &cvalue[4*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 4);
 }
 
 //------------------------------------------------------------------------------
@@ -837,14 +717,7 @@ SiloFileIO::read(vector<Dim<2>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::SymTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 3 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<2>::SymTensor>(n/3);
-  for (unsigned i = 0; i != n/3; ++i) copy(&cvalue[3*i], &cvalue[3*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 3);
 }
 
 //------------------------------------------------------------------------------
@@ -852,14 +725,7 @@ SiloFileIO::read(vector<Dim<2>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 8 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<2>::ThirdRankTensor>(n/8);
-  for (unsigned i = 0; i != n/8; ++i) copy(&cvalue[8*i], &cvalue[8*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 8);
 }
 
 //------------------------------------------------------------------------------
@@ -867,14 +733,7 @@ SiloFileIO::read(vector<Dim<2>::ThirdRankTensor>& value, const string pathName) 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::Vector>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 3 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<3>::Vector>(n/3);
-  for (unsigned i = 0; i != n/3; ++i) copy(&cvalue[3*i], &cvalue[3*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 3);
 }
 
 //------------------------------------------------------------------------------
@@ -882,14 +741,7 @@ SiloFileIO::read(vector<Dim<3>::Vector>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::Tensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 9 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<3>::Tensor>(n/9);
-  for (unsigned i = 0; i != n/9; ++i) copy(&cvalue[9*i], &cvalue[9*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 9);
 }
 
 //------------------------------------------------------------------------------
@@ -897,14 +749,7 @@ SiloFileIO::read(vector<Dim<3>::Tensor>& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::SymTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 6 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<3>::SymTensor>(n/6);
-  for (unsigned i = 0; i != n/6; ++i) copy(&cvalue[6*i], &cvalue[6*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 6);
 }
 
 //------------------------------------------------------------------------------
@@ -912,14 +757,7 @@ SiloFileIO::read(vector<Dim<3>::SymTensor>& value, const string pathName) const 
 //------------------------------------------------------------------------------
 void
 SiloFileIO::read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) const {
-  const string varname = this->setDir(pathName);
-  const int n = DBGetVarLength(mFilePtr, varname.c_str());
-  VERIFY2(n >= 0, "SileFileIO ERROR: unable to get size of " << pathName);
-  CHECK(n % 27 == 0);
-  double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
-  VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
-  value = vector<Dim<3>::ThirdRankTensor>(n/27);
-  for (unsigned i = 0; i != n/27; ++i) copy(&cvalue[27*i], &cvalue[27*(i+1)], value[i].begin());
+  this->readValueSequence(value, pathName, 27);
 }
 
 //------------------------------------------------------------------------------
@@ -1363,60 +1201,38 @@ string
 SiloFileIO::setDir(const string& ipathName) {
   REQUIRE(mFileOpen and mFilePtr != 0);
 
+  // Mangle the path into something acceptable to silo.
   string pathName = SILO_mangle(ipathName);
 
   // We always start from the top.
   VERIFY2(DBSetDir(mFilePtr, "/") == 0,
           "SiloFileIO ERROR: unable to change to path /");
 
-  // If there is no absolute path specified, we just go with the cwd.
-  const size_t i = pathName.find_last_of("/");
-  if (i >= pathName.size()) {
-    return pathName;
-  }
+  // Split up the path into directories and the var name.
+  vector<string> components = this->splitPathComponents(pathName);
+  CHECK(components.size() > 0);
 
-  // Otherwise set the path and return just the variable name.
-  const string dirName = pathName.substr(0, i);
-  const string varName = pathName.substr(i+1, pathName.size());
+  // Set the path and return just the variable name.
+  for (unsigned i = 0; i != components.size() - 1; ++i) {
+    const string dirName = components[i];
 
-  // We have to make the directories one at a time, so progressively split
-  // the path.
-  if (dirName.size() > 0) {
-    size_t pos0 = 0, pos1 = min(dirName.size(), dirName.find_first_of("/"));
-    bool done = false;
-    while (not done) {
-      done = (pos1 == dirName.size());
-      const string partialdir = dirName.substr(pos0, pos1-pos0);
-
-      // Check if this directory already exists or not.
-      DBtoc* toc = DBGetToc(mFilePtr);
-      bool exists = false;
-      size_t j = 0;
-      while (not exists and j != toc->ndir) {
-        exists = (partialdir == string(toc->dir_names[j]));
-        ++j;
-      }
-      if (not exists) {
-        VERIFY2(DBMkDir(mFilePtr, partialdir.c_str()) == 0,
-                "SiloFileIO ERROR: unable to create path " << partialdir);
-      }
-      VERIFY2(DBSetDir(mFilePtr, partialdir.c_str()) == 0,
-              "SiloFileIO ERROR: unable to change to path " << partialdir);
-
-      if (not done) {
-        pos0 = pos1 + 1;
-        const string tail = dirName.substr(pos0, dirName.size());
-        pos1 = tail.find_first_of("/");
-        if (pos1 >= tail.size()) {
-          pos1 = dirName.size();
-        } else {
-          pos1 += pos0;
-        }
-      }
+    // Check if this directory already exists or not.
+    DBtoc* toc = DBGetToc(mFilePtr);
+    bool exists = false;
+    size_t j = 0;
+    while (not exists and j != toc->ndir) {
+      exists = (dirName == string(toc->dir_names[j]));
+      ++j;
     }
+    if (not exists) {
+      VERIFY2(DBMkDir(mFilePtr, dirName.c_str()) == 0,
+              "SiloFileIO ERROR: unable to create path " << dirName);
+    }
+    VERIFY2(DBSetDir(mFilePtr, dirName.c_str()) == 0,
+            "SiloFileIO ERROR: unable to change to path " << dirName);
   }
 
-  return varName;
+  return components.back();
 }
 
 // const version only changes directory.
@@ -1424,6 +1240,7 @@ string
 SiloFileIO::setDir(const string& ipathName) const {
   REQUIRE(mFileOpen and mFilePtr != 0);
 
+  // Mangle the path into something acceptable to silo.
   string pathName = SILO_mangle(ipathName);
 
   // We always start from the top.
@@ -1444,5 +1261,48 @@ SiloFileIO::setDir(const string& ipathName) const {
   return varName;
 }
 
+//------------------------------------------------------------------------------
+// Worker method to write a sequentially accessed type to a silo file.
+//------------------------------------------------------------------------------
+template<typename Container>
+void
+SiloFileIO::
+writeValueSequence(const Container& value, 
+                   const string pathName,
+                   const int nvali) {
+  const int n = value.size();
+  const int ntot = nvali*n;
+  int dims[1] = {ntot};
+  this->write(dims[0], pathName + "/size");
+  if (dims[0] > 0) {
+    const string varname = this->setDir(pathName + "/value");
+    vector<double> cvalue(ntot);
+    unsigned i = 0;
+    for (unsigned i = 0; i != n; ++i) copy(value[i].begin(), value[i].end(), &cvalue[nvali*i]);
+    VERIFY2(DBWrite(mFilePtr, varname.c_str(), &(*cvalue.begin()), dims, 1, DB_DOUBLE) == 0,
+            "SiloFileIO ERROR: unable to write variable " << pathName);
+  }
+}
+  
+template<typename Container>
+void
+SiloFileIO::
+readValueSequence(Container& value, 
+                  const string pathName,
+                  const int nvali) const {
+  int n;
+  this->read(n, pathName + "/size");
+  if (n == 0) {
+    value = Container();
+  } else {
+    CHECK(n % nvali == 0);
+    const string varname = this->setDir(pathName + "/value");
+    double* cvalue = (double*) DBGetVar(mFilePtr, varname.c_str());
+    VERIFY2(cvalue != NULL, "SiloFileIO Error: unable to read " << pathName);
+    value = Container(n/nvali);
+    for (unsigned i = 0; i != n/nvali; ++i) copy(&cvalue[nvali*i], &cvalue[nvali*(i+1)], value[i].begin());
+  }
+}
+  
 }
 }

@@ -8,7 +8,7 @@ import mpi
 def findLastRestart(baseName,
                     rank = mpi.rank,
                     procs = mpi.procs,
-                    suffix = ".gz"):
+                    suffix = ".silo"):
 
     # Get the list of cycle numbers from the available restart files.
     cycles = findAvailableRestartCycles(baseName, rank, procs, suffix)
@@ -26,7 +26,7 @@ def findLastRestart(baseName,
 def findAvailableRestartCycles(baseName,
                                rank = mpi.rank,
                                procs = mpi.procs,
-                               suffix = ".gz"):
+                               suffix = ".silo"):
 
     # If we're running mpi we want to make sure we only look at valid restart
     # files for the range we're using.
