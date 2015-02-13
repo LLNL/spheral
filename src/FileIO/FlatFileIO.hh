@@ -173,6 +173,28 @@ public:
   virtual void read(FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) const;
   //******************************************************************************
 
+  //------------------------------------------------------------------------------
+  // We have to forward the templated write/read methods to the base class due to
+  // function hiding.
+  // Write/read FieldLists.
+  template<typename Dimension, typename DataType>
+  void write(const FieldSpace::FieldList<Dimension, DataType>& fieldList, const std::string pathName) { FileIO::write(fieldList, pathName); }
+  template<typename Dimension, typename DataType>
+  void read(FieldSpace::FieldList<Dimension, DataType>& fieldList, const std::string pathName) const { FileIO::read(fieldList, pathName); }
+
+  // Write/read Fields of vectors.
+  template<typename Dimension, typename DataType>
+  void write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field, const std::string pathName) { FileIO::write(field, pathName); }
+  template<typename Dimension, typename DataType>
+  void read(FieldSpace::Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const {FileIO::read(field, pathName); }
+
+  // Write/read a vector<DataType> if DataType is a primitive we already know about.
+  template<typename DataType>
+  void write(const std::vector<DataType>& x, const std::string pathName) { FileIO::write(x, pathName); }
+  template<typename DataType>
+  void read(std::vector<DataType>& x, const std::string pathName) const { FileIO::read(x, pathName); }
+  //------------------------------------------------------------------------------
+
   // Get and set the current precision for I/O.
   int precision() const;
   void setPrecision(int precision);

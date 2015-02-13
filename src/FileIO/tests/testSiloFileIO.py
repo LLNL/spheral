@@ -1189,6 +1189,34 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # IntFieldList1d
+    #---------------------------------------------------------------------------
+    def testIntFieldList1d(self):
+        fl0 = IntFieldList1d()
+        fl0.copyFields()
+        fl0.appendNewField("int field 1d control", nodes1d, 0)
+        for i in xrange(self.n):
+            fl0[0][i] = g.randint(self.intmin, self.intmax)
+        assert len(fl0) == 1
+        assert len(fl0[0]) == self.n
+        f = self.constructor("TestIntFieldList1d", Write)
+        f.write(fl0, "FileIOTestBase/IntFieldList1d")
+        f.close()
+        f = self.constructor("TestIntFieldList1d", Read)
+        fl = IntFieldList1d()
+        fl.copyFields()
+        f.read(fl, "FileIOTestBase/IntFieldList1d")
+        f.close()
+        assert len(fl) == len(fl0)
+        assert len(fl[0]) == len(fl0[0])
+        for i in xrange(self.n):
+            self.failUnless(fl[0][i] == fl0[0][i],
+                            "%i != %i @ %i of %i in IntFieldList1d test" %
+                            (fl[0][i], fl0[0][i], i, self.n))
+        #self.removeFile("TestIntFieldList1d")
+        return
+
+    #---------------------------------------------------------------------------
     # writeObject(int)
     #---------------------------------------------------------------------------
     def testWriteObjectInt(self):
