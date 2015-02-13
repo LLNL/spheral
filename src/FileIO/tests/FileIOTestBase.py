@@ -370,6 +370,27 @@ class FileIOTestBase:
         self.removeFile("TestVectorInt")
         return
 
+    #---------------------------------------------------------------------------
+    # vector<int> (empty)
+    #---------------------------------------------------------------------------
+    def testVectorInt(self):
+        v0 = vector_of_int()
+        assert len(v0) == 0
+        f = self.constructor("TestVectorInt", Write)
+        f.write(v0, "FileIOTestBase/vector_of_int")
+        f.close()
+        f = self.constructor("TestVectorInt", Read)
+        v = vector_of_int()
+        f.read(v, "FileIOTestBase/vector_of_int")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%i != %i @ %i of %i in vector<int> test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestVectorInt")
+        return
+
 ##     #---------------------------------------------------------------------------
 ##     # vector<bool>
 ##     #---------------------------------------------------------------------------

@@ -301,14 +301,9 @@ output("integrator.domainDecompositionIndependent")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Smooth the initial conditions/restore state.
-#-------------------------------------------------------------------------------
-if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
