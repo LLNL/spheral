@@ -215,14 +215,14 @@ MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.13.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/$(HDF5DIST)
+HDF5DIST = hdf5-1.8.14.tar.bz2
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
 # SILO
-SILODIST = silo-4.10-bsd.tar.gz
-SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10/$(SILODIST)
+SILODIST = silo-4.10.2-bsd.tar.gz
+SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/$(SILODIST)
 SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
