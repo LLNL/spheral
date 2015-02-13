@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include <cstring>
-#include "boost/algorithm/string/replace.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include "FileIO.hh"
 #include "Field/Field.hh"
@@ -85,15 +85,17 @@ vector<string>
 FileIO::splitPathComponents(const string path) const {
 
   vector<string> components;
-  string currentComponent = "";
-  for (string::const_iterator itr = path.begin(); itr < path.end(); ++itr) {
-    currentComponent += *itr;
-    if (*itr == '/') {
-      components.push_back(currentComponent);
-      currentComponent = "";
-    }
-  }
-  if (*(components.end() - 1) != currentComponent) components.push_back(currentComponent);
+  boost::split(components, path, boost::is_any_of("/"));
+
+  // string currentComponent = "";
+  // for (string::const_iterator itr = path.begin(); itr < path.end(); ++itr) {
+  //   currentComponent += *itr;
+  //   if (*itr == '/') {
+  //     components.push_back(currentComponent);
+  //     currentComponent = "";
+  //   }
+  // }
+  // if (*(components.end() - 1) != currentComponent) components.push_back(currentComponent);
 
   return components;
 }

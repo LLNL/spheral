@@ -225,10 +225,10 @@ public:
   // Write/read FieldLists.
   template<typename Dimension, typename DataType>
   void write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-	     const std::string pathName);
+             const std::string pathName);
   template<typename Dimension, typename DataType>
   void read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
-	    const std::string pathName) const;
+            const std::string pathName) const;
 
   // Write/read Fields of vectors.
   template<typename Dimension, typename DataType>
