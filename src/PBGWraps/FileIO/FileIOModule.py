@@ -144,13 +144,13 @@ FileIOTemplateTypes += [
                      is_pure_virtual=True)
         x.add_method("close", None, [], is_pure_virtual=True)
 
-        # Add the standard read/write methods for the supported types.
-        for val in self.FileIOTypes:
-            self._addFileIOReadWriteMethods(x, val)
-
         # Add the templated read/write methods.
         for val, template_params in self.FileIOTemplateTypes:
             self._addFileIOReadWriteTemplateMethods(x, val, template_params)
+
+        # Add the standard read/write methods for the supported types.
+        for val in self.FileIOTypes:
+            self._addFileIOReadWriteMethods(x, val)
 
         # Write and read objects.
         x.add_method("writeObject", None, 
@@ -189,6 +189,10 @@ FileIOTemplateTypes += [
         x.add_instance_attribute("readyToWrite", "bool", getter="readyToWrite", is_const=True)
         x.add_instance_attribute("readyToRead", "bool", getter="readyToRead", is_const=True)
 
+        # Add the templated read/write methods.
+        for val, template_params in self.FileIOTemplateTypes:
+            self._addFileIOReadWriteTemplateMethods(x, val, template_params)
+
         # Add the standard read/write methods for the supported types.
         for val in self.FileIOTypes:
             self._addFileIOReadWriteMethods(x, val, False)
@@ -214,6 +218,10 @@ FileIOTemplateTypes += [
                      is_virtual=True)
         x.add_method("close", None, [], is_virtual=True)
 
+        # Add the templated read/write methods.
+        for val, template_params in self.FileIOTemplateTypes:
+            self._addFileIOReadWriteTemplateMethods(x, val, template_params)
+
         # Add the standard read/write methods for the supported types.
         for val in self.FileIOTypes:
             self._addFileIOReadWriteMethods(x, val, False)
@@ -232,13 +240,17 @@ FileIOTemplateTypes += [
         x.add_constructor([param("std::string", "filename"),
                            param("AccessType", "access")])
 
-        # Add the read/write methods.
-        for val in self.FileIOTypes: #+ ["vector_of_Vector1d", "vector_of_Vector2d", "vector_of_Vector3d",                                        "vector_of_SymTensor1d", "vector_of_SymTensor2d", "vector_of_SymTensor3d",                                        "vector_of_ThirdRankTensor1d", "vector_of_ThirdRankTensor1d", "vector_of_ThirdRankTensor1d"]:
-            self._addPyFileIOReadWriteMethods(x, val)
+        # Add the templated read/write methods.
+        for val, template_params in self.FileIOTemplateTypes:
+            self._addFileIOReadWriteTemplateMethods(x, val, template_params)
 
         # Add our overrides for the base methods.
         for val in self.FileIOTypes:
             self._addFileIOReadWriteMethods(x, val, False)
+
+        # Add the read/write methods.
+        for val in self.FileIOTypes:
+            self._addPyFileIOReadWriteMethods(x, val)
 
         return
 
