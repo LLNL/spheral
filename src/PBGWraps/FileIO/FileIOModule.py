@@ -7,34 +7,36 @@ from PBGutils import *
 #-------------------------------------------------------------------------------
 class FileIO:
 
-    FileIOTypes = [
-        "Vector1d", "Tensor1d", "SymTensor1d", "ThirdRankTensor1d",
-        "Vector2d", "Tensor2d", "SymTensor2d", "ThirdRankTensor2d",
-        "Vector3d", "Tensor3d", "SymTensor3d", "ThirdRankTensor3d",
-        "vector_of_int", "vector_of_double", "vector_of_string",
-        "vector_of_Vector1d", "vector_of_Tensor1d", "vector_of_SymTensor1d", "vector_of_ThirdRankTensor1d",
-        "vector_of_Vector2d", "vector_of_Tensor2d", "vector_of_SymTensor2d", "vector_of_ThirdRankTensor2d",
-        "vector_of_Vector3d", "vector_of_Tensor3d", "vector_of_SymTensor3d", "vector_of_ThirdRankTensor3d",
-        "Spheral::FieldSpace::ScalarField1d",
-        "Spheral::FieldSpace::VectorField1d",
-        "Spheral::FieldSpace::TensorField1d",
-        "Spheral::FieldSpace::SymTensorField1d",
-        "Spheral::FieldSpace::ThirdRankTensorField1d",
-        "Spheral::FieldSpace::IntField1d",
-        "Spheral::FieldSpace::ScalarField2d",
-        "Spheral::FieldSpace::VectorField2d",
-        "Spheral::FieldSpace::TensorField2d",
-        "Spheral::FieldSpace::SymTensorField2d",
-        "Spheral::FieldSpace::ThirdRankTensorField2d",
-        "Spheral::FieldSpace::IntField2d",
-        "Spheral::FieldSpace::ScalarField3d",
-        "Spheral::FieldSpace::VectorField3d",
-        "Spheral::FieldSpace::TensorField3d",
-        "Spheral::FieldSpace::SymTensorField3d",
-        "Spheral::FieldSpace::ThirdRankTensorField3d",
-        "Spheral::FieldSpace::IntField3d",
-        "double", "std::string", "int", "bool", "unsigned int",
+    FileIOTypes = []
+    FileIOTemplateTypes = []
+    for dim, Dim in (("1d", "Spheral::Dim<1>"),
+                     ("2d", "Spheral::Dim<2>"),
+                     ("3d", "Spheral::Dim<3>")):
+        exec("""
+FileIOTypes += [
+        "Vector%(dim)s", "Tensor%(dim)s", "SymTensor%(dim)s", "ThirdRankTensor%(dim)s",
+        "vector_of_Vector%(dim)s",
+        "vector_of_Tensor%(dim)s",
+        "vector_of_SymTensor%(dim)s",
+        "vector_of_ThirdRankTensor%(dim)s",
+        "Spheral::FieldSpace::ScalarField%(dim)s",
+        "Spheral::FieldSpace::VectorField%(dim)s",
+        "Spheral::FieldSpace::TensorField%(dim)s",
+        "Spheral::FieldSpace::SymTensorField%(dim)s",
+        "Spheral::FieldSpace::ThirdRankTensorField%(dim)s",
+        "Spheral::FieldSpace::IntField%(dim)s",
         ]
+FileIOTemplateTypes += [
+        ("Spheral::FieldSpace::ScalarFieldList%(dim)s", ["%(Dim)s", "double"]),
+        ("Spheral::FieldSpace::VectorFieldList%(dim)s", ["%(Dim)s", "Vector%(dim)s"]),
+        ("Spheral::FieldSpace::TensorFieldList%(dim)s", ["%(Dim)s", "Tensor%(dim)s"]),
+        ("Spheral::FieldSpace::SymTensorFieldList%(dim)s", ["%(Dim)s", "SymTensor%(dim)s"]),
+        ("Spheral::FieldSpace::ThirdRankTensorFieldList%(dim)s", ["%(Dim)s", "ThirdRankTensor%(dim)s"]),
+        ("Spheral::FieldSpace::IntFieldList%(dim)s", ["%(Dim)s", "int"]),
+        ]""" % {"dim" : dim,
+                "Dim" : Dim})
+    FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",
+                    "double", "std::string", "int", "bool", "unsigned int"]
 
     #---------------------------------------------------------------------------
     # Add the types to the given module.
@@ -146,6 +148,10 @@ class FileIO:
         for val in self.FileIOTypes:
             self._addFileIOReadWriteMethods(x, val)
 
+        # Add the templated read/write methods.
+        for val, template_params in self.FileIOTemplateTypes:
+            self._addFileIOReadWriteTemplateMethods(x, val, template_params)
+
         # Write and read objects.
         x.add_method("writeObject", None, 
                      [param(ptr("PyObject"), "thing", transfer_ownership=False),
@@ -227,7 +233,7 @@ class FileIO:
                            param("AccessType", "access")])
 
         # Add the read/write methods.
-        for val in self.FileIOTypes:
+        for val in self.FileIOTypes: #+ ["vector_of_Vector1d", "vector_of_Vector2d", "vector_of_Vector3d",                                        "vector_of_SymTensor1d", "vector_of_SymTensor2d", "vector_of_SymTensor3d",                                        "vector_of_ThirdRankTensor1d", "vector_of_ThirdRankTensor1d", "vector_of_ThirdRankTensor1d"]:
             self._addPyFileIOReadWriteMethods(x, val)
 
         # Add our overrides for the base methods.
@@ -270,36 +276,37 @@ class FileIO:
         return
 
     #---------------------------------------------------------------------------
+    # Helper for adding the templated read/write methods for the given type
+    # to a FileIO object.
+    #---------------------------------------------------------------------------
+    def _addFileIOReadWriteTemplateMethods(self, fio_obj, val, template_params):
+        fio_obj.add_method("write", None, [constrefparam(val, "value"),
+                                           param("std::string", "pathName")],
+                           template_parameters = template_params,
+                           custom_name = "write")
+        fio_obj.add_method("read", None, [refparam(val, "value"),
+                                          param("std::string", "pathName")],
+                           template_parameters = template_params,
+                           is_const = True,
+                           custom_name = "read")
+        return
+
+    #---------------------------------------------------------------------------
     # Helper for adding the virtual read/write methods for the given type
     # to a PyFileIO object.
     #---------------------------------------------------------------------------
     def _addPyFileIOReadWriteMethods(self, pyfio_obj, val):
         stripval = val.split("::")[-1]
-        if not val in ["unsigned int", "int", "bool", "double", "std::string"]:
-            # pyfio_obj.add_method("write_%s" % stripval.replace(" ", "_"),
-            #                      None,
-            #                      [param(val, "value"), 
-            #                       param("const std::string", "pathName")],
-            #                      is_virtual = True,
-            #                      is_pure_virtual = True)
-            # pyfio_obj.add_method("read_%s" % stripval.replace(" ", "_"),
-            #                      val,
-            #                      [param("const std::string", "pathName")],
-            #                      is_const = True,
-            #                      is_virtual = True,
-            #                      is_pure_virtual = True)
-            # else:
+        if (not val in ["unsigned int", "int", "bool", "double", "std::string"]):
             pyfio_obj.add_method("write_%s" % stripval,
                                  None,
                                  [constrefparam(val, "value"),
                                   param("const std::string", "pathName")],
-                                 is_virtual = True,
                                  is_pure_virtual = True)
             pyfio_obj.add_method("read_%s" % stripval,
                                  None, 
                                  [refparam(val, "value"),
                                   param("const std::string", "pathName")],
                                  is_const = True,
-                                 is_virtual = True,
                                  is_pure_virtual = True)
         return
