@@ -409,8 +409,14 @@ class SpheralController(RestartableObject):
 
     #--------------------------------------------------------------------------
     # Periodically drop a restart file.
+    # We do a garbage collection clean up pass here since sometimes temporary
+    # objects are restartable and wind up dumping data here.  Doesn't really
+    # hurt anything, but it can be wasteful.
     #--------------------------------------------------------------------------
     def updateRestart(self, cycle, Time, dt):
+        import gc
+        while gc.collect():
+            pass
         self.dropRestartFile()
         return
 
