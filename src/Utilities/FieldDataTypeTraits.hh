@@ -16,7 +16,7 @@ namespace Spheral {
 template<typename Dimension, typename Value>
 struct DataTypeTraits<FieldSpace::Field<Dimension, Value> > {
   typedef Value ElementType;
-  static const bool fixedSize() { return false; }
+  static bool fixedSize() { return false; }
   static int numElements(const FieldSpace::Field<Dimension, Value>& x) { return x.size(); }
   static FieldSpace::Field<Dimension, Value> zero() { return FieldSpace::Field<Dimension, Value>("Unnamed field"); }
 };
@@ -25,7 +25,7 @@ struct DataTypeTraits<FieldSpace::Field<Dimension, Value> > {
 template<typename Dimension, typename Value>
 struct DataTypeTraits<FieldSpace::FieldList<Dimension, Value> > {
   typedef FieldSpace::Field<Dimension, Value>* ElementType;
-  static const bool fixedSize() { return false; }
+  static bool fixedSize() { return false; }
   static int numElements(const FieldSpace::FieldList<Dimension, Value>& x) { return x.size(); }
   static FieldSpace::Field<Dimension, Value> zero() { return FieldSpace::FieldList<Dimension, Value>(); }
 };
