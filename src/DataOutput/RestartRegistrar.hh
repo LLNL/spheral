@@ -47,10 +47,10 @@ public:
   static RestartRegistrar* instancePtr();
 
   // Methods for registering a RestartHandle.
-  void registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
+  void registerRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr,
 			     const unsigned priority);
-  void unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr);
-  bool haveRestartHandle(boost::weak_ptr<RestartHandle> restartHandlePtr) const;
+  void unregisterRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr);
+  bool haveRestartHandle(const boost::weak_ptr<RestartHandle>& restartHandlePtr) const;
 
   // Eliminate any pointers to expired objects.
   void removeExpiredPointers();
