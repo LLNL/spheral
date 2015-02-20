@@ -558,6 +558,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
+      CHECK(omegai > 0.0);
       CHECK(Hdeti > 0.0);
 
       Scalar& rhoSumi = rhoSum(nodeListi, i);
