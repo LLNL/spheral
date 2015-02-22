@@ -150,15 +150,15 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
   // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
   
-  /*
+  // "Mike" method.
   const Vector vi1 = vi - phii*DvDxi*xij;
   const Vector vj1 = vj + phij*DvDxj*xij;
   vij = vi1 - vj1;
-   */
   
-    const Vector vi1 = vi - DvDxi*xij;
-    const Vector vj1 = vj + DvDxj*xij;
-    vij = vij + min(phii,phij)*((vi1-vj1)-vij);
+  // "Nick" method.
+  // const Vector vi1 = vi - DvDxi*xij;
+  // const Vector vj1 = vj + DvDxj*xij;
+  // vij = vij + min(phii,phij)*((vi1-vj1)-vij);
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
