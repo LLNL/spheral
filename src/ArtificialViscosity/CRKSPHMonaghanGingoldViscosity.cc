@@ -35,6 +35,73 @@ using BoundarySpace::Boundary;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Scalar superbee
+//------------------------------------------------------------------------------
+double superbee(const double x) {
+  return max(0.0, max(min(2.0*x, 1.0), min(x, 2.0)));
+}
+
+//------------------------------------------------------------------------------
+// Tensor version of the superbee.
+//------------------------------------------------------------------------------
+Dim<1>::SymTensor superbeePhi(const Dim<1>::Tensor& r) {
+  return Dim<1>::SymTensor(superbee(r.xx()));
+}
+
+Dim<2>::SymTensor superbeePhi(const Dim<2>::Tensor& r) {
+  typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::Tensor Tensor;
+  typedef Dim<2>::SymTensor SymTensor;
+  typedef SymTensor::EigenStructType EigenStructType;
+
+  // Extract the symmetric component, decompose into eigen-values,
+  // and do our limiting in the primary frame.
+  const SymTensor rsym = r.Symmetric();
+  EigenStructType eigen = rsym.eigenVectors();
+  SymTensor result(superbee(eigen.eigenValues.x()), 0.0,
+                   0.0, superbee(eigen.eigenValues.y()));
+  result.rotationalTransform(eigen.eigenVectors.Transpose());
+  return result;
+}
+
+Dim<3>::SymTensor superbeePhi(const Dim<3>::Tensor& r) {
+  return Dim<3>::SymTensor::one;
+}
+
+//------------------------------------------------------------------------------
+// Tensor min.
+//------------------------------------------------------------------------------
+double tensormin(const Dim<1>::Tensor& lhs, const Dim<1>::Tensor& rhs) {
+  return min(lhs.xx(), rhs.xx());
+}
+
+double tensormin(const Dim<2>::Tensor& lhs, const Dim<2>::Tensor& rhs) {
+  return min(min(lhs.xx(), min(lhs.xy(), min(lhs.yx(), lhs.yy()))),
+             min(rhs.xx(), min(rhs.xy(), min(rhs.yx(), rhs.yy()))));
+  // min(lhs.xx(), rhs.xx()),
+  //                       min(lhs.xy(), rhs.xy()),
+  //                       min(lhs.yx(), rhs.yx()),
+  //                       min(lhs.yy(), rhs.yy()));
+}
+
+double tensormin(const Dim<3>::Tensor& lhs, const Dim<3>::Tensor& rhs) {
+  return 0.0;
+  // return Dim<3>::Tensor(min(lhs.xx(), rhs.xx()),
+  //                       min(lhs.xy(), rhs.xy()),
+  //                       min(lhs.xz(), rhs.xz()),
+  //                       min(lhs.yx(), rhs.yx()),
+  //                       min(lhs.yy(), rhs.yy()),
+  //                       min(lhs.yz(), rhs.yz()),
+  //                       min(lhs.zx(), rhs.zx()),
+  //                       min(lhs.zy(), rhs.zy()),
+  //                       min(lhs.zz(), rhs.zz()));
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
@@ -150,15 +217,22 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
   // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
   
-  // "Mike" method.
-  const Vector vi1 = vi - phii*DvDxi*xij;
-  const Vector vj1 = vj + phij*DvDxj*xij;
-  vij = vi1 - vj1;
+  // // "Mike" method.
+  // const Vector vi1 = vi - phii*DvDxi*xij;
+  // const Vector vj1 = vj + phij*DvDxj*xij;
+  // vij = vi1 - vj1;
   
-  // "Nick" method.
+  // // "Nick" method.
   // const Vector vi1 = vi - DvDxi*xij;
   // const Vector vj1 = vj + DvDxj*xij;
   // vij = vij + min(phii,phij)*((vi1-vj1)-vij);
+  
+  // Modified "Nick" method.
+  const Vector vi1 = vi - DvDxi*xij;
+  const Vector vj1 = vj + DvDxj*xij;
+  const Vector vij1 = vi1 - vj1;
+  const Scalar phi = max(0.0, min(0.95, min(phii, phij)));
+  vij = (1.0 - phi)*vij + phi*vij1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);

@@ -468,15 +468,15 @@ if graphics:
     for i in xrange(nodes.numInternalNodes):
         rhat = (pos[i] - Vector(xc, yc)).unitVector()
         vaz[0][i] = (vel[i] - vel[i].dot(rhat)*rhat).magnitude()
-    p = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", lineTitle="Simulation", winTitle="Velocity")
-    #p = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity")
+    paz = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", lineTitle="Simulation", winTitle="Azimuthal velocity")
+    pmag = plotFieldList(db.fluidVelocity, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), yFunction="%s.magnitude()", plotStyle="points", winTitle="Velocity magnitude")
 
     # Plot the analytic answer.
     xans = [0.0, 0.1, 0.2, 0.4, 1.0]
     yans = [0.0, 0.5, 1.0, 0.0, 0.0]
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
-    p.replot(ansData)
-
+    paz.replot(ansData)
+    pmag.replot(ansData)
 
 if serialDump:
     serialData = []
@@ -489,7 +489,7 @@ if serialDump:
                                                                    nodes.mass()[j],
                                                                    nodes.massDensity()[j],
                                                                    nodes.specificThermalEnergy()[j],
-                                                                   abs(nodes.velocity()[j].magnitude()),
+                                                                   nodes.velocity()[j].magnitude(),
                                                                    hydro.maxViscousPressure()[0][j]))
     f.close()
 
