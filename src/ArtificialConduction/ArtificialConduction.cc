@@ -13,6 +13,7 @@
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/safeInv.hh"
 
 namespace Spheral {
 namespace PhysicsSpace {
@@ -179,12 +180,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const int i = *iItr;
             
             // Get the state for node i.
-            const Vector& ri = position(nodeListi, i);
-            const Scalar& mi = mass(nodeListi, i);
-            const Scalar& rhoi = massDensity(nodeListi, i);
-            const Scalar& epsi = specificThermalEnergy(nodeListi, i);
-            const Scalar& Pi = pressure(nodeListi, i);
+            const Vector& ri    = position(nodeListi, i);
+            const Scalar& mi    = mass(nodeListi, i);
+            const Scalar& rhoi  = massDensity(nodeListi, i);
+            const Scalar& epsi  = specificThermalEnergy(nodeListi, i);
+            const Scalar& Pi    = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
+            const Scalar hhi    = Dimension::nDim/(Hi.Trace());
+            
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
@@ -224,6 +227,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar& epsj      = specificThermalEnergy(nodeListj, j);
                             const Scalar& Pj        = pressure(nodeListj, j);
                             const SymTensor& Hj     = H(nodeListj, j);
+                            const Scalar hhj        = Dimension::nDim/(Hj.Trace());
+                            const Scalar hAve       = 0.5*(hhi+hhj);
+                            
                             CHECK(mj > 0.0);
                             CHECK(rhoj > 0.0);
                             
@@ -256,7 +262,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             vsigj = max(vsigj,vsigij);
                                         
                             // calc and add change in energy
-                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij)/rij.magnitude();
+                            const Scalar deltaU     = (mj/rhoij) * (mAlphaArCond) * vsigij * uij * rij.dot(gradWij) * safeInv(rij.magnitude(),0.01*hAve);
                         
                             //if (((abs(ri.magnitude()-0.5)<=0.006 || abs(rj.magnitude()-0.5)<=0.006)) && abs(uij)>0)
 			    //printf("%02d->%02d %0.2d %3.2e: vsigij=%3.2e ui,j=(%3.2e,%3.2e,%3.2e) gradWij=%3.2e ri,j=(%3.2e,%3.2e,%3.2e) deltaPij=%3.2e\n",
