@@ -38,66 +38,11 @@ using KernelSpace::TableKernel;
 namespace {
 
 //------------------------------------------------------------------------------
-// Scalar superbee
+// Sweby limiter
+// \beta \in [1, 2], where \beta=2 corresponds to the superbee limit.
 //------------------------------------------------------------------------------
-double superbee(const double x) {
-  return max(0.0, max(min(2.0*x, 1.0), min(x, 2.0)));
-}
-
-//------------------------------------------------------------------------------
-// Tensor version of the superbee.
-//------------------------------------------------------------------------------
-Dim<1>::SymTensor superbeePhi(const Dim<1>::Tensor& r) {
-  return Dim<1>::SymTensor(superbee(r.xx()));
-}
-
-Dim<2>::SymTensor superbeePhi(const Dim<2>::Tensor& r) {
-  typedef Dim<2>::Vector Vector;
-  typedef Dim<2>::Tensor Tensor;
-  typedef Dim<2>::SymTensor SymTensor;
-  typedef SymTensor::EigenStructType EigenStructType;
-
-  // Extract the symmetric component, decompose into eigen-values,
-  // and do our limiting in the primary frame.
-  const SymTensor rsym = r.Symmetric();
-  EigenStructType eigen = rsym.eigenVectors();
-  SymTensor result(superbee(eigen.eigenValues.x()), 0.0,
-                   0.0, superbee(eigen.eigenValues.y()));
-  result.rotationalTransform(eigen.eigenVectors.Transpose());
-  return result;
-}
-
-Dim<3>::SymTensor superbeePhi(const Dim<3>::Tensor& r) {
-  return Dim<3>::SymTensor::one;
-}
-
-//------------------------------------------------------------------------------
-// Tensor min.
-//------------------------------------------------------------------------------
-double tensormin(const Dim<1>::Tensor& lhs, const Dim<1>::Tensor& rhs) {
-  return min(lhs.xx(), rhs.xx());
-}
-
-double tensormin(const Dim<2>::Tensor& lhs, const Dim<2>::Tensor& rhs) {
-  return min(min(lhs.xx(), min(lhs.xy(), min(lhs.yx(), lhs.yy()))),
-             min(rhs.xx(), min(rhs.xy(), min(rhs.yx(), rhs.yy()))));
-  // min(lhs.xx(), rhs.xx()),
-  //                       min(lhs.xy(), rhs.xy()),
-  //                       min(lhs.yx(), rhs.yx()),
-  //                       min(lhs.yy(), rhs.yy()));
-}
-
-double tensormin(const Dim<3>::Tensor& lhs, const Dim<3>::Tensor& rhs) {
-  return 0.0;
-  // return Dim<3>::Tensor(min(lhs.xx(), rhs.xx()),
-  //                       min(lhs.xy(), rhs.xy()),
-  //                       min(lhs.xz(), rhs.xz()),
-  //                       min(lhs.yx(), rhs.yx()),
-  //                       min(lhs.yy(), rhs.yy()),
-  //                       min(lhs.yz(), rhs.yz()),
-  //                       min(lhs.zx(), rhs.zx()),
-  //                       min(lhs.zy(), rhs.zy()),
-  //                       min(lhs.zz(), rhs.zz()));
+double swebyLimiter(const double x, const double beta) {
+  return max(0.0, max(min(beta*x, 1.0), min(x, beta)));
 }
 
 }
@@ -108,11 +53,13 @@ double tensormin(const Dim<3>::Tensor& lhs, const Dim<3>::Tensor& rhs) {
 template<typename Dimension>
 CRKSPHMonaghanGingoldViscosity<Dimension>::
 CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
-                             const Scalar Cquadratic,
-                             const bool linearInExpansion,
-                             const bool quadraticInExpansion):
+                               const Scalar Cquadratic,
+                               const bool linearInExpansion,
+                               const bool quadraticInExpansion,
+                               const Scalar beta):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
+  mBeta(beta),
   mGradVel(FieldSpace::Reference) {
 }
 
@@ -200,22 +147,25 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar rj = gradj*safeInv(gradi);
   const Scalar ri = safeInv(rj);
-  // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
-  // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
-  // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
-  // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
-  const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
-  const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
-  // const Scalar phii = max(0.0, max(min(1.5*ri, 1.0), min(ri, 1.5)));  // Sweby
-  // const Scalar phij = max(0.0, max(min(1.5*rj, 1.0), min(rj, 1.5)));  // Sweby
-  // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
-  // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
-  // const Scalar phii = max(0.0, min(1.0, ri)); // minmod
-  // const Scalar phij = max(0.0, min(1.0, rj)); // minmod
-  // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
-  // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
-  // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
-  // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
+  const Scalar phii = swebyLimiter(ri, mBeta);
+  const Scalar phij = swebyLimiter(rj, mBeta);
+
+  // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
+  // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
+  // // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
+  // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
+  // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
+  // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
+  // // const Scalar phii = max(0.0, max(min(1.5*ri, 1.0), min(ri, 1.5)));  // Sweby
+  // // const Scalar phij = max(0.0, max(min(1.5*rj, 1.0), min(rj, 1.5)));  // Sweby
+  // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
+  // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
+  // // const Scalar phii = max(0.0, min(1.0, ri)); // minmod
+  // // const Scalar phij = max(0.0, min(1.0, rj)); // minmod
+  // // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
+  // // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
+  // // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
+  // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
   
   // // "Mike" method.
   // const Vector vi1 = vi - phii*DvDxi*xij;
@@ -231,7 +181,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Vector vi1 = vi - DvDxi*xij;
   const Vector vj1 = vj + DvDxj*xij;
   const Vector vij1 = vi1 - vj1;
-  const Scalar phi = max(0.0, min(0.95, min(phii, phij)));
+  const Scalar phi = max(0.0, min(0.9, min(phii, phij)));
   vij = (1.0 - phi)*vij + phi*vij1;
   
   // Compute mu.
