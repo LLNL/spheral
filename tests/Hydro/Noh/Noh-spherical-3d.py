@@ -40,9 +40,12 @@ commandLine(seed = "lattice",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            HydroConstructor = ASPHHydro,
+            SVPH = False,
+            CRKSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             linearConsistent = False,
+            filter = 0.0,
             Cl = 1.0, 
             Cq = 0.75,
             Qlimiter = False,
@@ -69,7 +72,7 @@ commandLine(seed = "lattice",
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -160,7 +163,7 @@ if restoreCycle is None:
                                            xmin = (x0, y0, z0),
                                            xmax = (x1, y1, z1),
                                            nNodePerh = nPerh,
-                                           SPH = (HydroConstructor in (SPHHydro, )))
+                                           SPH = True)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes3d
@@ -206,17 +209,49 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if SVPH:
+    if SPH:
+        constructor = SVPHFacetedHydro
+    else:
+        constructor = ASVPHFacetedHydro
+    hydro = constructor(WT, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        densityUpdate = densityUpdate,
+                        XSVPH = XSPH,
+                        linearConsistent = linearConsistent,
+                        generateVoid = False,
+                        HUpdate = HUpdate,
+                        fcentroidal = fcentroidal,
+                        fcellPressure = fcellPressure,
+                        xmin = Vector(-1.1, -1.1),
+                        xmax = Vector( 1.1,  1.1))
+elif CRKSPH:
+    if SPH:
+        constructor = CRKSPHHydro
+    else:
+        constructor = ACRKSPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        filter = filter,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        XSPH = XSPH,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate)
+else:
+    if SPH:
+        constructor = SPHHydro
+    else:
+        constructor = ASPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        gradhCorrection = gradhCorrection,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate,
+                        XSPH = XSPH,
+                        epsTensile = epsilonTensile,
+                        nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
