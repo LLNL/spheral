@@ -1,3 +1,4 @@
+import shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
@@ -75,6 +76,7 @@ commandLine(nx1 = 400,
 
             useRefinement = False,
 
+            clearDirectories = True,
             restoreCycle = None,
             restartStep = 200,
             dataDirBase = "Sod-planar-1d",
@@ -102,6 +104,8 @@ if CRKSPH:
 #-------------------------------------------------------------------------------
 import os, sys
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
 mpi.barrier()
@@ -373,6 +377,34 @@ else:
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
+def createList(x):
+    xx = x
+    if xx == []:
+        xx = [-1e50,]
+    tmp = mpi.allreduce(xx, mpi.SUM)
+    result = [y for y in tmp if y != -1e50]
+    return result
+
+xprof = createList([x.x for x in nodes1.positions().internalValues()] +
+                   [x.x for x in nodes2.positions().internalValues()])
+dx1 = (x1 - x0)/nx1
+dx2 = (x2 - x1)/nx2
+h1 = 1.0/(nPerh*dx1)
+h2 = 1.0/(nPerh*dx2)
+answer = SodSolution(nPoints=nx1 + nx2,
+                     gamma = gammaGas,
+                     rho1 = rho1,
+                     P1 = P1,
+                     rho2 = rho2,
+                     P2 = P2,
+                     x0 = x0,
+                     x1 = x1,
+                     x2 = x2,
+                     h1 = 1.0/h1,
+                     h2 = 1.0/h2)
+xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
+
 if graphics in ("gnu", "matplot"):
     if graphics == "gnu":
         from SpheralGnuPlotUtilities import *
@@ -382,22 +414,6 @@ if graphics in ("gnu", "matplot"):
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
 
     # Now overplot the analytic solution.
-    dx1 = (x1 - x0)/nx1
-    dx2 = (x2 - x1)/nx2
-    h1 = 1.0/(nPerh*dx1)
-    h2 = 1.0/(nPerh*dx2)
-    answer = SodSolution(nPoints=nx1 + nx2,
-                         gamma = gammaGas,
-                         rho1 = rho1,
-                         P1 = P1,
-                         rho2 = rho2,
-                         P2 = P2,
-                         x0 = x0,
-                         x1 = x1,
-                         x2 = x2,
-                         h1 = 1.0/h1,
-                         h2 = 1.0/h2)
-
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
@@ -435,14 +451,6 @@ if graphics in ("gnu", "matplot"):
     db.fluidSoundSpeed(cs)
     csPlot = plotFieldList(cs, winTitle="Sound speed")
 
-    def createList(x):
-        xx = x
-        if xx == []:
-            xx = [-1e50,]
-        tmp = mpi.allreduce(xx, mpi.SUM)
-        result = [y for y in tmp if y != -1e50]
-        return result
-
     # Compute the simulated specific entropy.
     A = []
     for nodes in nodeSet:
@@ -453,11 +461,6 @@ if graphics in ("gnu", "matplot"):
         A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
     # The analytic solution for the simulated entropy.
-    xprof = createList([x.x for x in nodes1.positions().internalValues()] +
-                       [x.x for x in nodes2.positions().internalValues()])
-    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-    Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
-
     # # Plot the specific entropy.
     # if mpi.rank == 0:
     #     ll = zip(xprof, A, Aans)
@@ -508,7 +511,6 @@ if serialDump:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-
 from SpheralGnuPlotUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
