@@ -1,0 +1,21 @@
+#include "libs.hh"
+#include "classes.hh"
+#include "headers.hh"
+namespace FractalSpace
+{
+  bool test_tree(Fractal_Memory& fractal_memory,Fractal& fractal)
+  {
+    bool badd=false;
+    for(int level=max(1,fractal.get_level_start());level <= fractal.get_level_max();level++)
+      {
+	for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
+	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
+	  {
+	    Group& group=**group_itr;
+	    sort3_list(group,2); // sort the points in x,y,z and test for dupes
+	    if(test_group(group)) cout << "badd group " << &group << group.get_level() << endl;
+	  }
+      }
+    return badd;
+  }
+}
