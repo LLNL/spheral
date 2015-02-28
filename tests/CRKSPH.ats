@@ -1,16 +1,25 @@
 # This is an ATS script to coorindate running a series of tests of CRKSPH.
 import sys, os
 python = sys.executable
+
 cfl = 0.25
 nPerh = 1.5
 Cl = 1.0
 Cq = 1.0
-test(executable = python,
-     clas = "Hydro/Sod/Sod-planar-1d.py --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
+
+test("Hydro/Sod/Sod-planar-1d.py",
+     executable = python,
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --serialDump True --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
      label = "Planar Sod problem -- 1-D (serial)")
-test(executable = python,
-     clas = "Hydro/Noh/Noh-planar-1d.py --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
+test("Hydro/Noh/Noh-planar-1d.py",
+     executable = python,
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --serialDump True --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
      label = "Planar Noh problem -- 1-D (serial)")
-test(executable = python,
-     clas = "Hydro/Noh/Noh-cylindrical-2d.py --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
+test("Hydro/Noh/Noh-cylindrical-2d.py",
+     executable = python,
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --outputFile 'Noh-cylindrical-CRKSPH-profiles.txt' --clearDirectories True" % (cfl, nPerh, Cl, Cq), 
      label = "Cylindrical Noh problem -- 2-D (serial)")
+test("Hydro/GreshoVortex/GreshoVortex.py",
+     executable = python,
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --graphics None --serialDump True --clearDirectories True --goalTime 3.0" % (cfl, nPerh, Cl, Cq), 
+     label = "Gresho vortext test 2-D (serial)")
