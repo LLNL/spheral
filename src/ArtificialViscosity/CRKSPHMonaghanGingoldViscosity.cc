@@ -178,8 +178,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   // vij = vij + min(phii,phij)*((vi1-vj1)-vij);
   
   // "Nick" method Mark II. 
-  const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij;
-  const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij;
+  const Vector vi1 = vi - (DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
+  const Vector vj1 = vj + (DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
 
   //const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij*min(phii,phij);
   //const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij*min(phii,phij);
