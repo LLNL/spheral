@@ -4,7 +4,7 @@
 from Spheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-import os, sys
+import os, sys, shutil
 
 import mpi
 

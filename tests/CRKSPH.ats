@@ -27,5 +27,5 @@ test(executable = executable,
      label = "Gresho vortex problem -- 2-D (serial)")
 test(executable = executable,
      inputFile = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
-     opts = "--nx1 128 --nx2 128 --ny1 64 --ny2 64 --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics None --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
+     opts = "--nx1 128 --nx2 128 --ny1 64 --ny2 64 --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
      label = "Kelvin-Helmholtz problem -- 2-D (serial)")
