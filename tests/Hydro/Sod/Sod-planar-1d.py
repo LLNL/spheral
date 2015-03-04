@@ -1,3 +1,4 @@
+import shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
@@ -75,6 +76,7 @@ commandLine(nx1 = 400,
 
             useRefinement = False,
 
+            clearDirectories = False,
             restoreCycle = None,
             restartStep = 200,
             dataDirBase = "Sod-planar-1d",
@@ -102,6 +104,8 @@ if CRKSPH:
 #-------------------------------------------------------------------------------
 import os, sys
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
 mpi.barrier()
