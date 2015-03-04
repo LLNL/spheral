@@ -60,6 +60,7 @@ commandLine(nx1 = 101,
             restoreCycle = None,
             restartStep = 1000,
 
+            clearDirectories = True,
             dataRoot = "dump-planar",
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
@@ -85,6 +86,8 @@ if CRKSPH:
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
 mpi.barrier()
