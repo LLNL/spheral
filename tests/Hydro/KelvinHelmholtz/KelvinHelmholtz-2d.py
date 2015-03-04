@@ -147,6 +147,12 @@ restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d")
 vizBaseName = "KelvinHelmholtz-2d"
 
 #-------------------------------------------------------------------------------
+# CRKSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+
+#-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 import os, sys
