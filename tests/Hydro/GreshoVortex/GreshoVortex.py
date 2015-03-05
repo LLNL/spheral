@@ -122,7 +122,15 @@ else:
     else:
         HydroConstructor = SPHHydro
 
+#-------------------------------------------------------------------------------
+# CRKSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+
+#-------------------------------------------------------------------------------
 # Build our directory paths.
+#-------------------------------------------------------------------------------
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       SumDensity : "SumDensity",
                       RigorousSumDensity : "RigorousSumDensity",
@@ -147,12 +155,6 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "greshovortex-xy-%ix%i" % (nx1, ny1)
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -477,6 +479,12 @@ if graphics:
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
     paz.replot(ansData)
     pmag.replot(ansData)
+    plots = [(paz, "GreshoVortex-velazimuthal.png"),
+             (pmag, "GreshoVortex-velmag.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(baseDir, filename), terminal="png")
 
 if serialDump:
     serialData = []
