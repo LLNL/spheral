@@ -144,8 +144,8 @@ baseDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%1.3f" % max(fcentroidal, filter),
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcentroidal=%f" % max(fcentroidal, filter),
+                       "fcellPressure = %f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "greshovortex-xy-%ix%i" % (nx1, ny1))
