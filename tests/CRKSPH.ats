@@ -24,3 +24,7 @@ test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
      clas = "--nx1 128 --nx2 128 --ny1 64 --ny2 64 --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
      label = "Kelvin-Helmholtz problem -- 2-D (128^2, 10 proc)",
      np = 10)
+test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
+     clas = "--nx1 256 --nx2 256 --ny1 128 --ny2 128 --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
+     label = "Kelvin-Helmholtz problem -- 2-D (256^2, 20 proc)",
+     np = 20)

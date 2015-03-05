@@ -181,12 +181,17 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Vector vi1 = vi - (DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
   // const Vector vj1 = vj + (DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
 
-  // "Nick" method Mark III. 
-  const Tensor DvDxii = DvDxi - (1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  const Tensor DvDxjj = DvDxj - (1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  // // "Nick" method Mark III. 
+  // const Tensor DvDxii = DvDxi - (1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  // const Tensor DvDxjj = DvDxj - (1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  // const Scalar phi = min(phii, phij);
+  // const Vector vi1 = vi - (phi*DvDxi + (1.0 - phi)*DvDxii)*xij;
+  // const Vector vj1 = vj + (phi*DvDxj + (1.0 - phi)*DvDxjj)*xij;
+
+  // "Mike" method Mark III. 
   const Scalar phi = min(phii, phij);
-  const Vector vi1 = vi - (phi*DvDxi + (1.0 - phi)*DvDxii)*xij;
-  const Vector vj1 = vj + (phi*DvDxj + (1.0 - phi)*DvDxjj)*xij;
+  const Vector vi1 = vi - phi*DvDxi*xij;
+  const Vector vj1 = vj + phi*DvDxj*xij;
 
   //const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij*min(phii,phij);
   //const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij*min(phii,phij);
