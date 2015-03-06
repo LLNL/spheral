@@ -154,14 +154,16 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
 
     // Now find all points within this range of the exit plane.
-    for (unsigned i = 0; i != n; ++i) {
-      const Vector& ri = pos(i);
-      const Scalar disti = mExitPlane.signedDistance(ri)/hmax;
-      // const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
-      //                                           (Hi*mExitPlane.normal()).unitVector());
-      // const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
-      if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
-      // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
+    if (hmax > 0.0) {
+      for (unsigned i = 0; i != n; ++i) {
+        const Vector& ri = pos(i);
+        const Scalar disti = mExitPlane.signedDistance(ri)/hmax;
+        // const GeomPlane<Dimension> exitPlanePrime(Hi*(mExitPlane.point() - ri),
+        //                                           (Hi*mExitPlane.normal()).unitVector());
+        // const Scalar disti = exitPlanePrime.signedDistance(Vector::zero);
+        if (disti >= 0.0 and disti <= kernelExtent) controlNodes.push_back(i);
+        // cerr << " --> " << i << " " << ri << " " << enterPlanePrime.minimumDistance(Vector::zero) << " " << exitPlanePrime.minimumDistance(Vector::zero) << endl;
+      }
     }
 
   }
