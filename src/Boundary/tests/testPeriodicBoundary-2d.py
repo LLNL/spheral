@@ -35,7 +35,7 @@ commandLine(nx1 = 20,
             cfl = 0.5,
 
             tol = 1.0e-3,
-            steps = 500,
+            steps = 300,
             dt = 0.0001,
             dtMin = 1.0e-5, 
             dtMax = 0.1,
