@@ -59,7 +59,7 @@ commandLine(
     CRKSPH = False,
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-    filter = 0.0,  # For CRKSPH
+    filter = 0.2,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -102,7 +102,7 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
@@ -120,6 +120,7 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -390,8 +391,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    vizMethod = None
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
