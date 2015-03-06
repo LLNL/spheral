@@ -391,8 +391,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
+    vizMethod = None
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
