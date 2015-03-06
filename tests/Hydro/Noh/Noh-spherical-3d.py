@@ -1,0 +1,430 @@
+#-------------------------------------------------------------------------------
+# The Spherical Noh test case run in 3-D.
+#
+# W.F. Noh 1987, JCP, 72, 78-120.
+#-------------------------------------------------------------------------------
+import shutil
+from math import *
+from Spheral3d import *
+from SpheralTestUtilities import *
+from SpheralGnuPlotUtilities import *
+from findLastRestart import *
+from GenerateNodeDistribution3d import *
+
+import mpi
+import DistributeNodes
+
+title("3-D integrated hydro test -- cylindrical Noh problem")
+
+#-------------------------------------------------------------------------------
+# Generic problem parameters
+#-------------------------------------------------------------------------------
+commandLine(seed = "lattice",
+
+            nx = 50,
+            ny = 50,
+            nz = 50,
+
+            x0 = 0.0,
+            y0 = 0.0,
+            z0 = 0.0,
+            x1 = 1.0,
+            y1 = 1.0,
+            z1 = 1.0,
+            rmin = 0.0,
+            rmax = 1.0,
+            nPerh = 2.01,
+
+            vr0 = -1.0, 
+
+            gamma = 5.0/3.0,
+            mu = 1.0,
+
+            SVPH = False,
+            CRKSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            Qconstructor = MonaghanGingoldViscosity,
+            linearConsistent = False,
+            filter = 0.0,
+            Cl = 1.0, 
+            Cq = 0.75,
+            Qlimiter = False,
+            balsaraCorrection = False,
+            epsilon2 = 1e-2,
+            fslice = 0.5,
+            hmin = 0.0001, 
+            hmax = 0.5,
+            hminratio = 0.1,
+            cfl = 0.5,
+            XSPH = True,
+            epsilonTensile = 0.0,
+            nTensile = 8,
+
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            goalTime = 0.6,
+            steps = None,
+            vizCycle = None,
+            vizTime = 0.1,
+            dt = 0.0001,
+            dtMin = 1.0e-5, 
+            dtMax = 0.1,
+            dtGrowth = 2.0,
+            maxSteps = None,
+            statsStep = 10,
+            smoothIters = 0,
+            HUpdate = IdealH,
+            domainIndependent = False,
+            rigorousBoundaries = False,
+            dtverbose = False,
+
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            compatibleEnergy = True,
+            gradhCorrection = False,
+
+            clearDirectories = False,
+            restoreCycle = None,
+            restartStep = 1000,
+            checkRestart = False,
+            dataDir = "dumps-spherical",
+            outputFile = "None",
+            comparisonFile = "None",
+
+            graphics = True,
+            )
+
+rho0 = 1.0
+eps0 = 0.0
+
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
+
+vizDir = os.path.join(dataDir, "visit")
+if vizTime is None and vizCycle is None:
+    vizBaseName = None
+else:
+    vizBaseName = "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz)
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
+mpi.barrier()
+
+#-------------------------------------------------------------------------------
+# If we're restarting, find the set of most recent restart files.
+#-------------------------------------------------------------------------------
+if restoreCycle is None:
+    restoreCycle = findLastRestart(restartBaseName)
+
+#-------------------------------------------------------------------------------
+# Material properties.
+#-------------------------------------------------------------------------------
+eos = GammaLawGasMKS(gamma, mu)
+
+#-------------------------------------------------------------------------------
+# Interpolation kernels.
+#-------------------------------------------------------------------------------
+WT = TableKernel(BSplineKernel(), 1000)
+WTPi = TableKernel(BSplineKernel(), 1000)
+output("WT")
+output("WTPi")
+kernelExtent = WT.kernelExtent
+
+#-------------------------------------------------------------------------------
+# Make the NodeList.
+#-------------------------------------------------------------------------------
+nodes1 = makeFluidNodeList("nodes1", eos,
+                             hmin = hmin,
+                             hmax = hmax,
+                             hminratio = hminratio,
+                             nPerh = nPerh)
+output("nodes1")
+output("nodes1.hmin")
+output("nodes1.hmax")
+output("nodes1.hminratio")
+output("nodes1.nodesPerSmoothingScale")
+
+#-------------------------------------------------------------------------------
+# Set the node properties.
+#-------------------------------------------------------------------------------
+pos = nodes1.positions()
+vel = nodes1.velocity()
+if restoreCycle is None:
+    generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           xmin = (x0, y0, z0),
+                                           xmax = (x1, y1, z1),
+                                           nNodePerh = nPerh,
+                                           SPH = True)
+
+    if mpi.procs > 1:
+        from VoronoiDistributeNodes import distributeNodes3d
+        #from PeanoHilbertDistributeNodes import distributeNodes3d
+    else:
+        from DistributeNodes import distributeNodes3d
+
+    distributeNodes3d((nodes1, generator))
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+
+    # Set node specific thermal energies
+    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+
+    # Set node velocities
+    for nodeID in xrange(nodes1.numNodes):
+        vel[nodeID] = pos[nodeID].unitVector()*vr0
+
+#-------------------------------------------------------------------------------
+# Construct a DataBase to hold our node list
+#-------------------------------------------------------------------------------
+db = DataBase()
+output("db")
+output("db.appendNodeList(nodes1)")
+output("db.numNodeLists")
+output("db.numFluidNodeLists")
+
+#-------------------------------------------------------------------------------
+# Construct the artificial viscosity.
+#-------------------------------------------------------------------------------
+q = Qconstructor(Cl, Cq)
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+
+#-------------------------------------------------------------------------------
+# Construct the hydro physics object.
+#-------------------------------------------------------------------------------
+if SVPH:
+    if SPH:
+        constructor = SVPHFacetedHydro
+    else:
+        constructor = ASVPHFacetedHydro
+    hydro = constructor(WT, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        densityUpdate = densityUpdate,
+                        XSVPH = XSPH,
+                        linearConsistent = linearConsistent,
+                        generateVoid = False,
+                        HUpdate = HUpdate,
+                        fcentroidal = fcentroidal,
+                        fcellPressure = fcellPressure,
+                        xmin = Vector(-1.1, -1.1),
+                        xmax = Vector( 1.1,  1.1))
+elif CRKSPH:
+    if SPH:
+        constructor = CRKSPHHydro
+    else:
+        constructor = ACRKSPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        filter = filter,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        XSPH = XSPH,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate)
+else:
+    if SPH:
+        constructor = SPHHydro
+    else:
+        constructor = ASPHHydro
+    hydro = constructor(WT, WTPi, q,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        gradhCorrection = gradhCorrection,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate,
+                        XSPH = XSPH,
+                        epsTensile = epsilonTensile,
+                        nTensile = nTensile)
+output("hydro")
+output("hydro.kernel()")
+output("hydro.PiKernel()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
+
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Create boundary conditions.
+#-------------------------------------------------------------------------------
+bcs = []
+if x0 == 0.0:
+    xPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))
+    bcs.append(ReflectingBoundary(xPlane0))
+if y0 == 0.0:
+    yPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))
+    bcs.append(ReflectingBoundary(yPlane0))
+if z0 == 0.0:
+    zPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))
+    bcs.append(ReflectingBoundary(zPlane0))
+
+for p in packages:
+    for bc in bcs:
+        p.appendBoundary(bc)
+
+#-------------------------------------------------------------------------------
+# Construct a time integrator, and add the physics packages.
+#-------------------------------------------------------------------------------
+integrator = IntegratorConstructor(db)
+for p in packages:
+    integrator.appendPhysicsPackage(p)
+integrator.lastDt = dt
+integrator.dtMin = dtMin
+integrator.dtMax = dtMax
+integrator.dtGrowth = dtGrowth
+integrator.domainDecompositionIndependent = domainIndependent
+integrator.verbose = dtverbose
+integrator.rigorousBoundaries = rigorousBoundaries
+output("integrator")
+output("integrator.havePhysicsPackage(hydro)")
+output("integrator.lastDt")
+output("integrator.dtMin")
+output("integrator.dtMax")
+output("integrator.dtGrowth")
+output("integrator.domainDecompositionIndependent")
+output("integrator.rigorousBoundaries")
+output("integrator.verbose")
+
+#-------------------------------------------------------------------------------
+# Make the problem controller.
+#-------------------------------------------------------------------------------
+control = SpheralController(integrator, WT,
+                            statsStep = statsStep,
+                            restartStep = restartStep,
+                            restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
+output("control")
+
+# Do some startup stuff (unless we're restarting).
+if restoreCycle is None:
+    control.smoothState(smoothIters)
+    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
+        print "Reinitializing node masses."
+        control.voronoiInitializeMass()
+    control.dropRestartFile()
+
+#-------------------------------------------------------------------------------
+# Advance to the end time.
+#-------------------------------------------------------------------------------
+if not steps is None:
+    control.step(steps)
+
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
+
+else:
+    control.advance(goalTime, maxSteps)
+    control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
+    control.dropRestartFile()
+
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-10:
+    raise ValueError, "Energy error outside allowed bounds."
+
+#-------------------------------------------------------------------------------
+# Plot the results.
+#-------------------------------------------------------------------------------
+import NohAnalyticSolution
+answer = NohAnalyticSolution.NohSolution(3,
+                                         h0 = nPerh*rmax/nx)
+
+if graphics:
+
+    # Plot the node positions.
+    import Gnuplot
+
+    # Plot the final state.
+    rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
+    del HPlot
+    Hinverse = db.newFluidSymTensorFieldList()
+    db.fluidHinverse(Hinverse)
+    hr = db.newFluidScalarFieldList()
+    ht = db.newFluidScalarFieldList()
+    for Hfield, hrfield, htfield in zip(Hinverse,
+                                        hr,
+                                        ht):
+        n = Hfield.numElements
+        assert hrfield.numElements == n
+        assert htfield.numElements == n
+        positions = Hfield.nodeList().positions()
+        for i in xrange(n):
+            runit = positions[i].unitVector()
+            tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
+            hrfield[i] = (Hfield[i]*runit).magnitude()
+            htfield[i] = (Hfield[i]*tunit).magnitude()
+    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_r")
+    htPlot = plotFieldList(ht, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_t")
+
+    # Overplot the analytic solution.
+    plotAnswer(answer, control.time(),
+               rhoPlot = rhoPlot,
+               velPlot = vrPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = hrPlot)
+
+    if mpi.rank == 0:
+        r, hrans, htans = answer.hrtsolution(control.time())
+        htData = Gnuplot.Data(r, htans,
+                              title = "Solution",
+                              with_ = "lines",
+                              inline = "true")
+        htPlot.replot(htData)
+
+    # Report the error norms.
+    rmin, rmax = 0.05, 0.35
+    r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+    rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+    v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
+    eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
+    Pf = ScalarField("pressure", nodes1)
+    nodes1.pressure(Pf)
+    P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+    if mpi.rank == 0:
+        from SpheralGnuPlotUtilities import multiSort
+        import Pnorm
+        multiSort(r, rho, v, eps, P)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        for (name, data, ans) in [("Mass Density", rho, rhoans),
+                                  ("Pressure", P, Pans),
+                                  ("Velocity", v, vans),
+                                  ("Thermal E", eps, epsans)]:
+            assert len(data) == len(ans)
+            error = [data[i] - ans[i] for i in xrange(len(data))]
+            Pn = Pnorm.Pnorm(error, r)
+            L1 = Pn.gridpnorm(1, rmin, rmax)
+            L2 = Pn.gridpnorm(2, rmin, rmax)
+            Linf = Pn.gridpnorm("inf", rmin, rmax)
+            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
