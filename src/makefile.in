@@ -78,9 +78,9 @@ pycompileall:  $(CXXPGS) @PYTHONPKGDIR@
 	$(PYTHONEXE) -m compileall $(PYTHONLIBDIR)/Spheral
 
 install_headers:
-        for pckg in $(CXXPKGS); do \
-        $(MAKE) -C $(BUILDTOP)/$$pckg install_headers; \
-        done
+	for pckg in $(CXXPKGS); do \
+	$(MAKE) -C $(BUILDTOP)/$$pckg install_headers; \
+	done
 
 cxxclean:
 	for pckg in $(CXXPKGS); do \
