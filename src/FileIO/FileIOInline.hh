@@ -20,14 +20,18 @@ FileIO::write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // provide additional information so it can properly restore itself.
   if (fieldList.storageType() == FieldSpace::Copy) {
-    std::stringstream names;
-    for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
-         fieldItr != fieldList.end();
-         ++fieldItr) {
-      names << (**fieldItr).nodeList().name() << divider;
+    if (fieldList.numFields() > 0) {
+      std::stringstream names;
+      for (typename FieldSpace::FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
+           fieldItr != fieldList.end();
+           ++fieldItr) {
+        names << (**fieldItr).nodeList().name() << divider;
+      }
+      names << std::ends;
+      write(names.str(), pathName + "/NodeListNames");
+    } else {
+      write("", pathName + "/NodeListNames");
     }
-    names << std::ends;
-    write(names.str(), pathName + "/NodeListNames");
   }
 
   // Loop over each Field, and write each one using the descendent method.
@@ -104,7 +108,7 @@ FileIO::read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
 }
 
 //------------------------------------------------------------------------------
-// Write a Field of std::vector<DataType).
+// Write a Field of std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -140,7 +144,7 @@ FileIO::write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field,
 }
 
 //------------------------------------------------------------------------------
-// Read a Field of std::vector<DataType).
+// Read a Field of std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -181,7 +185,7 @@ FileIO::read(FieldSpace::Field<Dimension, std::vector<DataType> >& field,
 }
 
 //------------------------------------------------------------------------------
-// Write a std::vector<DataType).
+// Write a std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename DataType>
 inline
@@ -197,7 +201,7 @@ FileIO::write(const std::vector<DataType>& x, const std::string pathName) {
 }
 
 //------------------------------------------------------------------------------
-// Read a std::vector<DataType).
+// Read a std::vector<DataType>.
 //------------------------------------------------------------------------------
 template<typename DataType>
 inline

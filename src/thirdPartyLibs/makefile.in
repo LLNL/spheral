@@ -56,8 +56,8 @@ PSYCOBUILDDATE = .psyco.date
 # ELEMENTTREEBUILDDATE = $(patsubst %.zip, .%.date, $(ELEMENTTREEDIST))
 
 # Boost
-BOOSTDIST = boost_1_55_0.tar.bz2
-BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.55.0/$(BOOSTDIST)/download
+BOOSTDIST = boost_1_57_0.tar.bz2
+BOOSTURL = http://sourceforge.net/projects/boost/files/boost/1.57.0/$(BOOSTDIST)/download
 BOOSTDIR = $(BOOSTDIST:.tar.bz2=)
 BOOSTDATE = $(patsubst %.tar.bz2, .%.date, $(BOOSTDIST))
 BOOSTPYTHONLIB0 = libboost_python$(BOOSTEXT).$(DYLIBEXT)
@@ -215,14 +215,14 @@ MPI4PYDIR = $(MPI4PYDIST:.tar.gz=)
 MPI4PYBUILDDATE = $(patsubst %.tar.gz, .%.date, $(MPI4PYDIST))
 
 # HDF5
-HDF5DIST = hdf5-1.8.13.tar.bz2
-HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.13/src/$(HDF5DIST)
+HDF5DIST = hdf5-1.8.14.tar.bz2
+HDF5URL = http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/$(HDF5DIST)
 HDF5DIR = $(HDF5DIST:.tar.bz2=)
 HDF5BUILDDATE = $(patsubst %.tar.bz2, .%.date, $(HDF5DIST))
 
 # SILO
-SILODIST = silo-4.10-bsd.tar.gz
-SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10/$(SILODIST)
+SILODIST = silo-4.10.2-bsd.tar.gz
+SILOURL = https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/$(SILODIST)
 SILODIR = $(SILODIST:.tar.gz=)
 SILOBUILDDATE = $(patsubst %.tar.gz, .%.date, $(SILODIST))
 
@@ -404,8 +404,8 @@ $(NUMPYBUILDDATE):	$(PYTHONBUILDDATE) $(NUMPYDIST)
 	$(MAKE) $(NUMPYDIST)
 	rm -fr $(NUMPYDIR)
 	$(GZIP) -dc $(NUMPYDIST) | $(TAR) -xf -
-	env PATH=$(prefix)/bin:$$PATH $(SHELL) -ec 'cd $(NUMPYDIR); \
-	$(PYTHONEXE) setup.py build; \
+	env CC='$(PYTHONCC)' CXX='$(PYTHONCXX)' PATH=$(prefix)/bin:$$PATH $(SHELL) -ec 'cd $(NUMPYDIR); \
+	$(PYTHONEXE) setup.py build $(NUMPYFLAGS); \
 	$(PYTHONEXE) setup.py install;'
 	@if test -n "`$(PYTHONEXE) -c 'import numpy'`"; then \
 	echo "ERROR building numpy python extension."; \
@@ -1176,7 +1176,7 @@ $(SILOBUILDDATE):  $(SILODIST) $(HDF5BUILDDATE) $(PYTHONBUILDDATE)
 	rm -fr $(SILODIR)
 	$(GZIP) -dc $(SILODIST) | $(TAR) -xf -
 	$(SHELL) -ec "cd $(SILODIR); \
-	env PATH=$(prefix)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=no ; \
+	env PATH=$(prefix)/bin:$$PATH CC='$(MPICC)' CXX='$(MPICXX)' CFLAGS='$(MPICCFLAGS) $(CFLAGS)' CXXFLAGS='$(MPICXXFLAGS) $(CXXFLAGS)' $(SILOFLAGS) ./configure --enable-shared=no --enable-fortran=no --prefix=$(prefix) --with-hdf5='$(prefix)/include,$(prefix)/lib' --enable-pythonmodule --enable-silex=no --enable-browser=yes ; \
 	$(MAKE) ; \
 	$(MAKE) install"
 	ln -f -s $(prefix)/lib/Silo.so $(LIBDIR)

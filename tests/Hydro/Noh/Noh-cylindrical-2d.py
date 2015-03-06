@@ -465,6 +465,17 @@ if graphics:
                               with_ = "lines",
                               inline = "true")
         htPlot.replot(htData)
+    plots = [(rPlot, "Noh-cylindrical-positions.png"),
+             (rhoPlot, "Noh-cylindrical-rho.png"),
+             (vrPlot, "Noh-cylindrical-vel.png"),
+             (epsPlot, "Noh-cylindrical-eps.png"),
+             (PPlot, "Noh-cylindrical-P.png"),
+             (hrPlot, "Noh-cylindrical-hr.png"),
+             (htPlot, "Noh-cylindrical-ht.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
     # Report the error norms.
     rmin, rmax = 0.05, 0.35

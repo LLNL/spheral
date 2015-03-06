@@ -15,6 +15,7 @@ from SpheralModules.Spheral.KernelSpace import BSplineKernel1d, BSplineKernel2d,
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
 from SpheralModules.Spheral import BoundarySpace
 from SpheralModules.Spheral.FieldSpace import *
+from SpheralModules.Spheral.FileIOSpace import *
 from SpheralModules import vector_of_Physics1d, vector_of_Physics2d, vector_of_Physics3d
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
@@ -37,7 +38,7 @@ class SpheralController(RestartableObject):
                  restartStep = None,
                  restartBaseName = "restart",
                  restartObjects = [],
-                 restartFileConstructor = GzipFileIO,
+                 restartFileConstructor = SiloFileIO,
                  restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,
@@ -408,8 +409,14 @@ class SpheralController(RestartableObject):
 
     #--------------------------------------------------------------------------
     # Periodically drop a restart file.
+    # We do a garbage collection clean up pass here since sometimes temporary
+    # objects are restartable and wind up dumping data here.  Doesn't really
+    # hurt anything, but it can be wasteful.
     #--------------------------------------------------------------------------
     def updateRestart(self, cycle, Time, dt):
+        import gc
+        while gc.collect():
+            pass
         self.dropRestartFile()
         return
 
@@ -477,6 +484,8 @@ class SpheralController(RestartableObject):
         fileName = self.restartBaseName + "_cycle%i" % restoreCycle
         if self.restartFileConstructor is GzipFileIO:
             fileName += ".gz"
+        if self.restartFileConstructor is SiloFileIO:
+            fileName += ".silo"
         if not os.path.exists(fileName):
             raise RuntimeError("File %s does not exist or is inaccessible." %
                                fileName)

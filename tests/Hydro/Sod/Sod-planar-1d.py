@@ -1,3 +1,4 @@
+import shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
@@ -75,13 +76,14 @@ commandLine(nx1 = 400,
 
             useRefinement = False,
 
+            clearDirectories = False,
             restoreCycle = None,
             restartStep = 200,
             dataDirBase = "Sod-planar-1d",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
 
-            graphics = "gnu",
+            graphics = True,
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
@@ -102,6 +104,8 @@ if CRKSPH:
 #-------------------------------------------------------------------------------
 import os, sys
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
 mpi.barrier()
@@ -373,35 +377,63 @@ else:
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
-if graphics in ("gnu", "matplot"):
-    if graphics == "gnu":
-        from SpheralGnuPlotUtilities import *
-    elif graphics == "matplot":
-        from SpheralMatplotlibUtilities import *
+dx1 = (x1 - x0)/nx1
+dx2 = (x2 - x1)/nx2
+h1 = 1.0/(nPerh*dx1)
+h2 = 1.0/(nPerh*dx2)
+answer = SodSolution(nPoints=nx1 + nx2,
+                     gamma = gammaGas,
+                     rho1 = rho1,
+                     P1 = P1,
+                     rho2 = rho2,
+                     P2 = P2,
+                     x0 = x0,
+                     x1 = x1,
+                     x2 = x2,
+                     h1 = 1.0/h1,
+                     h2 = 1.0/h2)
+
+cs = db.newFluidScalarFieldList(0.0, "sound speed")
+db.fluidSoundSpeed(cs)
+
+def createList(x):
+    xx = x
+    if xx == []:
+        xx = [-1e50,]
+    tmp = mpi.allreduce(xx, mpi.SUM)
+    result = [y for y in tmp if y != -1e50]
+    return result
+
+# Compute the simulated specific entropy.
+A = []
+for nodes in nodeSet:
+    rho = createList(nodes.massDensity().internalValues())
+    pressure = ScalarField("pressure", nodes)
+    nodes.pressure(pressure)
+    P = createList(pressure.internalValues())
+    A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
+
+# The analytic solution for the simulated entropy.
+xprof = createList([x.x for x in nodes1.positions().internalValues()] +
+                   [x.x for x in nodes2.positions().internalValues()])
+xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
+
+if graphics:
+    from SpheralGnuPlotUtilities import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-
-    # Now overplot the analytic solution.
-    dx1 = (x1 - x0)/nx1
-    dx2 = (x2 - x1)/nx2
-    h1 = 1.0/(nPerh*dx1)
-    h2 = 1.0/(nPerh*dx2)
-    answer = SodSolution(nPoints=nx1 + nx2,
-                         gamma = gammaGas,
-                         rho1 = rho1,
-                         P1 = P1,
-                         rho2 = rho2,
-                         P2 = P2,
-                         x0 = x0,
-                         x1 = x1,
-                         x2 = x2,
-                         h1 = 1.0/h1,
-                         h2 = 1.0/h2)
-
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
-
+    csPlot = plotFieldList(cs, winTitle="Sound speed")
+    plots = [(rhoPlot, "Sod-planar-rho.png"),
+             (velPlot, "Sod-planar-vel.png"),
+             (epsPlot, "Sod-planar-eps.png"),
+             (PPlot, "Sod-planar-P.png"),
+             (HPlot, "Sod-planar-h.png"),
+             (csPlot, "Sod-planar-cs.png")]
+    
     if CRKSPH:
         volPlot = plotFieldList(hydro.volume(),
                                 winTitle = "volume",
@@ -413,6 +445,9 @@ if graphics in ("gnu", "matplot"):
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
+        plots += [(volPlot, "Sod-planar-vol.png"),
+                  (APlot, "Sod-planar-A.png"),
+                  (BPlot, "Sod-planar-B.png")]
         state = State()
         derivs = StateDerivatives(db, integrator.physicsPackages())
         drhodt = derivs.scalarFields("delta mass density")
@@ -423,40 +458,12 @@ if graphics in ("gnu", "matplot"):
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
                              colorNodeLists = False)
+    plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     #if boolReduceViscosity:
     #    alphaPlot = plotFieldList(q.reducingViscosityMultiplier(),
     #                              winTitle = "rvAlpha",
     #                              colorNodeLists = False)
-
-
-
-    cs = db.newFluidScalarFieldList(0.0, "sound speed")
-    db.fluidSoundSpeed(cs)
-    csPlot = plotFieldList(cs, winTitle="Sound speed")
-
-    def createList(x):
-        xx = x
-        if xx == []:
-            xx = [-1e50,]
-        tmp = mpi.allreduce(xx, mpi.SUM)
-        result = [y for y in tmp if y != -1e50]
-        return result
-
-    # Compute the simulated specific entropy.
-    A = []
-    for nodes in nodeSet:
-        rho = createList(nodes.massDensity().internalValues())
-        pressure = ScalarField("pressure", nodes)
-        nodes.pressure(pressure)
-        P = createList(pressure.internalValues())
-        A += [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
-
-    # The analytic solution for the simulated entropy.
-    xprof = createList([x.x for x in nodes1.positions().internalValues()] +
-                       [x.x for x in nodes2.positions().internalValues()])
-    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-    Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 
     # # Plot the specific entropy.
     # if mpi.rank == 0:
@@ -483,6 +490,10 @@ if graphics in ("gnu", "matplot"):
 
     # Some debugging useful plots to pull out the derivatives and check 'em out.
 
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
@@ -492,7 +503,7 @@ if serialDump:
     i,j = 0,0
     
     f = open(dataDir + "/sod-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
-    f.write("i x m rho u v rhoans uans vans visc\n")
+    f.write("# i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
                                                                    nodes1.mass()[j],

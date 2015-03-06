@@ -60,16 +60,16 @@ instancePtr() {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
+registerRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr,
                       const unsigned priority) {
-  if (not haveRestartHandle(boost::weak_ptr<RestartHandle>(restartHandlePtr))) {
+  boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
+  if (not haveRestartHandle(wptr)) {
     priority_iterator itr = lower_bound(mPriorities.begin(), mPriorities.end(), priority);
     const size_t delta = distance(mPriorities.begin(), itr);
-    mRestartHandles.insert(mRestartHandles.begin() + delta, 
-                           boost::weak_ptr<RestartHandle>(restartHandlePtr));
+    mRestartHandles.insert(mRestartHandles.begin() + delta, wptr);
     mPriorities.insert(itr, priority);
   }
-  ENSURE(haveRestartHandle(boost::weak_ptr<RestartHandle>(restartHandlePtr)));
+  ENSURE(haveRestartHandle(wptr));
   ENSURE(mRestartHandles.size() == mPriorities.size());
 }
 
@@ -78,7 +78,7 @@ registerRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr,
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
+unregisterRestartHandle(boost::shared_ptr<RestartHandle>& restartHandlePtr) {
   boost::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   VERIFY(haveRestartHandle(wptr));
   iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), wptr));
@@ -95,9 +95,13 @@ unregisterRestartHandle(boost::shared_ptr<RestartHandle> restartHandlePtr) {
 //------------------------------------------------------------------------------
 bool
 RestartRegistrar::
-haveRestartHandle(boost::weak_ptr<RestartHandle> restartHandlePtr) const {
-  const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
-  return itr != mRestartHandles.end();
+haveRestartHandle(const boost::weak_ptr<RestartHandle>& restartHandlePtr) const {
+  // const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
+  // return (itr != this->end());
+  const_iterator itr = this->begin();
+  while (itr < this->end() and
+         itr->lock() != restartHandlePtr.lock()) ++itr;
+  return (itr != this->end());
 }
 
 //------------------------------------------------------------------------------

@@ -33,12 +33,6 @@ public:
   virtual ~PyFileIO();
 
   // Descendent python objects should provide these write methods.
-  virtual void write_unsigned_int(const unsigned value, const std::string pathName) = 0;
-  virtual void write_int(const int value, const std::string pathName) = 0;
-  virtual void write_bool(const bool value, const std::string pathName) = 0;
-  virtual void write_double(const double value, const std::string pathName) = 0;
-  virtual void write_string(const std::string value, const std::string pathName) = 0;
-
   virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName) = 0;
   virtual void write_SymTensor1d(const Dim<1>::SymTensor& value, const std::string pathName) = 0;
@@ -95,12 +89,6 @@ public:
   virtual void write_IntField3d(const FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) = 0;
 
   // Descendent python objects should provide these read methods.
-  virtual unsigned read_unsigned_int(const std::string pathName) const = 0;
-  virtual int read_int(const std::string pathName) const = 0;
-  virtual bool read_bool(const std::string pathName) const = 0;
-  virtual double read_double(const std::string pathName) const = 0;
-  virtual std::string read_string(const std::string pathName) const = 0;
-
   virtual void read_Vector1d(Dim<1>::Vector& value, const std::string pathName) const = 0;
   virtual void read_Tensor1d(Dim<1>::Tensor& value, const std::string pathName) const = 0;
   virtual void read_SymTensor1d(Dim<1>::SymTensor& value, const std::string pathName) const = 0;
@@ -281,6 +269,28 @@ public:
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const { read_SymTensorField3d(value, pathName); }
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const { read_ThirdRankTensorField3d(value, pathName); }
   virtual void read(FieldSpace::Field<Dim<3>, int>& value, const std::string pathName) const { read_IntField3d(value, pathName); }
+
+  //------------------------------------------------------------------------------
+  // We have to forward the templated write/read methods to the base class due to
+  // function hiding.
+  // Write/read FieldLists.
+  template<typename Dimension, typename DataType>
+  void write(const FieldSpace::FieldList<Dimension, DataType>& fieldList, const std::string pathName) { FileIO::write(fieldList, pathName); }
+  template<typename Dimension, typename DataType>
+  void read(FieldSpace::FieldList<Dimension, DataType>& fieldList, const std::string pathName) const { FileIO::read(fieldList, pathName); }
+
+  // Write/read Fields of vectors.
+  template<typename Dimension, typename DataType>
+  void write(const FieldSpace::Field<Dimension, std::vector<DataType> >& field, const std::string pathName) { FileIO::write(field, pathName); }
+  template<typename Dimension, typename DataType>
+  void read(FieldSpace::Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const {FileIO::read(field, pathName); }
+
+  // Write/read a vector<DataType> if DataType is a primitive we already know about.
+  template<typename DataType>
+  void write(const std::vector<DataType>& x, const std::string pathName) { FileIO::write(x, pathName); }
+  template<typename DataType>
+  void read(std::vector<DataType>& x, const std::string pathName) const { FileIO::read(x, pathName); }
+  //------------------------------------------------------------------------------
 
 private:
   //--------------------------- Private Interface ---------------------------//

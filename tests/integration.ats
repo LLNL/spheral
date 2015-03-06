@@ -40,6 +40,7 @@ source("../src/FieldOperations/tests/testSampleMultipleFields2Lattice.py")
 
 # FileIO tests
 source("../src/FileIO/tests/testGzipFileIO.py")
+source("../src/FileIO/tests/testSiloFileIO.py")
 
 # Utilities tests
 source("../src/Utilities/tests/testSegmentSegmentIntersection.py")

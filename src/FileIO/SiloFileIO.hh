@@ -1,40 +1,32 @@
 //---------------------------------Spheral++----------------------------------//
-// FlatFileIO -- Provide the interface to FlatFile file objects.
+// SiloFileIO -- Provide the interface to silo file objects.
 //
-// Created by JMO, Fri Apr 13 01:19:02 PDT 2001
+// Created by JMO, Sat Feb  7 23:06:03 PST 2015
 //----------------------------------------------------------------------------//
-#ifndef FlatFileIO_HH
-#define FlatFileIO_HH
+#ifndef __Spheral_SiloFileIO__
+#define __Spheral_SiloFileIO__
 
-#ifndef __GCCXML__
 #include <vector>
-#else
-#include "fakestl.hh"
-#endif
-
 #include <string>
-#include <fstream>
 
 #include "FileIO.hh"
+
+extern "C" {
+#include "silo.h"
+}
 
 namespace Spheral {
 namespace FileIOSpace {
 
-enum FlatFileFormat {
-  ascii = 0,
-  binary = 1
-};
-
-class FlatFileIO: public FileIO {
+class SiloFileIO: public FileIO {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors.
-  FlatFileIO();
-  FlatFileIO(const std::string fileName, AccessType access, FlatFileFormat format=ascii);
-  FlatFileIO(const std::string fileName, int access, int format=0);
+  SiloFileIO();
+  SiloFileIO(const std::string fileName, AccessType access);
 
   // Destructor.
-  virtual ~FlatFileIO();
+  virtual ~SiloFileIO();
 
   // All File objects must provide methods to open and close the files.
   virtual void open(const std::string fileName, AccessType access);
@@ -89,7 +81,6 @@ public:
 
   // We also require that FileIO objects write vectors of the primitive types.
   virtual void write(const std::vector<int>& value, const std::string pathName);
-//   virtual void write(const std::vector<bool>& value, const std::string pathName);
   virtual void write(const std::vector<double>& value, const std::string pathName);
   virtual void write(const std::vector<std::string>& value, const std::string pathName);
 
@@ -109,7 +100,6 @@ public:
   virtual void write(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName);
 
   virtual void read(std::vector<int>& value, const std::string pathName) const;
-//   virtual void read(std::vector<bool>& value, const std::string pathName) const;
   virtual void read(std::vector<double>& value, const std::string pathName) const;
   virtual void read(std::vector<std::string>& value, const std::string pathName) const;
 
@@ -195,55 +185,25 @@ public:
   void read(std::vector<DataType>& x, const std::string pathName) const { FileIO::read(x, pathName); }
   //------------------------------------------------------------------------------
 
-  // Get and set the current precision for I/O.
-  int precision() const;
-  void setPrecision(int precision);
-
-  // Write generic DataTypes.
-  template<typename DataType>
-  void writeGenericType(const DataType& value,
-			const std::string pathName);
-
-  // Read generic DataTypes.
-  template<typename DataType>
-  void readGenericType(DataType& value,
-		       const std::string pathName) const;
-
-  // Write a generic vector<T>.
-  template<typename DataType>
-  void writeGenericVector(const std::vector<DataType>& value,
-                          const std::string pathName);
-
-  // Read a generic vector<T>.
-  template<typename DataType>
-  void readGenericVector(std::vector<DataType>& value,
-                         const std::string pathName) const;
-
-  // Test if we're currently prepared to write to the file.
-  bool readyToWrite() const;
-
-  // Test if we're currently prepared to read from the file.
-  bool readyToRead() const;
-
-  // Scan the file for the given path name.
-  void findPathName(const std::string pathName) const;
-
-  // Move the current pointer to the beginning of the file.
-  void beginningOfFile() const;
-
 private:
   //--------------------------- Private Interface ---------------------------//
-  // The precision we will write to the output files with.
-  int mPrecision;
-
-  // A pointer to the FlatFile file associated with this object.
-  mutable std::fstream* mFilePtr;
-
-  FlatFileFormat mFileFormat;
+  // A pointer to the SiloFile file associated with this object.
+  mutable DBfile* mFilePtr;
 
   // Don't allow assignment.
-  FlatFileIO& operator=(const FlatFileIO& rhs);
+  SiloFileIO& operator=(const SiloFileIO& rhs);
 
+  // Parse a path name and set the current working directory in a silo file.
+  // The non-const version will create the directory in the silo file if need be,
+  // while the const version will abort if the directory does not exist.
+  std::string setDir(const std::string& pathName);
+  std::string setDir(const std::string& pathName) const;
+
+  // Helper methods to read/write sequential types.
+  template<typename Container>
+  void writeValueSequence(const Container& value, const std::string pathName, const int nvali);
+  template<typename Container> 
+  void readValueSequence(Container& value, const std::string pathName, const int nvali) const;
 };
 
 }
@@ -254,7 +214,7 @@ private:
 // Forward declaration.
 namespace Spheral {
   namespace FileIOSpace {
-    class FlatFileIO;
+    class SiloFileIO;
   }
 }
 

@@ -186,6 +186,20 @@ public:
   virtual void read(FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) const = 0;
   //******************************************************************************
 
+  // These methods are useful for the primitive types that are problematic
+  // to return by reference from python.
+  virtual void write_unsigned_int(const unsigned value, const std::string pathName) { this->write(value, pathName); }
+  virtual void write_int(const int value, const std::string pathName)               { this->write(value, pathName); }
+  virtual void write_bool(const bool value, const std::string pathName)             { this->write(value, pathName); }
+  virtual void write_double(const double value, const std::string pathName)         { this->write(value, pathName); }
+  virtual void write_string(const std::string value, const std::string pathName)    { this->write(value, pathName); }
+
+  virtual unsigned read_unsigned_int(const std::string pathName) const { unsigned result;    this->read(result, pathName); return result; }
+  virtual int read_int(const std::string pathName) const               { int result;         this->read(result, pathName); return result; }
+  virtual bool read_bool(const std::string pathName) const             { bool result;        this->read(result, pathName); return result; }
+  virtual double read_double(const std::string pathName) const         { double result;      this->read(result, pathName); return result; }
+  virtual std::string read_string(const std::string pathName) const    { std::string result; this->read(result, pathName); return result; }
+
   // Read/write planes using the primitive methods.
   void write(const GeomPlane<Dim<1> >& value, const std::string pathName);
   void write(const GeomPlane<Dim<2> >& value, const std::string pathName);
@@ -211,10 +225,10 @@ public:
   // Write/read FieldLists.
   template<typename Dimension, typename DataType>
   void write(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-	     const std::string pathName);
+             const std::string pathName);
   template<typename Dimension, typename DataType>
   void read(FieldSpace::FieldList<Dimension, DataType>& fieldList,
-	    const std::string pathName) const;
+            const std::string pathName) const;
 
   // Write/read Fields of vectors.
   template<typename Dimension, typename DataType>

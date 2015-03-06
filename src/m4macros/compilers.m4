@@ -59,6 +59,7 @@ AC_SUBST(DEPFLAG)
 
 AC_SUBST(PYTHONCFLAGS)
 AC_SUBST(PYTHONCONFFLAGS)
+AC_SUBST(NUMPYFLAGS)
 
 PYTHONCONFFLAGS=
 LIBTARGETFLAGS=
@@ -66,6 +67,7 @@ JAMTOOLSETOPTS=
 LDINSTALLNAME="-o"
 LDRPATH=
 FORTLINK=
+NUMPYFLAGS=
 
 # =======================================================================
 # Selection of approved compiler sets for Spheral++.
@@ -84,33 +86,10 @@ AC_MSG_RESULT($COMPILERS)
 
 OSNAME=`uname -s`
 AC_CHECK_PROG(GCCTEST, gcc, `which gcc`, nope)
-AC_CHECK_PROG(GCC446TEST, gcc-4.4.6, `which gcc-4.4.6`, nope)
 AC_CHECK_PROG(MPICXXTEST, mpicxx, `which mpicxx`, nope)
 case $COMPILERS in
    gnu)
-      if test $OSNAME = "Linux" -a "$GCC446TEST" != "nope"; then
-         CC=gcc-4.4.6
-         CXX=g++-4.4.6
-         FORT=gfortran
-         MPICC=mpicc
-         MPICCFLAGS="-cc=$CC"
-         if test "$MPICXXTEST" != "nope"; then
-            MPICXX=mpicxx
-            MPICXXFLAGS="-cxx=$CXX"
-         else
-            MPICXX=mpig++
-            MPICXXFLAGS="-cc=$CXX"
-         fi
-         CMAKECC=$CC
-         CMAKECXX=$CXX
-         GCCXMLCC=$CMAKECC
-         GCCXMLCXX=$CMAKECXX
-         PYTHONCC=$CC
-         PYTHONCXX=$CXX
-         PARMETISCC=$MPICC
-         JAMTOOLSETOPTS=" : 4.4 : gcc-4.4.6 "
-
-      elif test $OSNAME = "Linux" -a "$GCCTEST" != "nope"; then
+      if test $OSNAME = "Linux" -a "$GCCTEST" != "nope"; then
          CC=gcc
          CXX=g++
          FORT=gfortran
@@ -191,6 +170,7 @@ case $COMPILERS in
       CMAKECC=gcc
       CMAKECXX=g++
       PARMETISCC=$MPICC
+      NUMPYFLAGS="--fcompiler=intelem"
       ;;
 
    *)

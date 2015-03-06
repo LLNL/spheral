@@ -30,6 +30,7 @@ commandLine(
     # Which N-body method should we use?
     nbody = OctTreeGravity,
     timeStepChoice = AccelerationRatio,
+    integratorConstructor = CheapSynchronousRK2Integrator,
 
     # Output
     dataDir = "Two-Earth-Nbody",
@@ -149,7 +150,7 @@ elif nbody is FractalGravity:
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = SynchronousRK2Integrator(db)
+integrator = integratorConstructor(db)
 integrator.appendPhysicsPackage(gravity)
 integrator.lastDt = 1e3    # seconds
 if dtMin:
@@ -213,14 +214,14 @@ y1 = [stuff[2]/AU for stuff in history.sampleHistory]
 x2 = [stuff[8]/AU for stuff in history.sampleHistory]
 y2 = [stuff[9]/AU for stuff in history.sampleHistory]
 
-import Gnuplot
+import SpheralGnuPlotUtilities
 gdata1 = Gnuplot.Data(x1, y1,
                       with_ = 'linespoints',
                       title = 'Particle 1')
 gdata2 = Gnuplot.Data(x2, y2,
                       with_ = 'linespoints',
                       title = 'Particle 2')
-plot = Gnuplot.Gnuplot()
+plot = generateNewGnuPlot()
 plot.plot(gdata1)
 plot.replot(gdata2)
 plot('set size square; set xrange [-1.1:1.1]; set yrange [-1.1:1.1]')
