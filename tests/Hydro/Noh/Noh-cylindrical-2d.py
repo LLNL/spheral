@@ -118,6 +118,29 @@ else:
 rho0 = 1.0
 eps0 = 0.0
 
+if SVPH:
+    if SPH:
+        HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
+elif CRKSPH:
+    if SPH:
+        HydroConstructor = CRKSPHHydro
+    else:
+        HydroConstructor = ACRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    if SPH:
+        constructor = SPHHydro
+    else:
+        constructor = ASPHHydro
+
+dataDir = os.path.join(dataDir,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
 
@@ -247,48 +270,36 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    if SPH:
-        constructor = SVPHFacetedHydro
-    else:
-        constructor = ASVPHFacetedHydro
-    hydro = constructor(WT, q,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        densityUpdate = densityUpdate,
-                        XSVPH = XSPH,
-                        linearConsistent = linearConsistent,
-                        generateVoid = False,
-                        HUpdate = HUpdate,
-                        fcentroidal = fcentroidal,
-                        fcellPressure = fcellPressure,
-                        xmin = Vector(-1.1, -1.1),
-                        xmax = Vector( 1.1,  1.1))
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-1.1, -1.1),
+                             xmax = Vector( 1.1,  1.1))
 elif CRKSPH:
-    if SPH:
-        constructor = CRKSPHHydro
-    else:
-        constructor = ACRKSPHHydro
-    hydro = constructor(WT, WTPi, q,
-                        filter = filter,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        XSPH = XSPH,
-                        densityUpdate = densityUpdate,
-                        HUpdate = HUpdate)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
 else:
-    if SPH:
-        constructor = SPHHydro
-    else:
-        constructor = ASPHHydro
-    hydro = constructor(WT, WTPi, q,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        gradhCorrection = gradhCorrection,
-                        densityUpdate = densityUpdate,
-                        HUpdate = HUpdate,
-                        XSPH = XSPH,
-                        epsTensile = epsilonTensile,
-                        nTensile = nTensile)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -366,7 +377,8 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             skipInitialPeriodicWork = SVPH,
-                            SPH = SPH)
+                            SPH = True,        # Only for iterating H
+                            )
 output("control")
 
 # Do some startup stuff (unless we're restarting).
@@ -550,9 +562,3 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
-
-# import siloPointmeshDump
-# siloPointmeshDump.siloPointmeshDump("test_silo", fields=[nodes1.massDensity(),
-#                                                          nodes1.velocity(),
-#                                                          nodes1.Hfield()])
-
