@@ -145,7 +145,7 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
-                       "fcellPressure = %f" % fcellPressure,
+                       "fcellPressure=%f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "greshovortex-xy-%ix%i" % (nx1, ny1))
@@ -435,8 +435,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    vizMethod = None # default
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
