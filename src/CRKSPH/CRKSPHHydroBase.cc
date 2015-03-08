@@ -1073,8 +1073,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector deltaDvDti, deltaDvDtj;
               const Vector vijhat = vij.unitVector();
               if (mMomentumConserving) {
-                const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
-                                                            ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+                Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+                                                      ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+
+                // // Add the filtering correction.
+                // if (mfilter > 0.0) {
+                //   const Scalar rijmag = rij.magnitude();
+                //   const Vector rijhat = rij.unitVector();
+                //   const Scalar hi = Dimension::nDim/Hi.Trace();
+                //   const Scalar hj = Dimension::nDim/Hj.Trace();
+                //   const Scalar vijmag = -min(0.0, vij.dot(rijhat)); // vij.magnitude();
+                //   // const Scalar ki = mi*vijmag*ci*safeInv(hi*hi);
+                //   // const Scalar kj = mj*vijmag*cj*safeInv(hj*hj);
+                //   const Scalar ki = mi*ci*ci*safeInv(hi*hi);
+                //   const Scalar kj = mj*cj*cj*safeInv(hj*hj);
+                //   // const Scalar ki = mi*vijmag*safeInv(hi*hi*ci);
+                //   // const Scalar kj = mj*vijmag*safeInv(hj*hj*cj);
+                //   const Scalar drij = max(0.0, hi/nPerh - rijmag);
+                //   const Scalar drji = max(0.0, hj/nPerh - rijmag);
+                //   const Scalar forceijmag = forceij.magnitude();
+                //   forceij += min(mfilter*forceij.magnitude(), 0.5*(ki*drij + kj*drji))*rijhat;
+                // }
 
                 deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
                 deltaDvDtj =  forceij/mj; // + mi*(Qacci + Qaccj);
