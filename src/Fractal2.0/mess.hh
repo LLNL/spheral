@@ -546,11 +546,17 @@ namespace FractalSpace
     //
     void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR)
     {
+      ofstream& FF=p_file->DUMPS;
+      double time0=Clock();
       How_Many_Things_To_Send_I(counts_out_send,counts_in_send);
+      double time1=Clock();
       maxSR.clear();
       maxSR.push_back(std::accumulate(counts_out_send.begin(),counts_out_send.end(),0));
       maxSR.push_back(std::accumulate(counts_in_send.begin(),counts_in_send.end(),0));
+      double time2=Clock();
       Find_Max_INT(maxSR,2);
+      double time3=Clock();
+      FF << " SENDREC " << time1-time0 << " " << time2-time1 << " " << time3-time2 << "\n";
     }
     //
     //
@@ -859,8 +865,8 @@ namespace FractalSpace
       bool foreign=World != FractalWorld && World != HypreWorld;
       possibleDANGER=Nodes >= MPI_MAX_COMMS && (fftwTAG == 0 || fftwTAG == 4 || fftwTAG == 7) && World == FractalWorld;
       DANGERlevel=possibleDANGER ? 1:0;
-      p_file->DUMPS << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << endl;
-      cout << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << endl;
+      p_file->DUMPS << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << "\n";
+      cout << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << "\n";
       if(Rank == 0)
 	cout << " SOMEWHOW " << FractalRank << " " << Nodes << " " << MPI_SWITCH << " " << small << foreign << " ";
       if(small || foreign)
@@ -917,7 +923,7 @@ namespace FractalSpace
       dataR_in.clear();
       vector <int>countsa_out(FractalNodes2,0);
       vector <int>countsa_in(FractalNodes2);
-      FF << " SendOne AA " << FractalRank << "\n";
+      //      FF << " SendOne AA " << FractalRank << "\n";
       int totals=0;
       int nIdata=0;
       int nRdata=0;
@@ -973,7 +979,7 @@ namespace FractalSpace
 	  FF << endl;
 	  assert(0);
 	}
-      FF << " SendOne BB " << FractalRank << "\n";
+      //      FF << " SendOne BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
       int total_in=0;
       int total_out=0;
@@ -982,12 +988,12 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR2];
 	  total_in+=countsa_in[FR2];
 	}
-      FF << " TotalsOne 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOne 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
       Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " SendOne CC " << FractalRank << endl;
+      //      FF << " SendOne CC " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1032,7 +1038,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[2]);
       Full_Stop_Do_Not_Argue(MComms[1]);
-      FF << " SendOne DD " << FractalRank << "\n";
+      //      FF << " SendOne DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1045,13 +1051,13 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR1];
 	  total_in+=countsa_in[FR1];
 	}
-      FF << " TotalsOne 1 " << total_out*(integers+2) << " " << total_out*doubles << " " <<  total_in*(integers+2) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOne 1 " << total_out*(integers+2) << " " << total_out*doubles << " " <<  total_in*(integers+2) << " " << total_in*doubles << "\n";
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " SendOne EE " << FractalRank << endl;
+      //      FF << " SendOne EE " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes0);
@@ -1096,7 +1102,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[1]);
       Full_Stop_Do_Not_Argue(MComms[0]);
-      FF << " SendOne FF " << FractalRank << "\n";
+      //      FF << " SendOne FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes0,0);
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1108,13 +1114,13 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR0];
 	  total_in+=countsa_in[FR0];
 	}
-      FF << " TotalsOne 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOne 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " SendOne GG " << FractalRank << endl;
+      //      FF << " SendOne GG " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes);
@@ -1155,10 +1161,10 @@ namespace FractalSpace
 	  FF << endl;
 	  assert(0);
 	}
-      FF << "testtestC " << FractalNodes0 <<  " " << integers << " " << doubles << endl;
+      //      FF << "testtestC " << FractalNodes0 <<  " " << integers << " " << doubles << "\n";
       dataI_in.clear();
       dataR_in.clear();
-      FF << " SendOne HH " << FractalRank <<  "\n";
+      //      FF << " SendOne HH " << FractalRank <<  "\n";
       how_manyI=0;
       how_manyR=0;
       try
@@ -1208,7 +1214,7 @@ namespace FractalSpace
       dataR_in.clear();
       vector <int>countsa_out(FractalNodes0,0);
       vector <int>countsa_in(FractalNodes0);
-      FF << " SendOther AA " << FractalRank << "\n";
+      //      FF << " SendOther AA " << FractalRank << "\n";
       int totals=0;
       try
 	{
@@ -1281,7 +1287,7 @@ namespace FractalSpace
 	}
       dataI_in.clear();
       dataR_in.clear();
-      FF << " SendOther BB " << FractalRank << "\n";
+      //      FF << " SendOther BB " << FractalRank << "\n";
       How_Many_Things_To_Send_I(MComms[0],countsa_out,countsa_in);
 
       int total_in=0;
@@ -1291,13 +1297,13 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR0];
 	  total_in+=countsa_in[FR0];
 	}
-      FF << " TotalsOther 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOther 0 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
 
       Send_Data_Somewhere_No_Block(MComms[0],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-      FF << " SendOther CC " << FractalRank << endl;
+      //      FF << " SendOther CC " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes1);
@@ -1342,7 +1348,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[0]);
       Full_Stop_Do_Not_Argue(MComms[1]);
-      FF << " SendOther DD " << FractalRank << "\n";
+      //      FF << " SendOther DD " << FractalRank << "\n";
       countsa_in.assign(FractalNodes1,0);
       How_Many_Things_To_Send_I(MComms[1],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1355,13 +1361,13 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR1];
 	  total_in+=countsa_in[FR1];
 	}
-      FF << " TotalsOther 1 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOther 1 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
       Send_Data_Somewhere_No_Block(MComms[1],countsa_out,countsa_in,
 				   integers+2,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " SendOther EE " << FractalRank << endl;
+      //      FF << " SendOther EE " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       dataI_out.resize(FractalNodes2);
@@ -1406,7 +1412,7 @@ namespace FractalSpace
 	}
       Full_Stop_Do_Not_Argue(MComms[1]);
       Full_Stop_Do_Not_Argue(MComms[2]);
-      FF << " SendOther FF " << FractalRank << "\n";
+      //      FF << " SendOther FF " << FractalRank << "\n";
       countsa_in.assign(FractalNodes2,0);
       How_Many_Things_To_Send_I(MComms[2],countsa_out,countsa_in);
       dataI_in.clear();
@@ -1418,13 +1424,13 @@ namespace FractalSpace
 	  total_out+=countsa_out[FR2];
 	  total_in+=countsa_in[FR2];
 	}
-      FF << " TotalsOther 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << endl;
+      //      FF << " TotalsOther 2 " << total_out*(integers+1) << " " << total_out*doubles << " " <<  total_in*(integers+1) << " " << total_in*doubles << "\n";
       Send_Data_Somewhere_No_Block(MComms[2],countsa_out,countsa_in,
 				   integers+1,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
 
-      FF << " SendOther GG " << FractalRank << endl;
+      //      FF << " SendOther GG " << FractalRank << "\n";
       dataI_out.clear();
       dataR_out.clear();
       counts_in.assign(FractalNodes,0);
