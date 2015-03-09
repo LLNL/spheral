@@ -20,13 +20,11 @@ namespace FractalSpace
     string sc="/jensv/cosmo/";
     mem.BaseDirectory=sa+sb+sc;
     //    mem.BaseDirectory="/p/lscratchc/jensv/cosmo/";
-    /*
-    stringstream ssFN;
-    ssFN << mem.FractalNodes;
-    string stringFN=ssFN.str();
-    mem.BaseDirectory.append(stringFN);
-    mem.BaseDirectory.append("/");
-    */
+    //     stringstream ssFN;
+//     ssFN << mem.FractalNodes;
+//     string stringFN=ssFN.str();
+//     mem.BaseDirectory.append(stringFN);
+//     mem.BaseDirectory.append("/");
     //base directory
     mem.RUN="svendborg";
     //directory name desriptor
