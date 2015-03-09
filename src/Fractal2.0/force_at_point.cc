@@ -57,13 +57,11 @@ namespace FractalSpace
 	if(!point.get_inside() && Point::face[rp])
 	  point.copy_force_point_4(Point::cefc[rp]);
       }
-    /*
-    for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-      {
-	Point& point=**point_itr;
-	point.dumppf();
-      }
-    */
+//     for( vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+//       {
+// 	Point& point=**point_itr;
+// 	point.dumppf();
+//       }
     //    if(fractal.get_debug()) FileFractal << " exit force at point " << "\n";
   }
 }
