@@ -1,15 +1,22 @@
 Release notes for 2.0.8.
 
-A number of minor fixes and third party updates.  The biggest change here from
-a users perspective is that the default restart file format has been changed 
-from gzipped ASCII files to silo.  If you have older restart files you would
-like to use again this can be accomplished up explicitly requesting the old
-restart file format when building the Spheral controller in your script:
+A number of minor fixes and third party updates.  There are two major changes
+folks may notice in this release:
+
+1.  The biggest change here from a users perspective is that the default restart
+file format has been changed from gzipped ASCII files to silo.  If you have
+older restart files you would like to use again this can be accomplished up
+explicitly requesting the old restart file format when building the Spheral
+controller in your script:
 
 from GzipFileIO import GzipFileIO
 control = SpheralController(...
                             restartFileConstructor = GzipFileIO,
                             ...)
+
+2.  There is a new build system in Spheral now that builds all object files and
+targets in a separate directory.  If you are building Spheral it's worth taking
+a look at the updated build documentation in the source under doc/.
 
 ================================================================================
 
