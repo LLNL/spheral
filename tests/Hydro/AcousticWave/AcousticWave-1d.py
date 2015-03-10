@@ -11,8 +11,6 @@ import mpi
 import numpy as np
 #import matplotlib.pyplot as plt
 
-from CRKSPH_mod_package import *
-
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
         raise ValueError, "smooth only accepts 1 dimension arrays."
@@ -93,6 +91,16 @@ commandLine(nx1 = 100,
 
             checkReversibility = False,
             )
+
+if SVPH:
+    HydroConstructor = SVPHFacetedHydro
+elif CRKSPH:
+    HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+elif TSPH:
+    HydroConstructor = TaylorSPHHydro
+else:
+    HydroConstructor = SPHHydro
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -177,6 +185,15 @@ for i in xrange(nodes1.numInternalNodes):
     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
     mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
+# xi0 = 0.0
+# dx0 = (x1 - x0)/nx1
+# for i in xrange(nodes1.numInternalNodes):
+#     dxi0 = dx0*(1.0 - A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
+#     xi = xi0 + 0.5*dxi0
+#     pos[i].x = xi
+#     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
+#     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
+#     xi0 += dxi0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -203,7 +220,7 @@ output("q.limiter")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
+    hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSVPH = XSPH,
@@ -213,31 +230,30 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HEvolution)
-    CRKSPH_mod = CRKSPH_mod_package()
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HEvolution)
 
 elif TSPH:
-    hydro = TaylorSPHHydro(WT, q,
-                           cfl = cfl,
-                           compatibleEnergyEvolution = compatibleEnergy,
-                           XSPH = XSPH,
-                           HUpdate = HEvolution)
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             HUpdate = HEvolution)
 else:
-    hydro = SPHHydro(WT, WTPi, q,
-                     cfl = cfl,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     gradhCorrection = gradhCorrection,
-                     XSPH = XSPH,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HEvolution,
-                     epsTensile = epsilonTensile,
-                     nTensile = nTensile)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HEvolution,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 
 #-------------------------------------------------------------------------------
@@ -253,8 +269,6 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
 integrator.appendPhysicsPackage(hydro)
-#if CRKSPH:
-#   integrator.appendPhysicsPackage(CRKSPH_mod)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax

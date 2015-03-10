@@ -1079,20 +1079,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 // // Add the filtering correction.
                 // if (mfilter > 0.0) {
                 //   const Scalar rijmag = rij.magnitude();
-                //   const Vector rijhat = rij.unitVector();
-                //   const Scalar hi = Dimension::nDim/Hi.Trace();
-                //   const Scalar hj = Dimension::nDim/Hj.Trace();
-                //   const Scalar vijmag = -min(0.0, vij.dot(rijhat)); // vij.magnitude();
+                //   const Scalar hi = rijmag/etaMagi;
+                //   const Scalar hj = rijmag/etaMagj;
+                //   const Scalar rknot = int(0.5*(etaMagi + etaMagj)/nPerh + 0.5) * 0.5*(hi + hj);
+                //   const Scalar drij = rijmag - rknot;
+                //   const Vector knothat = sgn(drij)*rij.unitVector();
+                //   // const Scalar vijmag = -min(0.0, vij.dot(rijhat)); // vij.magnitude();
                 //   // const Scalar ki = mi*vijmag*ci*safeInv(hi*hi);
                 //   // const Scalar kj = mj*vijmag*cj*safeInv(hj*hj);
                 //   const Scalar ki = mi*ci*ci*safeInv(hi*hi);
                 //   const Scalar kj = mj*cj*cj*safeInv(hj*hj);
                 //   // const Scalar ki = mi*vijmag*safeInv(hi*hi*ci);
                 //   // const Scalar kj = mj*vijmag*safeInv(hj*hj*cj);
-                //   const Scalar drij = max(0.0, hi/nPerh - rijmag);
-                //   const Scalar drji = max(0.0, hj/nPerh - rijmag);
+                //   // const Scalar drij = max(0.0, hi/nPerh - rijmag);
+                //   // const Scalar drji = max(0.0, hj/nPerh - rijmag);
                 //   const Scalar forceijmag = forceij.magnitude();
-                //   forceij += min(mfilter*forceij.magnitude(), 0.5*(ki*drij + kj*drji))*rijhat;
+                //   forceij += min(mfilter*forceij.magnitude(), 0.5*(ki + kj))*knothat;
                 // }
 
                 deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
