@@ -19,9 +19,9 @@ namespace FractalSpace
     if(period)
       timevar=PFM->arad;
 
-    //    double x0=1.0;
-    //    double y0=-2.0;
-    //    double z0=3.0;
+    double x0=1.0;
+    double y0=-2.0;
+    double z0=3.0;
     //    double totalM=1.0e9;
     //    double centerM=0.0;
     //    double rmaX=30.0;
@@ -39,41 +39,44 @@ namespace FractalSpace
 	fprintf(PFPos," Out%d %10.2E %6d L%d %13.6E %13.6E %13.6E",PFM->steps,timevar,ni,lev,posx[ni],posy[ni],posz[ni]);
 	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E",velx[ni],vely[ni],velz[ni],masses[ni]);
 	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",pf[0]*conv_pot,pf[1]*conv_force,pf[2]*conv_force,pf[3]*conv_force);
-	/*
-	double dx=posx[ni]-x0;
-	double dy=posy[ni]-y0;
-	double dz=posz[ni]-z0;
-	double dr=sqrt(dx*dx+dy*dy+dz*dz)+1.0e-50;
-	double dr2=dr*dr;
-	double dr3=dr2*dr;
-	double fr=-conv_force*(dx*pf[1]+dy*pf[2]+dz*pf[3])/dr;
-	double mass=totalM+centerM;
-	double potT=-G*centerM/dr;
-	double fxT=-dx*G/dr3*centerM;
-	double fyT=-dy*G/dr3*centerM;
-	double fzT=-dz*G/dr3*centerM;
-	double frTheory=G*centerM/dr2;
-	if(dr < rmaX)
-	  {
-	    mass=pow(dr/rmaX,slopE3)*totalM;
-	    if(isoT)
-	      potT+=totalM/rmaX*log(dr/rmaX);
-	    else
-	      potT+=consT*(pow(dr,slopE2)-pow(rmaX,slopE2));
-	    potT-=G*totalM/rmaX;
-	  }
-	else
-	  {
-	    potT-=-G*totalM/dr;
-	  }
-	fxT+=-dx*G/dr3*mass;
-	fyT+=-dy*G/dr3*mass;
-	fzT+=-dz*G/dr3*mass;
-	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",potT,fxT,fyT,fzT);
-	frTheory+=G*mass/dr2;
-	double ferror=sqrt(pow(fxT-pf[1]*conv_force,2)+pow(fyT-pf[2]*conv_force,2)+pow(fzT-pf[3]*conv_force,2));
-	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",dr,fr,frTheory,ferror);
-	*/
+ 	double dx=posx[ni]-x0;
+ 	double dy=posy[ni]-y0;
+ 	double dz=posz[ni]-z0;
+ 	double dr=sqrt(dx*dx+dy*dy+dz*dz)+1.0e-50;
+ 	double dr2=dr*dr;
+ 	double dr3=dr2*dr;
+ 	double fr=conv_force*(dx*pf[1]+dy*pf[2]+dz*pf[3])/dr;
+	double ft=pow(fr*dx/dr-conv_force*pf[1],2);
+	ft+=pow(fr*dy/dr-conv_force*pf[2],2);
+	ft+=pow(fr*dz/dr-conv_force*pf[3],2);
+	ft=sqrt(ft);
+// 	double mass=totalM+centerM;
+// 	double potT=-G*centerM/dr;
+// 	double fxT=-dx*G/dr3*centerM;
+// 	double fyT=-dy*G/dr3*centerM;
+// 	double fzT=-dz*G/dr3*centerM;
+// 	double frTheory=G*centerM/dr2;
+// 	if(dr < rmaX)
+// 	  {
+// 	    mass=pow(dr/rmaX,slopE3)*totalM;
+// 	    if(isoT)
+// 	      potT+=totalM/rmaX*log(dr/rmaX);
+// 	    else
+// 	      potT+=consT*(pow(dr,slopE2)-pow(rmaX,slopE2));
+// 	    potT-=G*totalM/rmaX;
+// 	  }
+// 	else
+// 	  {
+// 	    potT-=-G*totalM/dr;
+// 	  }
+// 	fxT+=-dx*G/dr3*mass;
+// 	fyT+=-dy*G/dr3*mass;
+// 	fzT+=-dz*G/dr3*mass;
+// 	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",potT,fxT,fyT,fzT);
+// 	frTheory+=G*mass/dr2;
+// 	double ferror=sqrt(pow(fxT-pf[1]*conv_force,2)+pow(fyT-pf[2]*conv_force,2)+pow(fzT-pf[3]*conv_force,2));
+// 	fprintf(PFPos," %13.6E %13.6E %13.6E %13.6E ",dr,fr,frTheory,ferror);
+//	fprintf(PFPos," %13.6E %13.6E %13.6E ",dr,fr,ft);
 	fprintf(PFPos,"\n");
       }
     //    fflush(PFPos);

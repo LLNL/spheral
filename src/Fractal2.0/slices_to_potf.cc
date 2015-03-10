@@ -32,35 +32,44 @@ namespace FractalSpace
     vector <double> dataR_in;
     vector <int> point_counter;
     //
-    counts_out.assign(FractalNodes,0);
-    for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
-	group_itr!=mem.all_groups[lev].end();group_itr++)
-      {
-	Group& group=**group_itr;
-	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
-	  {
-	    Point& point=**point_itr;
-	    point.get_pos_point(pos_point);
-	    int p_xi=((pos_point[0]+really_long) % wrapping)/division;
-	    int S=mem.p_mess->WhichSlice[p_xi];
-	    counts_out[S]++;
-	  }
-      }
-    vector <int>maxSR;
-    mem.p_mess->MAX_Things_To_Send_Receive_I(counts_out,counts_in,maxSR);
-    int maxOUT=maxSR[0]*2;
-    int maxIN=maxSR[1]*2;
-    int maxINOUT=max(maxOUT,maxIN);
-    int maxIO=6000000;
-    counts_in.clear();
-    counts_out.clear();
+//     counts_out.assign(FractalNodes,0);
+//     for(vector <Group*>::const_iterator group_itr=mem.all_groups[lev].begin();
+// 	group_itr!=mem.all_groups[lev].end();group_itr++)
+//       {
+// 	Group& group=**group_itr;
+// 	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
+// 	  {
+// 	    Point& point=**point_itr;
+// 	    point.get_pos_point(pos_point);
+// 	    int p_xi=((pos_point[0]+really_long) % wrapping)/division;
+// 	    int S=mem.p_mess->WhichSlice[p_xi];
+// 	    counts_out[S]++;
+// 	  }
+//       }
+    fprintf(mem.p_file->PFTime," slices to potf "); 
+//     double time1=-mem.p_mess->Clock();
+//     vector <int>maxSR;
+//     mem.p_mess->MAX_Things_To_Send_Receive_I(counts_out,counts_in,maxSR);
+//     time1+=mem.p_mess->Clock();
+//     fprintf(mem.p_file->PFTime," %3d %8.3E ",-1,time1);
+//     int maxOUT=maxSR[0]*2;
+//     int maxIN=maxSR[1]*2;
+//     int maxINOUT=max(maxOUT,maxIN);
+//     int maxIO=6000000;
+//     counts_in.clear();
+//     counts_out.clear();
+//     //
+//     int LOOPS=(maxINOUT-1)/maxIO+1;
+//     FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
+    int LOOPS=((length_1*length_1)/(512*512))+1;
+    if(lev > 0)
+      LOOPS*=2;
     //
-    int LOOPS=(maxINOUT-1)/maxIO+1;
-    FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
-    vector <double>times;
+    //    LOOPS=1;
+    //
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
-	times.push_back(mem.p_mess->Clock());
+	double time1=-mem.p_mess->Clock();
 	dataI_out.clear();
 	dataR_out.clear();
 	dataI_in.clear();
@@ -103,7 +112,6 @@ namespace FractalSpace
 				       dataI_out,dataI_in,how_manyI,
 				       dataR_out,dataR_in,how_manyR);
 	mem.p_file->note(true," info to slices c ");
-	times.push_back(mem.p_mess->Clock());
 	dataI_out.clear();
 	dataR_out.clear();    
 	dataI_out.resize(FractalNodes);
@@ -173,12 +181,10 @@ namespace FractalSpace
 		counterIR++;
 	      }
 	  }
+	time1+=mem.p_mess->Clock();
+	fprintf(mem.p_file->PFTime," %3d %8.3E ",LOOP,time1);
       }
     mem.p_mess->free_potRS();
-    times.push_back(mem.p_mess->Clock());
-    fprintf(mem.p_file->PFTime," slices to potf "); 
-    for(int ni=0;ni<2*LOOPS;ni++)
-      fprintf(mem.p_file->PFTime,"%3d %9.3E ",ni/2,times[ni+1]-times[ni]);
     fprintf(mem.p_file->PFTime,"\n");
     mem.p_file->note(true," slices to potf exit ");
   }

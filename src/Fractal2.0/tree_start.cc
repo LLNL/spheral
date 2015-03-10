@@ -44,12 +44,10 @@ namespace FractalSpace
     vector <int> PBoxLength(3);
     fractal.getPBoxLength(PBoxLength);
     Misc::vector_print(PBoxLength,FileFractal);
-    /*
-    int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
-    new_points=new (nothrow) Point[volume];
-    assert(new_points);
-    mem.total_points_generated=volume;
-    */
+//     int volume=PBoxLength[0]*PBoxLength[1]*PBoxLength[2];
+//     new_points=new (nothrow) Point[volume];
+//     assert(new_points);
+//     mem.total_points_generated=volume;
     group.set_group_number(0);
     FileFractal << " generated points in treestart" << "\n";
     //

@@ -134,12 +134,10 @@ namespace FractalSpace
 	numbersy[FRZ][ny]+=scalepart;
 	numbert[FRZ]++;
       }
-    /*
-    cout << " numberT " << FractalRank << " ";
-    for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-      cout << FRZ << " " << numbert[FRZ];
-    cout << "" << endl;
-    */
+//     cout << " numberT " << FractalRank << " ";
+//     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
+//       cout << FRZ << " " << numbert[FRZ];
+//     cout << "" << endl;
     const int ROOTY=ROOTZ-FractalNodes2/2;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTY+FRZ);
