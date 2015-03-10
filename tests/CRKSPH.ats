@@ -1,3 +1,4 @@
+#-*-python-*-
 # This is an ATS script to coorindate running a series of tests of CRKSPH.
 cfl = 0.25
 nPerh = 1.51
@@ -13,6 +14,10 @@ test(script = "Hydro/Noh/Noh-planar-1d.py",
 test(script = "Hydro/Noh/Noh-cylindrical-2d.py",
      clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics True --clearDirectories True --outputFile 'Noh-cylindrical.ascii'" % (cfl, nPerh, Cl, Cq, filter), 
      label = "Cylindrical Noh problem -- 2-D (serial)")
+test(script = "Hydro/Noh/Noh-spherical-3d.py",
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics True --clearDirectories True --outputFile 'Noh-spherical.ascii'" % (cfl, nPerh, Cl, Cq, filter), 
+     label = "Spherical Noh problem -- 3-D (10 proc)",
+     np = 10)
 test(script = "Hydro/Sedov/Sedov-planar-1d.py",
      clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics True --clearDirectories True --serialDump True --smoothSpike True --nx1 401" % (cfl, nPerh, Cl, Cq, filter), 
      label = "Planar Sedov problem -- 1-D (serial)")
@@ -28,3 +33,11 @@ test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
      clas = "--nx1 256 --nx2 256 --ny1 128 --ny2 128 --CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
      label = "Kelvin-Helmholtz problem -- 2-D (256^2, 20 proc)",
      np = 20)
+test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True" % (cfl, nPerh, Cl, Cq, filter), 
+     label = "Triple-point problem -- 2-D (level 1 mesh, 4 proc)",
+     np = 4)
+test(script = "Hydro/TriplePoint/TriplePoint-xy.py",
+     clas = "--CRKSPH True --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --clearDirectories True --nx1 40 --nx2 80 --nx3 240 --ny1 120 --ny2 20 --ny3 60" % (cfl, nPerh, Cl, Cq, filter), 
+     label = "Triple-point problem -- 2-D (level 2 mesh, 10 proc)",
+     np = 10)
