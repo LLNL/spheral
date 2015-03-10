@@ -883,17 +883,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
-      const Scalar& mi = mass(nodeListi, i);
+      const Scalar mi = mass(nodeListi, i);
       const Vector& vi = velocity(nodeListi, i);
-      const Scalar& rhoi = massDensity(nodeListi, i);
-      const Scalar& epsi = specificThermalEnergy(nodeListi, i);
-      const Scalar& Pi = pressure(nodeListi, i);
+      const Scalar rhoi = massDensity(nodeListi, i);
+      const Scalar epsi = specificThermalEnergy(nodeListi, i);
+      const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
-      const Scalar& ci = soundSpeed(nodeListi, i);
-      const Scalar& m0i = m0(nodeListi, i);
+      const Scalar ci = soundSpeed(nodeListi, i);
+      const Scalar m0i = m0(nodeListi, i);
       const Vector& m1i = m1(nodeListi, i);
-      const Scalar& A0i = A0(nodeListi, i);
-      const Scalar& Ai = A(nodeListi, i);
+      const Scalar A0i = A0(nodeListi, i);
+      const Scalar Ai = A(nodeListi, i);
       const Vector& Bi = B(nodeListi, i);
       const Vector& gradA0i = gradA0(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
@@ -955,15 +955,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Get the state for node j
               const Vector& rj = position(nodeListj, j);
-              const Scalar& mj = mass(nodeListj, j);
+              const Scalar mj = mass(nodeListj, j);
               const Vector& vj = velocity(nodeListj, j);
-              const Scalar& rhoj = massDensity(nodeListj, j);
-              const Scalar& epsj = specificThermalEnergy(nodeListj, j);
-              const Scalar& Pj = pressure(nodeListj, j);
+              const Scalar rhoj = massDensity(nodeListj, j);
+              const Scalar epsj = specificThermalEnergy(nodeListj, j);
+              const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
-              const Scalar& cj = soundSpeed(nodeListj, j);
-              const Scalar& A0j = A0(nodeListj, j);
-              const Scalar& Aj = A(nodeListj, j);
+              const Scalar cj = soundSpeed(nodeListj, j);
+              const Scalar A0j = A0(nodeListj, j);
+              const Scalar Aj = A(nodeListj, j);
               const Vector& Bj = B(nodeListj, j);
               const Vector& gradA0j = gradA0(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
@@ -1060,12 +1060,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
               // // Determine an effective pressure including a term to fight the tensile instability.
-              // const Scalar fij = mEpsTensile*pow(Wi/(Hdeti*WnPerh), mnTensile);
+              // const Scalar fij = mEpsTensile*pow(0.5*(W(etaMagi, 1.0) + W(etaMagj, 1.0))/WnPerh, mnTensile);
               // // const Scalar fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
               // const Scalar Ri = fij*abs(Pi);
               // const Scalar Rj = fij*abs(Pj);
-              // const Scalar Peffi = Pi + Ri;
-              // const Scalar Peffj = Pj + Rj;
+              // Pi += Ri;
+              // Pj += Rj;
               
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
