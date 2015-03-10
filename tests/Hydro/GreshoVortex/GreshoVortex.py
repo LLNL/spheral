@@ -122,7 +122,15 @@ else:
     else:
         HydroConstructor = SPHHydro
 
+#-------------------------------------------------------------------------------
+# CRKSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+
+#-------------------------------------------------------------------------------
 # Build our directory paths.
+#-------------------------------------------------------------------------------
 densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       SumDensity : "SumDensity",
                       RigorousSumDensity : "RigorousSumDensity",
@@ -136,8 +144,8 @@ baseDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%1.3f" % max(fcentroidal, filter),
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcentroidal=%f" % max(fcentroidal, filter),
+                       "fcellPressure=%f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "greshovortex-xy-%ix%i" % (nx1, ny1))
@@ -147,12 +155,6 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "greshovortex-xy-%ix%i" % (nx1, ny1)
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -433,8 +435,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    vizMethod = None # default
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -477,6 +478,12 @@ if graphics:
     ansData = Gnuplot.Data(xans, yans, title="Analytic", with_="lines lt 1 lw 3")
     paz.replot(ansData)
     pmag.replot(ansData)
+    plots = [(paz, "GreshoVortex-velazimuthal.png"),
+             (pmag, "GreshoVortex-velmag.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(baseDir, filename), terminal="png")
 
 if serialDump:
     serialData = []

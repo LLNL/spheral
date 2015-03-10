@@ -156,8 +156,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
   // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
   // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
-  // // const Scalar phii = max(0.0, max(min(1.5*ri, 1.0), min(ri, 1.5)));  // Sweby
-  // // const Scalar phij = max(0.0, max(min(1.5*rj, 1.0), min(rj, 1.5)));  // Sweby
+    // const Scalar phii = max(0.0, max(min(2.5*ri, 1.0), min(ri, 2.5)));  // Sweby
+    // const Scalar phij = max(0.0, max(min(2.5*rj, 1.0), min(rj, 2.5)));  // Sweby
   // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
   // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
   // // const Scalar phii = max(0.0, min(1.0, ri)); // minmod
@@ -177,12 +177,34 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Vector vj1 = vj + DvDxj*xij;
   // vij = vij + min(phii,phij)*((vi1-vj1)-vij);
   
-  // Modified "Nick" method.
-  const Vector vi1 = vi - DvDxi*xij;
-  const Vector vj1 = vj + DvDxj*xij;
+  // // "Nick" method Mark II. 
+  // const Vector vi1 = vi - (DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
+  // const Vector vj1 = vj + (DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
+
+  // // "Nick" method Mark III. 
+  // const Tensor DvDxii = DvDxi - (1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  // const Tensor DvDxjj = DvDxj - (1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  // const Scalar phi = min(phii, phij);
+  // const Vector vi1 = vi - (phi*DvDxi + (1.0 - phi)*DvDxii)*xij;
+  // const Vector vj1 = vj + (phi*DvDxj + (1.0 - phi)*DvDxjj)*xij;
+
+  // "Mike" method Mark III. 
+  const Scalar phi = min(phii, phij);
+  const Vector vi1 = vi - phi*DvDxi*xij;
+  const Vector vj1 = vj + phi*DvDxj*xij;
+
+  //const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij*min(phii,phij);
+  //const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij*min(phii,phij);
+
+  //const Vector vi1 = vi - (0.5*(DvDxi+DvDxi.Transpose())-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij;
+  //const Vector vj1 = vj + (0.5*(DvDxj+DvDxj.Transpose())-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij;
+
   const Vector vij1 = vi1 - vj1;
-  const Scalar phi = max(0.0, min(0.9, min(phii, phij)));
-  vij = (1.0 - phi)*vij + phi*vij1;
+
+  //const Scalar phi = max(0.0, min(0.95, min(phii, phij)));
+  //const Scalar phi = min(phii, phij);
+  //vij = (1.0 - phi)*vij + phi*vij1;
+  vij=vij1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);

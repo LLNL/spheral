@@ -122,7 +122,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             tol = 1.0e-5,
 
-            graphics = "gnu",
+            graphics = True,
             serialDump = False #whether to dump a serial ascii file at the end for viz
             )
 
@@ -412,18 +412,16 @@ Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
-if graphics == "matplot":
-    import pylab
-    from SpheralMatplotlibUtilities import *
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
-    plotEHistory(control.conserve)
-
-elif graphics == "gnu":
+if graphics:
     from SpheralGnuPlotUtilities import *
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
     plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     EPlot = plotEHistory(control.conserve)
+    plots = [(rhoPlot, "Noh-planar-rho.png"),
+             (velPlot, "Noh-planar-vel.png"),
+             (epsPlot, "Noh-planar-eps.png"),
+             (PPlot, "Noh-planar-P.png"),
+             (HPlot, "Noh-planar-h.png")]
 
     # Plot the specific entropy.
     Aplot = generateNewGnuPlot()
@@ -439,6 +437,7 @@ elif graphics == "gnu":
     Aplot.replot(AansData)
     Aplot.title("Specific entropy")
     Aplot.refresh()
+    plots.append((Aplot, "Noh-planar-A.png"))
     
     dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
@@ -457,6 +456,10 @@ elif graphics == "gnu":
     # omegaPlot = plotFieldList(hydro.omegaGradh(),
     #                           winTitle = "grad h correction",
     #                           colorNodeLists = False)
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
@@ -484,6 +487,7 @@ if outputFile != "None":
     from SpheralGnuPlotUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
@@ -494,16 +498,17 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
         f = open(outputFile, "w")
-        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "hans",
-                                               "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, rhoi, Pi, vi, epsi, hi, mi,
-             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-                                                  rhoans, Pans, vans, hans):
-            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, hi, mi,
-                     rhoansi, Pansi, vansi, hansi,
+        f.write(("#  " + 20*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h", "mo",
+                                               "rhoans", "Pans", "vans", "epsans", "hans",
+                                               "x_UU", "m_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
+        for (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
+             rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                         rhoans, Pans, vans, uans, hans):
+            f.write((7*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + '\n') % 
+                    (xi, mi, rhoi, Pi, vi, epsi, hi, moi,
+                     rhoansi, Pansi, vansi, uansi, hansi,
                      unpackElementUL(packElementDouble(xi)),
+                     unpackElementUL(packElementDouble(mi)),
                      unpackElementUL(packElementDouble(rhoi)),
                      unpackElementUL(packElementDouble(Pi)),
                      unpackElementUL(packElementDouble(vi)),
@@ -526,7 +531,7 @@ if serialDump:
     i,j = 0,0
     
     f = open(dataDir + "/noh-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
-    f.write("i x m rho u v rhoans uans vans visc\n")
+    f.write("# i x m rho u v rhoans uans vans visc\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
                                                                    nodes1.mass()[j],

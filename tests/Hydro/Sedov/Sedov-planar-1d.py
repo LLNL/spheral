@@ -4,7 +4,7 @@
 from Spheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-import os, sys
+import os, sys, shutil
 
 import mpi
 
@@ -21,7 +21,7 @@ commandLine(nx1 = 101,
 
             xSpike = 0.0,
             Espike = 1.0,
-            smoothSpike = False,
+            smoothSpike = True,
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -41,7 +41,7 @@ commandLine(nx1 = 101,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
-            XSPH = True,
+            XSPH = False,
             rhomin = 1e-10,
 
             goalTime = 0.3,
@@ -60,6 +60,8 @@ commandLine(nx1 = 101,
             restoreCycle = None,
             restartStep = 1000,
 
+            graphics = True,
+            clearDirectories = True,
             dataRoot = "dump-planar",
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
@@ -85,6 +87,8 @@ if CRKSPH:
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
 mpi.barrier()
@@ -276,10 +280,7 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
                                  control.conserve.EHistory[0])/
                                 control.conserve.EHistory[0])
 
-# Plot the final state.
-rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="linespoints")
-
-# Overplot the analytic solution.
+# Compute the analytic solution.
 import SedovAnalyticSolution
 h1 = (x1 - x0)/nx1*nPerh
 answer = SedovAnalyticSolution.SedovSolution(nDim = 1,
@@ -288,8 +289,6 @@ answer = SedovAnalyticSolution.SedovSolution(nDim = 1,
                                              E0 = Espike,
                                              h0 = h1)
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-plotAnswer(answer, control.time(),
-           rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
 
 # Compute the simulated specific entropy.
 rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
@@ -299,32 +298,47 @@ P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
 A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
-xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
-# Plot the specific entropy.
-AsimData = Gnuplot.Data(xprof, A,
-                        with_ = "points",
-                        title = "Simulation",
-                        inline = True)
-AansData = Gnuplot.Data(xprof, Aans,
-                        with_ = "lines",
-                        title = "Solution",
-                        inline = True)
+# Plot the final state.
+if graphics:
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="linespoints")
+    plotAnswer(answer, control.time(),
+               rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
+    plots = [(rhoPlot, "Sedov-planar-rho.png"),
+             (velPlot, "Sedov-planar-vel.png"),
+             (epsPlot, "Sedov-planar-eps.png"),
+             (PPlot, "Sedov-planar-P.png"),
+             (HPlot, "Sedov-planar-h.png")]
+
+    # Plot the specific entropy.
+    AsimData = Gnuplot.Data(xprof, A,
+                            with_ = "points",
+                            title = "Simulation",
+                            inline = True)
+    AansData = Gnuplot.Data(xprof, Aans,
+                            with_ = "lines",
+                            title = "Solution",
+                            inline = True)
     
-Aplot = generateNewGnuPlot()
-Aplot.plot(AsimData)
-Aplot.replot(AansData)
-Aplot.title("Specific entropy")
-Aplot.refresh()
+    Aplot = generateNewGnuPlot()
+    Aplot.plot(AsimData)
+    Aplot.replot(AansData)
+    Aplot.title("Specific entropy")
+    Aplot.refresh()
+    plots.append((Aplot, "Sedov-planar-entropy.png"))
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
 if serialDump:
     serialData = []
     i,j = 0,0
     
     f = open(dataDir + "/sedov-planar-1d-CRKSPH-" + str(CRKSPH) + ".ascii",'w')
-    f.write("i x m rho u v rhoans uans vans\n")
+    f.write("# i x m rho u v rhoans uans vans\n")
     for j in xrange(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".format(j,nodes1.positions()[j][0],
                                                                nodes1.mass()[j],
