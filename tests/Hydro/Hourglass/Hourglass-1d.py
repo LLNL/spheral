@@ -12,7 +12,7 @@ title("1-D planar hourglassing test")
 #-------------------------------------------------------------------------------
 commandLine(nx1 = 100,
             rho1 = 1.0,
-            eps1 = 0.0,
+            eps1 = 1.0,
             x0 = 0.0,
             x1 = 1.0,
             nPerh = 2.01,
@@ -26,6 +26,7 @@ commandLine(nx1 = 100,
             CRKSPH = False,
             filter = 0.0,
             gamma = 5.0/3.0,
+            momentumConserving = True,
             mu = 1.0,
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
@@ -185,14 +186,14 @@ output("hydro.HEvolution")
 
 packages = [hydro]
 
-#-------------------------------------------------------------------------------
-# Construct a constant acceleration package.
-#-------------------------------------------------------------------------------
-indices = vector_of_int()
-for i in xrange(nodes1.numInternalNodes):
-    indices.append(i)
-accel = ConstantAcceleration(a0, nodes1, indices)
-packages.append(accel)
+# #-------------------------------------------------------------------------------
+# # Construct a constant acceleration package.
+# #-------------------------------------------------------------------------------
+# indices = vector_of_int()
+# for i in xrange(nodes1.numInternalNodes):
+#     indices.append(i)
+# accel = ConstantAcceleration(a0, nodes1, indices)
+# packages.append(accel)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
