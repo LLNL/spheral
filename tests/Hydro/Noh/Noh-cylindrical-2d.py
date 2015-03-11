@@ -411,7 +411,7 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
 print "Total energy error: %g" % Eerror
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
