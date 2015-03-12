@@ -1094,7 +1094,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 //   // const Scalar drij = max(0.0, hi/nPerh - rijmag);
                 //   // const Scalar drji = max(0.0, hj/nPerh - rijmag);
                 //   const Scalar forceijmag = forceij.magnitude();
-                //   forceij += min(mfilter*forceij.magnitude(), 0.5*(ki + kj))*knothat;
+                //   forceij += mfilter*min(forceijmag, 0.5*(ki + kj)*abs(drij))*sgn(drij)*knothat;
+                //   // if (i == 0) cerr << " --> " << j << " " << rijmag << " " << drij << " " << 0.5*mfilter*(ki + kj)*drij*knothat << endl;
+                //   // forceij += min(mfilter*forceij.magnitude(), 0.5*(ki + kj))*knothat;
                 // }
 
                 deltaDvDti = -forceij/mi; // - mj*(Qacci + Qaccj);
@@ -1558,7 +1560,7 @@ finalize(const typename Dimension::Scalar time,
             const Vector rjihat = rji.unitVector();
             const Scalar rhoij = rhoi + 0.5*DrhoDxi.dot(rji);
             const Scalar rhoji = rhoj - 0.5*DrhoDxj.dot(rji);
-            const Scalar deltai = max(0.0, 2.0*min(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rji.magnitude());
+            const Scalar deltai = max(0.0, 2.0*min(volumeSpacing<Dimension>(mi/rhoij), volumeSpacing<Dimension>(mj/rhoji)) - rji.magnitude());
             // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
             deltar(nodeListi, i) -= deltai*rjihat;
             const Scalar etai = (Hi*rji).magnitude();
