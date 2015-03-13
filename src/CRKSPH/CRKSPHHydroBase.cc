@@ -1560,12 +1560,12 @@ finalize(const typename Dimension::Scalar time,
             const Vector rjihat = rji.unitVector();
             const Scalar rhoij = rhoi + 0.5*DrhoDxi.dot(rji);
             const Scalar rhoji = rhoj - 0.5*DrhoDxj.dot(rji);
-            const Scalar deltai = max(0.0, 2.0*min(volumeSpacing<Dimension>(mi/rhoij), volumeSpacing<Dimension>(mj/rhoji)) - rji.magnitude());
+            const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
             // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
-            deltar(nodeListi, i) -= deltai*rjihat;
+            // deltar(nodeListi, i) -= deltai*rjihat;
             const Scalar etai = (Hi*rji).magnitude();
-            const Scalar weight = W.kernelValue(etai, 1.0)/W0;
-            // delta(nodeListi, i) -= weight*deltai*rjihat;
+            const Scalar weight = W.kernelValue(etai, 1.0)/W0 * (vj - vi).magnitude();
+            deltar(nodeListi, i) -= weight*deltai*rjihat;
             weightsum(nodeListi, i) += weight;
             deltav(nodeListi, i) += weight*(vj - vi).magnitude();
           }
@@ -1584,7 +1584,8 @@ finalize(const typename Dimension::Scalar time,
         const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
         if (mag0 > 0.0) {
           const Scalar deltamag = deltar(nodeListi, i).magnitude();
-          const Scalar effmag = mfilter*min(mag0, deltamag);
+          const Scalar effmag = mfilter*deltamag;
+          // const Scalar effmag = mfilter*min(mag0, deltamag);
           position(nodeListi, i) += effmag*deltar(nodeListi, i).unitVector();
         }
       }
