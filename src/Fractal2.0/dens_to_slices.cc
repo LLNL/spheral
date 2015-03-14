@@ -5,6 +5,8 @@ namespace FractalSpace
 {
   void dens_to_slices(Group& group,Fractal_Memory& mem,Fractal& frac)
   {
+    static bool printit=true;
+    printit=false;
     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FF=mem.p_file->DUMPS;
@@ -40,21 +42,26 @@ namespace FractalSpace
 	int S=mem.p_mess->WhichSlice[nx];
 	counts_out[S]++;
       }
-    vector <int>maxSR;
-    mem.p_mess->MAX_Things_To_Send_Receive_I(counts_out,counts_in,maxSR);
-    int maxOUT=maxSR[0]*2;
-    int maxIN=maxSR[1]*2;
-    int maxINOUT=max(maxOUT,maxIN);
-    int maxIO=6000000;
-    counts_in.clear();
-    counts_out.clear();
-    //
-    int LOOPS=(maxINOUT-1)/maxIO+1;
-    FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
-    vector <double>times;
+    fprintf(mem.p_file->PFTime," dens to slices ");
+//     double time1=-mem.p_mess->Clock();
+//     vector <int>maxSR;
+//     mem.p_mess->MAX_Things_To_Send_Receive_I(counts_out,counts_in,maxSR);
+//     time1+=mem.p_mess->Clock();
+//     fprintf(mem.p_file->PFTime," %3d %8.3E ",-1,time1);
+//     int maxOUT=maxSR[0]*2;
+//     int maxIN=maxSR[1]*2;
+//     int maxINOUT=max(maxOUT,maxIN);
+//     int maxIO=6000000;
+//     counts_in.clear();
+//     counts_out.clear();
+//     //
+//     int LOOPS=(maxINOUT-1)/maxIO+1;
+//     FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
+    int LOOPS=((length_1*length_1)/(512*512))+1;
+    //    LOOPS=1;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
-	times.push_back(mem.p_mess->Clock());
+	double time1=-mem.p_mess->Clock();
 	dataI_out.clear();
 	dataR_out.clear();
 	dataI_in.clear();
@@ -66,13 +73,10 @@ namespace FractalSpace
 	int loop_count=0;
 	for(vector <Point*>::const_iterator point_itr=group.list_points.begin();point_itr != group.list_points.end();++point_itr)
 	  {
-	    if(loop_count % LOOPS == LOOP)
+	    Point* p_point=*point_itr;
+	    bool doit=loop_count % LOOPS == LOOP && !p_point->get_passive_point() && p_point->get_mass_point();
+	    if(doit)
 	      {
-		Point* p_point=*point_itr;
-		if(p_point->get_passive_point())
-		  continue;
-		if(!p_point->get_mass_point())
-		  continue;
 		p_point->get_pos_point(pos_point);
 		int nx=(pos_point[0]/zoom+length_1) % length_1;
 		int ny=(pos_point[1]/zoom+length_1) % length_1;
@@ -80,6 +84,8 @@ namespace FractalSpace
 		int S=mem.p_mess->WhichSlice[nx];
 		dataI_out[S].push_back(frac.where(nx,ny,nz,mem.p_mess->BoxS[S],mem.p_mess->BoxSL[S]));
 		dataR_out[S].push_back(p_point->get_density_point());
+		if(printit)
+		  FF << " DSA" << LOOP << " " << loop_count << " " << pos_point[0] << " "<<  pos_point[1] << " " << pos_point[2] << " " << S << " " << dataI_out[S].back() << " " << dataR_out[S].back() << "\n";
 		counts_out[S]++;
 	      }
 	    loop_count++;
@@ -117,15 +123,17 @@ namespace FractalSpace
 		    NN=nz+(ny+nx*length_1)*length_1;
 		  }
 		mem.p_mess->potRS[NN]=dataR_in[counterIR];
-		//	    FF << " DS " << counterIR << " " << dataI_in[counterIR] << " " << NN << " " << dataR_in[counterIR] << "\n";
+		if(printit)
+		  FF << " DSB " << counterIR << " " << dataI_in[counterIR] << " " << NN << " " << dataR_in[counterIR] << "\n";
 		counterIR++;
 	      }
 	  }
+	time1+=mem.p_mess->Clock();
+	fprintf(mem.p_file->PFTime," %3d %8.3E ",LOOP,time1);
       }
-    times.push_back(mem.p_mess->Clock());
-    fprintf(mem.p_file->PFTime," dens to slices ");
-    for(int ni=0;ni<LOOPS;ni++)
-      fprintf(mem.p_file->PFTime," %3d %8.3E ",ni,times[ni+1]-times[ni]);
     fprintf(mem.p_file->PFTime,"\n");
+    if(printit)
+      FF << endl;
+    printit=false;
   }
 }

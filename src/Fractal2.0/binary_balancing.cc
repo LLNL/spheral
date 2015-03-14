@@ -155,16 +155,14 @@ namespace FractalSpace
 	counterN++;
 	toomany=toomany && counterN < 1000;
       }
-    /*
-    for(int N=0;N<Nodes;N++)
-      cout << " FINISHED "  << rank << " " << Nodes << " " << N << " " << lowers[N] << " " << uppers[N] << "\n";
-    if(spreading || narrowing)
-      {
-	cout << " BINARY "  << rank << " " << Nodes << " " << COUNTS << " " << spreading << " " << counterS << " " ;
-	cout << flip0 << " " << flip1 << " ";
-	cout << narrowing << " " << counterN << "\n";
-      }
-    */
+//     for(int N=0;N<Nodes;N++)
+//       cout << " FINISHED "  << rank << " " << Nodes << " " << N << " " << lowers[N] << " " << uppers[N] << "\n";
+//     if(spreading || narrowing)
+//       {
+// 	cout << " BINARY "  << rank << " " << Nodes << " " << COUNTS << " " << spreading << " " << counterS << " " ;
+// 	cout << flip0 << " " << flip1 << " ";
+// 	cout << narrowing << " " << counterN << "\n";
+//       }
     COUNTS++;
   }
 }
