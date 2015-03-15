@@ -243,6 +243,7 @@ elif CRKSPH:
                       momentumConserving = momentumConserving)
 else:
     hydro = SPHHydro(WT, WTPi, q,
+                     filter = filter,
                      cfl = cfl,
                      compatibleEnergyEvolution = compatibleEnergy,
                      gradhCorrection = gradhCorrection,
