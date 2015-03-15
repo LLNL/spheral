@@ -953,6 +953,7 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Scalar> deltav = dataBase.newFluidFieldList(0.0, "delta velocity");
     FieldList<Dimension, Scalar> weightsum = dataBase.newFluidFieldList(0.0, "delta velocity weight sum");
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const Scalar nPerh = position[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
       for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
            iItr != connectivityMap.end(nodeListi);
            ++iItr) {
@@ -962,6 +963,7 @@ finalize(const typename Dimension::Scalar time,
         const Scalar mi = mass(nodeListi, i);
         const Scalar rhoi = massDensity(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
+        const SymTensor Hinvi = Hi.Inverse();
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
           for (typename vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
@@ -972,14 +974,17 @@ finalize(const typename Dimension::Scalar time,
             const Vector& vj = velocity(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
             const Scalar rhoj = massDensity(nodeListj, j);
+            const SymTensor& Hj = H(nodeListj, j);
+            const SymTensor Hinvj = Hj.Inverse();
             const Vector rji = rj - ri;
             const Vector rjihat = rji.unitVector();
-            const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
-            // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
-            // deltar(nodeListi, i) -= deltai*rjihat;
-            const Scalar etai = (Hi*rji).magnitude();
-            const Scalar weight = W.kernelValue(etai, 1.0)/W0 * (vj - vi).magnitude();
-            deltar(nodeListi, i) -= weight*deltai*rjihat;
+            const Vector etai = Hi*rji;
+            const Vector etaj = Hj*rji;
+            const Scalar etaMagi = etai.magnitude();
+            const Scalar etaMagj = etaj.magnitude();
+            const Vector delta = (max(0.0, 0.5/nPerh - etaMagi)*Hinvi + max(0.0, 0.5/nPerh - etaMagj)*Hinvj)*rjihat;
+            const Scalar weight = 0.5*(W.kernelValue(etaMagi, 1.0) + W.kernelValue(etaMagj, 1.0))/W0 * (vj - vi).magnitude();
+            deltar(nodeListi, i) -= weight*delta;
             weightsum(nodeListi, i) += weight;
             deltav(nodeListi, i) += weight*(vj - vi).magnitude();
           }
