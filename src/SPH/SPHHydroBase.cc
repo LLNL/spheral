@@ -982,7 +982,7 @@ finalize(const typename Dimension::Scalar time,
             const Vector etaj = Hj*rji;
             const Scalar etaMagi = etai.magnitude();
             const Scalar etaMagj = etaj.magnitude();
-            const Vector delta = (max(0.0, 0.5/nPerh - etaMagi)*Hinvi + max(0.0, 0.5/nPerh - etaMagj)*Hinvj)*rjihat;
+            const Vector delta = 0.5*(max(0.0, 1.0/nPerh - etaMagi)*Hinvi + max(0.0, 1.0/nPerh - etaMagj)*Hinvj)*rjihat;
             const Scalar weight = 0.5*(W.kernelValue(etaMagi, 1.0) + W.kernelValue(etaMagj, 1.0))/W0 * (vj - vi).magnitude();
             deltar(nodeListi, i) -= weight*delta;
             weightsum(nodeListi, i) += weight;
@@ -1003,8 +1003,8 @@ finalize(const typename Dimension::Scalar time,
         const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
         if (mag0 > 0.0) {
           const Scalar deltamag = deltar(nodeListi, i).magnitude();
-          const Scalar effmag = mfilter*deltamag;
-          // const Scalar effmag = mfilter*min(mag0, deltamag);
+          // const Scalar effmag = mfilter*deltamag;
+          const Scalar effmag = mfilter*min(mag0, deltamag);
           position(nodeListi, i) += effmag*deltar(nodeListi, i).unitVector();
         }
       }
