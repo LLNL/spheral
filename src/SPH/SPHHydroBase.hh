@@ -54,6 +54,7 @@ public:
                const KernelSpace::TableKernel<Dimension>& W,
                const KernelSpace::TableKernel<Dimension>& WPi,
                ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+               const double filter,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
@@ -164,6 +165,10 @@ public:
   bool sumMassDensityOverAllNodeLists() const;
   void sumMassDensityOverAllNodeLists(const bool val);
 
+  // Fraction of position filtering to apply.
+  double filter() const;
+  void filter(const double val);
+
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
   void epsilonTensile(const Scalar val);
@@ -223,6 +228,9 @@ protected:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+
+  // Magnitude of the hourglass/parasitic mode filter.
+  double mfilter;
 
   // Tensile correction.
   Scalar mEpsTensile, mnTensile;

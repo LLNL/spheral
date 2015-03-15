@@ -22,6 +22,7 @@
 #include "centerOfMass.hh"
 #include "computeVoronoiCentroids.hh"
 #include "interpolateCRKSPH.hh"
+#include "volumeSpacing.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -82,29 +83,6 @@ using PhysicsSpace::HEvolutionType;
 
 // Put local helper methods in an anonymous namespace to keep 'em local.
 namespace {
-
-//------------------------------------------------------------------------------
-// Compute the spacing implied by a volume.
-//------------------------------------------------------------------------------
-template<typename Dimension> double volumeSpacing(const double vol);
-
-template<> 
-double 
-volumeSpacing<Dim<1> >(const double vol) {
-  return 0.5*vol;
-}
-  
-template<> 
-double 
-volumeSpacing<Dim<2> >(const double vol) {
-  return sqrt(vol/M_PI);
-}
-  
-template<> 
-double 
-volumeSpacing<Dim<3> >(const double vol) {
-  return pow(vol/(4.0/3.0*M_PI), 1.0/3.0);
-}
 
 //------------------------------------------------------------------------------
 // A functor for finding the equilibrium point between two kernels.
