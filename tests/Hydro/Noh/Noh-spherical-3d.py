@@ -414,13 +414,12 @@ if graphics:
                               with_ = "lines",
                               inline = "true")
         htPlot.replot(htData)
-    plots = [(rPlot, "Noh-cylindrical-positions.png"),
-             (rhoPlot, "Noh-cylindrical-rho.png"),
-             (vrPlot, "Noh-cylindrical-vel.png"),
-             (epsPlot, "Noh-cylindrical-eps.png"),
-             (PPlot, "Noh-cylindrical-P.png"),
-             (hrPlot, "Noh-cylindrical-hr.png"),
-             (htPlot, "Noh-cylindrical-ht.png")]
+    plots = [(rhoPlot, "Noh-spherical-rho.png"),
+             (vrPlot, "Noh-spherical-vel.png"),
+             (epsPlot, "Noh-spherical-eps.png"),
+             (PPlot, "Noh-spherical-P.png"),
+             (hrPlot, "Noh-spherical-hr.png"),
+             (htPlot, "Noh-spherical-ht.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
