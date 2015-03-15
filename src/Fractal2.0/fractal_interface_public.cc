@@ -142,14 +142,14 @@ namespace FractalSpace
     // Construct a Mess object. 
     // All MPI and FFTW stuff is done in Mess member functions. 
     // This will be used throughout the simulation. 
-   /*
-    Mess* p_mess=new Mess(PFM->MPIrun,
-			  PFM->grid_length,
-			  PFM->periodic,
-			  PFM->number_particles,
-			  PFM->FFTNodes,
-			  PFM->FractalWorld);
-    */
+//    
+//     Mess* p_mess=new Mess(PFM->MPIrun,
+// 			  PFM->grid_length,
+// 			  PFM->periodic,
+// 			  PFM->number_particles,
+// 			  PFM->FFTNodes,
+// 			  PFM->FractalWorld);
+//     
     Mess* p_mess=new Mess(PFM->MPIrun,
 			  PFM->grid_length,
 			  PFM->periodic,

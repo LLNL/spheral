@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     GridLength=256;
   int Padding=-1;
   int LevelMax=10;
-  //  int LevelMax=0;
+  //  int LevelMax=0; /////////////////////////
   int MinimumNumber=8;
   int MaxHypreIterations=20;
   double HypreTolerance=1.0e-7;
@@ -103,7 +103,8 @@ int main(int argc, char* argv[])
       PFM->p_mess->calc_total_particles(NumberParticles);
     }
   std::srand(9973+256*FractalRank);
-  vector <double> xmin(3,-60.0);
+  //  vector <double> xmin(3,-60.0);
+  vector <double> xmin(3,-50.0);
   vector <double> xmax(3,50.0);
   vector <double> xmini(3);
   vector <double> xmaxy(3);
@@ -125,14 +126,17 @@ int main(int argc, char* argv[])
   //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
-  //  PFM->step_length=4.0e-5;
-  PFM->step_length=1.0e-4;
+  //  PFM->step_length=1.0e-30; ////////////
+  //  PFM->step_length=1.0e-4;
+  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   //  ofstream& FFM=PFM->p_file->FileFractalMemory;
   //  FFM << " info " << NumberParticles << " " << m << " " << total_mass << " " << PFM->time << " " << PFM->step_length << "\n";
   FILE* PFFM=PFM->p_file->PFFractalMemory;
-  fprintf(PFFM," info %d %13.4E %13.4E %10.2E %10.2E \n",NumberParticles,m,total_mass,PFM->time,PFM->step_length);
+  fprintf(PFFM," info %d %d %13.4E %13.4E %10.2E %10.2E \n",TotalNumberParticles,NumberParticles,m,total_mass,PFM->time,PFM->step_length);
+  //  PFM->balance=0; ///////////////// 
+  //  PFM->number_steps_total=100; //////////////
   for(int step=0;step<PFM->number_steps_total;step++)
     {
       xmini=xmin;

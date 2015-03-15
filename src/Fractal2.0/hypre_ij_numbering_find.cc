@@ -108,19 +108,17 @@ namespace FractalSpace
 	Point* p=*point_itr;
 	p->set_ij_neighbors(HRBox);
       }
-    /*
-    vector <Point*> send_list;
-    vector <Point*> receive_list;
-    for(vector<Point*>::const_iterator point_itr=hypre_pointsB.begin();point_itr !=hypre_pointsB.end();++point_itr)
-      {
-	Point* p=*point_itr;
-	p->get_pos_point(pos);
-	if(on_edge(pos,HSBox))
-	  send_list.push_back(p);
-	if(on_edge(pos,HRBox))
-	  receive_list.push_back(p);
-      }
-    */
+//     vector <Point*> send_list;
+//     vector <Point*> receive_list;
+//     for(vector<Point*>::const_iterator point_itr=hypre_pointsB.begin();point_itr !=hypre_pointsB.end();++point_itr)
+//       {
+// 	Point* p=*point_itr;
+// 	p->get_pos_point(pos);
+// 	if(on_edge(pos,HSBox))
+// 	  send_list.push_back(p);
+// 	if(on_edge(pos,HRBox))
+// 	  receive_list.push_back(p);
+//       }
     sort3_list(receive_list,0);
     double time4=mem.p_mess->Clock();
     vector <int> pos_lefts(3);
