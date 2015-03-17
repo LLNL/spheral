@@ -117,6 +117,7 @@ dataDir = os.path.join(dataDir,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
@@ -414,13 +415,12 @@ if graphics:
                               with_ = "lines",
                               inline = "true")
         htPlot.replot(htData)
-    plots = [(rPlot, "Noh-cylindrical-positions.png"),
-             (rhoPlot, "Noh-cylindrical-rho.png"),
-             (vrPlot, "Noh-cylindrical-vel.png"),
-             (epsPlot, "Noh-cylindrical-eps.png"),
-             (PPlot, "Noh-cylindrical-P.png"),
-             (hrPlot, "Noh-cylindrical-hr.png"),
-             (htPlot, "Noh-cylindrical-ht.png")]
+    plots = [(rhoPlot, "Noh-spherical-rho.png"),
+             (vrPlot, "Noh-spherical-vel.png"),
+             (epsPlot, "Noh-spherical-eps.png"),
+             (PPlot, "Noh-spherical-P.png"),
+             (hrPlot, "Noh-spherical-hr.png"),
+             (htPlot, "Noh-spherical-ht.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
