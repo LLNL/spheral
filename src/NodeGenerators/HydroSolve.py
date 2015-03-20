@@ -52,6 +52,7 @@ class HydroSolveConstantTemp3D():
                     rho = (f1-f0)*(r-r1)/(r1-r0)+f1
                 else:
                     rho = self.soln[0][1]
+                break
         return rho
 
 #-------------------------------------------------------------------------------
@@ -101,8 +102,10 @@ class HydroSolveConstantTemp2D():
                     r1  = self.soln[i][0]
                     r0  = self.soln[i-1][0]
                     rho = (f1-f0)*(r-r1)/(r1-r0)+f1
+
                 else:
                     rho = self.soln[0][1]
+                break
         return rho
 
 
