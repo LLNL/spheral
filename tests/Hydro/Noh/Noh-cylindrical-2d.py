@@ -131,15 +131,16 @@ elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if SPH:
-        constructor = SPHHydro
+        HydroConstructor = SPHHydro
     else:
-        constructor = ASPHHydro
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "filter=%f" % filter,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
@@ -292,6 +293,7 @@ elif CRKSPH:
                              HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,

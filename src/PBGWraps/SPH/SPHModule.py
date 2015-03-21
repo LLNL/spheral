@@ -141,6 +141,7 @@ class SPH:
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
                            refparam(artificialviscosity, "Q"),
+                           param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
@@ -205,6 +206,7 @@ class SPH:
         x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("sumMassDensityOverAllNodeLists", "bool", getter="sumMassDensityOverAllNodeLists", setter="sumMassDensityOverAllNodeLists")
+        x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
         x.add_instance_attribute("epsilonTensile", "double", getter="epsilonTensile", setter="epsilonTensile")
         x.add_instance_attribute("nTensile", "double", getter="nTensile", setter="nTensile")
         x.add_instance_attribute("xmin", vector, getter="xmin", setter="xmin")
