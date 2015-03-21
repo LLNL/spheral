@@ -100,6 +100,7 @@ class SolidSPH:
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
                            refparam(artificialviscosity, "Q"),
+                           param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),

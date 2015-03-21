@@ -15,35 +15,38 @@ namespace FractalSpace
     const int FractalNodes1=PFM->FractalNodes1;
     const int FractalNodes2=PFM->FractalNodes2;
     const int FractalNodes=PFM->FractalNodes;
+    const int FFTNodes=PFM->FFTNodes;
 
     int how_many_particles=0;
     if(withparts)
       how_many_particles=PF->get_number_particles();
-
+    double NOSHRINK=1.0;
     double SHRINK=0.2;
+    if(2*FFTNodes >= FractalNodes)
+      SHRINK=NOSHRINK;
     vector <double>targets(FractalNodes2+1);
-    int LEVELS=PFM->FFTNodes/(FractalNodes0*FractalNodes1);
-    if(PFM->FFTNodes % (FractalNodes0*FractalNodes1) > 0)
-      LEVELS++;
-    double add=1.0;
     targets[0]=0.0;
-    for(int FR=0;FR<FractalNodes2;FR++)
+    int FR=0;
+    for(int FR2=0;FR2<FractalNodes2;FR2++)
       {
-	double add=1.0;
-	if(FR < LEVELS)
-	  add=SHRINK;
-	targets[FR+1]=targets[FR]+add;
-	if(FractalRank == 0)
+	targets[FR2+1]=targets[FR2];
+	for(int FR1=0;FR1<FractalNodes1;FR1++)
 	  {
-	    cout << " Target2A " << FR << " " << targets[FR] << " " << add << " " << LEVELS << " ";
-	    cout << FractalNodes0 << " " << FractalNodes1 << " " << PFM->FFTNodes << "\n";
+	    for(int FR0=0;FR0<FractalNodes0;FR0++)
+	      {
+		if(PFM->p_mess->ItIsAnFFTNode[FR])
+		  targets[FR2+1]+=SHRINK;
+		else
+		  targets[FR2+1]+=NOSHRINK;
+		FR++;
+	      }
 	  }
       }
-    for(int FR=0;FR<FractalNodes2;FR++)
+    for(int FR2=0;FR2<=FractalNodes2;FR2++)
       {
-	targets[FR]/=targets[FractalNodes2];
+	targets[FR2]/=targets[FractalNodes2];
 	if(FractalRank == 0)
-	  cout << " Target2 " << FR << " " << targets[FR] << "\n";
+	  cout << " Target2 " << FR2 << " " << targets[FR2] << "\n";
       }
 
     double scalepoint=1.0e-10;
@@ -143,16 +146,29 @@ namespace FractalSpace
       PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTY+FRZ);
 
     targets.resize(FractalNodes1+1);
-    add=1.0/static_cast<double>(FractalNodes1);
-    for(int FR=0;FR<=FractalNodes1;FR++)
-      {
-	targets[FR]=add*FR;
-	if(FractalRank == 0)
-	  cout << " Target1 " << FR << " " << targets[FR] << "\n";
-      }
 
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
+	int FR=FractalNodes0*FractalNodes1*FRZ;
+	targets[0]=0.0;
+	for(int FR1=0;FR1<FractalNodes1;FR1++)
+	  {
+	    targets[FR1+1]=targets[FR1];
+	    for(int FR0=0;FR0<FractalNodes0;FR0++)
+	      {
+		if(PFM->p_mess->ItIsAnFFTNode[FR])
+		  targets[FR1+1]+=SHRINK;
+		else
+		  targets[FR1+1]+=NOSHRINK;
+		FR++;
+	      }
+	  }
+	for(int FR1=0;FR1<=FractalNodes1;FR1++)
+	  {
+	    targets[FR1]/=targets[FractalNodes1];
+	    if(FractalRank == 0)
+	      cout << " Target1 " << FR1 << " " << targets[FR1] << "\n";
+	  }
 	if(FractalRank == ROOTY+FRZ)
 	  {
 	    double minimumy=static_cast<double>(upperz[FRZ]-lowerz[FRZ])*real_length*scalepoint;
@@ -206,17 +222,26 @@ namespace FractalSpace
 	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersx[FRZ][FRY],real_length,ROOTX+FRZ*FractalNodes1+FRY);
 
     targets.resize(FractalNodes0+1);
-    add=1.0/static_cast<double>(FractalNodes0);
-    for(int FR=0;FR<=FractalNodes0;FR++)
-      {
-	targets[FR]=add*FR;
-	if(FractalRank == 0)
-	  cout << " Target0 " << FR << " " << targets[FR] << "\n";
-      }
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
+	    int FR=FRZ*FractalNodes0*FractalNodes1+FRY*FractalNodes0;
+	    targets[0]=0.0;
+	    for(int FR0=0;FR0<FractalNodes0;FR0++)
+	      {
+		if(PFM->p_mess->ItIsAnFFTNode[FR])
+		  targets[FR0+1]=targets[FR0]+SHRINK;
+		else
+		  targets[FR0+1]=targets[FR0]+NOSHRINK;
+		FR++;
+	      }
+	    for(int FR0=0;FR0<FractalNodes0;FR0++)
+	      {
+		targets[FR0]/=targets[FractalNodes0];
+		if(FractalRank == 0)
+		  cout << " Target0 " << FR0 << " " << targets[FR0] << "\n";
+	      }
 	    if(FractalRank == ROOTX+FRZ*FractalNodes1+FRY)
 	      {
 		double minimumx=static_cast<double>((upperz[FRZ]-lowerz[FRZ])*(uppery[FRZ][FRY]-lowery[FRZ][FRY]))*scalepoint;
@@ -236,7 +261,7 @@ namespace FractalSpace
       }
 
     double time4=PFM->p_mess->Clock();
-    int FR=0;
+    FR=0;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
 	int BZ0=lowerz[FRZ];

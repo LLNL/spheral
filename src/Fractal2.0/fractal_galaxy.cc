@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
   bool Periodic=false;
   bool Debug=true;
   int GridLength=GRL;
-  if(GRL < 64)
-    GridLength=256;
+  //  if(GRL < 64)
+  //    GridLength=256; ///////////////////////////////////
   int Padding=-1;
   int LevelMax=10;
   //  int LevelMax=0; /////////////////////////
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
   int FractalRank=PFM->p_mess->FractalRank;
   if(FFTNodes < FractalNodes)
     {
-      if(FractalRank < FFTNodes)
+      if(PFM->p_mess->IAmAnFFTNode)
 	{
 	  NumberParticles/=10;
 	  PFM->setNumberParticles(NumberParticles);
@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
   PFM->number_steps_out=20;
   //  PFM->number_steps_out=200000;
   //  PFM->step_length=1.0e-30; ////////////
-  //  PFM->step_length=1.0e-4;
-  PFM->step_length=4.0e-5;
+  PFM->step_length=1.0e-4;
+  //  PFM->step_length=4.0e-5;
   PFM->time=0.0;
   make_me_a_galaxy(FractalRank,NumberParticles,total_mass,masses,G,posx,posy,posz,velx,vely,velz);
   //  ofstream& FFM=PFM->p_file->FileFractalMemory;
