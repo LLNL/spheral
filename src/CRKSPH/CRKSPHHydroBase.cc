@@ -740,6 +740,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
+  const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -1053,6 +1054,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               if (mMomentumConserving) {
                 Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
                                                       ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+
+                // // Add the filtering correction.
+                // if (mfilter > 0.0) {
+                //   // const Vector rijhat = rij.unitVector();
+                //   const Vector vijhat = vij.unitVector();
+                //   const Vector nhat = sgn(rij.dot(vij)) * vijhat;
+                //   // const Scalar deltaij = min(max(0.0, max(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rij.magnitude()),
+                //   //                            vij.magnitude() * dt);
+                //   const Scalar deltaij = max(0.0, max(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rij.magnitude());
+                //   const Scalar wij = 0.5*(W.kernelValue(etaMagi, 1.0) + W.kernelValue(etaMagj, 1.0)); // /W0;
+                //   const Scalar forceij0 = forceij.magnitude();
+
+                //   forceij -= mfilter*min(forceij0, wij*mi*deltaij*2.0/(dt*dt))*nhat;
+                // }
 
                 // // Add the filtering correction.
                 // if (mfilter > 0.0) {
