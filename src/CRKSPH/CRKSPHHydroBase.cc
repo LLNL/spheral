@@ -1057,16 +1057,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
                 // // Add the filtering correction.
                 // if (mfilter > 0.0) {
-                //   // const Vector rijhat = rij.unitVector();
-                //   const Vector vijhat = vij.unitVector();
-                //   const Vector nhat = sgn(rij.dot(vij)) * vijhat;
+                //   const Vector rijhat = rij.unitVector();
+                //   // const Vector nhat = sgn(rij.dot(vij))*vij.unitVector();
+                //   // const Vector vijhat = vij.unitVector();
+                //   // const Vector nhat = sgn(rij.dot(vij)) * vijhat;
                 //   // const Scalar deltaij = min(max(0.0, max(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rij.magnitude()),
                 //   //                            vij.magnitude() * dt);
-                //   const Scalar deltaij = max(0.0, max(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rij.magnitude());
+                //   const Scalar deltaij = max(0.0, 2.0*max(volumeSpacing<Dimension>(mi/rhoi), volumeSpacing<Dimension>(mj/rhoj)) - rij.magnitude());
                 //   const Scalar wij = 0.5*(W.kernelValue(etaMagi, 1.0) + W.kernelValue(etaMagj, 1.0)); // /W0;
                 //   const Scalar forceij0 = forceij.magnitude();
-
-                //   forceij -= mfilter*min(forceij0, wij*mi*deltaij*2.0/(dt*dt))*nhat;
+                //   forceij -= mfilter*min(forceij0, wij*mi*deltaij*2.0/(dt*dt))*rijhat;
                 // }
 
                 // // Add the filtering correction.
