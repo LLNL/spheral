@@ -78,7 +78,7 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    XSPH = True,
+    XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
@@ -140,7 +140,8 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcellPressure=%1.3f" % fcellPressure,
+                       "filter=%f" % filter,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))

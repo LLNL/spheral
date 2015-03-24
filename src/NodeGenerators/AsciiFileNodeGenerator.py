@@ -61,6 +61,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             gotFieldNames = 0
             
             for line in self.f:
+                line.rstrip('\r\n')
                 data = line.split(delimiter)
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
@@ -90,7 +91,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             for i in xrange(n):
                 for j in xrange(len(self.fieldNames[0])):
                     self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
-                self.H.append((1.0/self.h[i]) * SymTensor3d.one)
+                self.H.append((1.0/self.h[i]) * SymTensor2d.one)
         
         for j in xrange(len(self.fieldNames[0])):
             self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
@@ -143,8 +144,6 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
 
 
 
-
-
 #-------------------------------------------------------------------------------
 # Read in a 3-D setup.
 #-------------------------------------------------------------------------------
@@ -192,6 +191,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             gotFieldNames = 0
             
             for line in self.f:
+                line.rstrip('\r\n')
                 data = line.split(delimiter)
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
@@ -271,3 +271,4 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
     def localHtensor(self, i):
         assert i >= 0 and i < len(self.H)
         return self.H[i]
+
