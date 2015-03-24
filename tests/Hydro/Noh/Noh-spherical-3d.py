@@ -117,6 +117,7 @@ dataDir = os.path.join(dataDir,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
