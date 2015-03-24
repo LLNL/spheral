@@ -1,7 +1,7 @@
 #-*-python-*-
 # This is an ATS script to coorindate running a series of tests of CRKSPH.
 cfl = 0.25
-nPerh = 1.51
+nPerh = 2.01
 Cl = 1.0
 Cq = 1.0
 filter = 0.1

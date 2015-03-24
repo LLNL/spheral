@@ -78,7 +78,7 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    XSPH = True,
+    XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
