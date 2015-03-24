@@ -6,7 +6,7 @@ from math import *
 #-------------------------------------------------------------------------------
 # 3-D solvers
 #-------------------------------------------------------------------------------
-class HydroSolveConstantTemp3D():
+class HydroStaticProfileConstantTemp3D():
     def __init__(self,
                  rho0,
                  rMax,
@@ -58,7 +58,7 @@ class HydroSolveConstantTemp3D():
 #-------------------------------------------------------------------------------
 # 2-D solvers
 #-------------------------------------------------------------------------------
-class HydroSolveConstantTemp2D():
+class HydroStaticProfileConstantTemp2D():
     def __init__(self,
                  rho0,
                  rMax,
