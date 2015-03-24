@@ -36,7 +36,7 @@ PYTHONTARGETS = \
 	$(srcdir)/InteriorGenerator.py \
 	$(srcdir)/FacetedSurfaceGenerator.py \
 	$(srcdir)/AsciiFileNodeGenerator.py \
-	$(srcdir)/HydroSolve.py
+#	$(srcdir)/HydroSolve.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
