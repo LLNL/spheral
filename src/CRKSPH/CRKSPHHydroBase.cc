@@ -1304,7 +1304,6 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
     const unsigned numNodeLists = mass.size();
     const Scalar W0 = W.kernelValue(0.0, 1.0);
     FieldList<Dimension, Vector> deltar = dataBase.newFluidFieldList(Vector::zero, "delta position");
@@ -1319,7 +1318,6 @@ finalize(const typename Dimension::Scalar time,
         const Vector& vi = velocity(nodeListi, i);
         const Scalar mi = mass(nodeListi, i);
         const Scalar rhoi = massDensity(nodeListi, i);
-        const Vector DrhoDxi = DrhoDx(nodeListi, i);
         const SymTensor& Hi = H(nodeListi, i);
         const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -1331,11 +1329,8 @@ finalize(const typename Dimension::Scalar time,
             const Vector& vj = velocity(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
             const Scalar rhoj = massDensity(nodeListj, j);
-            const Vector DrhoDxj = DrhoDx(nodeListj, j);
             const Vector rji = rj - ri;
             const Vector rjihat = rji.unitVector();
-            const Scalar rhoij = rhoi + 0.5*DrhoDxi.dot(rji);
-            const Scalar rhoji = rhoj - 0.5*DrhoDxj.dot(rji);
             const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
             // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
             // deltar(nodeListi, i) -= deltai*rjihat;
