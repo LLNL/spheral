@@ -1,17 +1,19 @@
 # This bit of code solves the equation for hydrostatic equilibrium to return
 # a density profile function to be used in various NodeGenerators
+# NOTE: the eos tuple should contain at least one pair of eos and the range
+# to which it applies. ex. (tillotsoneos, [rmin,rmax], gammaeos, [rmax,rmax2])
 
 from math import *
 
 #-------------------------------------------------------------------------------
 # 3-D solvers
 #-------------------------------------------------------------------------------
-class HydroSolveConstantTemp3D():
+class HydroStaticProfileConstantTemp3D():
     def __init__(self,
                  rho0,
                  rMax,
                  temp,
-                 eos,
+                 eostup,
                  units,
                  y0=0,
                  nbins=1000):
@@ -20,8 +22,9 @@ class HydroSolveConstantTemp3D():
         self.rMax   = rMax
         self.nbins  = nbins
         self.rho0   = rho0
-        self.eos    = eos
         self.soln   = []
+        
+        eoscount    = len(eostup)/2
         
         r   = self.rMax
         rho = self.rho0
@@ -30,6 +33,17 @@ class HydroSolveConstantTemp3D():
         dy  = 0
         
         while(r>0):
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+        
             e       = eos.specificThermalEnergy(rho,temp)
             K       = eos.bulkModulus(rho,e)
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
@@ -58,12 +72,12 @@ class HydroSolveConstantTemp3D():
 #-------------------------------------------------------------------------------
 # 2-D solvers
 #-------------------------------------------------------------------------------
-class HydroSolveConstantTemp2D():
+class HydroStaticProfileConstantTemp2D():
     def __init__(self,
                  rho0,
                  rMax,
                  temp,
-                 eos,
+                 eostup,
                  units,
                  y0=0,
                  nbins=1000):
@@ -72,7 +86,7 @@ class HydroSolveConstantTemp2D():
         self.rMax   = rMax
         self.nbins  = nbins
         self.rho0   = rho0
-        self.eos    = eos
+        eoscount    = len(eostup)/2
         self.soln   = []
         
         r   = self.rMax
@@ -82,6 +96,17 @@ class HydroSolveConstantTemp2D():
         dy  = 0
         
         while(r>0):
+            # get the eos for this radius
+            if(eoscount>1):
+                for i in xrange(eoscount):
+                    ermin = eostup[2*i+1][0]
+                    ermax = eostup[2*i+1][1]
+                    if(r<=ermax and r>=ermin):
+                        eos = eostup[2*i]
+                        break
+            else:
+                eos = eostup[0]
+            
             e       = eos.specificThermalEnergy(rho,temp)
             K       = eos.bulkModulus(rho,e)
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*2.0*pi*pow(rho,3.0)/r)
