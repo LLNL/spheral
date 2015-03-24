@@ -143,10 +143,32 @@ Piij(const unsigned nodeListi, const unsigned i,
   // Compute the corrected velocity difference.
   Vector vij = vi - vj;
   const Vector xij = 0.5*(xi - xj);
+  // const SymTensor Si = DvDxi.Symmetric();
+  // const SymTensor Sj = DvDxj.Symmetric();
+  // const Tensor Ai = DvDxi.SkewSymmetric();
+  // const Tensor Aj = DvDxj.SkewSymmetric();
+  // const Scalar gradSi = (Si.dot(xij)).dot(xij);
+  // const Scalar gradSj = (Sj.dot(xij)).dot(xij);
+  // const Scalar gradAi = (Ai.dot(xij)).dot(xij);
+  // const Scalar gradAj = (Aj.dot(xij)).dot(xij);
+  // const Scalar rSi = gradSi*safeInv(gradSj);
+  // const Scalar rSj = safeInv(rSi);
+  // const Scalar rAi = gradAi*safeInv(gradAj);
+  // const Scalar rAj = safeInv(rAi);
+  // const Scalar phiSi = swebyLimiter(rSi, 1.5);
+  // const Scalar phiSj = swebyLimiter(rSj, 1.5);
+  // const Scalar phiAi = swebyLimiter(rAi, 2.0);
+  // const Scalar phiAj = swebyLimiter(rAj, 2.0);
+
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar rj = gradj*safeInv(gradi);
   const Scalar ri = safeInv(rj);
+  // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
+  // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
+  // const Scalar divi = abs(DvDxi.Trace());
+  // const Scalar divj = abs(DvDxj.Trace());
+  // const Scalar betaij = min(2.0, 1.0 + 0.5*min(curli*safeInv(curli + divi), curlj*safeInv(curlj + divj)));
   const Scalar phii = swebyLimiter(ri, mBeta);
   const Scalar phij = swebyLimiter(rj, mBeta);
 
@@ -192,6 +214,12 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar phi = min(phii, phij);
   const Vector vi1 = vi - phi*DvDxi*xij;
   const Vector vj1 = vj + phi*DvDxj*xij;
+
+  // // "Mike" method Mark IV. 
+  // const Scalar phiS = min(phiSi, phiSj);
+  // const Scalar phiA = min(phiAi, phiAj);
+  // const Vector vi1 = vi - (phiS*Si + phiA*Ai)*xij;
+  // const Vector vj1 = vj + (phiS*Sj + phiA*Aj)*xij;
 
   //const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij*min(phii,phij);
   //const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij*min(phii,phij);
