@@ -140,7 +140,8 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcellPressure=%1.3f" % fcellPressure,
+                       "filter=%f" % filter,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
