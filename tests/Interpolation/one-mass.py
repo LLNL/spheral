@@ -21,7 +21,7 @@ title("1-D integrated hydro test -- planar Noh problem")
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
             seed = "lattice",
-            nx = 10,
+            nx = 4,
             rho = 1.0,
             eps = 0.0,
             x0 = 0.0,
@@ -50,7 +50,7 @@ commandLine(KernelConstructor = BSplineKernel,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
             epsilonTensile = 0.3,
@@ -155,7 +155,7 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator = GenerateNodeDistribution2d(nx,nx,rho,seed,rmin=x0,rmax=x1*sqrt(2.0),
+generator = GenerateNodeDistribution2d(nx,nx,rho,seed,
                                        xmin=(x0,x0),xmax=(x1,x1),
                                        nNodePerh = nPerh,SPH=True)
 from DistributeNodes import distributeNodes2d
