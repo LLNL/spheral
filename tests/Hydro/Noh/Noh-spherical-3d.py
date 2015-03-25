@@ -45,7 +45,6 @@ commandLine(seed = "lattice",
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             linearConsistent = False,
-            filter = 0.0,
             Cl = 1.0, 
             Cq = 0.75,
             Qlimiter = False,
@@ -59,6 +58,7 @@ commandLine(seed = "lattice",
             XSPH = True,
             epsilonTensile = 0.0,
             nTensile = 8,
+            filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -95,6 +95,30 @@ commandLine(seed = "lattice",
 rho0 = 1.0
 eps0 = 0.0
 
+if SVPH:
+    if SPH:
+        HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
+elif CRKSPH:
+    if SPH:
+        HydroConstructor = CRKSPHHydro
+    else:
+        HydroConstructor = ACRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    if SPH:
+        constructor = SPHHydro
+    else:
+        constructor = ASPHHydro
+
+dataDir = os.path.join(dataDir,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "filter=%f" % filter,
+                       "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
 
@@ -210,48 +234,36 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    if SPH:
-        constructor = SVPHFacetedHydro
-    else:
-        constructor = ASVPHFacetedHydro
-    hydro = constructor(WT, q,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        densityUpdate = densityUpdate,
-                        XSVPH = XSPH,
-                        linearConsistent = linearConsistent,
-                        generateVoid = False,
-                        HUpdate = HUpdate,
-                        fcentroidal = fcentroidal,
-                        fcellPressure = fcellPressure,
-                        xmin = Vector(-1.1, -1.1),
-                        xmax = Vector( 1.1,  1.1))
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-1.1, -1.1),
+                             xmax = Vector( 1.1,  1.1))
 elif CRKSPH:
-    if SPH:
-        constructor = CRKSPHHydro
-    else:
-        constructor = ACRKSPHHydro
-    hydro = constructor(WT, WTPi, q,
-                        filter = filter,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        XSPH = XSPH,
-                        densityUpdate = densityUpdate,
-                        HUpdate = HUpdate)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
 else:
-    if SPH:
-        constructor = SPHHydro
-    else:
-        constructor = ASPHHydro
-    hydro = constructor(WT, WTPi, q,
-                        cfl = cfl,
-                        compatibleEnergyEvolution = compatibleEnergy,
-                        gradhCorrection = gradhCorrection,
-                        densityUpdate = densityUpdate,
-                        HUpdate = HUpdate,
-                        XSPH = XSPH,
-                        epsTensile = epsilonTensile,
-                        nTensile = nTensile)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -314,7 +326,9 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            SPH = True,        # Only for iterating H
+                            )
 output("control")
 
 # Do some startup stuff (unless we're restarting).
@@ -401,6 +415,16 @@ if graphics:
                               with_ = "lines",
                               inline = "true")
         htPlot.replot(htData)
+    plots = [(rhoPlot, "Noh-spherical-rho.png"),
+             (vrPlot, "Noh-spherical-vel.png"),
+             (epsPlot, "Noh-spherical-eps.png"),
+             (PPlot, "Noh-spherical-P.png"),
+             (hrPlot, "Noh-spherical-hr.png"),
+             (htPlot, "Noh-spherical-ht.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
     # Report the error norms.
     rmin, rmax = 0.05, 0.35
@@ -428,3 +452,52 @@ if graphics:
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+    yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+    zprof = mpi.reduce([x.z for x in nodes1.positions().internalValues()], mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.magnitude() for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    mof = mortonOrderIndices(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    if mpi.rank == 0:
+        rprof = [sqrt(xi*xi + yi*yi + zi*zi) for xi, yi, zi in zip(xprof, yprof, zprof)]
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
+        f = open(outputFile, "w")
+        f.write(("# " + 22*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "P", "v", "eps", "h", "mortonOrder",
+                                              "rhoans", "Pans", "vans", "epsans",
+                                              "x_uu", "y_uu", "z_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
+        for (ri, xi, yi, zi, rhoi, Pi, vi, epsi, hi, mi, 
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, zprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
+                                                     rhoans, Pans, vans, epsans):
+            f.write((9*"%16.12e " + "%i " + 4*"%16.12e " + 8*"%i " + "\n") % (ri, xi, yi, zi, rhoi, Pi, vi, epsi, hi, mi,
+                                                                              rhoansi, Pansi, vansi, epsansi,
+                                                                              unpackElementUL(packElementDouble(xi)),
+                                                                              unpackElementUL(packElementDouble(yi)),
+                                                                              unpackElementUL(packElementDouble(zi)),
+                                                                              unpackElementUL(packElementDouble(rhoi)),
+                                                                              unpackElementUL(packElementDouble(Pi)),
+                                                                              unpackElementUL(packElementDouble(vi)),
+                                                                              unpackElementUL(packElementDouble(epsi)),
+                                                                              unpackElementUL(packElementDouble(hi))))
+        f.close()
+
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)

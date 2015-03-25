@@ -1481,7 +1481,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     self.y.append(ri*self.positions[n][1])
                     self.z.append(ri*self.positions[n][2])
                     self.m.append(mi)
-                    self.H.append(Hi)
+                    self.H.append(SymTensor3d.one*(1.0/hi))
+            #self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
                 

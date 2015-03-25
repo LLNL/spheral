@@ -200,7 +200,7 @@ pressure(const Scalar massDensity,
     const double thpt2 = thpt1*mu*ack;
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
     const double Dinv = D/(D*D + tiny);
-    return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu)*Dinv*Dinv + 
+    return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
                                       (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
   }
 

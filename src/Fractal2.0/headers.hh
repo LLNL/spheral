@@ -106,6 +106,7 @@ namespace FractalSpace
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
+  void node_groups(Fractal_Memory& fractal_memory,vector <int>& Touchy);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool on_edge(vector <int>& pos,vector <int>& Box);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);

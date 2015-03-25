@@ -126,6 +126,24 @@ SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(const bool val) {
 }
 
 //------------------------------------------------------------------------------
+// Fraction of the centroidal filtering to apply.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+SPHHydroBase<Dimension>::filter() const {
+  return mfilter;
+}
+
+template<typename Dimension>
+inline
+void
+SPHHydroBase<Dimension>::filter(const double val) {
+  VERIFY(val >= 0.0 and val <= 1.0);
+  mfilter = val;
+}
+
+//------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>
