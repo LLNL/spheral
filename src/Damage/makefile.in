@@ -1,0 +1,29 @@
+# -*-makefile-*-
+# SolidSpheral++ Damage package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Damage
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/DamageModelInst.cc \
+	$(srcdir)/TensorDamageModelInst.cc \
+	$(srcdir)/StrainPolicyInst.cc \
+	$(srcdir)/TensorStrainPolicyInst.cc \
+	$(srcdir)/TensorDamagePolicyInst.cc \
+	$(srcdir)/YoungsModulusPolicyInst.cc \
+	$(srcdir)/LongitudinalSoundSpeedPolicyInst.cc \
+	$(srcdir)/weibullFlawDistributionInst.cc \
+	$(srcdir)/computeFragmentFieldInst.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/identifyFragments.py \
+	$(srcdir)/WeibullDamage.py \
+	$(srcdir)/GradyKippTensorDamage.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master

@@ -1,0 +1,26 @@
+# -*-makefile-*-
+# Spheral++ Hydro package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Hydro
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/HydroFieldNames.cc \
+	$(srcdir)/PressurePolicyInst.cc \
+	$(srcdir)/SoundSpeedPolicyInst.cc \
+	$(srcdir)/SpecificThermalEnergyPolicyInst.cc \
+	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc \
+	$(srcdir)/PositionPolicyInst.cc \
+	$(srcdir)/VolumePolicyInst.cc \
+	$(srcdir)/VoronoiMassDensityPolicyInst.cc \
+	$(srcdir)/SumVoronoiMassDensityPolicyInst.cc \
+	$(srcdir)/SecondMomentHourglassControlInst.cc \
+	$(srcdir)/ThirdMomentHourglassControlInst.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
