@@ -71,6 +71,7 @@ commandLine(seed = "constantDTheta",
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",
             outputFile = "None",
+            graphics = True,
             )
 
 assert thetaFactor in (0.5, 1.0, 2.0)
@@ -164,13 +165,11 @@ eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
 if restoreCycle is None:
     if seed == "square":
-        generator = GenerateSquareNodeDistribution(nRadial,
-                                                   nTheta,
-                                                   rho0,
-                                                   xmin = Vector(0,0),
-                                                   xmax = Vector(1,1),
-                                                   nNodePerh = nPerh,
-                                                   SPH = (HydroConstructor == SPHHydro))
+        generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, "lattice",
+                                               xmin = Vector(-1,-1),
+                                               xmax = Vector(1,1),
+                                               nNodePerh = nPerh,
+                                               SPH = (HydroConstructor == SPHHydro))
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
@@ -412,3 +411,63 @@ if outputFile != "None" and mpi.rank == 0:
          f.write((16*"%16.12e " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
+
+#-------------------------------------------------------------------------------
+# Plot the results.
+#-------------------------------------------------------------------------------
+if graphics:
+    import Gnuplot
+
+    # Plot the final state.
+    rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
+    del HPlot
+    Hinverse = db.newFluidSymTensorFieldList()
+    db.fluidHinverse(Hinverse)
+    hr = db.newFluidScalarFieldList()
+    for Hfield, hrfield, in zip(Hinverse, hr):
+        n = Hfield.numElements
+        assert hrfield.numElements == n
+        positions = Hfield.nodeList().positions()
+        for i in xrange(n):
+            runit = positions[i].unitVector()
+            hrfield[i] = (Hfield[i]*runit).magnitude()
+    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_r")
+
+    # Overplot the analytic solution.
+    plotAnswer(answer, control.time(),
+               rhoPlot = rhoPlot,
+               velPlot = vrPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = hrPlot)
+
+    # Compute the simulated specific entropy.
+    A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
+
+    # The analytic solution for the simulated entropy.
+    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), r)
+    Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+
+    # Plot the specific entropy.
+    if mpi.rank == 0:
+        AsimData = Gnuplot.Data(xprof, A,
+                                with_ = "points",
+                                title = "Simulation",
+                                inline = True)
+        AansData = Gnuplot.Data(xprof, Aans,
+                                with_ = "lines",
+                                title = "Solution",
+                                inline = True)
+        Aplot = Gnuplot.Gnuplot()
+        Aplot.plot(AsimData)
+        Aplot.replot(AansData)
+        Aplot.title("Specific entropy")
+        Aplot.refresh()
+    else:
+        Aplot = fakeGnuplot()
+
+
+    # Make hardcopies
+    rhoPlot.hardcopy(os.path.join(dataDir, "Sedov-cylindrical-rho.png"), terminal="png")
+    vrPlot.hardcopy (os.path.join(dataDir, "Sedov-cylindrical-vel.png"), terminal="png")
+    PPlot.hardcopy  (os.path.join(dataDir, "Sedov-cylindrical-P.png"  ), terminal="png")
