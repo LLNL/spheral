@@ -10,8 +10,9 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil
-from Spheral1d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
+from GenerateNodeDistribution2d import *
 
 title("1-D integrated hydro test -- planar Noh problem")
 
@@ -19,18 +20,14 @@ title("1-D integrated hydro test -- planar Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
-
-            nx1 = 100,
-            rho1 = 1.0,
-            eps1 = 0.0,
+            seed = "lattice",
+            nx = 4,
+            rho = 1.0,
+            eps = 0.0,
             x0 = 0.0,
             x1 = 1.0,
-            xwall = 0.0,
             nPerh = 1.25,
             NeighborType = NestedGridNeighbor,
-
-            vr0 = -1.0, 
-            vrSlope = 0.0,
 
             gamma = 5.0/3.0,
             mu = 1.0,
@@ -53,10 +50,10 @@ commandLine(KernelConstructor = BSplineKernel,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.5,
             XSPH = False,
-            epsilonTensile = 0.0,
+            epsilonTensile = 0.3,
             nTensile = 4.0,
             hourglass = None,
             hourglassOrder = 0,
@@ -64,6 +61,9 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassFraction = 0.5,
             filter = 0.0,
             momentumConserving = True, # For CRKSPH
+            
+            vizCycle = None,
+            vizTime = 0.1,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -99,37 +99,15 @@ commandLine(KernelConstructor = BSplineKernel,
             outputFile = "None",
             comparisonFile = "None",
 
-            # Parameters for the test acceptance.,
-            L1rho =   0.059517       ,
-            L2rho =   0.234803       ,
-            Linfrho = 1.69835        ,
-                                                           
-            L1P =     0.0218862      ,
-            L2P =     0.0915099      ,
-            LinfP =   0.667126       ,
-                                                           
-            L1v =     0.023729       ,
-            L2v =     0.117924       ,
-            Linfv =   0.848251       ,
-                                                           
-            L1eps =   0.0114841      ,
-            L2eps =   0.0535023      ,
-            Linfeps = 0.370852       ,
-                                               
-            L1h =     0.000315869    ,
-            L2h =     0.00125931     ,
-            Linfh =   0.00761168     ,
-
-            tol = 1.0e-5,
-
             graphics = True,
             serialDump = False #whether to dump a serial ascii file at the end for viz
             )
 
-restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
-dx = (x1 - x0)/nx1
+vizDir = os.path.join(dataDir, "visit")
+vizBaseName = "one-particle"
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % 1)
 
 #-------------------------------------------------------------------------------
 # CRKSPH Switches to ensure consistency
@@ -177,23 +155,16 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
-                         nPerh = nPerh)
+generator = GenerateNodeDistribution2d(nx,nx,rho,seed,
+                                       xmin=(x0,x0),xmax=(x1,x1),
+                                       nNodePerh = nPerh,SPH=True)
+from DistributeNodes import distributeNodes2d
+distributeNodes2d((nodes1, generator))
 output("nodes1.numNodes")
 
 # Set node specific thermal energies
-nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
-
-# Set node velocities
-pos = nodes1.positions()
-vel = nodes1.velocity()
-for ix in xrange(nodes1.numNodes):
-    if pos[ix].x > xwall:
-        vel[ix].x = vr0 + vrSlope*pos[ix].x
-    else:
-        vel[ix].x = -vr0 + vrSlope*pos[ix].x
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps))
+nodes1.massDensity(ScalarField("tmp", nodes1, rho))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -243,7 +214,6 @@ elif CRKSPH:
                       momentumConserving = momentumConserving)
 else:
     hydro = SPHHydro(WT, WTPi, q,
-                     filter = filter,
                      cfl = cfl,
                      compatibleEnergyEvolution = compatibleEnergy,
                      gradhCorrection = gradhCorrection,
@@ -304,15 +274,6 @@ if hourglass:
     packages.append(hg)
 
 #-------------------------------------------------------------------------------
-# Create boundary conditions.
-#-------------------------------------------------------------------------------
-if x0 == xwall:
-    xPlane0 = Plane(Vector(0.0), Vector(1.0))
-    xbc0 = ReflectingBoundary(xPlane0)
-    for p in packages:
-        p.appendBoundary(xbc0)
-
-#-------------------------------------------------------------------------------
 # Construct an integrator.
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
@@ -346,7 +307,11 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime,)
 output("control")
 
 # Smooth the initial conditions.
@@ -384,101 +349,6 @@ else:
     if control.time() < goalTime:
         control.step(5)
         control.advance(goalTime, maxSteps)
-
-#-------------------------------------------------------------------------------
-# Compute the analytic answer.
-#-------------------------------------------------------------------------------
-import mpi
-import NohAnalyticSolution
-rlocal = [pos.x for pos in nodes1.positions().internalValues()]
-r = mpi.reduce(rlocal, mpi.SUM)
-h1 = 1.0/(nPerh*dx)
-answer = NohAnalyticSolution.NohSolution(1,
-                                         r = r,
-                                         v0 = -1.0,
-                                         h0 = 1.0/h1)
-
-# Compute the simulated specific entropy.
-rho = mpi.allreduce(nodes1.massDensity().internalValues(), mpi.SUM)
-Pf = ScalarField("pressure", nodes1)
-nodes1.pressure(Pf)
-P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
-A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
-
-# The analytic solution for the simulated entropy.
-xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
-
-#-------------------------------------------------------------------------------
-# Plot the final state.
-#-------------------------------------------------------------------------------
-if graphics:
-    from SpheralGnuPlotUtilities import *
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
-    EPlot = plotEHistory(control.conserve)
-    plots = [(rhoPlot, "Noh-planar-rho.png"),
-             (velPlot, "Noh-planar-vel.png"),
-             (epsPlot, "Noh-planar-eps.png"),
-             (PPlot, "Noh-planar-P.png"),
-             (HPlot, "Noh-planar-h.png")]
-
-    # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    plots.append((Aplot, "Noh-planar-A.png"))
-    
-    dvdxPlot = plotFieldList(hydro.DvDx(),yFunction='-1*%s.xx',winTitle='Source Fn',colorNodeLists=False)
-    viscPlot = plotFieldList(hydro.maxViscousPressure(),
-                             winTitle = "max(rho^2 Piij)",
-                             colorNodeLists = False)
-
-    if boolReduceViscosity:
-        alphaPlotQ = plotFieldList(q.reducingViscosityMultiplierQ(),
-                                  winTitle = "rvAlphaQ",
-                                  colorNodeLists = False, plotGhosts = False)
-        alphaPlotL = plotFieldList(q.reducingViscosityMultiplierL(),
-                                   winTitle = "rvAlphaL",
-                                   colorNodeLists = False, plotGhosts = False)
-
-    # # Plot the grad h correction term (omega)
-    # omegaPlot = plotFieldList(hydro.omegaGradh(),
-    #                           winTitle = "grad h correction",
-    #                           colorNodeLists = False)
-
-    # Make hardcopies of the plots.
-    for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
-if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
-
-#-------------------------------------------------------------------------------
-# Measure the difference between the simulation and analytic answer.
-#-------------------------------------------------------------------------------
-rmin, rmax = 0.05, 0.35   # Throw away anything with r < rwall to avoid wall heating.
-rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
-P = ScalarField("pressure", nodes1)
-nodes1.pressure(P)
-Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -544,54 +414,6 @@ if serialDump:
                                                                    vans[j],
                                                                    hydro.maxViscousPressure()[0][j]))
     f.close()
-
-#------------------------------------------------------------------------------
-# Compute the error.
-#------------------------------------------------------------------------------
-
-if mpi.rank == 0:
-    xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-    import Pnorm
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-    failure = False
-    hD = []
-    for (name, data, ans,
-         L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-                                             ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-                                             ("Velocity", vprof, vans, L1v, L2v, Linfv),
-                                             ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-                                             ("h       ", hprof, hans, L1h, L2h, Linfh)]:
-        assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
-        Pn = Pnorm.Pnorm(error, xprof)
-        L1 = Pn.gridpnorm(1, rmin, rmax)
-        L2 = Pn.gridpnorm(2, rmin, rmax)
-        Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-        hD.append([L1,L2,Linf])
-        if checkError:
-            if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L1,
-                                                                                      L1expect)
-                failure = True
-            if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                      L2,
-                                                                                      L2expect)
-                failure = True
-            if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-                                                                                        Linf,
-                                                                                        Linfexpect)
-                failure = True
-            if failure:
-                raise ValueError, "Error bounds violated."
-                                             
-    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-    #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-    #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
-
 
 
 

@@ -46,6 +46,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "FileIO/FileIO.hh"
 #include "Mesh/Mesh.hh"
+#include "CRKSPH/volumeSpacing.hh"
 
 namespace Spheral {
 namespace SPHSpace {
@@ -76,6 +77,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const TableKernel<Dimension>& W,
              const TableKernel<Dimension>& WPi,
              ArtificialViscosity<Dimension>& Q,
+             const double filter,
              const double cfl,
              const bool useVelocityMagnitudeForDt,
              const bool compatibleEnergyEvolution,
@@ -98,6 +100,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSPH(XSPH),
   mCorrectVelocityGradient(correctVelocityGradient),
   mSumMassDensityOverAllNodeLists(sumMassDensityOverAllNodeLists),
+  mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mxmin(xmin),
@@ -934,6 +937,86 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
   }
+
+  // This form looks for points that are too close based on specific volume.
+  if (mfilter > 0.0) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const unsigned numNodeLists = mass.size();
+    const Scalar W0 = W.kernelValue(0.0, 1.0);
+    FieldList<Dimension, Vector> deltar = dataBase.newFluidFieldList(Vector::zero, "delta position");
+    FieldList<Dimension, Scalar> deltav = dataBase.newFluidFieldList(0.0, "delta velocity");
+    FieldList<Dimension, Scalar> weightsum = dataBase.newFluidFieldList(0.0, "delta velocity weight sum");
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const Scalar nPerh = position[nodeListi]->nodeListPtr()->nodesPerSmoothingScale();
+      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+           iItr != connectivityMap.end(nodeListi);
+           ++iItr) {
+        const int i = *iItr;
+        const Vector& ri = position(nodeListi, i);
+        const Vector& vi = velocity(nodeListi, i);
+        const Scalar mi = mass(nodeListi, i);
+        const Scalar rhoi = massDensity(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const SymTensor Hinvi = Hi.Inverse();
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (typename vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const unsigned j = *jItr;
+            const Vector& rj = position(nodeListj, j);
+            const Vector& vj = velocity(nodeListj, j);
+            const Scalar mj = mass(nodeListj, j);
+            const Scalar rhoj = massDensity(nodeListj, j);
+            const SymTensor& Hj = H(nodeListj, j);
+            const SymTensor Hinvj = Hj.Inverse();
+            const Vector rji = rj - ri;
+            const Vector rjihat = rji.unitVector();
+            const Vector etai = Hi*rji;
+            const Vector etaj = Hj*rji;
+            const Scalar etaMagi = etai.magnitude();
+            const Scalar etaMagj = etaj.magnitude();
+            const Vector delta = 0.5*(max(0.0, 1.0/nPerh - etaMagi)*Hinvi + max(0.0, 1.0/nPerh - etaMagj)*Hinvj)*rjihat;
+            const Scalar weight = 0.5*(W.kernelValue(etaMagi, 1.0) + W.kernelValue(etaMagj, 1.0))/W0 * (vj - vi).magnitude();
+            deltar(nodeListi, i) -= weight*delta;
+            weightsum(nodeListi, i) += weight;
+            deltav(nodeListi, i) += weight*(vj - vi).magnitude();
+          }
+        }
+      }
+    }
+
+    // Apply the filtering.
+    const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = position[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        // const Scalar hi = 1.0/(H(nodeListi, i).eigenValues().maxElement());
+        // const Scalar mag0 = DvDx(nodeListi, i).eigenValues().maxAbsElement()*hi*dt;
+        // const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+        const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
+        if (mag0 > 0.0) {
+          const Scalar deltamag = deltar(nodeListi, i).magnitude();
+          // const Scalar effmag = mfilter*deltamag;
+          const Scalar effmag = mfilter*min(mag0, deltamag);
+          position(nodeListi, i) += effmag*deltar(nodeListi, i).unitVector();
+        }
+      }
+    }
+
+    // Check for any boundary violations.
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+    this->enforceBoundaries(state, derivs);
+  }
+
 }
 
 //------------------------------------------------------------------------------

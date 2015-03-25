@@ -59,7 +59,7 @@ commandLine(
     CRKSPH = False,
     ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-    filter = 0.0,  # For CRKSPH
+    filter = 0.2,  # For CRKSPH
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -78,7 +78,7 @@ commandLine(
     hmax = 0.5,
     hminratio = 0.1,
     cfl = 0.5,
-    XSPH = True,
+    XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
@@ -102,7 +102,7 @@ commandLine(
     compatibleEnergy = True,
     gradhCorrection = False,
 
-    useVoronoiOutput = True,
+    useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = None,
     restartStep = 200,
@@ -120,6 +120,7 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -139,7 +140,8 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%1.3f" % fcentroidal,
-                       "fcellPressure = %1.3f" % fcellPressure,
+                       "fcellPressure=%1.3f" % fcellPressure,
+                       "filter=%f" % filter,
                        "%ix%i" % (nx1 + nx2, ny1 + ny2))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
@@ -390,8 +392,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    vizMethod = None
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,

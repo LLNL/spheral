@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 # A made up 1-D problem to test the anti-hourglassing algorithms.
 #-------------------------------------------------------------------------------
-from Spheral import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 
 title("1-D planar hourglassing test")
@@ -10,11 +10,9 @@ title("1-D planar hourglassing test")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(NodeListConstructor = SphNodeList1d,
-
-            nx1 = 100,
+commandLine(nx1 = 100,
             rho1 = 1.0,
-            eps1 = 0.0,
+            eps1 = 1.0,
             x0 = 0.0,
             x1 = 1.0,
             nPerh = 2.01,
@@ -22,12 +20,15 @@ commandLine(NodeListConstructor = SphNodeList1d,
             wavelength = 0.05,
             amplitude = 0.25,
 
-            a0 = Vector1d(1.0),
+            a0 = Vector(1.0),
 
+            SVPH = False,
+            CRKSPH = False,
+            filter = 0.0,
             gamma = 5.0/3.0,
+            momentumConserving = True,
             mu = 1.0,
-            Qconstructor = MonaghanGingoldViscosity1d,
-            #Qconstructor = TensorMonaghanGingoldViscosity1d,
+            Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
             Qlimiter = False,
@@ -35,20 +36,12 @@ commandLine(NodeListConstructor = SphNodeList1d,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
             energyMultiplier = 0.1,
-            HsmoothMin = 0.0001, 
-            HsmoothMax = 100.0,
-            HsmoothFraction = 0.0,
+            hmin = 0.0001, 
+            hmax = 100.0,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
-
-            hourglassMultiplier = 0.001,
-
-            neighborSearchType = Neighbor1d.NeighborSearchType.GatherScatter,
-            numGridLevels = 20,
-            topGridCellSize = 200.0,
-            origin = Vector1d(0.0),
 
             goalTime = 1.0,
             steps = None,
@@ -59,50 +52,50 @@ commandLine(NodeListConstructor = SphNodeList1d,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = Hydro1d.HEvolutionType.IdealH,
-            sumForMassDensity = Hydro1d.MassDensityType.RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            compatibleEnergy = True,
+            gradhCorrection = False,
+            domainIndependent = False,
 
             restoreCycle = None,
             restartStep = 10000,
             restartBaseName = "Hourglass-1d",
 
-            graphics = "gnu",
+            graphics = True,
             )
+
+#-------------------------------------------------------------------------------
+# CRKSPH Switches to ensure consistency
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS1d(gamma, mu)
+eos = GammaLawGasMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel1d(BSplineKernel1d(), 100)
-kernelExtent = WT.kernelExtent()
-WTPi = TableKernel1d(BSplineKernel1d(), 100)
-#WTPi = TableKernel1d(HatKernel1d(kernelExtent, kernelExtent), 100)
+WT = TableKernel(BSplineKernel(), 1000)
+kernelExtent = WT.kernelExtent
+WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
 output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = NodeListConstructor("nodes1", eos, WT, WTPi)
-nodes1.HsmoothFraction = HsmoothFraction
-nodes1.nodesPerSmoothingScale = nPerh
-output("nodes1.HsmoothFraction")
+nodes1 = makeFluidNodeList("nodes1", eos, 
+                           hmin = hmin,
+                           hmax = hmax,
+                           nPerh = nPerh)
+output("nodes1")
+output("nodes1.hmin")
+output("nodes1.hmax")
 output("nodes1.nodesPerSmoothingScale")
-
-#-------------------------------------------------------------------------------
-# Construct the neighbor object.
-#-------------------------------------------------------------------------------
-neighbor1 = NestedGridNeighbor1d(nodes1,
-                                 neighborSearchType,
-                                 numGridLevels,
-                                 topGridCellSize,
-                                 origin,
-                                 kernelExtent)
-nodes1.registerNeighbor(neighbor1)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -113,7 +106,7 @@ nNodesThisDomain1 = nodes1.numInternalNodes
 output("nodes1.numNodes")
 
 # Set node specific thermal energies
-nodes1.specificThermalEnergy(ScalarField1d("tmp", nodes1, eps1))
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 
 # Displace the nodes in a pattern that looks like the tensile instability clumping.
 dx = (x1 - x0)/nx1
@@ -124,7 +117,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
-db = DataBase1d()
+db = DataBase()
 output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
@@ -149,67 +142,75 @@ output("q.csMultiplier")
 output("q.energyMultiplier")
 
 #-------------------------------------------------------------------------------
-# Set the XSPH and tensile corrections for the NodeList
-#-------------------------------------------------------------------------------
-nodes1.XSPH = XSPH
-nodes1.epsilonTensile = epsilonTensile
-nodes1.nTensile = nTensile
-output("nodes1.XSPH")
-output("nodes1.epsilonTensile")
-output("nodes1.nTensile")
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = Hydro1d(WT, WTPi, q)
-hydro.cfl = cfl
-hydro.HEvolution = HEvolution
-hydro.sumForMassDensity = sumForMassDensity
-hydro.HsmoothMin = HsmoothMin
-hydro.HsmoothMax = HsmoothMax
+if SVPH:
+    hydro = SVPHFacetedHydro(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-100.0),
+                             xmax = Vector( 100.0))
+elif CRKSPH:
+    hydro = CRKSPHHydro(WT, WTPi, q,
+                      filter = filter,
+                      cfl = cfl,
+                      compatibleEnergyEvolution = compatibleEnergy,
+                      XSPH = XSPH,
+                      densityUpdate = densityUpdate,
+                      HUpdate = HUpdate,
+                      momentumConserving = momentumConserving)
+else:
+    hydro = SPHHydro(WT, WTPi, q,
+                     cfl = cfl,
+                     compatibleEnergyEvolution = compatibleEnergy,
+                     gradhCorrection = gradhCorrection,
+                     densityUpdate = densityUpdate,
+                     HUpdate = HUpdate,
+                     XSPH = XSPH,
+                     epsTensile = epsilonTensile,
+                     nTensile = nTensile)
 output("hydro")
-output("hydro.cfl")
-output("hydro.HEvolution")
-output("hydro.sumForMassDensity")
-output("hydro.HsmoothMin")
-output("hydro.HsmoothMax")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
-output("hydro.valid()")
+output("hydro.cfl")
+output("hydro.compatibleEnergyEvolution")
+output("hydro.densityUpdate")
+output("hydro.HEvolution")
 
-#-------------------------------------------------------------------------------
-# Construct a constant acceleration package.
-#-------------------------------------------------------------------------------
-indicies = vector_of_int()
-indicies.extend(range(nodes1.numInternalNodes))
-accel = ConstantAcceleration1d(a0, nodes1, indicies)
+packages = [hydro]
 
-#-------------------------------------------------------------------------------
-# Construct an hour glass control object.
-#-------------------------------------------------------------------------------
-hourglass = ThirdMomentHourglassControl1d(db, hourglassMultiplier)
-output("hourglass")
-output("hourglass.multiplier")
-
-packages = [hydro, accel, hourglass]
+# #-------------------------------------------------------------------------------
+# # Construct a constant acceleration package.
+# #-------------------------------------------------------------------------------
+# indices = vector_of_int()
+# for i in xrange(nodes1.numInternalNodes):
+#     indices.append(i)
+# accel = ConstantAcceleration(a0, nodes1, indices)
+# packages.append(accel)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xPlane0 = Plane1d(Vector1d(x0), Vector1d( 1.0))
-xPlane1 = Plane1d(Vector1d(x1), Vector1d(-1.0))
-xbc0 = PeriodicBoundary1d(xPlane0, xPlane1)
+xPlane0 = Plane(Vector(x0), Vector( 1.0))
+xPlane1 = Plane(Vector(x1), Vector(-1.0))
+xbc0 = PeriodicBoundary(xPlane0, xPlane1)
 for p in packages:
     p.appendBoundary(xbc0)
 
 #-------------------------------------------------------------------------------
 # Construct a predictor corrector integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator1d(db)
+integrator = CheapSynchronousRK2Integrator(db)
 output("integrator")
 for p in packages:
     integrator.appendPhysicsPackage(p)
-output("integrator.valid()")
 integrator.lastDt = dt
 output("integrator.lastDt")
 if dtMin:
@@ -227,8 +228,7 @@ output("integrator.dtGrowth")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName,
-                            initializeMassDensity = False)
+                            restartBaseName = restartBaseName)
 output("control")
 
 # Smooth the initial conditions.
@@ -249,95 +249,20 @@ else:
     control.step(steps)
 
 #-------------------------------------------------------------------------------
-# Compute the third moment of the given nodes.
-# Since this is 1-D we just construct a scalar fields with the (0,0,0) component
-# of the tensor.
-#-------------------------------------------------------------------------------
-def sgn(x):
-    if x < 0:
-        return -1
-    else:
-        return 1
-    
-def thirdMomentField(nodes):
-    db.updateConnectivityMap()
-    cm = db.connectivityMap()
-    result = ScalarField1d("third moment", nodes)
-    pos = nodes.positions().internalValues()
-    H = nodes.Hfield().internalValues()
-    for i in xrange(nodes.numInternalNodes):
-        xi = pos[i].x
-        Hi = H[i].xx
-        neighbors = cm.connectivityForNode(nodes, i)[0]
-        for j in neighbors:
-            xij = xi - pos[j].x
-            etai = abs(Hi*xij)
-            Wi = WT.kernelValue(etai, 1.0)
-            #Wi = abs(WT.gradValue(etai, 1.0))
-            result[i] += sgn(xij) * Wi**3
-    return result
-
-def ggThirdMomentField(nodes, thirdMoment):
-    db.updateConnectivityMap()
-    cm = db.connectivityMap()
-    result = ScalarField1d("grad grad third moment", nodes)
-    mass = nodes.mass().internalValues()
-    rho = nodes.massDensity().internalValues()
-    pos = nodes.positions().internalValues()
-    H = nodes.Hfield().internalValues()
-    T = thirdMoment.internalValues()
-    for i in xrange(nodes.numInternalNodes):
-        xi = pos[i]
-        Hi = H[i].xx
-        hi2 = 1.0/Hi**2
-        Ti = T[i]
-        neighbors = cm.connectivityForNode(nodes, i)[0]
-        for j in neighbors:
-            Tji = T[j] - Ti
-            xij = xi - pos[j]
-            etai = Hi*xij
-            Hetai = Hi*etai.unitVector()
-            gradWi = (Hetai * WT.gradValue(abs(etai.x), Hi)).x
-            xij = xij.x
-            result[i] += mass[j] * Tji*xij/(xij*xij + 0.01*hi2) * gradWi
-        result[i] /= rho[i]
-    return result
-    
-
-#-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
 import Gnuplot
 from SpheralGnuPlotUtilities import *
-## rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
 ## Eplot = plotEHistory(control.conserve)
 ## xplot = plotFieldList(db.fluidPosition,
 ##                       yFunction = "%s.x",
 ##                       plotStyle = "points",
 ##                       winTitle = "Position (x)")
-## aplot = plotFieldList(hourglass.acceleration(),
-##                       yFunction = "%s.x",
-##                       plotStyle = "points",
-##                       winTitle = "Hourglass accleration")
 
-#tm = thirdMomentField(nodes1)
-#tml = ScalarFieldList1d()
-#tml.appendField(tm)
-tml = hourglass.thirdMoment()
-tmplot = plotFieldList(tml,
-                       yFunction = "%s(0,0,0)",
-                       plotStyle = "linespoints",
-                       winTitle = "Third Moment")
-
-a = db.fluidDvelocityDt
+a = hydro.DvDt()
 aplot = plotFieldList(a,
                       yFunction = "%s.x",
                       plotStyle = "linespoints",
                       winTitle = "Acceleration")
 
-## ggtm = ggThirdMomentField(nodes1, tm)
-## ggtml = ScalarFieldList1d()
-## ggtml.appendField(ggtm)
-## ggtmplot = plotFieldList(ggtml,
-##                          plotStyle = "linespoints",
-##                          winTitle = "Grad^2 Third Moment")

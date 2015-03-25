@@ -1,3 +1,7 @@
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.0 --goalTime 3.0", label="Gresho CRK, filter=0.0", np=10)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.01 --goalTime 3.0", label="Gresho CRK, filter=0.01", np=10)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.1 --goalTime 3.0", label="Gresho CRK, filter=0.1", np=10)
+#ATS:test(SELF, "--CRKSPH True --cfl 0.25 --Cl 1.0 --Cq 1.0 --clearDirectories True --filter 0.2 --goalTime 3.0", label="Gresho CRK, filter=0.2", np=10)
 #-------------------------------------------------------------------------------
 # The Gresho-Vortex Test
 #-------------------------------------------------------------------------------
@@ -145,7 +149,7 @@ baseDir = os.path.join(dataDir,
                        "XSPH=%s" % XSPH,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
-                       "fcellPressure = %f" % fcellPressure,
+                       "fcellPressure=%f" % fcellPressure,
                        "%ix%i" % (nx1, ny1))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "greshovortex-xy-%ix%i" % (nx1, ny1))
@@ -435,8 +439,7 @@ if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
+    vizMethod = None # default
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,

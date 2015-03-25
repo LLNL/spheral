@@ -485,62 +485,60 @@ namespace FractalSpace
     FileFractal << "start up " << fractal_memory.start_up << "\n";
     if(!fractal_memory.start_up)
       {
-	// *****
-	/*
-	fractal.timing(-1,47);
-	// solve level zero by first assigning density then use either periodic or isolated FFTW
-	// to find potential at the points. Find forces at points and then at particles.
-	fractal.timing_lev(-1,0);
-	Group& group=*misc.p_group_0;
-	if(misc.get_debug())
-	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
-	group.set_set_scaling(true);
-	group.set_set_dens(true);
-	//--------------------------------------------------------------------------
-	// use all particles to assign density to the points using cic. For edge points, density
-	//  will be wrong, but this density is never used. Also add the density from any split ghost particles
-	//--------------------------------------------------------------------------
-	fractal.timing(-1,3);
-	assign_density(group,fractal); 
-	fractal.timing(1,3);
-	if(fractal.get_periodic())
-	  {
-	    //--------------------------------------------------------------------------
-	    // For periodic BC use periodic FFTW solver for head group
-	    //--------------------------------------------------------------------------
-	    fractal.timing(-1,4);
-	    periodic_solver(group,fractal_memory,fractal); 
-	    fractal.timing(1,4);
-	  }
-	else
-	  {
-	    //--------------------------------------------------------------------------
-	    // For isolated BC use isolated FFTW solver for head group
-	    //--------------------------------------------------------------------------
-	    fractal.timing(-1,5);
-	    isolated_solver(group,fractal_memory,fractal); 
-	    fractal.timing(1,5);
-	  }
-	Full_Stop(fractal_memory,41);
-	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
-	//
-	//--------------------------------------------------------------------------
-	// For inside points diff potential to get forces at points. For all other points
-	// use values from mother group
-	//--------------------------------------------------------------------------
-	fractal.timing(-1,7);
-	force_at_point(group,fractal); 		   
-	fractal.timing(1,7);
-	//--------------------------------------------------------------------------
-	// If this group is the highest level group for this particle use cic interpolation
-	// to find potential and forces at the particle
-	//--------------------------------------------------------------------------
-	fractal.timing(-1,8);
-	force_at_particle(group,fractal,fractal_memory.momentum_conserve);
-	group.set_done_group(true);
-	fractal.timing(1,8);
-	fractal.timing_lev(1,0);
-	*/
+// 	fractal.timing(-1,47);
+// 	// solve level zero by first assigning density then use either periodic or isolated FFTW
+// 	// to find potential at the points. Find forces at points and then at particles.
+// 	fractal.timing_lev(-1,0);
+// 	Group& group=*misc.p_group_0;
+// 	if(misc.get_debug())
+// 	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
+// 	group.set_set_scaling(true);
+// 	group.set_set_dens(true);
+// 	//--------------------------------------------------------------------------
+// 	// use all particles to assign density to the points using cic. For edge points, density
+// 	//  will be wrong, but this density is never used. Also add the density from any split ghost particles
+// 	//--------------------------------------------------------------------------
+// 	fractal.timing(-1,3);
+// 	assign_density(group,fractal); 
+// 	fractal.timing(1,3);
+// 	if(fractal.get_periodic())
+// 	  {
+// 	    //--------------------------------------------------------------------------
+// 	    // For periodic BC use periodic FFTW solver for head group
+// 	    //--------------------------------------------------------------------------
+// 	    fractal.timing(-1,4);
+// 	    periodic_solver(group,fractal_memory,fractal); 
+// 	    fractal.timing(1,4);
+// 	  }
+// 	else
+// 	  {
+// 	    //--------------------------------------------------------------------------
+// 	    // For isolated BC use isolated FFTW solver for head group
+// 	    //--------------------------------------------------------------------------
+// 	    fractal.timing(-1,5);
+// 	    isolated_solver(group,fractal_memory,fractal); 
+// 	    fractal.timing(1,5);
+// 	  }
+// 	Full_Stop(fractal_memory,41);
+// 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
+// 	//
+// 	//--------------------------------------------------------------------------
+// 	// For inside points diff potential to get forces at points. For all other points
+// 	// use values from mother group
+// 	//--------------------------------------------------------------------------
+// 	fractal.timing(-1,7);
+// 	force_at_point(group,fractal); 		   
+// 	fractal.timing(1,7);
+// 	//--------------------------------------------------------------------------
+// 	// If this group is the highest level group for this particle use cic interpolation
+// 	// to find potential and forces at the particle
+// 	//--------------------------------------------------------------------------
+// 	fractal.timing(-1,8);
+// 	force_at_particle(group,fractal,fractal_memory.momentum_conserve);
+// 	group.set_done_group(true);
+// 	fractal.timing(1,8);
+// 	fractal.timing_lev(1,0);
+// 	
 	Full_Stop(fractal_memory,41);
 	fractal_memory.global_level_max=find_global_level_max(fractal_memory,fractal);
 	//	fractal_memory.global_level_max=0;// *****************************

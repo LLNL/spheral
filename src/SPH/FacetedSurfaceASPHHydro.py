@@ -61,13 +61,14 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
                             pos,
                             zerothMoment,
                             secondMoment,
-                            numNeighbors,
                             W,
                             hmin,
                             hmax,
                             hminratio,
                             nPerh,
-                            maxNumNeighbors):
+                            connectivityMap,
+                            nodeListi,
+                            i):
 
         # Find the effective surface normal we want to use.
         fhat = Vector()
@@ -90,13 +91,14 @@ class FacetedSurfaceASPHSmoothingScale(ASPHSmoothingScale):
                                                     pos,
                                                     zerothMoment,
                                                     secondMoment,
-                                                    numNeighbors,
                                                     W,
                                                     hmin,
                                                     hmax,
                                                     hminratio,
                                                     nPerh,
-                                                    maxNumNeighbors)
+                                                    connectivityMap,
+                                                    nodeListi,
+                                                    i)
         Heigen = H0.eigenVectors()
         if ((Heigen.eigenValues.x > Heigen.eigenValues.y) and
             (Heigen.eigenValues.x > Heigen.eigenValues.z)):
@@ -123,11 +125,14 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
                  W,
                  WPi,
                  Q,
+                 filter = 0.0,
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  gradhCorrection = False,
                  XSPH = True,
+                 correctVelocityGradient = False,
+                 sumMassDensityOverAllNodeLists = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.3,
@@ -142,11 +147,14 @@ class FacetedSurfaceASPHHydro(SPHHydroBase):
                               W,
                               WPi,
                               Q,
+                              filter,
                               cfl,
                               useVelocityMagnitudeForDt,
                               compatibleEnergyEvolution,
                               gradhCorrection,
                               XSPH,
+                              correctVelocityGradient,
+                              sumMassDensityOverAllNodeLists,
                               densityUpdate,
                               HUpdate,
                               epsTensile,
