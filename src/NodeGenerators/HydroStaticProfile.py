@@ -111,7 +111,6 @@ class HydroStaticProfileConstantTemp2d():
             K       = eos.bulkModulus(rho,e)
             dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
-            print r,rho
             y       = y + dy
             rho     = rho - y*dr
             r       = r - dr
