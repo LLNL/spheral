@@ -8,7 +8,7 @@ from math import *
 #-------------------------------------------------------------------------------
 # 3-D solvers
 #-------------------------------------------------------------------------------
-class HydroStaticProfileConstantTemp3D():
+class HydroStaticProfileConstantTemp3d():
     def __init__(self,
                  rho0,
                  rMax,
@@ -55,7 +55,7 @@ class HydroStaticProfileConstantTemp3D():
         self.soln.sort()
 
     def __call__(self,r):
-        rho = 0
+        rho = self.rho0
         for i in xrange(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
@@ -72,7 +72,7 @@ class HydroStaticProfileConstantTemp3D():
 #-------------------------------------------------------------------------------
 # 2-D solvers
 #-------------------------------------------------------------------------------
-class HydroStaticProfileConstantTemp2D():
+class HydroStaticProfileConstantTemp2d():
     def __init__(self,
                  rho0,
                  rMax,
@@ -119,7 +119,7 @@ class HydroStaticProfileConstantTemp2D():
         self.soln.sort()
     
     def __call__(self,r):
-        rho = 0
+        rho = self.rho0
         for i in xrange(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
