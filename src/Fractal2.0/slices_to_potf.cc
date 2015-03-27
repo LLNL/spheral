@@ -63,7 +63,7 @@ namespace FractalSpace
 //     FF << " LOOPS " << maxIO << " " << maxOUT << " " << maxIN << " " << LOOPS << "\n";
     int LOOPS=((length_1*length_1)/(512*512))+1;
     if(lev > 0)
-      LOOPS*=2;
+      LOOPS*=3;
     //
     //    LOOPS=1;
     //
