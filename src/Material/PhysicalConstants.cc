@@ -26,6 +26,7 @@ PhysicalConstants(const double unitLm,
   kBoltzmann(kBMKS/(unitMkg*FastMath::square(unitLm/unitTsec))),
   MolarGasConstant(RgasMKS/(unitMkg*FastMath::square(unitLm/unitTsec))),
   KelvinsToEnergyPerMole(unitMkg*FastMath::square(unitLm/unitTsec)/kBMKS*NAvogadro),
+  UnitMassDensity(unitMkg/unitLm/unitLm/unitLm),
 
   // The electron charge is kind of funny due to the definition of the Coulomb
   ElectronCharge(qeCGS / (std::sqrt(1000.0*unitMkg*FastMath::cube(100.0*unitLm))/unitTsec)) {
