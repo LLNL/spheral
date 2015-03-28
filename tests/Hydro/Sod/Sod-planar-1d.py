@@ -1,3 +1,4 @@
+import os, sys
 import shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
@@ -79,7 +80,7 @@ commandLine(nx1 = 400,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 200,
-            dataDirBase = "Sod-planar-1d",
+            dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
 
@@ -87,9 +88,9 @@ commandLine(nx1 = 400,
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
-dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
-restartDir = dataDir + "/restarts"
-restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
+dataDir = os.path.join(dataDirBase, "%i" % (nx1 + nx2))
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
 assert numNodeLists in (1, 2)
 
@@ -102,7 +103,6 @@ if CRKSPH:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
