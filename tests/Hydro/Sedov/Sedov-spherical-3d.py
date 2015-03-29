@@ -16,9 +16,9 @@ title("3-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 commandLine(seed = "lattice",
 
-            nx = 50,
-            ny = 50,
-            nz = 50,
+            nx = 30,
+            ny = 30,
+            nz = 30,
             nPerh = 1.51,
 
             rho0 = 1.0,
@@ -113,10 +113,12 @@ dataDir = os.path.join(dataRoot,
                        str(HydroConstructor).split()[1].split(".")[1][:-2],
                        str(Qconstructor).split()[1].split(".")[-1][:-2],
                        "nperh=%4.2f" % nPerh,
+                       "cfl=%f" % cfl,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "gradhCorrection=%s" % gradhCorrection,
+                       "filter=%f" % filter,
                        "seed=%s" % seed,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
