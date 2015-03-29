@@ -870,11 +870,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              // Q work based on the Q per point.
-              const Scalar Qworki = ((rhoj*rhoj*QPiij.second*deltagrad)).dot(vij);
-              const Scalar Qworkj = ((rhoi*rhoi*QPiij.first*deltagrad)).dot(vij);
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + Qworki)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + Qworkj)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pj*SymTensor::one + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad);
+              DepsDtj += 0.5*weighti*weightj*(Pi*SymTensor::one + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad);
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
