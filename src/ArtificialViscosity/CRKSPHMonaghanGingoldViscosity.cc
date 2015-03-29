@@ -164,13 +164,13 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar rj = gradj*safeInv(gradi);
   const Scalar ri = safeInv(rj);
-  // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
-  // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
-  // const Scalar divi = abs(DvDxi.Trace());
-  // const Scalar divj = abs(DvDxj.Trace());
-  // const Scalar betaij = min(2.0, 1.0 + 0.5*min(curli*safeInv(curli + divi), curlj*safeInv(curlj + divj)));
-  const Scalar phii = swebyLimiter(ri, mBeta);
-  const Scalar phij = swebyLimiter(rj, mBeta);
+  const Scalar curli = this->curlVelocityMagnitude(DvDxi);
+  const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
+  const Scalar divi = abs(DvDxi.Trace());
+  const Scalar divj = abs(DvDxj.Trace());
+  const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
+  const Scalar phii = swebyLimiter(ri, betaij);
+  const Scalar phij = swebyLimiter(rj, betaij);
 
   // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
   // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
