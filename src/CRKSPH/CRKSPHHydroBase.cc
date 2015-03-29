@@ -820,7 +820,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector vijhat = vij.unitVector();
               Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
                                                     ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
 
