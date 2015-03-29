@@ -32,19 +32,26 @@ commandLine(seed = "constantDTheta",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
             Qlimiter = False,
             balsaraCorrection = False,
 
+            ASPH = False,     # Only for H evolution, not hydro algorithm
+            CRKSPH = False,
+            Qconstructor = MonaghanGingoldViscosity,
+            momentumConserving = True, # For CRKSPH
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
+            filter = 0.0,
+
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
-            XSPH = True,
+            XSPH = False,
             rhomin = 1e-10,
 
             steps = None,
@@ -60,13 +67,13 @@ commandLine(seed = "constantDTheta",
             statsStep = 1,
             smoothIters = 0,
             HEvolution = IdealH,
-            densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
 
             restoreCycle = None,
             restartStep = 1000,
 
+            graphics = True,
             useVoronoiOutput = False,
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",
@@ -98,6 +105,24 @@ if thetaFactor == 0.5:
 elif thetaFactor == 1.0:
     Espike *= 0.5
 
+#-------------------------------------------------------------------------------
+# Set the hydro choice.
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    if ASPH:
+        HydroConstructor = ACRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
+
+#-------------------------------------------------------------------------------
+# Path names.
+#-------------------------------------------------------------------------------
 dataDir = os.path.join(dataRoot,
                        str(HydroConstructor).split()[1].split(".")[1][:-2],
                        str(Qconstructor).split()[1].split(".")[-1][:-2],
@@ -170,7 +195,7 @@ if restoreCycle is None:
                                                    xmin = Vector(0,0),
                                                    xmax = Vector(1,1),
                                                    nNodePerh = nPerh,
-                                                   SPH = (HydroConstructor == SPHHydro))
+                                                   SPH = (not ASPH))
     else:
         generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                                rmin = rmin,
@@ -180,7 +205,7 @@ if restoreCycle is None:
                                                theta = theta,
                                                azimuthalOffsetFraction = azimuthalOffsetFraction,
                                                nNodePerh = nPerh,
-                                               SPH = (HydroConstructor == SPHHydro))
+                                               SPH = (not ASPH))
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -253,23 +278,31 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution)
+if CRKSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
+else:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             XSPH = XSPH,
+                             HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.XSPH")
-output("hydro.sumForMassDensity")
+output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
 
@@ -308,12 +341,10 @@ output("integrator.dtMax")
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
+vizMethod = None
 if useVoronoiOutput:
     import SpheralVoronoiSiloDump
     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralVisitDump
-    vizMethod = SpheralVisitDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -412,3 +443,40 @@ if outputFile != "None" and mpi.rank == 0:
          f.write((16*"%16.12e " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
+
+#-------------------------------------------------------------------------------
+# Plot the final state.
+#-------------------------------------------------------------------------------
+if graphics:
+    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
+    plotAnswer(answer, control.time(),
+               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    plots = [(rPlot, "Sedov-cylindrical-positions.png"),
+             (rhoPlot, "Sedov-cylindrical-rho.png"),
+             (velPlot, "Sedov-cylindrical-vel.png"),
+             (epsPlot, "Sedov-cylindrical-eps.png"),
+             (PPlot, "Sedov-cylindrical-P.png"),
+             (HPlot, "Sedov-cylindrical-h.png")]
+
+    # Plot the specific entropy.
+    AsimData = Gnuplot.Data(xprof, A,
+                            with_ = "points",
+                            title = "Simulation",
+                            inline = True)
+    AansData = Gnuplot.Data(xprof, Aans,
+                            with_ = "lines",
+                            title = "Solution",
+                            inline = True)
+    
+    Aplot = generateNewGnuPlot()
+    Aplot.plot(AsimData)
+    Aplot.replot(AansData)
+    Aplot.title("Specific entropy")
+    Aplot.refresh()
+    plots.append((Aplot, "Sedov-cylindrical-entropy.png"))
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+

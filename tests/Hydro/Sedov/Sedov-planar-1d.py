@@ -62,7 +62,7 @@ commandLine(nx1 = 101,
 
             graphics = True,
             clearDirectories = True,
-            dataRoot = "dump-planar",
+            dataRoot = "dumps-planar-Sedov",
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
@@ -179,20 +179,20 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct a standard Monaghan-Gingold artificial viscosity.
+# Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-qMG = Qconstructor(Cl, Cq)
-qMG.epsilon2 = epsilon2
-output("qMG")
-output("qMG.Cl")
-output("qMG.Cq")
-output("qMG.epsilon2")
+q = Qconstructor(Cl, Cq)
+q.epsilon2 = epsilon2
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, qMG,
+    hydro = CRKSPHHydro(WT, WTPi, q,
                       filter = filter,
                       cfl = cfl,
                       compatibleEnergyEvolution = compatibleEnergy,
@@ -201,7 +201,7 @@ if CRKSPH:
                       HUpdate = HUpdate,
                       momentumConserving = momentumConserving)
 else:
-    hydro = SPHHydro(WT, WTPi, qMG,
+    hydro = SPHHydro(WT, WTPi, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
