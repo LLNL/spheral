@@ -162,8 +162,8 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  const Scalar rj = gradj*safeInv(gradi);
-  const Scalar ri = safeInv(rj);
+  const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   const Scalar curli = this->curlVelocityMagnitude(DvDxi);
   const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
   const Scalar divi = abs(DvDxi.Trace());
