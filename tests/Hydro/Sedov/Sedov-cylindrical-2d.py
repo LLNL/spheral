@@ -250,7 +250,7 @@ if restoreCycle is None:
             Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
-    assert smoothSpike or fuzzyEqual(Eglobal, Espike)
+    assert fuzzyEqual(Eglobal, Espike)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
