@@ -1,17 +1,16 @@
 #-------------------------------------------------------------------------------
-# The Spherical Sedov test case (2-D).
+# The spherical Sedov test case (3-D).
 #-------------------------------------------------------------------------------
 import os, sys, shutil
 from Spheral3d import *
+from findLastRestart import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution3d import *
-from CubicNodeGenerator import GenerateSquareNodeDistribution
 
 import mpi
 
-title("2-D integrated hydro test -- planar Sedov problem")
+title("3-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
@@ -20,28 +19,36 @@ commandLine(seed = "lattice",
             nx = 50,
             ny = 50,
             nz = 50,
-            rmin = 0.0,
-            rmax = 1.0,
-            nPerh = 2.01,
-            nxparts = 1,   # Optionally split the cube into (nxparts**3 NodeLists)
+            nPerh = 1.51,
 
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
-            smoothSpike = False,
+            smoothSpike = True,
             gamma = 5.0/3.0,
             mu = 1.0,
 
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
+            Qlimiter = False,
+            balsaraCorrection = False,
+            linearInExpansion = False,
+
+            ASPH = False,     # Only for H evolution, not hydro algorithm
+            CRKSPH = False,
+            Qconstructor = MonaghanGingoldViscosity,
+            momentumConserving = True, # For CRKSPH
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            HUpdate = IdealH,
+            filter = 0.0,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
-            XSPH = True,
+            XSPH = False,
             rhomin = 1e-10,
 
             steps = None,
@@ -57,17 +64,16 @@ commandLine(seed = "lattice",
             statsStep = 1,
             smoothIters = 0,
             HEvolution = IdealH,
-            densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
 
             restoreCycle = None,
             restartStep = 1000,
 
+            graphics = True,
             clearDirectories = False,
             dataRoot = "dumps-spherical-Sedov",
-            graphics = True,
-
+            outputFile = "None",
             )
 
 # Figure out what our goal time should be.
@@ -86,21 +92,39 @@ if goalTime is None:
 vs, r2, v2, rho2, P2 = answer.shockState(goalTime)
 print "Predicted shock position %g at goal time %g." % (r2, goalTime)
 
-# Scale the spike energy according to the boundary conditions we're using.
-Espike /= 8.0
+#-------------------------------------------------------------------------------
+# Set the hydro choice.
+#-------------------------------------------------------------------------------
+if CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    if ASPH:
+        HydroConstructor = ACRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
+else:
+    if ASPH:
+        HydroConstructor = ASPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
+#-------------------------------------------------------------------------------
+# Path names.
+#-------------------------------------------------------------------------------
 dataDir = os.path.join(dataRoot,
+                       str(HydroConstructor).split()[1].split(".")[1][:-2],
+                       str(Qconstructor).split()[1].split(".")[-1][:-2],
                        "nperh=%4.2f" % nPerh,
+                       "cfl=%f" % cfl,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "gradhCorrection=%s" % gradhCorrection,
+                       "filter=%f" % filter,
                        "seed=%s" % seed,
-                       "nxparts=%s" % nxparts,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz))
+restartBaseName = os.path.join(restartDir, "Sedov-spherical-3d")
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -136,125 +160,129 @@ output("WT")
 output("WTPi")
 
 #-------------------------------------------------------------------------------
-# Create the NodeLists and generators.
+# Create a NodeList and associated Neighbor object.
 #-------------------------------------------------------------------------------
-nodeSet, gens = [], []
-for iz in xrange(nxparts):
-    zmin = float(iz    )/nxparts
-    zmax = float(iz + 1)/nxparts
-    for iy in xrange(nxparts):
-        ymin = float(iy    )/nxparts
-        ymax = float(iy + 1)/nxparts
-        for ix in xrange(nxparts):
-            xmin = float(ix    )/nxparts
-            xmax = float(ix + 1)/nxparts
-            nodeSet.append(makeFluidNodeList("nodes%i" % (ix + nxparts*(iy + nxparts*iz)),
-                                             eos, 
-                                             hmin = hmin,
-                                             hmax = hmax,
-                                             nPerh = nPerh,
-                                             rhoMin = rhomin))
-            gens.append(GenerateNodeDistribution3d(nx/nxparts, ny/nxparts, nz/nxparts,
-                                                   rho0, seed,
-                                                   xmin = (xmin, ymin, zmin),
-                                                   xmax = (xmax, ymax, zmax),
-                                                   nNodePerh = nPerh,
-                                                   SPH = (HydroConstructor == SPHHydro)))
+nodes1 = makeFluidNodeList("nodes1", eos, 
+                           hmin = hmin,
+                           hmax = hmax,
+                           nPerh = nPerh,
+                           rhoMin = rhomin)
 
+#-------------------------------------------------------------------------------
+# Set the node properties.
+#-------------------------------------------------------------------------------
+pos = nodes1.positions()
+vel = nodes1.velocity()
+mass = nodes1.mass()
+eps = nodes1.specificThermalEnergy()
+H = nodes1.Hfield()
 if restoreCycle is None:
+    generator = GenerateNodeDistribution3d(nx, ny, nz,
+                                           rho0, seed,
+                                           xmin = (0.0, 0.0, 0.0),
+                                           xmax = (1.0, 1.0, 1.0),
+                                           rmin = 0.0,
+                                           rmax = 1.0,
+                                           nNodePerh = nPerh,
+                                           SPH = (not ASPH))
+
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes3d
-        #from PeanoHilbertDistributeNodes import distributeNodes3d
     else:
         from DistributeNodes import distributeNodes3d
-    distributeNodes3d(*zip(nodeSet, gens))
+
+    distributeNodes3d((nodes1, generator))
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
     # Set the point source of energy.
     Esum = 0.0
     if smoothSpike:
         Wsum = 0.0
-        for nodes in nodeSet:
-            pos = nodes.positions()
-            vel = nodes.velocity()
-            mass = nodes.mass()
-            eps = nodes.specificThermalEnergy()
-            for nodeID in xrange(nodes.numInternalNodes):
-                Hi = H[nodeID]
-                etaij = (Hi*pos[nodeID]).magnitude()
-                Wi = WT.kernelValue(etaij, Hi.Determinant())
-                Ei = Wi*Espike
-                epsi = Ei/mass[nodeID]
-                eps[nodeID] = epsi
-                Wsum += Wi
+        for nodeID in xrange(nodes1.numInternalNodes):
+            Hi = H[nodeID]
+            etaij = (Hi*pos[nodeID]).magnitude()
+            Wi = WT.kernelValue(etaij, Hi.Determinant())
+            Ei = Wi*Espike/8.0
+            epsi = Ei/mass[nodeID]
+            eps[nodeID] = epsi
+            Wsum += Wi
         Wsum = mpi.allreduce(Wsum, mpi.SUM)
         assert Wsum > 0.0
-        for nodes in nodeSet:
-            eps = nodes.specificThermalEnergy()
-            for nodeID in xrange(nodes.numInternalNodes):
-                eps[nodeID] /= Wsum
-                Esum += eps[nodeID]*mass[nodeID]
+        for nodeID in xrange(nodes1.numInternalNodes):
+            eps[nodeID] /= Wsum
+            Esum += eps[nodeID]*mass[nodeID]
     else:
         i = -1
         rmin = 1e50
-        for nodes in nodeSet:
-            pos = nodes.positions()
-            for nodeID in xrange(nodes.numInternalNodes):
-                rij = pos[nodeID].magnitude()
-                if rij < rmin:
-                    i = nodeID
-                    nodesmin = nodes
-                    rmin = rij
+        for nodeID in xrange(nodes1.numInternalNodes):
+            rij = pos[nodeID].magnitude()
+            if rij < rmin:
+                i = nodeID
+                rmin = rij
         rminglobal = mpi.allreduce(rmin, mpi.MIN)
         if fuzzyEqual(rmin, rminglobal):
-            mass = nodesmin.mass()
-            eps = nodesmin.specificThermalEnergy()
-            assert i >= 0 and i < nodesmin.numInternalNodes
-            eps[i] = Espike/mass[i]
-            Esum += Espike
+            assert i >= 0 and i < nodes1.numInternalNodes
+            eps[i] = Espike/8.0/mass[i]
+            Esum += Espike/8.0
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
     print "Initialized a total energy of", Eglobal
-    assert smoothSpike or fuzzyEqual(Eglobal, Espike)
+    assert fuzzyEqual(Eglobal, Espike/8.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
 db = DataBase()
 output("db")
-for nodes in nodeSet:
-    db.appendNodeList(nodes)
+output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct a standard Monaghan-Gingold artificial viscosity.
+# Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-qMG = MonaghanGingoldViscosity(Cl, Cq)
-qMG.epsilon2 = epsilon2
-output("qMG")
-output("qMG.Cl")
-output("qMG.Cq")
-output("qMG.epsilon2")
+q = Qconstructor(Cl, Cq, linearInExpansion)
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
+output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, qMG,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution)
+if CRKSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
+else:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             XSPH = XSPH,
+                             HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.XSPH")
-output("hydro.sumForMassDensity")
+output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
 
 packages = [hydro]
 
@@ -295,31 +323,23 @@ output("integrator.dtMax")
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
-                            restoreCycle = restoreCycle,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             vizBaseName = "Sedov-spherical-3d-%ix%ix%i" % (nx, ny, nz),
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            SPH = (HydroConstructor == SPHHydro))
+                            vizTime = vizTime)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Restart if we're doing it.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
 
 #-------------------------------------------------------------------------------
 # Finally run the problem and plot the results.
 #-------------------------------------------------------------------------------
 if steps is None:
     control.advance(goalTime, maxSteps)
-    control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
-    control.dropRestartFile()
+    if restoreCycle != control.totalSteps:
+        control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
+        control.dropRestartFile()
 else:
     control.step(steps)
 
@@ -333,31 +353,30 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
 #-------------------------------------------------------------------------------
 # Report the error norms.
 rmin, rmax = 0.0, 0.95
-pos_local, rho_local, vel_local, eps_local, P_local = [], [], [], [], []
-for nodes in nodeSet:
-    pos_local += list(nodes.positions().internalValues())
-    rho_local += list(nodes.massDensity().internalValues())
-    vel_local += list(nodes.velocity().internalValues())
-    eps_local += list(nodes.specificThermalEnergy().internalValues())
-    Pf = ScalarField("pressure", nodes)
-    nodes.pressure(Pf)
-    P_local += list(Pf.internalValues())
+r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+yprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+zprof = mpi.allreduce([x.z for x in nodes1.positions().internalValues()], mpi.SUM)
+rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
+eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
+Pf = ScalarField("pressure", nodes1)
+nodes1.pressure(Pf)
+P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), nodes1.massDensity().internalValues())], mpi.SUM)
 
-r = mpi.allreduce([x.magnitude() for x in pos_local], mpi.SUM)
-rho = mpi.allreduce(rho_local, mpi.SUM)
-v = mpi.allreduce([x.magnitude() for x in vel_local], mpi.SUM)
-eps = mpi.allreduce(eps_local, mpi.SUM)
-P = mpi.allreduce(P_local, mpi.SUM)
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
-    multiSort(r, rho, v, eps, P)
+    multiSort(r, rho, v, eps, P, A)
     rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+    Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
                               ("Velocity", v, vans),
-                              ("Thermal E", eps, epsans)]:
+                              ("Thermal E", eps, epsans),
+                              ("Entropy", A, Aans)]:
         assert len(data) == len(ans)
         error = [data[i] - ans[i] for i in xrange(len(data))]
         Pn = Pnorm.Pnorm(error, r)
@@ -367,55 +386,51 @@ if mpi.rank == 0:
         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
 
 #-------------------------------------------------------------------------------
-# Plot the results.
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None" and mpi.rank == 0:
+    outputFile = os.path.join(dataDir, outputFile)
+    f = open(outputFile, "w")
+    f.write(("# " + 15*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "P", "v", "eps", "A",
+                                          "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
+    for (ri, xi, yi, zi, rhoi, Pi, vi, epsi, Ai, 
+         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, zprof, rho, P, v, eps, A,
+                                                               rhoans, Pans, vans, epsans, Aans, hans):
+         f.write((15*"%16.12e " + "\n") % (ri, xi, yi, zi, rhoi, Pi, vi, epsi, Ai,
+                                           rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
+    f.close()
+
+#-------------------------------------------------------------------------------
+# Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    import Gnuplot
-
-    # Plot the final state.
-    rhoPlot, vrPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    del HPlot
-    Hinverse = db.newFluidSymTensorFieldList()
-    db.fluidHinverse(Hinverse)
-    hr = db.newFluidScalarFieldList()
-    for Hfield, hrfield, in zip(Hinverse, hr):
-        n = Hfield.numElements
-        assert hrfield.numElements == n
-        positions = Hfield.nodeList().positions()
-        for i in xrange(n):
-            runit = positions[i].unitVector()
-            hrfield[i] = (Hfield[i]*runit).magnitude()
-    hrPlot = plotFieldList(hr, xFunction="%s.magnitude()", plotStyle="points", winTitle="h_r")
-
-    # Overplot the analytic solution.
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     plotAnswer(answer, control.time(),
-               rhoPlot = rhoPlot,
-               velPlot = vrPlot,
-               epsPlot = epsPlot,
-               PPlot = PPlot,
-               HPlot = hrPlot)
-
-    # Compute the simulated specific entropy.
-    A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
-
-    # The analytic solution for the simulated entropy.
-    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), r)
-    Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    plots = [(rhoPlot, "Sedov-spherical-rho.png"),
+             (velPlot, "Sedov-spherical-vel.png"),
+             (epsPlot, "Sedov-spherical-eps.png"),
+             (PPlot, "Sedov-spherical-P.png"),
+             (HPlot, "Sedov-spherical-h.png")]
 
     # Plot the specific entropy.
-    if mpi.rank == 0:
-        AsimData = Gnuplot.Data(xprof, A,
-                                with_ = "points",
-                                title = "Simulation",
-                                inline = True)
-        AansData = Gnuplot.Data(xprof, Aans,
-                                with_ = "lines",
-                                title = "Solution",
-                                inline = True)
-        Aplot = Gnuplot.Gnuplot()
-        Aplot.plot(AsimData)
-        Aplot.replot(AansData)
-        Aplot.title("Specific entropy")
-        Aplot.refresh()
-    else:
-        Aplot = fakeGnuplot()
+    AsimData = Gnuplot.Data(xprof, A,
+                            with_ = "points",
+                            title = "Simulation",
+                            inline = True)
+    AansData = Gnuplot.Data(xprof, Aans,
+                            with_ = "lines",
+                            title = "Solution",
+                            inline = True)
+    
+    Aplot = generateNewGnuPlot()
+    Aplot.plot(AsimData)
+    Aplot.replot(AansData)
+    Aplot.title("Specific entropy")
+    Aplot.refresh()
+    plots.append((Aplot, "Sedov-spherical-entropy.png"))
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+
