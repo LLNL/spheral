@@ -934,6 +934,44 @@ def plotEHistory(conserve):
         return fakeGnuplot()
 
 #-------------------------------------------------------------------------------
+# Plot the linear momentum history of the given conservation object.
+#-------------------------------------------------------------------------------
+def plotpmomHistory(conserve):
+    if mpi.rank == 0:
+        t = conserve.timeHistory
+        p = conserve.pmomHistory
+        px = [x.x for x in p]
+        py = [x.y for x in p]
+        pz = [x.z for x in p]
+        pmag = [x.magnitude() for x in p]
+        pxdata = Gnuplot.Data(t, px,
+                              with_ = "lines",
+                              title = "x momentum",
+                              inline = True)
+        pydata = Gnuplot.Data(t, py,
+                              with_ = "lines",
+                              title = "y momentum ",
+                              inline = True)
+        pzdata = Gnuplot.Data(t, pz,
+                              with_ = "lines",
+                              title = "z momentum",
+                              inline = True)
+        pmagdata = Gnuplot.Data(t, pmag,
+                                with_ = "lines",
+                                title = "total momentum",
+                                inline = True)
+        plot = generateNewGnuPlot()
+        plot.replot(pxdata)
+        plot.replot(pydata)
+        plot.replot(pzdata)
+        plot.replot(pmagdata)
+        plot.replot()
+        SpheralGnuPlotCache.extend([pxdata, pydata, pzdata, pmagdata])
+        return plot
+    else:
+        return fakeGnuplot()
+
+#-------------------------------------------------------------------------------
 # Plot a polygon.
 #-------------------------------------------------------------------------------
 def plotPolygon(polygon,

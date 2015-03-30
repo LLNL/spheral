@@ -50,6 +50,7 @@ commandLine(KernelConstructor = BSplineKernel,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
@@ -207,7 +208,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 output("q")
@@ -215,6 +216,8 @@ output("q.Cl")
 output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.

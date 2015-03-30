@@ -6,14 +6,20 @@ namespace FractalSpace
   class Mess{
   public:
     int FractalRank;
+    int FractalRank0;
+    int FractalRank1;
+    int FractalRank2;
     int FractalNodes;
     int FractalNodes0;
     int FractalNodes1;
     int FractalNodes2;
+    int ROOTNODE;
     int FFTRank;
     int FFTNodes;
     int HypreRank;
     int HypreNodes;
+    int RandomRank;
+    int RandomNodes;
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
@@ -37,16 +43,21 @@ namespace FractalSpace
     MPI_Comm FractalWorld;
     MPI_Comm FFTWorld;
     MPI_Comm HypreWorld;
+    MPI_Comm RandomWorld;
     MPI_Group FractalGroup;
     MPI_Group FFTGroup;
     MPI_Group HypreGroup;
+    MPI_Group RandomGroup;
     bool IAmPeriodic;
     bool IAmAnFFTNode;
     bool IAmAHypreNode;
+    bool IAmARandomNode;
     vector <int>Franks;
     vector <bool>ItIsAnFFTNode;
     vector <int>Hranks;
     vector <int>IHranks;
+    vector <int>Rranks;
+    vector <int>IRranks;
     vector <MPI_Comm> MComms;
     vector <MPI_Comm> HComms;
     vector <MPI_Group> HG;
@@ -117,6 +128,10 @@ namespace FractalSpace
 	  FractalRank=what_is_my_rank(); 
 	  FractalNodes=how_many_nodes(); 
 	  assert(FractalNodes == FR0*FR1*FR2);
+	  FractalRank0=FractalRank % FractalNodes0;
+	  FractalRank1=(FractalRank/FractalNodes0) % FractalNodes1;
+	  FractalRank2=FractalRank/(FractalNodes0*FractalNodes1);
+	  ROOTNODE=(FractalNodes0+FractalNodes0*FractalNodes1+FractalNodes)/2;
 	  FFTWStartup(grid_length,periodic);
 	  calc_fftw_Slices(grid_length,periodic);	
 	  calc_total_particles(NP);
@@ -301,8 +316,8 @@ namespace FractalSpace
 	  total_memory=fftw_mpi_local_size_3d(Length_1,Length_1,Length_c,FFTWorld,&length_x,&start_x);
 	  cout << " total_memory " << FractalRank << " " << FFTRank << " " << total_memory << " " << length_x << " " << start_x << "\n";
 	  create_potRC();
-	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_1,Length_1,Length_1,potR,potC,FFTWorld,FFTW_MEASURE);
-	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_1,Length_1,Length_1,potC,potR,FFTWorld,FFTW_MEASURE);
+	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_1,Length_1,Length_1,potR,potC,FFTWorld,FFTW_ESTIMATE);
+	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_1,Length_1,Length_1,potC,potR,FFTWorld,FFTW_ESTIMATE);
 	  free_potRC();
 	}
       else
@@ -315,8 +330,8 @@ namespace FractalSpace
 	  cout << " total_memory " << FractalRank << " " << FFTRank << " " << total_memory << " " << length_x << " " << start_x << " " << g_c << "\n";
 	  green.resize(length_x*Length_11*Length_11);
 	  create_potRC();
-	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FFTWorld,FFTW_MEASURE);
-	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_2,Length_2,Length_2,potC,potR,FFTWorld,FFTW_MEASURE);
+	  plan_rc=fftw_mpi_plan_dft_r2c_3d(Length_2,Length_2,Length_2,potR,potC,FFTWorld,FFTW_ESTIMATE);
+	  plan_cr=fftw_mpi_plan_dft_c2r_3d(Length_2,Length_2,Length_2,potC,potR,FFTWorld,FFTW_ESTIMATE);
 	  zeroR();
 	  pint Length_22=Length_2+2;
 	  for(pint nx=start_x;nx < start_x+length_x;++nx)
@@ -1837,7 +1852,7 @@ namespace FractalSpace
     }
     template <class T> void my_AllgatherI(vector <T>& paramsend,vector <T>& paramrecv,const int& nsend) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       if(sizeof(T) == sizeof(int))
 	{
 	  MPI_Gather(&(*(paramsend.begin())),nsend,MPI_INT,&(*(paramrecv.begin())),nsend,MPI_INT,ROOT,FractalWorld);
@@ -1851,7 +1866,7 @@ namespace FractalSpace
     }
     void my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       MPI_Gather(&(*(paramsend.begin())),nsend,MPI_DOUBLE,&(*(paramrecv.begin())),nsend,MPI_DOUBLE,ROOT,FractalWorld);
       Send_DOUBLE_from_ROOT(paramrecv,nsend*FractalNodes,ROOT);
     }
@@ -1864,31 +1879,31 @@ namespace FractalSpace
     }
     void Find_Max_INT(vector <int>& integers,const int& how_long) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       Find_Max_INT_to_ROOT(integers,how_long,ROOT);
       Send_INT_from_ROOT(integers,how_long,ROOT);
     }
     void Find_Max_DOUBLE(vector <double>& doubles,const int& how_long) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       Find_Max_DOUBLE_to_ROOT(doubles,how_long,ROOT);
       Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
     }
     void Find_Sum_LONG_INT(vector <long int>& integers,const int& how_long) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       Find_Sum_LONG_INT_to_ROOT(integers,how_long,ROOT);
       Send_LONG_INT_from_ROOT(integers,how_long,ROOT);
     }
     void Find_Sum_INT(vector <int>& integers,const int& how_long) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       Find_Sum_INT_to_ROOT(integers,how_long,ROOT);
       Send_INT_from_ROOT(integers,how_long,ROOT);
     }
     void Find_Sum_DOUBLE(vector <double>& doubles,const int& how_long) const
     {
-      int ROOT=FractalNodes/2;
+      int ROOT=ROOTNODE;
       Find_Sum_DOUBLE_to_ROOT(doubles,how_long,ROOT);
       Send_DOUBLE_from_ROOT(doubles,how_long,ROOT);
     }
@@ -1920,15 +1935,60 @@ namespace FractalSpace
       MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_LONG,MPI_SUM,ROOT,FractalWorld);
       numbers=sumup;
     }
+    void Find_Sum_DOUBLE_to_ROOT(vector <double>& numbers,const int& how_long,const int& ROOT,MPI_Comm& World) const
+    {
+      vector <double> sumup(how_long);
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,World);
+      numbers=sumup;
+    }
     void Find_Sum_DOUBLE_to_ROOT(vector <double>& numbers,const int& how_long,const int& ROOT) const
     {
       vector <double> sumup(how_long);
-      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,FractalWorld);
+      if(FractalNodes  <= MPI_SWITCH)
+	{
+	  MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT,FractalWorld);
+	  numbers=sumup;
+	  return;
+	}
+      int ROOT2=ROOT/(FractalNodes0*FractalNodes1);
+      int ROOT1=(ROOT/FractalNodes0) % FractalNodes1;
+      int ROOT0=ROOT % FractalNodes0;
+      //      cout << " Reduce " << FractalRank << " " << ROOT << " " << ROOT0 << " " << ROOT1 << " " << ROOT2 ;
+      //      cout << " " << how_long << " " << numbers.size() << " " << sumup.size() << " " << MComms.size() << endl;
+      MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT2,MComms[2]);
       numbers=sumup;
+      Full_Stop_Do_Not_Argue();
+      if(ROOT2 == FractalRank2)
+	{
+	  MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT1,MComms[1]);
+	  numbers=sumup;
+	}
+      Full_Stop_Do_Not_Argue();
+      if(ROOT1 == FractalRank1 && ROOT2 == FractalRank2)
+	{
+	  MPI_Reduce(&(*numbers.begin()),&(*sumup.begin()),how_long,MPI_DOUBLE,MPI_SUM,ROOT0,MComms[0]);
+	  numbers=sumup;
+	}
+      Full_Stop_Do_Not_Argue();
     }
     void Send_INT_from_ROOT(vector <int>& numbers,const int& how_long,const int& ROOT) const
     {
-      MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT,FractalWorld);
+      if(FractalNodes <= MPI_SWITCH)
+	{
+	  MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT,FractalWorld);
+	  return;
+	}
+      int ROOT2=ROOT/(FractalNodes0*FractalNodes1);
+      int ROOT1=(ROOT/FractalNodes0) % FractalNodes1;
+      int ROOT0=ROOT % FractalNodes0;
+      if(ROOT0 == FractalRank0 && ROOT1 == FractalRank1)
+	MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT2,MComms[2]);
+      Full_Stop_Do_Not_Argue();
+      if(ROOT0 == FractalRank0)      
+	MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT1,MComms[1]);
+      Full_Stop_Do_Not_Argue();
+      MPI_Bcast(&(*numbers.begin()),how_long,MPI_INT,ROOT0,MComms[0]);
+      Full_Stop_Do_Not_Argue();
     }
     void Send_LONG_INT_from_ROOT(vector <long int>& numbers,const int& how_long,const int& ROOT) const
     {
@@ -2037,6 +2097,64 @@ namespace FractalSpace
       FractalNodes0=dims[0];
       FractalNodes1=dims[1];
       FractalNodes2=dims[2];
+    }
+    void make_Random_Group()
+    {
+      if(FractalNodes <= 2*RandomNodes)
+	{
+	  RandomNodes=FractalNodes;
+	  RandomWorld=FractalWorld;
+	  RandomGroup=FractalGroup;
+	  IAmARandomNode=true;
+	  Rranks.resize(FractalNodes);
+	  IRranks.resize(FractalNodes);
+	  for(int FR=0;FR<FractalNodes;FR++)
+	    {
+	      Rranks[FR]=FR;
+	      IRranks[FR]=FR;
+	    }
+	}
+      else
+	{
+	  IAmARandomNode=false;
+	  Rranks.assign(RandomNodes,-1);
+	  IRranks.assign(FractalNodes,-1);
+	  double aFractalNodes=FractalNodes;
+	  double rand_max=RAND_MAX;
+	  for(int RR=0;RR<RandomNodes;RR++)
+	    {
+	      bool not_yet=true;
+	      while(not_yet)
+		{
+		  int FR=aFractalNodes*(double)(rand())/rand_max;
+		  if(IRranks[FR] < 0)
+		    {
+		      Rranks[RR]=FR;
+		      IRranks[FR]=RR;
+		      not_yet=false;
+		    }
+		}
+	    }
+	  std::sort(Rranks.begin(),Rranks.end());
+	  IRranks.assign(FractalNodes,-1);
+	  for(int RR=0;RR<RandomNodes;RR++)
+	    {
+	      IRranks[Rranks[RR]]=RR;
+	      if(Rranks[RR] == FractalRank)
+		{
+		  RandomRank=RR;
+		  IAmARandomNode=true;
+		}
+	    }
+	}
+      MPI_Comm_group(FractalWorld,&FractalGroup);
+      MPI_Group_incl(FractalGroup, RandomNodes, &(*(Rranks.begin())), &RandomGroup);
+      MPI_Comm_create(FractalWorld, RandomGroup, &RandomWorld);
+      if(!IAmARandomNode)
+	return;
+      int Ranky;
+      MPI_Comm_rank(RandomWorld,&Ranky);
+      assert(Ranky == RandomRank);
     }
   };
 }
