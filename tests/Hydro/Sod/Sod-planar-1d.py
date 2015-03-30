@@ -1,3 +1,4 @@
+import os, sys
 import shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
@@ -35,6 +36,7 @@ commandLine(nx1 = 400,
             aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-4,
             hmin = 1e-10,
@@ -79,7 +81,7 @@ commandLine(nx1 = 400,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 200,
-            dataDirBase = "Sod-planar-1d",
+            dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
 
@@ -87,9 +89,9 @@ commandLine(nx1 = 400,
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
-dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
-restartDir = dataDir + "/restarts"
-restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
+dataDir = os.path.join(dataDirBase, "%i" % (nx1 + nx2))
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
 assert numNodeLists in (1, 2)
 
@@ -102,7 +104,6 @@ if CRKSPH:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -175,7 +176,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -183,6 +184,8 @@ output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
