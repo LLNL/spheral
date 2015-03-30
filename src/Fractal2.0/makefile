@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh libs.hh headers.hh fractal_interface_public.hh mini_Point_class.hh
+classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh messA.hh file_class.hh libs.hh headers.hh fractal_interface_public.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 fftopt1 = 
@@ -80,6 +80,9 @@ am_I_conservative_enough_isol.o :	am_I_conservative_enough_isol.cc $(classes)
 assign_density.o :	assign_density.cc $(classes)
 	$(compile) -c assign_density.cc
 #
+assign_densityB.o :	assign_densityB.cc $(classes)
+	$(compile) -c assign_densityB.cc
+#
 balance_by_particles.o :	balance_by_particles.cc $(classes)
 	$(compile) -c balance_by_particles.cc
 #
@@ -124,6 +127,9 @@ dens_to_slices.o :	dens_to_slices.cc $(classes)
 #
 dens_to_slicesA.o :	dens_to_slicesA.cc $(classes)
 	$(compile) -c dens_to_slicesA.cc
+#
+dens_to_slicesB.o :	dens_to_slicesB.cc $(classes)
+	$(compile) -c dens_to_slicesB.cc
 #
 dump_tree.o :	dump_tree.cc $(classes)
 	$(compile) -c dump_tree.cc
@@ -245,6 +251,9 @@ hypre_ij_numbering_find.o :	hypre_ij_numbering_find.cc $(classes)
 hypre_ij_numbering_findA.o :	hypre_ij_numbering_findA.cc $(classes)
 	$(compile) -c hypre_ij_numbering_findA.cc
 #
+hypre_ij_numbering_findB.o :	hypre_ij_numbering_findB.cc $(classes)
+	$(compile) -c hypre_ij_numbering_findB.cc
+#
 hypre_ij_numbering_selfie.o :	hypre_ij_numbering_selfie.cc $(classes)
 	$(compile) -c hypre_ij_numbering_selfie.cc
 #
@@ -253,6 +262,9 @@ hypre_ij_solver.o :	hypre_ij_solver.cc $(classes)
 #
 hypre_ij_solverA.o :	hypre_ij_solverA.cc $(classes)
 	$(compile) -c hypre_ij_solverA.cc
+#
+hypre_ij_solverB.o :	hypre_ij_solverB.cc $(classes)
+	$(compile) -c hypre_ij_solverB.cc
 #
 hypre_ij_solver_selfie.o :	hypre_ij_solver_selfie.cc $(classes)
 	$(compile) -c hypre_ij_solver_selfie.cc
@@ -287,17 +299,26 @@ info_to_slices.o :	info_to_slices.cc $(classes)
 info_to_slicesA.o :	info_to_slicesA.cc $(classes)
 	$(compile) -c info_to_slicesA.cc
 #
+info_to_slices_to_pot_init.o :	info_to_slices_to_pot_init.cc $(classes)
+	$(compile) -c info_to_slices_to_pot_init.cc
+#
 initial_forces_sharp.o :	initial_forces_sharp.cc $(classes)
 	$(compile) -c initial_forces_sharp.cc
 #
 initial_forces_sharp_mpi.o :	initial_forces_sharp_mpi.cc $(classes)
 	$(compile) -c initial_forces_sharp_mpi.cc
 #
+initial_forces_sharp_mpiA.o :	initial_forces_sharp_mpiA.cc $(classes)
+	$(compile) -c initial_forces_sharp_mpiA.cc
+#
 isolated_solver.o :	isolated_solver.cc $(classes)
 	$(compile) -c isolated_solver.cc
 #
 isolated_solver_mpi.o :	isolated_solver_mpi.cc $(classes)
 	$(compile) -c isolated_solver_mpi.cc
+#
+isolated_solver_mpiA.o :	isolated_solver_mpiA.cc $(classes)
+	$(compile) -c isolated_solver_mpiA.cc
 #
 it_is_inside.o :	it_is_inside.cc $(classes)
 	$(compile) -c it_is_inside.cc
@@ -310,6 +331,9 @@ list_buffer.o :	list_buffer.cc $(classes)
 #
 make_me_a_galaxy.o :	make_me_a_galaxy.cc $(classes)
 	$(compile) -c make_me_a_galaxy.cc
+#
+make_me_clumps.o :	make_me_clumps.cc $(classes)
+	$(compile) -c make_me_clumps.cc
 #
 make_me_some_particles.o :	make_me_some_particles.cc $(classes)
 	$(compile) -c make_me_some_particles.cc
@@ -335,6 +359,9 @@ new_balanceA.o :	new_balanceA.cc $(classes)
 new_balanceB.o :	new_balanceB.cc $(classes)
 	$(compile) -c new_balanceB.cc
 #
+node_groups.o :	node_groups.cc $(classes)
+	$(compile) -c node_groups.cc
+#
 node_split.o :	node_split.cc $(classes)
 	$(compile) -c node_split.cc
 #
@@ -355,6 +382,9 @@ periodic_solver.o :	periodic_solver.cc $(classes)
 #
 periodic_solver_mpi.o :	periodic_solver_mpi.cc $(classes)
 	$(compile) -c periodic_solver_mpi.cc
+#
+periodic_solver_mpiA.o :	periodic_solver_mpiA.cc $(classes)
+	$(compile) -c periodic_solver_mpiA.cc
 #
 potential_start.o :	potential_start.cc $(classes)
 	$(compile) -c potential_start.cc
@@ -406,6 +436,12 @@ sort_3.o :	sort_3.cc $(classes)
 #
 slices_to_potf.o :	slices_to_potf.cc $(classes)
 	$(compile) -c slices_to_potf.cc
+#
+slices_to_potfA.o :	slices_to_potfA.cc $(classes)
+	$(compile) -c slices_to_potfA.cc
+#
+slices_to_potfB.o :	slices_to_potfB.cc $(classes)
+	$(compile) -c slices_to_potfB.cc
 #
 slices_to_pot_init.o :	slices_to_pot_init.cc $(classes)
 	$(compile) -c slices_to_pot_init.cc
@@ -463,6 +499,9 @@ tree_start.o :	tree_start.cc $(classes)
 #
 tree_start_mini.o :	tree_start_mini.cc $(classes)
 	$(compile) -c tree_start_mini.cc
+#
+tree_start_miniA.o :	tree_start_miniA.cc $(classes)
+	$(compile) -c tree_start_miniA.cc
 #
 try_harder.o :	try_harder.cc $(classes)
 	$(compile) -c try_harder.cc
@@ -577,6 +616,7 @@ take_a_leap_isol.o \
 test_gal.o \
 test_group.o \
 test_tree.o \
+tree_dump.o \
 tree_start.o \
 tree_start_mini.o \
 try_harder.o \
@@ -590,7 +630,8 @@ hypre_ij_numbering_selfie.o \
 hypre_ij_solver.o \
 hypre_ij_solver_selfie.o \
 hypre_load_balance.o \
-hypre_send_pots.o
+hypre_send_pots.o \
+node_groups.o 
 #
 files_hypre_empty_o= \
 hypre_solver_empty.o
@@ -608,10 +649,8 @@ periodic_solver.o
 files_mpi_comm_nina_o= \
 dens_to_slices.o \
 gather_particles.o \
-info_to_slices.o \
 scatter_particles_find.o \
 slices_to_potf.o \
-slices_to_pot_init.o 
 #
 fractal_cosmo : 	$(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
 	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)

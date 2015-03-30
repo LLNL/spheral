@@ -3,13 +3,12 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void binary_balancing(vector <double>& numbers,double minimum,
+  void binary_balancing(Fractal_Memory* PFM,vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers)
   {
     int too_few=3;
     double VOLMAX=512.0;
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    int rank=PFM->p_mess->FractalRank;
     static int COUNTS=0;
     srand(5700+rank);
     double ANodes=Nodes;
@@ -17,7 +16,9 @@ namespace FractalSpace
     double sum_total=std::accumulate(numbers.begin(),numbers.end(),0.0);
     //    double aver=sum_total/length;
     vector <double>snumbers(length+1);
-    minimum=sum_total/Alength/(pow(VOLMAX,1.0/3.0)-1.0)+1.0e-10;
+    minimum=1.0e-10;
+    if(!PFM->periodic)
+      minimum+=sum_total/Alength/(pow(VOLMAX,1.0/3.0)-1.0);
     snumbers[0]=0.0;
     for(int L=1;L<=length;L++)
       {

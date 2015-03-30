@@ -12,6 +12,8 @@ namespace FractalSpace
   void balance_by_particles(Fractal_Memory* PFM,bool withparts);
   void binary_balancing(vector <double>& numbers,double minimum,
 			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
+  void binary_balancing(Fractal_Memory* PFM,vector <double>& numbers,double minimum,
+			int Nodes,int length,vector <double>& targets,vector <int>& lowers,vector <int>& uppers);
   void buffer_points(Group& group, Fractal& fractal,Misc& misc);
   void candidate_points();
   void check_for_edge_trouble(Fractal& fractal);

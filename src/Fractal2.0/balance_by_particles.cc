@@ -98,7 +98,7 @@ namespace FractalSpace
     if(FractalRank == ROOTNODE)
       {
 	double minimumz=alength*alength*scalepoint;
-	binary_balancing(numbersz,minimumz,FractalNodes2,real_length,targets,lowerz,upperz);
+	binary_balancing(PFM,numbersz,minimumz,FractalNodes2,real_length,targets,lowerz,upperz);
       }
     PFM->p_mess->Send_INT_from_ROOT(lowerz,FractalNodes2,ROOTNODE);
     for(int FRZ=1;FRZ<FractalNodes2;FRZ++)
@@ -172,7 +172,7 @@ namespace FractalSpace
 	if(FractalRank == ROOTNODE)
 	  {
 	    double minimumy=static_cast<double>(upperz[FRZ]-lowerz[FRZ])*real_length*scalepoint;
-	    binary_balancing(numbersy[FRZ],minimumy,FractalNodes1,real_length,targets,lowery[FRZ],uppery[FRZ]);
+	    binary_balancing(PFM,numbersy[FRZ],minimumy,FractalNodes1,real_length,targets,lowery[FRZ],uppery[FRZ]);
 	  }
       }
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
@@ -269,7 +269,7 @@ namespace FractalSpace
 	    if(FractalRank == ROOTNODE)
 	      {
 		double minimumx=static_cast<double>((upperz[FRZ]-lowerz[FRZ])*(uppery[FRZ][FRY]-lowery[FRZ][FRY]))*scalepoint;
-		binary_balancing(numbersx[FRZ][FRY],minimumx,FractalNodes0,real_length,targets,lowerx[FRZ][FRY],upperx[FRZ][FRY]);
+		binary_balancing(PFM,numbersx[FRZ][FRY],minimumx,FractalNodes0,real_length,targets,lowerx[FRZ][FRY],upperx[FRZ][FRY]);
 	      }
 	  }
       }
