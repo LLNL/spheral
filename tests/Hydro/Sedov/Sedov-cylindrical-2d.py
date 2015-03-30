@@ -37,6 +37,7 @@ commandLine(seed = "constantDTheta",
             epsilon2 = 1e-2,
             Qlimiter = False,
             balsaraCorrection = False,
+            linearInExpansion = False,
 
             ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
@@ -264,7 +265,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -274,6 +275,8 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
