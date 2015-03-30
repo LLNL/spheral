@@ -36,6 +36,7 @@ commandLine(nx1 = 400,
             aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-4,
             hmin = 1e-10,
@@ -175,7 +176,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -183,6 +184,8 @@ output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
