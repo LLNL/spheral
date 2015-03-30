@@ -16,7 +16,7 @@ namespace FractalSpace
     const int FractalNodes2=PFM->FractalNodes2;
     const int FractalNodes=PFM->FractalNodes;
     const int FFTNodes=PFM->FFTNodes;
-
+    const int ROOTNODE=PFM->p_mess->ROOTNODE;
     int how_many_particles=0;
     if(withparts)
       how_many_particles=PF->get_number_particles();
@@ -92,17 +92,18 @@ namespace FractalSpace
     vector < vector < vector <int> > > upperx(FractalNodes2);
     vector < vector <double> > numbersy(FractalNodes2);
     vector < vector < vector <double> > > numbersx(FractalNodes2);
-    const int ROOTZ=FractalNodes/2;
-    PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersz,real_length,ROOTZ);
+    PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersz,real_length,ROOTNODE);
     assert(OKA);
     assert(OKB);
-    if(FractalRank == ROOTZ)
+    if(FractalRank == ROOTNODE)
       {
 	double minimumz=alength*alength*scalepoint;
 	binary_balancing(numbersz,minimumz,FractalNodes2,real_length,targets,lowerz,upperz);
       }
-    PFM->p_mess->Send_INT_from_ROOT(lowerz,FractalNodes2,ROOTZ);
-    PFM->p_mess->Send_INT_from_ROOT(upperz,FractalNodes2,ROOTZ);
+    PFM->p_mess->Send_INT_from_ROOT(lowerz,FractalNodes2,ROOTNODE);
+    for(int FRZ=1;FRZ<FractalNodes2;FRZ++)
+      upperz[FRZ-1]=lowerz[FRZ];
+    upperz[FractalNodes2-1]=real_length-1;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       alowerz[FRZ]=lowerz[FRZ];	  
     double time2=PFM->p_mess->Clock();
@@ -141,9 +142,8 @@ namespace FractalSpace
 //     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
 //       cout << FRZ << " " << numbert[FRZ];
 //     cout << "" << endl;
-    const int ROOTY=ROOTZ-FractalNodes2/2;
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-      PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTY+FRZ);
+      PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersy[FRZ],real_length,ROOTNODE);
 
     targets.resize(FractalNodes1+1);
 
@@ -169,7 +169,7 @@ namespace FractalSpace
 	    if(FractalRank == 0)
 	      cout << " Target1 " << FR1 << " " << targets[FR1] << "\n";
 	  }
-	if(FractalRank == ROOTY+FRZ)
+	if(FractalRank == ROOTNODE)
 	  {
 	    double minimumy=static_cast<double>(upperz[FRZ]-lowerz[FRZ])*real_length*scalepoint;
 	    binary_balancing(numbersy[FRZ],minimumy,FractalNodes1,real_length,targets,lowery[FRZ],uppery[FRZ]);
@@ -177,8 +177,10 @@ namespace FractalSpace
       }
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
-	PFM->p_mess->Send_INT_from_ROOT(lowery[FRZ],FractalNodes1,ROOTY+FRZ);
-	PFM->p_mess->Send_INT_from_ROOT(uppery[FRZ],FractalNodes1,ROOTY+FRZ);
+	PFM->p_mess->Send_INT_from_ROOT(lowery[FRZ],FractalNodes1,ROOTNODE);
+	for(int FRY=1;FRY<FractalNodes1;FRY++)
+	  uppery[FRZ][FRY-1]=lowery[FRZ][FRY];
+	uppery[FRZ][FractalNodes1-1]=real_length-1;
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  alowery[FRZ][FRY]=lowery[FRZ][FRY];
       }
@@ -216,11 +218,33 @@ namespace FractalSpace
 	assert(nx < real_length);
 	numbersx[FRZ][FRY][nx]+=scalepart;
       }
-    const int ROOTX=ROOTZ-FractalNodes2*FractalNodes1/2;
-    for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
-      for(int FRY=0;FRY<FractalNodes1;FRY++)
-	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersx[FRZ][FRY],real_length,ROOTX+FRZ*FractalNodes1+FRY);
+//     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
+//       for(int FRY=0;FRY<FractalNodes1;FRY++)
+// 	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(numbersx[FRZ][FRY],real_length,ROOTNODE);
 
+    for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
+      {
+	vector <double>manynumbers;
+	manynumbers.clear();
+	for(int FRY=0;FRY<FractalNodes1;FRY++)
+	  {
+	    for(int nx=0;nx<real_length;nx++)
+	      manynumbers.push_back(numbersx[FRZ][FRY][nx]);
+	  }
+	PFM->p_mess->Find_Sum_DOUBLE_to_ROOT(manynumbers,real_length*FractalNodes1,ROOTNODE);
+	if(FractalRank == ROOTNODE)
+	  {
+	    int ni=0;
+	    for(int FRY=0;FRY<FractalNodes1;FRY++)
+	      {
+		for(int nx=0;nx<real_length;nx++)
+		  {
+		    numbersx[FRZ][FRY][nx]=manynumbers[ni];
+		    ni++;
+		  }
+	      }
+	  }
+      }
     targets.resize(FractalNodes0+1);
     for(int FRZ=0;FRZ<FractalNodes2;FRZ++)
       {
@@ -242,7 +266,7 @@ namespace FractalSpace
 		if(FractalRank == 0)
 		  cout << " Target0 " << FR0 << " " << targets[FR0] << "\n";
 	      }
-	    if(FractalRank == ROOTX+FRZ*FractalNodes1+FRY)
+	    if(FractalRank == ROOTNODE)
 	      {
 		double minimumx=static_cast<double>((upperz[FRZ]-lowerz[FRZ])*(uppery[FRZ][FRY]-lowery[FRZ][FRY]))*scalepoint;
 		binary_balancing(numbersx[FRZ][FRY],minimumx,FractalNodes0,real_length,targets,lowerx[FRZ][FRY],upperx[FRZ][FRY]);
@@ -253,8 +277,10 @@ namespace FractalSpace
       {
 	for(int FRY=0;FRY<FractalNodes1;FRY++)
 	  {
-	    PFM->p_mess->Send_INT_from_ROOT(lowerx[FRZ][FRY],FractalNodes0,ROOTX+FRZ*FractalNodes1+FRY);
-	    PFM->p_mess->Send_INT_from_ROOT(upperx[FRZ][FRY],FractalNodes0,ROOTX+FRZ*FractalNodes1+FRY);
+	    PFM->p_mess->Send_INT_from_ROOT(lowerx[FRZ][FRY],FractalNodes0,ROOTNODE);
+	    for(int FRX=1;FRX<FractalNodes0;FRX++)
+	      upperx[FRZ][FRY][FRX-1]=lowerx[FRZ][FRY][FRX];
+	    upperx[FRZ][FRY][FractalNodes0-1]=real_length-1;
 	    for(int FRX=0;FRX<FractalNodes0;FRX++)
 	      alowerx[FRZ][FRY][FRX]=lowerx[FRZ][FRY][FRX];
 	  }
