@@ -107,8 +107,6 @@ commandLine(
     graphics = True,
     smooth = None,
     outputFile = "None",
-            
-    serialDump = False #whether to dump a serial ascii file at the end for viz
     )
 
 # Decide on our hydro algorithm.
@@ -492,21 +490,6 @@ if graphics:
     # Make hardcopies of the plots.
     for p, filename in plots:
         p.hardcopy(os.path.join(baseDir, filename), terminal="png")
-
-if serialDump:
-    serialData = []
-    i,j = 0,0
-    
-    f = open(os.path.join(dataDir, "Gresho-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii"), 'w')
-    f.write("i x m rho u v visc\n")
-    for j in xrange(nodes.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes.positions()[j].magnitude(),
-                                                                   nodes.mass()[j],
-                                                                   nodes.massDensity()[j],
-                                                                   nodes.specificThermalEnergy()[j],
-                                                                   nodes.velocity()[j].magnitude(),
-                                                                   hydro.maxViscousPressure()[0][j]))
-    f.close()
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

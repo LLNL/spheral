@@ -11,7 +11,7 @@ for crk in (True, False):
          clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile Sod-planar.ascii" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
          label = "Planar Sod problem -- 1-D (serial)")
     test(script = "Hydro/Noh/Noh-planar-1d.py", 
-         clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --serialDump True" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
          label = "Planar Noh problem -- 1-D (serial)")
     test(script = "Hydro/Noh/Noh-cylindrical-2d.py",
          clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile 'Noh-cylindrical.ascii'" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
