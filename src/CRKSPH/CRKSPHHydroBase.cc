@@ -870,8 +870,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pj*SymTensor::one + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad);
-              DepsDtj += 0.5*weighti*weightj*(Pi*SymTensor::one + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad);
+              DepsDti += 0.5*weighti*weightj*(Pj*SymTensor::one + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*SymTensor::one + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad)/mj;
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
