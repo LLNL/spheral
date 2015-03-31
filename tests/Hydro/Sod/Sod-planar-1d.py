@@ -420,7 +420,7 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 if graphics:
     from SpheralGnuPlotUtilities import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
