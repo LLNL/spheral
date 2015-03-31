@@ -106,6 +106,7 @@ commandLine(
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
     smooth = None,
+    outputFile = "None",
             
     serialDump = False #whether to dump a serial ascii file at the end for viz
     )
@@ -496,7 +497,7 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/Gresho-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
+    f = open(os.path.join(dataDir, "Gresho-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii"), 'w')
     f.write("i x m rho u v visc\n")
     for j in xrange(nodes.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(j,nodes.positions()[j].magnitude(),
@@ -507,3 +508,36 @@ if serialDump:
                                                                    hydro.maxViscousPressure()[0][j]))
     f.close()
 
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+    yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.magnitude() for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    mof = mortonOrderIndices(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    if mpi.rank == 0:
+        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        f = open(outputFile, "w")
+        f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
+                                              "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
+            f.write((8*"%16.12e " + "%i " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+                                                               unpackElementUL(packElementDouble(xi)),
+                                                               unpackElementUL(packElementDouble(yi)),
+                                                               unpackElementUL(packElementDouble(rhoi)),
+                                                               unpackElementUL(packElementDouble(Pi)),
+                                                               unpackElementUL(packElementDouble(vi)),
+                                                               unpackElementUL(packElementDouble(epsi)),
+                                                               unpackElementUL(packElementDouble(hi))))
+        f.close()
