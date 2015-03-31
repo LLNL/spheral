@@ -287,7 +287,7 @@ def plotFieldList(fieldList,
                     legend = legendNodeList[iNodeList]
                     legendNodeList[iNodeList] = None
                     data = Gnuplot.Data(x, y,
-                                        with_ = plotStyle + " pt 1 lt %i" % iNodeList,
+                                        with_ = plotStyle + " lt %i" % iNodeList,
                                         title = legend,
                                         inline = True)
                     plot.replot(data)
@@ -299,7 +299,7 @@ def plotFieldList(fieldList,
             x = numpy.array(globalX)
             y = numpy.array(globalY)
             data = Gnuplot.Data(x, y,
-                                with_ = plotStyle, #  + " ls 1",
+                                with_ = plotStyle + " lt -1",
                                 title = lineTitle,
                                 inline = True)
             plot.replot(data)
