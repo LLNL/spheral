@@ -292,7 +292,7 @@ TETGENURL = http://ftp.mcs.anl.gov/pub/petsc/externalpackages/$(TETGENDIST)
 TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
-POLYTOPEVER = 0.5.21
+POLYTOPEVER = 0.5.22
 POLYTOPEDIST = polytope-$(POLYTOPEVER).tbz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
 POLYTOPEDIR = $(POLYTOPEDIST:.tbz=)
