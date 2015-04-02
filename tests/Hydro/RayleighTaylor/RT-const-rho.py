@@ -42,8 +42,7 @@ commandLine(nx1 = 100,
             y0 = 0.0,
             y1 = 1.0,# position of the interface
             y2 = 2.0,
-            P1 = 2.5,
-            P2 = 2.5,
+            P0 = 1.0,
             vx1 = 0.0,
             vx2 = 0.0,
             freq = 1.0,
@@ -117,7 +116,7 @@ commandLine(nx1 = 100,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
-            dataDir = "dumps-Rayleigh-Taylor-2d",
+            dataDir = "dumps-Rayleigh-Taylor-2d-constRho",
             outputFile = "None",
             comparisonFile = "None",
             
@@ -224,9 +223,7 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     generator1 = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = ExponentialDensity(y1,
-                                                                     rho0/S,
-                                                                     g0/((gamma - 1.0)*eps0)),
+                                            rho = rho0/S,
                                             distributionType = "lattice",
                                             xmin = (x0,y0),
                                             xmax = (x1,y1),
@@ -234,9 +231,7 @@ if restoreCycle is None:
                                             nNodePerh = nPerh,
                                             SPH = SPH)
     generator2 = GenerateNodeDistribution2d(nx2, ny2,
-                                            rho = ExponentialDensity(y1,
-                                                                     rho0,
-                                                                     g0*S/((gamma - 1.0)*eps0)),
+                                            rho = rho0,
                                             distributionType = "lattice",
                                             xmin = (x0,y1),
                                             xmax = (x1,y2),
@@ -257,8 +252,25 @@ if restoreCycle is None:
         return thpt*exp(-beta*abs(ri.y-y1))
 
     # Finish initial conditions.
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-    nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0/S))
+    eps1 = nodes1.specificThermalEnergy()
+    eps2 = nodes2.specificThermalEnergy()
+    pos1 = nodes1.positions()
+    pos2 = nodes2.positions()
+    
+    rho1 = rho0/S
+    rho2 = rho0
+    P01  = P0 + g0*(y1-y2)*(rho2-rho1)
+    P02  = P0
+
+    
+    for i in xrange(nodes1.numInternalNodes):
+        y = pos1[i].y
+        eps1[i] = (P01+g0*rho1*(y-y2))/((gamma-1.0)*rho1)
+    for i in xrange(nodes2.numInternalNodes):
+        y = pos2[i].y
+        eps2[i] = (P02+g0*rho2*(y-y2))/((gamma-1.0)*rho2)
+    #nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+    #nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0/S))
     for nodes in (nodes1,nodes2):
         pos = nodes.positions()
         vel = nodes.velocity()
