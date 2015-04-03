@@ -31,38 +31,35 @@ class ExponentialDensity:
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            ny1 = 100,
-            nx2 = 100,
-            ny2 = 100,
-            rho0 = 1.0,
-            eps0 = 1.0,
-            x0 = 0.0,
-            x1 = 1.0,
-            y0 = 0.0,
-            y1 = 1.0,# position of the interface
-            y2 = 2.0,
-            P0 = 1.0,
-            vx1 = 0.0,
-            vx2 = 0.0,
-            freq = 1.0,
-            alpha = 0.01,   # amplitude of displacement
-            beta = 5.0,     # speed at which displacement decays away from midline
-            S = 3.0,        # density jump at surface
-            g0 = -2.0,
-            w0 = 0.1,
-            sigma = 0.05/sqrt(2.0),
+commandLine(nx1     = 50,
+            ny1     = 100,
+            nx2     = 50,
+            ny2     = 100,
+            reso    = 1,    # optional scale modifier for the resolution in all directions
+            rho0    = 1.0,
+            eps0    = 1.0,
+            x0      = 0.0,
+            x1      = 1.0,
+            y0      = 0.0,
+            y1      = 2.0,  # position of the interface
+            y2      = 4.0,
+            P0      = 1.0,  # pressure at top of simulation (y2)
+            freq    = 1.0,
+            alpha   = 0.01, # amplitude of displacement
+            beta    = 5.0,  # speed at which displacement decays away from midline
+            S       = 2.0,  # density jump at surface
+            g0      = -2.0, # gravitational acceleration
             
-            gamma = 5.0/3.0,
-            mu = 1.0,
+            gamma   = 5.0/3.0,
+            mu      = 1.0,
             
-            nPerh = 1.51,
+            nPerh   = 1.51,
             
-            SVPH = False,
-            CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            filter = 0.0,   # CRKSPH filtering
+            SVPH    = False,
+            CRKSPH  = False,
+            ASPH    = False,
+            SPH     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            filter  = 0.0,   # CRKSPH filtering
             momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -70,20 +67,20 @@ commandLine(nx1 = 100,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             boolReduceViscosity = False,
-            nh = 5.0,
-            aMin = 0.1,
-            aMax = 2.0,
-            Qhmult = 1.0,
-            Cl = 1.0,
-            Cq = 1.0,
+            nh      = 5.0,
+            aMin    = 0.1,
+            aMax    = 2.0,
+            Qhmult  = 1.0,
+            Cl      = 1.0,
+            Cq      = 1.0,
             linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
-            hmin = 0.0001,
-            hmax = 0.5,
+            hmin    = 0.0001,
+            hmax    = 0.5,
             hminratio = 0.1,
-            cfl = 0.5,
+            cfl     = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -126,6 +123,11 @@ commandLine(nx1 = 100,
             arCondAlpha = 0.5,
             )
 
+nx1 = nx1*reso
+nx2 = nx2*reso
+ny1 = ny1*reso
+ny2 = ny2*reso
+
 # Decide on our hydro algorithm.
 if SVPH:
     if ASPH:
@@ -145,7 +147,7 @@ else:
 
 dataDir = os.path.join(dataDir,
                        "S=%g" % (S),
-                       "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
+                       "CRKSPH=%s" % CRKSPH,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
@@ -377,23 +379,11 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Construct the gravitational acceleration object.
 #-------------------------------------------------------------------------------
-nodeIndicies1 = vector_of_int()
-nodeIndicies2 = vector_of_int()
-
-for i in xrange(nodes1.numInternalNodes):
-    nodeIndicies1.append(i)
-for i in xrange(nodes2.numInternalNodes):
-    nodeIndicies2.append(i)
-
-#nodeIndicies1.extend(range(nodes1.numInternalNodes))
-#nodeIndicies2.extend(range(nodes2.numInternalNodes))
 
 gravity1 = ConstantAcceleration2d(Vector2d(0.0, g0),
-                                  nodes1,
-                                  nodeIndicies1)
+                                  nodes1)
 gravity2 = ConstantAcceleration2d(Vector2d(0.0, g0),
-                                  nodes2,
-                                  nodeIndicies2)
+                                  nodes2)
 
 packages.append(gravity1)
 packages.append(gravity2)
