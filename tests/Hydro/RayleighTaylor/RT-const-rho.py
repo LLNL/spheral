@@ -1,6 +1,5 @@
 #-------------------------------------------------------------------------------
-# This is the basic Kelvin-Helmholtz problem as discussed in
-# Springel 2010, MNRAS, 401, 791-851.
+# This is the basic Rayleigh-Taylor Problem
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
@@ -15,40 +14,52 @@ from CentroidalVoronoiRelaxation import *
 import mpi
 import DistributeNodes
 
-title("Kelvin-Helmholtz test problem in 2D")
+title("Rayleigh-Taylor test problem in 2D")
+
+class ExponentialDensity:
+    def __init__(self,
+                 y1,
+                 rho0,
+                 alpha):
+        self.y1 = y1
+        self.rho0 = rho0
+        self.alpha = alpha
+        return
+    def __call__(self, r):
+        return self.rho0*exp(self.alpha*(r.y - self.y1))
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            ny1 = 50,
-            nx2 = 100,
-            ny2 = 50,
+commandLine(nx1     = 50,
+            ny1     = 100,
+            nx2     = 50,
+            ny2     = 100,
+            reso    = 1,    # optional scale modifier for the resolution in all directions
+            rho0    = 1.0,
+            eps0    = 1.0,
+            x0      = 0.0,
+            x1      = 1.0,
+            y0      = 0.0,
+            y1      = 2.0,  # position of the interface
+            y2      = 4.0,
+            P0      = 1.0,  # pressure at top of simulation (y2)
+            freq    = 1.0,
+            alpha   = 0.01, # amplitude of displacement
+            beta    = 5.0,  # speed at which displacement decays away from midline
+            S       = 2.0,  # density jump at surface
+            g0      = -2.0, # gravitational acceleration
             
-            rho1 = 2.0,
-            rho2 = 1.0,
-            P1 = 2.5,
-            P2 = 2.5,
-            vx1 = 0.5,
-            vx2 = -0.5,
-            vxboost = 0.0,
-            vyboost = 0.0,
-            freq = 4.0,
-            w0 = 0.1,
-            sigma = 0.05/sqrt(2.0),
-
-            numNodeLists = 2,  # If 2, makes this a two material problem.
-
-            gamma = 5.0/3.0,
-            mu = 1.0,
-
-            nPerh = 1.51,
-
-            SVPH = False,
-            CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            filter = 0.0,   # CRKSPH filtering
+            gamma   = 5.0/3.0,
+            mu      = 1.0,
+            
+            nPerh   = 1.51,
+            
+            SVPH    = False,
+            CRKSPH  = False,
+            ASPH    = False,
+            SPH     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            filter  = 0.0,   # CRKSPH filtering
             momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -56,32 +67,32 @@ commandLine(nx1 = 100,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             boolReduceViscosity = False,
-            nh = 5.0,
-            aMin = 0.1,
-            aMax = 2.0,
-            Qhmult = 1.0,
-            Cl = 1.0, 
-            Cq = 1.0,
+            nh      = 5.0,
+            aMin    = 0.1,
+            aMax    = 2.0,
+            Qhmult  = 1.0,
+            Cl      = 1.0,
+            Cq      = 1.0,
             linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
-            hmin = 0.0001, 
-            hmax = 0.5,
+            hmin    = 0.0001,
+            hmax    = 0.5,
             hminratio = 0.1,
-            cfl = 0.5,
+            cfl     = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
-
+            
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
             steps = None,
             vizCycle = None,
             vizTime = 0.1,
             dt = 0.0001,
-            dtMin = 1.0e-8, 
+            dtMin = 1.0e-8,
             dtMax = 0.1,
             dtGrowth = 2.0,
             maxSteps = None,
@@ -91,18 +102,18 @@ commandLine(nx1 = 100,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
-
+            
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
-
+            
             useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
-            dataDir = "dumps-KelvinHelmholtz-2d",
+            dataDir = "dumps-Rayleigh-Taylor-2d-constRho",
             outputFile = "None",
             comparisonFile = "None",
             
@@ -112,7 +123,10 @@ commandLine(nx1 = 100,
             arCondAlpha = 0.5,
             )
 
-assert numNodeLists in (1, 2)
+nx1 = nx1*reso
+nx2 = nx2*reso
+ny1 = ny1*reso
+ny2 = ny2*reso
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -132,9 +146,8 @@ else:
         HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
-                       "rho1=%g-rho2=%g" % (rho1, rho2),
-                       "vx1=%g-vx2=%g" % (abs(vx1), abs(vx2)),
-                       "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
+                       "S=%g" % (S),
+                       "CRKSPH=%s" % CRKSPH,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
@@ -144,8 +157,8 @@ dataDir = os.path.join(dataDir,
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d")
-vizBaseName = "KelvinHelmholtz-2d"
+restartBaseName = os.path.join(restartDir, "Rayleigh-Taylor-2d")
+vizBaseName = "Rayleigh-Taylor-2d"
 
 #-------------------------------------------------------------------------------
 # CRKSPH Switches to ensure consistency
@@ -212,70 +225,59 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     generator1 = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = rho1,
+                                            rho = rho0/S,
                                             distributionType = "lattice",
-                                            xmin = (0.0,  0.25),
-                                            xmax = (1.0,  0.75),
+                                            xmin = (x0,y0),
+                                            xmax = (x1,y1),
+
                                             nNodePerh = nPerh,
                                             SPH = SPH)
-    generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
-                                             rho = rho2,
-                                             distributionType = "lattice",
-                                             xmin = (0.0, 0.0),
-                                             xmax = (1.0, 0.25),
-                                             nNodePerh = nPerh,
-                                             SPH = SPH)
-    generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
-                                             rho = rho2,
-                                             distributionType = "lattice",
-                                             xmin = (0.0, 0.75),
-                                             xmax = (1.0, 1.0),
-                                             nNodePerh = nPerh,
-                                             SPH = SPH)
-    generator2 = CompositeNodeDistribution(generator21, generator22)
+    generator2 = GenerateNodeDistribution2d(nx2, ny2,
+                                            rho = rho0,
+                                            distributionType = "lattice",
+                                            xmin = (x0,y1),
+                                            xmax = (x1,y2),
+                                            nNodePerh = nPerh,
+                                            SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
     else:
         from DistributeNodes import distributeNodes2d
 
-    if numNodeLists == 2:
-        distributeNodes2d((nodes1, generator1),
-                          (nodes2, generator2))
-    else:
-        gen = CompositeNodeDistribution(generator1, generator2)
-        distributeNodes2d((nodes1, gen))
+    distributeNodes2d((nodes1, generator1),
+                      (nodes2, generator2))
 
-    # A helpful method for setting y velocities.
-    def vy(ri):
-        thpt = 1.0/(2.0*sigma*sigma)
-        return (w0*sin(freq*pi*ri.x) *
-                (exp(-((ri.y - 0.25)**2 * thpt)) +
-                 exp(-((ri.y - 0.75)**2 * thpt))))*abs(0.5 - ri.y)
+    # A helpful method for setting y displacement.
+    def dy(ri):
+        thpt = alpha*cos(2.0*pi*ri.x*freq)
+        return thpt*exp(-beta*abs(ri.y-y1))
 
     # Finish initial conditions.
-    eps1 = P1/((gamma - 1.0)*rho1)
-    eps2 = P2/((gamma - 1.0)*rho2)
-    if numNodeLists == 2:
-        nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
-        nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps2))
-        for (nodes, vx) in ((nodes1, vx1),
-                            (nodes2, vx2)):
-            pos = nodes.positions()
-            vel = nodes.velocity()
-            for i in xrange(nodes.numInternalNodes):
-                vel[i] = Vector(vx + vxboost, vy(pos[i]) + vyboost)
-    else:
-        pos = nodes1.positions()
-        vel = nodes1.velocity()
-        eps = nodes1.specificThermalEnergy()
-        for i in xrange(nodes1.numInternalNodes):
-            if pos[i].y > 0.25 and pos[i].y < 0.75:
-                eps[i] = eps1
-                vel[i] = Vector(vx1 + vxboost, vy(pos[i]) + vyboost)
-            else:
-                eps[i] = eps2
-                vel[i] = Vector(vx2 + vxboost, vy(pos[i]) + vyboost)
+    eps1 = nodes1.specificThermalEnergy()
+    eps2 = nodes2.specificThermalEnergy()
+    pos1 = nodes1.positions()
+    pos2 = nodes2.positions()
+    
+    rho1 = rho0/S
+    rho2 = rho0
+    P01  = P0 + g0*(y1-y2)*(rho2-rho1)
+    P02  = P0
+
+    
+    for i in xrange(nodes1.numInternalNodes):
+        y = pos1[i].y
+        eps1[i] = (P01+g0*rho1*(y-y2))/((gamma-1.0)*rho1)
+    for i in xrange(nodes2.numInternalNodes):
+        y = pos2[i].y
+        eps2[i] = (P02+g0*rho2*(y-y2))/((gamma-1.0)*rho2)
+    #nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+    #nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0/S))
+    for nodes in (nodes1,nodes2):
+        pos = nodes.positions()
+        vel = nodes.velocity()
+        for i in xrange(nodes.numInternalNodes):
+            pos[i].y += dy(pos[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -320,8 +322,8 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(-2.0, -2.0),
                              xmax = Vector(3.0, 3.0))
-                             # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
-                             # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+# xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+# xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
@@ -375,20 +377,33 @@ if bArtificialConduction:
     packages.append(ArtyCond)
 
 #-------------------------------------------------------------------------------
+# Construct the gravitational acceleration object.
+#-------------------------------------------------------------------------------
+
+gravity1 = ConstantAcceleration2d(Vector2d(0.0, g0),
+                                  nodes1)
+gravity2 = ConstantAcceleration2d(Vector2d(0.0, g0),
+                                  nodes2)
+
+packages.append(gravity1)
+packages.append(gravity2)
+
+#-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xp1 = Plane(Vector(0.0, 0.0), Vector( 1.0, 0.0))
-xp2 = Plane(Vector(1.0, 0.0), Vector(-1.0, 0.0))
-yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
+xp1 = Plane(Vector(x0, y0), Vector( 1.0, 0.0))
+xp2 = Plane(Vector(x1, y0), Vector(-1.0, 0.0))
+yp1 = Plane(Vector(x0, y0), Vector(0.0,  1.0))
+yp2 = Plane(Vector(x0, y2), Vector(0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
-ybc = PeriodicBoundary(yp1, yp2)
-#ybc1 = ReflectingBoundary(yp1)
-#ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc]
+#ybc = PeriodicBoundary(yp1, yp2)
+ybc1 = ReflectingBoundary(yp1)
+ybc2 = ReflectingBoundary(yp2)
+bcSet = [xbc, ybc1, ybc2]
+#bcSet = [xbc,ybc1]
 
-for p in packages:
-    for bc in bcSet:
+for bc in bcSet:
+    for p in packages:
         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
@@ -404,9 +419,6 @@ integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
-
-# Blago!  Currently a problem with periodic boundaries.
-# integrator.cullGhostNodes = False
 
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
@@ -469,4 +481,3 @@ if serialDump:
         for i in xrange(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()
-

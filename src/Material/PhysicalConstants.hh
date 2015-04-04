@@ -35,6 +35,7 @@ public:
   double Navogadro() const;
   double molarGasConstant() const;
   double kelvinsToEnergyPerMole() const;
+  double unitMassDensity() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -50,6 +51,7 @@ private:
   const double kBoltzmann;
   const double MolarGasConstant;
   const double KelvinsToEnergyPerMole;
+  const double UnitMassDensity;
 
   // The reference MKS data we base our values on.
   static const double mpMKS;

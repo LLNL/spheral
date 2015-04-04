@@ -47,6 +47,7 @@ commandLine(seed = "lattice",
             linearConsistent = False,
             Cl = 1.0, 
             Cq = 0.75,
+            linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -85,7 +86,7 @@ commandLine(seed = "lattice",
             restoreCycle = None,
             restartStep = 1000,
             checkRestart = False,
-            dataDir = "dumps-spherical",
+            dataDir = "dumps-spherical-Noh",
             outputFile = "None",
             comparisonFile = "None",
 
@@ -108,9 +109,9 @@ elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if SPH:
-        constructor = SPHHydro
+        HydroConstructor = SPHHydro
     else:
-        constructor = ASPHHydro
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
@@ -219,7 +220,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -229,6 +230,8 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
