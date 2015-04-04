@@ -65,6 +65,9 @@ def siloMeshDump(dirName, mesh,
                                       scalarFields, vectorFields, tensorFields, symTensorFields)
 
     # If we have index2zones, remove any redundant values.
+    skipNodes = {}
+    for nodes in nodeLists:
+        skipNodes[nodes.name] = []
     if index2zone:
         ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
         assert len(index2zone) == ntot
@@ -317,7 +320,7 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
             matlist += vector_of_int(nodeList.numInternalNodes, imat)
             matnames.append(nodeList.name)
-        assert len(matlist) == numZones
+        #assert len(matlist) == numZones  # Not true if we have a degenerate Voronoi (overlapping generators)
         assert len(matnames) == len(nodeLists)
         matOpts = silo.DBoptlist(1024)
         assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
