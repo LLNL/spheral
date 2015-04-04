@@ -178,7 +178,7 @@ class ExternalForce:
 
         # Methods.
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
-        const_ref_return_value(x, me, "%s::indices" % me, "vector_of_int", [], "indices")
+        const_ref_return_value(x, me, "%s::flags" % me, intfield, [], "flags")
 
         # Attributes.
         x.add_instance_attribute("a0", vector, getter="a0", is_const=True)
