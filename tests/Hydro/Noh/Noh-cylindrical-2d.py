@@ -97,7 +97,7 @@ commandLine(KernelConstructor = BSplineKernel,
             restoreCycle = None,
             restartStep = 1000,
             checkRestart = False,
-            dataDir = "dumps-cylindrical",
+            dataDir = "dumps-cylindrical-Noh",
             outputFile = "None",
             comparisonFile = "None",
 

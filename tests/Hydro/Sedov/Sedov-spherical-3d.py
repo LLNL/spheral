@@ -365,12 +365,13 @@ nodes1.pressure(Pf)
 P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
 A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), nodes1.massDensity().internalValues())], mpi.SUM)
 
+rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
+
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
     multiSort(r, rho, v, eps, P, A)
-    rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-    Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     for (name, data, ans) in [("Mass Density", rho, rhoans),
                               ("Pressure", P, Pans),
