@@ -497,15 +497,15 @@ if graphics:
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
-    P = ScalarField("pressure", nodes1)
-    nodes1.pressure(P)
-    xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-    yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
-    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    P = ScalarField("pressure", nodes)
+    nodes.pressure(P)
+    xprof = mpi.reduce([x.x for x in nodes.positions().internalValues()], mpi.SUM)
+    yprof = mpi.reduce([x.y for x in nodes.positions().internalValues()], mpi.SUM)
+    rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.magnitude() for v in nodes1.velocity().internalValues()], mpi.SUM)
-    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    vprof = mpi.reduce([v.magnitude() for v in nodes.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
