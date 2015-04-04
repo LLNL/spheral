@@ -2,6 +2,7 @@ from pybindgen import *
 
 from ref_return_value import *
 from PhysicsModule import generatePhysicsVirtualBindings
+from CXXTypesModule import generateStdVectorBindings
 
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
@@ -38,6 +39,14 @@ class Strength:
         self.SolidNodeList2d = addObject(space, "SolidNodeList2d", parent=FluidNodeList2d, allow_subclassing=True)
         self.SolidNodeList3d = addObject(space, "SolidNodeList3d", parent=FluidNodeList3d, allow_subclassing=True)
 
+        self.vector_of_SolidNodeList1d = addObject(mod, "vector_of_SolidNodeList1d", allow_subclassing=True)
+        self.vector_of_SolidNodeList2d = addObject(mod, "vector_of_SolidNodeList2d", allow_subclassing=True)
+        self.vector_of_SolidNodeList3d = addObject(mod, "vector_of_SolidNodeList3d", allow_subclassing=True)
+
+        self.vector_of_SolidNodeList1d_iterator = addObject(mod, "vector_of_SolidNodeList1d_iterator", allow_subclassing=True)
+        self.vector_of_SolidNodeList2d_iterator = addObject(mod, "vector_of_SolidNodeList2d_iterator", allow_subclassing=True)
+        self.vector_of_SolidNodeList3d_iterator = addObject(mod, "vector_of_SolidNodeList3d_iterator", allow_subclassing=True)
+
         return
 
     #---------------------------------------------------------------------------
@@ -51,6 +60,9 @@ class Strength:
         self.generateSolidNodeListBindings(self.SolidNodeList2d, 2)
         self.generateSolidNodeListBindings(self.SolidNodeList3d, 3)
 
+        generateStdVectorBindings(self.vector_of_SolidNodeList1d, "Spheral::SolidMaterial::SolidNodeList1d*", "vector_of_SolidNodeList1d")
+        generateStdVectorBindings(self.vector_of_SolidNodeList2d, "Spheral::SolidMaterial::SolidNodeList2d*", "vector_of_SolidNodeList2d")
+        generateStdVectorBindings(self.vector_of_SolidNodeList3d, "Spheral::SolidMaterial::SolidNodeList3d*", "vector_of_SolidNodeList3d")
         return
 
     #---------------------------------------------------------------------------
