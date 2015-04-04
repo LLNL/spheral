@@ -12,6 +12,8 @@
 #include "Field/NodeIterators.hh"
 #include "Utilities/DBC.hh"
 
+#include "boost/foreach.hpp"
+
 namespace Spheral {
 namespace PhysicsSpace {
 
@@ -19,6 +21,7 @@ using namespace std;
 using NodeSpace::NodeList;
 using FieldSpace::Field;
 using DataBaseSpace::DataBase;
+using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -31,10 +34,10 @@ ConstantAcceleration(const Vector a0,
   GenericBodyForce<Dimension>(),
   ma0(a0),
   mNodeListPtr(&nodeList),
-  mIndices(indices) {
-  for (vector<int>::const_iterator itr = mIndices.begin();
-       itr != mIndices.end();
-       ++itr) ENSURE(*itr >= 0 && *itr < mNodeListPtr->numNodes());
+  mFlags("constant acceleration flags for " + nodeList.name(), nodeList, 0) {
+  BOOST_FOREACH(const int i, indices) {
+    mFlags(i) = 1;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -47,9 +50,7 @@ ConstantAcceleration(const Vector a0,
   GenericBodyForce<Dimension>(),
   ma0(a0),
   mNodeListPtr(&nodeList),
-  mIndices() {
-  mIndices.reserve(nodeList.numInternalNodes());
-  for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) mIndices.push_back(i);
+  mFlags("constant acceleration flags for " + nodeList.name(), nodeList, 1) {
 }
 
 //------------------------------------------------------------------------------
@@ -78,11 +79,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   Field<Dimension, Vector>& DvDt = derivs.field(key, Vector::zero);
 
   // Increment the acceleration.
-  for (vector<int>::const_iterator itr = mIndices.begin();
-       itr != mIndices.end();
-       ++itr) {
-    CHECK(*itr >= 0 && *itr < mNodeListPtr->numNodes());
-    DvDt(*itr) += ma0;
+  const unsigned n = mNodeListPtr->numNodes();
+  for (unsigned i = 0; i != n; ++i) {
+    if (mFlags(i) == 1) {
+      DvDt(i) += ma0;
+    }
   }
 }
 
