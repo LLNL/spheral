@@ -64,23 +64,27 @@ def siloMeshDump(dirName, mesh,
     fieldwad = extractFieldComponents(nodeLists, time, cycle,
                                       scalarFields, vectorFields, tensorFields, symTensorFields)
 
-    # If we have index2zones, remove any redundant values.
-    skipNodes = {}
-    for nodes in nodeLists:
-        skipNodes[nodes.name] = []
+    # If we have index2zone, remove any redundant values.
     if index2zone:
         ntot = sum([nodes.numInternalNodes for nodes in nodeLists])
         assert len(index2zone) == ntot
         ntarget = len(mesh.cells)
         assert max(index2zone) + 1 == ntarget
-        zone2index = range(len(mesh.cells))
-        for i, zi in enumerate(index2zone):
-            zone2index[zi] = i
-        for name, desc, type, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+        for name, desc, ftype, optlistDef, optlistMV, optlistVar, subvars in fieldwad:
+            newsubvars = []
             for subname, vals in subvars:
-                newvals = [vals[i] for i in xrange(ntarget)]
-                vals = newvals
+                valcopy = list(vals)
+                vals.resize(ntarget)
+                for i, vali in enumerate(valcopy):
+                    vals[index2zone[i]] = vali
                 assert len(vals) == ntarget
+        #         newsubvars.append((subname, newvals))
+        #     assert len(newsubvars) == len(subvars)
+        #     newfieldwad.append([name, desc, ftype, optlistDef, optlistMV, optlistVar, newsubvars])
+        # assert len(newfieldwad) == len(fieldwad)
+        # fieldwad = newfieldwad
+    else:
+        index2zone = range(len(mesh.cells))
 
     # If we're domain 0 we write the master file.
     masterfile = None
@@ -89,7 +93,7 @@ def siloMeshDump(dirName, mesh,
     masterfile = mpi.bcast(masterfile)
 
     # Each domain writes it's domain file.
-    writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad,
+    writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays)
 
 
@@ -217,7 +221,7 @@ def writeMasterMeshSiloFile(dirName, label, nodeLists, time, cycle, fieldwad,
 #-------------------------------------------------------------------------------
 # Write the domain file.
 #-------------------------------------------------------------------------------
-def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldwad,
+def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, cycle, fieldwad,
                             pretendRZ, nodeArrays, zoneArrays, faceArrays,
                             meshType = SA._DB_UCDMESH):
 
@@ -315,12 +319,15 @@ def writeDomainMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         for i in xrange(len(nodeLists)):
             matnos.append(i)
         assert len(matnos) == len(nodeLists)
-        matlist = vector_of_int()
+        matlist = vector_of_int(numZones)
         matnames = vector_of_string()
+        offset = 0
         for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
-            matlist += vector_of_int(nodeList.numInternalNodes, imat)
+            for i in xrange(nodeList.numInternalNodes):
+                matlist[index2zone[offset + i]] = imat
             matnames.append(nodeList.name)
-        #assert len(matlist) == numZones  # Not true if we have a degenerate Voronoi (overlapping generators)
+            offset += nodeList.numInternalNodes
+        assert len(matlist) == numZones
         assert len(matnames) == len(nodeLists)
         matOpts = silo.DBoptlist(1024)
         assert matOpts.addOption(SA._DBOPT_CYCLE, cycle) == 0
