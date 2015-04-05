@@ -160,6 +160,17 @@ class SpheralVoronoiSiloDump:
         plccoords[6] = xmin[0]
         plccoords[7] = xmax[1]
 
+        # Blago!
+        # f = open("generators_%i_of_%i.txt" % (mpi.rank, mpi.procs), "w")
+        # f.write("# generators x    y\n")
+        # for i in xrange(len(gens)/2):
+        #     f.write("%g    %g\n" % (gens[2*i], gens[2*i+1]))
+        # f.write("# PLC coords    x     y\n")
+        # for i in xrange(len(plccoords)/2):
+        #     f.write("%g    %g\n" % (plccoords[2*i], plccoords[2*i+1]))
+        # f.close()
+        # Blago!
+
         # Build the tessellation.
         if self.dimension == "2d":
             mesh = polytope.Tessellation2d()
