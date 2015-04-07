@@ -134,7 +134,7 @@ ny2 = ny2*reso
 atwood  = (S-1.0)/(S+1.0)
 zdot    = sqrt(freq*atwood*abs(g0))
 
-print "\n\n\nzdot = {0:3.3e}  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
+print "\n\n\nzdot = exp({0:3.3e}*t)  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
 
 
 
