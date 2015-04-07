@@ -233,45 +233,6 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-
-if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
-    packages.append(evolveReducingViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
-# Construct the Artificial Conduction physics object.
-#-------------------------------------------------------------------------------
-
-if bArtificialConduction:
-    #q.reducingViscosityCorrection = True
-    ArtyCond = ArtificialConduction(WT,arCondAlpha)
-    
-    packages.append(ArtyCond)
-
-#-------------------------------------------------------------------------------
-# Optionally construct an hourglass control object.
-#-------------------------------------------------------------------------------
-if hourglass:
-    mask = db.newFluidIntFieldList(1, "mask")
-    pos = nodes1.positions()
-    for i in xrange(nodes1.numInternalNodes):
-        if pos[i].x > (x1 - dx):
-            mask[0][i] = 0
-    hg = hourglass(WT,
-                   order = hourglassOrder,
-                   limiter = hourglassLimiter,
-                   fraction = hourglassFraction,
-                   mask = mask)
-    output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    output("hg.fraction")
-    packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Construct an integrator.
@@ -401,18 +362,16 @@ if serialDump:
     serialData = []
     i,j = 0,0
     
-    f = open(dataDir + "/noh-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
-    f.write("# i x m rho u v rhoans uans vans visc\n")
+    f = open(dataDir + "/one-node.ascii",'w')
+    #&ident,&x,&y,&z,&h,&mass,&rho,&temp
     for j in xrange(nodes1.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
+        f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(j,nodes1.positions()[j][0],
+                                                                   nodes1.positions()[j][1],
+                                                                   0.0,
+                                                                   1.0/(nodes1.Hfield()[j].xx),
                                                                    nodes1.mass()[j],
                                                                    nodes1.massDensity()[j],
-                                                                   nodes1.specificThermalEnergy()[j],
-                                                                   nodes1.velocity()[j][0],
-                                                                   rhoans[j],
-                                                                   uans[j],
-                                                                   vans[j],
-                                                                   hydro.maxViscousPressure()[0][j]))
+                                                                   0.0))
     f.close()
 
 

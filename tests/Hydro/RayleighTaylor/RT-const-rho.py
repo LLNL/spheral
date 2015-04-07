@@ -128,6 +128,16 @@ nx2 = nx2*reso
 ny1 = ny1*reso
 ny2 = ny2*reso
 
+#-------------------------------------------------------------------------------
+# Computing and printing the growth rate
+#-------------------------------------------------------------------------------
+atwood  = (S-1.0)/(S+1.0)
+zdot    = sqrt(freq*atwood*abs(g0))
+
+print "\n\n\nzdot = {0:3.3e}  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
+
+
+
 # Decide on our hydro algorithm.
 if SVPH:
     if ASPH:
