@@ -155,7 +155,7 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator = GenerateNodeDistribution2d(1,1,rho,seed,rmin=x0,rmax=x1,
+generator = GenerateNodeDistribution2d(1,1,rho=rho,distributionType=seed,
                                        xmin=(x0,x0),xmax=(x1,x1),
                                        nNodePerh = nPerh,SPH=True)
 from DistributeNodes import distributeNodes2d
@@ -164,7 +164,13 @@ output("nodes1.numNodes")
 
 # Set node specific thermal energies
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps))
-nodes1.massDensity(ScalarField("tmp", nodes1, rho))
+#nodes1.massDensity(ScalarField("tmp", nodes1, rho))
+
+mass = nodes1.mass()
+massDensity = nodes1.massDensity()
+H = nodes1.Hfield()
+H[0].xx = 1
+H[0].yy = 1
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -175,141 +181,11 @@ output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
-#-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
+from siloPointmeshDump import siloPointmeshDump
+siloPointmeshDump("one-node-test",
+                  fields = [mass, massDensity, H],
+                  fieldLists = [])
 
-#-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate,
-                      momentumConserving = momentumConserving)
-else:
-    hydro = SPHHydro(WT, WTPi, q,
-                     cfl = cfl,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     gradhCorrection = gradhCorrection,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HUpdate,
-                     XSPH = XSPH,
-                     epsTensile = epsilonTensile,
-                     nTensile = nTensile)
-output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
-output("hydro.cfl")
-output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
-output("hydro.HEvolution")
-
-packages = [hydro]
-
-
-
-#-------------------------------------------------------------------------------
-# Construct an integrator.
-#-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db)
-for p in packages:
-    integrator.appendPhysicsPackage(p)
-del p
-integrator.lastDt = dt
-integrator.dtMin = dtMin
-integrator.dtMax = dtMax
-integrator.dtGrowth = dtGrowth
-integrator.rigorousBoundaries = rigorousBoundaries
-integrator.updateBoundaryFrequency = updateBoundaryFrequency
-integrator.domainDecompositionIndependent = domainIndependent
-integrator.cullGhostNodes = cullGhostNodes
-integrator.verbose = dtverbose
-output("integrator")
-output("integrator.lastDt")
-output("integrator.dtMin")
-output("integrator.dtMax")
-output("integrator.dtGrowth")
-output("integrator.rigorousBoundaries")
-output("integrator.updateBoundaryFrequency")
-output("integrator.domainDecompositionIndependent")
-output("integrator.cullGhostNodes")
-output("integrator.verbose")
-
-#-------------------------------------------------------------------------------
-# Make the problem controller.
-#-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT,
-                            statsStep = statsStep,
-                            restartStep = restartStep,
-                            restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle,
-                            vizBaseName = vizBaseName,
-                            vizDir = vizDir,
-                            vizStep = vizCycle,
-                            vizTime = vizTime,)
-output("control")
-
-# Smooth the initial conditions.
-if restoreCycle is None:
-    control.smoothState(smoothIters)
-    if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
-        control.voronoiInitializeMass()
-##     rho = db.fluidMassDensity
-##     pos = db.fluidPosition
-##     mass = db.fluidMass
-##     H = db.fluidHfield
-##     db.updateConnectivityMap()
-##     cm = db.connectivityMap()
-##     computeSPHSumMassDensity(cm, WT, pos, mass, H, rho)
-
-#-------------------------------------------------------------------------------
-# Advance to the end time.
-#-------------------------------------------------------------------------------
-if not steps is None:
-    control.step(steps)
-
-    # Are we doing the restart test?
-    if checkRestart:
-        state0 = State(db, integrator.physicsPackages())
-        state0.copyState()
-        control.loadRestartFile(control.totalSteps)
-        state1 = State(db, integrator.physicsPackages())
-        if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
-        else:
-            print "Restart check PASSED."
-
-else:
-    if control.time() < goalTime:
-        control.step(5)
-        control.advance(goalTime, maxSteps)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
