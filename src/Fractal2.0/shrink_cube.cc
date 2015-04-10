@@ -21,6 +21,12 @@ namespace FractalSpace
 	minimax[4]=max(minimax[4],posy[ni]);
 	minimax[5]=max(minimax[5],posz[ni]);
       }
+//     minimax[0]=*(std::min_element(posx.begin(),posx.end()));
+//     minimax[1]=*(std::min_element(posy.begin(),posy.end()));
+//     minimax[2]=*(std::min_element(posz.begin(),posz.end()));
+//     minimax[3]=*(std::max_element(posx.begin(),posx.end()));
+//     minimax[4]=*(std::max_element(posy.begin(),posy.end()));
+//     minimax[5]=*(std::max_element(posz.begin(),posz.end()));
     PFM->p_mess->Find_Max_DOUBLE(minimax,6);
     minimax[0]*=-1.0;
     minimax[1]*=-1.0;
@@ -47,6 +53,6 @@ namespace FractalSpace
     xmaxy[1]=center[1]+dmax*0.51;
     xmaxy[2]=center[2]+dmax*0.51;
     if(PFM->p_mess->FractalRank == 0)
-      cout << " Shrink Box " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
+      cerr << " Shrink Box " << xmini[0] << " " << xmini[1] << " " << xmini[2] << " "  << xmaxy[0] << " " << xmaxy[1] << " " << xmaxy[2] << " " << pow(dmax*1.02,3) << "\n";
   }
 }

@@ -71,7 +71,7 @@ namespace FractalSpace
     int totals=mem.ij_offsets[FractalNodes];
     if(totals == 0)
       {
-	//	cout << " returning " << totals << "\n";
+	//	cerr << " returning " << totals << "\n";
 	return false;
       }
     int HR=0;

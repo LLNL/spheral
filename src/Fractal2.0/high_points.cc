@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void high_points(Group& group,Fractal& fractal,Misc& misc)
   {
-    //    cout << "inside high_points " << " " << group.list_points.size() << "\n";
+    //    cerr << "inside high_points " << " " << group.list_points.size() << "\n";
     group.p_list_really_high.clear();
     //    fractal.p_file->FilePoint << " highs level " << group.get_level() << "\n";
     int ni=0;
@@ -23,7 +23,7 @@ namespace FractalSpace
 	    ni++;
 	  }
       }
-    //    cout << "ni= " << ni << "\n";
+    //    cerr << "ni= " << ni << "\n";
     group.set_number_high_points(ni);
   }
   bool high_enough_level(Point& point,Group& group,Fractal& fractal,Misc& misc)

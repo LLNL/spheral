@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   int fractal_force_wrapper(Fractal_Memory* PFM,Fractal* PF)
   {
-    //    cout << "starting wrapper " << "\n";
+    //    cerr << "starting wrapper " << "\n";
     //    fractal_force_init(PFM,PF);
     PFM->p_fractal=PF;
     ofstream& FileFractal=PFM->p_file->DUMPS;

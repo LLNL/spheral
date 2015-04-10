@@ -21,6 +21,8 @@ namespace FractalSpace
 	length_S*=2;
 	length_S2=length_S+2;
       }
+    //    for(int nx=0;nx<length_1;nx++)
+    //      cerr << " TESTS " << FractalRank << " " << nx << " " << mem.p_mess->WhichSlice[nx] << "\n";
 
     vector <int> pos_point(3);
     vector <int>counts_in;

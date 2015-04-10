@@ -18,7 +18,7 @@ namespace FractalSpace
     double y_off=-2.0;
     double z_off=3.0;
     double slope=-0.65;
-    double velratio=0.5;
+    double velratio=0.8;
     double sigratio=0.5;
     velratio*=sqrt(G);
     double slope3=slope+3.0;
@@ -55,9 +55,9 @@ namespace FractalSpace
 	velz[ni]=vs*sqrt(-2.0*log(Fractal::my_rand_not_zero(rand_max)))*cos(twopi*Fractal::my_rand(rand_max));
 	if(isfinite(posx[ni]) && isfinite(posy[ni]) && isfinite(posz[ni]) && isfinite(velx[ni]) && isfinite(vely[ni]) && isfinite(velz[ni]))
 	  continue;
-	cout << "BAD GALAXY " << FractalRank << " " << ni << " " << posx[ni] << " " << posy[ni] << " " << posz[ni];
-	cout << " " << velx[ni] << " " << vely[ni] << " " << velz[ni];
-	cout << " " << r1 << " " << phi << " " << ctheta << " " << v2 << " " << ang << endl;
+	cerr << "BAD GALAXY " << FractalRank << " " << ni << " " << posx[ni] << " " << posy[ni] << " " << posz[ni];
+	cerr << " " << velx[ni] << " " << vely[ni] << " " << velz[ni];
+	cerr << " " << r1 << " " << phi << " " << ctheta << " " << v2 << " " << ang << endl;
 	allok=false;
 	//	masses[ni]=m;
       }
