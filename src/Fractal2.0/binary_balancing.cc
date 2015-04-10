@@ -23,7 +23,7 @@ namespace FractalSpace
     for(int L=1;L<=length;L++)
       {
 	snumbers[L]=snumbers[L-1]+numbers[L-1]+minimum;
-	//	cout << " RANK" << rank << " " << L << " " << numbers[L-1] << " " << snumbers[L] << " " << minimum <<
+	//	cerr << " RANK" << rank << " " << L << " " << numbers[L-1] << " " << snumbers[L] << " " << minimum <<
 	//	" " << sum_total << "\n";
       }
     lowers[0]=0;
@@ -35,7 +35,7 @@ namespace FractalSpace
 	double target=sum_total*targets[N];
 	lowers[N]=std::lower_bound(snumbers.begin(),snumbers.end(),target)-snumbers.begin();
 	uppers[N-1]=lowers[N];
-	//	cout << " SEARCH" << rank << " " << Nodes << " " << N << " " << target << " " << sum_total << " " << lowers[N] << "\n";
+	//	cerr << " SEARCH" << rank << " " << Nodes << " " << N << " " << target << " " << sum_total << " " << lowers[N] << "\n";
       }
     uppers[Nodes-1]=length-1;
     bool spreading=false;
@@ -51,7 +51,7 @@ namespace FractalSpace
 	    int many=uppers[N]-lowers[N];
 	    if(many < too_few)
 	      {
-		//		cout << " NARROW " << rank << " " << Nodes << " "  << N << " " << lowers[N] << " " << many << " ";
+		//		cerr << " NARROW " << rank << " " << Nodes << " "  << N << " " << lowers[N] << " " << many << " ";
 		spreading=true;
 		narrow=true;
 		int flip=(rand()/8) % 2;
@@ -61,13 +61,13 @@ namespace FractalSpace
 		      {
 			lowers[N]--;
 			uppers[N-1]--;
-			//			cout << "A";
+			//			cerr << "A";
 		      }
 		    else
 		      {
 			lowers[1]++;
 			uppers[0]++;
-			//			cout << "B";
+			//			cerr << "B";
 		      }
 		    flip0++;
 		  }
@@ -77,17 +77,17 @@ namespace FractalSpace
 		      {
 			lowers[N+1]++;
 			uppers[N]++;
-			//			cout << "C";
+			//			cerr << "C";
 		      }
 		    else
 		      {
 			lowers[Nodes-1]--;
 			uppers[Nodes-2]--;
-			//			cout << "D";
+			//			cerr << "D";
 		      }
 		    flip1++;
 		  }
-		//		cout << "\n";
+		//		cerr << "\n";
 	      }
 	  }
 	counterS++;
@@ -157,12 +157,12 @@ namespace FractalSpace
 	toomany=toomany && counterN < 1000;
       }
 //     for(int N=0;N<Nodes;N++)
-//       cout << " FINISHED "  << rank << " " << Nodes << " " << N << " " << lowers[N] << " " << uppers[N] << "\n";
+//       cerr << " FINISHED "  << rank << " " << Nodes << " " << N << " " << lowers[N] << " " << uppers[N] << "\n";
 //     if(spreading || narrowing)
 //       {
-// 	cout << " BINARY "  << rank << " " << Nodes << " " << COUNTS << " " << spreading << " " << counterS << " " ;
-// 	cout << flip0 << " " << flip1 << " ";
-// 	cout << narrowing << " " << counterN << "\n";
+// 	cerr << " BINARY "  << rank << " " << Nodes << " " << COUNTS << " " << spreading << " " << counterS << " " ;
+// 	cerr << flip0 << " " << flip1 << " ";
+// 	cerr << narrowing << " " << counterN << "\n";
 //       }
     COUNTS++;
   }

@@ -28,7 +28,7 @@ namespace FractalSpace
     //    double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
-    cout << " Hypre counts " << minsize << " " << count << " " << FractalRank << "\n";
+    cerr << " Hypre counts " << minsize << " " << count << " " << FractalRank << "\n";
     mem.ij_counts.clear();
     mem.ij_offsets.clear();
     mem.ij_counts.push_back(count);
@@ -44,7 +44,7 @@ namespace FractalSpace
     int totals=count;
     if(totals == 0)
       {
-	cout << " returning " << totals << "\n";
+	cerr << " returning " << totals << "\n";
 	return false;
       }
     count=mem.ij_offsets[HypreRank];
@@ -59,18 +59,16 @@ namespace FractalSpace
 	Point* p=*point_itr;
 	p->set_ij_neighbors(HRBox);
       }
-    cout << " Hypre final counts " << minsize << " " << count << " " << FractalRank << "\n";
-    /*
-    cout << " search timing " << FractalRank << " ";
-    cout << time1-time0 << " ";
-    cout << time2-time1 << " ";
-    cout << time3-time2 << " ";
-    cout << time4-time3 << " ";
-    cout << time5-time4 << " ";
-    cout << time6-time5 << " ";
-    cout << time7-time6 << " ";
-    cout << time8-time7 << "\n";
-    */
+    cerr << " Hypre final counts " << minsize << " " << count << " " << FractalRank << "\n";
+//     cerr << " search timing " << FractalRank << " ";
+//     cerr << time1-time0 << " ";
+//     cerr << time2-time1 << " ";
+//     cerr << time3-time2 << " ";
+//     cerr << time4-time3 << " ";
+//     cerr << time5-time4 << " ";
+//     cerr << time6-time5 << " ";
+//     cerr << time7-time6 << " ";
+//     cerr << time8-time7 << "\n";
     return true;
   }
 }

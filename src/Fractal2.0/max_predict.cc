@@ -35,10 +35,10 @@ namespace FractalSpace
 		  dr=fractal.rad[i]-fractal.rad[i-1];
 		double dvol=(vol-vol_old)/dr;
 		double dx=-(vol-vol_crash)/dvol;
-		//		cout << "maxx " << vol << " "  << vol_old << " "  << vol_crash << " "  << dr << " "  << dx << "\n";
+		//		cerr << "maxx " << vol << " "  << vol_old << " "  << vol_crash << " "  << dr << " "  << dx << "\n";
 		r=-(fractal.rad[i]+dx);
 		assert(dx/dr > -1.0 && dx <= 0.0);
-		//		cout << "maxx " << r << " " << dx << "\n";
+		//		cerr << "maxx " << r << " " << dx << "\n";
 		return;
 	      }
 	  }
