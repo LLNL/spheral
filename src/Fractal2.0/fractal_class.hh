@@ -84,7 +84,7 @@ namespace FractalSpace
     static string vel;
     Fractal()
     {
-      //      cout << " made ghost fractal" << "\n";
+      //      cerr << " made ghost fractal" << "\n";
     }
     template <class M> Fractal(M& mem):
       density_0(0.0),
@@ -92,7 +92,7 @@ namespace FractalSpace
       highest_level_used(0),
       omega_fraction(2.0/3.0)
     {
-      //      cout << " starting fractal " << "\n";
+      //      cerr << " starting fractal " << "\n";
       //      clocks_per_sec=static_cast<double>(CLOCKS_PER_SEC);
       clocks_per_sec=1.0;
       steps=0;
@@ -115,7 +115,7 @@ namespace FractalSpace
       debug=mem.debug;
       base_mass=mem.base_mass;
       //
-      //      cout << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
+      //      cerr << " fractal start a " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
       p_mess=mem.p_mess;
       p_file=mem.p_file;
       MPIrun=mem.MPIrun;
@@ -123,10 +123,10 @@ namespace FractalSpace
       FractalNodes0=mem.FractalNodes0;
       FractalNodes1=mem.FractalNodes1;
       FractalNodes2=mem.FractalNodes2;
-      //      cout << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
-      //      cout << " fractal start c " << p_mess << " " << p_file << "\n";
+      //      cerr << " fractal start b " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2 << " " << FractalNodes << "\n";
+      //      cerr << " fractal start c " << p_mess << " " << p_file << "\n";
       FractalRank=get_FractalRank();
-      //      cout << FractalRank << "\n";
+      //      cerr << FractalRank << "\n";
       assert(FractalRank<FractalNodes);
       Box=mem.Boxes[FractalRank];
       BBox=mem.BBoxes[FractalRank];
@@ -215,528 +215,88 @@ namespace FractalSpace
       masks_square=mem.masks_square;
       rad.assign(101,0.0);
       grow.assign(101,0.0);
-      //      cout << "Making Fractal " << this << "\n";
+      //      cerr << "Making Fractal " << this << "\n";
     }
     ~Fractal()
     {    
-      //      cout << "Ending Fractal " << this << "\n";
-    };
-    void redo(Fractal_Memory* PFM)
-    {
-      Box=PFM->Boxes[FractalRank];
-      BBox=PFM->BBoxes[FractalRank];
-      PBox=PFM->PBoxes[FractalRank];
-      PBoxLength=PFM->PBoxesLength[FractalRank];
-      Buffer=PFM->Buffers[FractalRank];
-      //      BoxLev=PFM->BoxesLev[FractalRank];
-      //      BBoxLev=PFM->BBoxesLev[FractalRank];
-      //      PBoxLev=PFM->PBoxesLev[FractalRank];
-      BoxLev=PFM->FRBoxesLev;
-      BBoxLev=PFM->FRBBoxesLev;
-      PBoxLev=PFM->FRPBoxesLev;
-      RealBox=PFM->RealBoxes[FractalRank];
-    }
-    int get_FractalRank()
-    {
-      return p_mess->FractalRank;
-    }
-    int get_FractalNodes()
-    {
-      return p_mess->FractalNodes;
-    }
-    void set_omega_start(int& omega)
-    {
-      omega_start=omega;
-    }
-    double get_omega_start()
-    {
-      return omega_start;
-    }
-    double get_base_mass()
-    {
-      return base_mass;
-    }
-    void set_base_mass(double bm)
-    {
-      base_mass=bm;
-    }
-    void setBox(vector <int>& B)
-    {
-      Box=B;
-    }
-    void setBBox(vector <int>& BB)
-    {
-      BBox=BB;
-    }
-    void getPBox(vector <int>& PB)
-    {
-      PB=PBox;
-    }
-    void setPBox(vector <int>& PB)
-    {
-      PBox=PB;
-      PBoxLength[0]=PBox[1]-PBox[0]+1;
-      PBoxLength[1]=PBox[3]-PBox[2]+1;
-      PBoxLength[2]=PBox[5]-PBox[4]+1;
-  }
-    void setBuffer(vector <int>& BB)
-    {
-      Buffer=BB;
-    }
-    void getBox(vector <int>& B)
-    {
-      B=Box;
-    }
-    void getBBox(vector <int>& BB)
-    {
-      BB=BBox;
-    }
-    void getBBoxLev(vector <int>& BB,const int& level)
-    {
-      BB=BBoxLev[level];
-    }
-    void getPBoxLev(vector <int>& PB,const int& level)
-    {
-      PB=PBoxLev[level];
-    }
-    void getPBoxLength(vector <int>& PBL)
-    {
-      PBL=PBoxLength;
-    }
-    void getBuffer(vector <int>& Bu)
-    {
-      Bu=Buffer;
-    }
-    void getRealBox(vector <double>& RB)
-    {
-      RB=RealBox;
-    }
-    void assign_edge_buffer_passive(Point& point,const int& level,bool& edge,bool& buff,bool& pass,bool& really)
-    {
-      vector <int> pos(3);
-      point.get_pos_point(pos);
-      edge=false;
-      buff=false;
-      really=false;
-      pass=
-	pos[0]< BBoxLev[level][0] ||
-	pos[0]> BBoxLev[level][1] ||
-	pos[1]< BBoxLev[level][2] ||
-	pos[1]> BBoxLev[level][3] ||
-	pos[2]< BBoxLev[level][4] ||
-	pos[2]> BBoxLev[level][5];
-      if(pass)
-	{
-	  really=
-	    pos[0]< PBoxLev[level][0] ||
-	    pos[0]> PBoxLev[level][1] ||
-	    pos[1]< PBoxLev[level][2] ||
-	    pos[1]> PBoxLev[level][3] ||
-	    pos[2]< PBoxLev[level][4] ||
-	    pos[2]> PBoxLev[level][5];
-	  return;
-	}
-      buff=
-	pos[0] < BoxLev[level][0] ||
-	pos[0] > BoxLev[level][1] ||
-	pos[1] < BoxLev[level][2] ||
-	pos[1] > BoxLev[level][3] ||
-	pos[2] < BoxLev[level][4] ||
-	pos[2] > BoxLev[level][5];
-      if(buff)
-	return;
-      edge=
-	pos[0]== BoxLev[level][0] ||
-	pos[0]== BoxLev[level][1] ||
-	pos[1]== BoxLev[level][2] ||
-	pos[1]== BoxLev[level][3] ||
-	pos[2]== BoxLev[level][4] ||
-	pos[2]== BoxLev[level][5];
-    }
-    void setMPIrun(const bool& Mr)
-    {
-      MPIrun=Mr;
-    }
-    bool getMPIrun()
-    {
-      return MPIrun;
-    }
-    void inside_edge_buffer_pass(vector <int>& n,bool& inside,bool& edge,bool& buff,bool& pass)
-    {
-      inside=false;
-      edge=false;
-      buff=false;
-      pass=
-	n[0] < BBox[0] || n[0] > BBox[1] ||
-	n[1] < BBox[2] || n[1] > BBox[3] ||
-	n[2] < BBox[4] || n[2] > BBox[5];
-      //      if(pass)
-      //	return;
-      buff=
-	n[0] < Box[0] || n[0] > Box[1] ||
-	n[1] < Box[2] || n[1] > Box[3] ||
-	n[2] < Box[4] || n[2] > Box[5];
-      //      if(buff)
-      //	return;
-      edge=
-	n[0]==Box[0] || n[0] == Box[1] ||
-	n[1]==Box[2] || n[1] == Box[3] ||
-	n[2]==Box[4] || n[2] == Box[5];
-      inside=
-	n[0] > BBox[0] && n[0] < BBox[1] &&
-	n[1] > BBox[2] && n[1] < BBox[3] &&
-	n[2] > BBox[4] && n[2] < BBox[5];
-    }
-    Fractal_Memory* get_p_generated_from()
-    {
-      return p_generated_from;
-    }
-    void set_p_generated_from (Fractal_Memory* p)
-    {
-      p_generated_from=p;
-    }
-    double get_halo_scale()
-    {
-      return halo_scale;
-    }
-    double get_halo_density0()
-    {
-      return halo_density0;
-    }
-    int get_grid_length()
-    {
-      return grid_length;
-    }
-    void set_grid_length(const int& i)
-    {
-      grid_length=i;
-    }
-    int get_highest_level_used()
-    {
-      return highest_level_used;
-    }
-    void set_highest_level_used(const int& i)
-    {
-      highest_level_used=i;
-    }
-    double get_density_0()
-    {
-      return density_0;
-    }
-    void set_density_0(const double& d)
-    {
-      density_0=d;
-      p_file->FileFractal << "density_0 " << density_0 << "\n";
-    }
-    int get_number_particles()
-    {
-      return number_particles;
-    }
-    void set_number_particles(const int& i)
-    {
-      number_particles=i;
-    }
-    int get_number_particles_world()
-    {
-      return number_particles_world;
-    }
-    void set_number_particles_world(const int& i)
-    {
-      number_particles_world=i;
-    }
-    unsigned int get_minimum_number()
-    {
-      return minimum_number;
-    }
-    void set_minimum_number(const int& i)
-    {
-      minimum_number=i;
-    }
-    int get_level_max()
-    {
-      return level_max;
-    }
-    void set_level_max(const int& i)
-    {
-      level_max=i;
-    }
-    int get_padding()
-    {
-      return padding;
-    }
-    void set_padding(const int& i)
-    {
-      padding=i;
-    }
-    void set_epsilon_sor(const double& e)
-    {
-      epsilon_sor=e;
-    }
-    double get_epsilon_sor()
-    {
-      return epsilon_sor;
-    }
-    int get_random_offset()
-    {
-      return random_offset;
-    }
-    void set_maxits(const int& m)
-    {
-      maxits=m;
-    }
-    int get_maxits()
-    {
-      return maxits;
-    }
-    template <class M> void set_masks(M& mem)
-    {
-      masks=mem.masks;
-      masks_level=mem.masks_level;
-      masks_center_x=mem.masks_center_x;
-      masks_center_y=mem.masks_center_y;
-      masks_center_z=mem.masks_center_z;
-      masks_rad_x=mem.masks_rad_x;
-      masks_rad_y=mem.masks_rad_y;
-      masks_rad_z=mem.masks_rad_z;
-      masks_square=mem.masks_square;
-  }
-    void set_pos_mask(const int& i,const double& x, const double& y, const double& z, const double& r1, const double& r2,const double& r3)
-    {
-      masks_center_x[i]=x;
-      masks_center_y[i]=y;
-      masks_center_z[i]=z;
-      masks_rad_x[i]=r1;
-      masks_rad_y[i]=r2;
-      masks_rad_z[i]=r3;
-    }
-    double get_level_mask(const int& i)
-    {
-      return masks_level[i];
-    }
-    void set_level_mask(const int& i, const int& k)
-    {
-      masks_level[i]=k;
-    }
-    void get_mask(const int& m,vector <double>& cen,vector <double>& rad,bool& square)
-    {
-      cen[0]=masks_center_x[m];
-      cen[1]=masks_center_y[m];
-      cen[2]=masks_center_z[m];
-      rad[0]=masks_rad_x[m];
-      rad[1]=masks_rad_y[m];
-      rad[2]=masks_rad_z[m];
-      square=masks_square[m];
-    }
-    int get_number_masks()
-    {
-      return masks;
-    }
-    void set_number_masks(const int& i)
-    {
-      masks=i;
-    }
-    bool get_debug()
-    {
-      return debug;
-    }
-    void set_force_max(const double& f_max)
-    {
-      force_max=f_max;
-    }
-    double get_force_max()
-    {
-      return force_max;
-    }
-    void set_periodic(const bool& i)
-    {
-      periodic=i;
-    }
-    bool get_periodic()
-    {
-      return periodic;
-    }
-    bool get_halo_fixed()
-    {
-      return halo_fixed;
-    }
-    void set_steps(int& s)
-    {
-      steps=s;
-    }
-    void add_steps(int& s)
-    {
-      steps+=s;
-    }
-    int get_steps()
-    {
-      return steps;
-    }
-    void print_list(int what)
-    {
-      static int steppp=0;
-      vector <double>pos(3);
-      vector <double>pf(4);
-      fprintf(p_file->PFPos," how many particles in list %d %d \n",particle_list.size(),what);
-      for(unsigned int p=0;p<particle_list.size();p++)
-	{
-	  particle_list[p]->get_pos(pos);
-	  if(what == 0)
-	    fprintf(p_file->PFPos," PARTS%d %6d %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2]);
-	  else
-	    {
-	      particle_list[p]->get_field_pf(pf);
-	      fprintf(p_file->PFPos," PARTS%d %6d %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2],
-		      pf[0],pf[1],pf[2],pf[3]);
-	    }
-	}
-      if(what == 0)
-	steppp++;
-    }
-    void print_list_world(int what)
-    {
-      static int steppp=0;
-      vector <double>pos(3);
-      vector <double>pf(4);
-      fprintf(p_file->PFPos," how many particles in world list %d %d \n",particle_list_world.size(),what);
-      for(unsigned int p=0;p<particle_list_world.size();p++)
-	{
-	  particle_list_world[p]->get_pos(pos);
-	  if(what == 0)
-	    fprintf(p_file->PFPos," WORLD%d %6d %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2]);
-	  else
-	    {
-	      particle_list_world[p]->get_field_pf(pf);
-	      fprintf(p_file->PFPos," WORLD%d %6d %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E %10.6E \n",steppp,p,pos[0],pos[1],pos[2],
-		      pf[0],pf[1],pf[2],pf[3]);
-	    }
-	}
-      if(what == 0)
-	steppp++;
-    }
-    double get_delta_time(int which)
-    {
-      return delta_time[which];
-    }
-    void get_total_times(vector <double>& TT)
-    {
-      TT=total_time;
-    }
-    void timing_lev(const int& what,const int& level)
-    {
-      if(what == -2)
-	time_g[level]=p_mess->Clock();
-      else if(what == -1)
-	time_p[level]=p_mess->Clock();
-      else if(what == 2)
-	delta_g[level]=p_mess->Clock()-time_g[level];
-      else if(what == 1)
-	delta_p[level]=p_mess->Clock()-time_p[level];
-      else if(what ==0)
-	{
-	  fprintf(p_file->PFTimeLev,"\n steps %5d \n",steps);
-	  for(int ni=0;ni<=level_max;ni++)
-	    {
-	      total_g[ni]+=delta_g[ni];
-	      total_p[ni]+=delta_p[ni];
-	      double dtg=delta_g[ni]/clocks_per_sec;
-	      double dtp=delta_p[ni]/clocks_per_sec;
-	      double totalg=total_g[ni]/clocks_per_sec;
-	      double totalp=total_p[ni]/clocks_per_sec;
-	      fprintf(p_file->PFTimeLev," %5d \t %3d \t %10.2E \t %10.2E \t %10.2E \t %10.2E \n",steps,ni,dtg,totalg,dtp,totalp);
-	    }
-	  if(FractalRank == 0)
-	    fflush(p_file->PFTimeLev);
-	}
-      else
-	assert(0);
-    }
-    void timing(const int& what, const int& which)
-    {
-      if(what == -1)
-	time_1[which]=p_mess->Clock();
-      else if(what == 1)
-	{
-	  time_2[which]=p_mess->Clock();
-	  delta_time[which]+=time_2[which]-time_1[which];
-	}
-      else if(what == 0)
-	{
-	  steps++;
-	  fprintf(p_file->PFTime,"\n steps %5d \n",steps);
-	  for(int i=0; i < 50; i++)
-	    total_time[i]+=delta_time[i];
-	  double dt49=(delta_time[49]/clocks_per_sec)+1.0e-6;
-	  double dtt49=(total_time[49]/clocks_per_sec)+1.0e-6;
-	  total_time[48]=0.0;
-	  for(int ni=33;ni<=41;ni++)
-	    {
-	      delta_time[48]+=delta_time[ni];
-	      total_time[48]+=total_time[ni];
-	    }
-	  for(int i=0; i < 50; i++)
-	    {
-	      double dt=delta_time[i]/clocks_per_sec;
-	      double dtt=total_time[i]/clocks_per_sec;
-	      fprintf(p_file->PFTime,"timing %5d \t %3d \t %10.2E \t %10.2E \t",steps,i,dt,dtt);
-	      fprintf(p_file->PFTime,"%10.2f \t %10.2f \t %s \n",100.0*dt/dt49,100.0*dtt/dtt49,time_string[i].c_str());
-	    }
-	  if(FractalRank == 0)
-	    fflush(p_file->PFTime);
-	}
-      else if(what== -2)
-	delta_time.assign(50,0);
-    }
-    void where_6(const int& i,const int& j,const int& k,vector <int>& Boxu)
-    {
-      Boxu.assign(6,-1);
-      Boxu[0]=where_1(i-1,j,k);
-      Boxu[1]=where_1(i+1,j,k);
-      Boxu[2]=where_1(i,j-1,k);
-      Boxu[3]=where_1(i,j+1,k);
-      Boxu[4]=where_1(i,j,k-1);
-      Boxu[5]=where_1(i,j,k+1);
-    }
-    int where_1(const int& i,const int& j,const int& k)
-    {
-      if(k < PBox[4] || k > PBox[5]) return -1;
-      if(j < PBox[2] || j > PBox[3]) return -1;
-      if(i < PBox[0] || i > PBox[1]) return -1;
-      return (i-PBox[0])+((j-PBox[2])+(k-PBox[4])*PBoxLength[1])*PBoxLength[0];
-    }
-    int where(const int& nx,const int& ny,const int& nz,vector <int>& boX,vector <int>& boXL)
-    {
-      return (nz-boX[4])+((ny-boX[2])+(nx-boX[0])*boXL[1])*(boXL[2]+2);
-    }
-    void wrap(const int& p)
-    {
-      wrap(particle_list[p]);
-    }
-    void wrap()
-    {
-      for(unsigned int p=0;p<particle_list.size();p++)
-	wrap(p);
-    }
-    void wrap(Particle* p)
-    {
-      vector <double> pos(3);
-      p->get_pos(pos);
-      bool doit=false;
-      for(int j=0;j<3;j++)
-	{
-	  if(pos[j] < 0.0)
-	    {
-	      pos[j]+=1.0;
-	      doit=true;
-	    }
-	  else if(pos[j] >= 1.0)
-	    {
-	      pos[j]-=1.0;
-	      doit=true;
-	    }
-	}
-      if(doit)
-	p->set_pos(pos);
-    }
+      //      cerr << "Ending Fractal " << this << "\n";
+    }
+    void redo(Fractal_Memory* PFM);
+    int get_FractalRank() const;
+    int get_FractalNodes() const;
+    void set_omega_start(int& omega);
+    double get_omega_start() const;
+    double get_base_mass() const;
+    void set_base_mass(double bm);
+    void setBox(vector <int>& B);
+    void setBBox(vector <int>& BB);
+    void getPBox(vector <int>& PB) const;
+    void setPBox(vector <int>& PB);
+    void setBuffer(vector <int>& BB);
+    void getBox(vector <int>& B) const;
+    void getBBox(vector <int>& BB) const;
+    void getBBoxLev(vector <int>& BB,const int& level) const;
+    void getPBoxLev(vector <int>& PB,const int& level) const;
+    void getPBoxLength(vector <int>& PBL) const;
+    void getBuffer(vector <int>& Bu) const;
+    void getRealBox(vector <double>& RB) const;
+    void assign_edge_buffer_passive(Point& point,const int& level,bool& edge,bool& buff,bool& pass,bool& really) const;
+    void setMPIrun(const bool& Mr);
+    bool getMPIrun() const;
+    void inside_edge_buffer_pass(vector <int>& n,bool& inside,bool& edge,bool& buff,bool& pass) const;
+    Fractal_Memory* get_p_generated_from() const;
+    void set_p_generated_from (Fractal_Memory* p);
+    double get_halo_scale() const;
+    double get_halo_density0() const;
+    int get_grid_length() const;
+    void set_grid_length(const int& i);
+    int get_highest_level_used() const;
+    void set_highest_level_used(const int& i);
+    double get_density_0() const;
+    void set_density_0(const double& d);
+    int get_number_particles() const;
+    void set_number_particles(const int& i);
+    int get_number_particles_world() const;
+    void set_number_particles_world(const int& i);
+    unsigned int get_minimum_number() const;
+    void set_minimum_number(const int& i);
+    int get_level_max() const;
+    void set_level_max(const int& i);
+    int get_padding() const;
+    void set_padding(const int& i);
+    void set_epsilon_sor(const double& e);
+    double get_epsilon_sor() const;
+    int get_random_offset() const;
+    void set_maxits(const int& m);
+    int get_maxits() const;
+    template <class M> void set_masks(M& mem);
+    void set_pos_mask(const int& i,const double& x, const double& y, const double& z, const double& r1, const double& r2,const double& r3);
+    double get_level_mask(const int& i) const;
+    void set_level_mask(const int& i, const int& k);
+    void get_mask(const int& m,vector <double>& cen,vector <double>& rad,bool& square) const;
+    int get_number_masks() const;
+    void set_number_masks(const int& i);
+    bool get_debug() const;
+    void set_force_max(const double& f_max);
+    double get_force_max() const;
+    void set_periodic(const bool& i);
+    bool get_periodic() const;
+    bool get_halo_fixed() const;
+    void set_steps(int& s);
+    void add_steps(int& s);
+    int get_steps() const;
+    void print_list(int what);
+    void print_list_world(int what);
+    double get_delta_time(int which) const;
+    void get_total_times(vector <double>& TT) const;
+    void timing_lev(const int& what,const int& level);
+    void timing(const int& what, const int& which);
+    void where_6(const int& i,const int& j,const int& k,vector <int>& Boxu) const;
+    int where_1(const int& i,const int& j,const int& k) const;
+    int where(const int& nx,const int& ny,const int& nz,vector <int>& boX,vector <int>& boXL) const;
+    void wrap(const int& p);
+    void wrap();
+    void wrap(Particle* p);
     static double my_rand(const double& rand_max)
     {
       return (double)(rand())/rand_max;
@@ -745,11 +305,11 @@ namespace FractalSpace
     {
       return (double)(max(rand(),1))/rand_max;
     }
-    template <class M> static bool equal(vector <M>& a,vector <M>& b) 
+    template <class M> static bool equal(vector <M>& a,vector <M>& b)
     {
       unsigned int sa=a.size();
       if(sa != b.size()); 
-	return false;
+      return false;
       for(unsigned int i=0;i<sa;i++)
 	{
 	  if(a[i] == b[i])
