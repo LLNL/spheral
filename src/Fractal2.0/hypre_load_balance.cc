@@ -20,7 +20,7 @@ namespace FractalSpace
 	count_sum2+=pow(holy_handgrenade_of_antioch,2);
 	count_max=max(count_max,mem.ij_counts[HR]);
 	total+=mem.ij_counts[HR];
-	fprintf(PFH," Hypre counts \t %d \t %d \n",HR,mem.ij_counts[HR]);
+	//	fprintf(PFH," Hypre counts \t %d \t %d \n",HR,mem.ij_counts[HR]);
       }
 
     int average=count_sum1/count_sum0;

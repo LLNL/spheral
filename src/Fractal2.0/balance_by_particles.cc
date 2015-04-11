@@ -52,7 +52,8 @@ namespace FractalSpace
     double scalepoint=1.0e-10;
     double scalepart=1.0;
     int steps=PFM->steps;
-    fprintf(PFFM," scalings balance %d %10.2E %10.2E \n",steps,scalepoint,scalepart);
+    if(FractalRank == 0)
+      fprintf(PFFM," scalings balance %d %10.2E %10.2E \n",steps,scalepoint,scalepart);
     int real_length=PFM->grid_length;
     double alength=real_length;
     vector <double> numbersz(real_length,0.0);
@@ -334,22 +335,30 @@ namespace FractalSpace
 		assert(VOL > 0);
 		VOL*=(PFM->Boxes[FR][5]-PFM->Boxes[FR][4]);
 		assert(VOL > 0);
-		fprintf(PFFM," BOXES %5d %5d %5d %5d %7d ",FR,FRX,FRY,FRZ,VOL);
-		fprintf(PFFM," %5d %5d %5d ",PFM->Boxes[FR][0],PFM->Boxes[FR][1],PFM->Boxes[FR][2]);
-		fprintf(PFFM," %5d %5d %5d \n",PFM->Boxes[FR][3],PFM->Boxes[FR][4],PFM->Boxes[FR][5]);
+		if(FractalRank == 0)
+		  {
+		    fprintf(PFFM," BOXES %5d %5d %5d %5d %7d ",FR,FRX,FRY,FRZ,VOL);
+		    fprintf(PFFM," %5d %5d %5d ",PFM->Boxes[FR][0],PFM->Boxes[FR][1],PFM->Boxes[FR][2]);
+		    fprintf(PFFM," %5d %5d %5d \n",PFM->Boxes[FR][3],PFM->Boxes[FR][4],PFM->Boxes[FR][5]);
+		  }
 		FR++;
 	      }
 	  }
       }
     double time5=PFM->p_mess->Clock();
-    PFM->p_file->note(true," made new Boxes with equal smart particles ");
+    if(FractalRank == 0)
+      PFM->p_file->note(true," made new Boxes with equal smart particles ");
     PFM->calc_Buffers_and_more();
-    PFM->p_file->note(true," made new Buffers with equal smart particles ");
+    if(FractalRank == 0)
+      PFM->p_file->note(true," made new Buffers with equal smart particles ");
     PFM->calc_RealBoxes();
-    PFM->p_file->note(true," made new RealBoxes with equal smart particles ");
+    if(FractalRank == 0)
+      PFM->p_file->note(true," made new RealBoxes with equal smart particles ");
     PF->redo(PFM);
-    PFM->p_file->note(true," redo fractal ");
+    if(FractalRank == 0)
+      PFM->p_file->note(true," redo fractal ");
     double time6=PFM->p_mess->Clock();
-    fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time6-time1);
+    if(FractalRank == 0)
+      fprintf(PFM->p_file->PFTime," balance particles %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time6-time1);
   }
 }
