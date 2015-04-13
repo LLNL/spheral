@@ -1475,6 +1475,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 z       = ri*self.positions[n][2]
                 theta   = acos(z/sqrt(x*x+y*y+z*z))
                 phi     = atan2(y,x)
+                if (phi<0.0):
+                    phi = phi + 2.0*pi
                 
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
                     self.x.append(ri*self.positions[n][0])
