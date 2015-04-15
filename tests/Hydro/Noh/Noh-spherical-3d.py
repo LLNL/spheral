@@ -86,7 +86,7 @@ commandLine(seed = "lattice",
             restoreCycle = None,
             restartStep = 1000,
             checkRestart = False,
-            dataDir = "dumps-spherical",
+            dataDir = "dumps-spherical-Noh",
             outputFile = "None",
             comparisonFile = "None",
 
@@ -109,9 +109,9 @@ elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if SPH:
-        constructor = SPHHydro
+        HydroConstructor = SPHHydro
     else:
-        constructor = ASPHHydro
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
                        str(HydroConstructor).split("'")[1].split(".")[-1],

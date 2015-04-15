@@ -1384,8 +1384,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.phiMax = phiMax
         self.nNodePerh = nNodePerh
         
-        
-        
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
         if type(densityProfileMethod) == type(1.0):
@@ -1414,6 +1412,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.H = []
         ri = rmax
         
+        # first column is total number of shell points
+        # second column is number of refinements to reach that shell count
+        # third column is shape choice that reaches that shell count
         resolution = [[5    ,0,0],
                       [6    ,0,1],
                       [12   ,0,2],
@@ -1475,6 +1476,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 z       = ri*self.positions[n][2]
                 theta   = acos(z/sqrt(x*x+y*y+z*z))
                 phi     = atan2(y,x)
+                if (phi<0.0):
+                    phi = phi + 2.0*pi
                 
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
                     self.x.append(ri*self.positions[n][0])

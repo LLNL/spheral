@@ -37,8 +37,8 @@ commandLine(KernelConstructor = BSplineKernel,
 
             SVPH = False,
             CRKSPH = False,
-            #Qconstructor = MonaghanGingoldViscosity,
-            Qconstructor = TensorMonaghanGingoldViscosity,
+            Qconstructor = MonaghanGingoldViscosity,
+            #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nhQ = 5.0,
             nhL = 10.0,
@@ -95,7 +95,7 @@ commandLine(KernelConstructor = BSplineKernel,
             checkEnergy = True,
             restoreCycle = None,
             restartStep = 10000,
-            dataDir = "dumps-planar",
+            dataDirBase = "dumps-planar-Noh",
             restartBaseName = "Noh-planar-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -124,19 +124,23 @@ commandLine(KernelConstructor = BSplineKernel,
             tol = 1.0e-5,
 
             graphics = True,
-            serialDump = False #whether to dump a serial ascii file at the end for viz
             )
 
+if SVPH:
+    HydroConstructor = SVPHFacetedHydro
+elif CRKSPH:
+    HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    HydroConstructor = SPHHydro
+
+dataDir = os.path.join(dataDirBase,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1])
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
 dx = (x1 - x0)/nx1
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -223,7 +227,7 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
+    hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -236,25 +240,25 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate,
-                      momentumConserving = momentumConserving)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             momentumConserving = momentumConserving)
 else:
-    hydro = SPHHydro(WT, WTPi, q,
-                     filter = filter,
-                     cfl = cfl,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     gradhCorrection = gradhCorrection,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HUpdate,
-                     XSPH = XSPH,
-                     epsTensile = epsilonTensile,
-                     nTensile = nTensile)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -528,30 +532,9 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 
-
-
-if serialDump:
-    serialData = []
-    i,j = 0,0
-    
-    f = open(dataDir + "/noh-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
-    f.write("# i x m rho u v rhoans uans vans visc\n")
-    for j in xrange(nodes1.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
-                                                                   nodes1.mass()[j],
-                                                                   nodes1.massDensity()[j],
-                                                                   nodes1.specificThermalEnergy()[j],
-                                                                   nodes1.velocity()[j][0],
-                                                                   rhoans[j],
-                                                                   uans[j],
-                                                                   vans[j],
-                                                                   hydro.maxViscousPressure()[0][j]))
-    f.close()
-
 #------------------------------------------------------------------------------
 # Compute the error.
 #------------------------------------------------------------------------------
-
 if mpi.rank == 0:
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm

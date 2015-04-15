@@ -184,7 +184,7 @@ def plotFieldList(fieldList,
                   xFunction = "%s.x",
                   yFunction = "%s",
                   plotGhosts = False,
-                  colorNodeLists = True,
+                  colorNodeLists = False,
                   plot = None,
                   userXRange = [None, None],
                   userYRange = [None, None],
@@ -287,7 +287,7 @@ def plotFieldList(fieldList,
                     legend = legendNodeList[iNodeList]
                     legendNodeList[iNodeList] = None
                     data = Gnuplot.Data(x, y,
-                                        with_ = plotStyle + " pt 1 lt %i" % iNodeList,
+                                        with_ = plotStyle + " lt %i" % iNodeList,
                                         title = legend,
                                         inline = True)
                     plot.replot(data)
@@ -299,7 +299,7 @@ def plotFieldList(fieldList,
             x = numpy.array(globalX)
             y = numpy.array(globalY)
             data = Gnuplot.Data(x, y,
-                                with_ = plotStyle, #  + " ls 1",
+                                with_ = plotStyle + " lt -1 pt 3",
                                 title = lineTitle,
                                 inline = True)
             plot.replot(data)
@@ -316,7 +316,7 @@ def plotFieldList(fieldList,
 #-------------------------------------------------------------------------------
 def plotState(thingus,
               plotGhosts = False,
-              colorNodeLists = True,
+              colorNodeLists = False,
               plotStyle = "points",
               xFunction = "%s.x",
               vecyFunction = "%s.x",
@@ -397,7 +397,7 @@ def plotState(thingus,
 #-------------------------------------------------------------------------------
 def plotRadialState(dataBase,
                     plotGhosts = False,
-                    colorNodeLists = True,
+                    colorNodeLists = False,
                     lineTitle = "Simulation"):
 
     rhoPlot = plotFieldList(dataBase.fluidMassDensity,
@@ -709,7 +709,7 @@ def findPairMinMax(listOfPairs):
 def plotVelocityField2d(dataBase,
                         plotGhosts = False,
                         velMultiplier = 1.0,
-                        colorNodeLists = True,
+                        colorNodeLists = False,
                         colorDomains = False,
                         title = ""):
 
@@ -727,7 +727,7 @@ def plotVelocityField2d(dataBase,
 def plotVectorField2d(dataBase, fieldList,
                       plotGhosts = False,
                       vectorMultiplier = 1.0,
-                      colorNodeLists = True,
+                      colorNodeLists = False,
                       colorDomains = False,
                       title = ""):
 
