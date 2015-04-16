@@ -1363,7 +1363,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  thetaMax = pi,
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
-                 nNodePerh = 2.01):
+                 nNodePerh = 2.01,
+                 offset=None):
         
         assert n > 0
         assert rmin < rmax
@@ -1374,6 +1375,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert phiMin >= 0.0 and phiMin <= 2.0*pi
         assert phiMax >= 0.0 and phiMax <= 2.0*pi
         assert nNodePerh > 0.0
+        assert offset is None or len(offset)==3
         
         self.n = n
         self.rmin = rmin
@@ -1453,13 +1455,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
-            rhoi    = densityProfileMethod(ri)
+            rhoi    = self.densityProfileMethod(ri)
             dr      = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
             mshell  = rhoi * 4.0*pi*ri*ri*dr
             nshell  = int(mshell / self.m0)
+            nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
-            for i in xrange(21):
+            for i in xrange(28):
                 if (resolution[i][0] > nshell):
                     nr  = resolution[i][1]
                     ver = resolution[i][2]
@@ -1469,25 +1472,34 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-            if (ver==0):
-                self.createHexaSphere(nr)
-            elif (ver==1):
-                self.createOctaSphere(nr)
-            elif (ver==2):
-                self.createCubicSphere(nr)
-            else:
-                self.createIcoSphere(nr)
+            if (nshell > 2):
+                if (ver==0):
+                    self.createHexaSphere(nr)
+                elif (ver==1):
+                    self.createOctaSphere(nr)
+                elif (ver==2):
+                    self.createCubicSphere(nr)
+                else:
+                    self.createIcoSphere(nr)
+            elif(nshell==1):
+                self.positions.append([0,0,0])
+            elif(nshell==2):
+                self.positions.append([1,0,0])
+                self.positions.append([-1,0,0])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
             print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = ri*self.positions[n][0]
                 y       = ri*self.positions[n][1]
                 z       = ri*self.positions[n][2]
-                theta   = acos(z/sqrt(x*x+y*y+z*z))
-                phi     = atan2(y,x)
-                if (phi<0.0):
-                    phi = phi + 2.0*pi
-                
+                if(nshell>1):
+                    theta   = acos(z/sqrt(x*x+y*y+z*z))
+                    phi     = atan2(y,x)
+                    if (phi<0.0):
+                        phi = phi + 2.0*pi
+                else:
+                    theta = (thetaMax - thetaMin)/2.0
+                    phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
                     self.x.append(ri*self.positions[n][0])
                     self.y.append(ri*self.positions[n][1])
@@ -1497,7 +1509,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             #self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
-                
+    
+        # If requested, shift the nodes.
+        if offset:
+            for i in xrange(len(self.x)):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
+                self.z[i] += offset[2]
+            
         print "Generated a total of %i nodes." % len(self.x)
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.z, self.m, self.H)
