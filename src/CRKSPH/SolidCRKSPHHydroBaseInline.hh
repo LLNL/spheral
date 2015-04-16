@@ -1,5 +1,5 @@
 namespace Spheral {
-namespace SolidCRKSPHSpace {
+namespace CRKSPHSpace {
 
 //------------------------------------------------------------------------------
 // The internal state field lists.

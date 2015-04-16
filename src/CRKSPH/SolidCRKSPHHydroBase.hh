@@ -36,10 +36,10 @@ namespace Spheral {
 }
 
 namespace Spheral {
-namespace SolidCRKSPHSpace {
+namespace CRKSPHSpace {
 
 template<typename Dimension>
-class SolidCRKSPHHydroBase: public SPHSpace::CRKSPHHydroBase<Dimension> {
+class SolidCRKSPHHydroBase: public CRKSPHHydroBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -52,23 +52,18 @@ public:
 
   // Constructors.
   SolidCRKSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                    const KernelSpace::TableKernel<Dimension>& W,
-                    const KernelSpace::TableKernel<Dimension>& WPi,
-                    ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                    const double filter,
-                    const double cfl,
-                    const bool useVelocityMagnitudeForDt,
-                    const bool compatibleEnergyEvolution,
-                    const bool gradhCorrection,
-                    const bool XSPH,
-                    const bool correctVelocityGradient,
-                    const bool sumMassDensityOverAllNodeLists,
-                    const PhysicsSpace::MassDensityType densityUpdate,
-                    const PhysicsSpace::HEvolutionType HUpdate,
-                    const double epsTensile,
-                    const double nTensile,
-                    const Vector& xmin,
-                    const Vector& xmax);
+                       const KernelSpace::TableKernel<Dimension>& W,
+                       const KernelSpace::TableKernel<Dimension>& WPi,
+                       ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                       const double filter,
+                       const double cfl,
+                       const bool useVelocityMagnitudeForDt,
+                       const bool compatibleEnergyEvolution,
+                       const bool XSPH,
+                       const PhysicsSpace::MassDensityType densityUpdate,
+                       const PhysicsSpace::HEvolutionType HUpdate,
+                       const double epsTensile,
+                       const double nTensile);
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBase();
