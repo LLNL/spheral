@@ -63,8 +63,7 @@ public:
                 const PhysicsSpace::MassDensityType densityUpdate,
                 const PhysicsSpace::HEvolutionType HUpdate,
                 const double epsTensile,
-                const double nTensile,
-                const bool momentumConserving);
+                const double nTensile);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -172,10 +171,6 @@ public:
   Scalar nTensile() const;
   void nTensile(const Scalar val);
 
-  // Flag to determine if we're using the original non-momentum conserving form of CRKSPH or not.
-  bool momentumConserving() const;
-  void momentumConserving(const bool val);
-
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -226,7 +221,7 @@ private:
   // A bunch of switches.
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mMomentumConserving;
+  bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
 
