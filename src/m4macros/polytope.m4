@@ -8,7 +8,7 @@ AC_SUBST(USE_TRIANGLE)
 AC_SUBST(USE_TETGEN)
 
 POLYTOPEFLAGS="prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
-POLYTOPELIBS="-lpolytope"
+POLYTOPELIBS="-lpolytope -lvoro_2d -lvoro_3d"
 # -----------------------------------------------------------------
 # Optionally build polytope without Triangle
 # -----------------------------------------------------------------
@@ -18,7 +18,7 @@ AC_ARG_WITH(triangle,
 [
    AC_MSG_RESULT(yes)
    USE_TRIANGLE=0
-   POLYTOPELIBS="$POLYTOPELIBS -lvoro_2d"
+   #POLYTOPELIBS="$POLYTOPELIBS -lvoro_2d"
 ],
 [
    AC_MSG_RESULT(no)
@@ -36,7 +36,7 @@ AC_ARG_WITH(tetgen,
 [
    AC_MSG_RESULT(yes)
    USE_TETGEN=0
-   POLYTOPELIBS="$POLYTOPELIBS -lvoro_3d"
+   #POLYTOPELIBS="$POLYTOPELIBS -lvoro_3d"
 ],
 [
    AC_MSG_RESULT(no)
