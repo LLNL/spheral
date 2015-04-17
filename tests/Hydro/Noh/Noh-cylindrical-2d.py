@@ -57,6 +57,7 @@ commandLine(KernelConstructor = BSplineKernel,
             linearConsistent = False,
             Cl = 1.0, 
             Cq = 0.75,
+            linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -96,7 +97,7 @@ commandLine(KernelConstructor = BSplineKernel,
             restoreCycle = None,
             restartStep = 1000,
             checkRestart = False,
-            dataDir = "dumps-cylindrical",
+            dataDir = "dumps-cylindrical-Noh",
             outputFile = "None",
             comparisonFile = "None",
 
@@ -256,7 +257,7 @@ output("db.numFluidNodeLists")
 if Qconstructor is TensorSVPHViscosity:
     q = Qconstructor(Cl, Cq, fslice)
 else:
-    q = Qconstructor(Cl, Cq)
+    q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -266,6 +267,8 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.

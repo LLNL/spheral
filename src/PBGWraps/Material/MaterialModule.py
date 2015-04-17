@@ -69,6 +69,7 @@ self.generateIsothermalEquationOfStateBindings(self.IsothermalEquationOfState%(d
         x.add_instance_attribute("unitLengthMeters", "double", getter="unitLengthMeters", is_const=True)
         x.add_instance_attribute("unitMassKg", "double", getter="unitMassKg", is_const=True)
         x.add_instance_attribute("unitTimeSec", "double", getter="unitTimeSec", is_const=True)
+        x.add_instance_attribute("unitMassDensity", "double", getter="unitMassDensity", is_const=True)
         x.add_instance_attribute("protonMass", "double", getter="protonMass", is_const=True)
         x.add_instance_attribute("electronMass", "double", getter="electronMass", is_const=True)
         x.add_instance_attribute("electronCharge", "double", getter="electronCharge", is_const=True)
