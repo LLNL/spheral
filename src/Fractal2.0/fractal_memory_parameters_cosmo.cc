@@ -55,7 +55,7 @@ namespace FractalSpace
     //    mem.number_particles = (mem.grid_length*mem.grid_length*mem.grid_length)/mem.FractalNodes; 
     // I will let you guess, you are wrong. It needs to be = grid_length**3/FractalNodes.
     mem.max_particles=mem.number_particles*_mulT_;
-    //    cout << " EARLY NUMBERS " << mem.FractalRank  << " " << mem.number_particles << " " << mem.max_particles << "\n";
+    //    cerr << " EARLY NUMBERS " << mem.FractalRank  << " " << mem.number_particles << " " << mem.max_particles << "\n";
     //    mem.max_particles=1;
     //The max number of particles the initial conditions code can generate through particle splitting
     mem.level_max = 10 ; 
@@ -120,7 +120,7 @@ namespace FractalSpace
     mem.time=Age_of_the_universe(mem.omega_start,mem.lambda_start,0.0);
     mem.total_mass=1.0;
     if(Ranky == 0)
-      cout << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << "\n";
+      cerr << " cosmo " << mem.omega_start << " " << mem.lambda_start << " " << mem.sigma_initial << " " << mem.time << "\n";
     //
     mem.crash_levels=8;
     mem.crash_pow=2.0;
@@ -232,7 +232,7 @@ namespace FractalSpace
     mem.masks_init=0;
 
     if(Ranky == 0)
-      cout << " finishing cosmo " << "\n";
+      cerr << " finishing cosmo " << "\n";
   }
 }
 namespace FractalSpace

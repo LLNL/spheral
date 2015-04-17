@@ -38,15 +38,15 @@ int main(int argc, char* argv[])
     SHRINK=atof(argv[7]);
   if(Ranky==0)
     {
-      cout << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-      cout << " " << NumberParticles << " " << SHRINK << "\n";
+      cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
+      cerr << " " << NumberParticles << " " << SHRINK << "\n";
       int ar=0;
       while(ar < argc)
 	{
-	  cout << " " << argv[ar];
+	  cerr << " " << argv[ar];
 	  ar++;
 	}
-      cout << "\n";
+      cerr << "\n";
     }
   Fractal_Memory* PFM=fractal_memory_create();
   int balance=1;

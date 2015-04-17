@@ -43,7 +43,7 @@ namespace FractalSpace
   }
   void factors(int FR,vector <int>& divs,bool& easy)
   {
-    //  cout << " enter factors " << FR << endl;
+    //  cerr << " enter factors " << FR << endl;
     divs.clear();
     int third=pow(static_cast<double>(FR)+0.5,1.0/3.0);
     if(third*third*third == FR)
@@ -64,7 +64,7 @@ namespace FractalSpace
 	  }
 	else
 	  divisor++;
-	//      cout << " In factors " << FR << " " << diva << " " << divisor << " " << endl;
+	//      cerr << " In factors " << FR << " " << diva << " " << divisor << " " << endl;
       }
   }
 }

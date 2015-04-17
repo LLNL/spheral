@@ -16,20 +16,14 @@ namespace FractalSpace
     {
       assert(this);
       debug=false;
-      //      cout << "Making Misc " << this << "\n";
+      //      cerr << "Making Misc " << this << "\n";
     }
     ~Misc()
     {
-      //      cout << "Ending Misc " << this << "\n";
+      //      cerr << "Ending Misc " << this << "\n";
     }
-    bool get_debug()
-    {
-      return debug;
-    }
-    void set_debug(bool& d)
-    {
-      debug=d;
-    }
+    bool get_debug() const;
+    void set_debug(bool& d);
     static int nr(const int& i,const int& j,const int& k, const int&m)
     {
       return i+(j+k*m)*m;
@@ -42,11 +36,11 @@ namespace FractalSpace
 	i*=x;
       return i;
     }
-    template <class T>  static T pow2(const T& x)
+    template <class T> static T pow2(const T& x)
     {
       return x*x;
     }
-    template <class T>  static T pow3(const T& x)
+    template <class T> static T pow3(const T& x)
     {
       return x*x*x;
     }
@@ -81,8 +75,8 @@ namespace FractalSpace
 	}
       return sum;
     }
-    template <class T>   static void sum_prod(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,vector <T>& x, 
-					      vector <T>& a, vector <T>& b, vector <T>& c, vector <T>& d)
+    template <class T> static void sum_prod(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,vector <T>& x, 
+					    vector <T>& a, vector <T>& b, vector <T>& c, vector <T>& d)
     {
       sum_4[0]=0.0;
       sum_4[1]=0.0;
@@ -96,8 +90,8 @@ namespace FractalSpace
 	  sum_4[3]+=x[n]*d[n];
 	}
     }
-    template <class T>   static void sum_prod(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,vector <T>& x, 
-					      vector <T>& a, vector <T>& b, vector <T>& c, vector <T>& d, vector <T>& e, vector <T>& f)
+    template <class T> static void sum_prod(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,vector <T>& x, 
+					    vector <T>& a, vector <T>& b, vector <T>& c, vector <T>& d, vector <T>& e, vector <T>& f)
     {
       sum_4[0]=0.0;
       sum_4[1]=0.0;
@@ -115,9 +109,9 @@ namespace FractalSpace
 	  sum_4[5]+=x[n]*f[n];
 	}
     }
-    template <class T>  static void sum_prod_p_sharp(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,
-						     vector <T>& w_p,vector <T>& w_x,vector <T>& w_y,vector <T>& w_z, 
-						     vector <T>& a)
+    template <class T> static void sum_prod_p_sharp(const int& n1,const int& n2,const int& n3, vector <T>& sum_4,
+						    vector <T>& w_p,vector <T>& w_x,vector <T>& w_y,vector <T>& w_z, 
+						    vector <T>& a)
     {
       sum_4[0]=0.0;
       sum_4[1]=0.0;
@@ -192,7 +186,7 @@ namespace FractalSpace
       weights_z[3]=(weights_p[3]+weights_p[7]);
       weights_z[7]=-weights_z[3];
     }
-    template <class T>  static T sinc_2(const T& x)
+    template <class T> static T sinc_2(const T& x)
     {
       if(abs(x) > 0.0001)
 	{
@@ -201,7 +195,7 @@ namespace FractalSpace
 	}
       return 1.0-x*x/3.0;
     } 
-    template <class T>  static T square_filter(const T& x)
+    template <class T> static T square_filter(const T& x)
     {
       if(abs(x) > 0.0001)
 	{

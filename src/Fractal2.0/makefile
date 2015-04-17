@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh messA.hh file_class.hh libs.hh headers.hh fractal_interface_public.hh classes.hh
+classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 fftopt1 = 
@@ -64,6 +64,31 @@ particle_cosmo_file = make_particles_cosmo
 particle_cosmo_mpi_file = make_particles_cosmo_mpi
 step_file = step_leapfrog
 velocity_file = velocities
+#
+fractal_class.o :	fractal_class.cc $(classes)
+	$(compile) -c fractal_class.cc
+#
+fractal_memory.o :	fractal_memory.cc $(classes)
+	$(compile) -c fractal_memory.cc
+#
+file_class.o :	file_class.cc $(classes)
+	$(compile) -c file_class.cc
+#
+group_class.o :	group_class.cc $(classes)
+	$(compile) -c group_class.cc
+#
+mess.o :	mess.cc $(classes)
+	$(compile) -c mess.cc
+#
+misc_class.o :	misc_class.cc $(classes)
+	$(compile) -c misc_class.cc
+#
+particle_class.o :	particle_class.cc $(classes)
+	$(compile) -c particle_class.cc
+#
+point_class.o :	point_class.cc $(classes)
+	$(compile) -c point_class.cc
+#
 #
 add_pseudo_particles.o :	add_pseudo_particles.cc $(classes)
 	$(compile) -c add_pseudo_particles.cc
@@ -551,6 +576,15 @@ $(step_file).o :	$(step_file).cc $(classes)
 $(velocity_file).o :	$(velocity_file).cc $(classes)
 	$(compile) -c $(velocity_file).cc
 #
+files_class_o= \
+fractal_class.o \
+fractal_memory.o \
+file_class.o \
+group_class.o \
+mess.o \
+misc_class.o \
+particle_class.o \
+point_class.o 
 #
 files_fractal_nina_o= \
 add_pseudo_particles.o \
@@ -650,10 +684,10 @@ files_mpi_comm_nina_o= \
 dens_to_slices.o \
 gather_particles.o \
 scatter_particles_find.o \
-slices_to_potf.o \
+slices_to_potf.o 
 #
-fractal_cosmo : 	$(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
+fractal_cosmo : 	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_cosmo.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) fractal_nbody.o $(cosmos_power_file).o $(energy_file).o $(halo_fixed_file).o $(parameter_per_file).o $(particle_cosmo_mpi_file).o $(step_file).o $(velocity_file).o $(wrapper_file).o  $(lopthypre) $(loptfftw)
 #
-fractal_galaxy :	$(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
-	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
+fractal_galaxy :	$(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o
+	$(compile) $(Loptfftw) $(Lopthypre) -o $(dir)fractal_nina_galaxy.exe $(files_class_o) $(files_fractal_nina_o) $(files_hypre_nina_o) $(files_fftw_mpi_nina_o) $(files_mpi_comm_nina_o) $(fractal_galaxy_run_o) $(cosmos_power_file).o $(halo_fixed_file).o $(lopthypre) $(loptfftw)
