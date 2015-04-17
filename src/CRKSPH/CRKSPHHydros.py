@@ -20,8 +20,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.0,
-                 nTensile = 4.0,
-                 momentumConserving = True):
+                 nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CRKSPHHydroBase%(dim)s.__init__(self,
                                       self._smoothingScaleMethod,
@@ -36,8 +35,7 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                                       densityUpdate,
                                       HUpdate,
                                       epsTensile,
-                                      nTensile,
-                                      momentumConserving)
+                                      nTensile)
         return
 """
 

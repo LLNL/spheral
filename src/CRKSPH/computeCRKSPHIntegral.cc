@@ -108,8 +108,8 @@ computeCRKSPHIntegral(const ConnectivityMap<Dimension>& connectivityMap,
        if(mm==0){
           integ[nn][mm]=integ[nn-1][mm]*0.5;
           integ2[nn][mm]=integ[nn-1][mm]*0.5;
-          Scalar hn = (rmax(mydim-1)-rmin(mydim-1))/pow(2,nn);
-          for(int k=1; k<= pow(2,nn-1); k++){
+          Scalar hn = (rmax(mydim-1)-rmin(mydim-1))/pow(2.0,nn);
+          for(int k=1; k<= pow(2.0,nn-1); k++){
               Vector reval=rmin;
               reval(mydim-1)+=(2*k-1)*hn;
               if(dim == mydim){
@@ -130,8 +130,8 @@ computeCRKSPHIntegral(const ConnectivityMap<Dimension>& connectivityMap,
              
           }
        }else{
-          integ[nn][mm]=(1.0/(pow(4,mm)-1.0))*(pow(4,mm)*integ[nn][mm-1]-integ[nn-1][mm-1]);
-          integ2[nn][mm]=(1.0/(pow(4,mm)-1.0))*(pow(4,mm)*integ[nn][mm-1]-integ[nn-1][mm-1]);
+         integ[nn][mm]=(1.0/(pow(4.0,mm)-1.0))*(pow(4.0,mm)*integ[nn][mm-1]-integ[nn-1][mm-1]);
+         integ2[nn][mm]=(1.0/(pow(4.0,mm)-1.0))*(pow(4.0,mm)*integ[nn][mm-1]-integ[nn-1][mm-1]);
        }
  
     }

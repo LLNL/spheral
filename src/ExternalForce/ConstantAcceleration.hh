@@ -14,6 +14,7 @@
 #endif
 
 #include "Physics/GenericBodyForce.hh"
+#include "Field/Field.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -74,14 +75,14 @@ public:
   // Access the NodeList.
   const NodeSpace::NodeList<Dimension>& nodeList() const;
 
-  // Access the set of node indices.
-  const std::vector<int>& indices() const;
+  // Access the set of node flags.
+  const FieldSpace::Field<Dimension, int>& flags() const;
 
 private:
   //--------------------------- Public Interface ---------------------------//
   Vector ma0;
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  std::vector<int> mIndices;
+  FieldSpace::Field<Dimension, int> mFlags;
 
   // No default constructor, copying, or assignment.
   ConstantAcceleration();
