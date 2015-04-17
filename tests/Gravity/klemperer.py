@@ -72,7 +72,7 @@ v2 = omega*r2
 # Miscellaneous problem control parameters.
 dt = orbitTime / 90
 goalTime = orbitTime * numOrbits
-dtMin, dtMax = 0.1*dt, 100.0*dt
+dtMin, dtMax = 1e3, 1000.0*dt
 dtGrowth = 2.0
 maxSteps = None
 statsStep = 10
@@ -202,21 +202,26 @@ def sampleMethod(nodes, indices):
     m = nodes.mass()
     pos = nodes.positions()
     vel = nodes.velocity()
+    H = nodes.Hfield()
     assert nodes.numInternalNodes == 4
-    r = (pos[1] - pos[0]).magnitude()
-    return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z, 
-            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z,
-            m[2], pos[2].x, pos[2].y, pos[2].z, vel[2].x, vel[2].y, vel[2].z,
-            m[3], pos[3].x, pos[3].y, pos[3].z, vel[3].x, vel[3].y, vel[3].z)
+    r = []
+    ke = []
+    for j in xrange(4):
+        r.append(pos[j].magnitude())
+        ke.append(0.5*m[j]*vel[j].magnitude()*vel[j].magnitude())
+    return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z,r[0],
+            m[1], pos[1].x, pos[1].y, pos[1].z, vel[1].x, vel[1].y, vel[1].z,r[1],
+            m[2], pos[2].x, pos[2].y, pos[2].z, vel[2].x, vel[2].y, vel[2].z,r[2],
+            m[3], pos[3].x, pos[3].y, pos[3].z, vel[3].x, vel[3].y, vel[3].z,r[3],ke[0]+ke[1]+ke[2]+ke[3])
 
 sampleNodes = [0, 1]  # We're going to sample both of our nodes!
 history = NodeHistory(nodes, sampleNodes, sampleMethod,
                       os.path.join(dataDir, "node_history.txt"),
                       header = "# Orbit history of a 4 body system.",
-                      labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1",
-                                "m2", "x2", "y2", "z2", "vx2", "vy2", "vz2",
-                                "m3", "x3", "y3", "z3", "vx3", "vy3", "vz3",
-                                "m4", "x4", "y4", "z4", "vx4", "vy4", "vz4"))
+                      labels = ("m1", "x1", "y1", "z1", "vx1", "vy1", "vz1", "r1"
+                                "m2", "x2", "y2", "z2", "vx2", "vy2", "vz2", "r2"
+                                "m3", "x3", "y3", "z3", "vx3", "vy3", "vz3", "r3"
+                                "m4", "x4", "y4", "z4", "vx4", "vy4", "vz4", "r4", "KE"))
 control.appendPeriodicTimeWork(history.sample, vizTime)
 
 #-------------------------------------------------------------------------------
@@ -236,12 +241,12 @@ else:
 # Plot the final state.
 x1 = [stuff[1]/AU for stuff in history.sampleHistory]
 y1 = [stuff[2]/AU for stuff in history.sampleHistory]
-x2 = [stuff[8]/AU for stuff in history.sampleHistory]
-y2 = [stuff[9]/AU for stuff in history.sampleHistory]
-x3 = [stuff[15]/AU for stuff in history.sampleHistory]
-y3 = [stuff[16]/AU for stuff in history.sampleHistory]
-x4 = [stuff[22]/AU for stuff in history.sampleHistory]
-y4 = [stuff[23]/AU for stuff in history.sampleHistory]
+x2 = [stuff[9]/AU for stuff in history.sampleHistory]
+y2 = [stuff[10]/AU for stuff in history.sampleHistory]
+x3 = [stuff[17]/AU for stuff in history.sampleHistory]
+y3 = [stuff[18]/AU for stuff in history.sampleHistory]
+x4 = [stuff[25]/AU for stuff in history.sampleHistory]
+y4 = [stuff[26]/AU for stuff in history.sampleHistory]
 
 import SpheralGnuPlotUtilities
 gdata1 = Gnuplot.Data(x1, y1,
