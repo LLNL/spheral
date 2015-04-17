@@ -1363,7 +1363,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  thetaMax = pi,
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
-                 nNodePerh = 2.01):
+                 nNodePerh = 2.01,
+                 offset=None):
         
         assert n > 0
         assert rmin < rmax
@@ -1374,6 +1375,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert phiMin >= 0.0 and phiMin <= 2.0*pi
         assert phiMax >= 0.0 and phiMax <= 2.0*pi
         assert nNodePerh > 0.0
+        assert offset is None or len(offset)==3
         
         self.n = n
         self.rmin = rmin
@@ -1415,27 +1417,34 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         # first column is total number of shell points
         # second column is number of refinements to reach that shell count
         # third column is shape choice that reaches that shell count
-        resolution = [[5    ,0,0],
-                      [6    ,0,1],
-                      [12   ,0,2],
-                      [14   ,1,0],
-                      [18   ,1,1],
-                      [42   ,1,2],
-                      [50   ,2,0],
-                      [66   ,2,1],
-                      [162  ,2,2],
-                      [194  ,3,0],
-                      [258  ,3,1],
-                      [642  ,3,2],
-                      [770  ,4,0],
-                      [1026 ,4,1],
-                      [2562 ,4,2],
-                      [3074 ,5,0],
-                      [4098 ,5,1],
-                      [10242,5,2],
+        resolution = [[5,0,0],
+                      [6,0,1],
+                      [8,0,2],
+                      [12,0,3],
+                      [14,1,0],
+                      [18,1,1],
+                      [26,1,2],
+                      [42,1,3],
+                      [50,2,0],
+                      [66,2,1],
+                      [98,2,2],
+                      [162,2,3],
+                      [194,3,0],
+                      [258,3,1],
+                      [386,3,2],
+                      [642,3,3],
+                      [770,4,0],
+                      [1026,4,1],
+                      [1538,4,2],
+                      [2562,4,3],
+                      [3074,5,0],
+                      [4098,5,1],
+                      [6146,5,2],
+                      [10242,5,3],
                       [12290,6,0],
                       [16386,6,1],
-                      [40962,6,2]]
+                      [24578,6,2],
+                      [40962,6,3]]
         
         while ri > rmin:
             # create the database of faces and positions
@@ -1446,13 +1455,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
-            rhoi    = densityProfileMethod(ri)
+            rhoi    = self.densityProfileMethod(ri)
             dr      = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
             mshell  = rhoi * 4.0*pi*ri*ri*dr
             nshell  = int(mshell / self.m0)
+            nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
-            for i in xrange(21):
+            for i in xrange(28):
                 if (resolution[i][0] > nshell):
                     nr  = resolution[i][1]
                     ver = resolution[i][2]
@@ -1462,23 +1472,34 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-            if (ver<1):
-                self.createHexaSphere(nr)
-            elif (ver==1):
-                self.createTetraSphere(nr)
-            else:
-                self.createIcoSphere(nr)
+            if (nshell > 2):
+                if (ver==0):
+                    self.createHexaSphere(nr)
+                elif (ver==1):
+                    self.createOctaSphere(nr)
+                elif (ver==2):
+                    self.createCubicSphere(nr)
+                else:
+                    self.createIcoSphere(nr)
+            elif(nshell==1):
+                self.positions.append([0,0,0])
+            elif(nshell==2):
+                self.positions.append([1,0,0])
+                self.positions.append([-1,0,0])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
             print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = ri*self.positions[n][0]
                 y       = ri*self.positions[n][1]
                 z       = ri*self.positions[n][2]
-                theta   = acos(z/sqrt(x*x+y*y+z*z))
-                phi     = atan2(y,x)
-                if (phi<0.0):
-                    phi = phi + 2.0*pi
-                
+                if(nshell>1):
+                    theta   = acos(z/sqrt(x*x+y*y+z*z))
+                    phi     = atan2(y,x)
+                    if (phi<0.0):
+                        phi = phi + 2.0*pi
+                else:
+                    theta = (thetaMax - thetaMin)/2.0
+                    phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
                     self.x.append(ri*self.positions[n][0])
                     self.y.append(ri*self.positions[n][1])
@@ -1488,7 +1509,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             #self.H.append(Hi)
             
             ri = max(0.0, ri - dr)
-                
+    
+        # If requested, shift the nodes.
+        if offset:
+            for i in xrange(len(self.x)):
+                self.x[i] += offset[0]
+                self.y[i] += offset[1]
+                self.z[i] += offset[2]
+            
         print "Generated a total of %i nodes." % len(self.x)
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.z, self.m, self.H)
@@ -1649,10 +1677,10 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.faces = faces2
             n = len(self.positions)
 
-    def createTetraSphere(self,np):
+    def createOctaSphere(self,np):
         n = 0
         t = sqrt(2.0)/2.0
-        # create the 6 vertices of the double-tetrahedron
+        # create the 6 vertices of the octahedron
         self.addVertex([ 0, 0, 1])
         self.addVertex([ t, t, 0])
         self.addVertex([ t,-t, 0])
@@ -1707,6 +1735,52 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.faces.append([ 4, 2, 1])
         self.faces.append([ 4, 3, 2])
         self.faces.append([ 4, 1, 3])
+        
+        # now refine triangles until you're done
+        for i in xrange(np):
+            faces2 = []
+            for j in xrange(len(self.faces)):
+                x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
+                a = self.getMiddlePoint(x,y)
+                b = self.getMiddlePoint(y,z)
+                c = self.getMiddlePoint(z,x)
+                
+                faces2.append([x,a,c])
+                faces2.append([y,b,a])
+                faces2.append([z,c,b])
+                faces2.append([a,b,c])
+            self.faces = faces2
+            n = len(self.positions)
+
+    def createCubicSphere(self,np):
+        n = 0
+        t = sqrt(3.0)/3.0
+        # create the 8 vertices of the cube
+        self.addVertex([-t, t, t])
+        self.addVertex([-t,-t, t])
+        self.addVertex([ t,-t, t])
+        self.addVertex([ t, t, t])
+        self.addVertex([ t, t,-t])
+        self.addVertex([ t,-t,-t])
+        self.addVertex([-t,-t,-t])
+        self.addVertex([-t, t,-t])
+        
+        # create the 6 initial faces
+        # 5 faces around point 0
+        self.faces.append([ 0, 4, 7])
+        self.faces.append([ 0, 1, 7])
+        self.faces.append([ 0, 1, 2])
+        self.faces.append([ 0, 2, 3])
+        self.faces.append([ 0, 3, 4])
+        # 5 faces around point 5
+        self.faces.append([ 5, 2, 3])
+        self.faces.append([ 5, 3, 4])
+        self.faces.append([ 5, 4, 7])
+        self.faces.append([ 5, 6, 7])
+        self.faces.append([ 5, 2, 6])
+        # 2 faces around point 1
+        self.faces.append([ 1, 6, 7])
+        self.faces.append([ 1, 2, 6])
         
         # now refine triangles until you're done
         for i in xrange(np):
