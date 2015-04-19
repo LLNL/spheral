@@ -60,7 +60,6 @@ commandLine(KernelConstructor = BSplineKernel,
             hourglassLimiter = 0,
             hourglassFraction = 0.5,
             filter = 0.0,
-            momentumConserving = True, # For CRKSPH
             
             vizCycle = None,
             vizTime = 0.1,

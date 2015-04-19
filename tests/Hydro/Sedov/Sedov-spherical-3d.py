@@ -38,7 +38,6 @@ commandLine(seed = "lattice",
             ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
-            momentumConserving = True, # For CRKSPH
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
@@ -265,8 +264,7 @@ if CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = momentumConserving)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
