@@ -52,18 +52,18 @@ public:
 
   // Constructors.
   CRKSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                const KernelSpace::TableKernel<Dimension>& W,
-                const KernelSpace::TableKernel<Dimension>& WPi,
-                ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                const double filter,
-                const double cfl,
-                const bool useVelocityMagnitudeForDt,
-                const bool compatibleEnergyEvolution,
-                const bool XSPH,
-                const PhysicsSpace::MassDensityType densityUpdate,
-                const PhysicsSpace::HEvolutionType HUpdate,
-                const double epsTensile,
-                const double nTensile);
+                  const KernelSpace::TableKernel<Dimension>& W,
+                  const KernelSpace::TableKernel<Dimension>& WPi,
+                  ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                  const double filter,
+                  const double cfl,
+                  const bool useVelocityMagnitudeForDt,
+                  const bool compatibleEnergyEvolution,
+                  const bool XSPH,
+                  const PhysicsSpace::MassDensityType densityUpdate,
+                  const PhysicsSpace::HEvolutionType HUpdate,
+                  const double epsTensile,
+                  const double nTensile);
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
