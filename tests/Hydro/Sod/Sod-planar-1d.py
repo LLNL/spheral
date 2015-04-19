@@ -1,6 +1,6 @@
 import os, sys
 import shutil
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
 
@@ -50,7 +50,6 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            momentumConserving = True, # For CRKSPH
             KernelConstructor = BSplineKernel,
             
             bArtificialConduction = False,
@@ -58,6 +57,7 @@ commandLine(nx1 = 400,
 
             SVPH = False,
             CRKSPH = False,
+            solid = False,    # If true, use the fluid limit of the solid hydro option
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
@@ -90,10 +90,16 @@ commandLine(nx1 = 400,
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
+    if solid:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SPHHydro
+    if solid:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
@@ -118,6 +124,7 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gammaGas, mu)
+strength = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -130,16 +137,28 @@ output("WTPi")
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           rhoMin = rhoMin)
-nodes2 = makeFluidNodeList("nodes2", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           rhoMin = rhoMin)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+    nodes2 = makeSolidNodeList("nodes2", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+    nodes2 = makeFluidNodeList("nodes2", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
@@ -213,8 +232,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = momentumConserving)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,
