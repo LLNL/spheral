@@ -1,0 +1,16 @@
+# -*-makefile-*-
+# Spheral++ Gadget package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Gravity
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/NBodyGravityInst.cc \
+	$(srcdir)/TreeGravityInst.cc
+
+include $(BUILDTOP)/helpers/makefile_master
