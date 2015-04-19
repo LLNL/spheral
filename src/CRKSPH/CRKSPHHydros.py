@@ -12,8 +12,8 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  W,
                  WPi,
                  Q,
-                 filter = 0.1,
-                 cfl = 0.5,
+                 filter = 0.0,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  XSPH = True,
@@ -23,19 +23,19 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CRKSPHHydroBase%(dim)s.__init__(self,
-                                      self._smoothingScaleMethod,
-                                      W,
-                                      WPi,
-                                      Q,
-                                      filter,
-                                      cfl,
-                                      useVelocityMagnitudeForDt,
-                                      compatibleEnergyEvolution,
-                                      XSPH,
-                                      densityUpdate,
-                                      HUpdate,
-                                      epsTensile,
-                                      nTensile)
+                                        self._smoothingScaleMethod,
+                                        W,
+                                        WPi,
+                                        Q,
+                                        filter,
+                                        cfl,
+                                        useVelocityMagnitudeForDt,
+                                        compatibleEnergyEvolution,
+                                        XSPH,
+                                        densityUpdate,
+                                        HUpdate,
+                                        epsTensile,
+                                        nTensile)
         return
 """
 
