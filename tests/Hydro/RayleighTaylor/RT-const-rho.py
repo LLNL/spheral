@@ -60,7 +60,6 @@ commandLine(nx1     = 50,
             ASPH    = False,
             SPH     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter  = 0.0,   # CRKSPH filtering
-            momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -342,8 +341,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = momentumConserving)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

@@ -48,6 +48,10 @@ class CRKSPH:
         self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase2d, 2)
         self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase3d, 3)
         
+        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase1d, 1)
+        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase2d, 2)
+        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase3d, 3)
+        
         self.generateDimBindings(mod, 1)
         self.generateDimBindings(mod, 2)
         self.generateDimBindings(mod, 3)
@@ -85,33 +89,33 @@ class CRKSPH:
 
         # Helper to compute the CRKSPH kernel.
         self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
-                                                         constrefparam(vector, "rij"),
-                                                         constrefparam(vector, "etai"),
-                                                         param("double", "Hdeti"),
-                                                         constrefparam(vector, "etaj"),
-                                                         param("double", "Hdetj"),
-                                                         param("double", "Ai"),
-                                                         constrefparam(vector, "Bi")],
+                                                           constrefparam(vector, "rij"),
+                                                           constrefparam(vector, "etai"),
+                                                           param("double", "Hdeti"),
+                                                           constrefparam(vector, "etaj"),
+                                                           param("double", "Hdetj"),
+                                                           param("double", "Ai"),
+                                                           constrefparam(vector, "Bi")],
                                 template_parameters = [dim],
                                 custom_name = "CRKSPHKernel%id" % ndim,
                                 docstring = "Evaluate the CRKSPH corrected kernel.")
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
         self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
-                                                                          constrefparam(vector, "rij"),
-                                                                          constrefparam(vector, "etai"),
-                                                                          constrefparam(symtensor, "Hi"),
-                                                                          param("double", "Hdeti"),
-                                                                          constrefparam(vector, "etaj"),
-                                                                          constrefparam(symtensor, "Hj"),
-                                                                          param("double", "Hdetj"),
-                                                                          param("double", "Ai"),
-                                                                          constrefparam(vector, "Bi"),
-                                                                          constrefparam(vector, "gradAi"),
-                                                                          constrefparam(tensor, "gradBi"),
-                                                                          Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
-                                                                          Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
-                                                                          refparam(vector, "gradWCRKSPH")],
+                                                                            constrefparam(vector, "rij"),
+                                                                            constrefparam(vector, "etai"),
+                                                                            constrefparam(symtensor, "Hi"),
+                                                                            param("double", "Hdeti"),
+                                                                            constrefparam(vector, "etaj"),
+                                                                            constrefparam(symtensor, "Hj"),
+                                                                            param("double", "Hdetj"),
+                                                                            param("double", "Ai"),
+                                                                            constrefparam(vector, "Bi"),
+                                                                            constrefparam(vector, "gradAi"),
+                                                                            constrefparam(tensor, "gradBi"),
+                                                                            Parameter.new("double*", "WCRKSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            Parameter.new("double*", "gradWSPH", direction=Parameter.DIRECTION_OUT),
+                                                                            refparam(vector, "gradWCRKSPH")],
                                 docstring = "Evaluate the CRKSPH corrected kernel and gradient simultaneously.")
 
         # CRKSPH sum density.
@@ -362,26 +366,29 @@ class CRKSPH:
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
+        # Override the pure virtal overrides.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)
 
-        x.add_method("registerState", None, [refparam(database, "dataBase"),
-                                             refparam(state, "state")],
-                     is_virtual=True)
-        x.add_method("registerDerivatives", None, [refparam(database, "dataBase"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_virtual=True)
+        # x.add_method("registerState", None, [refparam(database, "dataBase"),
+        #                                      refparam(state, "state")],
+        #              is_virtual=True)
+        # x.add_method("registerDerivatives", None, [refparam(database, "dataBase"),
+        #                                            refparam(derivatives, "derivatives")],
+        #              is_virtual=True)
         x.add_method("initialize", None, [param("const double", "time"),
                                           param("const double", "dt"),
                                           constrefparam(database, "dataBase"),
                                           refparam(state, "state"),
                                           refparam(derivatives, "derivatives")], is_virtual=True)
-        x.add_method("evaluateDerivatives", None, [param("const double", "time"),
-                                                   param("const double", "dt"),
-                                                   constrefparam(database, "dataBase"),
-                                                   constrefparam(state, "state"),
-                                                   refparam(derivatives, "derivatives")],
-                     is_const=True, is_virtual=True)
+        # x.add_method("evaluateDerivatives", None, [param("const double", "time"),
+        #                                            param("const double", "dt"),
+        #                                            constrefparam(database, "dataBase"),
+        #                                            constrefparam(state, "state"),
+        #                                            refparam(derivatives, "derivatives")],
+        #              is_const=True, is_virtual=True)
         x.add_method("finalizeDerivatives", None, [param("const double", "time"),
                                                    param("const double", "dt"),
                                                    constrefparam(database, "dataBase"),
@@ -397,7 +404,7 @@ class CRKSPH:
                                                constrefparam(derivatives, "derivatives")], is_const=True, is_virtual=True)
         x.add_method("applyGhostBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
         x.add_method("enforceBoundaries", None, [refparam(state, "state"), refparam(derivatives, "derivatives")], is_virtual=True)
-        x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
+        # x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
         x.add_method("dumpState", None, [refparam(fileio, "fileIO"),
                                          refparam("std::string", "pathName")],
                      is_const = True,
@@ -449,12 +456,12 @@ class CRKSPH:
         return
 
     #---------------------------------------------------------------------------
-    # Bindings (CRKSPHHydroBase).
+    # Bindings (SolidCRKSPHHydroBase).
     #---------------------------------------------------------------------------
-    def generateCRKSPHHydroBaseBindings(self, x, ndim):
+    def generateSolidCRKSPHHydroBaseBindings(self, x, ndim):
 
         # Object names.
-        me = "Spheral::CRKSPHSpace::CRKSPHHydroBase%id" % ndim
+        me = "Spheral::CRKSPHSpace::SolidCRKSPHHydroBase%id" % ndim
         dim = "Spheral::Dim<%i>" % ndim
         vector = "Vector%id" % ndim
         tensor = "Tensor%id" % ndim

@@ -26,7 +26,6 @@ commandLine(nx1 = 100,
             CRKSPH = False,
             filter = 0.0,
             gamma = 5.0/3.0,
-            momentumConserving = True,
             mu = 1.0,
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
@@ -164,8 +163,7 @@ elif CRKSPH:
                       compatibleEnergyEvolution = compatibleEnergy,
                       XSPH = XSPH,
                       densityUpdate = densityUpdate,
-                      HUpdate = HUpdate,
-                      momentumConserving = momentumConserving)
+                      HUpdate = HUpdate)
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,
