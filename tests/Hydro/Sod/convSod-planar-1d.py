@@ -46,7 +46,6 @@ commandLine(nxlist = [20,40,80,160,320,640,1280],
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            momentumConserving = True, # For CRKSPH
             KernelConstructor = BSplineKernel,
             
             bArtificialConduction = False,
@@ -216,8 +215,7 @@ for nx1 in nxlist:
                           compatibleEnergyEvolution = compatibleEnergy,
                           XSPH = XSPH,
                           densityUpdate = densityUpdate,
-                          HUpdate = HUpdate,
-                          momentumConserving = momentumConserving)
+                          HUpdate = HUpdate)
     elif TSPH:
         hydro = TaylorSPHHydro(WT, q,
                                cfl = cfl,

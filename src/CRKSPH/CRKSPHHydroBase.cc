@@ -660,11 +660,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Tensor& gradBi = gradB(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
-      CHECK(mi > 0.0);
-      CHECK(rhoi > 0.0);
-      CHECK(Ai > 0.0);
-      CHECK(Hdeti > 0.0);
-      CHECK(weighti > 0.0);
+      CHECK2(mi > 0.0, i << " " << mi);
+      CHECK2(rhoi > 0.0, i << " " << rhoi);
+      CHECK2(Ai > 0.0, i << " " << Ai);
+      CHECK2(Hdeti > 0.0, i << " " << Hdeti);
+      CHECK2(weighti > 0.0, i << " " << weighti);
 
       Vector& DxDti = DxDt(nodeListi, i);
       Scalar& DrhoDti = DrhoDt(nodeListi, i);
