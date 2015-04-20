@@ -99,6 +99,7 @@ commandLine(seed = "lattice",
             damageInCompression = False,
 
             CRKSPH = False,
+            ASPH = True,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
@@ -130,6 +131,8 @@ commandLine(seed = "lattice",
             maxSteps = None,
             statsStep = 10,
             redistributeStep = None,
+            vizCycle = None,
+            vizTime = 1e-6,
             smoothIters = 0,
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
@@ -151,10 +154,16 @@ dx = xlength/nx
 dy = ylength/ny
 
 if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
+    if ASPH:
+        HydroConstructor = SolidACRKSPHHydro
+    else:
+        HydroConstructor = SolidCRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SolidSPHHydro
+    if ASPH:
+        HydroConstructor = SolidASPHHydro
+    else:
+        HydroConstructor = SolidSPHHydro
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -168,8 +177,9 @@ dataDir = os.path.join(dataDirBase,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
-visitDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
+vizDir = os.path.join(dataDir, "visit")
+vizBaseName = "TensileRod-%i" % nx
 
 origin = Vector2d(-xlength, -ylength)
 
@@ -250,8 +260,8 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-    if not os.path.exists(visitDir):
-        os.makedirs(visitDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -534,7 +544,11 @@ for package in integrator.physicsPackages():
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            restartBaseName = restartBaseName)
+                            restartBaseName = restartBaseName,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
