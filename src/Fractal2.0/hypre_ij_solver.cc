@@ -10,7 +10,7 @@
 #endif
 namespace FractalSpace
 {
-  void hypre_ij_solver(Fractal& frac,Fractal_Memory& mem,int level,bool buffer_only)
+  void hypre_ij_solver(Fractal& frac,Fractal_Memory& mem,const int& level)
   {
     static vector <double> Hypre_sum_time(frac.get_level_max()+1,0.0);
     double Hypre_total_time=0.0;
@@ -31,13 +31,15 @@ namespace FractalSpace
     Hypre_search_time=-mem.p_mess->Clock();
     vector <Point*>hypre_points;
     frac.timing(-1,32);
-    if(!hypre_ij_numbering(mem,frac,hypre_points,level,buffer_only))
+    if(!hypre_ij_numbering(mem,hypre_points,level))
       {
 	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
 	frac.timing(1,32);
 	return;
       }
     frac.timing(1,32);
+    if(mem.p_mess->HypreRank == 0)
+      cerr << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << "\n";
     Hypre_search_time+=mem.p_mess->Clock();
     HypreRank=mem.p_mess->HypreRank;
     if(mem.p_mess->IAmAHypreNode)
