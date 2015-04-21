@@ -38,8 +38,10 @@ namespace FractalSpace
 	return;
       }
     frac.timing(1,32);
-    if(mem.p_mess->HypreRank == 0)
-      cerr << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << "\n";
+    FHT << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << " " << mem.p_mess->HypreRank;
+    if(!mem.Touchy.empty())
+      FHT << " " << mem.Touchy.front();
+    FHT << "\n";
     Hypre_search_time+=mem.p_mess->Clock();
     HypreRank=mem.p_mess->HypreRank;
     if(mem.p_mess->IAmAHypreNode)
@@ -170,7 +172,7 @@ namespace FractalSpace
 	hypre_eror(PFH,level,29,HYPRE_BoomerAMGSetCoarsenType(par_solver, 6));
 	hypre_eror(PFH,level,30,HYPRE_BoomerAMGSetStrongThreshold(par_solver, 0.55));
 	hypre_eror(PFH,level,31,HYPRE_BoomerAMGSetTol(par_solver, frac.get_epsilon_sor()));
-	hypre_eror(PFH,level,32,HYPRE_BoomerAMGSetPrintLevel(par_solver, 1));
+	hypre_eror(PFH,level,32,HYPRE_BoomerAMGSetPrintLevel(par_solver, 0));
 	hypre_eror(PFH,level,33,HYPRE_BoomerAMGSetPrintFileName(par_solver, "amg_real.log"));
 	hypre_eror(PFH,level,34,HYPRE_BoomerAMGSetMaxIter(par_solver, frac.get_maxits()));
 	Hypre_gen_time+=mem.p_mess->Clock();
