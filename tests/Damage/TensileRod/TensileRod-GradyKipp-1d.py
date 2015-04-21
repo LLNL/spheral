@@ -567,6 +567,7 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime)
+    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Plot the state.
