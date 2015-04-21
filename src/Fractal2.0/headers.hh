@@ -73,10 +73,11 @@ namespace FractalSpace
   double Hubble (const double& omega_0, const double& omega_lambda, const double& redshift);
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
+  bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_groups);
   bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
-  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level);
+  void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,const int& level);
   void hypre_ij_solver(Fractal& fractal,Fractal_Memory& mem,int level,bool buffer_groups);
   void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
@@ -98,17 +99,17 @@ namespace FractalSpace
   void left_right(vector <Group*>& all_groups,vector <int>& pos_left,vector <int>& pos_right);
   void list_buffer(Point& point,const int& corner);
   void make_me_a_galaxy(int FractalRank,int numbers,double total_mass,vector <double>& masses,double G,
-		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
-		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
+			vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
+			vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_me_some_particles(int rank,int numbers,double total_mass,vector <double>& masses,double G,
-		     vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
-		     vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
+			      vector <double>& xpos,vector <double>& ypos,vector <double>& zpos,
+			      vector <double>& xvel,vector <double>& yvel,vector <double>& zvel);
   void make_decisions_erika(Misc& misc);
   template <class M, class F>  void make_particles(M& mem,F& frac,int& count,const double& m,const bool& crash);
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
-  void node_groups(Fractal_Memory& fractal_memory,vector <int>& Touchy);
+  void node_groups(Fractal_Memory& fractal_memory);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool on_edge(vector <int>& pos,vector <int>& Box);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);
