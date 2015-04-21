@@ -336,8 +336,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = True)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

@@ -1,5 +1,5 @@
 # -*-makefile-*-
-# Spheral++ CRKSPH package makefile
+# Spheral++ (Solid)CRKSPH package makefile
 #-------------------------------------------------------------------------------
 srcdir = @abs_srcdir@
 VPATH = @abs_srcdir@
@@ -23,10 +23,12 @@ SRCTARGETS = \
 	$(srcdir)/CRKSPHHydroBaseInst.cc \
 	$(srcdir)/interpolateCRKSPHInst.cc \
 	$(srcdir)/gradientCRKSPHInst.cc \
-	$(srcdir)/HVolumePolicyInst.cc
+	$(srcdir)/HVolumePolicyInst.cc \
+	$(srcdir)/SolidCRKSPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
-	$(srcdir)/CRKSPHHydros.py
+	$(srcdir)/CRKSPHHydros.py \
+	$(srcdir)/SolidCRKSPHHydros.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
