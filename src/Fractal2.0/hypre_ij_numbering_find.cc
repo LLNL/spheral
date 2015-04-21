@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_only)
+  bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level)
   {
     double time0=mem.p_mess->Clock();
     const int FractalRank=mem.p_mess->FractalRank;
@@ -26,29 +26,47 @@ namespace FractalSpace
 	bool bg=group.get_buffer_group();
 	if(group.list_points.size() <= minsize && !bg)
 	  continue;
-	if(bg || !buffer_only)
-	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	    {
-	      Point* p=*point_itr;
-	      p->get_pos_point(pos);
-	      if(p->get_inside() || on_edge(pos,HSBox) || on_edge(pos,HRBox))
-		hypre_points.push_back(p);
-	    }
-	if(bg)
-	  for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
-	    {
-	      Point* p=*point_itr;
-	      p->get_pos_point(pos);
-	      if(on_edge(pos,HSBox))
-		send_list.push_back(p);
-	      if(on_edge(pos,HRBox))
-		receive_list.push_back(p);
-	    }
+	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	  {
+	    Point* p=*point_itr;
+	    p->get_pos_point(pos);
+	    if(p->get_inside() || on_edge(pos,HSBox) || on_edge(pos,HRBox))
+	      hypre_points.push_back(p);
+	  }
+	if(!bg)
+	  continue;
+	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
+	  {
+	    Point* p=*point_itr;
+	    p->get_pos_point(pos);
+	    if(on_edge(pos,HSBox))
+	      send_list.push_back(p);
+	    if(on_edge(pos,HRBox))
+	      receive_list.push_back(p);
+	  }
       }
     double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
     mem.p_mess->How_Many_On_Nodes(count,mem.ij_counts);
+    mem.Touchy=mem.TouchWhichBoxes;
+    //
+    vector <int> pos_lefts(3);
+    vector <int> pos_rights(3);
+    left_right(send_list,pos_lefts,pos_rights);
+    mem.Touchy.clear();
+    int TWB=mem.TouchWhichBoxes.size();
+    for(int TW=0;TW<TWB;TW++)
+      {
+	if(!mem.p_mess->IAmAHypreNode)
+	  continue;
+	int FR=mem.TouchWhichBoxes[TW];
+	if(FR != FractalRank && mem.ij_counts[FR] > 0 && overlap(pos_lefts,pos_rights,mem.HRBoxesLev[FR][level]))
+	  mem.Touchy.push_back(FR);
+      }    
+    int totals=std::accumulate(mem.ij_counts.begin(),mem.ij_counts.end(),0);
+    node_groups(mem);
+    //
     double time2=mem.p_mess->Clock();
     mem.ij_counts.resize(FractalNodes);
     mem.ij_offsets.assign(FractalNodes+1,0);
@@ -59,21 +77,15 @@ namespace FractalSpace
       {
 	if(FR > 0)
 	  mem.ij_offsets[FR]=mem.ij_offsets[FR-1]+mem.ij_counts[FR-1];
-	//	fprintf(PFH," offsets numbering %d %d %d %d \n",FR,level, mem.ij_offsets[FR],mem.ij_counts[FR]);
 	if(FR < FractalNodes && mem.ij_counts[FR] > 0)
 	  {
 	    mem.p_mess->Hranks.push_back(FR);
 	    mem.p_mess->IHranks[FR]=HypreNodes;
 	    HypreNodes++;
 	  }
-	//	fprintf(PFH," ranky %d %d \n",FR,mem.ij_counts[FR]);
       }
-    int totals=mem.ij_offsets[FractalNodes];
     if(totals == 0)
-      {
-	//	cerr << " returning " << totals << "\n";
-	return false;
-      }
+      return false;
     int HR=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
@@ -89,7 +101,8 @@ namespace FractalSpace
     int HypreRank=mem.p_mess->MyHypreRank();
     mem.ij_counts.resize(HypreNodes);
     mem.ij_offsets.resize(HypreNodes+1);
-    mem.ij_offsets[HypreNodes]=mem.ij_offsets[HypreNodes-1]+mem.ij_counts[HypreNodes-1];
+    if(mem.p_mess->IAmAHypreNode)
+      mem.ij_offsets[HypreNodes]=mem.ij_offsets[HypreNodes-1]+mem.ij_counts[HypreNodes-1];
     mem.p_mess->HypreRank=mem.p_mess->MyHypreRank();
     assert(HypreRank == mem.p_mess->HypreRank);
     mem.ij_countsB=mem.ij_counts;
@@ -108,35 +121,22 @@ namespace FractalSpace
 	Point* p=*point_itr;
 	p->set_ij_neighbors(HRBox);
       }
-//     vector <Point*> send_list;
-//     vector <Point*> receive_list;
-//     for(vector<Point*>::const_iterator point_itr=hypre_pointsB.begin();point_itr !=hypre_pointsB.end();++point_itr)
-//       {
-// 	Point* p=*point_itr;
-// 	p->get_pos_point(pos);
-// 	if(on_edge(pos,HSBox))
-// 	  send_list.push_back(p);
-// 	if(on_edge(pos,HRBox))
-// 	  receive_list.push_back(p);
-//       }
     sort3_list(receive_list,0);
     double time4=mem.p_mess->Clock();
-    vector <int> pos_lefts(3);
-    vector <int> pos_rights(3);
-    left_right(send_list,pos_lefts,pos_rights);
+//     vector <int> pos_lefts(3);
+//     vector <int> pos_rights(3);
+//     left_right(send_list,pos_lefts,pos_rights);
     vector <int> counts_out(HypreNodes,0);
     vector <vector <int> > dataI_out(HypreNodes);
     vector <vector <double> > dataR_out(HypreNodes);
     int ssize=send_list.size();
-    int TWB=mem.TouchWhichBoxes.size();
+    TWB=mem.Touchy.size();
     for(int TW=0;TW<TWB;TW++)
       {
-	int FR=mem.TouchWhichBoxes[TW];
+	int FR=mem.Touchy[TW];
 	if(FR == FractalRank)
 	  continue;
 	int HR=mem.p_mess->IHranks[FR];
-	if(HR < 0)
-	  continue;
 	counts_out[HR]=0;
 	HRBox=mem.HRBoxesLev[FR][level];
 	if(!overlap(pos_lefts,pos_rights,HRBox))
@@ -181,10 +181,8 @@ namespace FractalSpace
     int found=0;
     for(int TW=0;TW<TWB;TW++)
       {
-	int FR=mem.TouchWhichBoxes[TW];
+	int FR=mem.Touchy[TW];
 	int HR=mem.p_mess->IHranks[FR];
-	if(HR < 0)
-	  continue;
 	for(int c=0;c<counts_in[HR];c++)
 	  {
 	    psend->set_pos_point(dataI_in[ni4],dataI_in[ni4+1],dataI_in[ni4+2]);
