@@ -99,6 +99,11 @@ namespace FractalSpace
     mem.p_mess->HypreNodes=HypreNodes;
     mem.p_mess->HypreGroupCreate(mem.p_mess->Hranks);
     int HypreRank=mem.p_mess->MyHypreRank();
+    if(HypreRank == 0)
+      {
+	for(int Hr=0;Hr<HypreNodes;Hr++)
+	  fprintf(PFH," HRANKS %d %d %d %d \n",mem.steps,level,Hr,mem.p_mess->Hranks[Hr]);
+      }
     mem.ij_counts.resize(HypreNodes);
     mem.ij_offsets.resize(HypreNodes+1);
     if(mem.p_mess->IAmAHypreNode)
@@ -130,13 +135,15 @@ namespace FractalSpace
     vector <vector <int> > dataI_out(HypreNodes);
     vector <vector <double> > dataR_out(HypreNodes);
     int ssize=send_list.size();
-    TWB=mem.Touchy.size();
+    TWB=mem.TouchWhichBoxes.size();
     for(int TW=0;TW<TWB;TW++)
       {
-	int FR=mem.Touchy[TW];
+	int FR=mem.TouchWhichBoxes[TW];
 	if(FR == FractalRank)
 	  continue;
 	int HR=mem.p_mess->IHranks[FR];
+	if(HR < 0)
+	  continue;
 	counts_out[HR]=0;
 	HRBox=mem.HRBoxesLev[FR][level];
 	if(!overlap(pos_lefts,pos_rights,HRBox))
@@ -179,9 +186,10 @@ namespace FractalSpace
     Misc::dim0=(what+0) % 3;
     int ni4=0;
     int found=0;
+    TWB=mem.TouchWhichBoxes.size();
     for(int TW=0;TW<TWB;TW++)
       {
-	int FR=mem.Touchy[TW];
+	int FR=mem.TouchWhichBoxes[TW];
 	int HR=mem.p_mess->IHranks[FR];
 	for(int c=0;c<counts_in[HR];c++)
 	  {
