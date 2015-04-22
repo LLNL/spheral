@@ -30,7 +30,7 @@ commandLine(
     r1  = 1.0,                      # (AU) Start stuff out at 1 AU from barycenter
     m1  = 1.0,                      # (earth masses) particle mass
     ya  = 1.5,                      # ratio of r1/r2 - smaller mass (m1) is always farther out
-    plummerLength = 1.0e-3,        # (AU) Plummer softening scale
+    plummerLength = 1.0e-4,        # (AU) Plummer softening scale
     opening = 0.5,                 # (dimensionless, OctTreeGravity) opening parameter for tree walk
     fdt = 0.1,                     # (dimensionless, OctTreeGravity) timestep multiplier
 
@@ -152,7 +152,7 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 if nbody is NBodyGravity:
     gravity = NBodyGravity(plummerSofteningLength = plummerLength,
-                           maxDeltaVelocity = 1e-2*v1,
+                           maxDeltaVelocity = 0.5e-1*v1,
                            G = G)
 elif nbody is OctTreeGravity:
     gravity = OctTreeGravity(G = G,

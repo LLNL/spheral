@@ -169,7 +169,7 @@ class SpheralConservation(RestartableObject):
                   '"Mass"',
                   '"Lin Mom Mag"', '"Lin Mom X"', '"Lin Mom Y"', '"Lin Mom Z"',
                   '"Ang Mom Mag"', '"Ang Mom X"', '"Ang Mom Y"', '"Ang Mom Z"',
-                  '"Total E"', '"Kin E"', '"Therm E"']
+                  '"Total E"', '"Kin E"', '"Therm E"', '"Pkg E"']
         f.write('#')
         for lab in labels:
             f.write('%14s ' % lab)
@@ -187,7 +187,8 @@ class SpheralConservation(RestartableObject):
                         self.amomHistory[i].z,
                         self.EHistory[i],
                         self.KEHistory[i],
-                        self.TEHistory[i]]:
+                        self.TEHistory[i],
+                        self.EEHistory[i]]:
                 f.write('%14.8g ' % var)
             f.write('\n')
         f.close()
