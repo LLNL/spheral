@@ -1,0 +1,30 @@
+# -*-makefile-*-
+# Spheral++ Kernel package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Kernel
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/BSplineKernel.cc \
+	$(srcdir)/W4SplineKernel.cc \
+	$(srcdir)/GaussianKernel.cc \
+	$(srcdir)/SuperGaussianKernel.cc \
+	$(srcdir)/PiGaussianKernel.cc \
+	$(srcdir)/HatKernel.cc \
+	$(srcdir)/SincKernel.cc \
+	$(srcdir)/NSincPolynomialKernelInst.cc \
+	$(srcdir)/NBSplineKernelInst.cc \
+	$(srcdir)/QuarticSplineKernel.cc \
+	$(srcdir)/QuinticSplineKernel.cc \
+	$(srcdir)/TableKernelInst.cc \
+	$(srcdir)/VolumeIntegrationFunctionsInst.cc \
+	$(srcdir)/WendlandC4Kernel.cc \
+	$(srcdir)/WendlandC6Kernel.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
