@@ -50,7 +50,6 @@ commandLine(nx1 = 100,
             ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
-            momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -122,6 +121,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
@@ -147,12 +147,6 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d_McNally")
 vizBaseName = "KelvinHelmholtz-2d_McNally"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -257,6 +251,7 @@ if restoreCycle is None:
             vel = nodes.velocity()
             rho = nodes.massDensity()
             eps = nodes.specificThermalEnergy()
+            mass = nodes.mass()
             for i in xrange(nodes.numInternalNodes):
                 yval = pos[i].y
                 xval = pos[i].x
@@ -265,15 +260,19 @@ if restoreCycle is None:
                 vely = delta*sin(4*pi*xval)
                 if yval >= 0 and yval < 0.25:
                    rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+                   mass[i] *= rho[i]/rho1
                    velx = vx1 - vxm*exp((yval-0.25)/smooth)
                 elif yval >= 0.25 and yval < 0.5:
                    rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+                   mass[i] *= rho[i]/rho2
                    velx = vx2 + vxm*exp((0.25-yval)/smooth)
                 elif yval >= 0.5 and yval < 0.75:
                    rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+                   mass[i] *= rho[i]/rho2
                    velx = vx2 + vxm*exp((yval-0.75)/smooth)
                 else:
                    rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+                   mass[i] *= rho[i]/rho1
                    velx = vx1 - vxm*exp((0.75-yval)/smooth)
                 vel[i] = Vector(velx + vxboost, vely + vyboost)
                 eps[i] = P1/((gamma - 1.0)*rho[i])
@@ -282,6 +281,7 @@ if restoreCycle is None:
         vel = nodes1.velocity()
         rho = nodes1.massDensity()
         eps = nodes1.specificThermalEnergy()
+        mass = nodes1.mass()
         for i in xrange(nodes1.numInternalNodes):
                 yval = pos[i].y
                 xval = pos[i].x
@@ -289,15 +289,19 @@ if restoreCycle is None:
                 vely = delta*sin(4*pi*xval)
                 if yval >= 0 and yval < 0.25:
                    rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+                   mass[i] *= rho[i]/rho1
                    velx = vx1 - vxm*exp((yval-0.25)/smooth)
                 elif yval >= 0.25 and yval < 0.5:
                    rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+                   mass[i] *= rho[i]/rho2
                    velx = vx2 + vxm*exp((0.25-yval)/smooth)
                 elif yval >= 0.5 and yval < 0.75:
                    rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+                   mass[i] *= rho[i]/rho2
                    velx = vx2 + vxm*exp((yval-0.75)/smooth)
                 else:
                    rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+                   mass[i] *= rho[i]/rho1
                    velx = vx1 - vxm*exp((0.75-yval)/smooth)
 
                 vel[i] = Vector(velx + vxboost, vely + vyboost)
@@ -356,8 +360,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = momentumConserving)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,
