@@ -2,6 +2,7 @@
 # A 1-D acoustic wave test.  In this version we establish a standing wave
 # in a reflecting box.
 #-------------------------------------------------------------------------------
+import os, shutil
 from math import *
 from Spheral1d import *
 from SpheralTestUtilities import *
@@ -67,9 +68,12 @@ commandLine(nx1 = 100,
 
             restoreCycle = None,
             restartStep = 10000,
-            restartBaseName = "dumps-AcousticWave-1d",
 
             graphics = "gnu",
+
+            clearDirectories = True,
+            dataDirBase = "dumps-planar-StandingWave-1d",
+            outputFile = "StandingWave-planar-1d.gnu",
 
             checkReversibility = False,
             )
@@ -83,6 +87,24 @@ elif TSPH:
     HydroConstructor = TaylorSPHHydro
 else:
     HydroConstructor = SPHHydro
+
+dataDir = os.path.join(dataDirBase,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       "nx=%i" % nx1)
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "StandingWave-planar-1d-%i" % nx1)
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -266,15 +288,15 @@ else:
 # Plot the final state.
 #-------------------------------------------------------------------------------
 xlocal = [pos.x for pos in nodes1.positions().internalValues()]
-xglobal = mpi.reduce(xlocal, mpi.SUM)
+xprof = mpi.reduce(xlocal, mpi.SUM)
 if graphics == "gnu":
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
     if mpi.rank == 0:
-        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
-        #plotAnswer(answer.plus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
-        #plotAnswer(answer.minus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
+        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
+        #plotAnswer(answer.plus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
+        #plotAnswer(answer.minus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
@@ -327,7 +349,7 @@ if graphics == "gnu":
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
     if ComputeL1Norm:
-        xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
+        xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
         #rho = hydro.massDensity() 
         fieldList = state.scalarFields(HydroFieldNames.massDensity)
         #rho = field.internalValues()
@@ -345,5 +367,40 @@ if graphics == "gnu":
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
-if abs(Eerror) > 1e-13:
+if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+
+    labels = ["x", "m", "rho", "P", "v", "eps", "h", 
+              "rhoans", "Pans", "vans", "epsans", "hans"]
+    stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
+             rhoans, Pans, vans, uans, hans]
+    if CRKSPH:
+        A0prof = mpi.reduce(hydro.A0()[0].internalValues(), mpi.SUM)
+        Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
+        Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
+        labels += ["A0", "A", "B"]
+        stuff += [A0prof, Aprof, Bprof]
+
+    if mpi.rank == 0:
+        multiSort(*tuple(stuff))
+        f = open(outputFile, "w")
+        f.write(("#  " + len(labels)*"'%s' " + "\n") % tuple(labels))
+        for tup in zip(*tuple(stuff)):
+            assert len(tup) == len(labels)
+            f.write((len(tup)*"%16.12e " + "\n") % tup)
+        f.close()
