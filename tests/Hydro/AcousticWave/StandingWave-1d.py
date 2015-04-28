@@ -32,6 +32,7 @@ commandLine(nx1 = 100,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             Cl = 0.0,
             Cq = 0.0,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
@@ -121,20 +122,32 @@ def Minterval(xi0, xi1):
                  A*L/(pi*kfreq)*(sin(pi*kfreq/L*(xi1 - x0)) -
                                  sin(pi*kfreq/L*(xi0 - x0))))
 
-# Set the node positions, velocities, and densities.
+# Grab the analytic answer.
+import StandingWaveSolution
+dx = (x1 - x0)/nx1
+h1 = nPerh*dx
 cs = sqrt(cs2)
+answer = StandingWaveSolution.StandingWaveSolution(eos, cs, rho1, x0, x1, A, kfreq, h1)
+
+# Set the node positions, velocities, and densities.
 pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
-dx = (x1 - x0)/nx1
-imin = int((pos[0].x - x0)/dx + 0.5)
-imax = int((pos[-1].x - x0)/dx + 0.5) + 1
+eps = nodes1.specificThermalEnergy()
+xvals = [p.x for p in pos.internalValues()]
+xans, vans, uans, rhoans, Pans, hans = answer.solution(0.0, xvals)
 for i in xrange(nodes1.numInternalNodes):
-    xi0 = pos[i].x - 0.5*dx
-    xi1 = pos[i].x + 0.5*dx
-    mass[i] = Minterval(xi0, xi1)
-    rho[i] = mass[i]/dx
+    vel[i].x = vans[i]
+    eps[i] = uans[i]
+
+# imin = int((pos[0].x - x0)/dx + 0.5)
+# imax = int((pos[-1].x - x0)/dx + 0.5) + 1
+# for i in xrange(nodes1.numInternalNodes):
+#     xi0 = pos[i].x - 0.5*dx
+#     xi1 = pos[i].x + 0.5*dx
+#     mass[i] = Minterval(xi0, xi1)
+#     rho[i] = mass[i]/dx
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -148,7 +161,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion = linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 output("q")
@@ -250,24 +263,18 @@ else:
     control.step(steps)
 
 #-------------------------------------------------------------------------------
-# Compute the analytic answer.
-#-------------------------------------------------------------------------------
-import StandingWaveSolution
-xlocal = [pos.x for pos in nodes1.positions().internalValues()]
-xglobal = mpi.reduce(xlocal, mpi.SUM)
-dx = (x1 - x0)/nx1
-h1 = 1.0/(nPerh*dx)
-answer = StandingWaveSolution.StandingWaveSolution(eos, cs, rho1, x0, x1, A, kfreq, h1)
-
-#-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
+xlocal = [pos.x for pos in nodes1.positions().internalValues()]
+xglobal = mpi.reduce(xlocal, mpi.SUM)
 if graphics == "gnu":
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
     if mpi.rank == 0:
         plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
+        #plotAnswer(answer.plus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
+        #plotAnswer(answer.minus, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
@@ -320,21 +327,21 @@ if graphics == "gnu":
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
     if ComputeL1Norm:
-       xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
-       #rho = hydro.massDensity() 
-       fieldList = state.scalarFields(HydroFieldNames.massDensity)
-       #rho = field.internalValues()
-       for field in fieldList:
-          rho = [eval("%s" % "y") for y in field.internalValues()]
-          #plt.figure()
-          #plt.plot(xans,rhoans)
-          #plt.scatter(xans,rho)
-          #plt.xlim([np.min(xans),np.max(xans)])
-          #plt.ylim([np.min(rhoans),np.max(rhoans)])
-          #plt.show()
-          diff=np.array(rho)-np.array(rhoans)
-          L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
-          print "\n\nL1Norm=",L1Norm, "\n\n"
+        xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
+        #rho = hydro.massDensity() 
+        fieldList = state.scalarFields(HydroFieldNames.massDensity)
+        #rho = field.internalValues()
+        for field in fieldList:
+            rho = [eval("%s" % "y") for y in field.internalValues()]
+            #plt.figure()
+            #plt.plot(xans,rhoans)
+            #plt.scatter(xans,rho)
+            #plt.xlim([np.min(xans),np.max(xans)])
+            #plt.ylim([np.min(rhoans),np.max(rhoans)])
+            #plt.show()
+            diff=np.array(rho)-np.array(rhoans)
+            L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
+            print "\n\nL1Norm=",L1Norm, "\n\n"
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
