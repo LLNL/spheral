@@ -1,5 +1,4 @@
 from math import *
-from AcousticWaveSolution import AcousticWaveSolution
 
 #-------------------------------------------------------------------------------
 # The analytic answer for the standing wave problem.
@@ -25,8 +24,6 @@ class StandingWaveSolution:
         self.k = k
         self.h0 = h0
         self.L = x1 - x0
-        #self.plus  = AcousticWaveSolution(eos, cs, 0.5*rho0, x0 - 0.5*self.L, x1 + 0.5*self.L,  A,  2.0*pi*k, 0.5*h0)
-        #self.minus = AcousticWaveSolution(eos, cs, 0.5*rho0, x0 - 0.5*self.L, x1 + 0.5*self.L, -A, -2.0*pi*k, 0.5*h0)
         return
 
     # Compute and return the solution on the given positions.
