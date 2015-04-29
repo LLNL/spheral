@@ -384,6 +384,7 @@ if outputFile != "None":
     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 
     labels = ["x", "m", "rho", "P", "v", "eps", "h", 
               "rhoans", "Pans", "vans", "epsans", "hans"]
