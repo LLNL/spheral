@@ -9,7 +9,6 @@ namespace FractalSpace
     ofstream& FF=mem.p_mess->p_file->DUMPS;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalRank=mem.p_mess->FractalRank;
-    //    cerr << " NODENODE " << FractalRank << " " << mem.Touchy.size() << "\n";
     vector <int> counts_in(FractalNodes);
     vector <int> counts_out(FractalNodes,0);
     vector <int> dataI_in;
@@ -19,11 +18,9 @@ namespace FractalSpace
     bool tryit=mem.ij_counts[FractalRank] > 0;
     for(int T=0;T<mem.Touchy.size();T++)
       {
-	//	FF << " TOUCHY0 " << mem.Touchy[T] << "\n";
 	if(tryit && mem.Touchy[T] > FractalRank)
 	  {
 	    dataI_in.push_back(mem.Touchy[T]);
-	    //	    FF << " TOUCHYA " << dataI_in.back() << "\n";
 	  }
       }
     int ss=dataI_in.size();
@@ -40,13 +37,9 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=0;
-//     if(FractalRank == 0)
-//       cerr << " TRY0 " << COUNTER << "\n";
     mem.p_mess->Send_Data_Some_How(8,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-//     if(FractalRank == 0)
-//       cerr << " TRY1 " << COUNTER << "\n";
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
@@ -63,7 +56,6 @@ namespace FractalSpace
 	  {
 	    list_pair_1.push_back(FR);
 	    list_pair_2.push_back(dataI_in[counterI]);
-	    //	    FF << " TOUCHYB " << list_pair_1.back() << " " << list_pair_2.back() << "\n";
 	    counterI++;
 	  }
       }
@@ -91,21 +83,11 @@ namespace FractalSpace
     int myhead=head_number[FractalRank];
     for(int FR=0;FR<FractalNodes;FR++)
       {
-// 	if(FractalRank == 0)
-// 	  cerr << " TRY3 " << FR << "\n";
-	//	FF << " NODESA " << FR << " " << head_number[FR] << " " << myhead << "\n";
 	if(head_number[FR] == myhead)
 	  mem.Touchy.push_back(FR);
 	else
-	  {
-	    //	    mem.ij_counts[FR]=0;
-	    mem.ij_counts[FR]+=0;
-	    //	    FF << " NODESB " << FR << " " << mem.ij_counts[FR] << "\n";
-	  }
-	//	FF << " NODESC " << FR << " " << mem.ij_counts[FR] << "\n";
+	  mem.ij_counts[FR]=0;
       }
-//     if(FractalRank == 0)
-//       cerr << " Leaving " << COUNTER << "\n";
     COUNTER++;
   }
 }
