@@ -5,6 +5,7 @@ namespace FractalSpace
 {
   void node_groups(Fractal_Memory& mem)
   {
+    static int COUNTER=0;
     ofstream& FF=mem.p_mess->p_file->DUMPS;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalRank=mem.p_mess->FractalRank;
@@ -39,9 +40,13 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=0;
+//     if(FractalRank == 0)
+//       cerr << " TRY0 " << COUNTER << "\n";
     mem.p_mess->Send_Data_Some_How(8,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
+//     if(FractalRank == 0)
+//       cerr << " TRY1 " << COUNTER << "\n";
     counts_out.clear();
     dataI_out.clear();
     dataR_out.clear();
@@ -51,6 +56,8 @@ namespace FractalSpace
     int counterI=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
+	if(FractalRank == 0)
+	  cerr << " TRY2 " << FR << "\n";
 	head_number.push_back(FR);
 	for(int c=0;c<counts_in[FR];c++)
 	  {
@@ -84,15 +91,21 @@ namespace FractalSpace
     int myhead=head_number[FractalRank];
     for(int FR=0;FR<FractalNodes;FR++)
       {
+// 	if(FractalRank == 0)
+// 	  cerr << " TRY3 " << FR << "\n";
 	//	FF << " NODESA " << FR << " " << head_number[FR] << " " << myhead << "\n";
-	if(head_number[FR] != myhead)
-	  mem.ij_counts[FR]=0;
+	if(head_number[FR] == myhead)
+	  mem.Touchy.push_back(FR);
 	else
 	  {
-	    mem.Touchy.push_back(FR);
+	    //	    mem.ij_counts[FR]=0;
+	    mem.ij_counts[FR]+=0;
 	    //	    FF << " NODESB " << FR << " " << mem.ij_counts[FR] << "\n";
 	  }
 	//	FF << " NODESC " << FR << " " << mem.ij_counts[FR] << "\n";
       }
+//     if(FractalRank == 0)
+//       cerr << " Leaving " << COUNTER << "\n";
+    COUNTER++;
   }
 }

@@ -10,8 +10,8 @@ namespace FractalSpace
     double scale=static_cast<double>(fractal.get_grid_length()*Misc::pow(2,fractal.get_level_max()));
     int width=Misc::pow(2,fractal.get_level_max()-group.get_level()-1);
     //
-    if(misc.get_debug())
-      FileFractal << " here in buffer a " << &group << " " << group.get_level() << "\n";
+//     if(misc.get_debug())
+//       FileFractal << " here in buffer a " << &group << " " << group.get_level() << "\n";
     //--------------------------------------------------------------------------------------------------------------------------------
     // padding has priority, make the 26 neighbors into high points, if not already
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ namespace FractalSpace
       }
     group.set_number_high_points(n_h);
     group.p_list_really_high.clear();
-    if(misc.get_debug())
-      FileFractal << " here in buffer b " << &group << " " << group.get_level() << "\n";
+//     if(misc.get_debug())
+//       FileFractal << " here in buffer b " << &group << " " << group.get_level() << "\n";
   }
 }
