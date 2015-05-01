@@ -101,11 +101,11 @@ private:
   std::vector<double> mKernelValues;
   std::vector<double> mGradValues;
   std::vector<double> mGrad2Values;
-  std::vector<double> mDeltaKernelValues;
-  std::vector<double> mDeltaGradValues;
-  std::vector<double> mDeltaGrad2Values;
-  int mNumPoints, mNumPoints1;
-  double mStepSizeInv;
+  std::vector<double> mAkernel, mBkernel;
+  std::vector<double> mAgrad, mBgrad;
+  std::vector<double> mAgrad2, mBgrad2;
+  int mNumPoints;
+  double mStepSize;
 
   std::vector<double> mNperhValues;
   std::vector<double> mWsumValues;
@@ -119,11 +119,16 @@ private:
                              const bool gradientAsKernel);
 
   // Method to initialize the delta kernel values.
-  void setDeltaKernelValues();
+  void setParabolicCoeffs();
+
+  // Generic parabolic interpolation.
+  double parabolicInterp(const double etaMagnitude,
+                         const std::vector<double>& table,
+                         const std::vector<double>& a,
+                         const std::vector<double>& b) const;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);
-
 };
 
 }

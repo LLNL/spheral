@@ -1,77 +1,9 @@
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
+#include "VolumeIntegrationFunctions.hh"
 
 namespace Spheral {
 namespace KernelSpace {
-
-//------------------------------------------------------------------------------
-// Construct from a kernel.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename KernelType>
-inline
-TableKernel<Dimension>::TableKernel(const KernelType& kernel,
-                                    const int numPoints,
-                                    const double hmult):
-  Kernel<Dimension, TableKernel<Dimension> >(),
-  mKernelValues(0),
-  mGradValues(0),
-  mGrad2Values(0),
-  mDeltaKernelValues(0),
-  mDeltaGradValues(0),
-  mDeltaGrad2Values(0),
-  mNumPoints(0),
-  mNumPoints1(-1),
-  mStepSizeInv(0.0),
-  mNperhValues(0),
-  mWsumValues(0),
-  mMinNperh(0.5),
-  mMaxNperh(10.0) {
-
-  // Pre-conditions.
-  VERIFY(numPoints > 0);
-  VERIFY(hmult > 0.0);
-
-  // Set the volume normalization and kernel extent.
-  this->setVolumeNormalization(kernel.volumeNormalization() / Dimension::pownu(hmult));
-  this->setKernelExtent(hmult * kernel.kernelExtent());
-  this->setInflectionPoint(hmult * kernel.inflectionPoint());
-
-  // Set the number of points and table step size.
-  CHECK(numPoints > 1);
-  mNumPoints = numPoints;
-  mNumPoints1 = mNumPoints - 1;
-  mStepSizeInv = 1.0/(this->kernelExtent()/(numPoints - 1));
-  CHECK(stepSize() > 0.0);
-
-  // Resize the tables for our data.
-  mKernelValues.resize(numPoints);
-  mGradValues.resize(numPoints);
-  mGrad2Values.resize(numPoints);
-  CHECK(mKernelValues.size() == numPoints);
-  CHECK(mGradValues.size() == numPoints);
-  CHECK(mGrad2Values.size() == numPoints);
-
-  // Fill in the kernel and gradient values.  Note that we will go ahead and fold
-  // the normalization constants in here, so we don't have to multiply by them
-  // in the value lookups.
-  const double deta = stepSize() / hmult;
-  for (int i = 0; i < numPoints; ++i) {
-    CHECK(i*stepSize() >= 0.0);
-    mKernelValues[i] = kernel(i*deta, 1.0);
-    mGradValues[i] = kernel.grad(i*deta, 1.0);
-    mGrad2Values[i] = kernel.grad2(i*deta, 1.0);
-  }
-
-  // Set the delta kernel values for internal use.
-  this->setDeltaKernelValues();
-
-  // Set the table of n per h values.
-  this->setNperhValues();
-
-  // That should be it, so we should have left the kernel in a valid state.
-  ENSURE(valid());
-}
 
 //------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.
@@ -82,17 +14,7 @@ double
 TableKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-
-  if (etaMagnitude < this->mKernelExtent) {
-    const int iLower = lowerBound(etaMagnitude);
-    const int iUpper = std::min(iLower + 1, mNumPoints1);
-    const double thpt = std::max(0.0, std::min(1.0, etaMagnitude*stepSizeInv() - iLower));
-    CHECK(iUpper >= iLower);
-    CHECK(thpt >= 0.0 and thpt <= 1.0);
-    return Hdet*(mKernelValues[iLower] + mDeltaKernelValues[iLower]*thpt);
-  } else {
-    return 0.0;
-  }
+  return Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel);
 }
 
 //------------------------------------------------------------------------------
@@ -104,17 +26,7 @@ double
 TableKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-
-  if (etaMagnitude < this->mKernelExtent) {
-    const int iLower = lowerBound(etaMagnitude);
-    const int iUpper = std::min(iLower + 1, mNumPoints1);
-    const double thpt = std::max(0.0, std::min(1.0, etaMagnitude*stepSizeInv() - iLower));
-    CHECK(iUpper >= iLower);
-    CHECK(thpt >= 0.0 and thpt <= 1.0);
-    return Hdet*(mGradValues[iLower] + mDeltaGradValues[iLower]*thpt);
-  } else {
-    return 0.0;
-  }
+  return Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad);
 }
 
 //------------------------------------------------------------------------------
@@ -126,17 +38,7 @@ double
 TableKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-
-  if (etaMagnitude < this->mKernelExtent) {
-    const int iLower = lowerBound(etaMagnitude);
-    const int iUpper = std::min(iLower + 1, mNumPoints1);
-    const double thpt = std::max(0.0, std::min(1.0, etaMagnitude*stepSizeInv() - iLower));
-    CHECK(iUpper >= iLower);
-    CHECK(thpt >= 0.0 and thpt <= 1.0);
-    return Hdet*(mGrad2Values[iLower] + mDeltaGrad2Values[iLower]*thpt);
-  } else {
-    return 0.0;
-  }
+  return Hdet*parabolicInterp(etaMagnitude, mGrad2Values, mAgrad2, mBgrad2);
 }
 
 //------------------------------------------------------------------------------
@@ -148,19 +50,8 @@ std::pair<double, double>
 TableKernel<Dimension>::kernelAndGradValue(double etaMagnitude, double Hdet) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
-
-  if (etaMagnitude < this->mKernelExtent) {
-    const int iLower = lowerBound(etaMagnitude);
-    const int iUpper = std::min(iLower + 1, mNumPoints1);
-    const double thpt = std::max(0.0, std::min(1.0, etaMagnitude*stepSizeInv() - iLower));
-    CHECK(iUpper >= iLower);
-    CHECK(thpt >= 0.0 and thpt <= 1.0);
-    return std::pair<double, double>
-      (Hdet*(mKernelValues[iLower] + mDeltaKernelValues[iLower]*thpt),
-       Hdet*(mGradValues[iLower] + mDeltaGradValues[iLower]*thpt));
-  } else {
-    return std::pair<double, double>(0.0, 0.0);
-  }
+  return std::make_pair(Hdet*parabolicInterp(etaMagnitude, mKernelValues, mAkernel, mBkernel),
+                        Hdet*parabolicInterp(etaMagnitude, mGradValues, mAgrad, mBgrad));
 }
 
 //------------------------------------------------------------------------------
@@ -186,25 +77,13 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
   END_CONTRACT_SCOPE;
 
   // Prepare the results.
-  kernelValues.resize(n);
-  gradValues.resize(n);
+  kernelValues = std::vector<double>(n);
+  gradValues = std::vector<double>(n);
 
   // Fill those suckers in.
   for (size_t i = 0; i != n; ++i) {
-    const double& etaMagnitude = etaMagnitudes[i];
-    const double& Hdet = Hdets[i];
-    if (etaMagnitude < this->mKernelExtent) {
-      const int iLower = lowerBound(etaMagnitude);
-      const int iUpper = std::min(iLower + 1, mNumPoints1);
-      const double thpt = std::max(0.0, std::min(1.0, etaMagnitude*stepSizeInv() - iLower));
-      CHECK(iUpper >= iLower);
-      CHECK(thpt >= 0.0 and thpt <= 1.0);
-      kernelValues[i] = Hdet*(mKernelValues[iLower] + mDeltaKernelValues[iLower]*thpt);
-      gradValues[i] = Hdet*(mGradValues[iLower] + mDeltaGradValues[iLower]*thpt);
-    } else {
-      kernelValues[i] = 0.0;
-      gradValues[i] = 0.0;
-    }
+    kernelValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mKernelValues, mAkernel, mBkernel);
+    gradValues[i] = Hdets[i]*parabolicInterp(etaMagnitudes[i], mGradValues, mAgrad, mBgrad);
   }
 }
 
@@ -225,15 +104,15 @@ template<typename Dimension>
 inline
 double
 TableKernel<Dimension>::stepSize() const {
-  REQUIRE(mStepSizeInv > 0.0);
-  return 1.0/mStepSizeInv;
+  return mStepSize;
 }
 
 template<typename Dimension>
 inline
 double
 TableKernel<Dimension>::stepSizeInv() const {
-  return mStepSizeInv;
+  REQUIRE(mStepSize > 0.0);
+  return 1.0/mStepSize;
 }
 
 //------------------------------------------------------------------------------
@@ -246,9 +125,33 @@ int
 TableKernel<Dimension>::lowerBound(double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(stepSizeInv() > 0.0);
-  const int result = std::min(mNumPoints1, int(etaMagnitude*mStepSizeInv));
-  ENSURE(result >= 0 && result < numPoints());
+  const int result = std::min(mNumPoints - 1, int(etaMagnitude/mStepSize));
+  ENSURE(result >= 0 && result < mNumPoints);
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Helper to do the parabolic interpolation.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+TableKernel<Dimension>::parabolicInterp(const double etaMagnitude, 
+                                        const std::vector<double>& table,
+                                        const std::vector<double>& a,
+                                        const std::vector<double>& b) const {
+  REQUIRE(table.size() == mNumPoints);
+  REQUIRE(a.size() == mNumPoints);
+  REQUIRE(b.size() == mNumPoints);
+  if (etaMagnitude < this->mKernelExtent) {
+    const int i0 = min(mNumPoints - 3, lowerBound(etaMagnitude));
+    const int i1 = i0 + 1;
+    const int i2 = i0 + 2;
+    const double deta = etaMagnitude - i1*mStepSize;
+    return a[i1]*deta*deta + b[i1]*deta + table[i1];
+  } else {
+    return 0.0;
+  }
 }
 
 //------------------------------------------------------------------------------
