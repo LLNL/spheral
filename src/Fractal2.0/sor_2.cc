@@ -61,17 +61,17 @@ namespace FractalSpace
 	  }
 	if(anorm < fractal.get_epsilon_sor()*anormf && anorm2 < fractal.get_epsilon_sor()*anorm2f) 
 	  {
-	    FileSor << n << "\t " 
-		    << n_points << "\t " 
-		    << scientific
-		    << anorm << "\t " 
-		    << anormf << "  " 
-		    << anorm2 << "\t " 
-		    << anorm2f  << "\t " 
-		    << rj << "\t " 
-		    << fractal.get_epsilon_sor() << "\t"
-		    << group.get_level() 
-		    << "\n";
+// 	    FileSor << n << "\t " 
+// 		    << n_points << "\t " 
+// 		    << scientific
+// 		    << anorm << "\t " 
+// 		    << anormf << "  " 
+// 		    << anorm2 << "\t " 
+// 		    << anorm2f  << "\t " 
+// 		    << rj << "\t " 
+// 		    << fractal.get_epsilon_sor() << "\t"
+// 		    << group.get_level() 
+// 		    << "\n";
 	    return;
 	  }
       }
