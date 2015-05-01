@@ -367,7 +367,7 @@ if graphics == "gnu":
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-13:
+if compatibleEnergy and abs(Eerror) > 1e-10:
     raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
