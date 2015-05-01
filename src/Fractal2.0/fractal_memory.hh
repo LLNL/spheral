@@ -30,6 +30,7 @@ namespace FractalSpace
     vector <double>xmin;
     vector <double>xmax;
     vector <int> TouchWhichBoxes;
+    vector <int> Touchy;
     vector < vector <int> > Boxes;
     vector < vector <int> > BBoxes;
     vector < vector <int> > PBoxes;
