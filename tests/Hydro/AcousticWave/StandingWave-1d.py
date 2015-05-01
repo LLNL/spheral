@@ -21,13 +21,13 @@ commandLine(nx1 = 100,
 
             rho1 = 1.0,
             eps1 = 1.0,
-            A = 0.005,
+            A = 0.0001,
             kfreq = 1.0,
 
             cs2 = 1.0,
             mu = 1.0,
 
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -64,7 +64,6 @@ commandLine(nx1 = 100,
             compatibleEnergy = True,
             gradhCorrection = True,
             linearConsistent = False,
-            ComputeL1Norm = False,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -348,22 +347,6 @@ if graphics == "gnu":
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
-    if ComputeL1Norm:
-        xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-        #rho = hydro.massDensity() 
-        fieldList = state.scalarFields(HydroFieldNames.massDensity)
-        #rho = field.internalValues()
-        for field in fieldList:
-            rho = [eval("%s" % "y") for y in field.internalValues()]
-            #plt.figure()
-            #plt.plot(xans,rhoans)
-            #plt.scatter(xans,rho)
-            #plt.xlim([np.min(xans),np.max(xans)])
-            #plt.ylim([np.min(rhoans),np.max(rhoans)])
-            #plt.show()
-            diff=np.array(rho)-np.array(rhoans)
-            L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
-            print "\n\nL1Norm=",L1Norm, "\n\n"
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
@@ -405,3 +388,18 @@ if outputFile != "None":
             assert len(tup) == len(labels)
             f.write((len(tup)*"%16.12e " + "\n") % tup)
         f.close()
+
+        # While we're at it compute and report the error norms.
+        import Pnorm
+        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
+                                  ("Pressure", Pprof, Pans),
+                                  ("Velocity", vprof, vans),
+                                  ("h       ", hprof, hans)]:
+            assert len(data) == len(ans)
+            error = [data[i] - ans[i] for i in xrange(len(data))]
+            Pn = Pnorm.Pnorm(error, xprof)
+            L1 = Pn.gridpnorm(1, x0, x1)
+            L2 = Pn.gridpnorm(2, x0, x1)
+            Linf = Pn.gridpnorm("inf", x0, x1)
+            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
