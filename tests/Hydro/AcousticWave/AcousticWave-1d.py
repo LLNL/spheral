@@ -78,7 +78,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -89,6 +89,7 @@ commandLine(nx1 = 100,
             clearDirectories = True,
             dataDirBase = "dumps-planar-AcousticWave-1d",
             outputFile = "AcousticWave-planar-1d.gnu",
+            normOutputFile = "None",
 
             graphics = "gnu",
 
@@ -135,8 +136,8 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(BSplineKernel(), 10000)
+WTPi = TableKernel(BSplineKernel(), 10000)
 output("WT")
 output("WTPi")
 
@@ -247,7 +248,7 @@ if SVPH:
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
@@ -257,14 +258,14 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 
 elif TSPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
@@ -272,7 +273,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -451,6 +452,15 @@ if outputFile != "None":
         # While we're at it compute and report the error norms.
         import Pnorm
         print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        if normOutputFile != "None":
+            #normOutputFile = os.path.join(dataDir, normOutputFile)
+            f = open(normOutputFile, "a")
+            f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+                                                 '"rho L1"', '"rho L2"', '"rho Linf"',
+                                                 '"P L1"',   '"P L2"',   '"P Linf"',
+                                                 '"vel L1"', '"vel L2"', '"vel Linf"',
+                                                 '"h L1"',   '"h L2"',   '"h Linf"'))
+            f.write("%16i " % nx1)
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
@@ -462,3 +472,8 @@ if outputFile != "None":
             L2 = Pn.gridpnorm(2, x0, x1)
             Linf = Pn.gridpnorm("inf", x0, x1)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            if normOutputFile != "None":
+                f.write((3*"%16.12e ") % (L1, L2, Linf))
+        if normOutputFile != "None":
+            f.write("\n")
+            f.close()
