@@ -92,7 +92,7 @@ namespace FractalSpace
 		point.set_inside(inside);
 		point.set_edge_buffer_passive_point(edge,buff,pass);
 		point.set_number_in_list(point_counter);
-		point.set_FILE(p_FilePoint);
+		//		point.set_FILE(p_FilePoint);
 		//		FileFractal << " insides " << gridx << " " << gridy << " " << gridz << " " << inside << "\n";
 		point_counter++;
 	      }
