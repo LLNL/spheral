@@ -7,7 +7,7 @@ namespace FractalSpace
   {
     assert(mem.FractalNodes==mem.p_mess->FractalNodes);
     ofstream& FF=frac.p_file->DUMPS;
-    FF << " entered scatter particles " << "\n";
+    //    FF << " entered scatter particles " << "\n";
     if(frac.get_periodic())
       {
 	frac.wrap();
@@ -98,25 +98,25 @@ namespace FractalSpace
     int how_manyR=-1;
     int integers=1;
     int doubles=4;
-    FF << "send stuff to other nodes a " << "\n";
+    //    FF << "send stuff to other nodes a " << "\n";
     double time3=mem.p_mess->Clock();
-    FF << "send stuff to other nodes b " << "\n";
+    //    FF << "send stuff to other nodes b " << "\n";
     mem.p_mess->Send_Data_Some_How(5,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     double time4=mem.p_mess->Clock();
-    FF << "send stuff to other nodes c " << "\n";
+    //    FF << "send stuff to other nodes c " << "\n";
     dataR_out.clear();
     dataI_out.clear();
     frac.particle_list.resize(how_manyI);
-    Particle* particles_tmp;
+    Particle* particles_tmp=0;
     try
       {
 	particles_tmp=new Particle[how_manyI];
       }    
     catch(bad_alloc& ba)
       {
-	cerr << " bad particle scatter " << " " << how_manyI << " " << ba.what() << endl;
+	cerr << " bad particle scatter a " << " " << how_manyI << " " << ba.what() << endl;
 	exit(0);
       }
     mem.p_mess->parts_tmp=particles_tmp;
@@ -162,6 +162,7 @@ namespace FractalSpace
 	if(overlap_boxes(mem.Boxes[FractalRank],mem.PBoxes[FR]))
 	  {
 	    mem.TouchWhichBoxes.push_back(FR);
+	    //	    FF << " Overlap " << FR << "\n";
 	  }
       }
     int TBsize=mem.TouchWhichBoxes.size();
@@ -187,20 +188,28 @@ namespace FractalSpace
 	  }
       }
     double time6=mem.p_mess->Clock();
-    FF << "send stuff to other nodes d " << "\n";
+    //    FF << "send stuff to other nodes d " << "\n";
     double time7=mem.p_mess->Clock();
-    FF << "send stuff to other nodes e " << "\n";
+    //    FF << "send stuff to other nodes e " << "\n";
     mem.p_mess->Send_Data_Some_How(6,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
     double time8=mem.p_mess->Clock();
-    FF << "send stuff to other nodes f " << "\n";
+    //    FF << "send stuff to other nodes f " << "\n";
     dataR_out.clear();
     dataI_out.clear();
     //    really_clear(dataR_out);
     //    really_clear(dataI_out);
-
-    Particle* particles_tmpp=new Particle[(how_manyR/4)];
+    Particle* particles_tmpp=0;
+    try
+      {
+	particles_tmpp=new Particle[(how_manyR/4)];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " bad particle scatter b " << " " << how_manyR/4 << " " << ba.what() << endl;
+	exit(0);
+      }
     mem.p_mess->parts_tmpp=particles_tmpp;
     particle=0;
     for(int FR=0;FR<FractalNodes;FR++)
