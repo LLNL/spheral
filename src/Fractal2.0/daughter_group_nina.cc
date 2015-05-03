@@ -7,7 +7,8 @@ namespace FractalSpace
 			   Fractal_Memory& mem,Misc& misc)
   { 
     FILE* PFDau=fractal.p_file->PFDau;
-    ofstream& FilePoint=fractal.p_file->DUMPS;
+    //    ofstream& FilePoint=fractal.p_file->DUMPS;
+    ofstream& FilePoint=*(Point::p_FILE);
     ofstream* p_FilePoint=&FilePoint;
     fractal.timing(-1,14);
     vector <Point*> p_point_tmp(27); 
@@ -79,7 +80,7 @@ namespace FractalSpace
 		  {
 		    cerr << " bad allocation in daughter group " << mem.p_mess->FractalRank;
 		    cerr << " " << mem.total_points_generated;
-		    cerr << ba.what() << endl;
+		    cerr << " " << ba.what() << endl;
 		    exit(0);
 		  }
 		mem.total_points_generated+=new_points_gen;
@@ -103,7 +104,7 @@ namespace FractalSpace
 	    point.set_real_pointer(p);
 	    point.set_point_pointer(0);
 	    point.set_p_in_group(p_new);
-	    point.set_FILE(p_FilePoint);
+	    //	    point.set_FILE(p_FilePoint);
 	    if(p==0)
 	      {
 		high_point.set_p_daughter_point(p_point); 

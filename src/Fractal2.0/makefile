@@ -606,7 +606,6 @@ find_global_level_max.o \
 findPointByPos.o \
 fix_memory.o \
 force_at_particle.o \
-force_at_particle_other.o \
 force_at_particle_sharp.o \
 force_at_point.o \
 force_at_point_initial.o \
@@ -619,7 +618,6 @@ fractal_force_init.o \
 fractal_interface_public.o \
 go_ahead_points.o \
 groups_level.o \
-heavies.o \
 high_groups.o \
 high_pairs.o \
 high_points.o \
@@ -630,8 +628,6 @@ max_predict.o \
 neighbor_easy.o \
 on_edge.o \
 overlap.o \
-particle_lists.o \
-particle_lists_fixed.o \
 poisson_solver.o \
 potential_start.o \
 power_spectrum.o \

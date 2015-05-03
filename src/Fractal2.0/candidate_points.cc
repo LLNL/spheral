@@ -18,6 +18,7 @@ namespace FractalSpace
   vector <int>Point::updown;
   int Point::order [8][7];
   vector <vector <int> >Point::nextt(27);
+  ofstream* Point::p_FILE;
   void candidate_points()
   {
     Point::left.assign(27,false);

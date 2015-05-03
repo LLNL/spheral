@@ -351,14 +351,14 @@ namespace FractalSpace
   {
     force_point[2]=f;
   }
-  void Point::set_FILE(ofstream* p_filE)
-  {
-    p_FILE=p_filE;
-  }
-  ofstream* Point::get_FILE()
-  {
-    return p_FILE;
-  }
+//   void Point::set_FILE(ofstream* p_filE)
+//   {
+//     p_FILE=p_filE;
+//   }
+//   ofstream* Point::get_FILE()
+//   {
+//     return p_FILE;
+//   }
   void Point::all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me)
   {
     assert(real_pointer==0);

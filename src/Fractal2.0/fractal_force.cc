@@ -257,6 +257,7 @@ namespace FractalSpace
     // If isolated BC ignore particles outside unit cube.
     // Generate the points in the head group and assign particles to points.
     //--------------------------------------------------------------------------
+    Point::p_FILE=&(fractal_memory.p_mess->p_file->DUMPS);
     fractal.timing(-1,46);
     fractal.timing_lev(-2,0);
     fractal.timing(-1,1);
@@ -463,23 +464,23 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     // If force_max > 0 find ghost particles that need to split to soften the force
     //--------------------------------------------------------------------------
-    fractal.timing(-1,17);
     FileFractal << " not badd0 " << badd << "\n";
     Fractal* p_fractal_ghost=new (nothrow) Fractal;
     assert(p_fractal_ghost);
     Fractal& fractal_ghost=*p_fractal_ghost;
-    FileFractal << " not badda " << badd << "\n";
-    heavies(fractal,fractal_ghost);
-    FileFractal << " not baddb " << badd << "\n";
-    fractal.timing(1,17);
-    //--------------------------------------------------------------------------
-    // Each ghost particle, if any, is assigned to a point in each group it belongs to
-    //--------------------------------------------------------------------------
-    fractal.timing(-1,18);
-    FileFractal << " not baddc " << badd << "\n";
-    particle_lists(fractal_memory.all_groups,fractal,fractal_ghost,misc);
-    FileFractal << " not baddd " << badd << "\n";
-    fractal.timing(1,18);
+//     fractal.timing(-1,17);
+//     FileFractal << " not badda " << badd << "\n";
+//     heavies(fractal,fractal_ghost);
+//     FileFractal << " not baddb " << badd << "\n";
+//     fractal.timing(1,17);
+//     //--------------------------------------------------------------------------
+//     // Each ghost particle, if any, is assigned to a point in each group it belongs to
+//     //--------------------------------------------------------------------------
+//     fractal.timing(-1,18);
+//     FileFractal << " not baddc " << badd << "\n";
+//     particle_lists(fractal_memory.all_groups,fractal,fractal_ghost,misc);
+//     FileFractal << " not baddd " << badd << "\n";
+//     fractal.timing(1,18);
     fractal.timing(1,46);
     //    fractal_memory.p_mess->TreeTime=fractal.get_delta_time(46);
     FileFractal << "start up " << fractal_memory.start_up << "\n";
