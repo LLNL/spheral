@@ -109,17 +109,17 @@ namespace FractalSpace
     dataR_out.clear();
     dataI_out.clear();
     frac.particle_list.resize(how_manyI);
-    Particle* particles_tmp=0;
-    try
-      {
-	particles_tmp=new Particle[how_manyI];
-      }    
-    catch(bad_alloc& ba)
-      {
-	cerr << " bad particle scatter a " << " " << how_manyI << " " << ba.what() << endl;
-	exit(0);
-      }
-    mem.p_mess->parts_tmp=particles_tmp;
+//     Particle* particles_tmp;
+//     try
+//       {
+// 	particles_tmp=new Particle[how_manyI];
+//       }    
+//     catch(bad_alloc& ba)
+//       {
+// 	cerr << " bad particle scatter " << " " << how_manyI << " " << ba.what() << endl;
+// 	exit(0);
+//       }
+//     mem.p_mess->parts_tmp=particles_tmp;
     int field_length=4;
     if(mem.calc_density_particle)
       field_length=5;
@@ -129,11 +129,26 @@ namespace FractalSpace
     int particle=0;
     int p4=-1;
     Particle* P=0;
+    Particle* pt=0;
+    mem.p_mess->parts_tmp.clear();
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    P=&particles_tmp[particle];
+	    if(c == 0)
+	      {
+		try
+		  {
+		    pt=new Particle[counts_in[FR]];
+		    mem.p_mess->parts_tmp.push_back(pt);
+		  }
+		catch(bad_alloc& ba)
+		  {
+		    cerr << " bad particle scatter a " << " " << ba.what() << " " << FR << " " << counts_in[FR] << " " << frac.particle_list.size() << endl;
+		    exit(0);
+		  }
+	      }
+	    P=&pt[c];
 	    assert(P);
 	    frac.particle_list[particle]=P;
 	    p4=particle*4;
@@ -200,23 +215,30 @@ namespace FractalSpace
     dataI_out.clear();
     //    really_clear(dataR_out);
     //    really_clear(dataI_out);
-    Particle* particles_tmpp=0;
-    try
-      {
-	particles_tmpp=new Particle[(how_manyR/4)];
-      }
-    catch(bad_alloc& ba)
-      {
-	cerr << " bad particle scatter b " << " " << how_manyR/4 << " " << ba.what() << endl;
-	exit(0);
-      }
-    mem.p_mess->parts_tmpp=particles_tmpp;
+
+//     Particle* particles_tmpp=new Particle[(how_manyR/4)];
+//     mem.p_mess->parts_tmpp=particles_tmpp;
+    mem.p_mess->parts_tmpp.clear();
+    Particle* ppt=0;
     particle=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
 	for(int c=0;c<counts_in[FR];c++)
 	  {
-	    P=&particles_tmpp[particle];
+	    if(c == 0)
+	      {
+		try
+		  {
+		    ppt=new Particle[counts_in[FR]];
+		    mem.p_mess->parts_tmpp.push_back(ppt);
+		  }
+		catch(bad_alloc& ba)
+		  {
+		    cerr << " bad particle scatter b " << " " << ba.what() << " " << FR << " " << counts_in[FR] << " " << frac.particle_list.size() << endl;
+		    exit(0);
+		  }
+	      }
+	    P=&ppt[c];
 	    assert(P);
 	    frac.particle_list.push_back(P);
 	    p4=particle*4;

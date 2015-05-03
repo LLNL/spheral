@@ -23,8 +23,8 @@ namespace FractalSpace
     int MPI_SWITCH;
     int MPI_MAX_COMMS;
     long int number_particles_total;
-    Particle* parts_tmp;
-    Particle* parts_tmpp;
+    vector <Particle*> parts_tmp;
+    vector <Particle*> parts_tmpp;
     Particle* Parts_in;
     vector < vector <int> > Slices;
     vector < vector <int> > BoxS;

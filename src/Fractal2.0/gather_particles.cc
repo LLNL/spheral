@@ -89,12 +89,20 @@ namespace FractalSpace
     frac.particle_list_world.clear();
     //    really_clear(frac.particle_list_world);
     //    FF << " gather e " << mem.p_mess->parts_tmp << "\n";
-    Particle* pt=mem.p_mess->parts_tmp;
-    delete [] pt;
-    pt=0;
-    Particle* ptp=mem.p_mess->parts_tmpp;
-    delete [] ptp;
-    ptp=0;
+    size_t totaltmp=mem.p_mess->parts_tmp.size();
+    size_t totaltmpp=mem.p_mess->parts_tmpp.size();
+    for(int FR=0;FR<totaltmp;FR++)
+      {
+	Particle* pt=mem.p_mess->parts_tmp[FR];
+	delete [] pt;
+      }
+    mem.p_mess->parts_tmp.clear();
+    for(int FR=0;FR<totaltmpp;FR++)
+      {
+	Particle* ptp=mem.p_mess->parts_tmpp[FR];
+	delete [] ptp;
+      }
+    mem.p_mess->parts_tmpp.clear();
     remove_pseudo_particles(mem,frac);
     frac.particle_list.resize((how_manyI/2));
     frac.set_number_particles((how_manyI/2));
