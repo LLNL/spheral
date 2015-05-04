@@ -195,11 +195,13 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
+dx = (x1 - x0)/nx1
+xi = x0
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
-    xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
-    xi1 = newtonRaphsonFindRoot(func1, 0.0, 1.0, 1.0e-15, 1.0e-15)
+    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
+    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
     rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
     rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
@@ -216,6 +218,18 @@ for i in xrange(nodes1.numInternalNodes):
 #     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
 #     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
 #     xi0 += dxi0
+
+# Compute the summation correction for the density, and apply it to the mass per point.
+m0 = rho1*dx
+Hdet0 = 1.0/(nPerh*dx)
+rhoscale = m0*WT.kernelValue(0.0, Hdet0)
+deta = 1.0/nPerh
+for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+    rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
+rhoscale = rho1/rhoscale
+print "Compute analytic rho scaling of %16.12e." % rhoscale
+for i in xrange(nodes1.numInternalNodes):
+    mass[i] *= rhoscale
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
