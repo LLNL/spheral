@@ -467,7 +467,6 @@ if outputFile != "None":
         import Pnorm
         print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
         if normOutputFile != "None":
-            #normOutputFile = os.path.join(dataDir, normOutputFile)
             f = open(normOutputFile, "a")
             f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
                                                  '"rho L1"', '"rho L2"', '"rho Linf"',

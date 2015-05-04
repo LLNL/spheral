@@ -73,6 +73,7 @@ commandLine(nx1 = 100,
             clearDirectories = True,
             dataDirBase = "dumps-planar-StandingWave-1d",
             outputFile = "StandingWave-planar-1d.gnu",
+            normOutputFile = "None",
 
             checkReversibility = False,
             )
@@ -169,6 +170,18 @@ for i in xrange(nodes1.numInternalNodes):
 #     xi1 = pos[i].x + 0.5*dx
 #     mass[i] = Minterval(xi0, xi1)
 #     rho[i] = mass[i]/dx
+
+# Compute the summation correction for the density, and apply it to the mass per point.
+m0 = rho1*dx
+Hdet0 = 1.0/(nPerh*dx)
+rhoscale = m0*WT.kernelValue(0.0, Hdet0)
+deta = 1.0/nPerh
+for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+    rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
+rhoscale = rho1/rhoscale
+print "Compute analytic rho scaling of %16.12e." % rhoscale
+for i in xrange(nodes1.numInternalNodes):
+    mass[i] *= rhoscale
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -392,6 +405,14 @@ if outputFile != "None":
         # While we're at it compute and report the error norms.
         import Pnorm
         print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        if normOutputFile != "None":
+            f = open(normOutputFile, "a")
+            f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+                                                 '"rho L1"', '"rho L2"', '"rho Linf"',
+                                                 '"P L1"',   '"P L2"',   '"P Linf"',
+                                                 '"vel L1"', '"vel L2"', '"vel Linf"',
+                                                 '"h L1"',   '"h L2"',   '"h Linf"'))
+            f.write("%16i " % nx1)
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
@@ -403,3 +424,8 @@ if outputFile != "None":
             L2 = Pn.gridpnorm(2, x0, x1)
             Linf = Pn.gridpnorm("inf", x0, x1)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            if normOutputFile != "None":
+                f.write((3*"%16.12e ") % (L1, L2, Linf))
+        if normOutputFile != "None":
+            f.write("\n")
+            f.close()
