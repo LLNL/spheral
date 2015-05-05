@@ -33,9 +33,9 @@ namespace FractalSpace
     vector <double>force_point;
     vector <double>force_shear_point;
   public:
-    ofstream* p_FILE;
     vector <Particle*> list_particles;
-    vector <Particle*> list_other_particles;
+    //    vector <Particle*> list_other_particles;
+    static ofstream* p_FILE;
     static Point* nothing;
     static int number_points;
     static bool calc_candidates;

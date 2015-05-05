@@ -8,7 +8,7 @@ namespace FractalSpace
     Group* p_fake_group=new Group;
     ofstream& FF=frac.p_file->FileFractal;
     //    ofstream& FP=frac.p_file->FileParticle;
-    FF << " entered gather_particles " << "\n";
+    //    FF << " entered gather_particles " << "\n";
     if(!mem.MPIrun)
       return;
     //    int FractalRank=mem.p_mess->FractalRank;
@@ -52,16 +52,16 @@ namespace FractalSpace
     int doubles=4;
     if(sendrad)
       doubles=5;
-    mem.p_file->note(true," gather particles a ");
+    //    mem.p_file->note(true," gather particles a ");
     mem.p_mess->Send_Data_Some_How(1,counts_out,counts_in,integers,doubles,
 				   dataI_out,dataI_in,how_manyI,
 				   dataR_out,dataR_in,how_manyR);
-    mem.p_file->note(true," gather particles c ");
+    //    mem.p_file->note(true," gather particles c ");
     dataR_out.clear();
     dataI_out.clear();
     //    really_clear(dataR_out);
     //    really_clear(dataI_out);
-    FF << " world size " << frac.particle_list_world.size() << "\n";
+    //    FF << " world size " << frac.particle_list_world.size() << "\n";
     int p2=0;
     int p4=0;
     Particle* P=0;
@@ -83,22 +83,30 @@ namespace FractalSpace
 	  }
       }
     delete p_fake_group;
-    FF << " gather b " << how_manyI << " " << frac.particle_list_world.size() << "\n";
+    FF << " gather " << how_manyI << " " << frac.particle_list_world.size() << "\n";
     frac.set_number_particles((how_manyI/2));
     frac.particle_list=frac.particle_list_world;
     frac.particle_list_world.clear();
     //    really_clear(frac.particle_list_world);
-    FF << " gather e " << mem.p_mess->parts_tmp << "\n";
-    Particle* pt=mem.p_mess->parts_tmp;
-    delete [] pt;
-    pt=0;
-    Particle* ptp=mem.p_mess->parts_tmpp;
-    delete [] ptp;
-    ptp=0;
+    //    FF << " gather e " << mem.p_mess->parts_tmp << "\n";
+    size_t totaltmp=mem.p_mess->parts_tmp.size();
+    size_t totaltmpp=mem.p_mess->parts_tmpp.size();
+    for(int FR=0;FR<totaltmp;FR++)
+      {
+	Particle* pt=mem.p_mess->parts_tmp[FR];
+	delete [] pt;
+      }
+    mem.p_mess->parts_tmp.clear();
+    for(int FR=0;FR<totaltmpp;FR++)
+      {
+	Particle* ptp=mem.p_mess->parts_tmpp[FR];
+	delete [] ptp;
+      }
+    mem.p_mess->parts_tmpp.clear();
     remove_pseudo_particles(mem,frac);
     frac.particle_list.resize((how_manyI/2));
     frac.set_number_particles((how_manyI/2));
-    FF << " finished remove_particles " << "\n";
+    //    FF << " finished remove_particles " << "\n";
   }
 }
 

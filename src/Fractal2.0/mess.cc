@@ -245,48 +245,152 @@ namespace FractalSpace
 	  }
       }
   }
+//   void Mess::create_potRC()
+//   {
+//     size_t sizeR=sizeof(double);
+//     size_t sizeC=sizeof(fftw_complex);
+//     potR=(double*) fftw_malloc(sizeR*2*total_memory);
+//     potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+//   }
+//   void Mess::free_potRC()
+//   {
+//     fftw_free(potR);
+//     fftw_free(potC);
+//   }
+//   void Mess::create_potR()
+//   {
+//     size_t sizeR=sizeof(double);
+//     potR=(double*) fftw_malloc(sizeR*2*total_memory);
+//   }
+//   void Mess::free_potR()
+//   {
+//     fftw_free(potR);
+//   }
+//   void Mess::create_potRS()
+//   {
+//     size_t sizeR=sizeof(double);
+//     if(IAmPeriodic)
+//       potRS=(double*) fftw_malloc(sizeR*2*total_memory);
+//     else
+//       potRS=(double*) fftw_malloc(sizeR*(glength+1)*(glength+1)*length_x);
+//   }
+//   void Mess::free_potRS()
+//   {
+//     fftw_free(potRS);
+//   }
+//   void Mess::create_potC()
+//   {
+//     size_t sizeC=sizeof(fftw_complex);
+//     potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+//   }
+//   void Mess::free_potC()
+//   {
+//     fftw_free(potC);
+//   }
+
   void Mess::create_potRC()
   {
-    size_t sizeR=sizeof(double);
-    size_t sizeC=sizeof(fftw_complex);
-    potR=(double*) fftw_malloc(sizeR*2*total_memory);
-    potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+    try
+      {
+	potR=new double[2*total_memory];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " BADD potR 1 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	assert(0);
+      }
+    try
+      {
+	potC=new fftw_complex[total_memory];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " BADD potC 1 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	assert(0);
+      }
+//     size_t sizeR=sizeof(double);
+//     size_t sizeC=sizeof(fftw_complex);
+//     potR=(double*) fftw_malloc(sizeR*2*total_memory);
+//     potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
   }
   void Mess::free_potRC()
   {
-    fftw_free(potR);
-    fftw_free(potC);
+    delete [] potR;
+    delete [] potC;
+//     fftw_free(potR);
+//     fftw_free(potC);
   }
   void Mess::create_potR()
   {
-    size_t sizeR=sizeof(double);
-    potR=(double*) fftw_malloc(sizeR*2*total_memory);
+    try
+      {
+	potR=new double[2*total_memory];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " BADD potR 2 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	assert(0);
+      }
+//     size_t sizeR=sizeof(double);
+//     potR=(double*) fftw_malloc(sizeR*2*total_memory);
   }
   void Mess::free_potR()
   {
-    fftw_free(potR);
+    delete [] potR;
+//     fftw_free(potR);
   }
   void Mess::create_potRS()
   {
     size_t sizeR=sizeof(double);
     if(IAmPeriodic)
-      potRS=(double*) fftw_malloc(sizeR*2*total_memory);
+      try
+	{
+	  potRS=new double[2*total_memory];
+	}
+      catch(bad_alloc& ba)
+	{
+	  cerr << " BADD potRS 1 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	  assert(0);
+	}
+//       potRS=(double*) fftw_malloc(sizeR*2*total_memory);
     else
-      potRS=(double*) fftw_malloc(sizeR*(glength+1)*(glength+1)*length_x);
+      try
+	{
+	  potRS=new double[(glength+1)*(glength+1)*length_x];
+	}
+      catch(bad_alloc& ba)
+	{
+	  cerr << " BADD potRS 1 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	  assert(0);
+	}
+//       potRS=(double*) fftw_malloc(sizeR*(glength+1)*(glength+1)*length_x);
   }
   void Mess::free_potRS()
   {
-    fftw_free(potRS);
+    delete [] potRS;
+//     fftw_free(potRS);
   }
   void Mess::create_potC()
   {
-    size_t sizeC=sizeof(fftw_complex);
-    potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
+    try
+      {
+	potC=new fftw_complex[total_memory];
+      }
+    catch(bad_alloc& ba)
+      {
+	cerr << " BADD potC 2 " << ba.what() << " " << FractalRank << " " << total_memory << endl;
+	assert(0);
+      }
+//     size_t sizeC=sizeof(fftw_complex);
+//     potC=(fftw_complex*) fftw_malloc(sizeC*total_memory);
   }
   void Mess::free_potC()
   {
-    fftw_free(potC);
+    delete [] potC;
+//     fftw_free(potC);
   }
+
+
   void Mess::fftw_real_to_complex()
   {
     if(IAmAnFFTNode)
