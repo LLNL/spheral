@@ -33,13 +33,15 @@ namespace FractalSpace
     frac.timing(-1,32);
     if(!hypre_ij_numbering(mem,hypre_points,level))
       {
-	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
+	//	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
 	frac.timing(1,32);
 	return;
       }
     frac.timing(1,32);
-    if(mem.p_mess->HypreRank == 0)
-      cerr << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << "\n";
+    FHT << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << " " << mem.p_mess->HypreRank;
+    if(!mem.Touchy.empty())
+      FHT << " " << mem.Touchy.front();
+    FHT << "\n";
     Hypre_search_time+=mem.p_mess->Clock();
     HypreRank=mem.p_mess->HypreRank;
     if(mem.p_mess->IAmAHypreNode)
@@ -48,11 +50,11 @@ namespace FractalSpace
     FHT << scientific;
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time Buffer" << "\n";
     int total=0;
-    fprintf(PFH," Am I a Hypre Node %d %d %d \n",mem.p_mess->IAmAHypreNode,HypreRank,FractalRank);
+    //    fprintf(PFH," Am I a Hypre Node %d %d %d \n",mem.p_mess->IAmAHypreNode,HypreRank,FractalRank);
     if(mem.p_mess->IAmAHypreNode)
       {
 	Hypre_gen_time=-mem.p_mess->Clock();
-	fprintf(PFH," really enter hypre solver a %d \n",level);
+	//	fprintf(PFH," really enter hypre solver a %d \n",level);
 	bool load_balance=false;
 	int off_elements=hypre_load_balance(mem,hypre_points,load_balance);
 	bool inside;
@@ -72,12 +74,12 @@ namespace FractalSpace
 	hypre_eror(PFH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
 	maxcols.clear();
 	hypre_eror(PFH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
-	fprintf(PFH," really enter hypre solver a %d \n",level);
+	//	fprintf(PFH," really enter hypre solver a %d \n",level);
 	HYPRE_IJVector ij_vector_pot;
 	HYPRE_IJVector ij_vector_rho;
 	HYPRE_ParVector par_vector_pot;
 	HYPRE_ParVector par_vector_rho;
-	fprintf(PFH," really enter hypre solver b %d \n",level);
+	//	fprintf(PFH," really enter hypre solver b %d \n",level);
 	hypre_eror(PFH,level,3,HYPRE_IJVectorCreate(HypreComm,jlower,jupper,&ij_vector_pot));
 	hypre_eror(PFH,level,4,HYPRE_IJVectorCreate(HypreComm,jlower,jupper,&ij_vector_rho));
 	hypre_eror(PFH,level,5,HYPRE_IJVectorSetObjectType(ij_vector_pot,HYPRE_PARCSR));
@@ -86,7 +88,7 @@ namespace FractalSpace
 	hypre_eror(PFH,level,-7,HYPRE_IJVectorSetMaxOffProcElmts(ij_vector_rho,off_elements));
 	hypre_eror(PFH,level,7,HYPRE_IJVectorInitialize(ij_vector_pot));
 	hypre_eror(PFH,level,8,HYPRE_IJVectorInitialize(ij_vector_rho));
-	fprintf(PFH," really enter hypre solver c %d \n",level);
+	//	fprintf(PFH," really enter hypre solver c %d \n",level);
 	const double pi = 4.0*atan(1.0);
 	const int length=frac.get_grid_length();
 	double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
@@ -170,7 +172,7 @@ namespace FractalSpace
 	hypre_eror(PFH,level,29,HYPRE_BoomerAMGSetCoarsenType(par_solver, 6));
 	hypre_eror(PFH,level,30,HYPRE_BoomerAMGSetStrongThreshold(par_solver, 0.55));
 	hypre_eror(PFH,level,31,HYPRE_BoomerAMGSetTol(par_solver, frac.get_epsilon_sor()));
-	hypre_eror(PFH,level,32,HYPRE_BoomerAMGSetPrintLevel(par_solver, 1));
+	hypre_eror(PFH,level,32,HYPRE_BoomerAMGSetPrintLevel(par_solver, 0));
 	hypre_eror(PFH,level,33,HYPRE_BoomerAMGSetPrintFileName(par_solver, "amg_real.log"));
 	hypre_eror(PFH,level,34,HYPRE_BoomerAMGSetMaxIter(par_solver, frac.get_maxits()));
 	Hypre_gen_time+=mem.p_mess->Clock();
@@ -240,7 +242,7 @@ namespace FractalSpace
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_total_time << "\t" << Hypre_sum_time[level] << " Total Time Buffer ";
     FHT << "\t" <<mem.ij_offsets[mem.p_mess->HypreNodes] << "\n";
 
-    fprintf(PFH," exit hypre solver %d %d steps %d \n",level,total, mem.steps);
+    //    fprintf(PFH," exit hypre solver %d %d steps %d \n",level,total, mem.steps);
     mem.p_mess->HypreGroupFree();
   }
   void hypre_eror(FILE* PFH,int level,int ni,int er)
