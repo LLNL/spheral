@@ -563,8 +563,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj;
               Vector gradWi, gradWj;
-              // CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, A0i, Vector::zero, gradA0i, Tensor::zero, Wj, gWj, gradWj);
-              // CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, gradA0j, Tensor::zero, Wi, gWi, gradWi);
               CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector deltagrad = gradWj - gradWi;
@@ -597,9 +595,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
+              // Mass density evolution.
+              DrhoDti -= fDeffij*rhoi*weightj*vij.dot(gradWj);
+              DrhoDtj += fDeffij*rhoj*weighti*vij.dot(gradWi);
+
               // Mass density gradient.
-              // DrhoDxi += weightj*rhoj*gradWj;
-              // DrhoDxj += weighti*rhoi*gradWi;
               DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
               DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
@@ -616,7 +616,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the tensile correction to add to the stress as described in 
               // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
               const Scalar fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-              const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
+             const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
               const SymTensor Ri = fi*tensileStressCorrection(sigmai);
               const SymTensor Rj = fj*tensileStressCorrection(sigmaj);
               sigmai += Ri;
@@ -628,6 +628,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector deltaDvDti, deltaDvDtj;
               Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
                                                      ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+              forceij *= fDeffij;
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
@@ -638,13 +639,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(sigmaj + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad)/mi;
-              DepsDtj += 0.5*weighti*weightj*(sigmai + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad)/mj;
+              DepsDti += fDeffij * 0.5*weighti*weightj*(sigmaj + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad)/mi;
+              DepsDtj += fDeffij * 0.5*weighti*weightj*(sigmai + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= weightj*Wj*vij;
-		XSPHDeltaVj += weighti*Wi*vij;
+                XSPHDeltaVi -= fDeffij*weightj*Wj*vij;
+		XSPHDeltaVj += fDeffij*weighti*Wi*vij;
               }
 
             }
@@ -659,8 +660,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
-      // Time evolution of the mass density.
-      DrhoDti = -rhoi*DvDxi.Trace();
+      // // Time evolution of the mass density.
+      // DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
