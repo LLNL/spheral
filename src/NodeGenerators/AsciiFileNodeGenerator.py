@@ -192,8 +192,9 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             gotFieldNames = 0
             
             for line in self.f:
-                line.rstrip('\r\n')
-                data = line.split(delimiter)
+                #line.rstrip('\r\n')
+                #data = line.split(delimiter)
+                data = (line.strip()).split(delimiter)
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
                 if data[0][0] != "#" and gotFieldNames == 0:
