@@ -505,7 +505,34 @@ initialize(const typename Dimension::Scalar time,
   //        boundaryItr != this->boundaryEnd();
   //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
   // }
-
+  
+  // Compute the surface normal
+  surfNorm = Vector::zero;
+  
+  size_t nodeListi = 0;
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    const NodeList<Dimension>& nodeList = **itr;
+    const int firstGhostNodei = nodeList.firstGhostNode();
+    const Scalar hmin = nodeList.hmin();
+    const Scalar hmax = nodeList.hmax();
+    const Scalar hminratio = nodeList.hminratio();
+    const int maxNumNeighbors = nodeList.maxNumNeighbors();
+    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+    
+    // Iterate over the internal nodes in this NodeList.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+      const Vector& m1i = m1(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      //const Vector& sfi = surfNorm(nodeListi, i);
+      
+      surfNorm(nodeListi,i) = Hi*m1i;
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
