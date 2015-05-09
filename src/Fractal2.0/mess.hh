@@ -69,6 +69,7 @@ namespace FractalSpace
     File* p_file;
     double WallTime;
     double TreeTime;
+    static bool IAMROOT;
     Mess():
       FractalRank(0),
       FractalNodes(1),
@@ -220,7 +221,7 @@ namespace FractalSpace
     void free_potC();
     void fftw_real_to_complex();
     void fftw_complex_to_real();
-    inline int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc) const;
+    int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc) const;
     void calc_fftw_Slices(const int& length_a,const bool& periodic);
     template <class T> void How_Many_On_Nodes(T count,vector <T>& counts) const;
     void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR);
