@@ -60,9 +60,9 @@ double limiter(const double x, const double beta) {
   // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
   
   if (beta < 1.0) {
-    return max(0.0, min(1.0, x)); // minmod
+    return 2.0/(x + 1.0)*max(0.0, min(1.0, x)); // minmod
   } else {
-    return max(0.0, max(min(beta*x, 1.0), min(x, beta))); // Sweby
+    return 2.0/(x + 1.0)*max(0.0, max(min(beta*x, 1.0), min(x, beta))); // Sweby
   }
 }
 
@@ -190,6 +190,9 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar divi = abs(DvDxi.Trace());
   // const Scalar divj = abs(DvDxj.Trace());
   // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
+
+  // const Vector vij12 = 0.5*(vi + vj);
+  // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
 
   Scalar phii = limiter(ri, mBeta);
   Scalar phij = limiter(rj, mBeta);
