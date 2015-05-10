@@ -38,11 +38,32 @@ using KernelSpace::TableKernel;
 namespace {
 
 //------------------------------------------------------------------------------
-// Sweby limiter
-// \beta \in [1, 2], where \beta=2 corresponds to the superbee limit.
+// limiter for velocity projection.
+// \beta \in [0, 1[ => minmod limiter
+// \beta \in [1, 2] => Sweby limiter,  where \beta=2 corresponds to the superbee limit.
 //------------------------------------------------------------------------------
-double swebyLimiter(const double x, const double beta) {
-  return max(0.0, max(min(beta*x, 1.0), min(x, beta)));
+double limiter(const double x, const double beta) {
+  // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
+  // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
+  // // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
+  // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
+  // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
+  // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
+    // const Scalar phii = max(0.0, max(min(2.5*ri, 1.0), min(ri, 2.5)));  // Sweby
+    // const Scalar phij = max(0.0, max(min(2.5*rj, 1.0), min(rj, 2.5)));  // Sweby
+  // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
+  // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
+  //   const Scalar phij = max(0.0, min(1.0, rj)); // minmod
+  // // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
+  // // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
+  // // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
+  // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
+  
+  if (beta < 1.0) {
+    return max(0.0, min(1.0, x)); // minmod
+  } else {
+    return max(0.0, max(min(beta*x, 1.0), min(x, beta))); // Sweby
+  }
 }
 
 }
@@ -170,26 +191,9 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar divj = abs(DvDxj.Trace());
   // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  // Scalar phii = swebyLimiter(ri, mBeta);
-  // Scalar phij = swebyLimiter(rj, mBeta);
+  Scalar phii = limiter(ri, mBeta);
+  Scalar phij = limiter(rj, mBeta);
 
-  // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
-  // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
-  // // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
-  // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
-  // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
-  // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
-    // const Scalar phii = max(0.0, max(min(2.5*ri, 1.0), min(ri, 2.5)));  // Sweby
-    // const Scalar phij = max(0.0, max(min(2.5*rj, 1.0), min(rj, 2.5)));  // Sweby
-  // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
-  // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
-  const Scalar phii = max(0.0, min(1.0, ri)); // minmod
-  const Scalar phij = max(0.0, min(1.0, rj)); // minmod
-  // // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
-  // // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
-  // // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
-  // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
-  
   // "Mike" method.
   const Vector vi1 = vi - phii*DvDxi*xij;
   const Vector vj1 = vj + phij*DvDxj*xij;
@@ -201,9 +205,9 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   // The artificial internal energy.
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui)))) ;
+                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
-                             Cq *rvAlphaQ(nodeListj,j)    *(quadInExp     ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
+                             Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (linearInExp or quadInExp), ej << " " << csj << " " << muj);
 
