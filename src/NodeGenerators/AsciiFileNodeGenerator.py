@@ -61,8 +61,9 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             gotFieldNames = 0
             
             for line in self.f:
-                line.rstrip('\r\n')
-                data = line.split(delimiter)
+                #line.rstrip('\r\n')
+                #data = line.split(delimiter)
+                data = (line.strip()).split(delimiter)
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
                 if data[0][0] != "#" and gotFieldNames == 0:
@@ -191,8 +192,9 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             gotFieldNames = 0
             
             for line in self.f:
-                line.rstrip('\r\n')
-                data = line.split(delimiter)
+                #line.rstrip('\r\n')
+                #data = line.split(delimiter)
+                data = (line.strip()).split(delimiter)
                 if data[0][0] != "#" and gotFieldNames == 1:
                     vals.append(data)
                 if data[0][0] != "#" and gotFieldNames == 0:
@@ -250,6 +252,14 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         assert i >= 0 and i < len(self.x)
         assert len(self.x) == len(self.y)
         return Vector3d(self.x[i], self.y[i], self.z[i])
+    
+    #---------------------------------------------------------------------------
+    # Get the velocity for the given node index.
+    #---------------------------------------------------------------------------
+    def localVelocity(self, i):
+        assert i >= 0 and i < len(self.vx)
+        assert len(self.vx) == len(self.vy)
+        return Vector3d(self.vx[i], self.vy[i], self.vz[i])
 
     #---------------------------------------------------------------------------
     # Get the mass for the given node index.

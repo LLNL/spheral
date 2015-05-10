@@ -452,6 +452,7 @@ class CRKSPH:
         const_ref_return_value(x, me, "%s::D" % me, tensorfieldlist, [], "D")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
+        const_ref_return_value(x, me, "%s::surfNorm" % me, vectorfieldlist, [], "surfNorm")
 
         return
 
