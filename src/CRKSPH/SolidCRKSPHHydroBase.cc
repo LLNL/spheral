@@ -616,7 +616,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Compute the tensile correction to add to the stress as described in 
               // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
               const Scalar fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-             const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
+              const Scalar fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
               const SymTensor Ri = fi*tensileStressCorrection(sigmai);
               const SymTensor Rj = fj*tensileStressCorrection(sigmaj);
               sigmai += Ri;
@@ -660,8 +660,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
-      // // Time evolution of the mass density.
-      // DrhoDti = -rhoi*DvDxi.Trace();
+      // Time evolution of the mass density.
+      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
