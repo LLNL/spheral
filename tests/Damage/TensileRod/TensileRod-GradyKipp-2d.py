@@ -254,7 +254,7 @@ class AverageStrain(RestartableObject):
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
+import os, sys, shutil
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
