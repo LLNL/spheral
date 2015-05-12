@@ -4,6 +4,7 @@
 //
 namespace FractalSpace
 {
+  bool Mess::IAMROOT;
   void Mess::MPIStartup()
   {
     //      cerr << " Into MPIStartup " << "\n";
@@ -341,7 +342,7 @@ namespace FractalSpace
   }
   void Mess::create_potRS()
   {
-    size_t sizeR=sizeof(double);
+    //    size_t sizeR=sizeof(double);
     if(IAmPeriodic)
       try
 	{
@@ -401,7 +402,7 @@ namespace FractalSpace
     if(IAmAnFFTNode)
       fftw_mpi_execute_dft_c2r(plan_cr,potC,potR);
   }
-  inline int Mess::fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc) const
+  int Mess::fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc) const
   {
     return k+(j+(i-start_x)*lb)*lc;
   }
@@ -798,7 +799,7 @@ namespace FractalSpace
 				vector < vector <double> >& dataR_out,vector <double>& dataR_in_send,int& how_manyR)
   {
     fftwTAG=tag;
-    int Rank=what_is_my_rank(World);
+    //    int Rank=what_is_my_rank(World);
     int Nodes=how_many_nodes(World);
     bool small=Nodes <= MPI_SWITCH;
     bool foreign=World != FractalWorld && World != HypreWorld;
@@ -1451,8 +1452,8 @@ namespace FractalSpace
     int HypreNodes1=sqrt(a12-0.5)+1.0;
     int HypreNodes01=HypreNodes0*HypreNodes1;
     int HypreNodes2=HypreNodes/HypreNodes01;
-    int HypreRank0=HypreRank % HypreNodes0;
-    int HypreRank1=(HypreRank/HypreNodes0) % HypreNodes1;
+    //    int HypreRank0=HypreRank % HypreNodes0;
+    //    int HypreRank1=(HypreRank/HypreNodes0) % HypreNodes1;
     int HypreRank2=HypreRank/HypreNodes01;
     //      int HypreNodesBox=HypreNodes01*HypreNodes2;
     //      int extras=HypreNodes-HypreNodesBox;

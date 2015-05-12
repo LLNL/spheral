@@ -10,6 +10,7 @@ int main(int argc, char* argv[])
   MPI_Comm_size(MPI_COMM_WORLD,&FRN);
   int Ranky;
   MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+  Mess::IAMROOT=Ranky == 0;
   bool _inteL_=true;
   if(argc >= 2)
     _inteL_=atoi(argv[1]) != 0;
@@ -36,7 +37,7 @@ int main(int argc, char* argv[])
   double SHRINK=0.0;
   if(argc >= 8)
     SHRINK=atof(argv[7]);
-  if(Ranky==0)
+  if(Mess::IAMROOT)
     {
       cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
       cerr << " " << NumberParticles << " " << SHRINK << "\n";
