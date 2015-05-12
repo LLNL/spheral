@@ -39,30 +39,13 @@ namespace {
 
 //------------------------------------------------------------------------------
 // limiter for velocity projection.
-// \beta \in [0, 1[ => minmod limiter
-// \beta \in [1, 2] => Sweby limiter,  where \beta=2 corresponds to the superbee limit.
 //------------------------------------------------------------------------------
-double limiter(const double x, const double beta) {
-  // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
-  // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
-  // // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
-  // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
-  // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
-  // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
-    // const Scalar phii = max(0.0, max(min(2.5*ri, 1.0), min(ri, 2.5)));  // Sweby
-    // const Scalar phij = max(0.0, max(min(2.5*rj, 1.0), min(rj, 2.5)));  // Sweby
-  // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
-  // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
-  //   const Scalar phij = max(0.0, min(1.0, rj)); // minmod
-  // // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
-  // // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
-  // // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
-  // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
-  
-  if (beta < 1.0) {
-    return 2.0/(x + 1.0)*max(0.0, min(1.0, x)); // minmod
+double limiter(const double x) {
+  if (x > 0.0) {
+    // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
+    return 2.0/(1.0 + x)*min(1.0, x);            // minmod
   } else {
-    return 2.0/(x + 1.0)*max(0.0, max(min(beta*x, 1.0), min(x, beta))); // Sweby
+    return 0.0;
   }
 }
 
@@ -76,11 +59,9 @@ CRKSPHMonaghanGingoldViscosity<Dimension>::
 CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                const Scalar Cquadratic,
                                const bool linearInExpansion,
-                               const bool quadraticInExpansion,
-                               const Scalar beta):
+                               const bool quadraticInExpansion):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
-  mBeta(beta),
   mGradVel(FieldSpace::Reference) {
 }
 
@@ -194,8 +175,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Vector vij12 = 0.5*(vi + vj);
   // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
 
-  Scalar phii = limiter(ri, mBeta);
-  Scalar phij = limiter(rj, mBeta);
+  const Scalar phii = limiter(ri);
+  const Scalar phij = limiter(rj);
 
   // "Mike" method.
   const Vector vi1 = vi - phii*DvDxi*xij;
