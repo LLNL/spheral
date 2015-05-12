@@ -11,11 +11,11 @@ namespace FractalSpace
     // Delete all points, groups, chains and misc.
     //--------------------------------------------------------------------------------------------------------------------------------
     int counting=0;
-    for(int particle=0;particle < fractal_ghost.get_number_particles();++particle)
-      {
-	delete fractal_ghost.particle_list[particle];
-	counting++;
-      }
+//     for(int particle=0;particle < fractal_ghost.get_number_particles();++particle)
+//       {
+// 	delete fractal_ghost.particle_list[particle];
+// 	counting++;
+//       }
     delete &fractal_ghost;
     counting++;
     if(!mem.amnesia)

@@ -381,6 +381,14 @@ CRKSPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
 }
+  
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
+surfNorm() const {
+  return mSurfNorm;
+}
 
 }
 }

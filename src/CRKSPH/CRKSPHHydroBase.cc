@@ -139,6 +139,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradA0(FieldSpace::Copy),
   mGradA(FieldSpace::Copy),
   mGradB(FieldSpace::Copy),
+  mSurfNorm(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
 
@@ -191,6 +192,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mGradA0 = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA0_CRKSPH);
   mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH);
   mGradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH);
+  mSurfNorm = dataBase.newFluidFieldList(Vector::zero, "Surface Normal");
 
   // // Compute the volumes.
   // const TableKernel<Dimension>& W = this->kernel();
@@ -255,6 +257,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mGradA0,Vector::zero,    HydroFieldNames::gradA0_CRKSPH, false);
   dataBase.resizeFluidFieldList(mGradA, Vector::zero,    HydroFieldNames::gradA_CRKSPH, false);
   dataBase.resizeFluidFieldList(mGradB, Tensor::zero,    HydroFieldNames::gradB_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mSurfNorm, Vector::zero, "Surface Normal", false);
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
   // of the thermal energy.
@@ -357,6 +360,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mGradA0);
   state.enroll(mGradA);
   state.enroll(mGradB);
+  state.enroll(mSurfNorm);
 }
 
 //------------------------------------------------------------------------------
@@ -444,7 +448,8 @@ initialize(const typename Dimension::Scalar time,
   FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-
+  FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
+  
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
@@ -500,7 +505,34 @@ initialize(const typename Dimension::Scalar time,
   //        boundaryItr != this->boundaryEnd();
   //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
   // }
-
+  
+  // Compute the surface normal
+  surfNorm = Vector::zero;
+  
+  size_t nodeListi = 0;
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    const NodeList<Dimension>& nodeList = **itr;
+    const int firstGhostNodei = nodeList.firstGhostNode();
+    const Scalar hmin = nodeList.hmin();
+    const Scalar hmax = nodeList.hmax();
+    const Scalar hminratio = nodeList.hminratio();
+    const int maxNumNeighbors = nodeList.maxNumNeighbors();
+    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+    
+    // Iterate over the internal nodes in this NodeList.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+      const Vector& m1i = m1(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      //const Vector& sfi = surfNorm(nodeListi, i);
+      
+      surfNorm(nodeListi,i) = Hi*m1i;
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -551,6 +583,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -569,6 +602,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(gradA0.size() == numNodeLists);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
+  CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Vector> DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);

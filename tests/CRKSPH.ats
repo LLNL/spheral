@@ -1,12 +1,12 @@
 #-*-python-*-
 # This is an ATS script to coorindate running a series of tests of CRKSPH.
-cfl = 0.2
+cfl = 0.25
 nPerh = 1.51
 Cl = 1.0
 Cq = 1.0
 filter = 0.0
 for crk, linearInExpansion, label in ((False, False, "SPH"),
-                                      (True, True, "CRK")):
+                                      (True, False, "CRK")):
     test(script = "Hydro/Sod/Sod-planar-1d.py",
          clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile Sod-planar.ascii" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
          label = "Planar Sod problem -- 1-D (serial %s)" % label)

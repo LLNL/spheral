@@ -4,6 +4,7 @@ namespace FractalSpace
 {
   //  typedef HYPRE_Int HINT;
   typedef int HINT;
+  //  typedef unsigned int HINT;
   class Fractal_Memory
   {
   public:
