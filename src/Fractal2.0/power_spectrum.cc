@@ -9,8 +9,8 @@ namespace FractalSpace
   {
     ofstream& FilePow=mem.p_fractal->p_file->DUMPS;
     ofstream& FileVar=mem.p_fractal->p_file->DUMPS;
-    FilePow << "sizes b " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
-    FilePow << "enter power_spectrum " << length << "\n";
+//     FilePow << "sizes b " << variance_rho.size() << " " << variance_pot.size() << " " << variance_force.size() << " " << variance_force_s.size() << "\n";
+//     FilePow << "enter power_spectrum " << length << "\n";
     vector <double> green_2(length+1);
     vector <double> force_1(length+1);
     vector <double> force_2(length+1);
@@ -22,7 +22,7 @@ namespace FractalSpace
     double d_step_wave=pow(2.0,lev);
     int i_step_wave=Misc::pow(2,lev);
     double spam_6=2.0/pow((double)(length),6);
-    FilePow << "spam_6= " << spam_6 << "\n";
+//     FilePow << "spam_6= " << spam_6 << "\n";
     for (int k=0;k <length;++k)
       {
 	double aa=pi*(double)(k)/(double)(length);
@@ -97,25 +97,39 @@ namespace FractalSpace
 	      }
 	  }
       }
+    vector <double>ssp(vec_length*3);
+    for(int ni=0;ni<vec_length;ni++)
+      {
+	ssp[ni]=sum_0[ni];
+	ssp[ni+vec_length]=sum_1[ni];
+	ssp[ni+2*vec_length]=power[ni];
+      }
+    mem.p_mess->Find_Sum_DOUBLE(ssp,3*vec_length);
+    //    mem.p_mess->Find_Sum_DOUBLE(sum_0,vec_length);
+    //    mem.p_mess->Find_Sum_DOUBLE(sum_1,vec_length);
+    //    mem.p_mess->Find_Sum_DOUBLE(power,vec_length);
     int how_long=nyq*i_step_wave+1;
-    mem.p_mess->Find_Sum_DOUBLE(sum_0,vec_length);
-    mem.p_mess->Find_Sum_DOUBLE(sum_1,vec_length);
-    mem.p_mess->Find_Sum_DOUBLE(power,vec_length);
-    mem.p_mess->Find_Sum_DOUBLE(variance_rho,how_long);
-    mem.p_mess->Find_Sum_DOUBLE(variance_pot,how_long);
-    mem.p_mess->Find_Sum_DOUBLE(variance_force,how_long);
-    mem.p_mess->Find_Sum_DOUBLE(variance_force_s,how_long);
-    FilePow << "count power " << counts << "\n";
-    FilePow << "var zero " << variance_rho[0] << "\n";
+    if(do_var)
+      {
+	mem.p_mess->Find_Sum_DOUBLE(variance_rho,how_long);
+	mem.p_mess->Find_Sum_DOUBLE(variance_pot,how_long);
+	mem.p_mess->Find_Sum_DOUBLE(variance_force,how_long);
+	mem.p_mess->Find_Sum_DOUBLE(variance_force_s,how_long);
+      }
+    //    FilePow << "count power " << counts << "\n";
+    //    FilePow << "var zero " << variance_rho[0] << "\n";
     for(int n=0;n <=nyq*i_step_wave;n+=i_step_wave)
       {
 	int nv=n/i_step_wave;
 	sum_1[n]/=sum_0[n];
 	power[n]/=sum_0[n];
-	FilePow << n << "\t " << scientific << sum_1[n] << "\t " << power[n] << "\n";
-	if(do_var) FileVar << scientific << (double)(nv)/(double)length << "\t " << variance_rho[nv] << "\t " << variance_pot[nv] << "\t " 
-			   << variance_force[nv] << "\t " << variance_force_s[nv] << "\n";
+	if(Mess::IAMROOT)
+	  FilePow << n << "\t " << scientific << sum_1[n] << "\t " << power[n] << "\n";
+	if(Mess::IAMROOT)
+	  if(do_var) 
+	    FileVar << scientific << (double)(nv)/(double)length << "\t " << variance_rho[nv] << "\t " << variance_pot[nv] << "\t " 
+		    << variance_force[nv] << "\t " << variance_force_s[nv] << "\n";
       }
-    FilePow << "leaving power " << lev << "\n";
+    //    FilePow << "leaving power " << lev << "\n";
   }
 }

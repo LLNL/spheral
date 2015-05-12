@@ -213,7 +213,7 @@ namespace FractalSpace
     bool debug=fractal.get_debug();
     misc.set_debug(debug);
     fractal_memory.p_misc=p_misc;
-    FileFractal << "startup " << fractal_memory.start_up << "\n";
+    //    FileFractal << "startup " << fractal_memory.start_up << "\n";
     misc.zoom=Misc::pow(2,fractal.get_level_max());
     misc.grid_multiply=misc.zoom*fractal.get_grid_length();  
     misc.set_debug(fractal_memory.debug);
@@ -224,7 +224,7 @@ namespace FractalSpace
     if(fractal.get_periodic())
       {
 	d_0=fractal.get_omega_start()*0.375/(4.0*atan(1.0));
-	FileFractal << "density 0 " << fractal.get_omega_start() << " " << d_0 << "\n";
+	//	FileFractal << "density 0 " << fractal.get_omega_start() << " " << d_0 << "\n";
       }
     fractal.set_density_0(d_0);
     //--------------------------------------------------------------------------
@@ -236,7 +236,7 @@ namespace FractalSpace
     group.set_level(0);
     group.p_file=fractal.p_file;
     misc.p_group_0=p_group; 
-    FileFractal << "group f " << p_group << " " << misc.p_group_0 << "\n";
+    //    FileFractal << "group f " << p_group << " " << misc.p_group_0 << "\n";
     fractal_memory.all_groups.resize(fractal.get_level_max()+1);
     fractal_memory.all_groups[0].push_back(p_group);
     fractal_memory.all_buffer_groups.resize(fractal.get_level_max()+1);
@@ -276,8 +276,8 @@ namespace FractalSpace
 	// to find potential at the points. Find forces at points and then at particles.
 	fractal.timing_lev(-1,0);
 	Group& group=*misc.p_group_0;
-	if(misc.get_debug())
-	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
+// 	if(misc.get_debug())
+// 	  FileFractal << "trying doing Group " << &group << " " << group.get_level() <<  "\n";
 	group.set_set_scaling(true);
 	group.set_set_dens(true);
 	//--------------------------------------------------------------------------
@@ -336,7 +336,7 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     for(int level=0;level < fractal.get_level_max();level++)
       {
-	FileFractal << "a level=  " << level << "\n";
+	//	FileFractal << "a level=  " << level << "\n";
 	fractal.timing_lev(-2,level+1);
 	for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
 	    group_itr!=fractal_memory.all_groups[level].end();group_itr++)
@@ -456,7 +456,7 @@ namespace FractalSpace
     //    dump_tree(fractal_memory,fractal);
     fractal.timing(-1,16);
     bool badd=test_tree(fractal_memory,fractal);
-    FileFractal << " not badd " << badd << "\n";
+    //    FileFractal << " not badd " << badd << "\n";
     assert(!badd);
     fractal.timing(1,16);
     FileFractal << "number of everything after the tree "  << " " << Group::number_groups << " " << Point::number_points << "\n";
@@ -464,9 +464,8 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     // If force_max > 0 find ghost particles that need to split to soften the force
     //--------------------------------------------------------------------------
-    FileFractal << " not badd0 " << badd << "\n";
-    Fractal* p_fractal_ghost=new (nothrow) Fractal;
-    assert(p_fractal_ghost);
+    //    FileFractal << " not badd0 " << badd << "\n";
+    Fractal* p_fractal_ghost=new Fractal;
     Fractal& fractal_ghost=*p_fractal_ghost;
 //     fractal.timing(-1,17);
 //     FileFractal << " not badda " << badd << "\n";
@@ -483,7 +482,7 @@ namespace FractalSpace
 //     fractal.timing(1,18);
     fractal.timing(1,46);
     //    fractal_memory.p_mess->TreeTime=fractal.get_delta_time(46);
-    FileFractal << "start up " << fractal_memory.start_up << "\n";
+    //    FileFractal << "start up " << fractal_memory.start_up << "\n";
     if(!fractal_memory.start_up)
       {
 // 	fractal.timing(-1,47);
@@ -609,9 +608,9 @@ namespace FractalSpace
       }
     if(fractal_memory.momentum_conserve)
       {
-	FileFractal << " going to mom conserve " << "\n";
+	//	FileFractal << " going to mom conserve " << "\n";
 	force_test(fractal);
-	FileFractal << " leaving mom conserve " << "\n";
+	//	FileFractal << " leaving mom conserve " << "\n";
       }
     if(fractal_memory.start_up)
       {
@@ -624,7 +623,7 @@ namespace FractalSpace
       {
 	for(int level=0;level <= fractal_memory.global_level_max;level++)
 	  {
-	    FileFractal << "level = " << level << "\n";
+	    //	    FileFractal << "level = " << level << "\n";
 	    for(vector <Group*>::const_iterator group_itr=fractal_memory.all_groups[level].begin();
 		group_itr!=fractal_memory.all_groups[level].end();group_itr++)
 	      {
