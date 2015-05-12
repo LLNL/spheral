@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
   MPI_Comm_size(MPI_COMM_WORLD,&FRN);
   int Ranky;
   MPI_Comm_rank(MPI_COMM_WORLD,&Ranky);
+  Mess::IAMROOT=Ranky == 0;
   //
   // Intel/IBM (1/0) default Intel
   // Gridlength      default 256

@@ -205,6 +205,8 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
+    
+  const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -265,6 +267,8 @@ private:
   FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
+    
+  FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
