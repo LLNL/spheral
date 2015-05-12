@@ -26,8 +26,7 @@ public:
   CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const bool linearInExpansion,
-                                 const bool quadraticInExpansion,
-                                 const Scalar beta);
+                                 const bool quadraticInExpansion);
 
   // Destructor.
   virtual ~CRKSPHMonaghanGingoldViscosity();
@@ -62,13 +61,8 @@ public:
   // Restart methods.
   virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }
 
-  // The beta parameter for the Sweby limiter.
-  Scalar beta() const   { return mBeta; }
-  void beta(Scalar val) { mBeta = val; }
-
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mBeta;
   FieldSpace::FieldList<Dimension, Tensor> mGradVel;
 
   CRKSPHMonaghanGingoldViscosity();
