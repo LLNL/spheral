@@ -148,6 +148,7 @@ class CRKSPH:
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "damage"),
                                  param("bool", "coupleNodeLists"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
@@ -155,8 +156,6 @@ class CRKSPH:
                                  refparam(scalarfieldlist, "A0"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
-                                 refparam(vectorfieldlist, "C"),
-                                 refparam(tensorfieldlist, "D"),
                                  refparam(vectorfieldlist, "gradA0"),
                                  refparam(vectorfieldlist, "gradA"),
                                  refparam(tensorfieldlist, "gradB")],
@@ -241,8 +240,6 @@ class CRKSPH:
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(vectorfieldlist, "C"),
-                                 constrefparam(tensorfieldlist, "D"),
                                  constrefparam(vectorfieldlist, "gradA"),
                                  constrefparam(tensorfieldlist, "gradB"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -258,8 +255,6 @@ class CRKSPH:
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "A"),
                                  constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(vectorfieldlist, "C"),
-                                 constrefparam(tensorfieldlist, "D"),
                                  constrefparam(vectorfieldlist, "gradA"),
                                  constrefparam(tensorfieldlist, "gradB"),
                                  constrefparam(connectivitymap, "connectivityMap"),
@@ -448,8 +443,6 @@ class CRKSPH:
         const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
-        const_ref_return_value(x, me, "%s::C" % me, vectorfieldlist, [], "C")
-        const_ref_return_value(x, me, "%s::D" % me, tensorfieldlist, [], "D")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::surfNorm" % me, vectorfieldlist, [], "surfNorm")

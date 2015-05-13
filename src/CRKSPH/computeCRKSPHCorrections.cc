@@ -31,35 +31,33 @@ using Geometry::innerProduct;
 template<typename Dimension>
 void
 computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
-                       const TableKernel<Dimension>& W,
-                       const FieldList<Dimension, typename Dimension::Scalar>& weight,
-                       const FieldList<Dimension, typename Dimension::Vector>& position,
-                       const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                       const bool coupleNodeLists,
-                       FieldList<Dimension, typename Dimension::Scalar>& m0,
-                       FieldList<Dimension, typename Dimension::Vector>& m1,
-                       FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                       FieldList<Dimension, typename Dimension::Scalar>& A0,
-                       FieldList<Dimension, typename Dimension::Scalar>& A,
-                       FieldList<Dimension, typename Dimension::Vector>& B,
-                       FieldList<Dimension, typename Dimension::Vector>& C,
-                       FieldList<Dimension, typename Dimension::Tensor>& D,
-                       FieldList<Dimension, typename Dimension::Vector>& gradA0,
-                       FieldList<Dimension, typename Dimension::Vector>& gradA,
-                       FieldList<Dimension, typename Dimension::Tensor>& gradB) {
+                         const TableKernel<Dimension>& W,
+                         const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                         const FieldList<Dimension, typename Dimension::Vector>& position,
+                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                         const FieldList<Dimension, typename Dimension::Scalar>& damage,
+                         const bool coupleNodeLists,
+                         FieldList<Dimension, typename Dimension::Scalar>& m0,
+                         FieldList<Dimension, typename Dimension::Vector>& m1,
+                         FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                         FieldList<Dimension, typename Dimension::Scalar>& A0,
+                         FieldList<Dimension, typename Dimension::Scalar>& A,
+                         FieldList<Dimension, typename Dimension::Vector>& B,
+                         FieldList<Dimension, typename Dimension::Vector>& gradA0,
+                         FieldList<Dimension, typename Dimension::Vector>& gradA,
+                         FieldList<Dimension, typename Dimension::Tensor>& gradB) {
 
   // Pre-conditions.
   const size_t numNodeLists = A.size();
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
+  REQUIRE(damage.size() == numNodeLists or damage.size() == 0);
   REQUIRE(m0.size() == numNodeLists);
   REQUIRE(m1.size() == numNodeLists);
   REQUIRE(m2.size() == numNodeLists);
   REQUIRE(A0.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
-  REQUIRE(C.size() == numNodeLists);
-  REQUIRE(D.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
 
@@ -76,8 +74,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   A0 = 0.0;
   A = 0.0;
   B = Vector::zero;
-  C = Vector::zero;
-  D = Tensor::zero;
   gradA = Vector::zero;
   gradB = Tensor::zero;
 
@@ -232,96 +228,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   }
 
   // Note -- we are suspending the next order corrections for now!
-
-  // Now we have the information to compute the "integration correction" (a.k.a C).
-  // This is actually an iterative process (ewwww!)
-//   {
-//     const int maxIterations = 10;
-//     const double tol = 1.0e-10;
-//     int iter = 0;
-//     double variation = 2.0*tol;
-//     while (iter < maxIterations and variation > tol) {
-//       ++iter;
-//       variation = 0.0;
-
-//       Field<Dimension, Vector> Cnew("new value for C", *nodeListPtr);
-//       for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-//         const Scalar& wi = weight(i);
-//         const Vector& ri = position(i);
-//         const SymTensor& Hi = H(i);
-//         const Scalar Hdeti = Hi.Determinant();
-//         const Scalar& Ai = A(i);
-//         const Vector& Bi = B(i);
-//         const Vector& Ci = C(i);
-//         const Vector& gradAi = gradA(i);
-//         const Tensor& gradBi = gradB(i);
-
-//         // Self contribution.
-//         Scalar Wj, gWj;
-//         Vector gradWj;
-//         CRKSPHKernelAndGradient(W, Vector(), Vector(), Hi, Hdeti, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-//         Cnew(i) += wi*(Ci*Wj - gradWj);
-
-//         // Get the neighbors for this node (in this NodeList).
-//         const vector<int>& connectivity = connectivityMap.connectivityForNode(nodeListPtr, i)[nodeListi];
-//         for (vector<int>::const_iterator jItr = connectivity.begin();
-//              jItr != connectivity.end();
-//              ++jItr) {
-//           const int j = *jItr;
-
-//           // Check if this node pair has already been calculated.
-// //           if (j > i) {
-//             const Scalar& wj = weight(j);
-//             const Vector& rj = position(j);
-//             const SymTensor& Hj = H(j);
-//             const Scalar Hdetj = Hj.Determinant();
-//             const Scalar& Aj = A(j);
-//             const Vector& Bj = B(j);
-//             const Vector& Cj = C(j);
-//             const Vector& gradAj = gradA(j);
-//             const Tensor& gradBj = gradB(j);
-
-//             // Kernel weighting and gradient.
-//             const Vector rji = rj - ri;
-//             const Vector etai = Hi*rji;
-//             const Vector etaj = Hj*rji;
-//             Scalar Wi, gWi, Wj, gWj;
-//             Vector gradWi, gradWj;
-//             CRKSPHKernelAndGradient(W, rji, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-//             CRKSPHKernelAndGradient(W, rji, etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
-//             Cnew(i) += wj*(Cj*Wj - gradWj);
-// //             Cnew(j) += wi*(Ci*Wi + gradWi);
-// //           }
-
-// //             // HACK!  Boundary contribution.
-// //             if (j == 0 or j == 99) {
-// //               const double AAj = (j == 0) ? -1.0 : 1.0;
-// //               Cnew(i) += AAj*Wj;
-// //             }
-// //             // HACK!  Boundary contribution.
-
-//         }
-
-//         // Update the maximum variation.
-//         variation = max(variation, (Cnew(i) - C(i)).magnitude()/max(1.0, sqrt(abs(C(i).dot(Cnew(i))))));
-//       }
-
-//       for (int i = 0; i != 10; ++i) cerr << Cnew(i) << " ";
-//       cerr << endl;
-
-//       // Set the C field to the new value.
-//       C = Cnew;
-
-//       // Get the global max variation.
-//       variation = safeAllReduceMax(variation);
-//       cerr << "Iteration " << iter << " : variation " << variation << endl;
-//     }
-
-//     // Check if we converged or now.
-//     cerr << "Required " << iter << " iterations to converge to " << variation << endl;
-//     if (variation > tol) cerr << "CRKSPHFluidDerivatives::updateCorrections failed to converge for C" << endl;
-
-//   }
 
 }
 
