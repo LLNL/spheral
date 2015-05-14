@@ -198,17 +198,14 @@ class KeplerianPressureDiskProfile:
     def rho(self, r):
         return rho0*exp(-(r-self.r0)*(r-self.r0)/(2.0*self.sig*self.sig))
     
-    def K(self,r):
-        return 0.5*self.f*self.G*self.M*(self.sig*self.sig)/((r*r+self.rc*self.rc)**(1.5)*(self.r0-r)*self.rho(r))
-    
-    def Pr(self,r):
-        return self.K(r)*self.rho(r)*self.rho(r)
+    def g(self,r):
+        return -self.G*self.M*r*(r*r+self.rc*self.rc)**(-1.5)
 
     def vt(self, r):
-        return sqrt(r*self.G*self.M*(r*r+self.rc*self.rc)**(-1.5) - 2.0*self.K(r)*r/(self.sig*self.sig)*(self.r0-r)*self.rho(r))
+        return sqrt(-r*self.g(r)*(1.0-self.f))
 
     def eps(self, r):
-        return 2.0/3.0 * self.G*self.M / sqrt(r*r + self.rc*self.rc)
+        return -self.f*self.g(r)*self.sig*self.sig/((self.gamma*(self.gamma-1.0))*(self.r0-r))
 
     def __call__(self, r):
         return self.rho(r)
@@ -287,8 +284,8 @@ if restoreCycle is None:
             r = nodes.positions()[i].magnitude()
             runit = nodes.positions()[i].unitVector()
             vunit = Vector(-runit.y, runit.x)
-            vt = sqrt(1.0 - fractionPressureSupport)*diskProfile.vt(r)
-            nodes.specificThermalEnergy()[i] = fractionPressureSupport*diskProfile.eps(r)
+            vt = diskProfile.vt(r)
+            nodes.specificThermalEnergy()[i] = diskProfile.eps(r)
             nodes.velocity()[i] = Vector(vt*vunit.x, vt*vunit.y)
 
 #-------------------------------------------------------------------------------
