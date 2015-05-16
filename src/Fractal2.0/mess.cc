@@ -808,7 +808,7 @@ namespace FractalSpace
     //    cerr << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << "\n";
     //    if(Rank == 0)
     //      cerr << " SOMEWHOW " << FractalRank << " " << Nodes << " " << MPI_SWITCH << " " << small << foreign << " ";
-    if(small || foreign)
+    if(small || foreign || tag == 6)
       {
 	//	if(Rank == 0)
 	//	  cerr << "A" << "\n";
@@ -911,8 +911,8 @@ namespace FractalSpace
       }
     catch(bad_alloc& ba)
       {
-	cerr << " DUMP IT A " << FractalRank << " " << ba.what() << " " << totals << "\n";
-	FF << " DUMP IT A " << ba.what() << " " << totals << "\n";
+	cerr << " DUMP IT A " << FractalRank << " " << ba.what() << " " << totals << " " << nIdata << " " << nRdata << "\n";
+	FF << " DUMP IT A " << ba.what() << " " << totals << " " << nIdata << " " << nRdata << "\n";
 	for(int FR2=0;FR2<FractalNodes2;FR2++)
 	  FF << FR2 << " " << dataI_out[FR2].size() << " " << dataR_out[FR2].size() << "\n";
 	FF << endl;
