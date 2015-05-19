@@ -62,7 +62,7 @@ namespace FractalSpace
 	hypre_eror(PFH,level,0,HYPRE_IJMatrixCreate(HypreComm,ilower,iupper,jlower,jupper,&ij_matrix));
 	hypre_eror(PFH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
 	HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
-	int ij_index,udsize;
+	HYPRE_Int ij_index,udsize;
 	vector <HYPRE_Int> maxcols(mem.ij_countsB[HypreRank],7);
 	hypre_eror(PFH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
 	maxcols.clear();
@@ -85,7 +85,7 @@ namespace FractalSpace
 	const double pi = 4.0*atan(1.0);
 	const int length=frac.get_grid_length();
 	double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
-	vector <int> ij_ud(6);
+	vector <HYPRE_Int> ij_ud(6);
 	const HYPRE_Int nrows=1;
 	HYPRE_Int rows[1];
 	HYPRE_Int ncols[1];
@@ -205,7 +205,7 @@ namespace FractalSpace
 	vector <double>potH(mem.ij_countsB[HypreRank]);
 	vector <HYPRE_Int>rowsH(mem.ij_countsB[HypreRank]);
 	HYPRE_Int holy_grail=mem.ij_offsetsB[HypreRank];
-	for(int ni=0;ni<mem.ij_countsB[HypreRank];ni++)
+	for(HYPRE_Int ni=0;ni<mem.ij_countsB[HypreRank];ni++)
 	  rowsH[ni]=ni+holy_grail;
 	hypre_eror(PFH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,mem.ij_countsB[HypreRank],&(*rowsH.begin()),&(*potH.begin())));
 	rowsH.clear();
