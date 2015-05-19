@@ -54,25 +54,25 @@ commandLine(asph = False,
             n = 100,
             thetaMin = 0.0,
             thetaMax = 2.0*pi,
-            rmin = 0.0,
-            rmax = 15.0,
+            rmin = 0.5,
+            rmax = 2.0,
             nPerh = 2.01,
 
             # Properties of the central gravitating particle.
             G0 = 1.0,
-            M0 = 1000.0,
+            M0 = 1.0,
             Rc = 0.5,
             R0 = Vector(0.0, 0.0),
 
             # Properties of the gas disk.
-            fractionPressureSupport = 0.5,
+            polytropicConstant = 1e-8,
             rho0  = 1.0,
             rd0   = 10.0,
             sig   = 2.5,
             Rcutoff = 0.5,
 
             # Material properties of the gas.
-            polytropicIndex = 2.0,
+            polytropicIndex = 5.0/3.0,
             mu = 1.0,
 
             SVPH = False,
@@ -134,7 +134,7 @@ commandLine(asph = False,
             vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
             )
 
-polytropicConstant = G0*M0/(3.0*Rc*sqrt(rho0))
+#polytropicConstant = G0*M0/(3.0*Rc*sqrt(rho0))
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -154,11 +154,9 @@ else:
         HydroConstructor = SPHHydro
 
 # Data output info.
-dataDir = "cylindrical-%i" % n
-restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
-                                                  fractionPressureSupport,
-                                                  n)
-
+dataDir = "hopkins-%i" % n
+restartBaseName = "%s/KeplerianDisk-n=%i" % (dataDir,n)
+                                            
 vizDir = os.path.join(dataDir, "visit")
 vizBaseName = "Kepler-disk-2d"
 
@@ -184,28 +182,26 @@ if restoreCycle is None:
 # for rho, v, and eps.
 #-------------------------------------------------------------------------------
 class KeplerianPressureDiskProfile:
-    def __init__(self, G, M, f, gamma, rc, r0, sig, rho0):
+    def __init__(self, G, M, gamma, K, rc, rho0):
         self.G      = G
         self.M      = M
-        self.f      = f
         self.gamma  = gamma
+        self.K      = K
         self.rc     = rc
-        self.r0     = r0
-        self.sig    = sig
         self.rho0   = rho0
         return
 
     def rho(self, r):
-        return rho0*exp(-(r-self.r0)*(r-self.r0)/(2.0*self.sig*self.sig))
+        return rho0
     
     def g(self,r):
         return -self.G*self.M*r*(r*r+self.rc*self.rc)**(-1.5)
 
     def vt(self, r):
-        return sqrt(-r*self.g(r)*(1.0-self.f))
+        return sqrt(-r*self.g(r))
 
     def eps(self, r):
-        return -self.f*self.g(r)*self.sig*self.sig/((self.gamma*(self.gamma-1.0))*(self.r0-r))
+        return self.K/(self.gamma-1.0)*self.rho0**(self.gamma-1.0)
 
     def __call__(self, r):
         return self.rho(r)
@@ -213,7 +209,7 @@ class KeplerianPressureDiskProfile:
 #-------------------------------------------------------------------------------
 # Create a polytrope for the equation of state.
 #-------------------------------------------------------------------------------
-eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
+eos = PolytropicEquationOfStateMKS(polytropicConstant,
                                      polytropicIndex, mu)
 
 #-------------------------------------------------------------------------------
@@ -258,7 +254,7 @@ diskNodes.registerNeighbor(neighbor1)
 
 # Build the radial profile object that knows how to create the keplerian disk
 # profile.
-diskProfile = KeplerianPressureDiskProfile(G0, M0, fractionPressureSupport, polytropicConstant, Rc, rd0,sig,rho0)
+diskProfile = KeplerianPressureDiskProfile(G0, M0, polytropicIndex, polytropicConstant, Rc, rho0)
 
 # Set node positions, masses, and H's for this domain.
 if restoreCycle is None:
