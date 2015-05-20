@@ -572,6 +572,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                   max(0.0, min(1.0, -gradDdot)));
               CHECK(phi >= 0.0 and phi <= 1.0);
               const Scalar fDeffij = FastMath::pow4(max(0.0, min(1.0, 1.0 - phi*max(sDi, sDj))));
+              // const Scalar fDeffji = 1.0 - fDeffij;
+              // CHECK(fDeffij >= 0.0 and fDeffij <= 1.0 and
+              //       fDeffji >= 0.0 and fDeffji <= 1.0 and
+              //       abs(fDeffij + fDeffji - 1.0) < 1.0e-12);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -592,12 +596,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 
               // Mass density evolution.
-              DrhoDti -= fDeffij*rhoi*weightj*vij.dot(gradWj);
-              DrhoDtj += fDeffij*rhoj*weighti*vij.dot(gradWi);
+              DrhoDti += fDeffij*rhoi*weightj*vij.dot(gradWj);
+              DrhoDtj -= fDeffij*rhoj*weighti*vij.dot(gradWi);
 
               // Mass density gradient.
-              DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
-              DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
+              DrhoDxi += fDeffij*weightj*(rhoj - rhoi)*gradWj;
+              DrhoDxj += fDeffij*weighti*(rhoi - rhoj)*gradWi;
 
               // Damage scaling of negative pressures.
               const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
@@ -624,7 +628,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector deltaDvDti, deltaDvDtj;
               Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
                                                      ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
-              forceij *= fDeffij;
+              // forceij *= fDeffij;
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
@@ -656,8 +660,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
 
-      // Time evolution of the mass density.
-      DrhoDti = -rhoi*DvDxi.Trace();
+      // // Time evolution of the mass density.
+      // DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
