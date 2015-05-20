@@ -61,18 +61,18 @@ commandLine(asph = False,
             # Properties of the central gravitating particle.
             G0 = 1.0,
             M0 = 1.0,
-            Rc = 0.5,
+            Rc = 0.25,
             R0 = Vector(0.0, 0.0),
 
             # Properties of the gas disk.
-            polytropicConstant = 1e-8,
+            
             rho0  = 1.0,
             rd0   = 10.0,
             sig   = 2.5,
-            Rcutoff = 0.5,
+            fPr   = 0.5,
 
             # Material properties of the gas.
-            polytropicIndex = 5.0/3.0,
+            gamma = 5.0/3.0,
             mu = 1.0,
 
             SVPH = False,
@@ -154,7 +154,7 @@ else:
         HydroConstructor = SPHHydro
 
 # Data output info.
-dataDir = "hopkins-%i" % n
+dataDir = "constant-%i" % n
 restartBaseName = "%s/KeplerianDisk-n=%i" % (dataDir,n)
                                             
 vizDir = os.path.join(dataDir, "visit")
@@ -182,13 +182,14 @@ if restoreCycle is None:
 # for rho, v, and eps.
 #-------------------------------------------------------------------------------
 class KeplerianPressureDiskProfile:
-    def __init__(self, G, M, gamma, K, rc, rho0):
+    def __init__(self, G, M, gamma, r0, rc, rho0, f):
         self.G      = G
         self.M      = M
         self.gamma  = gamma
-        self.K      = K
+        self.r0     = r0
         self.rc     = rc
         self.rho0   = rho0
+        self.f      = f
         return
 
     def rho(self, r):
@@ -198,10 +199,11 @@ class KeplerianPressureDiskProfile:
         return -self.G*self.M*r*(r*r+self.rc*self.rc)**(-1.5)
 
     def vt(self, r):
-        return sqrt(-r*self.g(r))
+        return sqrt(-r*self.g(r)*(1.0-self.f))
 
     def eps(self, r):
-        return self.K/(self.gamma-1.0)*self.rho0**(self.gamma-1.0)
+        const = self.f*self.G*self.M/(self.gamma-1.0)
+        return const*(-1.0/sqrt(self.rc**2.0+r**2.0)+1.0/sqrt(self.rc**2.0+self.r0**2.0))
 
     def __call__(self, r):
         return self.rho(r)
@@ -209,8 +211,7 @@ class KeplerianPressureDiskProfile:
 #-------------------------------------------------------------------------------
 # Create a polytrope for the equation of state.
 #-------------------------------------------------------------------------------
-eos = PolytropicEquationOfStateMKS(polytropicConstant,
-                                     polytropicIndex, mu)
+eos = GammaLawGasMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
@@ -254,7 +255,7 @@ diskNodes.registerNeighbor(neighbor1)
 
 # Build the radial profile object that knows how to create the keplerian disk
 # profile.
-diskProfile = KeplerianPressureDiskProfile(G0, M0, polytropicIndex, polytropicConstant, Rc, rho0)
+diskProfile = KeplerianPressureDiskProfile(G0, M0, gamma, rmin, Rc, rho0, fPr)
 
 # Set node positions, masses, and H's for this domain.
 if restoreCycle is None:
@@ -299,7 +300,7 @@ if restoreCycle is None:
 # Set an external pressure on the disk equivalent to the pressure at the
 # cutoff radius.
 #-------------------------------------------------------------------------------
-externalPressure = eos.polytropicConstant*diskProfile.rho(1.1*rmax)**eos.gamma_
+externalPressure = diskProfile.rho(1.1*rmax)*(gamma-1.0)*diskProfile.eps(1.1*rmax)
 eos.externalPressure = externalPressure
 
 #-------------------------------------------------------------------------------
