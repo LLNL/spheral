@@ -20,5 +20,9 @@
 #include <cerrno>
 #include <sys/stat.h>
 #include "fftw3-mpi.h"
+#include "HYPRE.h"
+#include "_hypre_utilities.h"
+#include "HYPRE_IJ_mv.h"
+#include "HYPRE_parcsr_ls.h"
 using namespace std;
 
