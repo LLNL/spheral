@@ -44,7 +44,7 @@ def findAvailableRestartCycles(baseName,
 
     # Now get the list of cycle numbers from the available restart files.
     cycles = [int(x) for x in
-              [(y.split("cycle")[-1]).split(".silo")[0] for y in restartFiles]]
+              [(y.split("cycle")[-1]).split(suffix)[0] for y in restartFiles]]
     cycles = list(set(cycles))
     
     # Return that set 'o cycles.
