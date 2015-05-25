@@ -27,6 +27,15 @@ double
 PhysicalConstants::unitTimeSec() const {
   return mUnitTsec;
 }
+    
+//------------------------------------------------------------------------------
+// Unit mass density in kg/m^3
+//------------------------------------------------------------------------------
+inline
+double
+PhysicalConstants::unitMassDensity() const {
+    return UnitMassDensity;
+}
 
 //------------------------------------------------------------------------------
 // Proton mass.

@@ -520,6 +520,132 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
+/****************GRADH************************************************************************************
+  FieldList<Dimension, Scalar> Pbar(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> Fcorr(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    const NodeList<Dimension>& nodeList = mass[nodeListi]->nodeList();
+    Pbar.appendNewField("Pbar grad h correction", nodeList, 0.0);
+    Fcorr.appendNewField("Fcorr grad h correction", nodeList, 0.0);
+  }
+  //const double gamma=(5.0/3.0);
+  const double gamma=1.5;
+
+  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    const NodeList<Dimension>& nodeList = **itr;
+    const int firstGhostNodei = nodeList.firstGhostNode();
+    const Scalar hmin = nodeList.hmin();
+    const Scalar hmax = nodeList.hmax();
+    const Scalar hminratio = nodeList.hminratio();
+    const int maxNumNeighbors = nodeList.maxNumNeighbors();
+    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+
+    // The scale for the tensile correction.
+    const Scalar WnPerh = W(1.0/nPerh, 1.0);
+
+    // Get the work field for this NodeList.
+    Field<Dimension, Scalar>& workFieldi = nodeList.work();
+
+    // Iterate over the internal nodes in this NodeList.
+    for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+         iItr != connectivityMap.end(nodeListi);
+         ++iItr) {
+      const int i = *iItr;
+
+      // Prepare to accumulate the time.
+      const Time start = Timing::currentTime();
+      size_t ncalc = 0;
+
+      // Get the state for node i.
+      const Vector& ri = position(nodeListi, i);
+      const Scalar& mi = mass(nodeListi, i);
+      const Scalar& epsi = specificThermalEnergy(nodeListi, i);
+      const SymTensor& Hi = H(nodeListi, i);
+      const Scalar Hdeti = Hi.Determinant();
+
+      Scalar& Pbari=Pbar(nodeListi, i);
+      Scalar& Fcorri=Fcorr(nodeListi, i);
+      Scalar gradPbari=0.0;
+      Scalar Nbari=0.0;
+      Scalar gradNbari=0.0;
+
+      // Get the connectivity info for this node.
+      const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
+
+      // Iterate over the NodeLists.
+      for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+
+        // Connectivity of this node with this NodeList.  We only need to proceed if
+        // there are some nodes in this list.
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        if (connectivity.size() > 0) {
+          const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
+          const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+
+          // Loop over the neighbors.
+#pragma vector always
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+              const int j = *jItr;
+
+              // Get the state for node j
+              const Vector& rj = position(nodeListj, j);
+              const Scalar& mj = mass(nodeListj, j);
+              const Scalar& epsj = specificThermalEnergy(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
+              CHECK(mj > 0.0);
+              CHECK(rhoj > 0.0);
+              CHECK(Hdetj > 0.0);
+
+              // Node displacement.
+              const Vector rij = ri - rj;
+              const Vector etai = Hi*rij;
+              const Vector etaj = Hj*rij;
+              const Scalar etaMagi = etai.magnitude();
+              const Scalar etaMagj = etaj.magnitude();
+              CHECK(etaMagi >= 0.0);
+              CHECK(etaMagj >= 0.0);
+
+              // Symmetrized kernel weight and gradient.
+              const Vector Hetai = Hi*etai.unitVector();
+              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
+              const Scalar Wi = WWi.first;
+              const Scalar gWi = WWi.second;
+              const Vector gradWi = gWi*Hetai;
+
+              const Vector Hetaj = Hj*etaj.unitVector();
+              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
+              const Scalar Wj = WWj.first;
+              const Scalar gWj = WWj.second;
+              const Vector gradWj = gWj*Hetaj;
+
+              const Scalar xj=(gamma-1)*mj*epsj;
+              const Scalar gradh=(Hi.Trace()/Dimension::nDim)*(3*Wi+etaMagi*gWi);//YYYY Could be wrong.. Hdeti is 1/h^d, and I think we want 1/h.. Also etaMagi might not be what we want but I think it is. 
+              Pbari += xj*Wi;
+              Nbari += Wi;
+              gradPbari -= xj*gradh;
+              gradNbari -= gradh;
+
+          }
+        }
+      }
+      const Scalar fi=1.0+gradNbari*safeInv(3*Nbari*(Hi.Trace()/Dimension::nDim));//YYYY Hdeti thing again.
+      Fcorri=gradPbari*safeInv(3*(gamma-1)*Nbari*(Hi.Trace()/Dimension::nDim)*fi);//YYYY Hdeti thing again.
+    }
+  }
+  nodeListi=0;
+****************GRADH************************************************************************************/
+
+
+
+
+
+  // Start our big loop over all FluidNodeLists.
+  // size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
@@ -720,12 +846,28 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const double Prhoi = Peffi/(rhoi*rhoi);
               const double Prhoj = Peffj/(rhoj*rhoj);
               const Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
+/****************GRADH************************************************************************************
+              const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
+              Scalar& Fcorri=Fcorr(nodeListi, i);
+              Scalar& Fcorrj=Fcorr(nodeListj, j);
+              Scalar& Pbari=Pbar(nodeListi, i);
+              Scalar& Pbarj=Pbar(nodeListj, j);
+              const Scalar Fij=1.0-Fcorri/(mj*epsj);
+              const Scalar Fji=1.0-Fcorrj/(mi*epsi);
+              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
+****************GRADH************************************************************************************/
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
               DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
               DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
+/****************GRADH************************************************************************************
+              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
+              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
+****************GRADH************************************************************************************/
+
+
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
                 pairAccelerationsj.push_back(mi*deltaDvDt);

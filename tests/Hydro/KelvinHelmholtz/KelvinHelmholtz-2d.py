@@ -1,3 +1,5 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51", label="KH CRK, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=16)
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
 # Springel 2010, MNRAS, 401, 791-851.
@@ -49,7 +51,6 @@ commandLine(nx1 = 100,
             ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
-            momentumConserving = True, # For CRKSPH
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
@@ -62,6 +63,7 @@ commandLine(nx1 = 100,
             Qhmult = 1.0,
             Cl = 1.0, 
             Cq = 1.0,
+            linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -289,7 +291,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -299,6 +301,8 @@ output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -327,8 +331,7 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             momentumConserving = momentumConserving)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT,
                              WTPi,

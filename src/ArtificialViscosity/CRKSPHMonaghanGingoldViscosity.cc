@@ -38,11 +38,15 @@ using KernelSpace::TableKernel;
 namespace {
 
 //------------------------------------------------------------------------------
-// Sweby limiter
-// \beta \in [1, 2], where \beta=2 corresponds to the superbee limit.
+// limiter for velocity projection.
 //------------------------------------------------------------------------------
-double swebyLimiter(const double x, const double beta) {
-  return max(0.0, max(min(beta*x, 1.0), min(x, beta)));
+double limiter(const double x) {
+  if (x > 0.0) {
+    // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
+    return 2.0/(1.0 + x)*min(1.0, x);            // minmod
+  } else {
+    return 0.0;
+  }
 }
 
 }
@@ -55,11 +59,9 @@ CRKSPHMonaghanGingoldViscosity<Dimension>::
 CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
                                const Scalar Cquadratic,
                                const bool linearInExpansion,
-                               const bool quadraticInExpansion,
-                               const Scalar beta):
+                               const bool quadraticInExpansion):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
-  mBeta(beta),
   mGradVel(FieldSpace::Reference) {
 }
 
@@ -162,77 +164,24 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  const Scalar rj = gradj*safeInv(gradi);
-  const Scalar ri = safeInv(rj);
+  const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
   // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
   // const Scalar divi = abs(DvDxi.Trace());
   // const Scalar divj = abs(DvDxj.Trace());
-  // const Scalar betaij = min(2.0, 1.0 + 0.5*min(curli*safeInv(curli + divi), curlj*safeInv(curlj + divj)));
-  const Scalar phii = swebyLimiter(ri, mBeta);
-  const Scalar phij = swebyLimiter(rj, mBeta);
+  // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  // // const Scalar phii = max(0.0, min(2.0*ri, min(0.5*(1.0 + ri), 2.0))); // Van Leer (1)
-  // // const Scalar phij = max(0.0, min(2.0*rj, min(0.5*(1.0 + rj), 2.0))); // Van Leer (1)
-  // // const Scalar phii = max(0.0, min(1.0, (ri + abs(ri))/(1.0 + abs(ri)))); // Van Leer (2)
-  // // const Scalar phij = max(0.0, min(1.0, (rj + abs(rj))/(1.0 + abs(rj)))); // Van Leer (2)
-  // const Scalar phii = max(0.0, max(min(2.0*ri, 1.0), min(ri, 2.0))); // superbee
-  // const Scalar phij = max(0.0, max(min(2.0*rj, 1.0), min(rj, 2.0))); // superbee
-    // const Scalar phii = max(0.0, max(min(2.5*ri, 1.0), min(ri, 2.5)));  // Sweby
-    // const Scalar phij = max(0.0, max(min(2.5*rj, 1.0), min(rj, 2.5)));  // Sweby
-  // // const Scalar phii = max(0.0, min(1.0, 2.0*(ri + abs(ri))*safeInv(ri + 3.0))); // HQUICK
-  // // const Scalar phij = max(0.0, min(1.0, 2.0*(rj + abs(rj))*safeInv(rj + 3.0))); // HQUICK
-  // // const Scalar phii = max(0.0, min(1.0, ri)); // minmod
-  // // const Scalar phij = max(0.0, min(1.0, rj)); // minmod
-  // // const Scalar phii = (ri <= 0.0 ? 0.0 : ri*(3.0*ri + 1.0)*safeInv(FastMath::square(ri + 1.0))); // CHARM
-  // // const Scalar phij = (rj <= 0.0 ? 0.0 : rj*(3.0*rj + 1.0)*safeInv(FastMath::square(rj + 1.0))); // CHARM
-  // // const Scalar phii = max(0.0, min(ri, 2.0)); // Osher
-  // // const Scalar phij = max(0.0, min(rj, 2.0)); // Osher
-  
-  // // "Mike" method.
-  // const Vector vi1 = vi - phii*DvDxi*xij;
-  // const Vector vj1 = vj + phij*DvDxj*xij;
-  // vij = vi1 - vj1;
-  
-  // // "Nick" method.
-  // const Vector vi1 = vi - DvDxi*xij;
-  // const Vector vj1 = vj + DvDxj*xij;
-  // vij = vij + min(phii,phij)*((vi1-vj1)-vij);
-  
-  // // "Nick" method Mark II. 
-  // const Vector vi1 = vi - (DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
-  // const Vector vj1 = vj + (DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
+  // const Vector vij12 = 0.5*(vi + vj);
+  // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
 
-  // // "Nick" method Mark III. 
-  // const Tensor DvDxii = DvDxi - (1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  // const Tensor DvDxjj = DvDxj - (1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
-  // const Scalar phi = min(phii, phij);
-  // const Vector vi1 = vi - (phi*DvDxi + (1.0 - phi)*DvDxii)*xij;
-  // const Vector vj1 = vj + (phi*DvDxj + (1.0 - phi)*DvDxjj)*xij;
+  const Scalar phii = limiter(ri);
+  const Scalar phij = limiter(rj);
 
-  // "Mike" method Mark III. 
-  const Scalar phi = min(phii, phij);
-  const Vector vi1 = vi - phi*DvDxi*xij;
-  const Vector vj1 = vj + phi*DvDxj*xij;
-
-  // // "Mike" method Mark IV. 
-  // const Scalar phiS = min(phiSi, phiSj);
-  // const Scalar phiA = min(phiAi, phiAj);
-  // const Vector vi1 = vi - (phiS*Si + phiA*Ai)*xij;
-  // const Vector vj1 = vj + (phiS*Sj + phiA*Aj)*xij;
-
-  //const Vector vi1 = vi - (DvDxi-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij*min(phii,phij);
-  //const Vector vj1 = vj + (DvDxj-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij*min(phii,phij);
-
-  //const Vector vi1 = vi - (0.5*(DvDxi+DvDxi.Transpose())-(1.0/3.0)*Tensor::one*DvDxi.Trace())*xij;
-  //const Vector vj1 = vj + (0.5*(DvDxj+DvDxj.Transpose())-(1.0/3.0)*Tensor::one*DvDxj.Trace())*xij;
-
-  const Vector vij1 = vi1 - vj1;
-
-  //const Scalar phi = max(0.0, min(0.95, min(phii, phij)));
-  //const Scalar phi = min(phii, phij);
-  //vij = (1.0 - phi)*vij + phi*vij1;
-  vij=vij1;
+  // "Mike" method.
+  const Vector vi1 = vi - phii*DvDxi*xij;
+  const Vector vj1 = vj + phij*DvDxj*xij;
+  vij = vi1 - vj1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
@@ -240,9 +189,9 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   // The artificial internal energy.
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui : FastMath::square(min(0.0, mui)))) ;
+                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
-                             Cq *rvAlphaQ(nodeListj,j)    *(quadInExp     ? -sgn(muj)*muj*muj : FastMath::square(min(0.0, muj))));
+                             Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (linearInExp or quadInExp), ej << " " << csj << " " << muj);
 

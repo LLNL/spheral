@@ -12,32 +12,30 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
                  W,
                  WPi,
                  Q,
-                 filter = 0.1,
-                 cfl = 0.5,
+                 filter = 0.0,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  XSPH = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.0,
-                 nTensile = 4.0,
-                 momentumConserving = True):
+                 nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
         CRKSPHHydroBase%(dim)s.__init__(self,
-                                      self._smoothingScaleMethod,
-                                      W,
-                                      WPi,
-                                      Q,
-                                      filter,
-                                      cfl,
-                                      useVelocityMagnitudeForDt,
-                                      compatibleEnergyEvolution,
-                                      XSPH,
-                                      densityUpdate,
-                                      HUpdate,
-                                      epsTensile,
-                                      nTensile,
-                                      momentumConserving)
+                                        self._smoothingScaleMethod,
+                                        W,
+                                        WPi,
+                                        Q,
+                                        filter,
+                                        cfl,
+                                        useVelocityMagnitudeForDt,
+                                        compatibleEnergyEvolution,
+                                        XSPH,
+                                        densityUpdate,
+                                        HUpdate,
+                                        epsTensile,
+                                        nTensile)
         return
 """
 

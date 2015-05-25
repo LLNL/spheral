@@ -103,11 +103,11 @@ commandLine(length = 3.0,
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
 
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
-            HydroConstructor = SolidSPHHydro,
             Cl = 1.0,
             Cq = 1.0,
+            linearInExpansion = True,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -121,7 +121,9 @@ commandLine(length = 3.0,
             epsilonTensile = 0.3,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
+            filter = 0.0,
 
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 50.0e-6,
             steps = None,
             dt = 1e-10,
@@ -132,9 +134,9 @@ commandLine(length = 3.0,
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
-            compatibleEnergyEvolution = True,
+            compatibleEnergy = True,
             gradhCorrection = False,
             domainIndependent = False,
 
@@ -151,14 +153,22 @@ commandLine(length = 3.0,
             comparisonFile = "None",
             )
 
+if CRKSPH:
+    HydroConstructor = SolidCRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    HydroConstructor = SolidSPHHydro
+
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
 kWeibull = 6.52e5 * kWeibullFactor
 mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
-                       "nx=%i" % nx,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1],
                        str(DamageModelConstructor).split("'")[1],
+                       "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
 visitDir = os.path.join(dataDir, "visit")
@@ -397,7 +407,7 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosities for the problem.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
 q.epsilon2 = epsilon2
@@ -406,6 +416,7 @@ q.csMultiplier = csMultiplier
 output("q")
 output("q.Cl")
 output("q.Cq")
+output("q.linearInExpansion")
 output("q.limiter")
 output("q.epsilon2")
 output("q.negligibleSoundSpeed")
@@ -415,25 +426,31 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         useVelocityMagnitudeForDt = True,
-                         compatibleEnergyEvolution = compatibleEnergyEvolution,
-                         gradhCorrection = gradhCorrection,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         XSPH = XSPH,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if CRKSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
-output("hydro.sumForMassDensity")
+output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 
@@ -550,6 +567,7 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime)
+    control.dropRestartFile()
 
 #-------------------------------------------------------------------------------
 # Plot the state.
