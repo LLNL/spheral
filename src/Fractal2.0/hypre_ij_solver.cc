@@ -1,13 +1,6 @@
 #include "libs.hh"
 #include "classes.hh"
 #include "headers.hh"
-#ifndef _Hypre_Defined_
-#define _Hypre_Defined_
-#include "HYPRE.h"
-#include "_hypre_utilities.h"
-#include "HYPRE_IJ_mv.h"
-#include "HYPRE_parcsr_ls.h"
-#endif
 namespace FractalSpace
 {
   void hypre_ij_solver(Fractal& frac,Fractal_Memory& mem,const int& level)
@@ -23,7 +16,8 @@ namespace FractalSpace
     mem.p_mess->IAmAHypreNode=false;;
     int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=-1;
-    //    cerr << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << " " << sizeof(HYPRE_Int) << " Hypre_Int" << "\n";
+    if(FractalRank ==0)
+      cerr << "Hypre Calc " << mem.steps << " " << level << " " << FractalRank << " " << sizeof(HYPRE_Int) << " Hypre_Int" << "\n";
     FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     fprintf(PFH," enter hypre solver %d %d \n",level,mem.steps);
@@ -56,21 +50,20 @@ namespace FractalSpace
 	Hypre_gen_time=-mem.p_mess->Clock();
 	//	fprintf(PFH," really enter hypre solver a %d \n",level);
 	bool load_balance=false;
-	int off_elements=hypre_load_balance(mem,hypre_points,load_balance);
-	bool inside;
+	HYPRE_Int off_elements=hypre_load_balance(mem,hypre_points,load_balance);
 	MPI_Comm HypreComm=mem.p_mess->HypreWorld;
 	HYPRE_IJMatrix ij_matrix;
 	HYPRE_ParCSRMatrix par_matrix;
-	const int ilower=mem.ij_offsetsB[HypreRank];
-	const int iupper=mem.ij_offsetsB[HypreRank+1]-1;
-	const int jlower=ilower;
-	const int jupper=iupper;
+	const HYPRE_Int ilower=mem.ij_offsetsB[HypreRank];
+	const HYPRE_Int iupper=mem.ij_offsetsB[HypreRank+1]-1;
+	const HYPRE_Int jlower=ilower;
+	const HYPRE_Int jupper=iupper;
 	fprintf(PFH," limits %d %d \n",ilower,iupper);
 	hypre_eror(PFH,level,0,HYPRE_IJMatrixCreate(HypreComm,ilower,iupper,jlower,jupper,&ij_matrix));
 	hypre_eror(PFH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
 	HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
-	int ij_index,udsize;
-	vector <int> maxcols(mem.ij_countsB[HypreRank],7);
+	HYPRE_Int ij_index,udsize;
+	vector <HYPRE_Int> maxcols(mem.ij_countsB[HypreRank],7);
 	hypre_eror(PFH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
 	maxcols.clear();
 	hypre_eror(PFH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
@@ -92,11 +85,11 @@ namespace FractalSpace
 	const double pi = 4.0*atan(1.0);
 	const int length=frac.get_grid_length();
 	double g_c=4.0*pi/static_cast<double>(length*length)*pow(4.0,-level);
-	vector <int> ij_ud(6);
-	const int nrows=1;
-	int rows[1];
-	int ncols[1];
-	int cols[7];
+	vector <HYPRE_Int> ij_ud(6);
+	const HYPRE_Int nrows=1;
+	HYPRE_Int rows[1];
+	HYPRE_Int ncols[1];
+	HYPRE_Int cols[7];
 	double coef1[1]={1.0};
 	double coef2[2]={1.0,-1.0};
 	double coef7[7]={-6.0,1.0,1.0,1.0,1.0,1.0,1.0};
@@ -141,7 +134,7 @@ namespace FractalSpace
 		cols[0]=ij_index;
 		potv[0]=pot;
 		rhov[0]=rho*g_c;
-		int neighs=1;
+		HYPRE_Int neighs=1;
 		for(int ni=0;ni<6;ni++)
 		  {
 		    if(ud6[ni]->get_inside())
@@ -191,7 +184,7 @@ namespace FractalSpace
 	FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_solve_time << "\t" << "Solve  Time Buffer" << "\n";
 
 	Hypre_dump_time=-mem.p_mess->Clock();
-	int its;
+	HYPRE_Int its;
 	double final_res_norm;
 	hypre_eror(PFH,level,37,HYPRE_BoomerAMGGetNumIterations(par_solver, &its));
 	hypre_eror(PFH,level,38,HYPRE_BoomerAMGGetFinalRelativeResidualNorm(par_solver,&final_res_norm));
@@ -210,9 +203,9 @@ namespace FractalSpace
 	    assert(its < frac.get_maxits());
 	  }
 	vector <double>potH(mem.ij_countsB[HypreRank]);
-	vector <int>rowsH(mem.ij_countsB[HypreRank]);
-	int holy_grail=mem.ij_offsetsB[HypreRank];
-	for(int ni=0;ni<mem.ij_countsB[HypreRank];ni++)
+	vector <HYPRE_Int>rowsH(mem.ij_countsB[HypreRank]);
+	HYPRE_Int holy_grail=mem.ij_offsetsB[HypreRank];
+	for(HYPRE_Int ni=0;ni<mem.ij_countsB[HypreRank];ni++)
 	  rowsH[ni]=ni+holy_grail;
 	hypre_eror(PFH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,mem.ij_countsB[HypreRank],&(*rowsH.begin()),&(*potH.begin())));
 	rowsH.clear();
@@ -220,7 +213,7 @@ namespace FractalSpace
 	  hypre_send_pots(mem,hypre_points,potH);
 	else
 	  {
-	    int Mr_smokes_too_much=0;
+	    HYPRE_Int Mr_smokes_too_much=0;
 	    for(vector<Point*>::const_iterator point_itr=hypre_points.begin();point_itr !=hypre_points.end();++point_itr)
 	      {
 		Point* p=*point_itr;

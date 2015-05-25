@@ -3,7 +3,7 @@
 namespace FractalSpace
 {
   //  typedef HYPRE_Int HINT;
-  typedef int HINT;
+  //  typedef int HINT;
   //  typedef unsigned int HINT;
   class Fractal_Memory
   {
@@ -48,10 +48,10 @@ namespace FractalSpace
     vector < vector <double> > RealIBoxes;
     vector <vector <int> > LeftCorners;
     vector <double> BigBox;
-    vector <HINT>ij_offsets;
-    vector <HINT>ij_counts;
-    vector <HINT>ij_offsetsB;
-    vector <HINT>ij_countsB;
+    vector <HYPRE_Int>ij_offsets;
+    vector <HYPRE_Int>ij_counts;
+    vector <HYPRE_Int>ij_offsetsB;
+    vector <HYPRE_Int>ij_countsB;
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
