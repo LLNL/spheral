@@ -416,10 +416,15 @@ class GzipFileNodeGeneratorRZto3D(GzipFileNodeGeneratorRZto2D):
             yi = self.y[i]
             H2d = H2dlist[i]
 
-            hxy0 = 0.5*(H2d.Inverse().Trace())
-            dphi = CylindricalBoundary.angularSpacing(yi, hxy0, nNodePerh, 2.0)
-            nhoop = int(2.0*pi/dphi + 0.5)
-            dphi = 2.0*pi/nhoop
+            # hxy0 = 0.5*(H2d.Inverse().Trace())
+            # dphi = CylindricalBoundary.angularSpacing(yi, hxy0, nNodePerh, 2.0)
+            # nhoop = int(2.0*pi/dphi + 0.5)
+            # dphi = 2.0*pi/nhoop
+
+            hmax = H2d.Inverse().eigenValues().maxElement()
+            circ = phi*yi
+            nhoop = max(1, int(circ/(hmax/nNodePerh) + 0.5))
+            dphi = phi/nhoop
 
             hz = dphi*yi*nNodePerh
             self.H.append(SymTensor3d(H2d.xx, H2d.xy, 0.0,
