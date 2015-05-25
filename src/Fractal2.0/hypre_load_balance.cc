@@ -8,7 +8,7 @@ namespace FractalSpace
     FILE* PFH=mem.p_file->PFHypre;
     int HypreNodes=mem.p_mess->HypreNodes;
     int HypreRank=mem.p_mess->HypreRank;
-    int count_max=-1;
+    HYPRE_Int count_max=-1;
     double count_sum0=HypreNodes;
     double count_sum1=0.0;
     double count_sum2=0.0;
@@ -37,7 +37,7 @@ namespace FractalSpace
     if(!OOM)
       return 0;
     load_balance=true;
-    vector <int> countsC=mem.ij_countsB;
+    vector <HYPRE_Int> countsC=mem.ij_countsB;
     bool too_many=true;
     int trySmooth=0;
     int maxload=mem.hypre_max_node_load;

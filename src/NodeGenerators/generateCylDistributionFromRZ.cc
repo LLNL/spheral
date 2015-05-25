@@ -58,7 +58,8 @@ generateCylDistributionFromRZ(vector<double>& x,
   for (int i = 0; i != n; ++i) {
     const SymTensor Hi = H[i];
     // const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
-    const double hzi = Hi.Inverse().Trace()/3.0;
+    // const double hzi = Hi.Inverse().Trace()/3.0;
+    const double hzi = Hi.Inverse().eigenValues().maxElement();
     const double yi = y[i];
     // const double dphi = CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent);
     const int nhoopsegment = max(1, int(phi*yi/(hzi/nNodePerh) + 0.5));
@@ -97,17 +98,17 @@ generateCylDistributionFromRZ(vector<double>& x,
   for (int i = 0; i != n; ++i) {
     const SymTensor Hi = Hrz[i];
     // const double hzi = 1.0/(Hi*Vector(0.0, 0.0, 1.0)).magnitude();
-    const double hzi = Hi.Inverse().Trace()/3.0;
+    // const double hzi = Hi.Inverse().Trace()/3.0;
+    const double hzi = Hi.Inverse().eigenValues().maxElement();
     const double xi = xrz[i];
     const double yi = yrz[i];
     const double mi = mrz[i];
     // const int nhoopsegment = max(1, int(phi/CylindricalBoundary::angularSpacing(yi, hzi, nNodePerh, kernelExtent) + 0.5));
     const int nhoopsegment = max(1, int(phi*yi/(hzi/nNodePerh) + 0.5));
     const double dphi = phi/nhoopsegment;
-    double phii = 0.0;
     const Vector posi = Vector(xi, yi, 0.0);
     for (int ihoop = 0; ihoop != nhoopsegment; ++ihoop) {
-      const double phii = ihoop*dphi;
+      const double phii = (double(ihoop) + 0.5)*dphi;
       if (globalID >= minGlobalID and globalID <= maxGlobalID) {
         const double xj = xi;
         const double yj = yi*cos(phii);
