@@ -33,5 +33,5 @@ class AcousticWaveSolution:
         u = [1.0]*len(xvals)
         rho = [self.rho0*(1.0 + self.A*sin(self.k*(x - self.x0)/length - omegat)) for x in xvals]
         P = [self.eos.pressure(rhoi, ui) for (rhoi, ui) in zip(rho, u)]
-        h = [self.h0*rhoi/self.rho0 for rhoi in rho]
+        h = [self.h0*self.rho0/rhoi for rhoi in rho]
         return xvals, v, u, rho, P, h

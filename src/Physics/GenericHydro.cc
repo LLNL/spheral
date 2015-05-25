@@ -191,7 +191,6 @@ dt(const DataBase<Dimension>& dataBase,
         // const Vector& vi = velocity(nodeListi, i);
         // const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
         // for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        //   const unsigned firstGhostNodej = velocity[nodeListj]->nodeList().firstGhostNode();
         //   const vector<int>& connectivity = fullConnectivity[nodeListj];
         //   for (vector<int>::const_iterator jItr = connectivity.begin();
         //        jItr != connectivity.end();
@@ -199,7 +198,7 @@ dt(const DataBase<Dimension>& dataBase,
         //     const int j = *jItr;
         //     const Vector& vj = velocity(nodeListj, j);
         //     const Scalar vij = (vi - vj).magnitude();
-        //     const Scalar dtVelDiff = nodeScale/max(1.0e-100, vij);
+        //     const Scalar dtVelDiff = nodeScale/std::max(vij, 1e-30);
         //     if (dtVelDiff < minDt) {
         //       minDt = dtVelDiff;
         //       reason = "pairwise velocity difference";

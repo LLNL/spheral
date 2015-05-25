@@ -184,7 +184,7 @@ def plotFieldList(fieldList,
                   xFunction = "%s.x",
                   yFunction = "%s",
                   plotGhosts = False,
-                  colorNodeLists = True,
+                  colorNodeLists = False,
                   plot = None,
                   userXRange = [None, None],
                   userYRange = [None, None],
@@ -287,7 +287,7 @@ def plotFieldList(fieldList,
                     legend = legendNodeList[iNodeList]
                     legendNodeList[iNodeList] = None
                     data = Gnuplot.Data(x, y,
-                                        with_ = plotStyle + " pt 1 lt %i" % iNodeList,
+                                        with_ = plotStyle + " lt %i" % iNodeList,
                                         title = legend,
                                         inline = True)
                     plot.replot(data)
@@ -299,7 +299,7 @@ def plotFieldList(fieldList,
             x = numpy.array(globalX)
             y = numpy.array(globalY)
             data = Gnuplot.Data(x, y,
-                                with_ = plotStyle, #  + " ls 1",
+                                with_ = plotStyle + " lt -1 pt 3",
                                 title = lineTitle,
                                 inline = True)
             plot.replot(data)
@@ -316,7 +316,7 @@ def plotFieldList(fieldList,
 #-------------------------------------------------------------------------------
 def plotState(thingus,
               plotGhosts = False,
-              colorNodeLists = True,
+              colorNodeLists = False,
               plotStyle = "points",
               xFunction = "%s.x",
               vecyFunction = "%s.x",
@@ -397,7 +397,7 @@ def plotState(thingus,
 #-------------------------------------------------------------------------------
 def plotRadialState(dataBase,
                     plotGhosts = False,
-                    colorNodeLists = True,
+                    colorNodeLists = False,
                     lineTitle = "Simulation"):
 
     rhoPlot = plotFieldList(dataBase.fluidMassDensity,
@@ -709,7 +709,7 @@ def findPairMinMax(listOfPairs):
 def plotVelocityField2d(dataBase,
                         plotGhosts = False,
                         velMultiplier = 1.0,
-                        colorNodeLists = True,
+                        colorNodeLists = False,
                         colorDomains = False,
                         title = ""):
 
@@ -727,7 +727,7 @@ def plotVelocityField2d(dataBase,
 def plotVectorField2d(dataBase, fieldList,
                       plotGhosts = False,
                       vectorMultiplier = 1.0,
-                      colorNodeLists = True,
+                      colorNodeLists = False,
                       colorDomains = False,
                       title = ""):
 
@@ -929,6 +929,44 @@ def plotEHistory(conserve):
         plot.replot(UEdata)
         plot.replot()
         SpheralGnuPlotCache.extend([Edata, KEdata, TEdata, UEdata])
+        return plot
+    else:
+        return fakeGnuplot()
+
+#-------------------------------------------------------------------------------
+# Plot the linear momentum history of the given conservation object.
+#-------------------------------------------------------------------------------
+def plotpmomHistory(conserve):
+    if mpi.rank == 0:
+        t = conserve.timeHistory
+        p = conserve.pmomHistory
+        px = [x.x for x in p]
+        py = [x.y for x in p]
+        pz = [x.z for x in p]
+        pmag = [x.magnitude() for x in p]
+        pxdata = Gnuplot.Data(t, px,
+                              with_ = "lines",
+                              title = "x momentum",
+                              inline = True)
+        pydata = Gnuplot.Data(t, py,
+                              with_ = "lines",
+                              title = "y momentum ",
+                              inline = True)
+        pzdata = Gnuplot.Data(t, pz,
+                              with_ = "lines",
+                              title = "z momentum",
+                              inline = True)
+        pmagdata = Gnuplot.Data(t, pmag,
+                                with_ = "lines",
+                                title = "total momentum",
+                                inline = True)
+        plot = generateNewGnuPlot()
+        plot.replot(pxdata)
+        plot.replot(pydata)
+        plot.replot(pzdata)
+        plot.replot(pmagdata)
+        plot.replot()
+        SpheralGnuPlotCache.extend([pxdata, pydata, pzdata, pmagdata])
         return plot
     else:
         return fakeGnuplot()

@@ -68,6 +68,7 @@ from VoidNodeLists import *
 from SPHHydros import *
 from SVPHHydros import *
 from CRKSPHHydros import *
+from SolidCRKSPHHydros import *
 from TaylorSPHHydros import *
 from SPHUtilities import *
 

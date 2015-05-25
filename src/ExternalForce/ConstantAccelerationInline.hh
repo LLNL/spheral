@@ -29,14 +29,14 @@ nodeList() const {
 }
 
 //------------------------------------------------------------------------------
-// The set of indices the acceleration is to be applied to.
+// Flags for the set of nodes the acceleration is to be applied to.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<int>&
+const FieldSpace::Field<Dimension, int>&
 ConstantAcceleration<Dimension>::
-indices() const {
-  return mIndices;
+flags() const {
+  return mFlags;
 }
 
 }

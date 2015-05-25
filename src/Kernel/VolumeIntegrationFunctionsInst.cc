@@ -2,6 +2,7 @@
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "VolumeIntegrationFunctions.cc"
+#include "TableKernel.hh"
 #include "GaussianKernel.hh"
 #include "SincKernel.hh"
 #include "NSincPolynomialKernel.hh"
@@ -9,6 +10,22 @@
 
 namespace Spheral {
   namespace KernelSpace {
+
+    //------------------------------------------------------------------------------
+    template
+    double simpsonsVolumeIntegral<Dim<1>, TableKernel< Dim<1> > >
+    (const TableKernel< Dim<1> >& W, 
+     const double rMin, const double rMax, const int numBins);
+
+    template
+    double simpsonsVolumeIntegral<Dim<2>, TableKernel< Dim<2> > >
+    (const TableKernel< Dim<2> >& W, 
+     const double rMin, const double rMax, const int numBins);
+
+    template
+    double simpsonsVolumeIntegral<Dim<3>, TableKernel< Dim<3> > >
+    (const TableKernel< Dim<3> >& W, 
+     const double rMin, const double rMax, const int numBins);
 
     //------------------------------------------------------------------------------
     template

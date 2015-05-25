@@ -8,6 +8,7 @@ from math import *
 from Spheral1d import *
 from SpheralTestUtilities import *
 import mpi
+import os, shutil
 import numpy as np
 #import matplotlib.pyplot as plt
 
@@ -39,18 +40,19 @@ commandLine(nx1 = 100,
 
             rho1 = 1.0,
             eps1 = 1.0,
-            A = 0.005,
+            A = 0.0001,
             kfreq = 1.0,
 
             cs2 = 1.0,
             mu = 1.0,
 
-            nPerh = 2.01,
+            nPerh = 1.51,
 
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             Cl = 0.0,
             Cq = 0.0,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
             hmin = 0.0001, 
@@ -76,16 +78,18 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
             linearConsistent = False,
-            ComputeL1Norm = False,
 
             restoreCycle = None,
             restartStep = 10000,
-            restartBaseName = "dumps-AcousticWave-1d",
+            clearDirectories = True,
+            dataDirBase = "dumps-planar-AcousticWave-1d",
+            outputFile = "AcousticWave-planar-1d.gnu",
+            normOutputFile = "None",
 
             graphics = "gnu",
 
@@ -102,6 +106,24 @@ elif TSPH:
 else:
     HydroConstructor = SPHHydro
 
+dataDir = os.path.join(dataDirBase,
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       "nx=%i" % nx1)
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "AcousticWave-planar-1d-%i" % nx1)
+
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+mpi.barrier()
+
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
@@ -114,8 +136,8 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(BSplineKernel(), 10000)
+WTPi = TableKernel(BSplineKernel(), 10000)
 output("WT")
 output("WTPi")
 
@@ -173,11 +195,13 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
+dx = (x1 - x0)/nx1
+xi = x0
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
-    xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
-    xi1 = newtonRaphsonFindRoot(func1, 0.0, 1.0, 1.0e-15, 1.0e-15)
+    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
+    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
     rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
     rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
@@ -195,6 +219,18 @@ for i in xrange(nodes1.numInternalNodes):
 #     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
 #     xi0 += dxi0
 
+# Compute the summation correction for the density, and apply it to the mass per point.
+m0 = rho1*dx
+Hdet0 = 1.0/(nPerh*dx)
+rhoscale = m0*WT.kernelValue(0.0, Hdet0)
+deta = 1.0/nPerh
+for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+    rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
+rhoscale = rho1/rhoscale
+print "Compute analytic rho scaling of %16.12e." % rhoscale
+for i in xrange(nodes1.numInternalNodes):
+    mass[i] *= rhoscale
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -207,7 +243,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion = linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 output("q")
@@ -226,7 +262,7 @@ if SVPH:
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
@@ -236,14 +272,14 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 
 elif TSPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
@@ -251,7 +287,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -311,9 +347,9 @@ else:
 #-------------------------------------------------------------------------------
 import AcousticWaveSolution
 xlocal = [pos.x for pos in nodes1.positions().internalValues()]
-xglobal = mpi.reduce(xlocal, mpi.SUM)
+xprof = mpi.reduce(xlocal, mpi.SUM)
 dx = (x1 - x0)/nx1
-h1 = 1.0/(nPerh*dx)
+h1 = nPerh*dx
 answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, twopi*kfreq, h1)
 #print "\n\nPERIOD=",1.0/(kfreq*cs)
 
@@ -323,7 +359,7 @@ answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, two
 ##A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
 ### The analytic solution for the simulated entropy.
-##xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
+##xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 ##Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 #-------------------------------------------------------------------------------
@@ -334,7 +370,7 @@ if graphics == "gnu":
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
     if mpi.rank == 0:
-        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xglobal)
+        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
     cs = state.scalarFields(HydroFieldNames.soundSpeed)
     csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
     EPlot = plotEHistory(control.conserve)
@@ -386,24 +422,71 @@ if graphics == "gnu":
         omegaPlot = plotFieldList(hydro.omegaGradh(),
                                   winTitle = "grad h correction",
                                   colorNodeLists = False)
-    if ComputeL1Norm:
-       xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xglobal)
-       #rho = hydro.massDensity() 
-       fieldList = state.scalarFields(HydroFieldNames.massDensity)
-       #rho = field.internalValues()
-       for field in fieldList:
-          rho = [eval("%s" % "y") for y in field.internalValues()]
-          #plt.figure()
-          #plt.plot(xans,rhoans)
-          #plt.scatter(xans,rho)
-          #plt.xlim([np.min(xans),np.max(xans)])
-          #plt.ylim([np.min(rhoans),np.max(rhoans)])
-          #plt.show()
-          diff=np.array(rho)-np.array(rhoans)
-          L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
-          print "\n\nL1Norm=",L1Norm, "\n\n"
-
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
-if abs(Eerror) > 1e-13:
+if compatibleEnergy and abs(Eerror) > 1e-10:
     raise ValueError, "Energy error outside allowed bounds."
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+
+    labels = ["x", "m", "rho", "P", "v", "eps", "h", 
+              "rhoans", "Pans", "vans", "epsans", "hans"]
+    stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
+             rhoans, Pans, vans, uans, hans]
+    if CRKSPH:
+        A0prof = mpi.reduce(hydro.A0()[0].internalValues(), mpi.SUM)
+        Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
+        Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
+        labels += ["A0", "A", "B"]
+        stuff += [A0prof, Aprof, Bprof]
+
+    if mpi.rank == 0:
+        multiSort(*tuple(stuff))
+        f = open(outputFile, "w")
+        f.write(("#  " + len(labels)*"'%s' " + "\n") % tuple(labels))
+        for tup in zip(*tuple(stuff)):
+            assert len(tup) == len(labels)
+            f.write((len(tup)*"%16.12e " + "\n") % tup)
+        f.close()
+
+        # While we're at it compute and report the error norms.
+        import Pnorm
+        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        if normOutputFile != "None":
+            f = open(normOutputFile, "a")
+            f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+                                                 '"rho L1"', '"rho L2"', '"rho Linf"',
+                                                 '"P L1"',   '"P L2"',   '"P Linf"',
+                                                 '"vel L1"', '"vel L2"', '"vel Linf"',
+                                                 '"h L1"',   '"h L2"',   '"h Linf"'))
+            f.write("%16i " % nx1)
+        for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
+                                  ("Pressure", Pprof, Pans),
+                                  ("Velocity", vprof, vans),
+                                  ("h       ", hprof, hans)]:
+            assert len(data) == len(ans)
+            error = [data[i] - ans[i] for i in xrange(len(data))]
+            Pn = Pnorm.Pnorm(error, xprof)
+            L1 = Pn.gridpnorm(1, x0, x1)
+            L2 = Pn.gridpnorm(2, x0, x1)
+            Linf = Pn.gridpnorm("inf", x0, x1)
+            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            if normOutputFile != "None":
+                f.write((3*"%16.12e ") % (L1, L2, Linf))
+        if normOutputFile != "None":
+            f.write("\n")
+            f.close()

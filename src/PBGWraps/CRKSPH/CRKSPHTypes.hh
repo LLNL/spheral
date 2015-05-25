@@ -4,6 +4,7 @@
 #include "Geometry/Dimension.hh"
 #include "CRKSPH/CRKSPHUtilities.hh"
 #include "CRKSPH/CRKSPHHydroBase.hh"
+#include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeHullSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
@@ -24,6 +25,10 @@ namespace CRKSPHSpace {
 typedef CRKSPHHydroBase<Dim<1> > CRKSPHHydroBase1d;
 typedef CRKSPHHydroBase<Dim<2> > CRKSPHHydroBase2d;
 typedef CRKSPHHydroBase<Dim<3> > CRKSPHHydroBase3d;
+
+typedef SolidCRKSPHHydroBase<Dim<1> > SolidCRKSPHHydroBase1d;
+typedef SolidCRKSPHHydroBase<Dim<2> > SolidCRKSPHHydroBase2d;
+typedef SolidCRKSPHHydroBase<Dim<3> > SolidCRKSPHHydroBase3d;
 
 //------------------------------------------------------------------------------
 // Annoyingly we have to explicity disambiguate these.

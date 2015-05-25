@@ -1,5 +1,6 @@
+import os, sys
 import shutil
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from SodAnalyticSolution import *
 
@@ -35,6 +36,7 @@ commandLine(nx1 = 400,
             aMax = 2.0,
             Cl = 1.0,
             Cq = 1.5,
+            linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-4,
             hmin = 1e-10,
@@ -48,7 +50,6 @@ commandLine(nx1 = 400,
             hourglassOrder = 1,
             hourglassLimiter = 1,
             filter = 0.00,
-            momentumConserving = True, # For CRKSPH
             KernelConstructor = BSplineKernel,
             
             bArtificialConduction = False,
@@ -56,7 +57,7 @@ commandLine(nx1 = 400,
 
             SVPH = False,
             CRKSPH = False,
-            TSPH = False,
+            solid = False,    # If true, use the fluid limit of the solid hydro option
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             dtverbose = False,
             steps = None,
@@ -79,30 +80,39 @@ commandLine(nx1 = 400,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 200,
-            dataDirBase = "Sod-planar-1d",
+            dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
 
             graphics = True,
-            serialDump = False, #whether to dump a serial ascii file at the end for viz
             )
 
-dataDir = dataDirBase + ("/%i" % (nx1 + nx2))
-restartDir = dataDir + "/restarts"
-restartBaseName = restartDir + "/Sod-planar-1d-%i" % (nx1 + nx2)
+if SVPH:
+    HydroConstructor = SVPHFacetedHydro
+elif CRKSPH:
+    if solid:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    if solid:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SPHHydro
+
+dataDir = os.path.join(dataDirBase, 
+                       str(HydroConstructor).split("'")[1].split(".")[-1],
+                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       "%i" % (nx1 + nx2))
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
 assert numNodeLists in (1, 2)
 
 #-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-
-#-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -114,6 +124,7 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gammaGas, mu)
+strength = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -126,16 +137,28 @@ output("WTPi")
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           rhoMin = rhoMin)
-nodes2 = makeFluidNodeList("nodes2", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           rhoMin = rhoMin)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+    nodes2 = makeSolidNodeList("nodes2", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
+    nodes2 = makeFluidNodeList("nodes2", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               rhoMin = rhoMin)
 nodeSet = [nodes1, nodes2]
 
 #-------------------------------------------------------------------------------
@@ -175,7 +198,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+q = Qconstructor(Cl, Cq, linearInExpansion)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")
@@ -183,6 +206,8 @@ output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -190,7 +215,7 @@ output("q.epsilon2")
 WT = TableKernel(KernelConstructor(), 1000)
 
 if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
+    hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSVPH = XSPH,
@@ -201,32 +226,25 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate,
-                      momentumConserving = momentumConserving)
-elif TSPH:
-    hydro = TaylorSPHHydro(WT, q,
-                           cfl = cfl,
-                           compatibleEnergyEvolution = compatibleEnergy,
-                           XSPH = XSPH,
-                           HUpdate = HUpdate)
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
 else:
-    hydro = SPHHydro(WT,
-                     WTPi,
-                     q,
-                     cfl = cfl,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     gradhCorrection = gradhCorrection,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HUpdate,
-                     XSPH = XSPH,
-                     epsTensile = epsilonTensile,
-                     nTensile = nTensile)
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
 output("hydro")
 
 packages = [hydro]
@@ -234,7 +252,6 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
@@ -244,7 +261,6 @@ if boolReduceViscosity:
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -422,7 +438,7 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 if graphics:
     from SpheralGnuPlotUtilities import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="lines")
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
     pE = plotEHistory(control.conserve)
@@ -498,28 +514,9 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
 
-if serialDump:
-    serialData = []
-    i,j = 0,0
-    
-    f = open(dataDir + "/sod-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
-    f.write("# i x m rho u v rhoans uans vans visc\n")
-    for j in xrange(nodes1.numInternalNodes):
-        f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
-                                                                   nodes1.mass()[j],
-                                                                   nodes1.massDensity()[j],
-                                                                   nodes1.specificThermalEnergy()[j],
-                                                                   nodes1.velocity()[j][0],
-                                                                   rhoans[j],
-                                                                   uans[j],
-                                                                   vans[j],
-                                                                   hydro.maxViscousPressure()[0][j]))
-    f.close()
-
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-
 from SpheralGnuPlotUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)

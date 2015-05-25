@@ -61,8 +61,8 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(BSplineKernel(), 100000)
+WTPi = TableKernel(BSplineKernel(), 10000)
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
@@ -130,8 +130,19 @@ def checkRho(steps, t, dt):
     rho = nodes1.massDensity()
     rhoMin = rho.min()
     rhoMax = rho.max()
+    #print "Rho range : [%16.12e, %16.12e]" % (rhoMin, rhoMax)
     if abs(rhoMin/rhoMax - 1.0) > tol:
-        raise ValueError, "rho outside bounds : [%g, %g]" % (rhoMin, rhoMax)
+        if graphics == "gnu":
+            from SpheralGnuPlotUtilities import *
+            state = State(db, integrator.physicsPackages())
+            rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
+        pos = nodes1.positions()
+        for i in xrange(nodes1.numInternalNodes):
+            if rho[i] == rhoMin:
+                sys.stderr.write("rho min @ %i %s\n" % (i, pos[i]))
+            if rho[i] == rhoMax:
+                sys.stderr.write("rho max @ %i %s\n" % (i, pos[i]))
+        raise ValueError, "rho outside bounds : [%16.12e, %16.12e]" % (rhoMin, rhoMax)
     return
 
 #-------------------------------------------------------------------------------
