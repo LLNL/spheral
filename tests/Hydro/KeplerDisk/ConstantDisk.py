@@ -300,7 +300,7 @@ if restoreCycle is None:
 # Set an external pressure on the disk equivalent to the pressure at the
 # cutoff radius.
 #-------------------------------------------------------------------------------
-externalPressure = diskProfile.rho(1.1*rmax)*(gamma-1.0)*diskProfile.eps(1.1*rmax)
+externalPressure = diskProfile.rho(1.1*rmax)*(eos.gamma-1.0)*diskProfile.eps(1.1*rmax)
 eos.externalPressure = externalPressure
 
 #-------------------------------------------------------------------------------
