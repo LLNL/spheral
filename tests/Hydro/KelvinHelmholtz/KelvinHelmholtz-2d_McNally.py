@@ -1,3 +1,9 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH CRK, nPerh=1.5", np=1)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --serialDump=True", label="KH CRK, nPerh=2.0", np=1)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral, nPerh=1.5", np=1)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral-NoQ, nPerh=1.5", np=1)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="KH TSPH-NoQ, nPerh=1.5", np=1)
+
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
 # Springel 2010, MNRAS, 401, 791-851.
@@ -138,6 +144,7 @@ dataDir = os.path.join(dataDir,
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
+                       "compatibleEnergy=%s" % (compatibleEnergy),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
@@ -530,3 +537,21 @@ else:
 #rank = mpi.rank
 #if rank == 0:
 #  numpy.savetxt("mixing.txt",(times,amps))
+
+
+if serialDump:
+  procs = mpi.procs
+  rank = mpi.rank
+  serialData = []
+  i,j = 0,0
+  for i in xrange(procs):
+    for nodeL in nodeSet:
+      if rank == i:
+        for j in xrange(nodeL.numInternalNodes):
+          serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
+  serialData = mpi.reduce(serialData,mpi.SUM)
+  if rank == 0:
+    f = open(dataDir + "/serialDump.ascii",'w')
+    for i in xrange(len(serialData)):
+      f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+    f.close()
