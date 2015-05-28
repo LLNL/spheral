@@ -74,8 +74,15 @@ class OverrideNodeProperties(RestartableObject):
         return
 
 #-------------------------------------------------------------------------------
+# Build our units.
+#-------------------------------------------------------------------------------
+units = PhysicalConstants(0.01,  # Unit length in m
+                          0.001, # Unit mass in kg
+                          1e-6)  # Unit length in sec
+
+#-------------------------------------------------------------------------------
 # Generic problem parameters
-# All CGS units.
+# All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(length = 3.0,
             radius = 0.5,
@@ -92,7 +99,7 @@ commandLine(length = 3.0,
             DamageModelConstructor = GradyKippTensorDamageOwen, # GradyKippTensorDamage, # GradyKippScalarDamage # GradyKippVectorDamage # WeibullTensorDamage, # 
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
-            v0 = 1e4,
+            v0 = 1e-2,
             kWeibullFactor = 1.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
@@ -124,11 +131,11 @@ commandLine(length = 3.0,
             filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 50.0e-6,
+            goalTime = 50.0,
             steps = None,
             dt = 1e-10,
-            dtMin = 1e-12,
-            dtMax = 1e-5,
+            dtMin = 1e-6,
+            dtMax = 10.0,
             dtGrowth = 2.0,
             dumpFrac = 0.005,
             maxSteps = None,
@@ -270,62 +277,49 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Stainless steel material properties.
 #-------------------------------------------------------------------------------
-eos = GruneisenEquationOfStateCGS(rho0,    # reference density  
-                                  etamin,  # etamin             
-                                  etamax,  # etamax             
-                                  0.457e6, # C0                 
-                                  1.49,    # S1                 
-                                  0.0,     # S2                 
-                                  0.0,     # S3                 
-                                  1.93,    # gamma0             
-                                  0.5,     # b                  
-                                  55.350)  # atomic weight
-coldFit = NinthOrderPolynomialFit(-1.06797724e10,
-                                  -2.06872020e10,
-                                   8.24893246e11,
-                                  -2.39505843e10,
-                                  -2.44522017e10,
-                                   5.38030101e10,
+eos = GruneisenEquationOfState(rho0,    # reference density  
+                               etamin,  # etamin             
+                               etamax,  # etamax             
+                               0.457, # C0                 
+                               1.49,    # S1                 
+                               0.0,     # S2                 
+                               0.0,     # S3                 
+                               1.93,    # gamma0             
+                               0.5,     # b                  
+                               55.350,  # atomic weight
+                               units)
+coldFit = NinthOrderPolynomialFit(-1.06797724e-2,
+                                  -2.06872020e-2,
+                                   8.24893246e-1,
+                                  -2.39505843e-2,
+                                  -2.44522017e-2,
+                                   5.38030101e-2,
                                    0.0,
                                    0.0,
                                    0.0,
                                    0.0)
-meltFit = NinthOrderPolynomialFit(7.40464217e10,
-                                  2.49802214e11,
-                                  1.00445029e12,
-                                 -1.36451475e11,
-                                  7.72897829e9,
-                                  5.06390305e10,
+meltFit = NinthOrderPolynomialFit(7.40464217e-2,
+                                  2.49802214e-2,
+                                  1.00445029e-2,
+                                 -1.36451475e-1,
+                                  7.72897829e-3,
+                                  5.06390305e-2,
                                   0.0,
                                   0.0,
                                   0.0,
                                   0.0)
-strengthModel = SteinbergGuinanStrengthCGS(eos,
-                                           7.700000e11,        # G0
-                                           2.2600e-12,         # A
-                                           4.5500e-04,          # B
-                                           3.4000e9,           # Y0
-                                           2.5e10,             # Ymax
-                                           1.0e-3,             # Yp
-                                           43.0000,            # beta
-                                           0.0,                # gamma0
-                                           0.35,               # nhard
-                                           coldFit,
-                                           meltFit)
-
-# Construct another equation of state for the damaged material.
-eosDamaged = GruneisenEquationOfStateCGS(rho0,    # reference density  
-                                         etamin,  # etamin             
-                                         etamax,  # etamax             
-                                         0.457e6, # C0                 
-                                         1.49,    # S1                 
-                                         0.0,     # S2                 
-                                         0.0,     # S3                 
-                                         1.93,    # gamma0             
-                                         0.5,     # b                  
-                                         55.350,  # atomic weight
-                                         0.0,     # external pressure,
-                                         0.0)     # minimum pressure
+strengthModel = SteinbergGuinanStrength(eos,
+                                        7.700000e-1,        # G0
+                                        2.2600,             # A
+                                        4.5500e-04,         # B
+                                        3.4000e-3,          # Y0
+                                        2.5e-2,             # Ymax
+                                        1.0e-3,             # Yp
+                                        43.0000,            # beta
+                                        0.0,                # gamma0
+                                        0.35,               # nhard
+                                        coldFit,
+                                        meltFit)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and

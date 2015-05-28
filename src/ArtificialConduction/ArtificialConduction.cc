@@ -148,20 +148,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CRKSPHisOn = 1;
         const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
         const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
-        const FieldList<Dimension, Vector> C = state.fields(HydroFieldNames::C_CRKSPH, Vector::zero);
-        const FieldList<Dimension, Tensor> D = state.fields(HydroFieldNames::D_CRKSPH, Tensor::zero);
         const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
         const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
         const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
         CHECK(A.size() == numNodeLists);
         CHECK(B.size() == numNodeLists);
-        CHECK(C.size() == numNodeLists);
-        CHECK(D.size() == numNodeLists);
         CHECK(gradA0.size() == numNodeLists);
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
         
-        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, C, D, gradA, gradB, connectivityMap, W);
+        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, gradA, gradB, connectivityMap, W);
     }
     else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     

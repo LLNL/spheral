@@ -354,22 +354,6 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
-C() const {
-  return mC;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-D() const {
-  return mD;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
 gradA() const {
   return mGradA;
 }

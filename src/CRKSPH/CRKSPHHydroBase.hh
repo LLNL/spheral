@@ -200,8 +200,6 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    C() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    D() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
@@ -262,8 +260,6 @@ private:
   FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
-  FieldSpace::FieldList<Dimension, Vector>    mC;
-  FieldSpace::FieldList<Dimension, Tensor>    mD;
   FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
