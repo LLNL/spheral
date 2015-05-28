@@ -40,9 +40,9 @@ for crk, linearInExpansion, label in ((False, False, "SPH"),
          clas = "--CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --graphics True --clearDirectories True --goalTime 3.0 --outputFile GreshoVortex.ascii" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
          label = "Gresho vortex problem -- 2-D (64^2, 4 proc, %s)" % label,
          np = 4)
-    test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
-         clas = "--nx1 128 --nx2 128 --ny1 64 --ny2 64 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
-         label = "Kelvin-Helmholtz problem -- 2-D (128^2, 10 proc, %s)" % label,
+    test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d_McNally.py",
+         clas = "--nx1 256 --nx2 256 --ny1 128 --ny2 128 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
+         label = "Kelvin-Helmholtz problem -- 2-D (256^2, 10 proc, %s)" % label,
          np = 10)
     #test(script = "Hydro/KelvinHelmholtz/KelvinHelmholtz-2d.py",
     #     clas = "--nx1 256 --nx2 256 --ny1 128 --ny2 128 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g  --linearInExpansion %s --filter %g --clearDirectories True" % (crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
