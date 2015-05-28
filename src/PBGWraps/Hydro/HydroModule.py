@@ -102,8 +102,6 @@ class Hydro:
         x.add_static_attribute("A0_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("A_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("B_CRKSPH", "std::string",  is_const=True)
-        x.add_static_attribute("C_CRKSPH", "std::string",  is_const=True)
-        x.add_static_attribute("D_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradA_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("gradB_CRKSPH", "std::string",  is_const=True)
         x.add_static_attribute("M_CRKSPH", "std::string",  is_const=True)
