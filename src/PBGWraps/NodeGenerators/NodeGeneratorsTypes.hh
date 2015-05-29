@@ -4,6 +4,7 @@
 #include "NodeGenerators/generateCylDistributionFromRZ.hh"
 #include "NodeGenerators/fillFacetedVolume.hh"
 #include "NodeGenerators/relaxNodeDistribution.hh"
+#include "NodeGenerators/readSiloPolyMesh.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

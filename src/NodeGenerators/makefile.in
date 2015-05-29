@@ -13,7 +13,8 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/generateCylDistributionFromRZ.cc \
 	$(srcdir)/fillFacetedVolume.cc \
-	$(srcdir)/relaxNodeDistributionInst.cc
+	$(srcdir)/relaxNodeDistributionInst.cc \
+	$(srcdir)/readSiloPolyMesh.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/NodeGeneratorBase.py \
@@ -36,7 +37,8 @@ PYTHONTARGETS = \
 	$(srcdir)/InteriorGenerator.py \
 	$(srcdir)/FacetedSurfaceGenerator.py \
 	$(srcdir)/AsciiFileNodeGenerator.py \
-	$(srcdir)/HydroStaticProfile.py
+	$(srcdir)/HydroStaticProfile.py \
+	$(srcdir)/SiloPolyMeshGenerator.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
