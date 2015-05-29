@@ -94,6 +94,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             useVoronoiOutput = False,
             clearDirectories = False,
+            vizDerivs = False,
             restoreCycle = None,
             restartStep = 1000,
             checkRestart = False,
@@ -381,6 +382,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = vizDerivs,
                             skipInitialPeriodicWork = SVPH,
                             SPH = True,        # Only for iterating H
                             )

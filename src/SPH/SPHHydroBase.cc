@@ -113,6 +113,8 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSpecificThermalEnergy0(FieldSpace::Copy),
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
+  mEffViscousPressure(FieldSpace::Copy),
+  mViscousWork(FieldSpace::Copy),
   mMassDensitySum(FieldSpace::Copy),
   mNormalization(FieldSpace::Copy),
   mWeightedNeighborSum(FieldSpace::Copy),
@@ -156,6 +158,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
+  mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
+  mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
@@ -337,6 +341,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // the ArtificialVisocisity::initialize step).
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
+  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
+  dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
@@ -356,6 +362,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
+  derivs.enroll(mEffViscousPressure);
+  derivs.enroll(mViscousWork);
   derivs.enroll(mMassDensitySum);
   derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
@@ -482,6 +490,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   FieldList<Dimension, Scalar> XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
@@ -500,6 +510,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
+  CHECK(effViscousPressure.size() == numNodeLists);
+  CHECK(viscousWork.size() == numNodeLists);
   CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
@@ -703,6 +715,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
+      Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
+      Scalar& viscousWorki = viscousWork(nodeListi, i);
       vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
       Scalar& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       Vector& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
@@ -763,6 +777,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Tensor& Mj = M(nodeListj, j);
               Tensor& localMj = localM(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
+              Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
+              Scalar& viscousWorkj = viscousWork(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
               Scalar& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
@@ -831,6 +847,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
+              effViscousPressurei += mj/rhoj * Qi * Wi;
+              effViscousPressurej += mi/rhoi * Qj * Wj;
+              viscousWorki += mj*workQi;
+              viscousWorkj += mi*workQj;
 
               // Determine an effective pressure including a term to fight the tensile instability.
 //             const Scalar fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
