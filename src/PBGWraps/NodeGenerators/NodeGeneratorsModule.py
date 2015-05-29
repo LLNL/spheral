@@ -63,6 +63,15 @@ class NodeGenerators:
                               param("unsigned int", "numDomains")],
                              docstring = "Return a vector of positions filling the volume between an inner and outer bounding polyhedra.")
 
+        Spheral.add_function("readSiloPolyMesh",
+                             None,
+                             [param("std::string", "fileName"),
+                              param("std::string", "meshName"),
+                              refparam("vector_of_Vector3d", "positions"),
+                              refparam("vector_of_double", "volumes"),
+                              refparam("vector_of_SymTensor3d", "H")],
+                             docstring = "Compute stuff useful for a NodeGenerator from a polyhedral mesh in a silo file.")
+
         for ndim in (2, 3):
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
             vector = "Vector%id" % ndim
