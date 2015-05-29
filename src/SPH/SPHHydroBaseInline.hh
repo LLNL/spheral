@@ -289,6 +289,22 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
+effectiveViscousPressure() const {
+  return mEffViscousPressure;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
+viscousWork() const {
+  return mViscousWork;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
 massDensitySum() const {
   return mMassDensitySum;
 }

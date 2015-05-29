@@ -82,6 +82,8 @@ class Hydro:
         x.add_static_attribute("normalization", "std::string",  is_const=True)
         x.add_static_attribute("specificThermalEnergy", "std::string",  is_const=True)
         x.add_static_attribute("maxViscousPressure", "std::string",  is_const=True)
+        x.add_static_attribute("effectiveViscousPressure", "std::string",  is_const=True)
+        x.add_static_attribute("viscousWork", "std::string",  is_const=True)
         x.add_static_attribute("XSPHDeltaV", "std::string",  is_const=True)
         x.add_static_attribute("XSPHWeightSum", "std::string",  is_const=True)
         x.add_static_attribute("Hsmooth", "std::string",  is_const=True)
