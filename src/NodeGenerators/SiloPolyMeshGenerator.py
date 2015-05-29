@@ -24,6 +24,7 @@ class SiloPolyMeshGenerator(NodeGeneratorBase):
                  scale = 1.0):           # Optionally scale the coordinates by some factor
 
         self.x, self.y, self.z, self.m, self.H = [], [], [], [], []
+        self.rho0 = rho0
         if rank == 0 or (not serialFile):
 
             # Read the file to a set of positions, volumes, and H's.
@@ -56,4 +57,33 @@ class SiloPolyMeshGenerator(NodeGeneratorBase):
             self.makeHround()
 
         return
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.x)
+        return self.rho0
+
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
 
