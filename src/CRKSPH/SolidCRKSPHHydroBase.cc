@@ -376,6 +376,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -391,6 +393,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
+  CHECK(effViscousPressure.size() == numNodeLists);
+  CHECK(viscousWork.size() == numNodeLists);
   CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
@@ -475,6 +479,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
+      Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
+      Scalar& viscousWorki = viscousWork(nodeListi, i);
       vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
       Vector& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
@@ -541,6 +547,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Tensor& localDvDxj = localDvDx(nodeListj, j);
               Vector& DrhoDxj = DrhoDx(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
+              Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
+              Scalar& viscousWorkj = viscousWork(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
@@ -590,10 +598,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
                                                         ri, etai, vi, rhoi, ci, Hi,
                                                         rj, etaj, vj, rhoj, cj, Hj);
+              const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);
+              const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
+              effViscousPressurei += weightj * Qi * Wj;
+              effViscousPressurej += weighti * Qj * Wi;
+              viscousWorki += 0.5*weighti*weightj/mi*workQi;
+              viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Mass density evolution.
               DrhoDti += fDeffij*rhoi*weightj*vij.dot(gradWj);
@@ -639,8 +653,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += fDeffij * 0.5*weighti*weightj*(sigmaj + rhoj*rhoj*QPiij.second).dot(vij).dot(deltagrad)/mi;
-              DepsDtj += fDeffij * 0.5*weighti*weightj*(sigmai + rhoi*rhoi*QPiij.first) .dot(vij).dot(deltagrad)/mj;
+              DepsDti += fDeffij * 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
+              DepsDtj += fDeffij * 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
