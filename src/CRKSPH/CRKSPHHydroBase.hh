@@ -179,7 +179,8 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  // const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
@@ -233,7 +234,8 @@ private:
 
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  // FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
+  FieldSpace::FieldList<Dimension, Scalar>    mEffViscousPressure;
+  FieldSpace::FieldList<Dimension, Scalar>    mViscousWork;
 
   FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;

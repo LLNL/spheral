@@ -198,13 +198,21 @@ maxViscousPressure() const {
   return mMaxViscousPressure;
 }
 
-// template<typename Dimension>
-// inline
-// const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-// CRKSPHHydroBase<Dimension>::
-// massDensitySum() const {
-//   return mMassDensitySum;
-// }
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
+effectiveViscousPressure() const {
+  return mEffViscousPressure;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
+viscousWork() const {
+  return mViscousWork;
+}
 
 template<typename Dimension>
 inline
