@@ -207,11 +207,11 @@ namespace FractalSpace
   {
     really_passive=value;
   }
-  void Point::set_ij_number(HYPRE_Int count)
+  void Point::set_ij_number(const int& count)
   {
     ij_number=count;
   }
-  HYPRE_Int Point::get_ij_number() const
+  int Point::get_ij_number() const
   {
     return ij_number;
   }
@@ -253,7 +253,7 @@ namespace FractalSpace
     ij_ud.clear();
     return;
   }
-  void Point::get_ij_neighbors(vector <HYPRE_Int>& ijud) const
+  void Point::get_ij_neighbors(vector <int>& ijud) const
   {
     ijud=ij_ud;
   }
@@ -261,12 +261,12 @@ namespace FractalSpace
   {
     return ij_ud.size();
   }
-  void Point::copy_ij_index(HYPRE_Int ijc)
+  void Point::copy_ij_index(const int& ijc)
   {
     ij_ud.resize(1);
     ij_ud[0]=ijc;
   }
-  void Point::get_hypre_info(HYPRE_Int ij_index,vector <HYPRE_Int>& ijud,double& rho,double& pot) const
+  void Point::get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const
   {
     ij_index=ij_number;
     ijud=ij_ud;
