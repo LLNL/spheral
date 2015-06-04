@@ -121,6 +121,11 @@ SETUP_OPENSUBDIV
 SETUP_ANEOS
 
 # -------------------------------------------------
+# setup GEODYN (m4macros/geodyn.m4)
+# -------------------------------------------------
+SETUP_GEODYN
+
+# -------------------------------------------------
 # setup HELMHOLTZ (m4macros/helmholtz.m4)
 # -------------------------------------------------
 SETUP_HELMHOLTZ
