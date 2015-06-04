@@ -46,7 +46,7 @@ self.StrengthModel%(dim)id = addObject(space, "StrengthModel%(dim)id", allow_sub
 self.ConstantStrength%(dim)id = addObject(space, "ConstantStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.NullStrength%(dim)id = addObject(space, "NullStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
-self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(dim)id", parent=self.SteinbergGuinanStrength%(dim)id, allow_subclassing=True)
+#self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(dim)id", parent=self.SteinbergGuinanStrength%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
 
@@ -74,7 +74,7 @@ generateStrengthModelBindings(self.StrengthModel%(dim)id, %(dim)i)
 generateConstantStrengthBindings(self.ConstantStrength%(dim)id, %(dim)i)
 generateNullStrengthBindings(self.NullStrength%(dim)id, %(dim)i)
 generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(dim)i)
-generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(dim)id, %(dim)i)
+#generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(dim)id, %(dim)i)
 generatePorousStrengthModelBindings(self.PorousStrengthModel%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
@@ -320,30 +320,6 @@ def generateMurnahanEquationOfStateBindings(x, ndim):
 # StrengthModel (virtual interface)
 #---------------------------------------------------------------------------
 def generateStrengthModelVirtualBindings(x, ndim, pureVirtual):
-
-    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
-
-    # Methods.
-    x.add_method("shearModulus", "double", [param("double", "density"),
-                                            param("double", "specificThermalEnergy"),
-                                            param("double", "pressure")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("yieldStrength", "double", [param("double", "density"),
-                                             param("double", "specificThermalEnergy"),
-                                             param("double", "pressure"),
-                                             param("double", "plasticStrain"),
-                                             param("double", "plasticStrainRate")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("soundSpeed", "double", [param("double", "density"),
-                                          param("double", "specificThermalEnergy"),
-                                          param("double", "pressure"),
-                                          param("double", "fluidSoundSpeed")],
-                 is_const=True, is_virtual=True)
-    return
-
-
-def generateStrengthModelFieldVirtualBindings(x, ndim, pureVirtual):
-
     scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Methods.
@@ -351,14 +327,14 @@ def generateStrengthModelFieldVirtualBindings(x, ndim, pureVirtual):
                                         constrefparam(scalarfield, "density"),
                                         constrefparam(scalarfield, "specificThermalEnergy"),
                                         constrefparam(scalarfield, "pressure")],
-                 is_const=True, is_virtual=True)
+                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
     x.add_method("yieldStrength", None, [refparam(scalarfield, "yieldStrength"),
                                          constrefparam(scalarfield, "density"),
                                          constrefparam(scalarfield, "specificThermalEnergy"),
-                                        constrefparam(scalarfield, "pressure"),
-                                        constrefparam(scalarfield, "plasticStrain"),
-                                        constrefparam(scalarfield, "plasticStrainRate")],
-                 is_const=True, is_virtual=True)
+                                         constrefparam(scalarfield, "pressure"),
+                                         constrefparam(scalarfield, "plasticStrain"),
+                                         constrefparam(scalarfield, "plasticStrainRate")],
+                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
     x.add_method("soundSpeed", None, [refparam(scalarfield, "soundSpeed"),
                                       constrefparam(scalarfield, "density"),
                                       constrefparam(scalarfield, "specificThermalEnergy"),
@@ -377,7 +353,6 @@ def generateStrengthModelBindings(x, ndim):
 
     # Add the abstract interface.
     generateStrengthModelVirtualBindings(x, ndim, True)
-    generateStrengthModelFieldVirtualBindings(x, ndim, True)
 
     return
 
@@ -447,6 +422,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 
     solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
     ninthorderpolynomial = "Spheral::SolidMaterial::NinthOrderPolynomialFit"
+    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
 
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
@@ -467,7 +443,9 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 
     # Methods.
     x.add_method("meltAttenuation", "double", [param("double", "rho"), param("double", "eps")], is_const=True)
-    x.add_method("computeTemperature", "double", [param("double", "rho"), param("double", "eps")], is_const=True)
+    x.add_method("computeTemperature", None, [refparam(scalarfield, "temperature"),
+                                              constrefparam(scalarfield, "rho"), 
+                                              constrefparam(scalarfield, "eps")], is_const=True)
 
     # Attributes.
     x.add_instance_attribute("G0", "double", getter="G0", is_const=True)
@@ -479,7 +457,6 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     x.add_instance_attribute("beta", "double", getter="beta", is_const=True)
     x.add_instance_attribute("gamma0", "double", getter="gamma0", is_const=True)
     x.add_instance_attribute("nhard", "double", getter="nhard", is_const=True)
-    x.add_instance_attribute("refTempOffset", "double", getter="refTempOffset", is_const=True)
     x.add_instance_attribute("coldEnergyFit", ninthorderpolynomial, getter="coldEnergyFit", is_const=True)
     x.add_instance_attribute("meltEnergyFit", ninthorderpolynomial, getter="meltEnergyFit", is_const=True)
 
@@ -499,7 +476,6 @@ def generatePorousStrengthModelBindings(x, ndim):
 
     # Add the abstract interface.
     generateStrengthModelVirtualBindings(x, ndim, False)
-    generateStrengthModelFieldVirtualBindings(x, ndim, True)
 
     # Methods.
     const_ref_return_value(x, me, "%s::solidStrength" % me, strengthmodel, [], "solidStrength")

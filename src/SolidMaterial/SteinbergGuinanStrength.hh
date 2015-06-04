@@ -27,6 +27,8 @@ class SteinbergGuinanStrength: public StrengthModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  typedef typename Dimension::Scalar Scalar;
+
   // Constructors, destructor.
   SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
                           const double G0,
@@ -43,27 +45,31 @@ public:
   virtual ~SteinbergGuinanStrength();
 
   // Override the required generic interface.
-  virtual double shearModulus(const double density,
-                              const double specificThermalEnergy,
-                              const double pressure) const;
+  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+                            const FieldSpace::Field<Dimension, Scalar>& density,
+                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
 
-  virtual double yieldStrength(const double density,
-                               const double specificThermalEnergy,
-                               const double pressure,
-                               const double plasticStrain,
-                               const double plasticStrainRate) const;
+  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+                             const FieldSpace::Field<Dimension, Scalar>& density,
+                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                             const FieldSpace::Field<Dimension, Scalar>& pressure,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
 
-  // Override the method to compute the full sound speed.
-  virtual double soundSpeed(const double density,
-                            const double specificThermalEnergy,
-                            const double pressure,
-                            const double fluidSoundSpeed) const;
+  virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+                          const FieldSpace::Field<Dimension, Scalar>& density,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                          const FieldSpace::Field<Dimension, Scalar>& pressure,
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
 
   // Melt attenuation.
   double meltAttenuation(const double rho, const double eps) const;
 
   // Steinberg-Guinan "temperature".
-  double computeTemperature(const double rho, const double eps) const;
+  void computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
+                          const FieldSpace::Field<Dimension, Scalar>& density,
+                          const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // Access the strength parameters.
   double G0() const;
@@ -75,7 +81,6 @@ public:
   double beta() const;
   double gamma0() const;
   double nhard() const;
-  double refTempOffset() const;
   const NinthOrderPolynomialFit& coldEnergyFit() const;
   const NinthOrderPolynomialFit& meltEnergyFit() const;
 
@@ -92,7 +97,6 @@ private:
   double mbeta;
   double mgamma0;
   double mnhard;
-  double mRefTempOffset;
   NinthOrderPolynomialFit mColdEnergyFit;
   NinthOrderPolynomialFit mMeltEnergyFit;
 #endif

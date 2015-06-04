@@ -9,6 +9,7 @@
 
 #include "StrengthModel.hh"
 #include "SolidEquationOfState.hh"
+#include "Field/Field.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -17,6 +18,8 @@ template<typename Dimension>
 class ConstantStrength: public StrengthModel<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
+  typedef typename Dimension::Scalar Scalar;
+
   // Constructors, destructor.
   ConstantStrength(const double mu0,
                    const double Y0);
@@ -26,21 +29,17 @@ public:
   virtual ~ConstantStrength() {};
 
   // The generic interface we require all strength models to provide.
-  virtual double shearModulus(const double density,
-                              const double specificThermalEnergy,
-                              const double pressure) const;
+  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+                            const FieldSpace::Field<Dimension, Scalar>& density,
+                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
 
-  virtual double yieldStrength(const double density,
-                               const double specificThermalEnergy,
-                               const double pressure,
-                               const double plasticStrain,
-                               const double plasticStrainRate) const;
-
-  // An overridable method to compute the full sound speed.
-  virtual double soundSpeed(const double density,
-                            const double specificThermalEnergy,
-                            const double pressure,
-                            const double fluidSoundSpeed) const;
+  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+                             const FieldSpace::Field<Dimension, Scalar>& density,
+                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                             const FieldSpace::Field<Dimension, Scalar>& pressure,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
 
   // Read only access to the parameters.
   double mu0() const;
@@ -94,12 +93,13 @@ ConstantStrength(const double mu0,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+void
 ConstantStrength<Dimension>::
-shearModulus(const double density,
-             const double specificThermalEnergy,
-             const double pressure) const {
-  return mShearModulus0;
+shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+             const FieldSpace::Field<Dimension, Scalar>& density,
+             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
+  shearModulus = mShearModulus0;
 }
 
 //------------------------------------------------------------------------------
@@ -107,30 +107,20 @@ shearModulus(const double density,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+void
 ConstantStrength<Dimension>::
-yieldStrength(const double density,
-              const double specificThermalEnergy,
-              const double pressure,
-              const double plasticStrain,
-              const double plasticStrainRate) const {
+yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+              const FieldSpace::Field<Dimension, Scalar>& density,
+              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+              const FieldSpace::Field<Dimension, Scalar>& pressure,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
   if (mEOSptr != 0 and
-      density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) return 0.0;
-  return mYieldStrength0;
-}
-
-//------------------------------------------------------------------------------
-// Compute the full sound speed.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-ConstantStrength<Dimension>::
-soundSpeed(const double density,
-           const double specificThermalEnergy,
-           const double pressure,
-           const double fluidSoundSpeed) const {
-  return fluidSoundSpeed;
+      density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
+    yieldStrength = 0.0;
+  } else {
+    yieldStrength = mYieldStrength0;
+  }
 }
 
 //------------------------------------------------------------------------------

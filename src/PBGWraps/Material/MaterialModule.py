@@ -209,27 +209,27 @@ def generateEquationOfStateVirtualBindings(x, ndim, pureVirtual):
                                        constrefparam(scalarfield, "specificThermalEnergy")],
                  is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
-    x.add_method("pressure", "double", [param("double", "massDensity"),
-                                        param("double", "specificThermalEnergy")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("temperature", "double", [param("double", "massDensity"),
-                                           param("double", "specificThermalEnergy")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
-                                                     param("double", "temperature")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("specificHeat", "double", [param("double", "massDensity"),
-                                            param("double", "temperature")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("soundSpeed", "double", [param("double", "massDensity"),
-                                          param("double", "specificThermalEnergy")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("gamma", "double", [param("double", "massDensity"),
-                                     param("double", "specificThermalEnergy")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
-    x.add_method("bulkModulus", "double", [param("double", "massDensity"),
-                                           param("double", "specificThermalEnergy")],
-                 is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("pressure", "double", [param("double", "massDensity"),
+    #                                     param("double", "specificThermalEnergy")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("temperature", "double", [param("double", "massDensity"),
+    #                                        param("double", "specificThermalEnergy")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("specificThermalEnergy", "double", [param("double", "massDensity"),
+    #                                                  param("double", "temperature")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("specificHeat", "double", [param("double", "massDensity"),
+    #                                         param("double", "temperature")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("soundSpeed", "double", [param("double", "massDensity"),
+    #                                       param("double", "specificThermalEnergy")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("gamma", "double", [param("double", "massDensity"),
+    #                                  param("double", "specificThermalEnergy")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
+    # x.add_method("bulkModulus", "double", [param("double", "massDensity"),
+    #                                        param("double", "specificThermalEnergy")],
+    #              is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 
     x.add_method("valid", "bool", [], is_const=True, is_virtual=True, is_pure_virtual=pureVirtual)
 

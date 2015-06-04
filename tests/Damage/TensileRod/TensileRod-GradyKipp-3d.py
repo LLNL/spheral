@@ -303,8 +303,8 @@ if restoreCycle is None:
     # For consistency with our 2-D case, we spin the coordinates so
     # that the rod is aligned along the x axis rather than z.
     R = Tensor(0, 0, 1,
-                 0, 1, 0,
-                -1, 0, 0)
+               0, 1, 0,
+              -1, 0, 0)
     for i in xrange(generator.localNumNodes()):
         vi = generator.localPosition(i)
         Hi = generator.localHtensor(i)
@@ -320,9 +320,9 @@ if restoreCycle is None:
     output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    eps0 = eos.specificThermalEnergy(rho0, 300.0)
-    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+    # # Set node specific thermal energies
+    # eps0 = eos.specificThermalEnergy(rho0, 300.0)
+    # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
     # Set node velocites.
     for i in xrange(nodes.numInternalNodes):

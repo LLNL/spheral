@@ -8,6 +8,7 @@
 #include "Utilities/FastMath.hh"
 #include "Utilities/DBC.hh"
 #include "SolidEquationOfState.hh"
+#include "Field/Field.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -16,6 +17,8 @@ using namespace std;
 using std::abs;
 using std::min;
 using std::max;
+
+using FieldSpace::Field;
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -45,12 +48,8 @@ SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
   mbeta(beta),
   mgamma0(gamma0),
   mnhard(nhard),
-  mRefTempOffset(0.0),
   mColdEnergyFit(coldEnergyFit),
   mMeltEnergyFit(meltEnergyFit) {
-  // Set the temperature offset so that computeTemperature returns 300 at reference
-  // values.
-  mRefTempOffset = 300.0 - this->computeTemperature(eos.referenceDensity(), 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -65,77 +64,87 @@ SteinbergGuinanStrength<Dimension>::
 // Compute the shear modulus.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 SteinbergGuinanStrength<Dimension>::
-shearModulus(const double density,
-             const double specificThermalEnergy,
-             const double pressure) const {
-
+shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+             const FieldSpace::Field<Dimension, Scalar>& density,
+             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
   if ((mG0 > 0.0) &&
       (mA == 0.0) &&
       (mB == 0.0) &&
       (mbeta == 0.0) &&
       (mnhard == 0.0)) {
-    return mG0;
+    shearModulus = mG0;
 
   } else {
-    const double eta = mEOSPtr->boundedEta(density);
-    CHECK(distinctlyGreaterThan(eta, 0.0));
-    const double result = mG0*max(1.0e-10,
-                                  meltAttenuation(density, specificThermalEnergy)*(1.0 + 
-                                                                                   mA*max(0.0, pressure)/FastMath::CubeRootHalley2(eta) -
-                                                                                   mB*(max(0.0, computeTemperature(density, specificThermalEnergy) - 300.0))));
-    CHECK(distinctlyGreaterThan(result, 0.0));
-    return result;
+    Field<Dimension, Scalar> T("temperature", density.nodeList());
+    this->computeTemperature(T, density, specificThermalEnergy);
+    for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+      const double eta = mEOSPtr->boundedEta(density(i));
+      CHECK(distinctlyGreaterThan(eta, 0.0));
+      shearModulus(i) = mG0*max(1.0e-10,
+                                meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
+                                                                                       mA*max(0.0, pressure(i))/FastMath::CubeRootHalley2(eta) -
+                                                                                       mB*max(0.0, T(i))));
+      CHECK(distinctlyGreaterThan(shearModulus(i), 0.0));
+    }
   }
-
 }
 
 //------------------------------------------------------------------------------
 // Compute the yield strength.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 SteinbergGuinanStrength<Dimension>::
-yieldStrength(const double density,
-              const double specificThermalEnergy,
-              const double pressure,
-              const double plasticStrain,
-              const double plasticStrainRate) const {
-
+yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+              const FieldSpace::Field<Dimension, Scalar>& density,
+              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+              const FieldSpace::Field<Dimension, Scalar>& pressure,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
   if ((mG0 > 0.0) &&
       (mA == 0.0) &&
       (mB == 0.0) &&
       (mbeta == 0.0) &&
       (mnhard == 0.0)) {
-    return mY0;
+    yieldStrength = mY0;
 
   } else {
-    const double eta = mEOSPtr->boundedEta(density);
-    if (fuzzyEqual(eta, mEOSPtr->etamin())) return 0.0;
-    CHECK(distinctlyGreaterThan(eta, 0.0));
-    const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain + mgamma0), mnhard));
-    const double result = Yhard*shearModulus(density, specificThermalEnergy, pressure)/mG0;
-    return result;
+    this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure);
+    for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+      const double eta = mEOSPtr->boundedEta(density(i));
+      if (fuzzyEqual(eta, mEOSPtr->etamin())) {
+        yieldStrength(i) = 0.0;
+      } else {
+        CHECK(distinctlyGreaterThan(eta, 0.0));
+        const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
+        yieldStrength(i) *= Yhard/mG0;
+      }
+    }
   }
-
 }
 
 //------------------------------------------------------------------------------
 // Compute the full sound speed.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 SteinbergGuinanStrength<Dimension>::
-soundSpeed(const double density,
-           const double specificThermalEnergy,
-           const double pressure,
-           const double fluidSoundSpeed) const {
-  REQUIRE(distinctlyGreaterThan(density, 0.0));
-  const double cs2 = fluidSoundSpeed*fluidSoundSpeed + 
-    std::abs(4.0/3.0 * shearModulus(density, specificThermalEnergy, pressure)) / density;
-  ENSURE(cs2 > 0.0);
-  return std::sqrt(cs2);
+soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
+           const FieldSpace::Field<Dimension, Scalar>& density,
+           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+           const FieldSpace::Field<Dimension, Scalar>& pressure,
+           const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const {
+  Field<Dimension, Scalar> mu("shear modulus", density.nodeList());
+  this->shearModulus(mu, density, specificThermalEnergy, pressure);
+  for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+    CHECK(density(i) > 0.0);
+    const double cs2 = fluidSoundSpeed(i)*fluidSoundSpeed(i) + std::abs(4.0/3.0 * mu(i)) / density(i);
+    CHECK(cs2 > 0.0);
+    soundSpeed(i) = std::sqrt(cs2);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -172,18 +181,23 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
 // Compute the Steinberg-Guinan effective temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+void
 SteinbergGuinanStrength<Dimension>::
-computeTemperature(const double density, const double specificThermalEnergy) const {
-  const double Cv = mEOSPtr->specificHeat(density, specificThermalEnergy);
+computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
+                   const FieldSpace::Field<Dimension, Scalar>& density,
+                   const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
+  Field<Dimension, Scalar> cV("specific heat", density.nodeList());
+  mEOSPtr->setSpecificHeat(cV, density, specificThermalEnergy);
   const double rho0 = mEOSPtr->referenceDensity();
-  const double mu = mEOSPtr->boundedEta(density) - 1.0;
-  CHECK(Cv > 0.0);
   CHECK(rho0 > 0.0);
-  CHECK(mu >= -1.0);
-  const double emelt = mMeltEnergyFit(mu)/rho0;
-  const double eps = max(0.0, min(emelt, specificThermalEnergy));
-  return max(0.0, eps - mColdEnergyFit(mu))*rho0/Cv + mRefTempOffset;
+  for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+    const double mu = mEOSPtr->boundedEta(density(i)) - 1.0;
+    CHECK(mu >= -1.0);
+    CHECK(cV(i) > 0.0);
+    const double emelt = mMeltEnergyFit(mu)/rho0;
+    const double eps = max(0.0, min(emelt, specificThermalEnergy(i)));
+    temperature(i) = max(0.0, eps - mColdEnergyFit(mu))*rho0/cV(i);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -250,13 +264,6 @@ double
 SteinbergGuinanStrength<Dimension>::
 nhard() const {
   return mnhard;
-}
-
-template<typename Dimension>
-double
-SteinbergGuinanStrength<Dimension>::
-refTempOffset() const {
-  return mRefTempOffset;
 }
 
 template<typename Dimension>

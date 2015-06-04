@@ -68,6 +68,28 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  // Access the member data.
+  double n() const;
+  double K() const;
+  double atomicWeight() const;
+  
+  void n(const double x);
+  void K(const double x);
+  void atomicWeight(const double x);
+  
+  // If requested, the user can specify an external pressure to be applied
+  // in the pressure calculation.
+  double externalPressure() const;
+  void externalPressure(const double x);
+
+  // Compute the derivative of the pressure with respect to the density.
+  double computeDPDrho(const Scalar massDensity,
+                       const Scalar specificThermalEnergy) const;
+
+  virtual bool valid() const;
+
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // We also want the equivalent functions for individual calculations.
   virtual Scalar pressure(const Scalar massDensity,
                           const Scalar specificThermalEnergy) const;
@@ -89,26 +111,6 @@ public:
 
   virtual Scalar bulkModulus(const Scalar massDensity,
                              const Scalar specificThermalEnergy) const;
-
-  // Access the member data.
-  double n() const;
-  double K() const;
-  double atomicWeight() const;
-  
-  void n(const double x);
-  void K(const double x);
-  void atomicWeight(const double x);
-  
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(const double x);
-
-  // Compute the derivative of the pressure with respect to the density.
-  double computeDPDrho(const Scalar massDensity,
-                       const Scalar specificThermalEnergy) const;
-
-  virtual bool valid() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

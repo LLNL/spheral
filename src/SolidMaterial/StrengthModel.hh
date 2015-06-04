@@ -31,41 +31,41 @@ public:
 
   //............................................................................
   // The generic interface we require all strength models to provide.
-  virtual double shearModulus(const double density,
-                              const double specificThermalEnergy,
-                              const double pressure) const = 0;
-
-  virtual double yieldStrength(const double density,
-                               const double specificThermalEnergy,
-                               const double pressure,
-                               const double plasticStrain,
-                               const double plasticStrainRate) const = 0;
-  //............................................................................
-
-  // Optionally override the full sound speed calculation.
-  virtual double soundSpeed(const double density,
-                            const double specificThermalEnergy,
-                            const double pressure,
-                            const double fluidSoundSpeed) const;
-
-  // Overridable Field versions.
   virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
                             const FieldSpace::Field<Dimension, Scalar>& density,
                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
-                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const = 0;
 
   virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
                              const FieldSpace::Field<Dimension, Scalar>& density,
                              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                              const FieldSpace::Field<Dimension, Scalar>& pressure,
                              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
-                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const = 0;
 
   virtual void soundSpeed(FieldSpace::Field<Dimension, Scalar>& soundSpeed,
                           const FieldSpace::Field<Dimension, Scalar>& density,
                           const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
                           const FieldSpace::Field<Dimension, Scalar>& pressure,
-                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const;
+                          const FieldSpace::Field<Dimension, Scalar>& fluidSoundSpeed) const { soundSpeed = fluidSoundSpeed; }
+  //............................................................................
+
+protected:
+  // The following individual methods are deprecated.
+  virtual double shearModulus(const double density,
+                              const double specificThermalEnergy,
+                              const double pressure) const { VERIFY2(false, "Individual values for StrengthModel::shearModulus is deprecated."); }
+
+  virtual double yieldStrength(const double density,
+                               const double specificThermalEnergy,
+                               const double pressure,
+                               const double plasticStrain,
+                               const double plasticStrainRate) const { VERIFY2(false, "Individual values for StrengthModel::yieldStrength is deprecated."); }
+
+  virtual double soundSpeed(const double density,
+                            const double specificThermalEnergy,
+                            const double pressure,
+                            const double fluidSoundSpeed) const { VERIFY2(false, "Individual values for StrengthModel::soundSpeed is deprecated."); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
