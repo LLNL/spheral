@@ -15,6 +15,8 @@ class Geodyn:
 
         # Includes.
         mod.add_include('"%s/SolidMaterial/Geodyn.hh"' % topsrcdir)
+        #mod.add_include('"%s/GeodynTypes.hh"' % srcdir)
+
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
@@ -26,21 +28,32 @@ class Geodyn:
 
         for dim in self.dimSet:
             exec('''
-EquationOfState%(dim)id = Material.add_class("EquationOfState",
-                                             template_parameters=["Spheral::Dim<%(dim)i>"],
-                                             custom_name="EquationOfState%(dim)id", 
-                                             import_from_module="SpheralModules.Spheral.Material",
-                                             allow_subclassing=True)
 StrengthModel%(dim)id = findObject(self.space, "StrengthModel%(dim)id")
-Physics%(dim)id = PhysicsSpace.add_class("Physics",
-                                         template_parameters=["Spheral::Dim<%(dim)i>"],
-                                         custom_name="Physics%(dim)id", 
-                                         import_from_module="SpheralModules.Spheral.PhysicsSpace",
-                                         allow_subclassing=True)
+EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
+Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+
+# EquationOfState%(dim)id = Material.add_class("EquationOfState",
+#                                              template_parameters=["Spheral::Dim<%(dim)i>"],
+#                                              custom_name="EquationOfState%(dim)id", 
+#                                              import_from_module="SpheralModules",
+# #                                             foreign_cpp_namespace="Spheral::Material",
+#                                              allow_subclassing=True)
+# StrengthModel%(dim)id = self.space.add_class("StrengthModel",
+#                                              template_parameters=["Spheral::Dim<%(dim)i>"],
+#                                              custom_name="StrengthModel%(dim)id", 
+#                                              import_from_module="SpheralModules",
+#                                              allow_subclassing=True)
+# Physics%(dim)id = PhysicsSpace.add_class("Physics",
+#                                          template_parameters=["Spheral::Dim<%(dim)i>"],
+#                                          custom_name="Physics%(dim)id", 
+#                                          import_from_module="SpheralModules.Spheral.PhysicsSpace",
+#                                          allow_subclassing=True)
+
 self.Geodyn%(dim)id = self.space.add_class("Geodyn",
                                            template_parameters=["Spheral::Dim<%(dim)i>"],
                                            custom_name="Geodyn%(dim)id", 
-                                           parent=[EquationOfState%(dim)id, StrengthModel%(dim)id, Physics%(dim)id],
+                                           parent=[Physics%(dim)id, StrengthModel%(dim)id],
+                                           #parent=[EquationOfState%(dim)id, StrengthModel%(dim)id, Physics%(dim)id],
                                            allow_subclassing=True)
 ''' % {"dim" : dim})
 
