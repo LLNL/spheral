@@ -29,7 +29,7 @@ AC_ARG_WITH(geodyn,
 # -----------------------------------------------------------------
 AC_MSG_CHECKING(for --with-geodyn-link)
 AC_ARG_WITH(geodyn-link,
-[  --with-geodyn-link=ARG .................... change how to link with the external GEODYN library],
+[  --with-geodyn-link=ARG ................... change how to link with the external GEODYN library],
 [
    AC_MSG_RESULT($withval)
    GEODYNLIBS="$withval"
