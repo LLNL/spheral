@@ -18,7 +18,8 @@ SRCTARGETS = \
 	$(srcdir)/PorousEquationOfStateInst.cc \
 	$(srcdir)/PorousStrengthModelInst.cc \
 	$(srcdir)/StrainPorosityInst.cc \
-	$(ANEOSSRCS)
+	$(ANEOSSRCS) \
+	$(GEODYNSRCS)
 
 FSRCTARGETS = \
 	$(ANEOSFSRCS)
