@@ -20,10 +20,7 @@ from SpheralModules.Spheral.SolidMaterial import (LinearPolynomialEquationOfStat
                                                   TillotsonEquationOfState3d,
                                                   SteinbergGuinanStrength1d,
                                                   SteinbergGuinanStrength2d,
-                                                  SteinbergGuinanStrength3d,
-                                                  SteinbergGuinanLundStrength1d,
-                                                  SteinbergGuinanLundStrength2d,
-                                                  SteinbergGuinanLundStrength3d)
+                                                  SteinbergGuinanStrength3d)
 from MaterialUnits import MKS, CGS, Cosmological, Solar
 from SolidMaterialUnits import CGuS
 
@@ -208,47 +205,47 @@ class SteinbergGuinanStrength%(units)s%(dim)id(SteinbergGuinanStrength%(dim)id):
                                                  meltEnergyFit)
         return
 
-#-------------------------------------------------------------------------------
-# SteinbergGuinanLundStrength
-#-------------------------------------------------------------------------------
-class SteinbergGuinanLundStrength%(units)s%(dim)id(SteinbergGuinanLundStrength%(dim)id):
-    def __init__(self, 
-                 eos,
-                 G0,
-                 A,
-                 B,
-                 Y0,
-                 Ymax,
-                 Yp,
-                 beta,
-                 gamma0,
-                 nhard,
-                 C1,
-                 C2,
-                 UK,
-                 YP,
-                 YTmax,
-                 coldEnergyFit,
-                 meltEnergyFit):
-        SteinbergGuinanStrength%(dim)id.__init__(self,
-                                                 eos,
-                                                 G0,
-                                                 A,
-                                                 B,
-                                                 Y0,
-                                                 Ymax,
-                                                 Yp,
-                                                 beta,
-                                                 gamma0,
-                                                 nhard,
-                                                 C1,
-                                                 C2,
-                                                 UK,
-                                                 YP,
-                                                 YTmax,
-                                                 coldEnergyFit,
-                                                 meltEnergyFit)
-        return
+# #-------------------------------------------------------------------------------
+# # SteinbergGuinanLundStrength
+# #-------------------------------------------------------------------------------
+# class SteinbergGuinanLundStrength%(units)s%(dim)id(SteinbergGuinanLundStrength%(dim)id):
+#     def __init__(self, 
+#                  eos,
+#                  G0,
+#                  A,
+#                  B,
+#                  Y0,
+#                  Ymax,
+#                  Yp,
+#                  beta,
+#                  gamma0,
+#                  nhard,
+#                  C1,
+#                  C2,
+#                  UK,
+#                  YP,
+#                  YTmax,
+#                  coldEnergyFit,
+#                  meltEnergyFit):
+#         SteinbergGuinanStrength%(dim)id.__init__(self,
+#                                                  eos,
+#                                                  G0,
+#                                                  A,
+#                                                  B,
+#                                                  Y0,
+#                                                  Ymax,
+#                                                  Yp,
+#                                                  beta,
+#                                                  gamma0,
+#                                                  nhard,
+#                                                  C1,
+#                                                  C2,
+#                                                  UK,
+#                                                  YP,
+#                                                  YTmax,
+#                                                  coldEnergyFit,
+#                                                  meltEnergyFit)
+#         return
 
 """
 

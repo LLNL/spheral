@@ -91,9 +91,7 @@ soundSpeed(Field<Dimension, typename Dimension::Scalar>& field) const {
   const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  for (int i = 0; i != this->numInternalNodes(); ++i) {
-    field(i) = mStrength.soundSpeed(rho(i), u(i), P(i), field(i));
-  }
+  mStrength.soundSpeed(field, rho, u, P, field);
 }
 
 //------------------------------------------------------------------------------
