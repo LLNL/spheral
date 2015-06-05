@@ -176,6 +176,7 @@ namespace FractalSpace
     FF << mem.RealIBoxes[FractalRank][3] << " " << mem.RealIBoxes[FractalRank][4] << " " << mem.RealIBoxes[FractalRank][5] << "\n";
     mem.p_mess->parts_tmpp.clear();
     //    LOOPS=1;
+    LOOPS=9;
     for(int LOOP=0;LOOP<LOOPS;LOOP++)
       {
 	vector <int> counts_out;
