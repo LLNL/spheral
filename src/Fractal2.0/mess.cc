@@ -808,7 +808,7 @@ namespace FractalSpace
     //    cerr << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << "\n";
     //    if(Rank == 0)
     //      cerr << " SOMEWHOW " << FractalRank << " " << Nodes << " " << MPI_SWITCH << " " << small << foreign << " ";
-    if(small || foreign || tag == 3)
+    if(small || foreign)
       {
 	//	if(Rank == 0)
 	//	  cerr << "A" << "\n";

@@ -37,35 +37,35 @@ namespace FractalSpace
     if(!OOM)
       return 0;
     load_balance=true;
-    vector <int> countsC=mem.ij_countsB;
-    bool too_many=true;
     int trySmooth=0;
     int maxload=mem.hypre_max_node_load;
     int maxload9=(maxload*9)/10;
-    while(too_many && trySmooth < 40)
-      {
-	too_many=false;
-	for(int HR=0;HR<HypreNodes;HR++)
-	  {
-	    if(countsC[HR] > mem.hypre_max_node_load)
-	      {
-		too_many=true;
-		int off=(countsC[HR]-maxload9)/5;
-		//		int off=countsC[HR]/20;
-		mem.ij_countsB[HR]-=2*off;
-		if(HR > 0)
-		  mem.ij_countsB[HR-1]+=off;
-		else
-		  mem.ij_countsB[HR]+=off;
-		if(HR < HypreNodes-1)
-		  mem.ij_countsB[HR+1]+=off;
-		else
-		  mem.ij_countsB[HR]+=off;
-	      }
-	  }
-	countsC=mem.ij_countsB;
-	trySmooth++;
-      }
+    int smoothMAX=(40*HypreNodes)/1024;
+    smoothMAX=max(40,smoothMAX);
+    bool too_many=false;
+    do {
+      vector <int> countsC=mem.ij_countsB;
+      too_many=false;
+      for(int HR=0;HR<HypreNodes;HR++)
+	{
+	  if(countsC[HR] > mem.hypre_max_node_load)
+	    {
+	      too_many=true;
+	      int off=(countsC[HR]-maxload9)/5;
+	      //		int off=countsC[HR]/20;
+	      mem.ij_countsB[HR]-=2*off;
+	      if(HR > 0)
+		mem.ij_countsB[HR-1]+=off;
+	      else
+		mem.ij_countsB[HR]+=off;
+	      if(HR < HypreNodes-1)
+		mem.ij_countsB[HR+1]+=off;
+	      else
+		mem.ij_countsB[HR]+=off;
+	    }
+	}
+      trySmooth++;
+    } while(too_many && trySmooth < smoothMAX);
     mem.ij_offsetsB[0]=0;
     fprintf(PFH," offsets balance %d \t %d \t %d \n",0,mem.ij_offsetsB[0],mem.ij_countsB[0]);
     for(int HR=1;HR<=HypreNodes;HR++)
