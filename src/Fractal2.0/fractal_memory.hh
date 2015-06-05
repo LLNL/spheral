@@ -184,7 +184,7 @@ namespace FractalSpace
       min_hypre_group_size(45),
       hypre_load_balance(false),
       HypreMaxSpecial(200000),
-      hypre_max_node_load(200000),
+      hypre_max_node_load(30000),
       hypre_max_average_load(20000),
       G(1.0),
       amnesia(true),
