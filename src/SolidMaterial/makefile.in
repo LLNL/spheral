@@ -33,4 +33,4 @@ PYTHONTARGETS = \
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
-LIBS += $(ANEOSLIBS)
+LIBS += $(ANEOSLIBS) $(GEODYNLIBS)
