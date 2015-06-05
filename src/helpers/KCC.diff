@@ -1,0 +1,20 @@
+859,860c859,861
+< 	case -e:        
+<         case --load_entrypoint:
+---
+> 	case -e:
+>         case --load_entrypoint*:
+>             echo "Found -e argument. $2"
+866,869c867,870
+< 	    if ( ! { expr $2:q : "[_A-Za-z][_A-Za-z0-9]*$" >/dev/null } ) then
+< 	        echo "${driver_name}: Error: "\"$2\"" is not a well-formed symbol name." | caterr
+< 		exit $error_exit_value
+< 	    endif
+---
+> 	    #if ( ! { expr $2:q : "[_A-Za-z][_A-Za-z0-9]*$" >/dev/null } ) then
+> 	    #    echo "${driver_name}: Error: "\"$2\"" is not a well-formed symbol name." | caterr
+> 		#exit $error_exit_value
+> 	    #endif
+1349a1351,1352
+> 
+> #echo "Final step"
