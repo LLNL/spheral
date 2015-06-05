@@ -2,6 +2,8 @@ from pybindgen import *
 
 from ref_return_value import *
 from MaterialModule import  generateEquationOfStateVirtualBindings
+from PhysicsModule import generatePhysicsVirtualBindings
+from SolidMaterialModule import generateStrengthModelVirtualBindings
 
 #-------------------------------------------------------------------------------
 # The class to handle wrapping this module.
@@ -15,8 +17,6 @@ class Geodyn:
 
         # Includes.
         mod.add_include('"%s/SolidMaterial/Geodyn.hh"' % topsrcdir)
-        #mod.add_include('"%s/GeodynTypes.hh"' % srcdir)
-
 
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
@@ -32,28 +32,11 @@ StrengthModel%(dim)id = findObject(self.space, "StrengthModel%(dim)id")
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
 
-# EquationOfState%(dim)id = Material.add_class("EquationOfState",
-#                                              template_parameters=["Spheral::Dim<%(dim)i>"],
-#                                              custom_name="EquationOfState%(dim)id", 
-#                                              import_from_module="SpheralModules",
-# #                                             foreign_cpp_namespace="Spheral::Material",
-#                                              allow_subclassing=True)
-# StrengthModel%(dim)id = self.space.add_class("StrengthModel",
-#                                              template_parameters=["Spheral::Dim<%(dim)i>"],
-#                                              custom_name="StrengthModel%(dim)id", 
-#                                              import_from_module="SpheralModules",
-#                                              allow_subclassing=True)
-# Physics%(dim)id = PhysicsSpace.add_class("Physics",
-#                                          template_parameters=["Spheral::Dim<%(dim)i>"],
-#                                          custom_name="Physics%(dim)id", 
-#                                          import_from_module="SpheralModules.Spheral.PhysicsSpace",
-#                                          allow_subclassing=True)
-
 self.Geodyn%(dim)id = self.space.add_class("Geodyn",
                                            template_parameters=["Spheral::Dim<%(dim)i>"],
                                            custom_name="Geodyn%(dim)id", 
-                                           parent=[Physics%(dim)id, StrengthModel%(dim)id],
-                                           #parent=[EquationOfState%(dim)id, StrengthModel%(dim)id, Physics%(dim)id],
+                                           #parent=[EquationOfState%(dim)id, StrengthModel%(dim)id],
+                                           parent=[Physics%(dim)id, EquationOfState%(dim)id, StrengthModel%(dim)id],
                                            allow_subclassing=True)
 ''' % {"dim" : dim})
 
@@ -91,8 +74,10 @@ def generateGeodynBindings(x, ndim):
                        param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
                        param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
 
-    # Generic EOS interface.
+    # Generic parent interfaces.
     generateEquationOfStateVirtualBindings(x, ndim, False)
+    generatePhysicsVirtualBindings(x, ndim, False)
+    generateStrengthModelVirtualBindings(x, ndim, False)
 
     # Methods.
 
