@@ -22,8 +22,8 @@ namespace FractalSpace
     int number_in_list;
     //    int which_Slice;
     //
-    HYPRE_Int ij_number;
-    vector <HYPRE_Int> ij_ud;
+    int ij_number;
+    vector <int>ij_ud;
     vector <bool> eureka_adj;
     vector <bool> eureka_dau;
     double potential_point;
@@ -127,15 +127,15 @@ namespace FractalSpace
     void set_passive_point(const bool& value);
     bool get_really_passive() const;
     void set_really_passive(const bool& value);
-    void set_ij_number(HYPRE_Int count);
-    HYPRE_Int get_ij_number() const;
+    void set_ij_number(const int& count);
+    int get_ij_number() const;
     void really_clear(vector <Point*>& die);
     void set_ij_neighbors();
     void set_ij_neighbors(vector <int>& Box);
-    void get_ij_neighbors(vector <HYPRE_Int>& ijud) const;
+    void get_ij_neighbors(vector <int>& ijud) const;
     int get_ij_neighbors_size() const;
-    void copy_ij_index(HYPRE_Int ijc);
-    void get_hypre_info(HYPRE_Int ij_index,vector <HYPRE_Int>& ijud,double& rho,double& pot) const;
+    void copy_ij_index(const int& ijc);
+    void get_hypre_info(int& ij_index,vector <int>& ijud,double& rho,double& pot) const;
     bool get_it_is_high() const;
     void set_it_is_high(const bool& value);
     void set_passive_low();

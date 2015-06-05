@@ -46,7 +46,7 @@ namespace FractalSpace
 	  }
       }
     double time1=mem.p_mess->Clock();
-    HYPRE_Int count=hypre_points.size();
+    int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
     mem.p_mess->How_Many_On_Nodes(count,mem.ij_counts);
     mem.Touchy=mem.TouchWhichBoxes;
@@ -64,7 +64,7 @@ namespace FractalSpace
 	if(FR != FractalRank && mem.ij_counts[FR] > 0 && overlap(pos_lefts,pos_rights,mem.HRBoxesLev[FR][level]))
 	  mem.Touchy.push_back(FR);
       }    
-    HYPRE_Int totals=std::accumulate(mem.ij_counts.begin(),mem.ij_counts.end(),0);
+    int totals=std::accumulate(mem.ij_counts.begin(),mem.ij_counts.end(),0);
     node_groups(mem);
     //
     double time2=mem.p_mess->Clock();

@@ -481,7 +481,7 @@ namespace FractalSpace
     counts_out.push_back(count);
     my_AllgatherI(counts_out,counts,1);
   }
-  template void Mess::How_Many_On_Nodes(HYPRE_Int count,vector <HYPRE_Int>& counts) const;
+  template void Mess::How_Many_On_Nodes(int count,vector <int>& counts) const;
   //
   //
   void Mess::MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR)
@@ -808,7 +808,7 @@ namespace FractalSpace
     //    cerr << " tag= " << tag << " " << Rank << " " << Nodes << " " << small << " " << foreign << "\n";
     //    if(Rank == 0)
     //      cerr << " SOMEWHOW " << FractalRank << " " << Nodes << " " << MPI_SWITCH << " " << small << foreign << " ";
-    if(small || foreign || tag == 6)
+    if(small || foreign || tag == 3)
       {
 	//	if(Rank == 0)
 	//	  cerr << "A" << "\n";
