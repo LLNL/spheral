@@ -107,14 +107,6 @@ namespace FractalSpace
  	    fprintf(PFH," HRANKS %d %d %d %d %d \n",mem.steps,level,FractalRank,TW,mem.Touchy[TW]);
  	  }
       }
-//     if(HypreRank == 0)
-//       {
-// 	for(int Hr=0;Hr<HypreNodes;Hr++)
-// 	  {
-// 	    cerr << " HRANKS " << mem.steps << " " << level << " " << FractalRank << " " << Hr << " " << mem.p_mess->Hranks[Hr] << "\n";
-// 	    fprintf(PFH," HRANKS %d %d %d %d \n",mem.steps,level,Hr,mem.p_mess->Hranks[Hr]);
-// 	  }
-//       }
     mem.ij_counts.resize(HypreNodes);
     mem.ij_offsets.resize(HypreNodes+1);
     if(mem.p_mess->IAmAHypreNode)
@@ -139,9 +131,6 @@ namespace FractalSpace
       }
     sort3_list(receive_list,0);
     double time4=mem.p_mess->Clock();
-//     vector <int> pos_lefts(3);
-//     vector <int> pos_rights(3);
-//     left_right(send_list,pos_lefts,pos_rights);
     vector <int> counts_out(HypreNodes,0);
     vector <vector <int> > dataI_out(HypreNodes);
     vector <vector <double> > dataR_out(HypreNodes);
@@ -220,7 +209,6 @@ namespace FractalSpace
       }
     double time8=mem.p_mess->Clock();
     delete psend;
-    //    FH << "found connections " << FractalRank << " " << level << " " << found << "\n";
     fprintf(PFH,"found connections %d %d %d \n",FractalRank,level,found);
     fprintf(mem.p_file->PFTime," Hypre Find %3d %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E %10.3E \n",
 	    level,time1-time0,time2-time1,time3-time2,time4-time3,time5-time4,time6-time5,time7-time6,time8-time7,time8-time0);

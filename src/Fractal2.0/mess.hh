@@ -223,7 +223,8 @@ namespace FractalSpace
     void fftw_complex_to_real();
     int fftw_where(const int& i,const int& j,const int& k,const int& lb,const int& lc) const;
     void calc_fftw_Slices(const int& length_a,const bool& periodic);
-    template <class T> void How_Many_On_Nodes(T count,vector <T>& counts) const;
+    void How_Many_On_Nodes(int count,vector <int>& counts);
+    void How_Many_On_Nodes(long int count,vector <long int>& counts);
     void MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR);
     void How_Many_Things_To_Send_I(vector <int>& counts_out_send,vector <int>& counts_in_send);
     void How_Many_Things_To_Send_I(MPI_Comm& World,
@@ -254,7 +255,8 @@ namespace FractalSpace
 					  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 					  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR);
     void MPI_MYTest(int which,int test) const;
-    template <class T> void my_AllgatherI(vector <T>& paramsend,vector <T>& paramrecv,const int& nsend) const;
+    void my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend);
+    void my_AllgatherI(vector <long int>& paramsend,vector <long int>& paramrecv,const int& nsend);
     void my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const;
     void calc_total_particles(const int& NP);
     void Find_Max_INT(vector <int>& integers,const int& how_long) const;
