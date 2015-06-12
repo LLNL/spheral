@@ -25,6 +25,7 @@ commandLine(seed = "lattice",
             f_solenoidal = 0.66,
             kmin = 1,
             kmax = 50, #must be <= nsize/2
+            perturbEach = 1,
 
             rho1 = 1.0,
             eps1 = 0.0,
@@ -263,6 +264,17 @@ def make_perturbations():
   return pertx, perty, pertz
 
 #-------------------------------------------------------------------------------
+# Periodic work function
+#-------------------------------------------------------------------------------
+class perturb(object):
+  def __init__(self,nodeSet,directory):
+    self.nodeSet = nodeSet
+    self.directory = directory
+  def __call__(self, cycle, time, dt):
+    pertx, perty, pertz = make_perturbations()
+
+
+#-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
 import os, sys
@@ -472,6 +484,8 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             SPH = SPH)
+pert = perturb([nodes1],dataDir)
+control.appendPeriodicWork(pert,perturbEach)
 output("control")
 
 #-------------------------------------------------------------------------------
