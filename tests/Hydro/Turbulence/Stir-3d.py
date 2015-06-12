@@ -20,9 +20,11 @@ title("3-D stirred box turbulence test")
 #-------------------------------------------------------------------------------
 commandLine(seed = "lattice",
 
-            nx = 100,
-            ny = 100,
-            nz = 100,
+            nsize = 100,
+            
+            f_solenoidal = 0.66,
+            kmin = 1,
+            kmax = 50, #must be <= nsize/2
 
             rho1 = 1.0,
             eps1 = 0.0,
@@ -116,6 +118,11 @@ else:
 
 xmin = (0.0, 0.0, 0.0)
 xmax = (1.0, 1.0, 1.0)
+nx = nsize
+ny = nsize
+nz = nsize
+
+n = [nx,ny,nz]
 
 dataDir = os.path.join(dataDir,
                        "rho1=%g" % rho1,
@@ -132,6 +139,128 @@ vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "stir-3d")
 vizBaseName = "stir-3d"
 
+#-------------------------------------------------------------------------------
+# Helper functions for the generation of perturbations
+#-------------------------------------------------------------------------------
+def init_perturbations(dtype):
+  kx = np.zeros(n, dtype=dtype)
+  ky = np.zeros(n, dtype=dtype)
+  kz = np.zeros(n, dtype=dtype)
+  # perform fft k-ordering convention shifts
+  for j in range(0,n[1]):
+    for k in range(0,n[2]):
+      kx[:,j,k] = n[0]*np.fft.fftfreq(n[0])
+  for i in range(0,n[0]):
+    for k in range(0,n[2]):
+      ky[i,:,k] = n[1]*np.fft.fftfreq(n[1])
+  for i in range(0,n[0]):
+    for j in range(0,n[1]):
+      kz[i,j,:] = n[2]*np.fft.fftfreq(n[2])
+  
+  kx = np.array(kx, dtype=dtype)
+  ky = np.array(ky, dtype=dtype)
+  kz = np.array(kz, dtype=dtype)
+  k = np.sqrt(np.array(kx**2+ky**2+kz**2, dtype=dtype))
+  
+  # only use the positive frequencies
+  inds = np.where(np.logical_and(k**2 >= kmin**2, k**2 < (kmax+1)**2))
+  nr = len(inds[0])
+  
+  phasex = np.zeros(n, dtype=dtype)
+  phasex[inds] = 2.*pi*np.random.uniform(size=nr)
+  fx = np.zeros(n, dtype=dtype)
+  fx[inds] = np.random.normal(size=nr)
+  
+  phasey = np.zeros(n, dtype=dtype)
+  phasey[inds] = 2.*pi*np.random.uniform(size=nr)
+  fy = np.zeros(n, dtype=dtype)
+  fy[inds] = np.random.normal(size=nr)
+  
+  phasez = np.zeros(n, dtype=dtype)
+  phasez[inds] = 2.*pi*np.random.uniform(size=nr)
+  fz = np.zeros(n, dtype=dtype)
+  fz[inds] = np.random.normal(size=nr)
+  
+  # rescale perturbation amplitude so that low number statistics
+  # at low k do not throw off the desired power law scaling.
+  for i in range(kmin, kmax+1):
+    slice_inds = np.where(np.logical_and(k >= i, k < i+1))
+    rescale = sqrt(np.sum(np.abs(fx[slice_inds])**2 + np.abs(fy[slice_inds])**2 + np.abs(fz[slice_inds])**2))
+    fx[slice_inds] = fx[slice_inds]/rescale
+    fy[slice_inds] = fy[slice_inds]/rescale
+    fz[slice_inds] = fz[slice_inds]/rescale
+  
+  # set the power law behavior
+  # wave number bins
+  fx[inds] = fx[inds]*k[inds]**-(0.5*alpha)
+  fy[inds] = fy[inds]*k[inds]**-(0.5*alpha)
+  fz[inds] = fz[inds]*k[inds]**-(0.5*alpha)
+  
+  # add in phases
+  fx = np.cos(phasex)*fx + 1j*np.sin(phasex)*fx
+  fy = np.cos(phasey)*fy + 1j*np.sin(phasey)*fy
+  fz = np.cos(phasez)*fz + 1j*np.sin(phasez)*fz
+  
+  return fx, fy, fz, kx, ky, kz
+
+def normalize(fx, fy, fz):
+  norm = np.sqrt(np.sum(fx**2 + fy**2 + fz**2)/np.product(n))
+  fx = fx/norm
+  fy = fy/norm
+  fz = fz/norm
+  return fx, fy, fz
+
+def make_perturbations():
+  fx, fy, fz, kx, ky, kz = init_perturbations(n, kmin, kmax, dtype)
+  if f_solenoidal != None:
+    k2 = kx**2+ky**2+kz**2
+    # solenoidal part
+    fxs = 0.; fys =0.; fzs = 0.
+    if f_solenoidal != 0.0:
+      fxs = np.real(fx - kx*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      fys = np.real(fy - ky*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      fzs = np.real(fz - kz*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      ind = np.where(k2 == 0)
+      fxs[ind] = 0.; fys[ind] = 0.; fzs[ind] = 0.
+      # need to normalize this before applying relative weighting of solenoidal / compressive components
+      norm = np.sqrt(np.sum(fxs**2+fys**2+fzs**2))
+      fxs = fxs/norm
+      fys = fys/norm
+      fzs = fzs/norm
+    # compressive part
+    # get a different random cube for the compressive part
+    # so that we can target the RMS solenoidal fraction,
+    # instead of setting a constant solenoidal fraction everywhere.
+    fx, fy, fz, kx, ky, kz = init_perturbations(dtype)
+    fxc = 0.; fyc =0.; fzc = 0.
+    if f_solenoidal != 1.0:
+      fxc = np.real(kx*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      fyc = np.real(ky*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      fzc = np.real(kz*(kx*fx+ky*fy+kz*fz)/np.maximum(k2,1e-16))
+      ind = np.where(k2 == 0)
+      fxc[ind] = 0.; fyc[ind] = 0.; fzc[ind] = 0.
+      # need to normalize this before applying relative weighting of solenoidal / compressive components
+      norm = np.sqrt(np.sum(fxc**2+fyc**2+fzc**2))
+      fxc = fxc/norm
+      fyc = fyc/norm
+      fzc = fzc/norm
+    # back to real space
+    pertx = np.real(np.fft.ifftn(f_solenoidal*fxs + (1.-f_solenoidal)*fxc))
+    perty = np.real(np.fft.ifftn(f_solenoidal*fys + (1.-f_solenoidal)*fyc))
+    pertz = np.real(np.fft.ifftn(f_solenoidal*fzs + (1.-f_solenoidal)*fzc))
+  else:
+    # just convert to real space
+    pertx = np.real(np.fft.ifftn(fx))
+    perty = np.real(np.fft.ifftn(fy))
+    pertz = np.real(np.fft.ifftn(fz))
+  
+  # subtract off COM (assuming uniform density)
+  pertx = pertx-np.average(pertx)
+  perty = perty-np.average(perty)
+  pertz = pertz-np.average(pertz)
+  # scale RMS of perturbation cube to unity
+  pertx, perty, pertz = normalize(pertx, perty, pertz)
+  return pertx, perty, pertz
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
