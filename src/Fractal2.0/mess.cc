@@ -474,20 +474,16 @@ namespace FractalSpace
     //      if(FFTRank == 0) cerr << "whichslice " << FFTRank << " " << ni << " " << WhichSlice[ni] << "\n";
     assert(allok);
   }
-  void Mess::How_Many_On_Nodes(int count,vector <int>& counts)
+  template <class T> void Mess::How_Many_On_Nodes(T count,vector <T>& counts) const
   {
     counts.resize(FractalNodes);
-    vector <int>counts_out;
+    vector <T>counts_out;
     counts_out.push_back(count);
     my_AllgatherI(counts_out,counts,1);
   }
-  void Mess::How_Many_On_Nodes(long int count,vector <long int>& counts)
-  {
-    counts.resize(FractalNodes);
-    vector <long int>counts_out;
-    counts_out.push_back(count);
-    my_AllgatherI(counts_out,counts,1);
-  }
+  template void Mess::How_Many_On_Nodes(int count,vector <int>& counts) const;
+  //
+  //
   void Mess::MAX_Things_To_Send_Receive_I(vector <int>& counts_out_send,vector <int>& counts_in_send,vector <int>& maxSR)
   {
     ofstream& FF=p_file->DUMPS;
@@ -1725,17 +1721,33 @@ namespace FractalSpace
     fprintf(p_file->PFFractalMemory," MPI Error %d %d %d %d %d %d %d %d \n",which,test,
 	    MPI_ERR_COMM,MPI_ERR_TYPE,MPI_ERR_COUNT,MPI_ERR_TAG,MPI_ERR_RANK,MPI_SUCCESS);
   }
-  void Mess::my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend)
+  void Mess::my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const
   {
+    int batchsize=1024;
     int ROOT=ROOTNODE;
     MPI_Gather(&(*(paramsend.begin())),nsend,MPI_INT,&(*(paramrecv.begin())),nsend,MPI_INT,ROOT,FractalWorld);
-    MPI_Bcast(&(*paramrecv.begin()),nsend*FractalNodes,MPI_INT,ROOT,FractalWorld);
+    int totals=FractalNodes*nsend;
+    int batches=(totals-1)/batchsize+1;
+    for(int B=0;B<batches;B++)
+      {
+	int b0=(B*totals)/batches;
+	int b1=((B+1)*totals)/batches;
+	MPI_Bcast(&(*(paramrecv.begin()+b0)),b1-b0,MPI_INT,ROOT,FractalWorld);
+      }
   }
-  void Mess::my_AllgatherI(vector <long int>& paramsend,vector <long int>& paramrecv,const int& nsend)
+  void Mess::my_AllgatherI(vector <long>& paramsend,vector <long>& paramrecv,const int& nsend) const
   {
+    int batchsize=1024;
     int ROOT=ROOTNODE;
     MPI_Gather(&(*(paramsend.begin())),nsend,MPI_LONG,&(*(paramrecv.begin())),nsend,MPI_LONG,ROOT,FractalWorld);
-    MPI_Bcast(&(*paramrecv.begin()),nsend*FractalNodes,MPI_LONG,ROOT,FractalWorld);
+    int totals=FractalNodes*nsend;
+    int batches=(totals-1)/batchsize+1;
+    for(int B=0;B<batches;B++)
+      {
+	int b0=(B*totals)/batches;
+	int b1=((B+1)*totals)/batches;
+	MPI_Bcast(&(*(paramrecv.begin()+b0)),b1-b0,MPI_LONG,ROOT,FractalWorld);
+      }
   }
   void Mess::my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const
   {
