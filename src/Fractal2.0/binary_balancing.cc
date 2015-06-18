@@ -8,8 +8,8 @@ namespace FractalSpace
   {
     int too_few=3;
     double VOLMAX=512.0;
-    int rank=PFM->p_mess->FractalRank;
-    double ANodes=Nodes;
+//     int rank=PFM->p_mess->FractalRank;
+//     double ANodes=Nodes;
     double Alength=length;
     double sum_total=std::accumulate(numbers.begin(),numbers.end(),0.0);
     vector <double>snumbers(length+1);

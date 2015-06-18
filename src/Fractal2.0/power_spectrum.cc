@@ -21,7 +21,7 @@ namespace FractalSpace
     double force_const=4.0*pi/(double)(length*length);
     double d_step_wave=pow(2.0,lev);
     int i_step_wave=Misc::pow(2,lev);
-    double spam_6=2.0/pow((double)(length),6);
+    //    double spam_6=2.0/pow((double)(length),6);
 //     FilePow << "spam_6= " << spam_6 << "\n";
     for (int k=0;k <length;++k)
       {

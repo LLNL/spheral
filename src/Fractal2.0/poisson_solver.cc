@@ -9,7 +9,7 @@ namespace FractalSpace
     gcells=pow(gcells,3);
     double FNO=mem.FractalNodes;
     mem.hypre_max_node_load=4.0*gcells/FNO;
-    FILE* PFH=mem.p_file->PFHypre;
+    //    FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     int m_size=mem.min_hypre_group_size;
     //    fprintf(PFH," enter MPI Hypre a %d %d \n",level, m_size);
