@@ -1,4 +1,4 @@
-classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh libs.hh headers.hh classes.hh
+classes = fractal_memory.hh classes.hh point_class.hh group_class.hh fractal_class.hh misc_class.hh particle_class.hh mess.hh file_class.hh hyphest.hh libs.hh headers.hh classes.hh
 fopt1 = -pedantic -O3 
 Wopt1 = -Wunused
 fftopt1 = 
@@ -9,39 +9,23 @@ debug=
 verbose = 
 STD = -std=c++0x
 dir   = execs/
-compiler = mpiicpc
 #
 system = intel
-manynodes = short
+manynodes = long
 #
-HypreLib = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/lib
-HypreDir = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/include
-#
-ifeq ($(system),intel)
-	compiler = mpiicpc
-	Loptfftw = -L/g/g90/jensv/cplus/fftw-3.3.3/install-intel/lib
-	head_dir_fftw = /g/g90/jensv/cplus/fftw-3.3.3/install-intel/include
-	ifeq ($(manynodes),short)
-		Lopthypre = -L/g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/lib
-		head_dir_hypre = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global/include
-	else
-		Lopthypre = -L/g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-noglobal/lib
-		head_dir_hypre = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-noglobal/include
-	endif
-endif
+compiler = mpiicpc
+PREFIXH = /g/g90/jensv/cplus/hypre-2.9.0b/src/hypre/intel-global
+PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-intel
 #
 ifeq ($(system),ibmgnu)
 	compiler = mpicxx
-	Loptfftw = -L/g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu/lib
-	head_dir_fftw = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu/include
-	ifeq ($(manynodes),short)
-		Lopthypre = -L/g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/global/lib
-		head_dir_hypre = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/global/include
-	else
-		Lopthypre = -L/g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal/lib
-		head_dir_hypre = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal/include
-	endif
+	PREFIXF = /g/g90/jensv/cplus/fftw-3.3.3/install-ibmgnu
+	PREFIXH = /g/g90/jensv/cplus/hypreibmgnu/hypre-2.9.0b/src/hypre/noglobal
 endif
+Loptfftw = -L$(PREFIXF)/lib
+head_dir_fftw = $(PREFIXF)/include
+Lopthypre = -L$(PREFIXH)/lib
+head_dir_hypre = $(PREFIXH)/include
 #
 compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug) $(fopt1) $(Wopt1) $(gprof)
 #
@@ -50,8 +34,6 @@ fractal_galaxy_run_o=fractal_galaxy.o
 #
 loptfftw = -lfftw3_mpi -lfftw3 -lm
 lopthypre = $(Lopthypre) -lHYPRE 
-#
-#compile = $(compiler) -I $(head_dir_fftw) -I $(head_dir_hypre) $(STD) $(verbose) $(debug)
 #
 wrapper_file = fractal_force_wrapper
 cosmos_power_file = cosmos_power
@@ -656,9 +638,7 @@ write_rv.o
 files_hypre_nina_o= \
 hypre_dump.o \
 hypre_ij_numbering_find.o \
-hypre_ij_numbering_selfie.o \
 hypre_ij_solver.o \
-hypre_ij_solver_selfie.o \
 hypre_load_balance.o \
 hypre_send_pots.o \
 node_groups.o 
