@@ -7,7 +7,7 @@ namespace FractalSpace
   void initial_forces_sharp(Fractal_Memory& mem,Fractal& frac)
   {
     ofstream& FileFractal=mem.p_fractal->p_file->DUMPS;
-    int FractalRank=mem.p_mess->FractalRank;
+//     int FractalRank=mem.p_mess->FractalRank;
     FileFractal << "enter initial_forces " << "\n";
     int seed=mem.random_gen+mem.p_mess->FractalRank;
     srand(seed);

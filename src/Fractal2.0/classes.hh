@@ -8,6 +8,7 @@ namespace FractalSpace
   class Misc;
   class Particle;
   class Point;
+  class HypHest;
 }
 #include "file_class.hh"
 #include "fractal_class.hh"
@@ -17,3 +18,4 @@ namespace FractalSpace
 #include "misc_class.hh"
 #include "particle_class.hh"
 #include "point_class.hh"
+#include "hyphest.hh"
