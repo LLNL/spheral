@@ -48,7 +48,10 @@ namespace FractalSpace
     double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
+//     mem.p_mess->Full_Stop_Do_Not_Argue();
+//     double tguess=-mem.p_mess->Clock();
     mem.p_mess->How_Many_On_Nodes(count,HYP.ij_counts);
+//     tguess+=mem.p_mess->Clock();
     mem.Touchy=mem.TouchWhichBoxes;
     //
     vector <int> pos_lefts(3);
@@ -65,9 +68,8 @@ namespace FractalSpace
 	  mem.Touchy.push_back(FR);
       }    
     int totals=std::accumulate(HYP.ij_counts.begin(),HYP.ij_counts.end(),0);
-    node_groups(mem,HYP);
-    //
     double time2=mem.p_mess->Clock();
+    node_groups(mem,HYP);
     HYP.ij_counts.resize(FractalNodes);
     HYP.ij_offsets.assign(FractalNodes+1,0);
     mem.p_mess->Hranks.clear();
