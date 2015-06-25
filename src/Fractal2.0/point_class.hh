@@ -157,7 +157,7 @@ namespace FractalSpace
     void set_force_point_z(const double& f);
     void set_FILE(ofstream* p_filE);
     ofstream* get_FILE();
-    void all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me);
+//     void all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me);
     Point* move_adj(const int& ra,const int& rb);
     Point* move_rp(const int& r);
     void get_point_ud(vector <Point*>& point_6) const;

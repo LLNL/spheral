@@ -30,8 +30,10 @@ namespace FractalSpace
     Hypre_total_time=-mem.p_mess->Clock();
     Hypre_search_time=-mem.p_mess->Clock();
     vector <Point*>hypre_points;
+    HypHest* pHYP= new HypHest;
+    HypHest& HYP=*pHYP;
     frac.timing(-1,32);
-    if(!hypre_ij_numbering(mem,hypre_points,level))
+    if(!hypre_ij_numbering(mem,HYP,hypre_points,level))
       {
 	//	fprintf(PFH," nothing here hypre solver %d %d %d \n",level,mem.p_mess->HypreRank,FractalRank);
 	frac.timing(1,32);
@@ -39,6 +41,7 @@ namespace FractalSpace
       }
     frac.timing(1,32);
     FHT << " TAKING STEPS " << mem.steps << " " << level << " " << FractalRank << " " << mem.p_mess->HypreRank;
+    int HYPij_offsetsmemp_messHypreNodes=HYP.ij_offsets[mem.p_mess->HypreNodes];
     if(!mem.Touchy.empty())
       FHT << " " << mem.Touchy.front();
     FHT << "\n";
@@ -51,18 +54,25 @@ namespace FractalSpace
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_search_time << "\t" << "Search Time Buffer" << "\n";
     int total=0;
     //    fprintf(PFH," Am I a Hypre Node %d %d %d \n",mem.p_mess->IAmAHypreNode,HypreRank,FractalRank);
+    vector <int>HYPij_offsets;
     if(mem.p_mess->IAmAHypreNode)
       {
 	Hypre_gen_time=-mem.p_mess->Clock();
+	int HYPij_offsetsBHypreRank=HYP.ij_offsetsB[HypreRank];
+	int HYPij_offsetsBHypreRank1m1=HYP.ij_offsetsB[HypreRank+1]-1;
+	int HYPij_countsHypreRank=HYP.ij_counts[HypreRank];
+	int HYPij_countsBHypreRank=HYP.ij_countsB[HypreRank];
 	//	fprintf(PFH," really enter hypre solver a %d \n",level);
 	bool load_balance=false;
-	int off_elements=hypre_load_balance(mem,hypre_points,load_balance);
-	bool inside;
+	int off_elements=hypre_load_balance(mem,HYP,hypre_points,load_balance);
+	HYPij_offsets=HYP.ij_offsets;
+	delete pHYP;
+	//	bool inside;
 	MPI_Comm HypreComm=mem.p_mess->HypreWorld;
 	HYPRE_IJMatrix ij_matrix;
 	HYPRE_ParCSRMatrix par_matrix;
-	const int ilower=mem.ij_offsetsB[HypreRank];
-	const int iupper=mem.ij_offsetsB[HypreRank+1]-1;
+	const int ilower=HYPij_offsetsBHypreRank;
+	const int iupper=HYPij_offsetsBHypreRank1m1;
 	const int jlower=ilower;
 	const int jupper=iupper;
 	fprintf(PFH," limits %d %d \n",ilower,iupper);
@@ -70,9 +80,10 @@ namespace FractalSpace
 	hypre_eror(PFH,level,1,HYPRE_IJMatrixSetObjectType(ij_matrix,HYPRE_PARCSR));
 	HYPRE_IJMatrixSetMaxOffProcElmts(ij_matrix,off_elements);
 	int ij_index,udsize;
-	vector <int> maxcols(mem.ij_countsB[HypreRank],7);
-	hypre_eror(PFH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,&(*maxcols.begin())));
-	maxcols.clear();
+	int* maxcols= new int[HYPij_countsBHypreRank];
+	std::fill(maxcols,maxcols+HYPij_countsBHypreRank,7);
+	hypre_eror(PFH,level,-1,HYPRE_IJMatrixSetRowSizes(ij_matrix,maxcols));
+	delete [] maxcols;
 	hypre_eror(PFH,level,2,HYPRE_IJMatrixInitialize(ij_matrix));
 	//	fprintf(PFH," really enter hypre solver a %d \n",level);
 	HYPRE_IJVector ij_vector_pot;
@@ -209,15 +220,17 @@ namespace FractalSpace
 	    FHT << " no convergence, try again " << " " << level << "\n";
 	    assert(its < frac.get_maxits());
 	  }
-	vector <double>potH(mem.ij_countsB[HypreRank]);
-	vector <int>rowsH(mem.ij_countsB[HypreRank]);
-	int holy_grail=mem.ij_offsetsB[HypreRank];
-	for(int ni=0;ni<mem.ij_countsB[HypreRank];ni++)
+	vector <double>potH(HYPij_countsBHypreRank);
+	int* rowsH= new int[HYPij_countsBHypreRank];
+	int holy_grail=HYPij_offsetsBHypreRank;
+	for(int ni=0;ni<HYPij_countsBHypreRank;ni++)
 	  rowsH[ni]=ni+holy_grail;
-	hypre_eror(PFH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,mem.ij_countsB[HypreRank],&(*rowsH.begin()),&(*potH.begin())));
-	rowsH.clear();
+	hypre_eror(PFH,level,42,HYPRE_IJVectorGetValues(ij_vector_pot,HYPij_countsBHypreRank,rowsH,&(*potH.begin())));
+	delete [] rowsH;
 	if(load_balance)
-	  hypre_send_pots(mem,hypre_points,potH);
+	  hypre_send_pots(mem,hypre_points,potH,
+			  HYPij_countsBHypreRank,HYPij_offsetsBHypreRank,HYPij_countsHypreRank,
+			  HYPij_offsets);
 	else
 	  {
 	    int Mr_smokes_too_much=0;
@@ -236,11 +249,13 @@ namespace FractalSpace
 
 	FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_dump_time << "\t" << "Dump   Time Buffer" << "\n";
       }
+    else
+      delete pHYP;
     Hypre_total_time+=mem.p_mess->Clock();
     Hypre_sum_time[level]+=Hypre_total_time;
 
     FHT << " S" << mem.steps << "S " << "L" << level << "L" << "\t" << Hypre_total_time << "\t" << Hypre_sum_time[level] << " Total Time Buffer ";
-    FHT << "\t" <<mem.ij_offsets[mem.p_mess->HypreNodes] << "\n";
+    FHT << "\t" << HYPij_offsetsmemp_messHypreNodes << "\n";
 
     //    fprintf(PFH," exit hypre solver %d %d steps %d \n",level,total, mem.steps);
     mem.p_mess->HypreGroupFree();

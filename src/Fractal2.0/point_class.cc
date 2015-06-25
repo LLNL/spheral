@@ -359,34 +359,34 @@ namespace FractalSpace
 //   {
 //     return p_FILE;
 //   }
-  void Point::all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me)
-  {
-    assert(real_pointer==0);
-    belongs_to_me.resize(27);
-    pointers.resize(27);
-    int n=0;
-    Point* p_point_z=this;
-    for(int nz=0;nz<3;++nz)
-      {
-	Point* p_point_y=p_point_z;
-	for(int ny=0;ny<3;++ny)
-	  {
-	    Point* p_point_x=p_point_y; 
-	    for(int nx=0;nx<3;++nx)
-	      {
-		pointers[n]=p_point_x;
-		belongs_to_me[n]=p_point_x->real_pointer==n;
-		if(nx < 2)
-		  p_point_x=p_point_x->get_point_up_x_0();
-		n++;
-	      }
-	    if(ny < 2)
-	      p_point_y=p_point_y->get_point_up_y_0();
-	  }
-	if(nz < 2)
-	  p_point_z=p_point_z->get_point_up_z_0();
-      }
-  }
+//   void Point::all_mine(vector <Point*>& pointers,vector <bool>& belongs_to_me)
+//   {
+//     assert(real_pointer==0);
+//     belongs_to_me.resize(27);
+//     pointers.resize(27);
+//     int n=0;
+//     Point* p_point_z=this;
+//     for(int nz=0;nz<3;++nz)
+//       {
+// 	Point* p_point_y=p_point_z;
+// 	for(int ny=0;ny<3;++ny)
+// 	  {
+// 	    Point* p_point_x=p_point_y; 
+// 	    for(int nx=0;nx<3;++nx)
+// 	      {
+// 		pointers[n]=p_point_x;
+// 		belongs_to_me[n]=p_point_x->real_pointer==n;
+// 		if(nx < 2)
+// 		  p_point_x=p_point_x->get_point_up_x_0();
+// 		n++;
+// 	      }
+// 	    if(ny < 2)
+// 	      p_point_y=p_point_y->get_point_up_y_0();
+// 	  }
+// 	if(nz < 2)
+// 	  p_point_z=p_point_z->get_point_up_z_0();
+//       }
+//   }
   Point* Point::move_adj(const int& ra,const int& rb)
   {
     Point* arthur=this;
@@ -1124,11 +1124,11 @@ namespace FractalSpace
 	*p_FILE << "deltax " << pos[0] << " " << pos_point[0] << " " << scale << " " << d_inv << "\n";
 	*p_FILE << "deltay " << pos[1] << " " << pos_point[1] << " " << scale << " " << d_inv << "\n";
 	*p_FILE << "deltaz " << pos[2] << " " << pos_point[2] << " " << scale << " " << d_inv << "\n";
-	*p_FILE << "dxyz " << d_x << " " << d_y << " " << d_z <<"\n";
+	*p_FILE << "dxyz " << d_x << " " << d_y << " " << d_z << endl;
       }
-    assert(abs(d_x-0.5) <= 0.5);
-    assert(abs(d_y-0.5) <= 0.5);
-    assert(abs(d_z-0.5) <= 0.5);
+//     assert(abs(d_x-0.5) <= 0.5);
+//     assert(abs(d_y-0.5) <= 0.5);
+//     assert(abs(d_z-0.5) <= 0.5);
   }
   void Point::get_potss_denss(const int* dprl,const double& g_c,double* potss,double* denss)
   {

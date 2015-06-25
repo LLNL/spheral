@@ -8,8 +8,8 @@ namespace FractalSpace
   { 
     FILE* PFDau=fractal.p_file->PFDau;
     //    ofstream& FilePoint=fractal.p_file->DUMPS;
-    ofstream& FilePoint=*(Point::p_FILE);
-    ofstream* p_FilePoint=&FilePoint;
+    //    ofstream& FilePoint=*(Point::p_FILE);
+    //    ofstream* p_FilePoint=&FilePoint;
     fractal.timing(-1,14);
     vector <Point*> p_point_tmp(27); 
     vector <Point*>adj(27);

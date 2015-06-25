@@ -5,7 +5,7 @@ namespace FractalSpace
 {
   void slices_to_potf(Fractal_Memory& mem,Fractal& frac,int lev)
   {
-    ofstream& FF=mem.p_file->DUMPS;
+//     ofstream& FF=mem.p_file->DUMPS;
     bool period=frac.get_periodic();
     int FractalNodes=mem.p_mess->FractalNodes;
     int zoom=Misc::pow(2,frac.get_level_max());
@@ -107,11 +107,11 @@ namespace FractalSpace
 	int how_manyR=-1;
 	int integers=2;
 	int doubles=0;
-	mem.p_file->note(true," info to slices a ");
+	//	mem.p_file->note(true," info to slices a ");
 	mem.p_mess->Send_Data_Some_How(4,counts_out,counts_in,integers,doubles,
 				       dataI_out,dataI_in,how_manyI,
 				       dataR_out,dataR_in,how_manyR);
-	mem.p_file->note(true," info to slices c ");
+	//	mem.p_file->note(true," info to slices c ");
 	dataI_out.clear();
 	dataR_out.clear();    
 	dataI_out.resize(FractalNodes);
@@ -147,11 +147,11 @@ namespace FractalSpace
 	how_manyR=-1;
 	integers=1;
 	doubles=1;
-	mem.p_file->note(true," slices to potf a ");
+	//	mem.p_file->note(true," slices to potf a ");
 	mem.p_mess->Send_Data_Some_How(7,counts_out,counts_in,integers,doubles,
 				       dataI_out,dataI_in,how_manyI,
 				       dataR_out,dataR_in,how_manyR);
-	mem.p_file->note(true," slices to potf c ");
+	//	mem.p_file->note(true," slices to potf c ");
 	dataI_out.clear();
 	dataR_out.clear();      
     
@@ -186,6 +186,6 @@ namespace FractalSpace
       }
     mem.p_mess->free_potRS();
     fprintf(mem.p_file->PFTime,"\n");
-    mem.p_file->note(true," slices to potf exit ");
+    //    mem.p_file->note(true," slices to potf exit ");
   }
 }
