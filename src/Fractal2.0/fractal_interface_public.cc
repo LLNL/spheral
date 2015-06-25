@@ -132,7 +132,7 @@ namespace FractalSpace
     PFM->start_up=false;
     PFM->halo_fixed=false;
     //
-    PFM->min_hypre_group_size=343;
+    PFM->min_hypre_group_size=729;
     //
     PFM->splits=0;
     PFM->masks=0;

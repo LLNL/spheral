@@ -25,7 +25,7 @@ namespace FractalSpace
     int NP=PFM->number_particles;
     double dt=PFM->step_length;
     //    FFM << " leap isol " << PFM->time << " " << dt << " " << NP << "\n";
-    fprintf(PFM->p_file->PFFractalMemory," leap isol 10.2E 10.2E %d \n ",PFM->time,dt,NP);
+    fprintf(PFM->p_file->PFFractalMemory," leap isol %10.2E %10.2E %d \n ",PFM->time,dt,NP);
     PFM->time+=dt;
     vector <double>pot(stride);
     vector <double>fx(stride);

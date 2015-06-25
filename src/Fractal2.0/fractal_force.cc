@@ -672,20 +672,14 @@ namespace FractalSpace
   }
   void Full_Stop(Fractal_Memory& mem,int number)
     {
-      Fractal* pf=mem.p_fractal;
-      if(number >= 0)
-      	pf->timing(-1,number);
-      mem.p_mess->Full_Stop();
-      if(number >= 0)
-      	pf->timing(1,number);
+      Full_Stop(mem,mem.p_mess->FractalWorld,number);
     }
   void Full_Stop(Fractal_Memory& mem,MPI_Comm& Comm,int number)
     {
-      Fractal* pf=mem.p_fractal;
       if(number >= 0)
-      	pf->timing(-1,number);
-      mem.p_mess->Full_Stop(Comm);
+      	mem.p_fractal->timing(-1,number);
+      mem.p_mess->Full_Stop_Do_Not_Argue(Comm);
       if(number >= 0)
-      	pf->timing(1,number);
+      	mem.p_fractal->timing(1,number);
     }
 }

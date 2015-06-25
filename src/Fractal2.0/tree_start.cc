@@ -8,7 +8,7 @@ namespace FractalSpace
   {
     ofstream& FileFractal=fractal.p_file->DUMPS;
     //    ofstream& FileFractal=fractal.p_file->FileFractal;
-    ofstream* p_FilePoint=&fractal.p_file->DUMPS;
+    //    ofstream* p_FilePoint=&fractal.p_file->DUMPS;
     //    ofstream* p_FilePoint=&fractal.p_file->FilePoint;
     double a_grid_length=(double)fractal.get_grid_length();
     vector <int>Boxu(6);

@@ -254,7 +254,8 @@ namespace FractalSpace
 					  vector < vector <int> >& dataI_out,vector <int>& dataI_in,int& how_manyI,
 					  vector < vector <double> >& dataR_out,vector <double>& dataR_in,int& how_manyR);
     void MPI_MYTest(int which,int test) const;
-    template <class T> void my_AllgatherI(vector <T>& paramsend,vector <T>& paramrecv,const int& nsend) const;
+    void my_AllgatherI(vector <int>& paramsend,vector <int>& paramrecv,const int& nsend) const;
+    void my_AllgatherI(vector <long>& paramsend,vector <long>& paramrecv,const int& nsend) const;
     void my_AllgatherR(vector <double>& paramsend,vector <double>& paramrecv,const int& nsend) const;
     void calc_total_particles(const int& NP);
     void Find_Max_INT(vector <int>& integers,const int& how_long) const;

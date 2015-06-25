@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
   PFM->hypre_load_balance=true;
-  PFM->hypre_max_node_load=80000;
+  PFM->hypre_max_node_load=30000;
   PFM->hypre_max_average_load=20000;
   PFM->number_steps_total=1603;
   //  PFM->number_steps_total=13;
