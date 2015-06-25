@@ -163,10 +163,10 @@ yieldStrength(const double density,
 
   // Get the athermal yield.
   const double yieldAthermal = SteinbergGuinanStrength<Dimension>::yieldStrength(density,
-                                                                                            specificThermalEnergy,
-                                                                                            pressure,
-                                                                                            plasticStrain,
-                                                                                            plasticStrainRate);
+                                                                                 specificThermalEnergy,
+                                                                                 pressure,
+                                                                                 plasticStrain,
+                                                                                 plasticStrainRate);
 
   // Get the shear modulus.
   const double G = this->shearModulus(density, specificThermalEnergy, pressure);

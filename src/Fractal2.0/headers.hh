@@ -74,6 +74,7 @@ namespace FractalSpace
   void hypre_dump(int level,vector <Point*>& hypre_points,ofstream& FH);
   void hypre_eror(FILE* PFH,int level,int ni,int er);
   bool hypre_ij_numbering(Fractal_Memory& mem,vector <Point*>& hypre_points,const int& level);
+  bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
   bool hypre_ij_numbering(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level,bool buffer_groups);
   bool hypre_ij_numbering_selfie(Fractal_Memory& mem,Fractal& frac,vector <Point*>& hypre_points,const int& level);
@@ -82,7 +83,10 @@ namespace FractalSpace
   void hypre_ij_solver_selfie(Fractal& fractal,Fractal_Memory& mem,int level);
   void hypre_ij_solver_pcg(Fractal& fractal,Fractal_Memory& mem,int level);
   int hypre_load_balance(Fractal_Memory& mem,vector <Point*>points,bool& load_balance);
-  void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH);
+  int hypre_load_balance(Fractal_Memory& mem,HypHest& HYP,vector <Point*>points,bool& load_balance);
+  void hypre_send_pots(Fractal_Memory& mem,vector <Point*>& hypre_points,vector <double>& potH,
+		       int HYPij_countsBHypreRank,int HYPij_offsetsBHypreRank,int HYPij_countsHypreRank,
+		       vector <int>& HYPij_offsets);
   void info_to_slices(Fractal_Memory& mem,Fractal& frac,int lev);
   void info_to_slices_to_pot_init(Fractal_Memory& mem,Fractal& frac,int lev);
   void initial_forces_sharp(Fractal_Memory& fractal_memory,Fractal& fractal);
@@ -109,7 +113,7 @@ namespace FractalSpace
   void max_predict(Fractal_Memory& fractal_memory,Fractal& fractal,vector <double>& shear_force,double& min_vol);
   void neighbor_easy(vector <Point*>& p);
   void neighbors_nina(Point& point, vector <Point*>& adj);
-  void node_groups(Fractal_Memory& fractal_memory);
+  void node_groups(Fractal_Memory& mem,HypHest& HYP);
   double Omega (const double& omega_0, const double& omega_lambda, const double& redshift);
   bool on_edge(vector <int>& pos,vector <int>& Box);
   template <class T> bool overlap(vector <T>& xleft,vector <T>& xright,vector <T>& yleft,vector <T>& yright);

@@ -7,7 +7,7 @@ namespace FractalSpace
   {
     static bool printit=true;
     printit=false;
-    int FractalRank=mem.p_mess->FractalRank;
+//     int FractalRank=mem.p_mess->FractalRank;
     int FractalNodes=mem.p_mess->FractalNodes;
     ofstream& FF=mem.p_file->DUMPS;
     int zoom=Misc::pow(2,frac.get_level_max());

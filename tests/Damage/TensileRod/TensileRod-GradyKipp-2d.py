@@ -372,9 +372,9 @@ if restoreCycle is None:
     output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    eps0 = eos.specificThermalEnergy(rho0, 300.0)
-    nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
+    # # Set node specific thermal energies
+    # eps0 = eos.specificThermalEnergy(rho0, 300.0)
+    # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
     # Set node velocites.
     for i in xrange(nodes.numInternalNodes):

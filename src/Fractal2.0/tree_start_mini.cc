@@ -11,7 +11,7 @@ namespace FractalSpace
     //    int minimum=fractal.get_minimum_number();
     //    minimum=1;
     ofstream& FileFractal=fractal.p_file->DUMPS;
-    ofstream* p_FilePoint=&fractal.p_file->DUMPS;
+    //    ofstream* p_FilePoint=&fractal.p_file->DUMPS;
     double a_grid_length=(double)fractal.get_grid_length();
     vector <int>Boxu(6);
     vector <Point*>ud(6);

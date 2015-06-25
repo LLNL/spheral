@@ -8,6 +8,7 @@
 
 #include <limits>
 #include "PhysicalConstants.hh"
+#include "Utilities/DBC.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -71,30 +72,6 @@ public:
 			     const FieldSpace::Field<Dimension, Scalar>& massDensity,
 			     const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  // We also want the equivalent functions for individual calculations.
-  virtual Scalar pressure(const Scalar massDensity,
-                          const Scalar specificThermalEnergy) const = 0;
-
-  virtual Scalar temperature(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const = 0;
-
-  virtual Scalar specificThermalEnergy(const Scalar massDensity,
-                                       const Scalar temperature) const = 0;
-
-  virtual Scalar specificHeat(const Scalar massDensity,
-                              const Scalar temperature) const = 0;
-
-  virtual Scalar soundSpeed(const Scalar massDensity,
-                            const Scalar specificThermalEnergy) const = 0;
-
-  // Get the effective gamma (ratio of specific heats) for this eos.
-  virtual Scalar gamma(const Scalar massDensity,
-		       const Scalar specificThermalEnergy) const = 0;
-
-  // Get the bulk modulus.
-  virtual Scalar bulkModulus(const Scalar massDensity,
-                             const Scalar specificThermalEnergy) const = 0;
-
   // The set of constants defining our units.
   const PhysicalConstants& constants() const;
 
@@ -115,6 +92,28 @@ public:
   Scalar applyPressureLimits(const Scalar P) const;
 
 protected:
+  // The following methods have been moved to the protected interface as we are deprecating them.
+  virtual Scalar pressure(const Scalar massDensity,
+                          const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::pressure is deprecated."); }
+
+  virtual Scalar temperature(const Scalar massDensity,
+                             const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::temperature is deprecated."); }
+
+  virtual Scalar specificThermalEnergy(const Scalar massDensity,
+                                       const Scalar temperature) const { VERIFY2(false, "Individual values for EquationOfState::specificThermalEnergy is deprecated."); }
+
+  virtual Scalar specificHeat(const Scalar massDensity,
+                              const Scalar temperature) const { VERIFY2(false, "Individual values for EquationOfState::specificHeat is deprecated."); }
+
+  virtual Scalar soundSpeed(const Scalar massDensity,
+                            const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::soundSpeed is deprecated."); }
+
+  virtual Scalar gamma(const Scalar massDensity,
+		       const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::gamma is deprecated."); }
+
+  virtual Scalar bulkModulus(const Scalar massDensity,
+                             const Scalar specificThermalEnergy) const { VERIFY2(false, "Individual values for EquationOfState::bulkModulus is deprecated."); }
+
   PhysicalConstants mConstants;
 
 private:

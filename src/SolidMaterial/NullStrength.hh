@@ -8,6 +8,7 @@
 #define __Spheral_NullStrength_hh__
 
 #include "StrengthModel.hh"
+#include "Field/Field.hh"
 
 namespace Spheral {
 namespace SolidMaterial {
@@ -16,26 +17,24 @@ template<typename Dimension>
 class NullStrength: public StrengthModel<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
+  typedef typename Dimension::Scalar Scalar;
+
   // Constructors, destructor.
   NullStrength() {};
   virtual ~NullStrength() {};
 
   // The generic interface we require all strength models to provide.
-  virtual double shearModulus(const double density,
-                              const double specificThermalEnergy,
-                              const double pressure) const;
+  virtual void shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+                            const FieldSpace::Field<Dimension, Scalar>& density,
+                            const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                            const FieldSpace::Field<Dimension, Scalar>& pressure) const;
 
-  virtual double yieldStrength(const double density,
-                               const double specificThermalEnergy,
-                               const double pressure,
-                               const double plasticStrain,
-                               const double plasticStrainRate) const;
-
-  // An overridable method to compute the full sound speed.
-  virtual double soundSpeed(const double density,
-                            const double specificThermalEnergy,
-                            const double pressure,
-                            const double fluidSoundSpeed) const;
+  virtual void yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+                             const FieldSpace::Field<Dimension, Scalar>& density,
+                             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+                             const FieldSpace::Field<Dimension, Scalar>& pressure,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+                             const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -52,41 +51,29 @@ private:
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+void
 NullStrength<Dimension>::
-shearModulus(const double density,
-             const double specificThermalEnergy,
-             const double pressure) const {
-  return 0.0;
+shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
+             const FieldSpace::Field<Dimension, Scalar>& density,
+             const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+             const FieldSpace::Field<Dimension, Scalar>& pressure) const {
+  shearModulus = 0.0;
 }
 
 //------------------------------------------------------------------------------
-// Compute the yeild strength.
+// Compute the yield strength.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+void
 NullStrength<Dimension>::
-yieldStrength(const double density,
-              const double specificThermalEnergy,
-              const double pressure,
-              const double plasticStrain,
-              const double plasticStrainRate) const {
-  return 0.0;
-}
-
-//------------------------------------------------------------------------------
-// Compute the full sound speed.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-NullStrength<Dimension>::
-soundSpeed(const double density,
-           const double specificThermalEnergy,
-           const double pressure,
-           const double fluidSoundSpeed) const {
-  return fluidSoundSpeed;
+yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
+              const FieldSpace::Field<Dimension, Scalar>& density,
+              const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy,
+              const FieldSpace::Field<Dimension, Scalar>& pressure,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrain,
+              const FieldSpace::Field<Dimension, Scalar>& plasticStrainRate) const {
+  yieldStrength = 0.0;
 }
 
 #endif

@@ -104,7 +104,7 @@ namespace FractalSpace
     // Initial seed for std:rand
     // sets your values for parameters
     mem.steps=-1;
-    mem.min_hypre_group_size=343;
+    mem.min_hypre_group_size=729;
     mem.momentum_conserve=false;
     mem.amnesia=true; // (true) forget everything after you are done. (false) remember everything.
     mem.mind_wipe=false; // (true) delete everything and then come back without calculating anything.

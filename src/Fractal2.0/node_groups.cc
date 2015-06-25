@@ -3,10 +3,10 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  void node_groups(Fractal_Memory& mem)
+  void node_groups(Fractal_Memory& mem,HypHest& HYP)
   {
     static int COUNTER=0;
-    ofstream& FF=mem.p_mess->p_file->DUMPS;
+//     ofstream& FF=mem.p_mess->p_file->DUMPS;
     int FractalNodes=mem.p_mess->FractalNodes;
     int FractalRank=mem.p_mess->FractalRank;
     vector <int> counts_in(FractalNodes);
@@ -15,7 +15,7 @@ namespace FractalSpace
     vector <double> dataR_in;
     vector < vector <int> > dataI_out(FractalNodes);
     vector < vector <double> > dataR_out(FractalNodes);
-    bool tryit=mem.ij_counts[FractalRank] > 0;
+    bool tryit=HYP.ij_counts[FractalRank] > 0;
     for(int T=0;T<mem.Touchy.size();T++)
       {
 	if(tryit && mem.Touchy[T] > FractalRank)
@@ -26,7 +26,7 @@ namespace FractalSpace
     int ss=dataI_in.size();
     for(int FR=0;FR<FractalNodes;FR++)
       {
-	if(tryit && mem.ij_counts[FR] > 0)
+	if(tryit && HYP.ij_counts[FR] > 0)
 	  {
 	    dataI_out[FR]=dataI_in;
 	    counts_out[FR]=ss;
@@ -49,8 +49,6 @@ namespace FractalSpace
     int counterI=0;
     for(int FR=0;FR<FractalNodes;FR++)
       {
-	if(FractalRank == 0)
-	  cerr << " TRY2 " << FR << "\n";
 	head_number.push_back(FR);
 	for(int c=0;c<counts_in[FR];c++)
 	  {
@@ -86,7 +84,7 @@ namespace FractalSpace
 	if(head_number[FR] == myhead)
 	  mem.Touchy.push_back(FR);
 	else
-	  mem.ij_counts[FR]=0;
+	  HYP.ij_counts[FR]=0;
       }
     COUNTER++;
   }

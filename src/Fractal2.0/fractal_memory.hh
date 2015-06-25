@@ -2,9 +2,6 @@
 #define _Fractal_Memory_Defined_
 namespace FractalSpace
 {
-  //  typedef HYPRE_Int HINT;
-  //  typedef int HINT;
-  //  typedef unsigned int HINT;
   class Fractal_Memory
   {
   public:
@@ -48,10 +45,6 @@ namespace FractalSpace
     vector < vector <double> > RealIBoxes;
     vector <vector <int> > LeftCorners;
     vector <double> BigBox;
-    vector <HYPRE_Int>ij_offsets;
-    vector <HYPRE_Int>ij_counts;
-    vector <HYPRE_Int>ij_offsetsB;
-    vector <HYPRE_Int>ij_countsB;
     string hypre_solver;
     string hypre_precond;
     int global_level_max;
@@ -184,7 +177,7 @@ namespace FractalSpace
       min_hypre_group_size(45),
       hypre_load_balance(false),
       HypreMaxSpecial(200000),
-      hypre_max_node_load(200000),
+      hypre_max_node_load(30000),
       hypre_max_average_load(20000),
       G(1.0),
       amnesia(true),
