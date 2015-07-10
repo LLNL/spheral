@@ -97,7 +97,7 @@ namespace Material {
         mTimeins            = mConstants.unitTimeSec();
         mVelincmps          = mDistincm / mTimeins;
         mEnergyinergpg      = mVelincmps*mVelincmps;
-        mPressureinergcm    = mEnergyinergpg*mDistincm;
+        mPressureinbarye    = mMassing / (mDistincm*mTimeins*mTimeins);
         
     }
 
@@ -154,7 +154,7 @@ namespace Material {
         }
         
         for (size_t i = 0; i != npart; ++i) {
-            Pressure(i) = (*myPressure)[i] / mPressureinergcm;
+            Pressure(i) = (*myPressure)[i] / mPressureinbarye;
         }
     }
 
@@ -307,7 +307,7 @@ namespace Material {
         
         for (size_t i = 0; i != npart; ++i) {
             soundSpeed(i) = (*mySoundSpeed)[i] / mVelincmps;
-            (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinergcm);
+            (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinbarye);
         }
     }
 
