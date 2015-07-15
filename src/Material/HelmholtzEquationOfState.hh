@@ -115,7 +115,7 @@ namespace Spheral {
             bool needUpdate;
 			
 			const PhysicalConstants& mConstants;
-            Scalar mDistincm, mMassing, mEnergyinergpg, mTimeins, mPressureinergcm, mDensingpccm, mVelincmps;
+            Scalar mDistincm, mMassing, mEnergyinergpg, mTimeins, mPressureinbarye, mDensingpccm, mVelincmps;
             
 	  void storeFields(const FieldSpace::Field<Dimension, Scalar>& thisMassDensity, const FieldSpace::Field<Dimension, Scalar>& thisSpecificThermalEnergy) const;
 
