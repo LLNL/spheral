@@ -384,7 +384,7 @@ namespace Material {
         
         myMassDensity           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisMassDensity));
         mySpecificThermalEnergy = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>(thisSpecificThermalEnergy));
-        myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisMassDensity.nodeList()));
+        myTemperature           = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmTemperature",thisMassDensity.nodeList(),mTmin));
         myPressure              = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmPressure",thisMassDensity.nodeList()));
         mySoundSpeed            = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmSoundSpeed",thisMassDensity.nodeList()));
         myGamma                 = shared_ptr<Field<Dimension, Scalar> >(new Field<Dimension, Scalar>("helmGamma",thisMassDensity.nodeList()));
