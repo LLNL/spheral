@@ -1,0 +1,45 @@
+# -*-makefile-*-
+# Spheral++ NodeGenerators makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = NodeGenerators
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+SRCTARGETS = \
+	$(srcdir)/generateCylDistributionFromRZ.cc \
+	$(srcdir)/fillFacetedVolume.cc \
+	$(srcdir)/relaxNodeDistributionInst.cc \
+	$(srcdir)/readSiloPolyMesh.cc
+
+PYTHONTARGETS = \
+	$(srcdir)/NodeGeneratorBase.py \
+	$(srcdir)/GenerateNodeDistribution2d.py \
+	$(srcdir)/GenerateNodeDistribution3d.py \
+	$(srcdir)/CompositeNodeDistribution.py \
+	$(srcdir)/distributeNodesGeneric.py \
+	$(srcdir)/DistributeNodes.py \
+	$(srcdir)/ParMETISDistributeNodes.py \
+	$(srcdir)/MortonOrderDistributeNodes.py \
+	$(srcdir)/PeanoHilbertDistributeNodes.py \
+	$(srcdir)/VoronoiDistributeNodes.py \
+	$(srcdir)/NestedGridDistributeNodes.py \
+	$(srcdir)/GzipFileNodeGenerator.py \
+	$(srcdir)/DumpGzipFileNodeGenerator.py \
+	$(srcdir)/CubicNodeGenerator.py \
+	$(srcdir)/GenerateSphericalShellSection.py \
+	$(srcdir)/AbaqusNodeGenerator.py \
+	$(srcdir)/CentroidalVoronoiRelaxation.py \
+	$(srcdir)/InteriorGenerator.py \
+	$(srcdir)/FacetedSurfaceGenerator.py \
+	$(srcdir)/AsciiFileNodeGenerator.py \
+	$(srcdir)/HydroStaticProfile.py \
+	$(srcdir)/SiloPolyMeshGenerator.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+
