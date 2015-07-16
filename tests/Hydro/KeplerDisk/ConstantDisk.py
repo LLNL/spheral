@@ -182,28 +182,29 @@ if restoreCycle is None:
 # for rho, v, and eps.
 #-------------------------------------------------------------------------------
 class KeplerianPressureDiskProfile:
-    def __init__(self, G, M, gamma, r0, rc, rho0, f):
+    def __init__(self, G, M, gamma, rmax, rc, rho0, f):
         self.G      = G
         self.M      = M
         self.gamma  = gamma
-        self.r0     = r0
+        self.rmax   = rmax
         self.rc     = rc
         self.rho0   = rho0
         self.f      = f
+        self.gm     = G*M
         return
 
     def rho(self, r):
         return rho0
     
     def g(self,r):
-        return -self.G*self.M*r*(r*r+self.rc*self.rc)**(-1.5)
+        return -self.gm*r*(r*r+self.rc*self.rc)**(-1.5)
 
     def vt(self, r):
-        return sqrt(-r*self.g(r)*(1.0-self.f))
+        return -self.g(r)*r*(1.0-self.f)/(1.0+self.f)
 
     def eps(self, r):
-        const = self.f*self.G*self.M/(self.gamma-1.0)
-        return const*(-1.0/sqrt(self.rc**2.0+r**2.0)+1.0/sqrt(self.rc**2.0+self.r0**2.0))
+        const = self.f*self.gm/(self.gamma-1.0)
+        return const*(1.0/sqrt(r**2.0+self.rc**2.0)-1.0/sqrt(self.rmax**2.0+self.rc**2.0))
 
     def __call__(self, r):
         return self.rho(r)
@@ -255,7 +256,7 @@ diskNodes.registerNeighbor(neighbor1)
 
 # Build the radial profile object that knows how to create the keplerian disk
 # profile.
-diskProfile = KeplerianPressureDiskProfile(G0, M0, gamma, rmin, Rc, rho0, fPr)
+diskProfile = KeplerianPressureDiskProfile(G0, M0, gamma, rmax, Rc, rho0, fPr)
 
 # Set node positions, masses, and H's for this domain.
 if restoreCycle is None:
@@ -300,8 +301,13 @@ if restoreCycle is None:
 # Set an external pressure on the disk equivalent to the pressure at the
 # cutoff radius.
 #-------------------------------------------------------------------------------
+<<<<<<< mine
+#externalPressure = diskProfile.rho(rmax)*(gamma-1.0)*diskProfile.eps(rmax)
+#eos.externalPressure = externalPressure
+=======
 externalPressure = diskProfile.rho(1.1*rmax)*(eos.gamma-1.0)*diskProfile.eps(1.1*rmax)
 eos.externalPressure = externalPressure
+>>>>>>> theirs
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
