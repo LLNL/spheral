@@ -86,7 +86,7 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
       shearModulus(i) = mG0*max(1.0e-10,
                                 meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
                                                                                        mA*max(0.0, pressure(i))/FastMath::CubeRootHalley2(eta) -
-                                                                                       mB*max(0.0, T(i))));
+                                                                                       mB*min(0.0, T(i))));
       CHECK(distinctlyGreaterThan(shearModulus(i), 0.0));
     }
   }
@@ -186,18 +186,26 @@ SteinbergGuinanStrength<Dimension>::
 computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
                    const FieldSpace::Field<Dimension, Scalar>& density,
                    const FieldSpace::Field<Dimension, Scalar>& specificThermalEnergy) const {
-  Field<Dimension, Scalar> cV("specific heat", density.nodeList());
-  mEOSPtr->setSpecificHeat(cV, density, specificThermalEnergy);
-  const double rho0 = mEOSPtr->referenceDensity();
-  CHECK(rho0 > 0.0);
+  Field<Dimension, Scalar> eps1("new energy", density.nodeList());
   for (unsigned i = 0; i != density.numInternalElements(); ++i) {
     const double mu = mEOSPtr->boundedEta(density(i)) - 1.0;
     CHECK(mu >= -1.0);
-    CHECK(cV(i) > 0.0);
-    const double emelt = mMeltEnergyFit(mu)/rho0;
-    const double eps = max(0.0, min(emelt, specificThermalEnergy(i)));
-    temperature(i) = max(0.0, eps - mColdEnergyFit(mu))*rho0/cV(i);
+    eps1(i) = max(0.0, specificThermalEnergy(i) - mColdEnergyFit(mu));
   }
+  mEOSPtr->setTemperature(temperature, density, eps1);
+  temperature -= 300.0;
+  temperature.applyMin(0.0);
+  // Field<Dimension, Scalar> cV("specific heat", density.nodeList());
+  // mEOSPtr->setSpecificHeat(cV, density, specificThermalEnergy);
+  // const double rho0 = mEOSPtr->referenceDensity();
+  // CHECK(rho0 > 0.0);
+  // for (unsigned i = 0; i != density.numInternalElements(); ++i) {
+  //   CHECK(cV(i) > 0.0);
+  //   const double emelt = mMeltEnergyFit(mu)/rho0;
+  //   const double eps = max(0.0, min(emelt, specificThermalEnergy(i)));
+  //   temperature(i) = max(0.0, eps - mColdEnergyFit(mu))*rho0/cV(i) + mRefTempOffset;
+  //   temperature(i) = max(0.0, eps - mColdEnergyFit(mu) + mRefEpsOffset)*rho0/cV(i);
+  // }
 }
 
 //------------------------------------------------------------------------------
