@@ -1,4 +1,5 @@
 from math import *
+from Spheral1d import *
 
 #-------------------------------------------------------------------------------
 # The analytic answer for the standing wave problem.
@@ -34,6 +35,18 @@ class StandingWaveSolution:
         v = [self.cs*self.A*sin(pi*self.k*(xi - self.x0)/self.L) * f1 for xi in xvals]
         rho = [self.rho0*(1.0 + self.A*cos(pi*self.k*(xi - self.x0)/self.L) * f2) for xi in xvals]
         u = [cs2*(self.A*cos(pi*self.k*(xi - self.x0)/self.L) * f2) for xi in xvals]
-        P = [self.eos.pressure(rhoi, ui) for (rhoi, ui) in zip(rho, u)]
         h = [self.h0*self.rho0/rhoi for rhoi in rho]
+
+        n = len(xvals)
+        nodes = makeFluidNodeList("tmp nodes", self.eos, 
+                                  numInternal = n)
+        rhof = ScalarField("density", nodes)
+        uf = ScalarField("sp energy", nodes)
+        for i in xrange(n):
+            rhof[i] = rho[i]
+            uf[i] = u[i]
+        Pf = ScalarField("pressure", nodes)
+        self.eos.setPressure(Pf, rhof, uf)
+        P = list(Pf.internalValues())
+
         return xvals, v, u, rho, P, h

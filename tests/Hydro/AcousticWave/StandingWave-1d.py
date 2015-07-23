@@ -59,7 +59,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -214,7 +214,7 @@ if SVPH:
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
@@ -224,14 +224,14 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 
 elif TSPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
@@ -239,7 +239,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
