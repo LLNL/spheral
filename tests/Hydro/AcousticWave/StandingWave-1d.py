@@ -413,6 +413,7 @@ if outputFile != "None":
                                                  '"vel L1"', '"vel L2"', '"vel Linf"',
                                                  '"h L1"',   '"h L2"',   '"h Linf"'))
             f.write("%16i " % nx1)
+        xmin, xmax = 0.2, 0.8
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
@@ -420,9 +421,9 @@ if outputFile != "None":
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in xrange(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, x0, x1)
-            L2 = Pn.gridpnorm(2, x0, x1)
-            Linf = Pn.gridpnorm("inf", x0, x1)
+            L1 = Pn.gridpnorm(1, xmin, xmax)
+            L2 = Pn.gridpnorm(2, xmin, xmax)
+            Linf = Pn.gridpnorm("inf", xmin, xmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
