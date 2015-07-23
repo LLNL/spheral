@@ -5,9 +5,9 @@ nPerh = 2.01
 Cl = 0.0
 Cq = 0.0
 filter = 0.0
-for crk, linearInExpansion, label in ((False, False, "SPH"),
-                                      (True, True, "CRK")):
+for crk, label in ((False, "SPH"),
+                   (True, "CRK")):
     for nx in (50, 100, 200, 400, 800):
         test(script = "AcousticWave-1d.py",
-             clas = "--nx %i --A 0.001 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics False --normOutputFile AcousticWave-%s-convergence.gnu" % (nx, crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter, label), 
+             clas = "--nx %i --A 0.001 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile AcousticWave-%s-convergence.gnu" % (nx, crk, cfl, nPerh, Cl, Cq, filter, label), 
              label = "Planar Acoustic problem -- 1-D (serial %s, nx=%i)" % (label, nx))
