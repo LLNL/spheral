@@ -1,7 +1,7 @@
 #-*-python-*-
 # This is an ATS script to coordinate running convergence tests of the acoustic wave.
 cfl = 0.2
-nPerh = 2.01
+nPerh = 1.51
 Cl = 0.0
 Cq = 0.0
 filter = 0.0

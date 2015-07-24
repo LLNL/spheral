@@ -8,8 +8,6 @@ filter = 0.0
 for crk, label in ((False, "SPH"),
                    (True, "CRK")):
     for nx in (50, 100, 200, 400, 800):
-        h = 1.0/nx * nPerh
         test(script = "StandingWave-1d.py",
-             #clas = "--IntegratorConstructor SynchronousRK4Integrator --compatibleEnergy False --hmin %s --hmax %s --nx %i --A 0.001 --goalTime 0.25 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile StandingWave-%s-convergence.gnu" % (h, h, nx, crk, cfl, nPerh, Cl, Cq, filter, label), 
-             clas = "--hmin %s --hmax %s --nx %i --A 0.001 --goalTime 0.05 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile StandingWave-%s-convergence.gnu" % (h, h, nx, crk, cfl, nPerh, Cl, Cq, filter, label), 
+             clas = "--nx %i --A 0.001 --steps 100 --goalTime 0.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile StandingWave-%s-convergence.gnu" % (nx, crk, cfl, nPerh, Cl, Cq, filter, label), 
              label = "Planar Standing problem -- 1-D (serial %s, nx=%i)" % (label, nx))
