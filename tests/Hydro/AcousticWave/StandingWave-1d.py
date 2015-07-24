@@ -413,7 +413,7 @@ if outputFile != "None":
                                                  '"vel L1"', '"vel L2"', '"vel Linf"',
                                                  '"h L1"',   '"h L2"',   '"h Linf"'))
             f.write("%16i " % nx1)
-        xmin, xmax = 0.2, 0.8
+        xmin, xmax = x0, x1
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
