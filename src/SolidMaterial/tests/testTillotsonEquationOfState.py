@@ -57,6 +57,14 @@ class TestTillotsonEquationOfState(unittest.TestCase):
                                                self.epsVapor,
                                                self.atomicWeight)
 
+        self.nodes = makeFluidNodeList("test nodes", self.eos, numInternal=1)
+
+    #===========================================================================
+    # tearDown
+    #===========================================================================
+    def tearDown(self):
+        del self.nodes, self.eos
+
     #===========================================================================
     # Pressure analytic answer.
     #===========================================================================
@@ -79,14 +87,25 @@ class TestTillotsonEquationOfState(unittest.TestCase):
     def Pans(self, rhoi, epsi):
         etai = self.eos.boundedEta(rhoi)
         mui = etai - 1.0
+        rho = etai*self.rho0
+        phi = self.b/(1.0 + epsi/(self.eps0*etai*etai));
+        chi = 1.0/etai - 1.0;
         if mui >= 0.0:
-            return self.P1(rhoi, epsi, etai, mui)
+            return (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
         elif epsi <= self.epsLiquid:
-            return self.P2(rhoi, epsi, etai, mui)
-        elif epsi <= self.epsVapor:
-            return self.P3(rhoi, epsi, etai, mui)
+            if etai > self.etamin:
+                return (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
+            else:
+                return 0.0
+        elif epsi >= self.epsVapor:
+            return self.a*rho*epsi + (phi*rho*epsi + self.A*mui*exp(-self.beta*chi))*exp(-self.alpha*chi*chi)
         else:
-            return self.P4(rhoi, epsi, etai, mui)
+            if etai > self.etamin:
+                P2 = (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
+            else:
+                P2 = 0.0
+            P4 = self.a*rho*epsi + (phi*rho*epsi + self.A*mui*exp(-self.beta*chi))*exp(-self.alpha*chi*chi)
+            return P2 + (P4 - P2)*(epsi - self.epsLiquid)/(self.epsVapor - self.epsLiquid)
 
     #===========================================================================
     # dPdrho analytic answer.
@@ -209,22 +228,26 @@ class TestTillotsonEquationOfState(unittest.TestCase):
     # pressure
     #===========================================================================
     def testPressure(self):
+        rhof = ScalarField("rho", self.nodes)
+        epsf = ScalarField("eps", self.nodes)
+        Pf = ScalarField("pressure", self.nodes)
         for irho in xrange(self.nsample):
-            rhoi = self.rho(irho)
+            rhof[0] = self.rho(irho)
             for ieps in xrange(self.nsample):
-                epsi = self.eps(ieps)
-                Pi = self.eos.pressure(rhoi, epsi)
-                P0 = self.Pans(rhoi, epsi)
-                eta = self.eos.boundedEta(rhoi)
+                epsf[0] = self.eps(ieps)
+                self.eos.setPressure(Pf, rhof, epsf)
+                Pi = Pf[0]
+                P0 = self.Pans(rhof[0], epsf[0])
+                eta = self.eos.boundedEta(rhof[0])
                 mu = eta - 1.0
-                phi = self.eos.computePhi(eta, epsi)
-                P2 = self.eos.computeP2(phi, mu, rhoi, epsi)
+                phi = self.eos.computePhi(eta, epsf[0])
+                P2 = self.eos.computeP2(phi, mu, rhof[0], epsf[0])
                 self.failUnless(fuzzyEqual(Pi, P0, self.Ptol),
                                 "Pressure do not match:  P(%g, %g) = %g != %g\n P1=(%g,%g) P2=(%g,%g), P4=(%g,%g)\n eta=%g mu=%g phi=%g" % 
-                                (rhoi, epsi, Pi, P0,
-                                 self.eos.computeP1(mu, P2), self.P1(rhoi, epsi, eta, mu),
-                                 P2, self.P2(rhoi, epsi, eta, mu),
-                                 self.eos.computeP4(phi, mu, eta, rhoi, epsi), self.P4(rhoi, epsi, eta, mu),
+                                (rhof[0], epsf[0], Pi, P0,
+                                 self.eos.computeP1(mu, P2), self.P1(rhof[0], epsf[0], eta, mu),
+                                 P2, self.P2(rhof[0], epsf[0], eta, mu),
+                                 self.eos.computeP4(phi, mu, eta, rhof[0], epsf[0]), self.P4(rhof[0], epsf[0], eta, mu),
                                  eta, mu, phi))
         return
 
