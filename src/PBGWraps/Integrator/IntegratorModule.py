@@ -111,7 +111,10 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
                            constrefparam(vectorphysics, "physicsPackages")])
 
         # Methods.
-        x.add_method("step", None, [param("double", "maxTime")], is_virtual=True, is_pure_virtual=True)
+        x.add_method("step", None, [param("double", "maxTime")], is_virtual=True)
+        x.add_method("step", None, [param("double", "maxTime"),
+                                    refparam(state, "state"),
+                                    refparam(derivatives, "derivs")], is_virtual=True, is_pure_virtual=True)
         x.add_method("selectDt", "double", [param("double", "dtMin"),
                                             param("double", "dtMax"),
                                             constrefparam(state, "state"),
@@ -187,6 +190,8 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
         # Object names.
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         vectorphysics = "vector_of_Physics%id" % ndim
+        state = "Spheral::State%id" % ndim
+        derivatives = "Spheral::StateDerivatives%id" % ndim
 
         # Constructors.
         x.add_constructor([])
@@ -196,3 +201,6 @@ self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i
 
         # You've got to provide this!
         x.add_method("step", None, [param("double", "maxTime")], is_virtual=True)
+        x.add_method("step", None, [param("double", "maxTime"),
+                                    refparam(state, "state"),
+                                    refparam(derivatives, "derivs")], is_virtual=True)
