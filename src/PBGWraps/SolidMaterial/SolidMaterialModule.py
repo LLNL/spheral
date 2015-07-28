@@ -47,6 +47,7 @@ self.ConstantStrength%(dim)id = addObject(space, "ConstantStrength%(dim)id", par
 self.NullStrength%(dim)id = addObject(space, "NullStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.SteinbergGuinanStrength%(dim)id = addObject(space, "SteinbergGuinanStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 #self.SteinbergGuinanLundStrength%(dim)id = addObject(space, "SteinbergGuinanLundStrength%(dim)id", parent=self.SteinbergGuinanStrength%(dim)id, allow_subclassing=True)
+self.JohnsonCookStrength%(dim)id = addObject(space, "JohnsonCookStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
 ''' % {"dim" : dim})
 
@@ -75,6 +76,7 @@ generateConstantStrengthBindings(self.ConstantStrength%(dim)id, %(dim)i)
 generateNullStrengthBindings(self.NullStrength%(dim)id, %(dim)i)
 generateSteinbergGuinanStrengthBindings(self.SteinbergGuinanStrength%(dim)id, %(dim)i)
 #generateSteinbergGuinanLundStrengthBindings(self.SteinbergGuinanLundStrength%(dim)id, %(dim)i)
+generateJohnsonCookStrengthBindings(self.JohnsonCookStrength%(dim)id, %(dim)i)
 generatePorousStrengthModelBindings(self.PorousStrengthModel%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
 
@@ -459,6 +461,46 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     x.add_instance_attribute("nhard", "double", getter="nhard", is_const=True)
     x.add_instance_attribute("coldEnergyFit", ninthorderpolynomial, getter="coldEnergyFit", is_const=True)
     x.add_instance_attribute("meltEnergyFit", ninthorderpolynomial, getter="meltEnergyFit", is_const=True)
+
+    return
+
+#---------------------------------------------------------------------------
+# JohnsonCookStrength
+#---------------------------------------------------------------------------
+def generateJohnsonCookStrengthBindings(x, ndim):
+
+    solidequationofstate = "Spheral::SolidMaterial::SolidEquationOfState%id" % ndim
+    strengthmodel = "Spheral::SolidMaterial::StrengthModel%id" % ndim
+    scalarfield = "Spheral::FieldSpace::ScalarField%id" % ndim
+
+    # Constructors.
+    x.add_constructor([constrefparam(solidequationofstate, "eos"),
+                       constrefparam(strengthmodel, "shearModulusModel"),
+                       param("double", "A"),
+                       param("double", "B"),
+                       param("double", "C"),
+                       param("double", "C4"),
+                       param("double", "m"),
+                       param("double", "nhard"),
+                       param("double", "epsdot0"),
+                       param("double", "epsdotmin"),
+                       param("double", "Tmelt"),
+                       param("double", "Troom")])
+
+    # Add the abstract interface.
+    generateStrengthModelVirtualBindings(x, ndim, False)
+
+    # Attributes.
+    x.add_instance_attribute("A", "double", getter="A", is_const=True)
+    x.add_instance_attribute("B", "double", getter="B", is_const=True)
+    x.add_instance_attribute("C", "double", getter="C", is_const=True)
+    x.add_instance_attribute("C4", "double", getter="C4", is_const=True)
+    x.add_instance_attribute("m", "double", getter="m", is_const=True)
+    x.add_instance_attribute("nhard", "double", getter="nhard", is_const=True)
+    x.add_instance_attribute("epsdot0", "double", getter="epsdot0", is_const=True)
+    x.add_instance_attribute("epsdotmin", "double", getter="epsdotmin", is_const=True)
+    x.add_instance_attribute("Tmelt", "double", getter="Tmelt", is_const=True)
+    x.add_instance_attribute("Troom", "double", getter="Troom", is_const=True)
 
     return
 
