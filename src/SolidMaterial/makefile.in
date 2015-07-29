@@ -15,6 +15,7 @@ SRCTARGETS = \
 	$(srcdir)/MurnahanEquationOfStateInst.cc \
 	$(srcdir)/TillotsonEquationOfStateInst.cc \
 	$(srcdir)/SteinbergGuinanStrengthInst.cc \
+	$(srcdir)/JohnsonCookStrengthInst.cc \
 	$(srcdir)/PorousEquationOfStateInst.cc \
 	$(srcdir)/PorousStrengthModelInst.cc \
 	$(srcdir)/StrainPorosityInst.cc \
