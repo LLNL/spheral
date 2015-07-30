@@ -78,15 +78,15 @@ operator=(const SynchronousRK1<Dimension>& rhs) {
 template<typename Dimension>
 void
 SynchronousRK1<Dimension>::
-step(typename Dimension::Scalar maxTime) {
+step(typename Dimension::Scalar maxTime,
+     State<Dimension>& state,
+     StateDerivatives<Dimension>& derivs) {
 
   // Get the current time and data base.
   Scalar t = this->currentTime();
   DataBase<Dimension>& db = this->accessDataBase();
 
-  // Construct the state and derivatives, and initalize the integrator.
-  State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
-  StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  // Initalize the integrator.
   this->initialize(state, derivs);
 
   // Determine the minimum timestep across all packages.

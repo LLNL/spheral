@@ -73,7 +73,10 @@ public:
   Integrator& operator=(const Integrator& rhs);
 
   // All Integrator classes must define the dt and step methods.
-  virtual void step(Scalar maxTime) = 0;
+  virtual void step(Scalar maxTime,
+                    State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) = 0;
+  virtual void step(Scalar maxTime);
 
   // Provide a method of looping over the physics packages and picking a
   // time step.

@@ -84,7 +84,9 @@ operator=(const Verlet<Dimension>& rhs) {
 template<typename Dimension>
 void
 Verlet<Dimension>::
-step(typename Dimension::Scalar maxTime) {
+step(typename Dimension::Scalar maxTime,
+     State<Dimension>& state,
+     StateDerivatives<Dimension>& derivs) {
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -92,9 +94,7 @@ step(typename Dimension::Scalar maxTime) {
   Scalar t = this->currentTime();
   DataBase<Dimension>& db = this->accessDataBase();
 
-  // Construct the state and derivatives, and initalize the integrator.
-  State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
-  StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  // Initalize the integrator.
   this->initialize(state, derivs);
 
   // Extract velocity into its own State as a copy.

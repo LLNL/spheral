@@ -2,12 +2,15 @@
 # This is an ATS script to coordinate running convergence tests of the acoustic wave.
 cfl = 0.2
 nPerh = 2.01
-Cl = 0.0
-Cq = 0.0
 filter = 0.0
-for crk, linearInExpansion, label in ((False, False, "SPH"),
-                                      (True, True, "CRK")):
-    for nx in (50, 100, 200, 400, 800):
+for crk, Cl, Cq, label in ((False, 0.0, 0.0, "SPH-ZeroQ"),
+                           (False, 1.0, 1.0, "SPH"),
+                           (True,  1.0, 1.0, "CRK")):
+    for nx in (50, 100, 200, 400, 800, 1600):
+        if nx == 50:
+            writeOutputLabel = True
+        else:
+            writeOutputLabel = False
         test(script = "AcousticWave-1d.py",
-             clas = "--nx %i --A 0.001 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics False --normOutputFile AcousticWave-%s-convergence.gnu" % (nx, crk, cfl, nPerh, Cl, Cq, linearInExpansion, filter, label), 
+             clas = "--nx %i --A 1e-7 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile AcousticWave-%s-convergence.gnu --writeOutputLabel %s" % (nx, crk, cfl, nPerh, Cl, Cq, filter, label, writeOutputLabel), 
              label = "Planar Acoustic problem -- 1-D (serial %s, nx=%i)" % (label, nx))
