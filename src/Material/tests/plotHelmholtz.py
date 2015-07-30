@@ -36,7 +36,7 @@ rhoMin, rhoMax = 100.0, 1.0e9
 drho = (1.0/n) * log1p(rhoMax/rhoMin)
 rho = [rhoMin * exp(drho*i) for i in xrange(n + 1)]
 
-eMin, eMax = 1.0e10, 1.0e20
+eMin, eMax = 1.0e17, 1.0e20
 de = (1.0/n) * log1p(eMax/eMin)
 e = [eMin * exp(de*j) for j in xrange(n+1)]
 
