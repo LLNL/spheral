@@ -28,6 +28,10 @@ using NodeSpace::NodeList;
 using Geometry::outerProduct;
 using Geometry::innerProduct;
 
+//------------------------------------------------------------------------------
+// The general method including a functor to determine pair-wise node coupling
+// scaling factors.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -35,8 +39,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Scalar>& weight,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         const FieldList<Dimension, typename Dimension::Scalar>& damage,
-                         const bool coupleNodeLists,
+                         double (*pairWeightFunctionPtr)(const unsigned, const unsigned, const unsigned, const unsigned),
                          FieldList<Dimension, typename Dimension::Scalar>& m0,
                          FieldList<Dimension, typename Dimension::Vector>& m1,
                          FieldList<Dimension, typename Dimension::SymTensor>& m2,
@@ -119,37 +122,41 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(fullConnectivity.size() == numNodeLists);
 
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        if (coupleNodeLists or nodeListi == nodeListj) {
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
-          // Iterate over the neighbors for in this NodeList.
-          for (vector<int>::const_iterator jItr = connectivity.begin();
-               jItr != connectivity.end();
-               ++jItr) {
-            const int j = *jItr;
+        // Iterate over the neighbors for in this NodeList.
+        for (vector<int>::const_iterator jItr = connectivity.begin();
+             jItr != connectivity.end();
+             ++jItr) {
+          const int j = *jItr;
 
-            // Check if this node pair has already been calculated.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
+          // Check if this node pair has already been calculated.
+          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                       nodeListj, j,
+                                                       firstGhostNodej)) {
 
-              // State of node j.
-              const Scalar wj = weight(nodeListj, j);
-              const Vector& rj = position(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
+            // State of node j.
+            const Scalar wj = weight(nodeListj, j);
+            const Vector& rj = position(nodeListj, j);
+            const SymTensor& Hj = H(nodeListj, j);
+            const Scalar Hdetj = Hj.Determinant();
+
+            // Find the pair weighting scaling.
+            const double fij = (*pairWeightFunctionPtr)(nodeListi, i, nodeListj, j);
+            CHECK(fij >= 0.0 and fij <= 1.0);
+            if (fij > 0.0) {
 
               // Kernel weighting and gradient.
               const Vector rij = ri - rj;
               const Vector etai = Hi*rij;
               const Vector etaj = Hj*rij;
               const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-              const Scalar& Wi = WWi.first;
-              const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
+              const Scalar Wi = WWi.first * fij;
+              const Vector gradWi = -(Hi*etai.unitVector())*WWi.second * fij;
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-              const Scalar& Wj = WWj.first;
-              const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+              const Scalar Wj = WWj.first * fij;
+              const Vector gradWj = (Hj*etaj.unitVector())*WWj.second * fij;
 
               // Zeroth moment. 
               const Scalar wwi = wi*Wi;
@@ -229,6 +236,48 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Note -- we are suspending the next order corrections for now!
 
+}
+
+//------------------------------------------------------------------------------
+// Specialized form that enforces full coupling of all pair-wise nodes (does
+// away with the pairWeightFunctionPtr argument).
+//------------------------------------------------------------------------------
+double fullPairwiseCoupling(const unsigned nodeListi, const unsigned i,
+                            const unsigned nodeListj, const unsigned j) {
+  return 1.0;
+}
+
+template<typename Dimension>
+void
+computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
+                         const TableKernel<Dimension>& W,
+                         const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                         const FieldList<Dimension, typename Dimension::Vector>& position,
+                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                         FieldList<Dimension, typename Dimension::Scalar>& m0,
+                         FieldList<Dimension, typename Dimension::Vector>& m1,
+                         FieldList<Dimension, typename Dimension::SymTensor>& m2,
+                         FieldList<Dimension, typename Dimension::Scalar>& A0,
+                         FieldList<Dimension, typename Dimension::Scalar>& A,
+                         FieldList<Dimension, typename Dimension::Vector>& B,
+                         FieldList<Dimension, typename Dimension::Vector>& gradA0,
+                         FieldList<Dimension, typename Dimension::Vector>& gradA,
+                         FieldList<Dimension, typename Dimension::Tensor>& gradB) {
+  computeCRKSPHCorrections(connectivityMap,
+                           W,
+                           weight,
+                           position,
+                           H,
+                           &fullPairwiseCoupling,
+                           m0,
+                           m1,
+                           m2,
+                           A0,
+                           A,
+                           B,
+                           gradA0,
+                           gradA,
+                           gradB);
 }
 
 }

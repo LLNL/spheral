@@ -245,8 +245,7 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-damage = ScalarFieldList()
-computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, damage, True,
+computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, 
                        m0_fl, m1_fl, m2_fl,
                        A0_fl, A_fl, B_fl, gradA0_fl, gradA_fl, gradB_fl)
 

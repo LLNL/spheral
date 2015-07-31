@@ -148,8 +148,6 @@ class CRKSPH:
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "damage"),
-                                 param("bool", "coupleNodeLists"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
                                  refparam(symtensorfieldlist, "m2"),
