@@ -110,6 +110,9 @@ commandLine(length = 3.0,
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
 
+            # Optionally we can initialize a break near the origin.
+            initialBreakRadius = 0.0,
+            
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
@@ -362,6 +365,14 @@ if restoreCycle is None:
     # Set node velocites.
     for i in xrange(nodes.numInternalNodes):
         nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
+
+    # Set an initial damage if requested.
+    if initialBreakRadius > 0.0:
+        pos = nodes.positions()
+        D = nodes.damage()
+        for i in xrange(nodes.numInternalNodes):
+            if abs(pos[i].x) < initialBreakRadius:
+                D[i] = SymTensor.one
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

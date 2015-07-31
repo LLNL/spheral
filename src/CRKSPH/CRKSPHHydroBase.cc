@@ -447,9 +447,7 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  const FieldList<Dimension, Scalar> fakeD;
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, fakeD, true, m0, m1, m2, A0, A, B, gradA0, gradA, gradB);
-  // computeCRKSPHCorrections(connectivityMap, W, mass, position, H, fakeD, true, m0, m1, m2, A0, A, B, gradA0, gradA, gradB);
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, m0, m1, m2, A0, A, B, gradA0, gradA, gradB);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
