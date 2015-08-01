@@ -40,13 +40,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const NodeCoupling& nodeCoupling,
-                         FieldList<Dimension, typename Dimension::Scalar>& m0,
-                         FieldList<Dimension, typename Dimension::Vector>& m1,
-                         FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                         FieldList<Dimension, typename Dimension::Scalar>& A0,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
-                         FieldList<Dimension, typename Dimension::Vector>& gradA0,
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
                          FieldList<Dimension, typename Dimension::Tensor>& gradB) {
 
@@ -56,10 +51,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(damage.size() == numNodeLists or damage.size() == 0);
-  REQUIRE(m0.size() == numNodeLists);
-  REQUIRE(m1.size() == numNodeLists);
-  REQUIRE(m2.size() == numNodeLists);
-  REQUIRE(A0.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
@@ -70,26 +61,19 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
-  // Zero out the result.
-  m0 = 0.0;
-  m1 = Vector::zero;
-  m2 = SymTensor::zero;
-  A0 = 0.0;
-  A = 0.0;
-  B = Vector::zero;
-  gradA = Vector::zero;
-  gradB = Tensor::zero;
-
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
-  // Field<Dimension, Scalar> m0("zeroth moment", nodeList);
-  // Field<Dimension, Vector> m1("first moment", nodeList);
-  // Field<Dimension, SymTensor> m2("second moment", nodeList);
+  FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
+  FieldList<Dimension, Vector> m1(FieldSpace::Copy);
+  FieldList<Dimension, SymTensor> m2(FieldSpace::Copy);
   FieldList<Dimension, Vector> gradm0(FieldSpace::Copy);
   FieldList<Dimension, Tensor> gradm1(FieldSpace::Copy);
   FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = A[nodeListi]->nodeList();
+    m0.appendNewField("zeroth moment", nodeList, 0.0);
+    m1.appendNewField("first moment", nodeList, Vector::zero);
+    m2.appendNewField("second moment", nodeList, SymTensor::zero);
     gradm0.appendNewField("grad zeroth moment", nodeList, Vector::zero);
     gradm1.appendNewField("grad first moment", nodeList, Tensor::zero);
     gradm2.appendNewField("grad second moment", nodeList, ThirdRankTensor::zero);
@@ -201,11 +185,10 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
         const Vector m2invm1 = m2inv*m1(nodeListi, i);
         const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
         CHECK(Ainv != 0.0);
-        A0(nodeListi, i) = 1.0/m0(nodeListi, i);
         A(nodeListi, i) = 1.0/Ainv;
         B(nodeListi, i) = -m2invm1;
-        gradA0(nodeListi, i) = -FastMath::square(A0(nodeListi, i))*gradm0(nodeListi, i);
         gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*gradm0(nodeListi, i);
+        gradB(nodeListi, i) = Tensor::zero;
         for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
           for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
             for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
@@ -249,13 +232,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Scalar>& weight,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         FieldList<Dimension, typename Dimension::Scalar>& m0,
-                         FieldList<Dimension, typename Dimension::Vector>& m1,
-                         FieldList<Dimension, typename Dimension::SymTensor>& m2,
-                         FieldList<Dimension, typename Dimension::Scalar>& A0,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
-                         FieldList<Dimension, typename Dimension::Vector>& gradA0,
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
                          FieldList<Dimension, typename Dimension::Tensor>& gradB) {
   computeCRKSPHCorrections(connectivityMap,
@@ -264,13 +242,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                            position,
                            H,
                            NodeCoupling(),
-                           m0,
-                           m1,
-                           m2,
-                           A0,
                            A,
                            B,
-                           gradA0,
                            gradA,
                            gradB);
 }
