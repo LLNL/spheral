@@ -39,7 +39,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Scalar>& weight,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         double (*pairWeightFunctionPtr)(const unsigned, const unsigned, const unsigned, const unsigned),
+                         const NodeCoupling& nodeCoupling,
                          FieldList<Dimension, typename Dimension::Scalar>& m0,
                          FieldList<Dimension, typename Dimension::Vector>& m1,
                          FieldList<Dimension, typename Dimension::SymTensor>& m2,
@@ -143,7 +143,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Hdetj = Hj.Determinant();
 
             // Find the pair weighting scaling.
-            const double fij = (*pairWeightFunctionPtr)(nodeListi, i, nodeListj, j);
+            const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
             CHECK(fij >= 0.0 and fij <= 1.0);
             if (fij > 0.0) {
 
@@ -242,11 +242,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 // Specialized form that enforces full coupling of all pair-wise nodes (does
 // away with the pairWeightFunctionPtr argument).
 //------------------------------------------------------------------------------
-double fullPairwiseCoupling(const unsigned nodeListi, const unsigned i,
-                            const unsigned nodeListj, const unsigned j) {
-  return 1.0;
-}
-
 template<typename Dimension>
 void
 computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
@@ -268,7 +263,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                            weight,
                            position,
                            H,
-                           &fullPairwiseCoupling,
+                           NodeCoupling(),
                            m0,
                            m1,
                            m2,
