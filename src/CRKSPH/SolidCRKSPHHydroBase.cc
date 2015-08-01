@@ -38,6 +38,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
+#include "SolidSPH/DamagedNodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
