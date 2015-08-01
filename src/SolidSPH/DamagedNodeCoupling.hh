@@ -6,13 +6,17 @@
 //
 // Created by JMO, Fri Jul 31 14:46:25 PDT 2015
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_DamagedNodeCoupling__
+#define __Spheral_DamagedNodeCoupling__
+
+#include "NodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/FastMath.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class DamagedNodeCoupling {
+class DamagedNodeCoupling: public NodeCoupling {
 public:
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -23,13 +27,14 @@ public:
   DamagedNodeCoupling(const FieldSpace::FieldList<Dimension, SymTensor>& damage,
                       const FieldSpace::FieldList<Dimension, Vector>& damageGradient,
                       const FieldSpace::FieldList<Dimension, SymTensor>& H):
+    NodeCoupling(),
     mDamage(damage),
     mDamageGradient(damageGradient),
     mH(H) {}
 
   // The coupling operator.
-  double operator()(const unsigned nodeListi, const unsigned i,
-                    const unsigned nodeListj, const unsigned j) {
+  virtual double operator()(const unsigned nodeListi, const unsigned i,
+                            const unsigned nodeListj, const unsigned j) const {
     const Scalar sDi = scalarDamage(nodeListi, i);
     const Scalar sDj = scalarDamage(nodeListj, j);
     const Vector gradDi = damageDirection(nodeListi, i);
@@ -50,7 +55,7 @@ private:
   const FieldSpace::FieldList<Dimension, SymTensor>& mH;
 
   // Extract the effective scalar damage on a node.
-  double scalarDamage(const unsigned nodeListi, const unsigned i) {
+  double scalarDamage(const unsigned nodeListi, const unsigned i) const {
     Scalar sDi = std::max(0.0, std::min(1.0, mDamage(nodeListi, i).eigenValues().maxElement()));
     if (sDi > 1.0 - 1.0e-3) sDi = 1.0;
     return sDi;
@@ -58,7 +63,7 @@ private:
 
   // Construct a unit vector of the argument, going to zero as the magnitude falls below a given "fuzz".
   Vector unitVectorWithZero(const Vector& x,
-                            const double fuzz = 0.01) {
+                            const double fuzz = 0.01) const {
     if (x.magnitude2() < fuzz) {
       return Vector::zero;
     } else {
@@ -67,7 +72,7 @@ private:
   }
 
   // Damage direction based on the gradient.
-  Vector damageDirection(const unsigned nodeListi, const unsigned i) {
+  Vector damageDirection(const unsigned nodeListi, const unsigned i) const {
     return unitVectorWithZero(mDamageGradient(nodeListi, i)*Dimension::nDim/mH(nodeListi, i).Trace());
   }
 
@@ -76,3 +81,5 @@ private:
 };
 
 }
+
+#endif
