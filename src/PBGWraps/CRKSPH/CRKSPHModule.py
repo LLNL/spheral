@@ -498,4 +498,10 @@ class CRKSPH:
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
 
+        # Attributes.
+        const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
+        const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
+        const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
+        const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
+
         return
