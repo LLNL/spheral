@@ -82,6 +82,14 @@ public:
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
+  // Initialize the Hydro before we start a derivative evaluation.
+  virtual
+  void initialize(const Scalar time,
+                  const Scalar dt,
+                  const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs);
+                          
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -108,6 +116,11 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
 
+  const FieldSpace::FieldList<Dimension, Scalar>&    Adamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    Bdamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradAdamage() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    gradBdamage() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "SolidCRKSPHHydroBase"; }
@@ -125,6 +138,11 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
 
+  FieldSpace::FieldList<Dimension, Scalar>    mAdamage;
+  FieldSpace::FieldList<Dimension, Vector>    mBdamage;
+  FieldSpace::FieldList<Dimension, Vector>    mGradAdamage;
+  FieldSpace::FieldList<Dimension, Tensor>    mGradBdamage;
+
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
 #endif
@@ -138,9 +156,7 @@ private:
 }
 }
 
-#ifndef __GCCXML__
 #include "SolidCRKSPHHydroBaseInline.hh"
-#endif
 
 #else
 
