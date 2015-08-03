@@ -106,6 +106,9 @@ commandLine(seed = "lattice",
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
 
+            # Optionally we can initialize a break near the origin.
+            initialBreakRadius = 0.0,
+            
             CRKSPH = False,
             ASPH = True,     # Only for H evolution, not hydro algorithm
             Qconstructor = MonaghanGingoldViscosity,
@@ -122,8 +125,8 @@ commandLine(seed = "lattice",
             hminratio = 0.05,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
-            epsilonTensile = 0.3,
+            XSPH = False,
+            epsilonTensile = 0.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
@@ -375,6 +378,14 @@ if restoreCycle is None:
     for i in xrange(nodes.numInternalNodes):
         nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*xlength)*v0
 
+    # Set an initial damage if requested.
+    if initialBreakRadius > 0.0:
+        pos = nodes.positions()
+        D = nodes.damage()
+        for i in xrange(nodes.numInternalNodes):
+            if abs(pos[i].x) < initialBreakRadius:
+                D[i] = SymTensor.one
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -543,7 +554,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            vizDerivs = True)
 output("control")
 
 #-------------------------------------------------------------------------------
