@@ -50,7 +50,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(weight.size() == numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-  REQUIRE(damage.size() == numNodeLists or damage.size() == 0);
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
