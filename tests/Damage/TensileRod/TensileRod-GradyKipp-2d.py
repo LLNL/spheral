@@ -129,7 +129,7 @@ commandLine(seed = "lattice",
             filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 50.0,
+            goalTime = 200.0,
             steps = None,
             dt = 1e-10,
             dtMin = 1e-6,
@@ -539,6 +539,7 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
+                            restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
@@ -567,7 +568,6 @@ control.appendPeriodicWork(strainHistory.sample, 1)
 # Smooth the initial conditions/restore state.
 #-------------------------------------------------------------------------------
 if restoreCycle is not None:
-    control.loadRestartFile(restoreCycle)
     strainHistory.flushHistory()
 
 #-------------------------------------------------------------------------------
