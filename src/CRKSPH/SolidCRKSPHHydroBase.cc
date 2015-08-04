@@ -703,7 +703,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              Vector forceij = -0.5*weighti*weightj*(fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam - 
+              // Vector forceij = -0.5*weighti*weightj*(fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam - 
+              //                                        ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+              Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
                                                      ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
@@ -715,8 +717,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+              // DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
+              // DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
