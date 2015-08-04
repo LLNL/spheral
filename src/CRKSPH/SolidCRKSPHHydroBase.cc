@@ -671,24 +671,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Mass density evolution.
-              DrhoDti += fDeffij*rhoi*weightj*vij.dot(gradWj);
-              DrhoDtj -= fDeffij*rhoj*weighti*vij.dot(gradWi);
+              DrhoDti += fDeffij*rhoi*weightj*vij.dot(gradWdamj);
+              DrhoDtj -= fDeffij*rhoj*weighti*vij.dot(gradWdami);
 
               // Mass density gradient.
-              DrhoDxi += fDeffij*weightj*(rhoj - rhoi)*gradWj;
-              DrhoDxj += fDeffij*weighti*(rhoi - rhoj)*gradWi;
+              DrhoDxi += fDeffij*weightj*(rhoj - rhoi)*gradWdamj;
+              DrhoDxj += fDeffij*weighti*(rhoi - rhoj)*gradWdami;
 
               // Local (damaged) velocity gradient.
-              localDvDxi -= fDeffij*weightj*vij*gradWj;
-              localDvDxj += fDeffij*weighti*vij*gradWi;
+              localDvDxi -= fDeffij*weightj*vij*gradWdamj;
+              localDvDxj += fDeffij*weighti*vij*gradWdami;
 
-              // Damage scaling of negative pressures.
-              const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
-              const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
+              // // Damage scaling of negative pressures.
+              // const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
+              // const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
 
               // Compute the stress tensors.
-              SymTensor sigmai = -Peffi*SymTensor::one + fDeffij*Si;
-              SymTensor sigmaj = -Peffj*SymTensor::one + fDeffij*Sj;
+              SymTensor sigmai = -Pi*SymTensor::one + Si;
+              SymTensor sigmaj = -Pj*SymTensor::one + Sj;
 
               // // Compute the tensile correction to add to the stress as described in 
               // // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -703,7 +703,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              Vector forceij = -0.5*weighti*weightj*(fDeffij*(sigmai + sigmaj)*deltagrad - 
+              Vector forceij = -0.5*weighti*weightj*(fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam - 
                                                      ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
@@ -715,13 +715,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += fDeffij * 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
-              DepsDtj += fDeffij * 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= fDeffij*weightj*Wj*vij;
-		XSPHDeltaVj += fDeffij*weighti*Wi*vij;
+                XSPHDeltaVi -= fDeffij*weightj*Wdamj*vij;
+		XSPHDeltaVj += fDeffij*weighti*Wdami*vij;
               }
 
             }
