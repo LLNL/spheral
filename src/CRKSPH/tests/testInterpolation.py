@@ -366,10 +366,11 @@ for i in xrange(nodes1.numInternalNodes):
     errdySPH[i] =  dfSPH[i].x - dyans[i]
     errdyCRKSPH[i] = dfCRKSPH[i].x - dyans[i]
 
-maxySPHerror = errySPH.max()
-maxyCRKSPHerror = erryCRKSPH.max()
-maxdySPHerror = errdySPH.max()
-maxdyCRKSPHerror = errdyCRKSPH.max()
+maxySPHerror = max([abs(x) for x in errySPH])
+maxdySPHerror = max([abs(x) for x in errdySPH])
+maxyCRKSPHerror = max([abs(x) for x in erryCRKSPH])
+maxdyCRKSPHerror = max([abs(x) for x in errdyCRKSPH])
+
 print "Maximum errors (interpolation): SPH = %g, CRKSPH = %g" % (maxySPHerror, maxyCRKSPHerror)
 print "Maximum errors   (derivatives): SPH = %g, CRKSPH = %g" % (maxdySPHerror, maxdyCRKSPHerror)
 
