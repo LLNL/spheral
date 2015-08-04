@@ -90,13 +90,12 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Scalar wi = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Self contribution.
-      const Scalar wwi = wi*W(0.0, Hdeti);
+      const Scalar wwi = weight(nodeListi, i)*W(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
 
@@ -120,7 +119,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                                                        firstGhostNodej)) {
 
             // State of node j.
-            const Scalar wj = weight(nodeListj, j);
             const Vector& rj = position(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
@@ -130,16 +128,20 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             CHECK(fij >= 0.0 and fij <= 1.0);
             if (fij > 0.0) {
 
+              // Node weighting with pair-wise coupling.
+              const Scalar wi = fij*weight(nodeListi, i);
+              const Scalar wj = fij*weight(nodeListj, j);
+
               // Kernel weighting and gradient.
               const Vector rij = ri - rj;
               const Vector etai = Hi*rij;
               const Vector etaj = Hj*rij;
               const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-              const Scalar Wi = WWi.first * fij;
-              const Vector gradWi = -(Hi*etai.unitVector())*WWi.second * fij;
+              const Scalar Wi = WWi.first;
+              const Vector gradWi = -(Hi*etai.unitVector())*WWi.second;
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-              const Scalar Wj = WWj.first * fij;
-              const Vector gradWj = (Hj*etaj.unitVector())*WWj.second * fij;
+              const Scalar Wj = WWj.first;
+              const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
               // Zeroth moment. 
               const Scalar wwi = wi*Wi;

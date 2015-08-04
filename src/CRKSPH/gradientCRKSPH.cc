@@ -7,6 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
+#include "SolidSPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
@@ -26,15 +27,16 @@ using NodeSpace::NodeList;
 template<typename Dimension, typename DataType>
 FieldSpace::FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
 gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
-             const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
-             const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-             const KernelSpace::TableKernel<Dimension>& W) {
+               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
+               const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
+               const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+               const KernelSpace::TableKernel<Dimension>& W,
+               const NodeCoupling& nodeCoupling) {
 
   // Pre-conditions.
   const size_t numNodeLists = fieldList.size();
@@ -72,7 +74,6 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Scalar wi = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -85,7 +86,7 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
       // Add our self-contribution.  A strange thing in a gradient!
       const Scalar W0 = W.kernelValue(0.0, Hdeti);
-      gradFi += wi*Fi*W0*(Ai*Bi + gradAi);
+      gradFi += weight(nodeListi, i)*Fi*W0*(Ai*Bi + gradAi);
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -107,13 +108,19 @@ gradientCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                ++jItr) {
             const int j = *jItr;
 
+            // The coupling between these nodes.
+            const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
+            
             // Only proceed if this node pair has not been calculated yet.
-            if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                         nodeListj, j,
-                                                         firstGhostNodej)) {
+            if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                                       nodeListj, j,
+                                                                       firstGhostNodej)) {
+
+              // The pair-wise modified weighting.
+              const Scalar wi = fij*weight(nodeListi, i);
+              const Scalar wj = fij*weight(nodeListj, j);
 
 	      // Get the state for node j.
-	      const Scalar wj = weight(nodeListj, j);
 	      const Vector& rj = position(nodeListj, j);
 	      const SymTensor& Hj = H(nodeListj, j);
 	      const Scalar Hdetj = Hj.Determinant();
