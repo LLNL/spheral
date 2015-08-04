@@ -327,7 +327,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
-fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, True, A_fl, B_fl, 
+fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
                                cm, WT)
 dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
                              A_fl, B_fl, gradA_fl, gradB_fl,

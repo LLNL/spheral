@@ -15,6 +15,7 @@
 #include "CRKSPH/computeHVolumes.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "CRKSPH/interpolateCRKSPH.hh"
+#include "SolidSPH/NodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
