@@ -1459,6 +1459,18 @@ template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
 dumpState(FileIO& file, string pathName) const {
+  file.write(mTimeStepMask, pathName + "/timeStepMask");
+  file.write(mPressure, pathName + "/pressure");
+  file.write(mSoundSpeed, pathName + "/soundSpeed");
+  file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.write(mHideal, pathName + "/Hideal");
+  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.write(mEffViscousPressure, pathName + "/effViscousPressure");
+  file.write(mViscousWork, pathName + "/viscousWork");
+  file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
+  file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
+
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
@@ -1466,11 +1478,13 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
+  file.write(mDmassDensityDx, pathName + "/DmassDensityDx");
   file.write(mVolume, pathName + "/volume");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
   file.write(mGradA, pathName + "/gradA");
   file.write(mGradB, pathName + "/gradB");
+  file.write(mSurfNorm, pathName + "/surfNorm");
 }
 
 //------------------------------------------------------------------------------
@@ -1480,6 +1494,18 @@ template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
 restoreState(const FileIO& file, string pathName) {
+  file.read(mTimeStepMask, pathName + "/timeStepMask");
+  file.read(mPressure, pathName + "/pressure");
+  file.read(mSoundSpeed, pathName + "/soundSpeed");
+  file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
+  file.read(mHideal, pathName + "/Hideal");
+  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.read(mEffViscousPressure, pathName + "/effViscousPressure");
+  file.read(mViscousWork, pathName + "/viscousWork");
+  file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
+  file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
+
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
@@ -1487,11 +1513,13 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
+  file.read(mDmassDensityDx, pathName + "/DmassDensityDx");
   file.read(mVolume, pathName + "/volume");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
   file.read(mGradA, pathName + "/gradA");
   file.read(mGradB, pathName + "/gradB");
+  file.read(mSurfNorm, pathName + "/surfNorm");
 }
 
 }

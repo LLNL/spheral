@@ -645,15 +645,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Determine how we're applying damage.
               const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
+              
+              // How different is the damage of these two points?
+              const Scalar Di = damage(nodeListi, i).Trace() / Dimension::nDim;
+              const Scalar Dj = damage(nodeListj, j).Trace() / Dimension::nDim;
+              CHECK(Di >= 0.0 and Di <= 1.0);
+              CHECK(Dj >= 0.0 and Dj <= 1.0);
+              const Scalar Ddisc = 1.0 + 4.0*abs(Di - Dj)*safeInv(Di + Dj);
+              CHECK(Ddisc >= 1.0 and Ddisc <= 3.0);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
               const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
-              weightedNeighborSumi += fweightij*std::abs(gWi);
-              weightedNeighborSumj += fweightij*std::abs(gWj);
+              weightedNeighborSumi += fweightij*std::abs(gWi) * Ddisc;
+              weightedNeighborSumj += fweightij*std::abs(gWj) * Ddisc;
               massSecondMomenti += fweightij*gradWSPHi.magnitude2()*thpt;
-              massSecondMomentj += fweightij*gradWSPHj.magnitude2()*thpt;
+              massSecondMomentj += gradWSPHj.magnitude2()*thpt;
 
               // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
               const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
