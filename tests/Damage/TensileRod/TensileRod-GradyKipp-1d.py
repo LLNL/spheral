@@ -127,7 +127,7 @@ commandLine(length = 3.0,
             hmax = 20.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.3,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
@@ -149,6 +149,7 @@ commandLine(length = 3.0,
             compatibleEnergy = True,
             gradhCorrection = False,
             domainIndependent = False,
+            dtverbose = False,
 
             restoreCycle = None,
             restartStep = 500,
@@ -515,6 +516,7 @@ if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.havePhysicsPackage(damageModel)")
