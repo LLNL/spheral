@@ -580,6 +580,10 @@ else:
 if graphics:
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
+    H = state.symTensorFields("H")
+    h = db.newFluidScalarFieldList(0.0, "h")
+    for i in xrange(nodes.numInternalNodes):
+        h[0][i] = 1.0/H[0][i].xx
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle="linespoints",
                             winTitle="rho @ %g %i" % (control.time(), mpi.procs))
@@ -593,6 +597,9 @@ if graphics:
     PPlot = plotFieldList(state.scalarFields("pressure"),
                           plotStyle="linespoints",
                           winTitle="pressure @ %g %i" % (control.time(), mpi.procs))
+    hPlot = plotFieldList(h,
+                          plotStyle="linespoints",
+                          winTitle="h @ %g %i" % (control.time(), mpi.procs))
 
     d = state.symTensorFields("tensor damage")
     dPlot = plotFieldList(d,
