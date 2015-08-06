@@ -682,13 +682,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               localDvDxi -= fDeffij*weightj*vij*gradWdamj;
               localDvDxj += fDeffij*weighti*vij*gradWdami;
 
+              // We treat positive and negative pressures distinctly, so split 'em up.
+              const Scalar Pposi = max(0.0, Pi),
+                           Pnegi = min(0.0, Pi),
+                           Pposj = max(0.0, Pj),
+                           Pnegj = min(0.0, Pj);
+
               // // Damage scaling of negative pressures.
               // const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
               // const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
 
               // Compute the stress tensors.
-              SymTensor sigmai = -Pi*SymTensor::one + Si;
-              SymTensor sigmaj = -Pj*SymTensor::one + Sj;
+              SymTensor sigmai = -Pnegi*SymTensor::one + Si;
+              SymTensor sigmaj = -Pnegj*SymTensor::one + Sj;
 
               // // Compute the tensile correction to add to the stress as described in 
               // // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -703,10 +709,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
+              const Vector forceij = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad + ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
+                                                          fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
               // Vector forceij = -0.5*weighti*weightj*(fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam - 
               //                                        ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
-              Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
-                                                     ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+              // Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
+              //                                        ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
@@ -717,10 +725,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              // DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              // DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
-              DepsDti += 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+              // DepsDti += 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
+              // DepsDtj += 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
