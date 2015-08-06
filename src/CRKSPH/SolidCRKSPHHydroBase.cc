@@ -647,12 +647,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
               
               // How different is the damage of these two points?
-              const Scalar Di = damage(nodeListi, i).Trace() / Dimension::nDim;
-              const Scalar Dj = damage(nodeListj, j).Trace() / Dimension::nDim;
-              CHECK(Di >= 0.0 and Di <= 1.0);
-              CHECK(Dj >= 0.0 and Dj <= 1.0);
-              const Scalar Ddisc = 1.0 + 4.0*abs(Di - Dj)*safeInv(Di + Dj);
-              CHECK(Ddisc >= 1.0 and Ddisc <= 3.0);
+              // const Scalar Di = damage(nodeListi, i).Trace() / Dimension::nDim;
+              // const Scalar Dj = damage(nodeListj, j).Trace() / Dimension::nDim;
+              // CHECK(Di >= 0.0 and Di <= 1.0);
+              // CHECK(Dj >= 0.0 and Dj <= 1.0);
+              // const Scalar Ddisc = 1.0 + 8.0*abs(Di - Dj)*safeInv(Di + Dj);
+              const Scalar Ddisc = 1.0; // + damage(nodeListi, i).Trace() + damage(nodeListj, j).Trace();
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
