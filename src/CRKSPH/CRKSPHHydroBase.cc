@@ -1152,7 +1152,9 @@ finalize(const typename Dimension::Scalar time,
     // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
     //      boundaryItr != this->boundaryEnd();
     //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity, NodeCoupling(), false, massDensity);
+    FieldList<Dimension, Scalar> massDensity0(massDensity);
+    massDensity0.copyFields();
+    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, NodeCoupling(), true, massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
