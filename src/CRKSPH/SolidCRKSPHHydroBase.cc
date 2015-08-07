@@ -39,7 +39,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
-#include "SolidSPH/DamagedNodeCoupling.hh"
+#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -133,6 +133,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mShearModulus(FieldSpace::Copy),
   mYieldStrength(FieldSpace::Copy),
   mPlasticStrain0(FieldSpace::Copy),
+  mFragIDs(FieldSpace::Reference),
   mAdamage(FieldSpace::Copy),
   mBdamage(FieldSpace::Copy),
   mGradAdamage(FieldSpace::Copy),
@@ -325,7 +326,8 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, SymTensor> D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
   const FieldList<Dimension, Vector> gradD = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  DamagedNodeCoupling<Dimension> nodeCoupling(D, gradD, H);
+  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  DamagedNodeCouplingWithFrags<Dimension> nodeCoupling(D, gradD, H, fragIDs);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
   FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
@@ -493,7 +495,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
     // Build the functor we use to compute the effective coupling between nodes.
-    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+    DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
     // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
