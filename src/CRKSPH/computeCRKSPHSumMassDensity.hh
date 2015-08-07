@@ -19,19 +19,21 @@ namespace Spheral {
   namespace BoundarySpace {
     template<typename Dimension> class Boundary;
   }
+  class NodeCoupling;
 
   namespace CRKSPHSpace {
 
     template<typename Dimension>
     void
     computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                              const KernelSpace::TableKernel<Dimension>& W,
-                              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                              const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
-                              const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
-                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
+                                const KernelSpace::TableKernel<Dimension>& W,
+                                const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                                const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+                                const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
+                                const NodeCoupling& nodeCoupling,
+                                const bool correctSum,
+                                FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }
 

@@ -8,6 +8,7 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "SolidSPH/NodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -27,13 +28,14 @@ using BoundarySpace::Boundary;
 template<typename Dimension>
 void
 computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
-                          const TableKernel<Dimension>& W,
-                          const FieldList<Dimension, typename Dimension::Vector>& position,
-                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                          const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
-                          const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
-                          FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+                            const TableKernel<Dimension>& W,
+                            const FieldList<Dimension, typename Dimension::Vector>& position,
+                            const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                            const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                            const FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
+                            const NodeCoupling& nodeCoupling,
+                            const bool correctSum,
+                            FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
   const size_t numNodeLists = massDensity.size();
@@ -47,34 +49,13 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
-  // // Compute an effective mass per point.
-  // FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
-  // FieldList<Dimension, Vector> m1(FieldSpace::Copy);
-  // FieldList<Dimension, SymTensor> m2(FieldSpace::Copy);
-  // FieldList<Dimension, Scalar> A0(FieldSpace::Copy);
-  // FieldList<Dimension, Scalar> A(FieldSpace::Copy);
-  // FieldList<Dimension, Vector> B(FieldSpace::Copy);
-  // FieldList<Dimension, Vector> C(FieldSpace::Copy);
-  // FieldList<Dimension, Tensor> D(FieldSpace::Copy);
-  // FieldList<Dimension, Vector> gradA0(FieldSpace::Copy);
-  // FieldList<Dimension, Vector> gradA(FieldSpace::Copy);
-  // FieldList<Dimension, Tensor> gradB(FieldSpace::Copy);
-  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-  //   m0.appendNewField(HydroFieldNames::m0_CRKSPH, position[nodeListi]->nodeList(), 0.0);
-  //   m1.appendNewField(HydroFieldNames::m1_CRKSPH, position[nodeListi]->nodeList(), Vector::zero);
-  //   m2.appendNewField(HydroFieldNames::m2_CRKSPH, position[nodeListi]->nodeList(), SymTensor::zero);
-  //   A0.appendNewField(HydroFieldNames::A0_CRKSPH, position[nodeListi]->nodeList(), 0.0);
-  //   A.appendNewField(HydroFieldNames::A_CRKSPH, position[nodeListi]->nodeList(), 0.0);
-  //   B.appendNewField(HydroFieldNames::B_CRKSPH, position[nodeListi]->nodeList(), Vector::zero);
-  //   C.appendNewField(HydroFieldNames::C_CRKSPH, position[nodeListi]->nodeList(), Vector::zero);
-  //   D.appendNewField(HydroFieldNames::D_CRKSPH, position[nodeListi]->nodeList(), Tensor::zero);
-  //   gradA0.appendNewField(HydroFieldNames::gradA0_CRKSPH, position[nodeListi]->nodeList(), Vector::zero);
-  //   gradA.appendNewField(HydroFieldNames::gradA_CRKSPH, position[nodeListi]->nodeList(), Vector::zero);
-  //   gradB.appendNewField(HydroFieldNames::gradB_CRKSPH, position[nodeListi]->nodeList(), Tensor::zero);
-  // }
-  // computeCRKSPHCorrections(connectivityMap, W, mass, position, H, false, m0, m1, m2,
-  //                        A0, A, B, C, D, gradA0, gradA, gradB);
-  // const FieldList<Dimension, Scalar> mavg = interpolateCRKSPH(mass, position, mass, H, false, A, B, connectivityMap, W);
+  const Scalar W0 = W.kernelValue(0.0, 1.0);
+
+  // Prepare to sum the correction.
+  FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
+  }
 
   // Walk the FluidNodeLists and sum the new mass density.
   massDensity = 0.0;
@@ -94,6 +75,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
+      const Scalar rho0i = massDensity0(nodeListi, i);
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -104,14 +86,18 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
              ++jItr) {
           const int j = *jItr;
 
+          // Check the coupling of these points.
+          const Scalar fij = nodeCoupling(nodeListi, i, nodeListj, j);
+
           // Check if this node pair has already been calculated.
-          if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                       nodeListj, j,
-                                                       firstGhostNodej)) {
+          if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                                     nodeListj, j,
+                                                                     firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
+            const Scalar rho0j = massDensity0(nodeListj, j);
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
@@ -121,16 +107,26 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
-            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Wi;
-            massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Wj;
+            massDensity(nodeListi, i) += fij*mj*Wi;
+            massDensity(nodeListj, j) += fij*mi*Wj;
+            m0(nodeListi, i) += fij*mj/rho0j*Wi;
+            m0(nodeListj, j) += fij*mi/rho0i*Wj;
           }
         }
       }
       
       // Finalize the density for node i.
-      massDensity(nodeListi, i) = max(rhoMin, 
-                                      min(rhoMax,
-                                          massDensity(nodeListi, i) + mi*W.kernelValue(0.0, Hdeti)));
+      if (correctSum) {
+        m0(nodeListi, i) += mi/rho0i*Hdeti*W0;
+        CHECK(m0(nodeListi, i) > 0.0);
+        massDensity(nodeListi, i) = max(rhoMin, 
+                                        min(rhoMax,
+                                            (massDensity(nodeListi, i) + mi*Hdeti*W0)/m0(nodeListi, i)));
+      } else {
+        massDensity(nodeListi, i) = max(rhoMin, 
+                                        min(rhoMax,
+                                            (massDensity(nodeListi, i) + mi*Hdeti*W0)));
+      }
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
