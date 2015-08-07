@@ -173,14 +173,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Set the moduli.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    solidNodeListPtr->bulkModulus(*mBulkModulus[nodeListi]);
-    solidNodeListPtr->shearModulus(*mShearModulus[nodeListi]);
-    solidNodeListPtr->yieldStrength(*mYieldStrength[nodeListi]);
+    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
+    (*itr)->shearModulus(*mShearModulus[nodeListi]);
+    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
 }
 
@@ -215,19 +213,17 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    S.appendField(solidNodeListPtr->deviatoricStress());
-    ps.appendField(solidNodeListPtr->plasticStrain());
-    D.appendField(solidNodeListPtr->effectiveDamage());
-    gradD.appendField(solidNodeListPtr->damageGradient());
-    fragIDs.appendField(solidNodeListPtr->fragmentIDs());
+    S.appendField((*itr)->deviatoricStress());
+    ps.appendField((*itr)->plasticStrain());
+    D.appendField((*itr)->effectiveDamage());
+    gradD.appendField((*itr)->damageGradient());
+    fragIDs.appendField((*itr)->fragmentIDs());
 
     // Make a copy of the beginning plastic strain.
-    *mPlasticStrain0[nodeListi] = solidNodeListPtr->plasticStrain();
+    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
     (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
   }
 
@@ -283,12 +279,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDdeviatoricStressDt);
 
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    derivs.enroll(solidNodeListPtr->plasticStrainRate());
+    CHECK((*itr) != 0);
+    derivs.enroll((*itr)->plasticStrainRate());
   }
 }
 

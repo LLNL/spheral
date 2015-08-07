@@ -235,6 +235,7 @@ del n
 output("db")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
+output("db.numSolidNodeLists")
 
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosities for the problem.

@@ -115,6 +115,7 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldSpace::FieldList<Dimension, int>& fragIDs() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&    Adamage() const;
   const FieldSpace::FieldList<Dimension, Vector>&    Bdamage() const;
@@ -137,6 +138,7 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mShearModulus;
   FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldSpace::FieldList<Dimension, int> mFragIDs;
 
   FieldSpace::FieldList<Dimension, Scalar>    mAdamage;
   FieldSpace::FieldList<Dimension, Vector>    mBdamage;

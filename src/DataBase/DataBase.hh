@@ -16,6 +16,7 @@
 
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
+#include "Strength/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
@@ -48,6 +49,9 @@ public:
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::iterator FluidNodeListIterator;
   typedef typename std::vector<NodeSpace::FluidNodeList<Dimension>*>::const_iterator ConstFluidNodeListIterator;
 
+  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
+  typedef typename std::vector<SolidMaterial::SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
+
   typedef NeighborSpace::ConnectivityMap<Dimension> ConnectivityMapType;
   typedef boost::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   
@@ -67,7 +71,7 @@ public:
   // Number of NodeLists we have in the DataBase.
   int numNodeLists() const;
   int numFluidNodeLists() const;
-//   int numMashNodeLists() const;
+  int numSolidNodeLists() const;
 
   // Numbers of nodes.
   int numInternalNodes() const;
@@ -97,17 +101,17 @@ public:
   ConstNodeListIterator fluidNodeListAsNodeListBegin() const;
   ConstNodeListIterator fluidNodeListAsNodeListEnd() const;
 
-//   MashNodeListIterator mashNodeListBegin();
-//   MashNodeListIterator mashNodeListEnd();
+  SolidNodeListIterator solidNodeListBegin();
+  SolidNodeListIterator solidNodeListEnd();
 
-//   ConstMashNodeListIterator mashNodeListBegin() const;
-//   ConstMashNodeListIterator mashNodeListEnd() const;
+  ConstSolidNodeListIterator solidNodeListBegin() const;
+  ConstSolidNodeListIterator solidNodeListEnd() const;
 
-//   NodeListIterator mashNodeListAsNodeListBegin();
-//   NodeListIterator mashNodeListAsNodeListEnd();
+  NodeListIterator solidNodeListAsNodeListBegin();
+  NodeListIterator solidNodeListAsNodeListEnd();
 
-//   ConstNodeListIterator mashNodeListAsNodeListBegin() const;
-//   ConstNodeListIterator mashNodeListAsNodeListEnd() const;
+  ConstNodeListIterator solidNodeListAsNodeListBegin() const;
+  ConstNodeListIterator solidNodeListAsNodeListEnd() const;
 
   // Provide NodeIterators to go over the elements of NodeLists/FieldLists.
   AllNodeIterator<Dimension> nodeBegin() const;
@@ -158,9 +162,11 @@ public:
   ConnectivityMapPtr connectivityMapPtr(const bool computeGhostConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
+  void appendNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
+  void deleteNodeList(SolidMaterial::SolidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeSpace::NodeList<Dimension>& nodeList);
 
@@ -169,7 +175,7 @@ public:
   // Allow const access to the list of NodeList pointers.
   const std::vector<NodeSpace::NodeList<Dimension>*>& nodeListPtrs() const;
   const std::vector<NodeSpace::FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
-//   const std::vector<NodeSpace::MashNodeList<Dimension>*>& mashNodeListPtrs() const;
+  const std::vector<SolidMaterial::SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
@@ -177,15 +183,11 @@ public:
                           const SymTensor& H) const;
   void setMasterFluidNodeLists(const Vector& position,
                                const SymTensor& H) const;
-//   void setMasterMashNodeLists(const Vector& position,
-//                               const SymTensor& H) const;
 
   void setRefineNodeLists(const Vector& position,
                           const SymTensor& H) const;
   void setRefineFluidNodeLists(const Vector& position,
                                const SymTensor& H) const;
-//   void setRefineMashNodeLists(const Vector& position,
-//                               const SymTensor& H) const;
 
   // Query methods which return "global" fields (FieldLists) for quantities
   // defined over all NodeLists.  These methods all build up FieldLists
@@ -230,6 +232,9 @@ public:
   template<typename DataType>
   FieldSpace::FieldList<Dimension, DataType> newFluidFieldList(const DataType value,
                                                                const typename FieldSpace::Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+  template<typename DataType>
+  FieldSpace::FieldList<Dimension, DataType> newSolidFieldList(const DataType value,
+                                                               const typename FieldSpace::Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
 
   // Resize a FieldList to the number of NodeLists or FluidNodeLists.
   // Optionally we can also set all elements in the FieldList to the specified value.
@@ -242,6 +247,11 @@ public:
                              const bool resetValues = true) const;
   template<typename DataType>
   void resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+                            const DataType value,
+                            const typename FieldSpace::Field<Dimension, DataType>::FieldName name = "Unnamed Field",
+                            const bool resetValues = true) const;
+  template<typename DataType>
+  void resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
                             const DataType value,
                             const typename FieldSpace::Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                             const bool resetValues = true) const;
@@ -284,6 +294,9 @@ private:
 
   std::vector<NodeSpace::FluidNodeList<Dimension>*> mFluidNodeListPtrs;
   std::vector<NodeSpace::NodeList<Dimension>*> mFluidNodeListAsNodeListPtrs;
+
+  std::vector<SolidMaterial::SolidNodeList<Dimension>*> mSolidNodeListPtrs;
+  std::vector<NodeSpace::NodeList<Dimension>*> mSolidNodeListAsNodeListPtrs;
 
   mutable ConnectivityMapPtr mConnectivityMapPtr;
 #endif

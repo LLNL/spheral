@@ -170,16 +170,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mGradAdamage = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
   mGradBdamage = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
 
-  // Set the moduli.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    solidNodeListPtr->bulkModulus(*mBulkModulus[nodeListi]);
-    solidNodeListPtr->shearModulus(*mShearModulus[nodeListi]);
-    solidNodeListPtr->yieldStrength(*mYieldStrength[nodeListi]);
+
+    // Add the NodeList fragment IDs to our local FieldList.
+    mFragIDs.appendField((*itr)->fragmentIDs());
+
+    // Set the moduli.
+    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
+    (*itr)->shearModulus(*mShearModulus[nodeListi]);
+    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
 }
 
@@ -217,21 +219,17 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, SymTensor> S, D;
   FieldList<Dimension, Scalar> ps;
   FieldList<Dimension, Vector> gradD;
-  FieldList<Dimension, int> fragIDs;
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    S.appendField(solidNodeListPtr->deviatoricStress());
-    ps.appendField(solidNodeListPtr->plasticStrain());
-    D.appendField(solidNodeListPtr->effectiveDamage());
-    gradD.appendField(solidNodeListPtr->damageGradient());
-    fragIDs.appendField(solidNodeListPtr->fragmentIDs());
+    S.appendField((*itr)->deviatoricStress());
+    ps.appendField((*itr)->plasticStrain());
+    D.appendField((*itr)->effectiveDamage());
+    gradD.appendField((*itr)->damageGradient());
 
     // Make a copy of the beginning plastic strain.
-    *mPlasticStrain0[nodeListi] = solidNodeListPtr->plasticStrain();
+    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
     (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
   }
 
@@ -259,7 +257,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(gradD);
 
   // Register the fragment IDs.
-  state.enroll(fragIDs);
+  state.enroll(mFragIDs);
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
@@ -528,7 +526,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Tensor& gradBdami = gradBdamage(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
-      const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Ai > 0.0);
@@ -600,7 +597,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
-              const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -920,6 +916,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mShearModulus, pathName + "/shearModulus");
   file.write(mYieldStrength, pathName + "/yieldStrength");
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.write(mFragIDs, pathName + "/fragIDs");
   file.write(mAdamage, pathName + "/Adamage");
   file.write(mBdamage, pathName + "/Bdamage");
   file.write(mGradAdamage, pathName + "/gradAdamage");
@@ -942,6 +939,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mShearModulus, pathName + "/shearModulus");
   file.read(mYieldStrength, pathName + "/yieldStrength");
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
+  file.read(mFragIDs, pathName + "/fragIDs");
   file.read(mAdamage, pathName + "/Adamage");
   file.read(mBdamage, pathName + "/Bdamage");
   file.read(mGradAdamage, pathName + "/gradAdamage");
