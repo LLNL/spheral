@@ -125,7 +125,9 @@ class CRKSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(vector_of_boundary, "boundaries"),
+                                 constrefparam(scalarfieldlist, "massDensity0"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
+                                 param("bool", "correctSum"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)

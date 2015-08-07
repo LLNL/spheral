@@ -13,7 +13,10 @@
 #include "SolidCRKSPHHydroBase.hh"
 #include "CRKSPHHydroBase.hh"
 #include "CRKSPHUtilities.hh"
+#include "volumeSpacing.hh"
 #include "computeCRKSPHCorrections.hh"
+#include "computeCRKSPHSumMassDensity.hh"
+#include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -822,6 +825,245 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }
   // // For now make the localDvDx a simple copy of the total.
   // localDvDx.assignFields(DvDx);
+}
+
+//------------------------------------------------------------------------------
+// Finalize the hydro.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidCRKSPHHydroBase<Dimension>::
+finalize(const typename Dimension::Scalar time,
+         const typename Dimension::Scalar dt,
+         DataBase<Dimension>& dataBase,
+         State<Dimension>& state,
+         StateDerivatives<Dimension>& derivs) {
+
+  // Base class finalization.
+  PhysicsSpace::GenericHydro<Dimension>::finalize(time, dt, dataBase, state, derivs);
+
+  // Depending on the mass density advancement selected, we may want to replace the 
+  // mass density.
+  if (this->densityUpdate() == PhysicsSpace::RigorousSumDensity) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+    const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+    const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    FieldList<Dimension, Scalar> massDensity0(massDensity);
+    massDensity0.copyFields();
+    DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, false, massDensity);
+
+    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
+    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
+    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // } else if (this->densityUpdate() == PhysicsSpace::SumDensity) {
+  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   FieldList<Dimension, Scalar> massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                                               HydroFieldNames::massDensity, 0.0);
+  //   massDensity.assignFields(massDensitySum);
+  }
+
+  // // Add any filtering component to the node movement.
+  // // Note that the FacetedVolumes are in coordinates with the node at the origin already!
+  // if (mfilter > 0.0) {
+  //   const TableKernel<Dimension>& W = this->kernel();
+  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+
+  //   // Find the local hulls.
+  //   FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "faceted volumes");
+  //   FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
+  //   computeHullVolumes(connectivityMap, W.kernelExtent(), position, H, polyvol, vol);
+
+  //   // Displace everyone toward their hull centroids.
+  //   const unsigned numNodeLists = position.size();
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Vector deltai = mfilter*polyvol(nodeListi, i).centroid();
+  //         const Scalar deltamag = deltai.magnitude();
+  //         const Scalar effmag = min(mag0, deltamag);
+  //         position(nodeListi, i) += effmag*deltai.unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
+
+  // // Move toward the hull neighbor centroids.
+  // if (mfilter > 0.0) {
+  //   const TableKernel<Dimension>& W = this->kernel();
+  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   const FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
+  //   const unsigned numNodeLists = mass.size();
+  //   const Scalar W0 = W.kernelValue(0.0, 1.0);
+  //   FieldList<Dimension, Vector> delta = dataBase.newFluidFieldList(Vector::zero, "delta position");
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //          iItr != connectivityMap.end(nodeListi);
+  //          ++iItr) {
+  //       const int i = *iItr;
+  //       const Vector& ri = position(nodeListi, i);
+  //       const Scalar mi = mass(nodeListi, i);
+  //       const Scalar rhoi = massDensity(nodeListi, i);
+  //       const Vector DrhoDxi = DrhoDx(nodeListi, i);
+  //       const SymTensor& Hi = H(nodeListi, i);
+  //       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  //       const FacetedVolume polyvoli = computeNeighborHull(fullConnectivity, 1.0, ri, Hi, position);
+  //       const Vector com = centerOfMass(polyvoli, DrhoDxi);
+  //       delta(nodeListi, i) = mfilter*com;
+  //     }
+  //   }
+
+  //   // Apply the filtering.
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Scalar deltamag = delta(nodeListi, i).magnitude();
+  //         const Scalar effmag = min(mfilter*mag0, deltamag);
+  //         position(nodeListi, i) += effmag*delta(nodeListi, i).unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
+
+  // This form looks for points that are too close based on specific volume.
+  const double filter = this->filter();
+  if (filter > 0.0) {
+    const TableKernel<Dimension>& W = this->kernel();
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    const unsigned numNodeLists = mass.size();
+    const Scalar W0 = W.kernelValue(0.0, 1.0);
+    FieldList<Dimension, Vector> deltar = dataBase.newFluidFieldList(Vector::zero, "delta position");
+    FieldList<Dimension, Scalar> deltav = dataBase.newFluidFieldList(0.0, "delta velocity");
+    FieldList<Dimension, Scalar> weightsum = dataBase.newFluidFieldList(0.0, "delta velocity weight sum");
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+           iItr != connectivityMap.end(nodeListi);
+           ++iItr) {
+        const int i = *iItr;
+        const Vector& ri = position(nodeListi, i);
+        const Vector& vi = velocity(nodeListi, i);
+        const Scalar mi = mass(nodeListi, i);
+        const Scalar rhoi = massDensity(nodeListi, i);
+        const SymTensor& Hi = H(nodeListi, i);
+        const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+        for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (typename vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+               jItr != fullConnectivity[nodeListj].end();
+               ++jItr) {
+            const unsigned j = *jItr;
+            const Vector& rj = position(nodeListj, j);
+            const Vector& vj = velocity(nodeListj, j);
+            const Scalar mj = mass(nodeListj, j);
+            const Scalar rhoj = massDensity(nodeListj, j);
+            const Vector rji = rj - ri;
+            const Vector rjihat = rji.unitVector();
+            const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
+            // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
+            // deltar(nodeListi, i) -= deltai*rjihat;
+            const Scalar etai = (Hi*rji).magnitude();
+            const Scalar weight = W.kernelValue(etai, 1.0)/W0 * (vj - vi).magnitude();
+            deltar(nodeListi, i) -= weight*deltai*rjihat;
+            weightsum(nodeListi, i) += weight;
+            deltav(nodeListi, i) += weight*(vj - vi).magnitude();
+          }
+        }
+      }
+    }
+
+    // Apply the filtering.
+    const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+    for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+      const unsigned n = position[nodeListi]->numInternalElements();
+      for (unsigned i = 0; i != n; ++i) {
+        // const Scalar hi = 1.0/(H(nodeListi, i).eigenValues().maxElement());
+        // const Scalar mag0 = DvDx(nodeListi, i).eigenValues().maxAbsElement()*hi*dt;
+        // const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+        const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
+        if (mag0 > 0.0) {
+          const Scalar deltamag = deltar(nodeListi, i).magnitude();
+          const Scalar effmag = filter*deltamag;
+          // const Scalar effmag = filter*min(mag0, deltamag);
+          position(nodeListi, i) += effmag*deltar(nodeListi, i).unitVector();
+        }
+      }
+    }
+
+    // Check for any boundary violations.
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+    this->enforceBoundaries(state, derivs);
+  }
+
+  // // This form looks uses Voronoi centroids.
+  // if (mfilter > 0.0) {
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //   const FieldList<Dimension, Vector> centroids = computeVoronoiCentroids(position);
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   const unsigned numNodeLists = position.size();
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       if (mag0 > 0.0) {
+  //         const Vector delta = centroids(nodeListi, i) - position(nodeListi, i);
+  //         const Scalar deltamag = delta.magnitude();
+  //         const Scalar effmag = mfilter*min(mfilter*mag0, deltamag);
+  //         position(nodeListi, i) += effmag*delta.unitVector();
+  //       }
+  //     }
+  //   }
+
+  //   // Check for any boundary violations.
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
+  //   this->enforceBoundaries(state, derivs);
+  // }
+
 }
 
 //------------------------------------------------------------------------------
