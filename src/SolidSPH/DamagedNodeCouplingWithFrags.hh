@@ -17,7 +17,7 @@
 namespace Spheral {
 
 template<typename Dimension>
-class DamagedNodeCouplingWighFrags: public DamagedNodeCoupling<Dimension> {
+class DamagedNodeCouplingWithFrags: public DamagedNodeCoupling<Dimension> {
 public:
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
