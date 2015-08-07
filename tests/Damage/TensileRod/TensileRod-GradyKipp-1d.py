@@ -371,9 +371,14 @@ if restoreCycle is None:
     if initialBreakRadius > 0.0:
         pos = nodes.positions()
         D = nodes.damage()
+        fragIDs = nodes.fragmentIDs()
         for i in xrange(nodes.numInternalNodes):
             if abs(pos[i].x) < initialBreakRadius:
                 D[i] = SymTensor.one
+            if pos[i].x < 0.0:
+                fragIDs[i] = 1
+            else:
+                fragIDs[i] = 2
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -634,6 +639,9 @@ if graphics:
     eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
                                plotStyle = "linespoints",
                                winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
+    fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
+                             plotStyle = "linespoints",
+                             winTitle = "Fragments @  %g %i" % (control.time(), mpi.procs))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
