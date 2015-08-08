@@ -12,7 +12,7 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 
 title("1-D integrated hydro test -- planar Noh problem")
@@ -36,6 +36,8 @@ commandLine(KernelConstructor = BSplineKernel,
 
             gamma = 5.0/3.0,
             mu = 1.0,
+
+            solid = False,    # If true, use the fluid limit of the solid hydro option
 
             SVPH = False,
             CRKSPH = False,
@@ -130,10 +132,16 @@ commandLine(KernelConstructor = BSplineKernel,
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
+    if solid:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SPHHydro
+    if solid:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
@@ -158,6 +166,7 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
+strength = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -170,11 +179,19 @@ output("WTPi")
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           NeighborType = NeighborType)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               NeighborType = NeighborType)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               NeighborType = NeighborType)
+    
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
