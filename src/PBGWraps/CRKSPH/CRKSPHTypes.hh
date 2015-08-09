@@ -6,6 +6,7 @@
 #include "CRKSPH/CRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
+#include "CRKSPH/computeSolidCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeHullSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/centerOfMass.hh"

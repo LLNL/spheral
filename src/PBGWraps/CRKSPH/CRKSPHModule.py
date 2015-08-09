@@ -125,12 +125,22 @@ class CRKSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 refparam(scalarfieldlist, "massDensity")],
+                                template_parameters = [dim],
+                                custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
+
+        self.space.add_function("computeSolidCRKSPHSumMassDensity", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "massDensity0"),
                                  constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
                                  param("bool", "correctSum"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
-                                custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
+                                custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
         # Hull sum density.
         self.space.add_function("computeHullSumMassDensity", None,
