@@ -108,10 +108,10 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
             // Sum the pair-wise contributions.
             const Scalar Wij = 0.5*(Wi + Wj);
-            massDensity(nodeListi, i) += fij*mj*Wij;
-            massDensity(nodeListj, j) += fij*mi*Wij;
-            m0(nodeListi, i) += fij*mj/rho0j*Wij;
-            m0(nodeListj, j) += fij*mi/rho0i*Wij;
+            massDensity(nodeListi, i) += fij*mi*Wj;
+            massDensity(nodeListj, j) += fij*mj*Wi;
+            m0(nodeListi, i) += fij*mi/rho0i*Wj;
+            m0(nodeListj, j) += fij*mj/rho0j*Wi;
           }
         }
       }
