@@ -157,7 +157,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         CHECK(gradA.size() == numNodeLists);
         CHECK(gradB.size() == numNodeLists);
         
-        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, gradA, gradB, connectivityMap, W);
+        gradP = gradientCRKSPH(pressure, position, mass, H, A, B, gradA, gradB, connectivityMap, W, NodeCoupling());
     }
     else { gradP = gradient(pressure,position,mass,mass,massDensity,H,W); }
     

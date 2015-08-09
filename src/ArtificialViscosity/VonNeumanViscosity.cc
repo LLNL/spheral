@@ -86,15 +86,16 @@ initialize(const DataBase<Dimension>& dataBase,
 
   // Get the fluid velocity gradient.
   const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
-                                                                                position,
-                                                                                vol,
-                                                                                H,
-                                                                                A,
-                                                                                B,
-                                                                                gradA,
-                                                                                gradB,
-                                                                                connectivityMap,
-                                                                                W);
+                                                                                    position,
+                                                                                    vol,
+                                                                                    H,
+                                                                                    A,
+                                                                                    B,
+                                                                                    gradA,
+                                                                                    gradB,
+                                                                                    connectivityMap,
+                                                                                    W,
+                                                                                    NodeCoupling());
 
   // Set the viscous energy for each fluid node.
   const Scalar Cl = this->Cl();

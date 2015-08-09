@@ -7,6 +7,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
+#include "SolidSPH/NodeCoupling.hh"
 #include "CRKSPHUtilities.hh"
 
 namespace Spheral {
@@ -26,14 +27,14 @@ using NodeSpace::NodeList;
 template<typename Dimension, typename DataType>
 FieldSpace::FieldList<Dimension, DataType>
 interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
-                const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
-                const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                const bool coupleNodeLists,
-                const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
-                const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
-                const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                const KernelSpace::TableKernel<Dimension>& W) {
+                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                  const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+                  const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                  const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+                  const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                  const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const KernelSpace::TableKernel<Dimension>& W,
+                  const NodeCoupling& nodeCoupling) {
 
   // Pre-conditions.
   const size_t numNodeLists = fieldList.size();
@@ -69,7 +70,6 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Scalar wi = weight(nodeListi, i);
       const Vector& ri = position(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -80,7 +80,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
       // Add our self-contribution.
       const Scalar W0 = W.kernelValue(0.0, Hdeti);
-      resulti += wi*Fi*W0*Ai;
+      resulti += weight(nodeListi, i)*Fi*W0*Ai;
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -88,50 +88,54 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
 
       // Walk the neighbor nodeLists.
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        if (coupleNodeLists or (nodeListi == nodeListj)) {
       
-          // Connectivity of this node with this NodeList.  We only need to proceed if
-          // there are some nodes in this list.
-          const vector<int>& connectivity = fullConnectivity[nodeListj];
-          if (connectivity.size() > 0) {
-            const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
+        // Connectivity of this node with this NodeList.  We only need to proceed if
+        // there are some nodes in this list.
+        const vector<int>& connectivity = fullConnectivity[nodeListj];
+        if (connectivity.size() > 0) {
+          const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
 
-            // Loop over the neighbors.
+          // Loop over the neighbors.
 #pragma vector always
-            for (vector<int>::const_iterator jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const int j = *jItr;
+          for (vector<int>::const_iterator jItr = connectivity.begin();
+               jItr != connectivity.end();
+               ++jItr) {
+            const int j = *jItr;
 
-              // Only proceed if this node pair has not been calculated yet.
-              if (connectivityMap.calculatePairInteraction(nodeListi, i, 
-                                                           nodeListj, j,
-                                                           firstGhostNodej)) {
+            // The coupling between these nodes.
+            const double fij = nodeCoupling(nodeListi, i, nodeListj, j);
 
-                // Get the state for node j.
-                const Scalar wj = weight(nodeListj, j);
-                const Vector& rj = position(nodeListj, j);
-                const SymTensor& Hj = H(nodeListj, j);
-                const Scalar Hdetj = Hj.Determinant();
-                const Scalar& Aj = A(nodeListj, j);
-                const Vector& Bj = B(nodeListj, j);
-                const DataType& Fj = fieldList(nodeListj, j);
-                DataType& resultj = result(nodeListj, j);
+            // Only proceed if this node pair has not been calculated yet.
+            if (fij > 0.0 and connectivityMap.calculatePairInteraction(nodeListi, i, 
+                                                                       nodeListj, j,
+                                                                       firstGhostNodej)) {
 
-                // Node displacement.
-                const Vector rij = ri - rj;
-                const Vector etai = Hi*rij;
-                const Vector etaj = Hj*rij;
+              // The pair-wise modified weighting.
+              const Scalar wi = fij*weight(nodeListi, i);
+              const Scalar wj = fij*weight(nodeListj, j);
 
-                // Kernel weight.
-                const Scalar Wj = CRKSPHKernel(W,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi);
-                const Scalar Wi = CRKSPHKernel(W, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj);
+              // Get the state for node j.
+              const Vector& rj = position(nodeListj, j);
+              const SymTensor& Hj = H(nodeListj, j);
+              const Scalar Hdetj = Hj.Determinant();
+              const Scalar& Aj = A(nodeListj, j);
+              const Vector& Bj = B(nodeListj, j);
+              const DataType& Fj = fieldList(nodeListj, j);
+              DataType& resultj = result(nodeListj, j);
 
-                // Increment the pair-wise values.
-                resulti += wj*Fj*Wj;
-                resultj += wi*Fi*Wi;
+              // Node displacement.
+              const Vector rij = ri - rj;
+              const Vector etai = Hi*rij;
+              const Vector etaj = Hj*rij;
 
-              }
+              // Kernel weight.
+              const Scalar Wj = CRKSPHKernel(W,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi);
+              const Scalar Wi = CRKSPHKernel(W, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj);
+
+              // Increment the pair-wise values.
+              resulti += wj*Fj*Wj;
+              resultj += wi*Fi*Wi;
+
             }
           }
         }

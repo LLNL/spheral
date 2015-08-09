@@ -1,9 +1,7 @@
 //------------------------------------------------------------------------------
 // Compute the CRKSPH mass density summation.
 //------------------------------------------------------------------------------
-
 #include "computeCRKSPHSumMassDensity.hh"
-#include "computeCRKSPHCorrections.hh"
 #include "interpolateCRKSPH.hh"
 #include "CRKSPHUtilities.hh"
 #include "Field/FieldList.hh"
@@ -25,7 +23,6 @@ using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
-using BoundarySpace::Boundary;
 
 template<typename Dimension>
 void
@@ -34,8 +31,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                           const FieldList<Dimension, typename Dimension::Vector>& position,
                           const FieldList<Dimension, typename Dimension::Scalar>& mass,
                           const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                          const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
-                          const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
                           FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -48,7 +43,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   // // Compute an effective mass per point.
   // FieldList<Dimension, Scalar> m0(FieldSpace::Copy);

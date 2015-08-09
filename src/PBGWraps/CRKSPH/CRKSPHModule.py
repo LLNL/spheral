@@ -125,10 +125,22 @@ class CRKSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
+
+        self.space.add_function("computeSolidCRKSPHSumMassDensity", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(scalarfieldlist, "mass"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(scalarfieldlist, "massDensity0"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
+                                 param("bool", "correctSum"),
+                                 refparam(scalarfieldlist, "massDensity")],
+                                template_parameters = [dim],
+                                custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
         # Hull sum density.
         self.space.add_function("computeHullSumMassDensity", None,
@@ -148,119 +160,90 @@ class CRKSPH:
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "damage"),
-                                 param("bool", "coupleNodeLists"),
-                                 refparam(scalarfieldlist, "m0"),
-                                 refparam(vectorfieldlist, "m1"),
-                                 refparam(symtensorfieldlist, "m2"),
-                                 refparam(scalarfieldlist, "A0"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
-                                 refparam(vectorfieldlist, "gradA0"),
+                                 refparam(vectorfieldlist, "gradA"),
+                                 refparam(tensorfieldlist, "gradB")],
+                                template_parameters = [dim],
+                                custom_name = "computeCRKSPHCorrections%id" % ndim)
+        self.space.add_function("computeCRKSPHCorrections", None,
+                                [constrefparam(connectivitymap, "connectivityMap"),
+                                 constrefparam(tablekernel, "W"),
+                                 constrefparam(scalarfieldlist, "weight"),
+                                 constrefparam(vectorfieldlist, "position"),
+                                 constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
+                                 refparam(scalarfieldlist, "A"),
+                                 refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "gradA"),
                                  refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
 
-        # CRKSPH Scalar interpolation.
-        self.space.add_function("interpolateCRKSPH", scalarfieldlist,
-                                [constrefparam(scalarfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 param("bool", "coupleNodeLists"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, "double"],
-                                custom_name = "interpolateCRKSPH")
+        # CRKSPH interpolation.
+        for (fl, element) in ((scalarfieldlist, "double"),
+                              (vectorfieldlist, vector),
+                              (tensorfieldlist, tensor),
+                              (symtensorfieldlist, symtensor),
+                              (thirdranktensorfieldlist, thirdranktensor)):
+            self.space.add_function("interpolateCRKSPH", fl,
+                                    [constrefparam(fl, "fieldList"),
+                                     constrefparam(vectorfieldlist, "position"),
+                                     constrefparam(scalarfieldlist, "weight"),
+                                     constrefparam(symtensorfieldlist, "H"),
+                                     constrefparam(scalarfieldlist, "A"),
+                                     constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(connectivitymap, "connectivityMap"),
+                                     constrefparam(tablekernel, "W")],
+                                    template_parameters = [dim, element],
+                                    custom_name = "interpolateCRKSPH",
+                                    docstring = "interpolateCRKSPH: returns the CRK interpolations of the input FieldList (assumes full coupling between nodes).")
+            self.space.add_function("interpolateCRKSPH", fl,
+                                    [constrefparam(fl, "fieldList"),
+                                     constrefparam(vectorfieldlist, "position"),
+                                     constrefparam(scalarfieldlist, "weight"),
+                                     constrefparam(symtensorfieldlist, "H"),
+                                     constrefparam(scalarfieldlist, "A"),
+                                     constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(connectivitymap, "connectivityMap"),
+                                     constrefparam(tablekernel, "W"),
+                                     constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
+                                    template_parameters = [dim, element],
+                                    custom_name = "interpolateCRKSPH",
+                                    docstring = "interpolateCRKSPH: returns the CRK interpolations of the input FieldList.")
 
-        # CRKSPH Vector interpolation.
-        self.space.add_function("interpolateCRKSPH", vectorfieldlist,
-                                [constrefparam(vectorfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 param("bool", "coupleNodeLists"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, vector],
-                                custom_name = "interpolateCRKSPH")
-
-        # CRKSPH Tensor interpolation.
-        self.space.add_function("interpolateCRKSPH", tensorfieldlist,
-                                [constrefparam(tensorfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 param("bool", "coupleNodeLists"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, tensor],
-                                custom_name = "interpolateCRKSPH")
-
-        # CRKSPH SymTensor interpolation.
-        self.space.add_function("interpolateCRKSPH", symtensorfieldlist,
-                                [constrefparam(symtensorfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 param("bool", "coupleNodeLists"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, symtensor],
-                                custom_name = "interpolateCRKSPH")
-
-        # CRKSPH ThirdRankTensor interpolation.
-        self.space.add_function("interpolateCRKSPH", thirdranktensorfieldlist,
-                                [constrefparam(thirdranktensorfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 param("bool", "coupleNodeLists"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, thirdranktensor],
-                                custom_name = "interpolateCRKSPH")
-
-        # CRKSPH Scalar gradient.
-        self.space.add_function("gradientCRKSPH", vectorfieldlist,
-                                [constrefparam(scalarfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(vectorfieldlist, "gradA"),
-                                 constrefparam(tensorfieldlist, "gradB"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, "double"],
-                                custom_name = "gradientCRKSPH")
-
-        # CRKSPH Vector gradient.
-        self.space.add_function("gradientCRKSPH", tensorfieldlist,
-                                [constrefparam(vectorfieldlist, "fieldList"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "weight"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam(scalarfieldlist, "A"),
-                                 constrefparam(vectorfieldlist, "B"),
-                                 constrefparam(vectorfieldlist, "gradA"),
-                                 constrefparam(tensorfieldlist, "gradB"),
-                                 constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W")],
-                                template_parameters = [dim, vector],
-                                custom_name = "gradientCRKSPH")
+        # CRDSPH gradient.
+        for (fl, result, element) in ((scalarfieldlist, vectorfieldlist, "double"),
+                                      (vectorfieldlist, tensorfieldlist, vector)):
+            self.space.add_function("gradientCRKSPH", result,
+                                    [constrefparam(fl, "fieldList"),
+                                     constrefparam(vectorfieldlist, "position"),
+                                     constrefparam(scalarfieldlist, "weight"),
+                                     constrefparam(symtensorfieldlist, "H"),
+                                     constrefparam(scalarfieldlist, "A"),
+                                     constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(vectorfieldlist, "gradA"),
+                                     constrefparam(tensorfieldlist, "gradB"),
+                                     constrefparam(connectivitymap, "connectivityMap"),
+                                     constrefparam(tablekernel, "W")],
+                                    template_parameters = [dim, element],
+                                    custom_name = "gradientCRKSPH",
+                                    docstring = "Return the CRK gradient of the input FieldList (assumes full coupling between nodes).")
+            self.space.add_function("gradientCRKSPH", result,
+                                    [constrefparam(fl, "fieldList"),
+                                     constrefparam(vectorfieldlist, "position"),
+                                     constrefparam(scalarfieldlist, "weight"),
+                                     constrefparam(symtensorfieldlist, "H"),
+                                     constrefparam(scalarfieldlist, "A"),
+                                     constrefparam(vectorfieldlist, "B"),
+                                     constrefparam(vectorfieldlist, "gradA"),
+                                     constrefparam(tensorfieldlist, "gradB"),
+                                     constrefparam(connectivitymap, "connectivityMap"),
+                                     constrefparam(tablekernel, "W"),
+                                     constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
+                                    template_parameters = [dim, element],
+                                    custom_name = "gradientCRKSPH",
+                                    docstring = "Return the CRK gradient of the input FieldList.")
 
         # Center of mass with linear density gradient.
         self.space.add_function("centerOfMass", vector,
@@ -438,10 +421,6 @@ class CRKSPH:
         const_ref_return_value(x, me, "%s::DmassDensityDx" % me, vectorfieldlist, [], "DmassDensityDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
 
-        const_ref_return_value(x, me, "%s::m0" % me, scalarfieldlist, [], "m0")
-        const_ref_return_value(x, me, "%s::m1" % me, vectorfieldlist, [], "m1")
-        const_ref_return_value(x, me, "%s::m2" % me, symtensorfieldlist, [], "m2")
-        const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
@@ -508,5 +487,11 @@ class CRKSPH:
                            param("HEvolutionType", "HUpdate", default_value="Spheral::PhysicsSpace::IdealH"),
                            param("double", "epsTensile", default_value="0.0"),
                            param("double", "nTensile", default_value="4.0")])
+
+        # Attributes.
+        const_ref_return_value(x, me, "%s::Adamage" % me, scalarfieldlist, [], "Adamage")
+        const_ref_return_value(x, me, "%s::Bdamage" % me, vectorfieldlist, [], "Bdamage")
+        const_ref_return_value(x, me, "%s::gradAdamage" % me, vectorfieldlist, [], "gradAdamage")
+        const_ref_return_value(x, me, "%s::gradBdamage" % me, tensorfieldlist, [], "gradBdamage")
 
         return

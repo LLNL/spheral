@@ -37,6 +37,7 @@ using boost::shared_ptr;
 
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
+using SolidMaterial::SolidNodeList;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using KernelSpace::TableKernel;
@@ -51,6 +52,8 @@ DataBase<Dimension>::DataBase():
   mNodeListPtrs(0),
   mFluidNodeListPtrs(0),
   mFluidNodeListAsNodeListPtrs(0),
+  mSolidNodeListPtrs(0),
+  mSolidNodeListAsNodeListPtrs(0),
   mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
 }
 
@@ -73,6 +76,8 @@ operator=(const DataBase<Dimension>& rhs) {
     mNodeListPtrs = rhs.mNodeListPtrs;
     mFluidNodeListPtrs = rhs.mFluidNodeListPtrs;
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
+    mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
+    mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
     mConnectivityMapPtr = boost::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
@@ -449,6 +454,44 @@ patchConnectivityMap(const FieldList<Dimension, int>& flags,
 //------------------------------------------------------------------------------
 // Add a NodeList to this DataBase.
 //------------------------------------------------------------------------------
+// SolidNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+appendNodeList(SolidNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (haveNodeList(nodeList)) {
+    cerr << "DataBase::appendNodeList() Warning: attempt to add SolidNodeList "
+         << &nodeList << " to DataBase " << this
+         << ", which already has it." << endl;
+  } else {
+    const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
+    NodeListIterator orderItr = nlr.findInsertionPoint((NodeList<Dimension>*) &nodeList,
+                                                       nodeListBegin(),
+                                                       nodeListEnd());
+    mNodeListPtrs.insert(orderItr, &nodeList);
+
+    SolidNodeListIterator solidOrderItr = nlr.findInsertionPoint(&nodeList,
+                                                                 solidNodeListBegin(),
+                                                                 solidNodeListEnd());
+    size_t delta = distance(solidNodeListBegin(), solidOrderItr);
+    mSolidNodeListPtrs.insert(solidOrderItr, &nodeList);
+    mSolidNodeListAsNodeListPtrs.insert(solidNodeListAsNodeListBegin() + delta,
+                                        &nodeList);
+
+    FluidNodeListIterator fluidOrderItr = nlr.findInsertionPoint(&nodeList,
+                                                                 fluidNodeListBegin(),
+                                                                 fluidNodeListEnd());
+    delta = distance(fluidNodeListBegin(), fluidOrderItr);
+    mFluidNodeListPtrs.insert(fluidOrderItr, &nodeList);
+    mFluidNodeListAsNodeListPtrs.insert(fluidNodeListAsNodeListBegin() + delta,
+                                        &nodeList);
+
+  }
+  ENSURE(valid());
+}
+
+// FluidNodeList
 template<typename Dimension>
 void
 DataBase<Dimension>::
@@ -476,6 +519,7 @@ appendNodeList(FluidNodeList<Dimension>& nodeList) {
   ENSURE(valid());
 }
 
+// NodeList
 template<typename Dimension>
 void
 DataBase<Dimension>::
@@ -498,6 +542,51 @@ appendNodeList(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 // Delete a NodeList from this DataBase.
 //------------------------------------------------------------------------------
+// SolidNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+deleteNodeList(SolidNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (!haveNodeList(nodeList)) {
+    cerr << "DataBase::deleteNodeList() Warning: attempt to remove SolidNodeList "
+         << &nodeList << " from DataBase " << this
+         << ", which does not have it." << endl;
+  } else {
+    // Erase from the NodeList vector.
+    NodeListIterator nodeListItr = find(nodeListBegin(), nodeListEnd(),
+                                        &nodeList);
+    CHECK(nodeListItr != nodeListEnd());
+    mNodeListPtrs.erase(nodeListItr);
+
+    // Erase from the SolidNodeList vector.
+    SolidNodeListIterator solidItr = find(solidNodeListBegin(), solidNodeListEnd(), &nodeList);
+    CHECK(solidItr != solidNodeListEnd());
+    mSolidNodeListPtrs.erase(solidItr);
+
+    // Erase from the SolidNodeListAsNodeList vector.
+    nodeListItr = find(solidNodeListAsNodeListBegin(),
+                       solidNodeListAsNodeListEnd(),
+                       &nodeList);
+    CHECK(nodeListItr != solidNodeListAsNodeListEnd());
+    mSolidNodeListAsNodeListPtrs.erase(nodeListItr);
+
+    // Erase from the FluidNodeList vector.
+    FluidNodeListIterator fluidItr = find(fluidNodeListBegin(), fluidNodeListEnd(), &nodeList);
+    CHECK(fluidItr != fluidNodeListEnd());
+    mFluidNodeListPtrs.erase(fluidItr);
+
+    // Erase from the FluidNodeListAsNodeList vector.
+    nodeListItr = find(fluidNodeListAsNodeListBegin(),
+                       fluidNodeListAsNodeListEnd(),
+                       &nodeList);
+    CHECK(nodeListItr != fluidNodeListAsNodeListEnd());
+    mFluidNodeListAsNodeListPtrs.erase(nodeListItr);
+  }
+  ENSURE(valid());
+}
+
+// FluidNodeList
 template<typename Dimension>
 void
 DataBase<Dimension>::
@@ -529,6 +618,7 @@ deleteNodeList(FluidNodeList<Dimension>& nodeList) {
   ENSURE(valid());
 }
 
+// NodeList
 template<typename Dimension>
 void
 DataBase<Dimension>::
@@ -577,6 +667,15 @@ template<typename Dimension>
 const vector<FluidNodeList<Dimension>*>&
 DataBase<Dimension>::fluidNodeListPtrs() const {
   return mFluidNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of SolidNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<SolidNodeList<Dimension>*>&
+DataBase<Dimension>::solidNodeListPtrs() const {
+  return mSolidNodeListPtrs;
 }
 
 //------------------------------------------------------------------------------
@@ -1384,6 +1483,23 @@ DataBase<Dimension>::valid() const {
     ++fluidNodeItr;
   }
 
+  // Verify that all SolidNodeLists are listed in the NodeList array.
+  ConstSolidNodeListIterator solidNodeItr = solidNodeListBegin();
+  while (ok && solidNodeItr < solidNodeListEnd()) {
+    ok = haveNodeList(dynamic_cast<const NodeList<Dimension>&>(**solidNodeItr));
+    ++solidNodeItr;
+  }
+
+  // Verify that all SolidNodeLists are listed in the SolidNodeListAsNodeList
+  // array.
+  solidNodeItr = solidNodeListBegin();
+  while (ok && solidNodeItr < solidNodeListEnd()) {
+    ok = find(mSolidNodeListAsNodeListPtrs.begin(),
+              mSolidNodeListAsNodeListPtrs.end(),
+              *solidNodeItr) != mSolidNodeListAsNodeListPtrs.end();
+    ++solidNodeItr;
+  }
+
   // Verify that the NodeLists are listed in the proper order.
   const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
   if (ok) {
@@ -1419,6 +1535,30 @@ DataBase<Dimension>::valid() const {
       ++itr;
     }
     ok = (itr == fluidNodeListAsNodeListEnd());
+  }
+
+  // Verify that the SolidNodeLists are listed in the proper order.
+  if (ok) {
+    typename NodeListRegistrar<Dimension>::const_iterator checkItr = nlr.begin();
+    ConstSolidNodeListIterator itr = solidNodeListBegin();
+    while (itr != solidNodeListEnd()) {
+      while (checkItr != nlr.end() && *checkItr != dynamic_cast<NodeList<Dimension>*>(*itr))
+        ++checkItr;
+      ++itr;
+    }
+    ok = (itr == solidNodeListEnd());
+  }
+
+  // Verify that the SolidNodeListsAsNodeLists are listed in the proper order.
+  if (ok) {
+    typename NodeListRegistrar<Dimension>::const_iterator checkItr = nlr.begin();
+    ConstNodeListIterator itr = solidNodeListAsNodeListBegin();
+    while (itr != solidNodeListAsNodeListEnd()) {
+      while (checkItr != nlr.end() && *checkItr != *itr)
+        ++checkItr;
+      ++itr;
+    }
+    ok = (itr == solidNodeListAsNodeListEnd());
   }
 
   return ok;

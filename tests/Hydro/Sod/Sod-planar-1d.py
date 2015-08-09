@@ -1,3 +1,5 @@
+#ATS:t1 = test(      SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with CRK -- 1-D (serial)")
+#ATS:t2 = testif(t1, SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Sod problem with CRK -- 1-D (serial) RESTART CHECK")
 import os, sys
 import shutil
 from SolidSpheral1d import *
@@ -83,6 +85,7 @@ commandLine(nx1 = 400,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
             outputFile = "None",
+            checkRestart = False,
 
             graphics = True,
             )
@@ -386,6 +389,18 @@ if useRefinement:
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
+
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
+
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()

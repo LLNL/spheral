@@ -1,9 +1,7 @@
 //------------------------------------------------------------------------------
 // Compute the Hull mass density summation.
 //------------------------------------------------------------------------------
-
 #include "computeHullSumMassDensity.hh"
-#include "computeCRKSPHCorrections.hh"
 #include "CRKSPHUtilities.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"

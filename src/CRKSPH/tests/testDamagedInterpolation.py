@@ -27,6 +27,9 @@ commandLine(
     hmin = 0.0001, 
     hmax = 10.0,
 
+    # Radius to damage nodes in.
+    breakRadius = 0.04,
+
     # Should we randomly perturb the positions?
     ranfrac = 0.2,
     seed = 14892042,
@@ -202,6 +205,43 @@ if iterateH:
                   Htolerance)
 
 #-------------------------------------------------------------------------------
+# Create the damage field.
+#-------------------------------------------------------------------------------
+D_fl = db.newFluidSymTensorFieldList(SymTensor.one * 0.01, "D")
+D = D_fl[0]
+pos = nodes1.positions()
+for i in xrange(nodes1.numInternalNodes):
+    if abs(pos[i].x - x1) < breakRadius:
+        D[i] = SymTensor.one
+
+# For now we'll use a zero damage gradient.
+# gradD_fl = db.newFluidVectorFieldList(Vector.zero, "grad D")
+
+#-------------------------------------------------------------------------------
+# Find the gradient of the damage using the simpler SPH definition.
+#-------------------------------------------------------------------------------
+Dt_fl = db.newFluidScalarFieldList(0.0, "damage trace")
+Dt = Dt_fl[0]
+
+db.updateConnectivityMap(True)
+cm = db.connectivityMap()
+position_fl = db.fluidPosition
+H_fl = db.fluidHfield
+mass_fl = db.fluidMass
+rho_fl = db.fluidMassDensity
+weight_fl = db.newFluidScalarFieldList(0.0, "weight")
+weight = weight_fl[0]
+mass = mass_fl[0]
+rho = rho_fl[0]
+
+for i in xrange(nodes1.numInternalNodes):
+    weight[i] = mass[i]/rho[i]
+    Dt[i] = D[i].Trace()
+
+gradD_fl = gradient(Dt_fl, position_fl, weight_fl, mass_fl, rho_fl, H_fl, WT)
+gradD_fl[0].name = "grad D"
+
+#-------------------------------------------------------------------------------
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
@@ -220,27 +260,13 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Prepare variables to accumulate the test values.
 #-------------------------------------------------------------------------------
-fSPH = ScalarField("SPH interpolated values", nodes1)
-fCRKSPH = ScalarField("CRKSPH interpolated values", nodes1)
-dfSPH = VectorField("SPH derivative values", nodes1)
-dfCRKSPH = VectorField("CRKSPH derivative values", nodes1)
-
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 
-db.updateConnectivityMap(True)
-cm = db.connectivityMap()
-position_fl = db.fluidPosition
-weight_fl = db.fluidMass
-H_fl = db.fluidHfield
-
-# Compute the volumes to use as weighting.
-polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
-#weight_fl = db.newFluidScalarFieldList(1.0, "volume")
-#computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, 
+couple = DamagedNodeCoupling(D_fl, gradD_fl, H_fl)
+computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, couple,
                          A_fl, B_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
@@ -253,85 +279,17 @@ gradA = gradA_fl[0]
 gradB = gradB_fl[0]
 
 #-------------------------------------------------------------------------------
-# Measure the interpolated values and gradients.
-#-------------------------------------------------------------------------------
-for i in xrange(nodes1.numInternalNodes):
-    ri = positions[i]
-    Hi = H[i]
-    Hdeti = H[i].Determinant()
-    wi = weight[i]
-    Ai = A[i]
-    Bi = B[i]
-    gradAi = gradA[i]
-    gradBi = gradB[i]
-    fi = f[i]
-
-    # Self contribution.
-    W0 = WT.kernelValue(0.0, Hdeti)
-    fSPH[i] = wi*W0 * fi
-    fCRKSPH[i] = wi*W0*Ai * fi
-    dfCRKSPH[i] = fi * wi*(Ai*Bi*W0 +
-                         gradAi*W0)
-
-    # Go over them neighbors.
-    neighbors = cm.connectivityForNode(nodes1, i)
-    assert len(neighbors) == 1
-    for j in neighbors[0]:
-        rj = positions[j]
-        Hj = H[j]
-        Hdetj = H[j].Determinant()
-        wj = weight[j]
-        Aj = A[j]
-        Bj = B[j]
-        fj = f[j]
-
-        # The standard SPH kernel and it's gradient.
-        rij = ri - rj
-        etai = Hi*rij
-        etaj = Hj*rij
-        Wj = WT.kernelValue(etaj.magnitude(), Hdetj)
-        gradWj = Hj*etaj.unitVector() * WT.gradValue(etaj.magnitude(), Hdetj)
-
-        # The corrected kernel and it's gradient.
-        WRj = 0.0
-        dummy = 0.0
-        gradWRj = Vector()
-        WRj, dummy = CRKSPHKernelAndGradient(WT,
-                                           rij,
-                                           -etai,
-                                           Hi,
-                                           Hdeti,
-                                           etaj,
-                                           Hj,
-                                           Hdetj,
-                                           Ai,
-                                           Bi,
-                                           gradAi,
-                                           gradBi,
-                                           gradWRj)
-        assert fuzzyEqual(WRj, CRKSPHKernel(WT, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi), 1.0e-5)
-
-        # Increment our interpolated values.
-        fSPH[i] += fj * wj*Wj
-        fCRKSPH[i] += fj * wj*WRj
-
-        # Increment the derivatives.
-        dfSPH[i] += fj * wj*gradWj
-        dfCRKSPH[i] += fj * wj*gradWRj
-
-    # We can now apply the integration correction (C) for CRKSPH.
-    #dfCRKSPH[i] += Ci*(fi - fCRKSPH[i])
- 
-#-------------------------------------------------------------------------------
 # We also check the C++ interpolation and gradient methods.
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
 fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
-                               cm, WT)
+                               cm, WT, couple)
 dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
                              A_fl, B_fl, gradA_fl, gradB_fl,
-                             cm, WT)
+                             cm, WT, couple)
+fCRKSPH = fCRKSPH_fl[0]
+dfCRKSPH = dfCRKSPH_fl[0]
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
@@ -356,23 +314,17 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
-errySPH =   ScalarField("SPH interpolation error", nodes1)
-erryCRKSPH =  ScalarField("CRKSPH interpolation error", nodes1)
-errdySPH =  ScalarField("SPH derivative error", nodes1)
+erryCRKSPH = ScalarField("CRKSPH interpolation error", nodes1)
 errdyCRKSPH = ScalarField("CRKSPH derivative error", nodes1)
 for i in xrange(nodes1.numInternalNodes):
-    errySPH[i] =   fSPH[i] - yans[i]
     erryCRKSPH[i] =  fCRKSPH[i] - yans[i]
-    errdySPH[i] =  dfSPH[i].x - dyans[i]
     errdyCRKSPH[i] = dfCRKSPH[i].x - dyans[i]
 
-maxySPHerror = max([abs(x) for x in errySPH])
-maxdySPHerror = max([abs(x) for x in errdySPH])
 maxyCRKSPHerror = max([abs(x) for x in erryCRKSPH])
 maxdyCRKSPHerror = max([abs(x) for x in errdyCRKSPH])
 
-print "Maximum errors (interpolation): SPH = %g, CRKSPH = %g" % (maxySPHerror, maxyCRKSPHerror)
-print "Maximum errors   (derivatives): SPH = %g, CRKSPH = %g" % (maxdySPHerror, maxdyCRKSPHerror)
+print "Maximum errors (interpolation): CRKSPH = %g" % (maxyCRKSPHerror)
+print "Maximum errors   (derivatives): CRKSPH = %g" % (maxdyCRKSPHerror)
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -387,18 +339,10 @@ if graphics:
                            with_ = "lines",
                            title = "Answer",
                            inline = True)
-    SPHdata = Gnuplot.Data(xans, fSPH.internalValues(),
-                           with_ = "points",
-                           title = "SPH",
-                           inline = True)
     CRKSPHdata = Gnuplot.Data(xans, fCRKSPH.internalValues(),
                             with_ = "points",
                             title = "CRKSPH",
                             inline = True)
-    errSPHdata = Gnuplot.Data(xans, errySPH.internalValues(),
-                              with_ = "points",
-                              title = "SPH",
-                              inline = True)
     errCRKSPHdata = Gnuplot.Data(xans, erryCRKSPH.internalValues(),
                                with_ = "points",
                                title = "CRKSPH",
@@ -406,14 +350,12 @@ if graphics:
 
     p1 = generateNewGnuPlot()
     p1.plot(ansdata)
-    p1.replot(SPHdata)
     p1.replot(CRKSPHdata)
     p1("set key top left")
     p1.title("Interpolated values")
     p1.refresh()
 
     p2 = generateNewGnuPlot()
-    p2.plot(errSPHdata)
     p2.replot(errCRKSPHdata)
     p2.title("Error in interpolation")
     p2.refresh()
@@ -423,18 +365,10 @@ if graphics:
                             with_ = "lines",
                             title = "Answer",
                             inline = True)
-    dSPHdata = Gnuplot.Data(xans, [x.x for x in dfSPH.internalValues()],
-                            with_ = "points",
-                            title = "SPH",
-                            inline = True)
     dCRKSPHdata = Gnuplot.Data(xans, [x.x for x in dfCRKSPH.internalValues()],
                              with_ = "points",
                              title = "CRKSPH",
                              inline = True)
-    errdSPHdata = Gnuplot.Data(xans, errdySPH.internalValues(),
-                               with_ = "points",
-                               title = "SPH",
-                              inline = True)
     errdCRKSPHdata = Gnuplot.Data(xans, errdyCRKSPH.internalValues(),
                                 with_ = "points",
                                 title = "CRKSPH",
@@ -442,60 +376,25 @@ if graphics:
 
     p3 = generateNewGnuPlot()
     p3.plot(dansdata)
-    p3.replot(dSPHdata)
     p3.replot(dCRKSPHdata)
     p3("set key top left")
     p3.title("Derivative values")
     p3.refresh()
 
     p4 = generateNewGnuPlot()
-    p4.plot(errdSPHdata)
     p4.replot(errdCRKSPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
-
-    p5 = plotFieldList(fCRKSPH_fl, 
-                       winTitle = "C++ CRKSPH interpolation",
-                       colorNodeLists = False)
-
-    p6 = plotFieldList(dfCRKSPH_fl, 
-                       yFunction = "%s.x",
-                       winTitle = "C++ grad CRKSPH",
-                       colorNodeLists = False)
-                       
-    p7 = generateNewGnuPlot()
-    j = 15
-    rj = positions[j]
-    Hj = H[j]
-    Hdetj = H[j].Determinant()
-    wj = weight[j]
-    Aj = A[j]
-    Bj = B[j]
-    dx = 2.0/50.0
-    x = -2.0
-    W = []
-    WR = []
-    for i in range(100):
-        etaj = Hj.Trace()*x
-        Wj = WT.kernelValue(abs(x), Hdetj)
-        W.append(Wj)
-        WR.append(Wj*Aj*(1+Bj.magnitude()*x))
-        x = x+dx
-    p7.plot(W)
-    p7.replot(WR)
-    p7.title("Kernel")
-    p7.refresh()
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":
         from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
         dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
-                                        listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
+                                        listOfFields = [fCRKSPH, dfCRKSPH,
                                                         yans, dyans,
-                                                        errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                                        listOfFieldLists = [weight_fl, 
-                                                            A_fl, B_fl, gradA_fl, gradB_fl,
-                                                            dfCRKSPH_fl])
+                                                        erryCRKSPH, errdyCRKSPH],
+                                        listOfFieldLists = [weight_fl, D_fl, gradD_fl,
+                                                            A_fl, B_fl, gradA_fl, gradB_fl])
         dumper.dump(0.0, 0)
         # from siloPointmeshDump import siloPointmeshDump
         # siloPointmeshDump("testInterpolation_%s_2d" % testCase,
@@ -505,23 +404,6 @@ if graphics:
         #                   fieldLists = [weight_fl, 
         #                                 A_fl, B_fl, gradA_fl, gradB_fl,
         #                                 dfCRKSPH_fl])
-
-if plotKernels:
-    import Gnuplot
-    pk = generateNewGnuPlot()
-    for i in xrange(nodes1.numInternalNodes):
-        xi = positions[i].x
-        Hi = H[i]
-        Hdeti = Hi.Determinant()
-        hi = 1.0/Hi.xx
-        Ai = A[i]
-        Bi = B[i]
-
-        dx = 2.0*kernelExtent*hi/50
-        x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
-        y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
-        d = Gnuplot.Data(x, y, with_="lines", inline=True)
-        pk.replot(d)
 
 #-------------------------------------------------------------------------------
 # Check the maximum CRKSPH error and fail the test if it's out of bounds.
