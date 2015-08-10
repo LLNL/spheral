@@ -150,6 +150,7 @@ commandLine(seed = "lattice",
             compatibleEnergy = True,
             gradhCorrection = False,
             domainIndependent = False,
+            dtverbose = False,
 
             restoreCycle = None,
             restartStep = 500,
@@ -527,6 +528,7 @@ if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.havePhysicsPackage(damageModel)")
