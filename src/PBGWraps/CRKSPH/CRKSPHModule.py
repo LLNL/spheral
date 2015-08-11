@@ -137,7 +137,6 @@ class CRKSPH:
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "massDensity0"),
                                  constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
-                                 param("bool", "correctSum"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
