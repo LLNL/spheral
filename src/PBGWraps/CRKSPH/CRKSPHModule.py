@@ -176,7 +176,11 @@ class CRKSPH:
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "gradA"),
-                                 refparam(tensorfieldlist, "gradB")],
+                                 refparam(tensorfieldlist, "gradB"),
+                                 refparam(scalarfieldlist, "Ac"),
+                                 refparam(vectorfieldlist, "Bc"),
+                                 refparam(vectorfieldlist, "gradAc"),
+                                 refparam(tensorfieldlist, "gradBc")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
 

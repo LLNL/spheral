@@ -323,7 +323,6 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
 
-  //..........................................................................
   // The fluid CRK bit.
   // Compute the kernel correction fields.
   const TableKernel<Dimension>& W = this->kernel();
@@ -332,16 +331,23 @@ initialize(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const FieldList<Dimension, SymTensor> D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const FieldList<Dimension, Vector> gradD = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
-  // FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
+  FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
+  FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
+  FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
+  FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
+  DamagedNodeCouplingWithFrags<Dimension> nodeCoupling(D, gradD, H, fragIDs);
   
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, A, B, gradA, gradB);
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, nodeCoupling, A, B, gradA, gradB, Adamage, Bdamage, gradAdamage, gradBdamage);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -349,6 +355,10 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(B);
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
+    (*boundItr)->applyFieldListGhostBoundary(Adamage);
+    (*boundItr)->applyFieldListGhostBoundary(Bdamage);
+    (*boundItr)->applyFieldListGhostBoundary(gradAdamage);
+    (*boundItr)->applyFieldListGhostBoundary(gradBdamage);
   }
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -374,40 +384,6 @@ initialize(const typename Dimension::Scalar time,
                time, 
                dt,
                W);
-  //..........................................................................
-
-  // We can probably move this out of here since we're not trying to use the damage corrections at this stage in
-  // the same way as the regular corrections (Q and all)...
-  // Compute the kernel correction fields taking damage into account.
-  // const TableKernel<Dimension>& W = this->kernel();
-  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  // const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  // const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  // const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  // const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  // const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  const FieldList<Dimension, SymTensor> D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const FieldList<Dimension, Vector> gradD = state.fields(SolidFieldNames::damageGradient, Vector::zero);
-  const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  DamagedNodeCouplingWithFrags<Dimension> nodeCoupling(D, gradD, H, fragIDs);
-
-  FieldList<Dimension, Scalar> Adamage = state.fields(HydroFieldNames::A_CRKSPH + " damage", 0.0);
-  FieldList<Dimension, Vector> Bdamage = state.fields(HydroFieldNames::B_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Vector> gradAdamage = state.fields(HydroFieldNames::gradA_CRKSPH + " damage", Vector::zero);
-  FieldList<Dimension, Tensor> gradBdamage = state.fields(HydroFieldNames::gradB_CRKSPH + " damage", Tensor::zero);
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, nodeCoupling, Adamage, Bdamage, gradAdamage, gradBdamage);
-
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(Adamage);
-    (*boundItr)->applyFieldListGhostBoundary(Bdamage);
-    (*boundItr)->applyFieldListGhostBoundary(gradAdamage);
-    (*boundItr)->applyFieldListGhostBoundary(gradBdamage);
-  }
-
-  // // Call the ancester method.
-  // CRKSPHHydroBase<Dimension>::initialize(time, dt, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------
@@ -693,8 +669,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector gradWi, gradWj, gradWdami, gradWdamj;
               CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
               CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
-              CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, gradAdami, gradBdami, Wdamj, gWdamj, gradWdamj);
-              CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, gradAdamj, gradBdamj, Wdami, gWdami, gradWdami);
+              // CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Adami, Bdami, gradAdami, gradBdami, Wdamj, gWdamj, gradWdamj);
+              // CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Adamj, Bdamj, gradAdamj, gradBdamj, Wdami, gWdami, gradWdami);
+              CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
+              CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
               const Vector deltagrad = gradWj - gradWi;
               const Vector deltagraddam = gradWdamj - gradWdami;
               const Vector gradWSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
