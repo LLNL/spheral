@@ -857,7 +857,7 @@ finalize(const typename Dimension::Scalar time,
     FieldList<Dimension, Scalar> massDensity0(massDensity);
     massDensity0.copyFields();
     DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
-    computeSolidCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, true, massDensity);
+    computeSolidCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
