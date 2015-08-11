@@ -239,7 +239,6 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             }
           }
         }
-        CHECK(positionsInv.size() >= 2);
         CHECK(masses.size() == positionsInv.size());
 
         // Delegate to specialized methods.
