@@ -298,6 +298,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar wwi = weight(nodeListi, i)*W(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
+      m0c(nodeListi, i) += wwi;
+      gradm1c(nodeListi, i) += Tensor::one*wwi;
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -399,7 +401,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
       if (i < firstGhostNodei) {
-        const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
+        const Scalar m2det = abs(m2(nodeListi, i).Determinant());
+        const SymTensor m2inv = m2det > 1.0e-10 ? m2(nodeListi, i).Inverse() * m2det/max(1e-8, m2det) : SymTensor::zero;
         const Vector m2invm1 = m2inv*m1(nodeListi, i);
         const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
         CHECK(Ainv != 0.0);
@@ -423,7 +426,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
           }
         }
 
-        const SymTensor m2cinv = abs(m2c(nodeListi, i).Determinant()) > 1.0e-10 ? m2c(nodeListi, i).Inverse() : SymTensor::zero;
+        const Scalar m2cdet = abs(m2c(nodeListi, i).Determinant());
+        const SymTensor m2cinv = m2cdet > 1.0e-10 ? m2c(nodeListi, i).Inverse() * m2cdet/max(1e-8, m2cdet) : SymTensor::zero;
         const Vector m2cinvm1c = m2cinv*m1c(nodeListi, i);
         const Scalar Acinv = m0c(nodeListi, i) - m2cinvm1c.dot(m1c(nodeListi, i));
         CHECK(Acinv != 0.0);
