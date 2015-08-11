@@ -16,6 +16,8 @@
 #include "volumeSpacing.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeSolidCRKSPHSumMassDensity.hh"
+#include "computeSolidCRKSPHSumMassDensity.hh"
+#include "computeHullSumMassDensity.hh"
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -853,11 +855,13 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
     const FieldList<Dimension, Vector> gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
     const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    FieldList<Dimension, Scalar> massDensity0(massDensity);
-    massDensity0.copyFields();
     DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
-    computeSolidCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, massDensity);
+    FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    // FieldList<Dimension, Scalar> massDensity0(massDensity);
+    // massDensity0.copyFields();
+    // DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+    // computeSolidCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, massDensity);
+    computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, coupling, massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
