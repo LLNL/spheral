@@ -19,6 +19,7 @@ namespace Spheral {
   namespace BoundarySpace {
     template<typename Dimension> class Boundary;
   }
+  class NodeCoupling;
 
   namespace CRKSPHSpace {
     template<typename Dimension>
@@ -28,6 +29,7 @@ namespace Spheral {
                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                              const NodeCoupling& nodeCoupling,
                               FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }
