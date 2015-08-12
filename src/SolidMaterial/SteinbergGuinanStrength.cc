@@ -166,12 +166,14 @@ meltAttenuation(const double density, const double specificThermalEnergy) const 
   if (fuzzyEqual(emelt, 0.0) || specificThermalEnergy < 0.0) {
     result = 1.0;
   } else {
-    if (specificThermalEnergy > (1.0 - tiny)*emelt) {
-      result = 0.0;
-    } else {
-      CHECK(!fuzzyEqual(specificThermalEnergy, emelt));
-      result = exp(-mYp*specificThermalEnergy/(emelt - specificThermalEnergy));
-    }
+    CHECK(!fuzzyEqual(specificThermalEnergy, emelt));
+    result = exp(-mYp*specificThermalEnergy*safeInv(emelt - specificThermalEnergy, 1.0e-8));
+    // if (specificThermalEnergy > (1.0 - tiny)*emelt) {
+    //   result = 0.0;
+    // } else {
+    //   CHECK(!fuzzyEqual(specificThermalEnergy, emelt));
+    //   result = exp(-mYp*specificThermalEnergy/(emelt - specificThermalEnergy));
+    // }
   }
 
   return result;
@@ -194,7 +196,7 @@ computeTemperature(FieldSpace::Field<Dimension, Scalar>& temperature,
   }
   mEOSPtr->setTemperature(temperature, density, eps1);
   temperature -= 300.0;
-  temperature.applyMin(0.0);
+
   // Field<Dimension, Scalar> cV("specific heat", density.nodeList());
   // mEOSPtr->setSpecificHeat(cV, density, specificThermalEnergy);
   // const double rho0 = mEOSPtr->referenceDensity();
