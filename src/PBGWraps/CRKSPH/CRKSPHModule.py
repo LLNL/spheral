@@ -137,7 +137,6 @@ class CRKSPH:
                                  constrefparam(symtensorfieldlist, "H"),
                                  constrefparam(scalarfieldlist, "massDensity0"),
                                  constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
-                                 param("bool", "correctSum"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
@@ -149,6 +148,7 @@ class CRKSPH:
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeHullSumMassDensity%id" % ndim)
@@ -176,7 +176,11 @@ class CRKSPH:
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "gradA"),
-                                 refparam(tensorfieldlist, "gradB")],
+                                 refparam(tensorfieldlist, "gradB"),
+                                 refparam(scalarfieldlist, "Ac"),
+                                 refparam(vectorfieldlist, "Bc"),
+                                 refparam(vectorfieldlist, "gradAc"),
+                                 refparam(tensorfieldlist, "gradBc")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
 

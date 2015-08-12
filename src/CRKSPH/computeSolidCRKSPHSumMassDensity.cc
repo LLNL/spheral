@@ -34,7 +34,6 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
                                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                  const FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
                                  const NodeCoupling& nodeCoupling,
-                                 const bool correctSum,
                                  FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -76,6 +75,7 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar rho0i = massDensity0(nodeListi, i);
+      const Scalar wi = mi/rho0i;
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
 
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
@@ -98,6 +98,7 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
             const Scalar rho0j = massDensity0(nodeListj, j);
+            const Scalar wj = mj/rho0j;
 
             // Kernel weighting and gradient.
             const Vector rij = ri - rj;
@@ -107,27 +108,19 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
             const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
-            const Scalar Wij = 0.5*(Wi + Wj);
-            massDensity(nodeListi, i) += fij*mi*Wj;
-            massDensity(nodeListj, j) += fij*mj*Wi;
-            m0(nodeListi, i) += fij*mi/rho0i*Wj;
-            m0(nodeListj, j) += fij*mj/rho0j*Wi;
+            massDensity(nodeListi, i) += fij*wj*Wi*mi;
+            massDensity(nodeListj, j) += fij*wi*Wj*mj;
+            m0(nodeListi, i) += fij*wj*Wi*wi;
+            m0(nodeListj, j) += fij*wi*Wj*wj;
           }
         }
       }
       
       // Finalize the density for node i.
-      if (correctSum) {
-        m0(nodeListi, i) += mi/rho0i*Hdeti*W0;
-        CHECK(m0(nodeListi, i) > 0.0);
-        massDensity(nodeListi, i) = max(rhoMin, 
-                                        min(rhoMax,
-                                            (massDensity(nodeListi, i) + mi*Hdeti*W0)/m0(nodeListi, i)));
-      } else {
-        massDensity(nodeListi, i) = max(rhoMin, 
-                                        min(rhoMax,
-                                            (massDensity(nodeListi, i) + mi*Hdeti*W0)));
-      }
+      massDensity(nodeListi, i) = max(rhoMin, 
+                                      min(rhoMax,
+                                          (massDensity(nodeListi, i) + wi*Hdeti*W0*mi)/
+                                          (m0(nodeListi, i) + wi*Hdeti*W0*wi)));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }

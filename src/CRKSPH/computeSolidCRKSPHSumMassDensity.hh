@@ -32,7 +32,6 @@ namespace Spheral {
                                      const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                                      const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity0,
                                      const NodeCoupling& nodeCoupling,
-                                     const bool correctSum,
                                      FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }

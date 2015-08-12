@@ -11,6 +11,7 @@
 #include "Utilities/comparisons.hh"
 #include "Utilities/boundingBox.hh"
 #include "Utilities/pointOnPolygon.hh"
+#include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
 
 #include "boost/foreach.hpp"
 
@@ -43,6 +44,8 @@ double hullMassDensity(const std::vector<Dim<1>::Vector>& posInv,
   REQUIRE(posInv.size() == mass.size());
   typedef Dim<1>::Scalar Scalar;
   typedef Dim<1>::Vector Vector;
+
+  if (posInv.size() < 2) return 0.0;
 
   // Remember the mass of point i which comes in as the first value.
   const Scalar mi = mass[0];
@@ -176,6 +179,7 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                           const FieldList<Dimension, typename Dimension::Vector>& position,
                           const FieldList<Dimension, typename Dimension::Scalar>& mass,
                           const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                          const NodeCoupling& nodeCoupling,
                           FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
   // Pre-conditions.
@@ -224,20 +228,21 @@ computeHullSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
              jItr != connectivity.end();
              ++jItr) {
           const unsigned j = *jItr;
-          const Vector& rj = position(nodeListi, j);
-          const Vector rji = rj - ri;
-          const Scalar etai2 = (Hi*rji).magnitude2();
-          if (etai2 < kernelExtent2) {
-            const Vector rjiHat = rji.unitVector();
-            positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
-            masses.push_back(mass(nodeListi, *jItr));
+          if (nodeCoupling(nodeListi, i, nodeListi, j) > 0.0) {
+            const Vector& rj = position(nodeListi, j);
+            const Vector rji = rj - ri;
+            const Scalar etai2 = (Hi*rji).magnitude2();
+            if (etai2 < kernelExtent2) {
+              const Vector rjiHat = rji.unitVector();
+              positionsInv.push_back(1.0/sqrt(rji.magnitude2() + 1.0e-30) * rjiHat);
+              masses.push_back(mass(nodeListi, *jItr));
+            }
           }
         }
-        CHECK(positionsInv.size() >= 2);
         CHECK(masses.size() == positionsInv.size());
 
         // Delegate to specialized methods.
-        massDensity(nodeListi, i) = hullMassDensity(positionsInv, masses);
+        massDensity(nodeListi, i) = max(rhoMin, min(rhoMax, hullMassDensity(positionsInv, masses)));
         CHECK(massDensity(nodeListi, i) > 0.0);
       }
     }
