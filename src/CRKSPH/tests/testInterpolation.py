@@ -225,13 +225,8 @@ fCRKSPH = ScalarField("CRKSPH interpolated values", nodes1)
 dfSPH = VectorField("SPH derivative values", nodes1)
 dfCRKSPH = VectorField("CRKSPH derivative values", nodes1)
 
-m0_fl = db.newFluidScalarFieldList(0.0, "m0")
-m1_fl = db.newFluidVectorFieldList(Vector.zero, "m1")
-m2_fl = db.newFluidSymTensorFieldList(SymTensor.zero, "m2")
-A0_fl = db.newFluidScalarFieldList(0.0, "A0")
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
-gradA0_fl = db.newFluidVectorFieldList(Vector.zero, "gradA0")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
 
@@ -245,10 +240,8 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-damage = ScalarFieldList()
-computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, damage, True,
-                       m0_fl, m1_fl, m2_fl,
-                       A0_fl, A_fl, B_fl, gradA0_fl, gradA_fl, gradB_fl)
+computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, 
+                         A_fl, B_fl, gradA_fl, gradB_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
@@ -334,7 +327,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
-fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, True, A_fl, B_fl, 
+fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
                                cm, WT)
 dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
                              A_fl, B_fl, gradA_fl, gradB_fl,
@@ -373,10 +366,11 @@ for i in xrange(nodes1.numInternalNodes):
     errdySPH[i] =  dfSPH[i].x - dyans[i]
     errdyCRKSPH[i] = dfCRKSPH[i].x - dyans[i]
 
-maxySPHerror = errySPH.max()
-maxyCRKSPHerror = erryCRKSPH.max()
-maxdySPHerror = errdySPH.max()
-maxdyCRKSPHerror = errdyCRKSPH.max()
+maxySPHerror = max([abs(x) for x in errySPH])
+maxdySPHerror = max([abs(x) for x in errdySPH])
+maxyCRKSPHerror = max([abs(x) for x in erryCRKSPH])
+maxdyCRKSPHerror = max([abs(x) for x in errdyCRKSPH])
+
 print "Maximum errors (interpolation): SPH = %g, CRKSPH = %g" % (maxySPHerror, maxyCRKSPHerror)
 print "Maximum errors   (derivatives): SPH = %g, CRKSPH = %g" % (maxdySPHerror, maxdyCRKSPHerror)
 
@@ -499,8 +493,8 @@ if graphics:
                                         listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
                                                         yans, dyans,
                                                         errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                                        listOfFieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
-                                                            A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+                                        listOfFieldLists = [weight_fl, 
+                                                            A_fl, B_fl, gradA_fl, gradB_fl,
                                                             dfCRKSPH_fl])
         dumper.dump(0.0, 0)
         # from siloPointmeshDump import siloPointmeshDump
@@ -508,8 +502,8 @@ if graphics:
         #                   fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
         #                             yans, dyans,
         #                             errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-        #                   fieldLists = [weight_fl, m0_fl, m1_fl, m2_fl, 
-        #                                 A0_fl, A_fl, B_fl, gradA_fl, gradB_fl,
+        #                   fieldLists = [weight_fl, 
+        #                                 A_fl, B_fl, gradA_fl, gradB_fl,
         #                                 dfCRKSPH_fl])
 
 if plotKernels:

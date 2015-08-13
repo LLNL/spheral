@@ -65,8 +65,8 @@ BOOSTPYTHONLIB = libboost_python.$(DYLIBEXT)
 
 # Cmake
 CMAKEEXE = $(prefix)/bin/cmake
-CMAKEDIST = cmake-3.0.2.tar.gz
-CMAKEURL = http://www.cmake.org/files/v3.0/$(CMAKEDIST)
+CMAKEDIST = cmake-3.3.0.tar.gz
+CMAKEURL = http://www.cmake.org/files/v3.3/$(CMAKEDIST)
 CMAKEDIR = $(CMAKEDIST:.tar.gz=)
 
 # Gccxml
@@ -1101,6 +1101,8 @@ $(QHULLDATE):	$(PYTHONBUILDDATE) $(QHULLDIST) $(CMAKEEXE)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(QHULLINCDIR)
 	$(GZIP) -dc $(QHULLDIST) | $(TAR) -xf -
 	$(PATCH) $(QHULLDIR)/src/libqhull/qhull_a.h $(srcdir)/$(QHULLDIR)-qhull_a.h-patch
+	$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullIterator.h $(srcdir)/$(QHULLDIR)-QhullIterator.h-patch
+	$(PATCH) $(QHULLDIR)/src/libqhullcpp/QhullLinkedList.h $(srcdir)/$(QHULLDIR)-QhullLinkedList.h-patch
 	$(SHELL) -ec "cd $(QHULLDIR)/build; \
 	env PATH=$(prefix)/bin:$$PATH CC='$(CC)' CXX='$(CXX)' CFLAGS='$(CFLAGS)' $(CMAKEEXE) -DCMAKE_INSTALL_PREFIX:PATH=$(prefix) .. ; \
 	$(MAKE); \

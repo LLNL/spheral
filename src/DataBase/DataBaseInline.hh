@@ -24,6 +24,16 @@ DataBase<Dimension>::numFluidNodeLists() const {
 }
 
 //------------------------------------------------------------------------------
+// Number of SolidNodeLists registered with the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numSolidNodeLists() const {
+  return mSolidNodeListPtrs.size();
+}
+
+//------------------------------------------------------------------------------
 // Numbers of nodes in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -154,6 +164,69 @@ DataBase<Dimension>::fluidNodeListAsNodeListEnd() const {
 }
 
 //------------------------------------------------------------------------------
+// Standard STL like iterators for SolidNodeLists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::SolidNodeListIterator
+DataBase<Dimension>::solidNodeListBegin() {
+  return mSolidNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::SolidNodeListIterator
+DataBase<Dimension>::solidNodeListEnd() {
+  return mSolidNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstSolidNodeListIterator
+DataBase<Dimension>::solidNodeListBegin() const {
+  return mSolidNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstSolidNodeListIterator
+DataBase<Dimension>::solidNodeListEnd() const {
+  return mSolidNodeListPtrs.end();
+}
+
+//------------------------------------------------------------------------------
+// Standard STL like iterators for SolidNodeLists, but over NodeList
+// base type.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::solidNodeListAsNodeListBegin() {
+  return mSolidNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::solidNodeListAsNodeListEnd() {
+  return mSolidNodeListAsNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::solidNodeListAsNodeListBegin() const {
+  return mSolidNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::solidNodeListAsNodeListEnd() const {
+  return mSolidNodeListAsNodeListPtrs.end();
+}
+
+//------------------------------------------------------------------------------
 // Get the current connectivity map.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -225,6 +298,28 @@ newFluidFieldList(const DataType value,
   }
 
   ENSURE(result.numFields() == numFluidNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Convenience method to construct a new FieldList with a Field for every
+// SolidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+FieldSpace::FieldList<Dimension, DataType>
+DataBase<Dimension>::
+newSolidFieldList(const DataType value,
+                  const typename FieldSpace::Field<Dimension, DataType>::FieldName name) const {
+  FieldSpace::FieldList<Dimension, DataType> result(FieldSpace::Copy);
+  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+       nodeListItr != solidNodeListEnd();
+       ++nodeListItr) {
+    result.appendNewField(name, **nodeListItr, value);
+  }
+
+  ENSURE(result.numFields() == numSolidNodeLists());
   return result;
 }
 
@@ -304,6 +399,45 @@ resizeFluidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
   }
 
   ENSURE(fieldList.numFields() == numFluidNodeLists());
+}
+
+//------------------------------------------------------------------------------
+// Convenience method to resize a FieldList such that it has a Field for every
+// SolidNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeSolidFieldList(FieldSpace::FieldList<Dimension, DataType>& fieldList,
+                     const DataType value,
+                     const typename FieldSpace::Field<Dimension, DataType>::FieldName name,
+                     const bool resetValues) const {
+  VERIFY((fieldList.storageType() == FieldSpace::Copy));
+
+  // First check if it's necessary to resize the FieldList.
+  bool reinitialize = fieldList.numFields() != numSolidNodeLists();
+  ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+  typename FieldSpace::FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  while (!reinitialize && 
+         nodeListItr != solidNodeListEnd() &&
+         itr != fieldList.end()) {
+    reinitialize = (*itr)->nodeListPtr() != *nodeListItr;
+    ++nodeListItr;
+    ++itr;
+  }
+
+  if (reinitialize) {
+    fieldList = FieldSpace::FieldList<Dimension, DataType>(fieldList.storageType());
+    for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
+         nodeListItr != solidNodeListEnd();
+         ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
+  } else if (resetValues) {
+    fieldList = value;
+  }
+
+  ENSURE(fieldList.numFields() == numSolidNodeLists());
 }
 
 }

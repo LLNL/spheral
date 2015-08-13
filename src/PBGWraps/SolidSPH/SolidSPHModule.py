@@ -16,7 +16,7 @@ class SolidSPH:
         # Includes.
         mod.add_include('"%s/SolidSPHTypes.hh"' % srcdir)
     
-        # Namespace.
+        # Namespaces.
         SolidSpheral = mod.add_cpp_namespace("Spheral")
         space = SolidSpheral.add_cpp_namespace("SolidSPHSpace")
 
@@ -28,6 +28,12 @@ class SolidSPH:
         sphhydrobase3d = findObject(SPHSpace, "SPHHydroBase3d")
 
         # Expose types.
+        self.NodeCoupling = addObject(Spheral, "NodeCoupling", allow_subclassing=True)
+
+        self.DamagedNodeCoupling1d = addObject(Spheral, "DamagedNodeCoupling1d", allow_subclassing=True, parent=self.NodeCoupling)
+        self.DamagedNodeCoupling2d = addObject(Spheral, "DamagedNodeCoupling2d", allow_subclassing=True, parent=self.NodeCoupling)
+        self.DamagedNodeCoupling3d = addObject(Spheral, "DamagedNodeCoupling3d", allow_subclassing=True, parent=self.NodeCoupling)
+
         self.SolidSPHHydroBase1d = addObject(space, "SolidSPHHydroBase1d", allow_subclassing=True, parent=sphhydrobase1d)
         self.SolidSPHHydroBase2d = addObject(space, "SolidSPHHydroBase2d", allow_subclassing=True, parent=sphhydrobase2d)
         self.SolidSPHHydroBase3d = addObject(space, "SolidSPHHydroBase3d", allow_subclassing=True, parent=sphhydrobase3d)
@@ -38,6 +44,12 @@ class SolidSPH:
     # Generate bindings.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
+
+        self.generateNodeCouplingBindings(self.NodeCoupling)
+
+        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling1d, 1)
+        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling2d, 2)
+        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling3d, 3)
 
         self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase1d, 1)
         self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase2d, 2)
@@ -50,6 +62,47 @@ class SolidSPH:
     #---------------------------------------------------------------------------
     def newSubModules(self):
         return ["SolidSPHSpace"]
+
+    #---------------------------------------------------------------------------
+    # Bindings (NodeCoupling).
+    #---------------------------------------------------------------------------
+    def generateNodeCouplingBindings(self, x):
+
+        # Object names.
+        me = "Spheral::NodeCoupling"
+
+        # Constructors.
+        x.add_constructor([])
+
+        # Methods.
+        x.add_method("operator()", "double", [param("unsigned int", "nodeListi"),
+                                              param("unsigned int", "i"),
+                                              param("unsigned int", "nodeListj"),
+                                              param("unsigned int", "j")],
+                     custom_name = "__call__",
+                     is_const = True,
+                     is_virtual = True)
+        return
+
+    #---------------------------------------------------------------------------
+    # Bindings (DamagedNodeCoupling).
+    #---------------------------------------------------------------------------
+    def generateDamagedNodeCouplingBindings(self, x, ndim):
+
+        # Object names.
+        me = "Spheral::DamagedNodeCoupling%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+        vector3dfieldlist = "Spheral::FieldSpace::Vector3dFieldList%id" % ndim
+        tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
+        symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
+
+        # Constructors.
+        x.add_constructor([constrefparam(symtensorfieldlist, "damage"),
+                           constrefparam(vectorfieldlist, "damageGradient"),
+                           constrefparam(symtensorfieldlist, "H")])
+
+        return
 
     #---------------------------------------------------------------------------
     # Bindings (SolidSPHHydroBase).

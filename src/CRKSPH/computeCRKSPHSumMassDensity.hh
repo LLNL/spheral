@@ -16,9 +16,6 @@ namespace Spheral {
   namespace FieldSpace {
     template<typename Dimension, typename DataType> class FieldList;
   }
-  namespace BoundarySpace {
-    template<typename Dimension> class Boundary;
-  }
 
   namespace CRKSPHSpace {
 
@@ -29,8 +26,6 @@ namespace Spheral {
                               const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                               const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
                               const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                              const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryBegin,
-                              const typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator& boundaryEnd,
                               FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   }
 }

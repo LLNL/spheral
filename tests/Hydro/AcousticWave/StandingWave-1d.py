@@ -21,7 +21,7 @@ commandLine(nx1 = 100,
 
             rho1 = 1.0,
             eps1 = 1.0,
-            A = 0.0001,
+            A = 1.0e-6,
             kfreq = 1.0,
 
             cs2 = 1.0,
@@ -59,7 +59,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
+            HUpdate = IdealH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -67,13 +67,13 @@ commandLine(nx1 = 100,
 
             restoreCycle = None,
             restartStep = 10000,
-
-            graphics = "gnu",
-
             clearDirectories = True,
             dataDirBase = "dumps-planar-StandingWave-1d",
             outputFile = "StandingWave-planar-1d.gnu",
             normOutputFile = "None",
+            writeOutputLabel = True,
+
+            graphics = "gnu",
 
             checkReversibility = False,
             )
@@ -114,8 +114,8 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(BSplineKernel(), 10000)
+WTPi = TableKernel(BSplineKernel(), 10000)
 output("WT")
 output("WTPi")
 
@@ -214,7 +214,7 @@ if SVPH:
                              XSVPH = XSPH,
                              linearConsistent = linearConsistent,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
@@ -224,14 +224,14 @@ elif CRKSPH:
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 
 elif TSPH:
     hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
-                             HUpdate = HEvolution)
+                             HUpdate = HUpdate)
 else:
     hydro = HydroConstructor(WT, WTPi, q,
                              cfl = cfl,
@@ -239,7 +239,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
-                             HUpdate = HEvolution,
+                             HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -363,8 +363,6 @@ if graphics == "gnu":
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-10:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -407,12 +405,14 @@ if outputFile != "None":
         print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
         if normOutputFile != "None":
             f = open(normOutputFile, "a")
-            f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
-                                                 '"rho L1"', '"rho L2"', '"rho Linf"',
-                                                 '"P L1"',   '"P L2"',   '"P Linf"',
-                                                 '"vel L1"', '"vel L2"', '"vel Linf"',
-                                                 '"h L1"',   '"h L2"',   '"h Linf"'))
+            if writeOutputLabel:
+                f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
+                                                     '"rho L1"', '"rho L2"', '"rho Linf"',
+                                                     '"P L1"',   '"P L2"',   '"P Linf"',
+                                                     '"vel L1"', '"vel L2"', '"vel Linf"',
+                                                     '"h L1"',   '"h L2"',   '"h Linf"'))
             f.write("%16i " % nx1)
+        xmin, xmax = 0.1, 0.9
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
@@ -420,12 +420,15 @@ if outputFile != "None":
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in xrange(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, x0, x1)
-            L2 = Pn.gridpnorm(2, x0, x1)
-            Linf = Pn.gridpnorm("inf", x0, x1)
+            L1 = Pn.gridpnorm(1, xmin, xmax)
+            L2 = Pn.gridpnorm(2, xmin, xmax)
+            Linf = Pn.gridpnorm("inf", xmin, xmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
         if normOutputFile != "None":
             f.write("\n")
             f.close()
+
+if compatibleEnergy and abs(Eerror) > 1e-8:
+    raise ValueError, "Energy error outside allowed bounds."

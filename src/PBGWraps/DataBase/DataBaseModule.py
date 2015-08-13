@@ -252,7 +252,7 @@ class DataBase:
         return
 
     #---------------------------------------------------------------------------
-    # Add methods.
+    # Add DataBase methods.
     #---------------------------------------------------------------------------
     def addDataBaseMethods(self, x, ndim):
 
@@ -290,6 +290,7 @@ class DataBase:
         vectorsymtensorfieldlist = "Spheral::FieldSpace::VectorSymTensorFieldList%id" % ndim
         nodelist = "Spheral::NodeSpace::NodeList%id" % ndim
         fluidnodelist = "Spheral::NodeSpace::FluidNodeList%id" % ndim
+        solidnodelist = "Spheral::SolidMaterial::SolidNodeList%id" % ndim
         state = "Spheral::State%id" % ndim
         derivatives = "Spheral::StateDerivatives%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
@@ -297,6 +298,7 @@ class DataBase:
         vectorpkgs = "vector_of_Physics%id" % ndim
         vectornodelists = "vector_of_NodeList%id" % ndim
         vectorfluidnodelists = "vector_of_FluidNodeList%id" % ndim
+        vectorsolidnodelists = "vector_of_SolidNodeList%id" % ndim
         vector_of_Vector = "vector_of_Vector%id" % ndim
 
         # Constructors.
@@ -313,14 +315,17 @@ class DataBase:
                                  template_parameters = [dim],
                                  foreign_cpp_namespace = "Spheral",
                                  custom_name = "connectivityMap")
+        x.add_method("appendNodeList", None, [refparam(solidnodelist, "nodeList")])
         x.add_method("appendNodeList", None, [refparam(fluidnodelist, "nodeList")])
         x.add_method("appendNodeList", None, [refparam(nodelist, "nodeList")])
+        x.add_method("deleteNodeList", None, [refparam(solidnodelist, "nodeList")])
         x.add_method("deleteNodeList", None, [refparam(fluidnodelist, "nodeList")])
         x.add_method("deleteNodeList", None, [refparam(nodelist, "nodeList")])
         x.add_method("haveNodeList", "bool", [constrefparam(nodelist, "nodeList")])
 
         x.add_method("nodeListPtrs", vectornodelists, [], is_const=True, custom_name="nodeLists")
         x.add_method("fluidNodeListPtrs", vectorfluidnodelists, [], is_const=True, custom_name="fluidNodeLists")
+        x.add_method("solidNodeListPtrs", vectorsolidnodelists, [], is_const=True, custom_name="solidNodeLists")
 
 ##         x.add_function_as_method("const_reference_as_pointer",
 ##                                  retval(ptr(vectornodelists), reference_existing_object=True),
@@ -365,6 +370,11 @@ x.add_method("newFluidFieldList", "%(result)s", [param("%(value)s", "value", def
              template_parameters = ["%(value)s"],
              is_const = True,
              custom_name = "newFluid%(customname)sFieldList")
+x.add_method("newSolidFieldList", "%(result)s", [param("%(value)s", "value", default_value="%(default)s"),
+                                                 param("std::string", "name", default_value='"unnamed field list"')],
+             template_parameters = ["%(value)s"],
+             is_const = True,
+             custom_name = "newSolid%(customname)sFieldList")
 """ % {"result" : result, "value" : value, "default" : default, "customname" : customname})
 
         x.add_method("boundingBox", None, [refparam(vector, "xmin"),
@@ -404,6 +414,7 @@ x.add_method("newFluidFieldList", "%(result)s", [param("%(value)s", "value", def
         # Attributes.
         x.add_instance_attribute("numNodeLists", "int", getter="numNodeLists", is_const=True)
         x.add_instance_attribute("numFluidNodeLists", "int", getter="numFluidNodeLists", is_const=True)
+        x.add_instance_attribute("numSolidNodeLists", "int", getter="numSolidNodeLists", is_const=True)
         x.add_instance_attribute("numInternalNodes", "int", getter="numInternalNodes", is_const=True)
         x.add_instance_attribute("numGhostNodes", "int", getter="numGhostNodes", is_const=True)
         x.add_instance_attribute("numNodes", "int", getter="numNodes", is_const=True)

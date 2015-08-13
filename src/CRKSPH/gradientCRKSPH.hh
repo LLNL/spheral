@@ -5,6 +5,7 @@
 #define __Spheral__gradientCRKSPH__
 
 #include "Geometry/MathTraits.hh"
+#include "SolidSPH/NodeCoupling.hh"
 
 namespace Spheral {
 
@@ -32,7 +33,8 @@ namespace Spheral {
                    const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
                    const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
                    const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                   const KernelSpace::TableKernel<Dimension>& W);
+                   const KernelSpace::TableKernel<Dimension>& W,
+                   const NodeCoupling& nodeCoupling = NodeCoupling());
 
   }
 }

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "SolidSPHHydroBase.hh"
+#include "DamagedNodeCoupling.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -54,22 +55,6 @@ using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using NeighborSpace::ConnectivityMap;
-
-//------------------------------------------------------------------------------
-// Construct a unit vector of the argument, going to zero as teh magnitude
-// falls below a given "fuzz".
-//------------------------------------------------------------------------------
-template<typename Vector>
-inline
-Vector
-unitVectorWithZero(const Vector& x,
-                   const double fuzz = 0.01) {
-  if (x.magnitude2() < fuzz) {
-    return Vector::zero;
-  } else {
-    return x.unitVector();
-  }
-}
 
 //------------------------------------------------------------------------------
 // Compute the artificial tensile stress correction tensor for the given 
@@ -188,14 +173,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Set the moduli.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    solidNodeListPtr->bulkModulus(*mBulkModulus[nodeListi]);
-    solidNodeListPtr->shearModulus(*mShearModulus[nodeListi]);
-    solidNodeListPtr->yieldStrength(*mYieldStrength[nodeListi]);
+    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
+    (*itr)->shearModulus(*mShearModulus[nodeListi]);
+    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
   }
 }
 
@@ -230,19 +213,17 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    S.appendField(solidNodeListPtr->deviatoricStress());
-    ps.appendField(solidNodeListPtr->plasticStrain());
-    D.appendField(solidNodeListPtr->effectiveDamage());
-    gradD.appendField(solidNodeListPtr->damageGradient());
-    fragIDs.appendField(solidNodeListPtr->fragmentIDs());
+    S.appendField((*itr)->deviatoricStress());
+    ps.appendField((*itr)->plasticStrain());
+    D.appendField((*itr)->effectiveDamage());
+    gradD.appendField((*itr)->damageGradient());
+    fragIDs.appendField((*itr)->fragmentIDs());
 
     // Make a copy of the beginning plastic strain.
-    *mPlasticStrain0[nodeListi] = solidNodeListPtr->plasticStrain();
+    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
     (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
   }
 
@@ -298,12 +279,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDdeviatoricStressDt);
 
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    SolidNodeList<Dimension>* solidNodeListPtr = dynamic_cast<SolidNodeList<Dimension>*>(*itr);
-    CHECK(solidNodeListPtr != 0);
-    derivs.enroll(solidNodeListPtr->plasticStrainRate());
+    CHECK((*itr) != 0);
+    derivs.enroll((*itr)->plasticStrainRate());
   }
 }
 
@@ -443,6 +423,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // Get the work field for this NodeList.
     Field<Dimension, Scalar>& workFieldi = nodeList.work();
 
+    // Build the functor we use to compute the effective coupling between nodes.
+    DamagedNodeCoupling<Dimension> coupling(damage, gradDamage, H);
+
     // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -467,9 +450,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
-      Scalar sDi = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
-      if (sDi > 1.0 - 1.0e-3) sDi = 1.0;
-      const Vector gradDi = unitVectorWithZero(gradDamage(nodeListi, i)*Dimension::nDim/Hi.Trace());
       const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -537,9 +517,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
-              Scalar sDj = max(0.0, min(1.0, damage(nodeListj, j).eigenValues().maxElement()));
-              if (sDj > 1.0 - 1.0e-3) sDj = 1.0;
-              const Vector gradDj = unitVectorWithZero(gradDamage(nodeListj, j)*Dimension::nDim/Hj.Trace());
               const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
@@ -591,12 +568,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Vector gradWQj = WQ.gradValue(etaMagj, Hdetj) * Hetaj;
 
               // Determine how we're applying damage.
-              const Scalar gradDdot = gradDi.dot(gradDj);
-              const Scalar phi = ((abs(gradDdot) < 0.1 or min(sDi, sDj) < 0.05) ? 
-                                  1.0 :
-                                  max(0.0, min(1.0, -gradDdot)));
-              CHECK(phi >= 0.0 and phi <= 1.0);
-              const Scalar fDeffij = FastMath::pow4(max(0.0, min(1.0, 1.0 - phi*max(sDi, sDj))));
+              const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.

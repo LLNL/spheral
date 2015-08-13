@@ -146,6 +146,19 @@ operator=(const Integrator<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// step
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Integrator<Dimension>::
+step(const typename Dimension::Scalar maxTime) {
+  DataBase<Dimension>& db = this->accessDataBase();
+  State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  this->step(maxTime, state, derivs);
+}
+
+//------------------------------------------------------------------------------
 // Loop over the stored physics packages and pick the minimum timestep.
 //------------------------------------------------------------------------------
 template<typename Dimension>

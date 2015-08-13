@@ -1,8 +1,8 @@
 #ATS:if SYS_TYPE.startswith('darwin'):
-#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150111.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
-#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150111.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
-#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150111.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
-#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150111.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150807.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
+#ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150807.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
+#ATS:    t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150807.txt'", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
+#ATS:    t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500 --referenceFile 'Reference/TensileRod-GradyKipp-1d-1proc-reproducing-darwin-20150807.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
 #ATS:else:
 #ATS:    t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:    t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
@@ -110,11 +110,14 @@ commandLine(length = 3.0,
             effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
 
+            # Optionally we can initialize a break near the origin.
+            initialBreakRadius = 0.0,
+            
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
-            linearInExpansion = True,
+            linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
@@ -124,7 +127,7 @@ commandLine(length = 3.0,
             hmax = 20.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.3,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
@@ -146,6 +149,7 @@ commandLine(length = 3.0,
             compatibleEnergy = True,
             gradhCorrection = False,
             domainIndependent = False,
+            dtverbose = False,
 
             restoreCycle = None,
             restartStep = 500,
@@ -154,7 +158,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-3,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20150305.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20150804.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -363,6 +367,19 @@ if restoreCycle is None:
     for i in xrange(nodes.numInternalNodes):
         nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
 
+    # Set an initial damage if requested.
+    if initialBreakRadius > 0.0:
+        pos = nodes.positions()
+        D = nodes.damage()
+        fragIDs = nodes.fragmentIDs()
+        for i in xrange(nodes.numInternalNodes):
+            if abs(pos[i].x) < initialBreakRadius:
+                D[i] = SymTensor.one
+            if pos[i].x < 0.0:
+                fragIDs[i] = 1
+            else:
+                fragIDs[i] = 2
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -504,6 +521,7 @@ if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.havePhysicsPackage(damageModel)")
@@ -569,6 +587,10 @@ else:
 if graphics:
     from SpheralGnuPlotUtilities import *
     state = State(db, integrator.physicsPackages())
+    H = state.symTensorFields("H")
+    h = db.newFluidScalarFieldList(0.0, "h")
+    for i in xrange(nodes.numInternalNodes):
+        h[0][i] = 1.0/H[0][i].xx
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle="linespoints",
                             winTitle="rho @ %g %i" % (control.time(), mpi.procs))
@@ -582,6 +604,9 @@ if graphics:
     PPlot = plotFieldList(state.scalarFields("pressure"),
                           plotStyle="linespoints",
                           winTitle="pressure @ %g %i" % (control.time(), mpi.procs))
+    hPlot = plotFieldList(h,
+                          plotStyle="linespoints",
+                          winTitle="h @ %g %i" % (control.time(), mpi.procs))
 
     d = state.symTensorFields("tensor damage")
     dPlot = plotFieldList(d,
@@ -614,6 +639,9 @@ if graphics:
     eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
                                plotStyle = "linespoints",
                                winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
+    fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
+                             plotStyle = "linespoints",
+                             winTitle = "Fragments @  %g %i" % (control.time(), mpi.procs))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

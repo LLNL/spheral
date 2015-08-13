@@ -6,6 +6,7 @@
 #include "CRKSPH/CRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
+#include "CRKSPH/computeSolidCRKSPHSumMassDensity.hh"
 #include "CRKSPH/computeHullSumMassDensity.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/centerOfMass.hh"
@@ -15,6 +16,7 @@
 #include "CRKSPH/computeHVolumes.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 #include "CRKSPH/interpolateCRKSPH.hh"
+#include "SolidSPH/NodeCoupling.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -93,23 +95,23 @@ CRKSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
   return CRKSPHKernelAndGradient(W, rij, etai, Hi, Hdeti, etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, *WCRKSPH, *gradWSPH, gradWCRKSPH);
 }
 
-//------------------------------------------------------------------------------
-// compputeCRKSPHSumMassDensity with a std::vector<Boundary> rather than iterators.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                          const KernelSpace::TableKernel<Dimension>& W,
-                          const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                          const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
-                          const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                          const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-                          FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
-  computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, H, 
-                            boundaries.begin(), boundaries.end(),
-                            massDensity);
-}
+// //------------------------------------------------------------------------------
+// // compputeCRKSPHSumMassDensity with a std::vector<Boundary> rather than iterators.
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// void
+// computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+//                           const KernelSpace::TableKernel<Dimension>& W,
+//                           const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+//                           const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& mass,
+//                           const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+//                           const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
+//                           FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+//   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, H, 
+//                             boundaries.begin(), boundaries.end(),
+//                             massDensity);
+// }
 
 }
 }
