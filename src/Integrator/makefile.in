@@ -1,0 +1,22 @@
+# -*-makefile-*-
+# Spheral++ Integrator package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Integrator
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/IntegratorInst.cc \
+	$(srcdir)/PredictorCorrectorInst.cc \
+	$(srcdir)/SynchronousRK1Inst.cc \
+	$(srcdir)/SynchronousRK2Inst.cc \
+	$(srcdir)/SynchronousRK4Inst.cc \
+	$(srcdir)/CheapSynchronousRK2Inst.cc \
+	$(srcdir)/VerletInst.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
