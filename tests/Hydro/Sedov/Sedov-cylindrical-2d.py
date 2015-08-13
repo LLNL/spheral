@@ -78,6 +78,7 @@ commandLine(seed = "constantDTheta",
             clearDirectories = False,
             dataRoot = "dumps-cylindrical-Sedov",
             outputFile = "None",
+            serialDump=True,
             )
 
 assert thetaFactor in (0.5, 1.0, 2.0)
@@ -383,6 +384,7 @@ r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], 
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 yprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+mass = mpi.allreduce(list(nodes1.mass().internalValues()), mpi.SUM)
 v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
 Pf = ScalarField("pressure", nodes1)
@@ -436,14 +438,33 @@ if mpi.rank == 0:
 if outputFile != "None" and mpi.rank == 0:
     outputFile = os.path.join(dataDir, outputFile)
     f = open(outputFile, "w")
-    f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "A", "hr", "ht",
+    f.write(("# " + 17*"%16s " + "\n") % ("r", "x", "y", "rho", "m", "P", "v", "eps", "A", "hr", "ht",
                                           "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
-    for (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
-         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, rho, P, v, eps, A, hr, ht,
+    for (ri, xi, yi, rhoi, mi, Pi, vi, epsi, Ai, hri, hti, 
+         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, rho, mass, P, v, eps, A, hr, ht,
                                                                rhoans, Pans, vans, epsans, Aans, hans):
-         f.write((16*"%16.12e " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, Ai, hri, hti, 
+         f.write((17*"%17.12e " + "\n") % (ri, xi, yi, rhoi, mi, Pi, vi, epsi, Ai, hri, hti, 
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
+
+if serialDump:
+    procs = mpi.procs
+    rank = mpi.rank
+    serialData = []
+    i,j = 0,0
+    nodeSet = []
+    nodeSet.append(nodes1)
+    for i in xrange(procs):
+        for nodeL in nodeSet:
+            if rank == i:
+                for j in xrange(nodeL.numInternalNodes):
+                    serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
+    serialData = mpi.reduce(serialData,mpi.SUM)
+    if rank == 0:
+        f = open(dataDir + "/serialDump.ascii",'w')
+        for i in xrange(len(serialData)):
+            f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
+        f.close()
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
