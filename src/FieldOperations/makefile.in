@@ -1,0 +1,37 @@
+# -*-makefile-*-
+# Spheral++ FieldOperations package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = FieldOperations
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/smoothFieldsInst.cc \
+	$(srcdir)/gradientInst.cc \
+	$(srcdir)/divergenceInst.cc \
+	$(srcdir)/smoothFieldsMashInst.cc \
+	$(srcdir)/smoothFieldsMash2Inst.cc \
+	$(srcdir)/sampleFieldsMashInst.cc \
+	$(srcdir)/splatFieldsMashInst.cc \
+	$(srcdir)/gradientMashInst.cc \
+	$(srcdir)/divergenceMashInst.cc \
+	$(srcdir)/gradientPairWiseInst.cc \
+	$(srcdir)/divergencePairWiseInst.cc \
+	$(srcdir)/sampleMultipleFieldsMashInst.cc \
+	$(srcdir)/splatMultipleFieldsMashInst.cc \
+	$(srcdir)/gradDivVectorFieldListInst.cc \
+	$(srcdir)/gradDivVectorFieldListSimpleInst.cc \
+	$(srcdir)/gradDivVectorFieldListGoldenInst.cc \
+	$(srcdir)/gradDivVectorFieldListGolden2Inst.cc \
+	$(srcdir)/gradDivVectorFieldListMashInst.cc \
+	$(srcdir)/gradDivVectorFieldListPairWiseInst.cc \
+	$(srcdir)/sampleMultipleFields2LatticeInst.cc \
+	$(srcdir)/sampleMultipleFields2LatticeMashInst.cc \
+	$(srcdir)/binFieldList2LatticeInst.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
