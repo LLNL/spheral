@@ -31,7 +31,7 @@ nodes1 = makeFluidNodeList("nodes1", eos,
 
 nodes1.numInternalNodes = 1
 
-n = 50
+n = 20
 rhoMin, rhoMax = 100.0, 1.0e9
 drho = (1.0/n) * log1p(rhoMax/rhoMin)
 rho = [rhoMin * exp(drho*i) for i in xrange(n + 1)]
