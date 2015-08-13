@@ -1,8 +1,7 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH CRK, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --serialDump=True", label="KH CRK, nPerh=2.0", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51 --serialDump=True", label="KH Spheral-NoQ, nPerh=1.5", np=1)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=True --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="KH TSPH-NoQ, nPerh=1.5", np=1)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH CRK, nPerh=2.0", np=10)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH Spheral, nPerh=2.0", np=10)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH Spheral-NoQ, nPerh=2.0", np=10)
+#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=False", label="KH TSPH-NoQ, nPerh=2.0", np=10)
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
