@@ -11,6 +11,7 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/computeCRKSPHSumMassDensityInst.cc \
+	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc \
 	$(srcdir)/computeHullSumMassDensityInst.cc \
 	$(srcdir)/computeCRKSPHCorrectionsInst.cc \
 	$(srcdir)/computeCRKSPHEvaluationInst.cc \

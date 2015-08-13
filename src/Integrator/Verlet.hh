@@ -40,7 +40,12 @@ public:
   Verlet& operator=(const Verlet& rhs);
 
   // All Integrators are required to provide the single cycle method.
-  virtual void step(Scalar maxTime);
+  virtual void step(Scalar maxTime,
+                    State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs);
+
+  // We need to make the simpler form of step visible!
+  using Integrator<Dimension>::step;
 
   // Restart methods.
   virtual std::string label() const { return "Verlet"; }

@@ -82,6 +82,14 @@ public:
   void registerDerivatives(DataBaseSpace::DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs);
 
+  // Initialize the Hydro before we start a derivative evaluation.
+  virtual
+  void initialize(const Scalar time,
+                  const Scalar dt,
+                  const DataBaseSpace::DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs);
+                          
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -90,6 +98,14 @@ public:
                            const DataBaseSpace::DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const;
+
+  // Finalize the hydro at the completion of an integration step.
+  virtual
+  void finalize(const Scalar time,
+                const Scalar dt,
+                DataBaseSpace::DataBase<Dimension>& dataBase,
+                State<Dimension>& state,
+                StateDerivatives<Dimension>& derivs);
 
   // Apply boundary conditions to the physics specific fields.
   virtual
@@ -107,6 +123,12 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldSpace::FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldSpace::FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldSpace::FieldList<Dimension, int>& fragIDs() const;
+
+  const FieldSpace::FieldList<Dimension, Scalar>&    Adamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    Bdamage() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradAdamage() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    gradBdamage() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -124,6 +146,12 @@ private:
   FieldSpace::FieldList<Dimension, Scalar> mShearModulus;
   FieldSpace::FieldList<Dimension, Scalar> mYieldStrength;
   FieldSpace::FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldSpace::FieldList<Dimension, int> mFragIDs;
+
+  FieldSpace::FieldList<Dimension, Scalar>    mAdamage;
+  FieldSpace::FieldList<Dimension, Vector>    mBdamage;
+  FieldSpace::FieldList<Dimension, Vector>    mGradAdamage;
+  FieldSpace::FieldList<Dimension, Tensor>    mGradBdamage;
 
   // The restart registration.
   DataOutput::RestartRegistrationType mRestart;
@@ -138,9 +166,7 @@ private:
 }
 }
 
-#ifndef __GCCXML__
 #include "SolidCRKSPHHydroBaseInline.hh"
-#endif
 
 #else
 

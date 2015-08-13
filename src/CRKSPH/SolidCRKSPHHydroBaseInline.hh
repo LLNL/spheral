@@ -44,5 +44,37 @@ plasticStrain0() const {
   return mPlasticStrain0;
 }
 
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SolidCRKSPHHydroBase<Dimension>::
+Adamage() const {
+  return mAdamage;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+SolidCRKSPHHydroBase<Dimension>::
+Bdamage() const {
+  return mBdamage;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+SolidCRKSPHHydroBase<Dimension>::
+gradAdamage() const {
+  return mGradAdamage;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+SolidCRKSPHHydroBase<Dimension>::
+gradBdamage() const {
+  return mGradBdamage;
+}
+
 }
 }

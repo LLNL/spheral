@@ -4,13 +4,15 @@
 #ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
 #ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
 #ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
+#ATS:t6 = test(      SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories True  --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with CRK -- 1-D (serial)")
+#ATS:t7 = testif(t0, SELF, "--CRKSPH True --cfl 0.25 --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with CRK -- 1-D (serial) RESTART CHECK")
 #-------------------------------------------------------------------------------
 # The Planar Noh test case run in 1-D.
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 import os, shutil
-from Spheral1d import *
+from SolidSpheral1d import *
 from SpheralTestUtilities import *
 
 title("1-D integrated hydro test -- planar Noh problem")
@@ -34,6 +36,8 @@ commandLine(KernelConstructor = BSplineKernel,
 
             gamma = 5.0/3.0,
             mu = 1.0,
+
+            solid = False,    # If true, use the fluid limit of the solid hydro option
 
             SVPH = False,
             CRKSPH = False,
@@ -128,10 +132,16 @@ commandLine(KernelConstructor = BSplineKernel,
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    HydroConstructor = CRKSPHHydro
+    if solid:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SPHHydro
+    if solid:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDirBase,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
@@ -156,6 +166,7 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
+strength = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -168,11 +179,19 @@ output("WTPi")
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           NeighborType = NeighborType)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos, strength,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               NeighborType = NeighborType)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos, 
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh,
+                               NeighborType = NeighborType)
+    
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
