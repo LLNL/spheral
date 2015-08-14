@@ -82,19 +82,6 @@ AC_ARG_WITH(boostroot,
   ]
 )
 
-AC_MSG_CHECKING(for --with-pyste)
-AC_ARG_WITH(pyste,
-  [  --with-pyste=ARG ......................... set the path to pyste],
-  [
-    AC_MSG_RESULT($withval)
-    PYSTEPATH="$withval"
-  ],
-  [
-    AC_MSG_RESULT(none)
-    PYSTEPATH=$(SPHERALTOP)/BPLWraps/Pyste
-  ]
-)
-
 BPLPATH="$LIBDIR"
 
 echo "PYTHONBINDING is $PYTHONBINDING"

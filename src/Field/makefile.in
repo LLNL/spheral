@@ -9,8 +9,11 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Field
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+INSTSRCTARGETS = \
+	$(srcdir)/NodeIteratorBaseInst.cc.py
+
 SRCTARGETS = \
-	$(srcdir)/NodeIteratorBaseInst.cc \
 	$(srcdir)/AllNodeIteratorInst.cc \
 	$(srcdir)/InternalNodeIteratorInst.cc \
 	$(srcdir)/GhostNodeIteratorInst.cc \

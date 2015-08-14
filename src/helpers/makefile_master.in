@@ -68,8 +68,6 @@ OPENSUBDIVTARGETS = @OPENSUBDIVTARGETS@
 OPENSUBDIVLIBS = @OPENSUBDIVLIBS@
 
 UTILDIR = $(SPHERALTOP)/Utilities
-HDFINCDIR = /usr/local/Spheral++/include
-HDFLIBDIR = /usr/local/Spheral++/lib
 
 WMLIBEXT = @WMLIBEXT@
 WILDMAGICINCDIR = $(prefix)/WildMagic5/Include
@@ -82,6 +80,22 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
+#-------------------------------------------------------------------------------
+# Augment the SRCTARGETS with generated instantiation files.
+EXTRAINSTSRCTARGETS=
+ifeq "@INST1D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst1d.cc,$(INSTSRCTARGETS))
+endif
+ifeq "@INST2D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst2d.cc,$(INSTSRCTARGETS))
+endif
+ifeq "@INST3D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(INSTSRCTARGETS))
+endif
+EXTRAINSTOBJS = $(notdir $(EXTRAINSTSRCTARGETS:.cc=.o))
+SRCTARGETS += EXTRAINSTSRCTARGETS
+
+#-------------------------------------------------------------------------------
 OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))
 
 TAULIBS = # @TAULIBS@
@@ -91,7 +105,7 @@ DEPENDLIBS := $(patsubst %, -l%, $(DEPENDS))
 
 # g++ flags
 
-INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(BOOSTROOT) -I$(prefix)/include
+INCS = $(EXTRAINCLUDES) -I$(SPHERALTOP) -I$(srcdir) -I$(BOOSTROOT) -I$(prefix)/include
 
 # Allow developers to override optimization flag
 ifneq ("$(opt_override)","")
@@ -207,6 +221,7 @@ CONFIG_SHELL=@CONFIG_SHELL@
 .SUFFIXES:      .pyste .cpp
 .SUFFIXES:      .C .py
 .SUFFIXES:      .f
+.SUFFIXES:	Inst.cc.py Inst1d.cc Inst2d.cc Inst3d.cc
 
 .PHONY: all install force_build $(PYTHONDATEFILE)
 
@@ -256,6 +271,15 @@ force_build:
 
 %.o:	%.C
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
+
+%Inst1d.cc:	%Inst.cc.py
+	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 1
+
+%Inst2d.cc:	%Inst.cc.py
+	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 2
+
+%Inst3d.cc:	%Inst.cc.py
+	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 3
 
 # Machine dependent rules for generating dependency files.
 include $(SPHERALTOP)/helpers/@DEPENDRULES@
@@ -405,7 +429,7 @@ docs:
 
 #-------------------------------------------------------------------------------
 clean:
-	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d)
+	rm -fr $(LIBTARGET) $(STATICLIBTARGET) $(MODTARGET) $(PBGMODTARGET) $(STATICPBGMODTARGET) $(EXETARGETS) $(OBJS) $(BPLOBJS) $(OBJS:.o=.d) $(BPLOBJS:.o=.d) $(PBGTARGETDATE) $(PBGSRCS) $(PBGOBJS) $(PBGMODSRCS) $(PYSTEOBJS) $(PYSTECPPS) $(LASTPYSTEMAKE) .$(PKGNAME) $(PYTHONDATEFILE) $(PBGTARGETS:.py=.C) $(PBGTARGET:.py=.py.d) $(notdir $(EXTRAINSTSRCTARGETS)) $(EXTRAINSTOBJS) $(EXTRAINSTOBJS:.o=.d)
 
 #-------------------------------------------------------------------------------
 spotless:
