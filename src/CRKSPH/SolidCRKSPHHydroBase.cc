@@ -831,6 +831,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
+      // In the presence of damage, add a term to reduce the stress on this point.
+      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      DSDti = (1.0 - Di)*DSDti - 0.5/dt*Di*Si;
+
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());
 
