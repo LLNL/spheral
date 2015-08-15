@@ -38,20 +38,25 @@ using NeighborSpace::ConnectivityMap;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 
+namespace {
+
 //------------------------------------------------------------------------------
 // Helper method to compute the magnitude of the shear term in the given
 // dvdx tensor.
 //------------------------------------------------------------------------------
+inline
 double
 computeShearMagnitude(const Dim<1>::Tensor& dvdx) {
   return 0.0;
 }
 
+inline
 double
 computeShearMagnitude(const Dim<2>::Tensor& dvdx) {
   return std::abs(dvdx(1,0) - dvdx(0,1));
 }
 
+inline
 double
 computeShearMagnitude(const Dim<3>::Tensor& dvdx) {
   return sqrt(FastMath::square(dvdx(2,1) - dvdx(1,2)) +
@@ -59,7 +64,7 @@ computeShearMagnitude(const Dim<3>::Tensor& dvdx) {
               FastMath::square(dvdx(1,0) - dvdx(0,1)));
 }
 
-
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.

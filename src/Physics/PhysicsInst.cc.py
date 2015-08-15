@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
@@ -6,8 +7,7 @@
 
 namespace Spheral {
   namespace PhysicsSpace {
-    template class Physics<Dim<1> >;
-    template class Physics<Dim<2> >;
-    template class Physics<Dim<3> >;
+    template class Physics<Dim< %(ndim)s > >;
   }
 }
+"""
