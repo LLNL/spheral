@@ -7,7 +7,7 @@ text = """
 
 namespace Spheral {
   namespace Material {
-    template class IsothermalEquationOfState< %(ndim)s  >;
+    template class IsothermalEquationOfState< Dim< %(ndim)s > >;
   }
 }
 """

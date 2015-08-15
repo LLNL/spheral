@@ -25,18 +25,21 @@ double
 volumeElement(const double r);
 
 template<>
+inline
 double
 volumeElement< Dim<1> >(const double r) {
   return 2.0;
 }
 
 template<>
+inline
 double
 volumeElement< Dim<2> >(const double r) {
   return 2.0*M_PI*r;
 }
 
 template<>
+inline
 double
 volumeElement< Dim<3> >(const double r) {
   return 4.0*M_PI*r*r;
@@ -55,6 +58,7 @@ struct KernelVolumeElement {
 // Use the trapezoidal rule to evaluate the volume integral of the given kernel.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename KernelType>
+inline
 double simpsonsVolumeIntegral(const KernelType& W,
                               const double rMin,
                               const double rMax,

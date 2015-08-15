@@ -15,7 +15,7 @@ text = """
 //------------------------------------------------------------------------------
 namespace Spheral {
   namespace KernelSpace {
-    template class QuarticSplineKernel< %(ndim)s  >;
+    template class QuarticSplineKernel< Dim< %(ndim)s >  >;
   }
 }
 """

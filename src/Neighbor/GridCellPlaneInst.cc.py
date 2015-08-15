@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
@@ -6,8 +7,7 @@
 
 namespace Spheral {
   namespace NeighborSpace {
-    template class GridCellPlane< Dim<1> >;
-    template class GridCellPlane< Dim<2> >;
-    template class GridCellPlane< Dim<3> >;
+    template class GridCellPlane< Dim< %(ndim)s > >;
   }
 }
+"""

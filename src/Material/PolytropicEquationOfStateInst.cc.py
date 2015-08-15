@@ -7,7 +7,7 @@ text = """
 
 namespace Spheral {
   namespace Material {
-    template class PolytropicEquationOfState< %(ndim)s  >;
+    template class PolytropicEquationOfState< Dim< %(ndim)s > >;
   }
 }
 """

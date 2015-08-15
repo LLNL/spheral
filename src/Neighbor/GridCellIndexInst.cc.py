@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
@@ -14,14 +15,9 @@ namespace Spheral {
 #define INDEXMIN -INDEXMAX - 1
 #define XMULTIPLIER (INDEXMAX - INDEXMIN)
 
-    template<> const int GridCellIndex< Dim<1> >::mIndexMax = INDEXMAX; // 2^20 - 1
-    template<> const int GridCellIndex< Dim<1> >::mIndexMin = INDEXMIN;
-
-    template<> const int GridCellIndex< Dim<2> >::mIndexMax = INDEXMAX; // 2^20 - 1
-    template<> const int GridCellIndex< Dim<2> >::mIndexMin = INDEXMIN;
-
-    template<> const int GridCellIndex< Dim<3> >::mIndexMax = INDEXMAX; // 2^20 - 1
-    template<> const int GridCellIndex< Dim<3> >::mIndexMin = INDEXMIN;
+    template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMax = INDEXMAX; // 2^20 - 1
+    template<> const int GridCellIndex< Dim< %(ndim)s > >::mIndexMin = INDEXMIN;
 
   }
 }
+"""

@@ -20,6 +20,7 @@ using namespace std;
 // Define a global function which returns a vector of GridCellIndex objects
 // within a given range of grid cells.
 //------------------------------------------------------------------------------
+inline
 vector<GridCellIndex<Dim<1> > >
 GridCellIndexRange(const GridCellIndex<Dim<1> >& gridCellMin,
                    const GridCellIndex<Dim<1> >& gridCellMax) {
@@ -36,6 +37,7 @@ GridCellIndexRange(const GridCellIndex<Dim<1> >& gridCellMin,
   return result;  
 }
 
+inline
 vector<GridCellIndex<Dim<2> > >
 GridCellIndexRange(const GridCellIndex<Dim<2> >& gridCellMin,
                    const GridCellIndex<Dim<2> >& gridCellMax) {
@@ -57,6 +59,7 @@ GridCellIndexRange(const GridCellIndex<Dim<2> >& gridCellMin,
   return result;  
 }
 
+inline
 vector<GridCellIndex<Dim<3> > >
 GridCellIndexRange(const GridCellIndex<Dim<3> >& gridCellMin,
                    const GridCellIndex<Dim<3> >& gridCellMax) {

@@ -7,7 +7,7 @@ text = """
 
 namespace Spheral {
   namespace KernelSpace {
-    template class TableKernel< %(ndim)s >;
+    template class TableKernel< Dim< %(ndim)s > >;
 """
 
 for Wname in ("BSplineKernel",
@@ -24,7 +24,7 @@ for Wname in ("BSplineKernel",
               "WendlandC4Kernel",
               "WendlandC6Kernel"):
     text += """
-    template TableKernel< %%(ndim)s >::TableKernel(const %(Wname)s< %%(ndim)s >&, const int, const double);
+    template TableKernel< Dim< %%(ndim)s > >::TableKernel(const %(Wname)s< Dim< %%(ndim)s > >&, const int, const double);
 """ % {"Wname" : Wname}
 
 text += """

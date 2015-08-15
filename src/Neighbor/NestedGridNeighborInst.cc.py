@@ -2,12 +2,12 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "GammaLawGas.cc"
+#include "NestedGridNeighbor.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  namespace Material {
-    template class GammaLawGas< Dim< %(ndim)s >  >;
+  namespace NeighborSpace {
+    template class NestedGridNeighbor< Dim< %(ndim)s > >;
   }
 }
 """
