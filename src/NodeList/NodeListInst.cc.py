@@ -1,12 +1,12 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "ASPHSmoothingScale.cc"
+#include "NodeList.cc"
 
 namespace Spheral {
   namespace NodeSpace {
-    template class ASPHSmoothingScale<Dim<1> >;
-    template class ASPHSmoothingScale<Dim<2> >;
-    template class ASPHSmoothingScale<Dim<3> >;
+    template class NodeList< Dim< %(ndim)s > >;
   }
 }
+"""

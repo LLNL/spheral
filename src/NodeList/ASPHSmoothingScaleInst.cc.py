@@ -1,13 +1,15 @@
+text = """
+// Define a CPP macro for specializations in the .cc file.
+#define SPHERAL%(ndim)sD
+
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "FluidNodeList.cc"
-#include "Geometry/Dimension.hh"
+#include "ASPHSmoothingScale.cc"
 
 namespace Spheral {
   namespace NodeSpace {
-    template class FluidNodeList< Dim<1> >;
-    template class FluidNodeList< Dim<2> >;
-    template class FluidNodeList< Dim<3> >;
+    template class ASPHSmoothingScale<Dim< %(ndim)s > >;
   }
 }
+"""

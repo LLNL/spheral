@@ -9,16 +9,19 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = NodeList
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/NodeListRegistrarInst.cc \
-	$(srcdir)/NodeListInst.cc \
-	$(srcdir)/FluidNodeListInst.cc \
-	$(srcdir)/SmoothingScaleBaseInst.cc \
-	$(srcdir)/FixedSmoothingScaleInst.cc \
-	$(srcdir)/SPHSmoothingScaleInst.cc \
-	$(srcdir)/ASPHSmoothingScaleInst.cc \
-	$(srcdir)/nthNodalMomentInst.cc \
-	$(srcdir)/generateVoidNodesInst.cc
+
+INSTSRCTARGETS = \
+	$(srcdir)/NodeListRegistrarInst.cc.py \
+	$(srcdir)/NodeListInst.cc.py \
+	$(srcdir)/FluidNodeListInst.cc.py \
+	$(srcdir)/SmoothingScaleBaseInst.cc.py \
+	$(srcdir)/FixedSmoothingScaleInst.cc.py \
+	$(srcdir)/SPHSmoothingScaleInst.cc.py \
+	$(srcdir)/ASPHSmoothingScaleInst.cc.py \
+	$(srcdir)/nthNodalMomentInst.cc.py \
+	$(srcdir)/generateVoidNodesInst.cc.py
+
+SRCTARGETS =
 
 PYTHONTARGETS = \
 	$(srcdir)/FluidNodeLists.py \
