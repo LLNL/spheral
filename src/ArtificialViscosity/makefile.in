@@ -9,16 +9,17 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ArtificialViscosity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/ArtificialViscosityInst.cc \
-	$(srcdir)/MonaghanGingoldViscosityInst.cc \
-	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc \
-	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc \
-	$(srcdir)/FiniteVolumeViscosityInst.cc \
-	$(srcdir)/CRKSPHMonaghanGingoldViscosityInst.cc \
-	$(srcdir)/TensorSVPHViscosityInst.cc \
-	$(srcdir)/TensorCRKSPHViscosityInst.cc \
-	$(srcdir)/VonNeumanViscosityInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/ArtificialViscosityInst.cc.py \
+	$(srcdir)/MonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc.py \
+	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/FiniteVolumeViscosityInst.cc.py \
+	$(srcdir)/CRKSPHMonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/TensorSVPHViscosityInst.cc.py \
+	$(srcdir)/TensorCRKSPHViscosityInst.cc.py \
+	$(srcdir)/VonNeumanViscosityInst.cc.py
+SRCTARGETS =
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
