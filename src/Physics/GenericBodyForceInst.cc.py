@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
@@ -6,8 +7,7 @@
 
 namespace Spheral {
   namespace PhysicsSpace {
-    template class GenericBodyForce< Dim<1> >;
-    template class GenericBodyForce< Dim<2> >;
-    template class GenericBodyForce< Dim<3> >;
+    template class GenericBodyForce< Dim< %(ndim)s > >;
   }
 }
+"""
