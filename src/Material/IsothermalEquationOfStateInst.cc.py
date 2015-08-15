@@ -1,13 +1,13 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "PolytropicEquationOfState.cc"
+#include "IsothermalEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
   namespace Material {
-    template class PolytropicEquationOfState<Dim<1> >;
-    template class PolytropicEquationOfState<Dim<2> >;
-    template class PolytropicEquationOfState<Dim<3> >;
+    template class IsothermalEquationOfState< %(ndim)s  >;
   }
 }
+"""

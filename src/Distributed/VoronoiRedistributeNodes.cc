@@ -85,6 +85,7 @@ findNearestGenerator(const typename Dimension::Vector& xi,
 // Compute the center cell position.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+inline
 typename Dimension::Vector
 computeCellPosition(const typename Dimension::Vector& xmin,
 		    const typename Dimension::Vector& xmax,
@@ -92,6 +93,7 @@ computeCellPosition(const typename Dimension::Vector& xmin,
 		    const unsigned index);
 
 template<>
+inline
 Dim<1>::Vector
 computeCellPosition<Dim<1> >(const Dim<1>::Vector& xmin,
 			     const Dim<1>::Vector& xmax,
@@ -102,6 +104,7 @@ computeCellPosition<Dim<1> >(const Dim<1>::Vector& xmin,
 }
 
 template<>
+inline
 Dim<2>::Vector
 computeCellPosition<Dim<2> >(const Dim<2>::Vector& xmin,
 			     const Dim<2>::Vector& xmax,
@@ -116,6 +119,7 @@ computeCellPosition<Dim<2> >(const Dim<2>::Vector& xmin,
 }
 
 template<>
+inline
 Dim<3>::Vector
 computeCellPosition<Dim<3> >(const Dim<3>::Vector& xmin,
 			     const Dim<3>::Vector& xmax,
@@ -135,6 +139,7 @@ computeCellPosition<Dim<3> >(const Dim<3>::Vector& xmin,
 // Compute the cell boundaries.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+inline
 void
 computeCellBoundaries(const typename Dimension::Vector& xmin,
 		      const typename Dimension::Vector& xmax,
@@ -144,6 +149,7 @@ computeCellBoundaries(const typename Dimension::Vector& xmin,
 		      typename Dimension::Vector& xcellMax);
 
 template<>
+inline
 void
 computeCellBoundaries<Dim<1> >(const Dim<1>::Vector& xmin,
 			       const Dim<1>::Vector& xmax,
@@ -159,6 +165,7 @@ computeCellBoundaries<Dim<1> >(const Dim<1>::Vector& xmin,
 }
 
 template<>
+inline
 void
 computeCellBoundaries<Dim<2> >(const Dim<2>::Vector& xmin,
 			       const Dim<2>::Vector& xmax,
@@ -178,6 +185,7 @@ computeCellBoundaries<Dim<2> >(const Dim<2>::Vector& xmin,
 }
 
 template<>
+inline
 void
 computeCellBoundaries<Dim<3> >(const Dim<3>::Vector& xmin,
 			       const Dim<3>::Vector& xmax,
@@ -209,6 +217,7 @@ computeDaughterPositions(const Vector& xmin,
 
 // 1-D
 template<>
+inline
 vector<Dim<1>::Vector>
 computeDaughterPositions(const Dim<1>::Vector& xmin,
                          const Dim<1>::Vector& xmax) {
@@ -223,6 +232,7 @@ computeDaughterPositions(const Dim<1>::Vector& xmin,
 
 // 2-D
 template<>
+inline
 vector<Dim<2>::Vector>
 computeDaughterPositions(const Dim<2>::Vector& xmin,
                          const Dim<2>::Vector& xmax) {
@@ -239,6 +249,7 @@ computeDaughterPositions(const Dim<2>::Vector& xmin,
 
 // 3-D
 template<>
+inline
 vector<Dim<3>::Vector>
 computeDaughterPositions(const Dim<3>::Vector& xmin,
                          const Dim<3>::Vector& xmax) {
@@ -261,6 +272,7 @@ computeDaughterPositions(const Dim<3>::Vector& xmin,
 // Compute the node position closest to the cell center.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+inline
 typename Dimension::Vector
 computeClosestNodePosition(const typename Dimension::Vector& targetPosition,
                            const vector<DomainNode<Dimension> >& nodes,

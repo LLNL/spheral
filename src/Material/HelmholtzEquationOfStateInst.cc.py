@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
@@ -6,8 +7,7 @@
 
 namespace Spheral {
     namespace Material {
-        template class HelmholtzEquationOfState<Dim<1> >;
-        template class HelmholtzEquationOfState<Dim<2> >;
-        template class HelmholtzEquationOfState<Dim<3> >;
+        template class HelmholtzEquationOfState< %(ndim)s  >;
     }
 }
+"""

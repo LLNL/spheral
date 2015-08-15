@@ -8,5 +8,6 @@ text = """
 namespace Spheral {
   namespace BoundarySpace {
     template class ConstantYVelocityBoundary< Dim< %(ndim)s > >;
+  }
 }
 """
