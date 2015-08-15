@@ -40,6 +40,7 @@ using NodeSpace::NodeList;
 // Compute the vertex coordinates for a cell.
 //------------------------------------------------------------------------------
 // 1D
+inline
 vector<Dim<1>::Vector>
 findCellVertices(const Dim<1>::Vector& xmin,
                  const double& boxLength,
@@ -56,6 +57,7 @@ findCellVertices(const Dim<1>::Vector& xmin,
 }
 
 // 2D
+inline
 vector<Dim<2>::Vector>
 findCellVertices(const Dim<2>::Vector& xmin,
                  const double& boxLength,
@@ -74,6 +76,7 @@ findCellVertices(const Dim<2>::Vector& xmin,
 }
 
 // 3D
+inline
 vector<Dim<3>::Vector>
 findCellVertices(const Dim<3>::Vector& xmin,
                  const double& boxLength,
@@ -99,6 +102,7 @@ findCellVertices(const Dim<3>::Vector& xmin,
 // Squeeze the vertices of a cell a bit closer together.
 //------------------------------------------------------------------------------
 // 1D
+inline
 void
 squeezeCell(vector<Dim<1>::Vector>& vertices,
             const double& smidgen) {
@@ -110,6 +114,7 @@ squeezeCell(vector<Dim<1>::Vector>& vertices,
 }
 
 // 2D
+inline
 void
 squeezeCell(vector<Dim<2>::Vector>& vertices,
             const double& smidgen) {
@@ -124,6 +129,7 @@ squeezeCell(vector<Dim<2>::Vector>& vertices,
 }
 
 // 3D
+inline
 void
 squeezeCell(vector<Dim<3>::Vector>& vertices,
             const double& smidgen) {

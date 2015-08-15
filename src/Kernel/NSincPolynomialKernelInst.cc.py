@@ -6,7 +6,7 @@ text = """
 
 namespace Spheral {
   namespace KernelSpace {
-    template class NSincPolynomialKernel< %(ndim)s  >;
+    template class NSincPolynomialKernel< Dim< %(ndim)s > >;
   }
 }
 """

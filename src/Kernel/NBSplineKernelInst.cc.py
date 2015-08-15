@@ -6,7 +6,7 @@ text = """
 
 namespace Spheral {
   namespace KernelSpace {
-    template class NBSplineKernel<  %(ndim)s  >;
+    template class NBSplineKernel< Dim< %(ndim)s >  >;
   }
 }
 

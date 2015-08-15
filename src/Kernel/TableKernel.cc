@@ -70,6 +70,7 @@ using namespace std;
 //   return 4.0*M_PI*result;
 // }
 
+inline
 double
 sumKernelValues(const TableKernel<Dim<1> >& W,
                 const double deta) {
@@ -83,6 +84,7 @@ sumKernelValues(const TableKernel<Dim<1> >& W,
   return result;
 }
 
+inline
 double
 sumKernelValues(const TableKernel<Dim<2> >& W,
                 const double deta) {
@@ -107,6 +109,7 @@ sumKernelValues(const TableKernel<Dim<2> >& W,
   return sqrt(result);
 }
 
+inline
 double
 sumKernelValues(const TableKernel<Dim<3> >& W,
                 const double deta) {

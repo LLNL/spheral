@@ -34,6 +34,7 @@ elif ndim == 3:
 """
 
 text += """
+    template class SuperGaussianKernel<Dim< %(ndim)s > >;
   }
 }
 """

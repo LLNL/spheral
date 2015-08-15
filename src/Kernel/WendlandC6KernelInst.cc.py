@@ -15,7 +15,7 @@ text = """
 //------------------------------------------------------------------------------
 namespace Spheral {
   namespace KernelSpace {
-    template class WendlandC6Kernel< %(ndim)s  >;
+    template class WendlandC6Kernel< Dim< %(ndim)s >  >;
   }
 }
 """

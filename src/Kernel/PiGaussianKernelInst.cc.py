@@ -14,7 +14,7 @@ text = """
 //------------------------------------------------------------------------------
 namespace Spheral {
   namespace KernelSpace {
-    template class PiGaussianKernel< %(ndim)s  >;
+    template class PiGaussianKernel< Dim< %(ndim)s >  >;
   }
 }
 """

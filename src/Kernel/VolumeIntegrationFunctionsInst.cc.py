@@ -20,11 +20,11 @@ for Wname in ("TableKernel",
               "NBSplineKernel"):
     text += """
     template
-    double simpsonsVolumeIntegral< %%(ndim)s, %(Wname)s< %%(ndim)ss > >
-    (const %(Wname)s< %%(ndim)s >& W, 
+    double simpsonsVolumeIntegral< Dim< %%(ndim)s >, %(Wname)s< Dim< %%(ndim)s > > >
+    (const %(Wname)s< Dim< %%(ndim)s > >& W, 
      const double rMin, const double rMax, const int numBins);
 
-"""
+""" % {"Wname" : Wname}
 
 text += """
   }

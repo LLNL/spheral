@@ -7,7 +7,7 @@ text = """
 
 namespace Spheral {
   namespace Material {
-    template class EquationOfState<  %(ndim)s  >;
+    template class EquationOfState< Dim< %(ndim)s >  >;
   }
 }
 
