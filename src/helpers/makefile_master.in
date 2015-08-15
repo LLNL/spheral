@@ -93,7 +93,7 @@ ifeq "@INST3D@" "yes"
   EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(INSTSRCTARGETS))
 endif
 EXTRAINSTOBJS = $(notdir $(EXTRAINSTSRCTARGETS:.cc=.o))
-SRCTARGETS += EXTRAINSTSRCTARGETS
+SRCTARGETS += $(EXTRAINSTSRCTARGETS)
 
 #-------------------------------------------------------------------------------
 OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))

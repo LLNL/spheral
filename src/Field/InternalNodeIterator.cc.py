@@ -1,11 +1,11 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NodeIteratorBase.cc"
+#include "InternalNodeIterator.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class NodeIteratorBase< Dim<1> >;
-  template class NodeIteratorBase< Dim<2> >;
-  template class NodeIteratorBase< Dim<3> >;
+  template class InternalNodeIterator< Dim< %(ndim)s > >;
 }
+"""
