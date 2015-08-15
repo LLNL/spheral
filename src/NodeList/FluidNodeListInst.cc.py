@@ -1,12 +1,13 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NodeList.cc"
+#include "FluidNodeList.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
   namespace NodeSpace {
-    template class NodeList< Dim<1> >;
-    template class NodeList< Dim<2> >;
-    template class NodeList< Dim<3> >;
+    template class FluidNodeList< Dim< %(ndim)s > >;
   }
 }
+"""

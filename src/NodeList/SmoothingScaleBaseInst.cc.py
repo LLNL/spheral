@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
@@ -6,8 +7,7 @@
 
 namespace Spheral {
   namespace NodeSpace {
-    template class SmoothingScaleBase< Dim<1> >;
-    template class SmoothingScaleBase< Dim<2> >;
-    template class SmoothingScaleBase< Dim<3> >;
+    template class SmoothingScaleBase< Dim< %(ndim)s > >;
   }
 }
+"""
