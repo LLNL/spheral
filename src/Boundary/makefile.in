@@ -19,7 +19,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantYVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
-	$(srcdir)/ConstantBoundaryInst.cc.py \
+	$(srcdir)/ConstantBoundaryInst.cc.py
 SRCTARGETS = \
 	$(srcdir)/ConstantZVelocityBoundaryInst.cc \
 	$(srcdir)/SphericalBoundary.cc \

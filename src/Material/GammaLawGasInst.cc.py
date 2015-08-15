@@ -1,13 +1,13 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "IsothermalEquationOfState.cc"
+#include "GammaLawGas.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
   namespace Material {
-    template class IsothermalEquationOfState<Dim<1> >;
-    template class IsothermalEquationOfState<Dim<2> >;
-    template class IsothermalEquationOfState<Dim<3> >;
+    template class GammaLawGas< %(ndim)s  >;
   }
 }
+"""

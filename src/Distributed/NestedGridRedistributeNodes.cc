@@ -553,6 +553,7 @@ gridCellRind(const GridCellIndex<Dimension>& gridCell,
 // Compute the set of grid cells at the given step from a center grid cell.
 //------------------------------------------------------------------------------
 template<>
+inline
 set<GridCellIndex<Dim<1> > >
 NestedGridRedistributeNodes<Dim<1> >::
 computeGridCellRind(const GridCellIndex<Dim<1> >& gridCell,
@@ -567,6 +568,7 @@ computeGridCellRind(const GridCellIndex<Dim<1> >& gridCell,
 }
 
 template<>
+inline
 set<GridCellIndex<Dim<2> > >
 NestedGridRedistributeNodes<Dim<2> >::
 computeGridCellRind(const GridCellIndex<Dim<2> >& gridCell,
@@ -594,6 +596,7 @@ computeGridCellRind(const GridCellIndex<Dim<2> >& gridCell,
 }
 
 template<>
+inline
 set<GridCellIndex<Dim<3> > >
 NestedGridRedistributeNodes<Dim<3> >::
 computeGridCellRind(const GridCellIndex<Dim<3> >& gridCell,
