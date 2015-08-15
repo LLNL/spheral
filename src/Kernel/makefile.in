@@ -9,22 +9,23 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Kernel
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/BSplineKernel.cc \
-	$(srcdir)/W4SplineKernel.cc \
-	$(srcdir)/GaussianKernel.cc \
-	$(srcdir)/SuperGaussianKernel.cc \
-	$(srcdir)/PiGaussianKernel.cc \
-	$(srcdir)/HatKernel.cc \
-	$(srcdir)/SincKernel.cc \
+INSTSRCTARGETS = \
+	$(srcdir)/BSplineKernelInst.cc \
+	$(srcdir)/W4SplineKernelInst.cc \
+	$(srcdir)/GaussianKernelInst.cc \
+	$(srcdir)/SuperGaussianKernelInst.cc \
+	$(srcdir)/PiGaussianKernelInst.cc \
+	$(srcdir)/HatKernelInst.cc \
+	$(srcdir)/SincKernelInst.cc \
 	$(srcdir)/NSincPolynomialKernelInst.cc \
 	$(srcdir)/NBSplineKernelInst.cc \
-	$(srcdir)/QuarticSplineKernel.cc \
-	$(srcdir)/QuinticSplineKernel.cc \
+	$(srcdir)/QuarticSplineKernelInst.cc \
+	$(srcdir)/QuinticSplineKernelInst.cc \
 	$(srcdir)/TableKernelInst.cc \
 	$(srcdir)/VolumeIntegrationFunctionsInst.cc \
-	$(srcdir)/WendlandC4Kernel.cc \
-	$(srcdir)/WendlandC6Kernel.cc
+	$(srcdir)/WendlandC4KernelInst.cc \
+	$(srcdir)/WendlandC6KernelInst.cc
+SRCTARGETS =
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

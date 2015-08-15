@@ -9,29 +9,30 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = FieldOperations
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/smoothFieldsInst.cc \
-	$(srcdir)/gradientInst.cc \
-	$(srcdir)/divergenceInst.cc \
-	$(srcdir)/smoothFieldsMashInst.cc \
-	$(srcdir)/smoothFieldsMash2Inst.cc \
-	$(srcdir)/sampleFieldsMashInst.cc \
-	$(srcdir)/splatFieldsMashInst.cc \
-	$(srcdir)/gradientMashInst.cc \
-	$(srcdir)/divergenceMashInst.cc \
-	$(srcdir)/gradientPairWiseInst.cc \
-	$(srcdir)/divergencePairWiseInst.cc \
-	$(srcdir)/sampleMultipleFieldsMashInst.cc \
-	$(srcdir)/splatMultipleFieldsMashInst.cc \
-	$(srcdir)/gradDivVectorFieldListInst.cc \
-	$(srcdir)/gradDivVectorFieldListSimpleInst.cc \
-	$(srcdir)/gradDivVectorFieldListGoldenInst.cc \
-	$(srcdir)/gradDivVectorFieldListGolden2Inst.cc \
-	$(srcdir)/gradDivVectorFieldListMashInst.cc \
-	$(srcdir)/gradDivVectorFieldListPairWiseInst.cc \
-	$(srcdir)/sampleMultipleFields2LatticeInst.cc \
-	$(srcdir)/sampleMultipleFields2LatticeMashInst.cc \
-	$(srcdir)/binFieldList2LatticeInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/smoothFieldsInst.cc.py \
+	$(srcdir)/gradientInst.cc.py \
+	$(srcdir)/divergenceInst.cc.py \
+	$(srcdir)/smoothFieldsMashInst.cc.py \
+	$(srcdir)/smoothFieldsMash2Inst.cc.py \
+	$(srcdir)/sampleFieldsMashInst.cc.py \
+	$(srcdir)/splatFieldsMashInst.cc.py \
+	$(srcdir)/gradientMashInst.cc.py \
+	$(srcdir)/divergenceMashInst.cc.py \
+	$(srcdir)/gradientPairWiseInst.cc.py \
+	$(srcdir)/divergencePairWiseInst.cc.py \
+	$(srcdir)/sampleMultipleFieldsMashInst.cc.py \
+	$(srcdir)/splatMultipleFieldsMashInst.cc.py \
+	$(srcdir)/gradDivVectorFieldListInst.cc.py \
+	$(srcdir)/gradDivVectorFieldListSimpleInst.cc.py \
+	$(srcdir)/gradDivVectorFieldListGoldenInst.cc.py \
+	$(srcdir)/gradDivVectorFieldListGolden2Inst.cc.py \
+	$(srcdir)/gradDivVectorFieldListMashInst.cc.py \
+	$(srcdir)/gradDivVectorFieldListPairWiseInst.cc.py \
+	$(srcdir)/sampleMultipleFields2LatticeInst.cc.py \
+	$(srcdir)/sampleMultipleFields2LatticeMashInst.cc.py \
+	$(srcdir)/binFieldList2LatticeInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

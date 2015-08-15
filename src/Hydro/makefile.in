@@ -9,18 +9,19 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Hydro
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/PressurePolicyInst.cc.py \
+	$(srcdir)/SoundSpeedPolicyInst.cc.py \
+	$(srcdir)/SpecificThermalEnergyPolicyInst.cc.py \
+	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc.py \
+	$(srcdir)/PositionPolicyInst.cc.py \
+	$(srcdir)/VolumePolicyInst.cc.py \
+	$(srcdir)/VoronoiMassDensityPolicyInst.cc.py \
+	$(srcdir)/SumVoronoiMassDensityPolicyInst.cc.py \
+	$(srcdir)/ThirdMomentHourglassControlInst.cc.py
 SRCTARGETS = \
 	$(srcdir)/HydroFieldNames.cc \
-	$(srcdir)/PressurePolicyInst.cc \
-	$(srcdir)/SoundSpeedPolicyInst.cc \
-	$(srcdir)/SpecificThermalEnergyPolicyInst.cc \
-	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc \
-	$(srcdir)/PositionPolicyInst.cc \
-	$(srcdir)/VolumePolicyInst.cc \
-	$(srcdir)/VoronoiMassDensityPolicyInst.cc \
-	$(srcdir)/SumVoronoiMassDensityPolicyInst.cc \
-	$(srcdir)/SecondMomentHourglassControlInst.cc \
-	$(srcdir)/ThirdMomentHourglassControlInst.cc
+	$(srcdir)/SecondMomentHourglassControlInst.cc
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

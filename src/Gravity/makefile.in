@@ -9,8 +9,9 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Gravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/NBodyGravityInst.cc.py
 SRCTARGETS = \
-	$(srcdir)/NBodyGravityInst.cc \
 	$(srcdir)/TreeGravityInst.cc
 
 include $(BUILDTOP)/helpers/makefile_master

@@ -8,22 +8,23 @@ BUILDTOP = @abs_top_builddir@
 
 PKGNAME = Distributed
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	DistributedBoundaryInst.cc.py \
+	NestedGridDistributedBoundaryInst.cc.py \
+	BoundingVolumeDistributedBoundaryInst.cc.py \
+	RedistributeNodesInst.cc.py \
+	DistributeByXPositionInst.cc.py \
+	NestedGridRedistributeNodesInst.cc.py \
+	SortAndDivideRedistributeNodesInst.cc.py \
+	SpaceFillingCurveRedistributeNodesInst.cc.py \
+	MortonOrderRedistributeNodesInst.cc.py \
+	PeanoHilbertOrderRedistributeNodesInst.cc.py \
+	VoronoiRedistributeNodesInst.cc.py
 SRCTARGETS = \
 	Communicator.cc \
-	DistributedBoundaryInst.cc \
-	NestedGridDistributedBoundaryInst.cc \
-	BoundingVolumeDistributedBoundaryInst.cc \
-	RedistributeNodesInst.cc \
-	DistributeByXPositionInst.cc \
-	NestedGridRedistributeNodesInst.cc \
-	SortAndDivideRedistributeNodesInst.cc \
 	SortAndDivideRedistributeNodes1d.cc \
 	SortAndDivideRedistributeNodes2d.cc \
 	SortAndDivideRedistributeNodes3d.cc \
-	SpaceFillingCurveRedistributeNodesInst.cc \
-	MortonOrderRedistributeNodesInst.cc \
-	PeanoHilbertOrderRedistributeNodesInst.cc \
-	VoronoiRedistributeNodesInst.cc \
 	waitAllWithDeadlockDetection.cc \
 	$(PARMETISTARGET)
 
