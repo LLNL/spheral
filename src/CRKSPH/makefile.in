@@ -9,23 +9,26 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = CRKSPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+INSTSRCTARGETS = \
+	$(srcdir)/computeCRKSPHSumMassDensityInst.cc.py \
+	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
+	$(srcdir)/computeHullSumMassDensityInst.cc.py \
+	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
+	$(srcdir)/computeCRKSPHEvaluationInst.cc.py \
+	$(srcdir)/computeCRKSPHIntegralInst.cc.py \
+	$(srcdir)/computeHullVolumesInst.cc.py \
+	$(srcdir)/computeHVolumesInst.cc.py \
+	$(srcdir)/computeNeighborHullInst.cc.py \
+	$(srcdir)/CRKSPHHydroBaseInst.cc.py \
+	$(srcdir)/interpolateCRKSPHInst.cc.py \
+	$(srcdir)/gradientCRKSPHInst.cc.py \
+	$(srcdir)/HVolumePolicyInst.cc.py \
+	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py
+
 SRCTARGETS = \
-	$(srcdir)/computeCRKSPHSumMassDensityInst.cc \
-	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc \
-	$(srcdir)/computeHullSumMassDensityInst.cc \
-	$(srcdir)/computeCRKSPHCorrectionsInst.cc \
-	$(srcdir)/computeCRKSPHEvaluationInst.cc \
-	$(srcdir)/computeCRKSPHIntegralInst.cc \
-	$(srcdir)/computeHullVolumesInst.cc \
-	$(srcdir)/computeHVolumesInst.cc \
-	$(srcdir)/computeNeighborHullInst.cc \
 	$(srcdir)/computeVoronoiCentroids.cc \
 	$(srcdir)/centerOfMass.cc \
-	$(srcdir)/CRKSPHHydroBaseInst.cc \
-	$(srcdir)/interpolateCRKSPHInst.cc \
-	$(srcdir)/gradientCRKSPHInst.cc \
-	$(srcdir)/HVolumePolicyInst.cc \
-	$(srcdir)/SolidCRKSPHHydroBaseInst.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py \

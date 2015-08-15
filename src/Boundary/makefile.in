@@ -9,18 +9,19 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Boundary
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/BoundaryInst.cc.py \
+	$(srcdir)/PlanarBoundaryInst.cc.py \
+	$(srcdir)/ReflectingBoundaryInst.cc.py \
+	$(srcdir)/RigidBoundaryInst.cc.py \
+	$(srcdir)/PeriodicBoundaryInst.cc.py \
+	$(srcdir)/ConstantVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantYVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantBoundaryInst.cc.py \
 SRCTARGETS = \
-	$(srcdir)/BoundaryInst.cc \
-	$(srcdir)/PlanarBoundaryInst.cc \
-	$(srcdir)/ReflectingBoundaryInst.cc \
-	$(srcdir)/RigidBoundaryInst.cc \
-	$(srcdir)/PeriodicBoundaryInst.cc \
-	$(srcdir)/ConstantVelocityBoundaryInst.cc \
-	$(srcdir)/ConstantXVelocityBoundaryInst.cc \
-	$(srcdir)/ConstantYVelocityBoundaryInst.cc \
 	$(srcdir)/ConstantZVelocityBoundaryInst.cc \
-	$(srcdir)/ConstantRVelocityBoundaryInst.cc \
-	$(srcdir)/ConstantBoundaryInst.cc \
 	$(srcdir)/SphericalBoundary.cc \
 	$(srcdir)/CylindricalBoundary.cc \
 	$(srcdir)/AxialSymmetryBoundary.cc
