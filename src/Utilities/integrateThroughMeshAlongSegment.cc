@@ -22,6 +22,7 @@ namespace Spheral {
 
 using namespace std;
 
+namespace {
 //------------------------------------------------------------------------------
 // Find the index of the cell boundary just left or right (1-D) of the given
 // coordinate.
@@ -44,10 +45,12 @@ rightCellBoundary(const double xi,
   const double f = max(0.0, min(1.0, (xi - xmin)/(xmax - xmin)))*ncells;
   return f - unsigned(f) > 1.0e-10 ? unsigned(f) + 1U : unsigned(f);
 }
-
+}
+  
 //------------------------------------------------------------------------------
 // Find the points of intersection with the mesh planes for the given segment.
 //------------------------------------------------------------------------------
+#ifdef SPHERAL1D
 // 1-D.
 vector<Dim<1>::Vector>
 findIntersections(const Dim<1>::Vector& xmin,
@@ -87,9 +90,11 @@ findIntersections(const Dim<1>::Vector& xmin,
 
   return result;
 }
-
+#endif
+  
 //------------------------------------------------------------------------------
 // 2-D.
+#ifdef SPHERAL2D
 vector<Dim<2>::Vector> 
 findIntersections(const Dim<2>::Vector& xmin,
 		  const Dim<2>::Vector& xmax,
@@ -154,9 +159,11 @@ findIntersections(const Dim<2>::Vector& xmin,
 
   return result;
 }
-
+#endif
+  
 //------------------------------------------------------------------------------
 // 3-D.
+#ifdef SPHERAL3D
 vector<Dim<3>::Vector> 
 findIntersections(const Dim<3>::Vector& xmin,
 		  const Dim<3>::Vector& xmax,
@@ -234,6 +241,7 @@ findIntersections(const Dim<3>::Vector& xmin,
 
   return result;
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Find the finest non-zero value in the level set of values at the give point.

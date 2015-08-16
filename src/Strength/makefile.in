@@ -9,15 +9,18 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Strength
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
 SRCTARGETS = \
-	$(srcdir)/SolidFieldNames.cc \
-	$(srcdir)/SolidNodeListInst.cc \
-	$(srcdir)/DeviatoricStressPolicyInst.cc \
-	$(srcdir)/PlasticStrainPolicyInst.cc \
-	$(srcdir)/BulkModulusPolicyInst.cc \
-	$(srcdir)/ShearModulusPolicyInst.cc \
-	$(srcdir)/YieldStrengthPolicyInst.cc \
-	$(srcdir)/StrengthSoundSpeedPolicyInst.cc
+	$(srcdir)/SolidFieldNames.cc
+
+INSTSRCTARGETS = \
+	$(srcdir)/SolidNodeListInst.cc.py \
+	$(srcdir)/DeviatoricStressPolicyInst.cc.py \
+	$(srcdir)/PlasticStrainPolicyInst.cc.py \
+	$(srcdir)/BulkModulusPolicyInst.cc.py \
+	$(srcdir)/ShearModulusPolicyInst.cc.py \
+	$(srcdir)/YieldStrengthPolicyInst.cc.py \
+	$(srcdir)/StrengthSoundSpeedPolicyInst.cc.py
 
 PYTHONTARGETS = \
 	$(srcdir)/SolidNodeLists.py

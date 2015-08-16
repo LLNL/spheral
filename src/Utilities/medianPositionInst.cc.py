@@ -2,12 +2,9 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
-#include "Geometry/Dimension.hh"
+#include "medianPosition.cc"
 
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  template Dim< %(ndim)s >::Vector medianPosition(vector<Dim< %(ndim)s >::Vector>& positions);
 }
 """

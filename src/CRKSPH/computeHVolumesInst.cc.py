@@ -6,9 +6,9 @@ text = """
 #include "computeHVolumes.cc"
 
 namespace Spheral {
-  template void computeHVolumes(const Dim<1>::Scalar kernelExtent,
-                                const FieldList<Dim<1>, Dim<1>::SymTensor>&,
-                                FieldList<Dim<1>, Dim<1>::Scalar>&);
+  template void computeHVolumes(const Dim< %(ndim)s >::Scalar kernelExtent,
+                                const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
+                                FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&);
 }
 
 """

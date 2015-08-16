@@ -9,16 +9,17 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SolidMaterial
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/LinearPolynomialEquationOfStateInst.cc \
-	$(srcdir)/GruneisenEquationOfStateInst.cc \
-	$(srcdir)/MurnahanEquationOfStateInst.cc \
-	$(srcdir)/TillotsonEquationOfStateInst.cc \
-	$(srcdir)/SteinbergGuinanStrengthInst.cc \
-	$(srcdir)/JohnsonCookStrengthInst.cc \
-	$(srcdir)/PorousEquationOfStateInst.cc \
-	$(srcdir)/PorousStrengthModelInst.cc \
-	$(srcdir)/StrainPorosityInst.cc \
+
+INSTSRCTARGETS = \
+	$(srcdir)/LinearPolynomialEquationOfStateInst.cc.py \
+	$(srcdir)/GruneisenEquationOfStateInst.cc.py \
+	$(srcdir)/MurnahanEquationOfStateInst.cc.py \
+	$(srcdir)/TillotsonEquationOfStateInst.cc.py \
+	$(srcdir)/SteinbergGuinanStrengthInst.cc.py \
+	$(srcdir)/JohnsonCookStrengthInst.cc.py \
+	$(srcdir)/PorousEquationOfStateInst.cc.py \
+	$(srcdir)/PorousStrengthModelInst.cc.py \
+	$(srcdir)/StrainPorosityInst.cc.py \
 	$(ANEOSSRCS) \
 	$(GEODYNSRCS)
 
