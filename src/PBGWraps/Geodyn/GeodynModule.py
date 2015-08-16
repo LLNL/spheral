@@ -13,7 +13,9 @@ class Geodyn:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/SolidMaterial/Geodyn.hh"' % topsrcdir)
@@ -24,9 +26,7 @@ class Geodyn:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         self.space = Spheral.add_cpp_namespace("SolidMaterial")
 
-        self.dimSet = (1, 2, 3)
-
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 StrengthModel%(dim)id = findObject(self.space, "StrengthModel%(dim)id")
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
@@ -47,7 +47,7 @@ self.Geodyn%(dim)id = self.space.add_class("Geodyn",
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 generateGeodynBindings(self.Geodyn%(dim)id, %(dim)i)
 ''' % {"dim" : dim})

@@ -11,7 +11,9 @@ class Integrator:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/IntegratorTypes.hh"' % srcdir)
@@ -21,7 +23,7 @@ class Integrator:
         space = Spheral.add_cpp_namespace("IntegratorSpace")
 
         # Expose types.
-        for dim in xrange(3):
+        for dim in self.dims:
             exec('''
 self.Integrator%(dim)id = addObject(space, "Integrator%(dim)id", allow_subclassing=True)
 self.PredictorCorrector%(dim)id = addObject(space, "PredictorCorrectorIntegrator%(dim)id", parent=self.Integrator%(dim)id)
@@ -30,7 +32,7 @@ self.SynchronousRK2Integrator%(dim)id = addObject(space, "SynchronousRK2Integrat
 self.SynchronousRK4Integrator%(dim)id = addObject(space, "SynchronousRK4Integrator%(dim)id", parent=self.Integrator%(dim)id)
 self.CheapSynchronousRK2Integrator%(dim)id = addObject(space, "CheapSynchronousRK2Integrator%(dim)id", parent=self.Integrator%(dim)id)
 self.VerletIntegrator%(dim)id = addObject(space, "VerletIntegrator%(dim)id", parent=self.Integrator%(dim)id)
-''' % {"dim" : dim + 1})
+''' % {"dim" : dim})
 
         return
 
@@ -39,7 +41,7 @@ self.VerletIntegrator%(dim)id = addObject(space, "VerletIntegrator%(dim)id", par
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for dim in xrange(3):
+        for dim in self.dims:
             exec('''
 self.generateIntegratorBindings(self.Integrator%(dim)id, %(dim)i)
 self.generateIntegratorDescendentBindings(self.PredictorCorrector%(dim)id, %(dim)i)
@@ -48,7 +50,7 @@ self.generateIntegratorDescendentBindings(self.SynchronousRK2Integrator%(dim)id,
 self.generateIntegratorDescendentBindings(self.SynchronousRK4Integrator%(dim)id, %(dim)i)
 self.generateIntegratorDescendentBindings(self.CheapSynchronousRK2Integrator%(dim)id, %(dim)i)
 self.generateIntegratorDescendentBindings(self.VerletIntegrator%(dim)id, %(dim)i)
-''' % {"dim" : dim + 1})
+''' % {"dim" : dim})
 
         return
 

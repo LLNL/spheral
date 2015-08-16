@@ -10,13 +10,18 @@ class NodeGenerators:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
+
         mod.add_include('"%s/NodeGeneratorsTypes.hh"' % srcdir)
         Spheral = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.WeightingFunctor2d = addObject(Spheral, "WeightingFunctor2d", allow_subclassing=True)
-        self.WeightingFunctor3d = addObject(Spheral, "WeightingFunctor3d", allow_subclassing=True)
+        if 2 in self.dims:
+            self.WeightingFunctor2d = addObject(Spheral, "WeightingFunctor2d", allow_subclassing=True)
+        if 3 in self.dims:
+            self.WeightingFunctor3d = addObject(Spheral, "WeightingFunctor3d", allow_subclassing=True)
 
         return
 
@@ -27,8 +32,10 @@ class NodeGenerators:
 
         Spheral = mod.add_cpp_namespace("Spheral")
 
-        self.addWeightingFunctorMethods(self.WeightingFunctor2d, 2)
-        self.addWeightingFunctorMethods(self.WeightingFunctor3d, 3)
+        if 2 in self.dims:
+            self.addWeightingFunctorMethods(self.WeightingFunctor2d, 2)
+        if 3 in self.dims:
+            self.addWeightingFunctorMethods(self.WeightingFunctor3d, 3)
 
         Spheral.add_function("generateCylDistributionFromRZ",
                              None,

@@ -11,7 +11,9 @@ class Damage:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/DamageTypes.hh"' % srcdir)
@@ -22,10 +24,6 @@ class Damage:
 
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-
-        Physics1d = findObject(PhysicsSpace, "Physics1d")
-        Physics2d = findObject(PhysicsSpace, "Physics2d")
-        Physics3d = findObject(PhysicsSpace, "Physics3d")
 
         self.TensorStrainAlgorithm = space.add_enum("TensorStrainAlgorithm", ["BenzAsphaug",
                                                                               "StrainHistory",
@@ -40,21 +38,14 @@ class Damage:
                                                                                 "InverseSumFlaws",
                                                                                 "SampledFlaws"])
 
-        self.DamageModel1d = addObject(space, "DamageModel1d", parent=Physics1d, allow_subclassing=True)
-        self.DamageModel2d = addObject(space, "DamageModel2d", parent=Physics2d, allow_subclassing=True)
-        self.DamageModel3d = addObject(space, "DamageModel3d", parent=Physics3d, allow_subclassing=True)
-
-        self.TensorDamageModel1d = addObject(space, "TensorDamageModel1d", parent=self.DamageModel1d, allow_subclassing=True)
-        self.TensorDamageModel2d = addObject(space, "TensorDamageModel2d", parent=self.DamageModel2d, allow_subclassing=True)
-        self.TensorDamageModel3d = addObject(space, "TensorDamageModel3d", parent=self.DamageModel3d, allow_subclassing=True)
-
-        self.addWeibullDistributionFunctions(space, 1)
-        self.addWeibullDistributionFunctions(space, 2)
-        self.addWeibullDistributionFunctions(space, 3)
-
-        self.addComputeFragmentField(SolidSpheral, 1)
-        self.addComputeFragmentField(SolidSpheral, 2)
-        self.addComputeFragmentField(SolidSpheral, 3)
+        for dim in self.dims:
+            exec('''
+Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+self.DamageModel%(dim)id = addObject(space, "DamageModel%(dim)id", parent=Physics%(dim)id, allow_subclassing=True)
+self.TensorDamageModel%(dim)id = addObject(space, "TensorDamageModel%(dim)id", parent=self.DamageModel%(dim)id, allow_subclassing=True)
+self.addWeibullDistributionFunctions(space, %(dim)i)
+self.addComputeFragmentField(SolidSpheral, %(dim)i)
+''' % {"dim" : dim})
 
         return
 
@@ -63,13 +54,11 @@ class Damage:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateDamageModelBindings(self.DamageModel1d, 1)
-        self.generateDamageModelBindings(self.DamageModel2d, 2)
-        self.generateDamageModelBindings(self.DamageModel3d, 3)
-
-        self.generateTensorDamageModelBindings(self.TensorDamageModel1d, 1)
-        self.generateTensorDamageModelBindings(self.TensorDamageModel2d, 2)
-        self.generateTensorDamageModelBindings(self.TensorDamageModel3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateDamageModelBindings(self.DamageModel%(dim)id, %(dim)i)
+self.generateTensorDamageModelBindings(self.TensorDamageModel%(dim)id, %(dim)i)
+''' % {"dim" : dim})
 
         return
 

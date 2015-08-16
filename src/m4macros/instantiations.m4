@@ -5,6 +5,7 @@ AC_DEFUN([SETUP_INSTANTIATIONS],[
 AC_SUBST(INST1D)
 AC_SUBST(INST2D)
 AC_SUBST(INST3D)
+AC_SUBST(DIMS)
 
 # -----------------------------------------------------------------
 # 1D
@@ -19,6 +20,7 @@ AC_ARG_WITH(1d,
 [
    AC_MSG_RESULT(no)
    INST1D="yes"
+   DIMS+="1 "
 ]
 )
 
@@ -35,6 +37,7 @@ AC_ARG_WITH(2d,
 [
    AC_MSG_RESULT(no)
    INST2D="yes"
+   DIMS+="2 "
 ]
 )
 
@@ -51,6 +54,7 @@ AC_ARG_WITH(3d,
 [
    AC_MSG_RESULT(no)
    INST3D="yes"
+   DIMS+="3 "
 ]
 )
 

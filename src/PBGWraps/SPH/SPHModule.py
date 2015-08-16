@@ -13,7 +13,9 @@ class SPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/SPHTypes.hh"' % srcdir)
@@ -23,14 +25,13 @@ class SPH:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         self.space = Spheral.add_cpp_namespace("SPHSpace")
         
-        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
-        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
-        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
+        for dim in self.dims:
+            exec('''
+generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
 
-        # Expose types.
-        self.SPHHydroBase1d = addObject(self.space, "SPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)
-        self.SPHHydroBase2d = addObject(self.space, "SPHHydroBase2d", allow_subclassing=True, parent=generichydro2d)
-        self.SPHHydroBase3d = addObject(self.space, "SPHHydroBase3d", allow_subclassing=True, parent=generichydro3d)
+# Expose types.
+self.SPHHydroBase%(dim)id = addObject(self.space, "SPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -39,13 +40,11 @@ class SPH:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateSPHHydroBaseBindings(self.SPHHydroBase1d, 1)
-        self.generateSPHHydroBaseBindings(self.SPHHydroBase2d, 2)
-        self.generateSPHHydroBaseBindings(self.SPHHydroBase3d, 3)
-        
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        for dim in self.dims:
+            exec('''
+self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
+        self.generateDimBindings(dim)
 
         return
 

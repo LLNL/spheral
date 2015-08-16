@@ -11,7 +11,9 @@ class DataBase:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/DataBaseTypes.hh"' % srcdir)
@@ -21,21 +23,13 @@ class DataBase:
         space = Spheral.add_cpp_namespace("DataBaseSpace")
 
         # Expose types.
-        self.StateBase1d = addObject(Spheral, "StateBase1d", allow_subclassing=True)
-        self.StateBase2d = addObject(Spheral, "StateBase2d", allow_subclassing=True)
-        self.StateBase3d = addObject(Spheral, "StateBase3d", allow_subclassing=True)
-
-        self.State1d = addObject(Spheral, "State1d", allow_subclassing=True, parent=self.StateBase1d)
-        self.State2d = addObject(Spheral, "State2d", allow_subclassing=True, parent=self.StateBase2d)
-        self.State3d = addObject(Spheral, "State3d", allow_subclassing=True, parent=self.StateBase3d)
-        
-        self.StateDerivatives1d = addObject(Spheral, "StateDerivatives1d", allow_subclassing=True, parent=self.StateBase1d)
-        self.StateDerivatives2d = addObject(Spheral, "StateDerivatives2d", allow_subclassing=True, parent=self.StateBase2d)
-        self.StateDerivatives3d = addObject(Spheral, "StateDerivatives3d", allow_subclassing=True, parent=self.StateBase3d)
-        
-        self.DataBase1d = addObject(space, "DataBase1d", allow_subclassing=True)
-        self.DataBase2d = addObject(space, "DataBase2d", allow_subclassing=True)
-        self.DataBase3d = addObject(space, "DataBase3d", allow_subclassing=True)
+        for dim in self.dims:
+            exec('''
+self.StateBase%(dim)id = addObject(Spheral, "StateBase%(dim)id", allow_subclassing=True)
+self.State%(dim)id = addObject(Spheral, "State%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
+self.StateDerivatives%(dim)id = addObject(Spheral, "StateDerivatives%(dim)id", allow_subclassing=True, parent=self.StateBase%(dim)id)
+self.DataBase%(dim)id = addObject(space, "DataBase%(dim)id", allow_subclassing=True)
+''' % {"dim" : dim})
 
         return
 
@@ -43,21 +37,14 @@ class DataBase:
     # Add the types to the given module.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        self.addStateBaseMethods(self.StateBase1d, 1)
-        self.addStateBaseMethods(self.StateBase2d, 2)
-        self.addStateBaseMethods(self.StateBase3d, 3)
 
-        self.addStateMethods(self.State1d, 1)
-        self.addStateMethods(self.State2d, 2)
-        self.addStateMethods(self.State3d, 3)
-
-        self.addStateDerivativesMethods(self.StateDerivatives1d, 1)
-        self.addStateDerivativesMethods(self.StateDerivatives2d, 2)
-        self.addStateDerivativesMethods(self.StateDerivatives3d, 3)
-
-        self.addDataBaseMethods(self.DataBase1d, 1)
-        self.addDataBaseMethods(self.DataBase2d, 2)
-        self.addDataBaseMethods(self.DataBase3d, 3)
+        for dim in self.dims:
+            exec('''
+self.addStateBaseMethods(self.StateBase%(dim)id, %(dim)i)
+self.addStateMethods(self.State%(dim)id, %(dim)i)
+self.addStateDerivativesMethods(self.StateDerivatives%(dim)id, %(dim)i)
+self.addDataBaseMethods(self.DataBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
 
         return
 

@@ -13,7 +13,9 @@ class NodeList:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/NodeListTypes.hh"' % srcdir)
@@ -25,9 +27,7 @@ class NodeList:
         # Expose types.
         self.NodeType = self.space.add_enum("NodeType", ["InternalNode", "GhostNode"])
 
-        for dim, ndim in (("1d", 1), 
-                          ("2d", 2),
-                          ("3d", 3)):
+        for ndim in self.dims:
             exec("""
 self.NodeListRegistrar%(dim)s = addObject(Spheral, "NodeListRegistrar%(dim)s", is_singleton=True);
 self.NodeList%(dim)s = addObject(self.space, "NodeList%(dim)s", allow_subclassing=True)
@@ -48,7 +48,8 @@ self.vector_of_pair_NodeList%(dim)s_string = addObject(mod, "vector_of_pair_Node
 self.vector_of_NodeList%(dim)s_iterator = addObject(mod, "vector_of_NodeList%(dim)s_iterator", allow_subclassing=True)
 self.vector_of_FluidNodeList%(dim)s_iterator = addObject(mod, "vector_of_FluidNodeList%(dim)s_iterator", allow_subclassing=True)
 
-""" % {"dim" : dim, "ndim" : ndim})
+""" % {"ndim" : ndim,
+       "dim"  : "%id" % ndim})
 
         return
 
@@ -58,9 +59,7 @@ self.vector_of_FluidNodeList%(dim)s_iterator = addObject(mod, "vector_of_FluidNo
     def generateBindings(self, mod):
         Spheral = mod.add_cpp_namespace("Spheral")
 
-        for dim, ndim, mesh in (("1d", 1, "LineMesh"),
-                                ("2d", 2, "PolygonalMesh"),
-                                ("3d", 3, "PolyhedralMesh")):
+        for ndim in self.dims:
             exec("""
 self.addNodeListRegistrarMethods(self.NodeListRegistrar%(dim)s, %(ndim)s)
 self.addNodeListMethods(self.NodeList%(dim)s, %(ndim)s)
@@ -90,7 +89,7 @@ Spheral.add_function("nodeListRegistrarInstance",
 self.space.add_function("generateVoidNodes", None,
                         [constrefparam("vector_of_Vector%(dim)s", "generators"),
                          constrefparam("vector_of_SymTensor%(dim)s", "Hs"),
-                         constrefparam(mesh, "mesh"),
+                         constrefparam("%(mesh)s", "mesh"),
                          constrefparam("Vector%(dim)s", "xmin"),
                          constrefparam("Vector%(dim)s", "xmax"),
                          param("unsigned int", "numInternal"),
@@ -132,7 +131,9 @@ self.space.add_function("zerothAndFirstNodalMoments", None,
                         custom_name = "zerothAndFirstNodalMoments",
                         docstring = "Compute the zeroth and first moments of the local node distribution in eta space.")
 
-""" % {"dim" : dim, "ndim" : ndim})
+""" % {"ndim" : ndim,
+       "dim"  : "%id" % ndim,
+       "mesh" : ("LineMesh", "PolygonalMesh", "PolyhedralMesh")[ndim - 1]})
 
         return
 

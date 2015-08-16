@@ -14,7 +14,9 @@ class CRKSPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/CRKSPHTypes.hh"' % srcdir)
@@ -23,19 +25,13 @@ class CRKSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         self.space = Spheral.add_cpp_namespace("CRKSPHSpace")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
-        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
-        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
 
-        # Expose types.
-        self.CRKSPHHydroBase1d = addObject(self.space, "CRKSPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)
-        self.CRKSPHHydroBase2d = addObject(self.space, "CRKSPHHydroBase2d", allow_subclassing=True, parent=generichydro2d)
-        self.CRKSPHHydroBase3d = addObject(self.space, "CRKSPHHydroBase3d", allow_subclassing=True, parent=generichydro3d)
-
-        # Expose types.
-        self.SolidCRKSPHHydroBase1d = addObject(self.space, "SolidCRKSPHHydroBase1d", allow_subclassing=True, parent=self.CRKSPHHydroBase1d)
-        self.SolidCRKSPHHydroBase2d = addObject(self.space, "SolidCRKSPHHydroBase2d", allow_subclassing=True, parent=self.CRKSPHHydroBase2d)
-        self.SolidCRKSPHHydroBase3d = addObject(self.space, "SolidCRKSPHHydroBase3d", allow_subclassing=True, parent=self.CRKSPHHydroBase3d)
+        for dim in self.dims:
+            exec('''
+generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
+self.CRKSPHHydroBase%(dim)id = addObject(self.space, "CRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
+self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%(dim)id", allow_subclassing=True, parent=self.CRKSPHHydroBase%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -44,17 +40,12 @@ class CRKSPH:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase1d, 1)
-        self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase2d, 2)
-        self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase3d, 3)
-        
-        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase1d, 1)
-        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase2d, 2)
-        self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase3d, 3)
-        
-        self.generateDimBindings(mod, 1)
-        self.generateDimBindings(mod, 2)
-        self.generateDimBindings(mod, 3)
+        for dim in self.dims:
+            exec('''
+self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase%(dim)id, %(dim)i)
+self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
+        self.generateDimBindings(mod, dim)
 
         return
 

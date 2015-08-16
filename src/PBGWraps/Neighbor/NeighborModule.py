@@ -13,7 +13,9 @@ class Neighbor:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/NeighborTypes.hh"' % srcdir)
@@ -25,7 +27,7 @@ class Neighbor:
         # Expose types.
         self.NeighborSearchType = space.add_enum("NeighborSearchType", ["None", "Gather", "Scatter", "GatherScatter"])
 
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             exec("""
 self.GridCellIndex%(ndim)id = addObject(space, "GridCellIndex%(ndim)id")
 self.GridCellPlane%(ndim)id = addObject(space, "GridCellPlane%(ndim)id")
@@ -44,7 +46,7 @@ self.vector_of_vector_of_GridCellIndex%(ndim)id = addObject(mod, "vector_of_vect
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             exec("""
 self.generateGridCellIndexBindings(self.GridCellIndex%(ndim)id, %(ndim)i)
 self.generateGridCellPlaneBindings(self.GridCellPlane%(ndim)id, %(ndim)i)

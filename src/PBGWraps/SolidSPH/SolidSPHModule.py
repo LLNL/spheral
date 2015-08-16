@@ -11,7 +11,9 @@ class SolidSPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/SolidSPHTypes.hh"' % srcdir)
@@ -23,20 +25,15 @@ class SolidSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         SPHSpace = Spheral.add_cpp_namespace("SPHSpace")
 
-        sphhydrobase1d = findObject(SPHSpace, "SPHHydroBase1d")
-        sphhydrobase2d = findObject(SPHSpace, "SPHHydroBase2d")
-        sphhydrobase3d = findObject(SPHSpace, "SPHHydroBase3d")
-
         # Expose types.
         self.NodeCoupling = addObject(Spheral, "NodeCoupling", allow_subclassing=True)
 
-        self.DamagedNodeCoupling1d = addObject(Spheral, "DamagedNodeCoupling1d", allow_subclassing=True, parent=self.NodeCoupling)
-        self.DamagedNodeCoupling2d = addObject(Spheral, "DamagedNodeCoupling2d", allow_subclassing=True, parent=self.NodeCoupling)
-        self.DamagedNodeCoupling3d = addObject(Spheral, "DamagedNodeCoupling3d", allow_subclassing=True, parent=self.NodeCoupling)
-
-        self.SolidSPHHydroBase1d = addObject(space, "SolidSPHHydroBase1d", allow_subclassing=True, parent=sphhydrobase1d)
-        self.SolidSPHHydroBase2d = addObject(space, "SolidSPHHydroBase2d", allow_subclassing=True, parent=sphhydrobase2d)
-        self.SolidSPHHydroBase3d = addObject(space, "SolidSPHHydroBase3d", allow_subclassing=True, parent=sphhydrobase3d)
+        for dim in self.dims:
+            exec('''
+sphhydrobase%(dim)id = findObject(SPHSpace, "SPHHydroBase%(dim)id")
+self.DamagedNodeCoupling%(dim)id = addObject(Spheral, "DamagedNodeCoupling%(dim)id", allow_subclassing=True, parent=self.NodeCoupling)
+self.SolidSPHHydroBase%(dim)id = addObject(space, "SolidSPHHydroBase%(dim)id", allow_subclassing=True, parent=sphhydrobase%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -47,13 +44,11 @@ class SolidSPH:
 
         self.generateNodeCouplingBindings(self.NodeCoupling)
 
-        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling1d, 1)
-        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling2d, 2)
-        self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling3d, 3)
-
-        self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase1d, 1)
-        self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase2d, 2)
-        self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateDamagedNodeCouplingBindings(self.DamagedNodeCoupling%(dim)id, %(dim)i)
+self.generateSolidSPHHydroBaseBindings(self.SolidSPHHydroBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
         
         return
 
