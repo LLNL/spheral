@@ -2,12 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
+#include "CompatibleFaceSpecificThermalEnergyPolicy.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  template class CompatibleFaceSpecificThermalEnergyPolicy<Dim< %(ndim)s > >;
 }
 """

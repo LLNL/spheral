@@ -2,12 +2,14 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
+#include "JohnsonCookStrength.cc"
 #include "Geometry/Dimension.hh"
 
+using namespace Spheral::Material;
+
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  namespace SolidMaterial {
+    template class JohnsonCookStrength<Dim< %(ndim)s > >;
+  }
 }
 """

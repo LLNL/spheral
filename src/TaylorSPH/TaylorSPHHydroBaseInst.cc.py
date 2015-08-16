@@ -1,13 +1,13 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Explict instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
 #include "Geometry/Dimension.hh"
+#include "TaylorSPHHydroBase.cc"
 
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  namespace TaylorSPHSpace {
+    template class TaylorSPHHydroBase< Dim< %(ndim)s > >;
+  }
 }
 """

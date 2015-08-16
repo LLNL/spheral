@@ -2,12 +2,12 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
+#include "LinearPolynomialEquationOfState.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  namespace SolidMaterial {
+    template class LinearPolynomialEquationOfState<Dim< %(ndim)s > >;
+  }
 }
 """

@@ -2,12 +2,11 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "HelmholtzEquationOfState.cc"
-#include "Geometry/Dimension.hh"
+#include "PorousStrengthModel.cc"
 
 namespace Spheral {
-    namespace Material {
-        template class HelmholtzEquationOfState< Dim< %(ndim)s > >;
-    }
+  namespace SolidMaterial {
+    template class PorousStrengthModel<Dim< %(ndim)s > >;
+  }
 }
 """

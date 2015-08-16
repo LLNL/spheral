@@ -1086,5 +1086,14 @@ valid() const {
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Define our static members.
+//------------------------------------------------------------------------------
+template<typename Dimension> const unsigned TreeNeighbor<Dimension>::num1dbits = 21U;
+template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::max1dKey = 1U << TreeNeighbor<Dimension>::num1dbits;
+template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::xkeymask = (1U << TreeNeighbor<Dimension>::num1dbits) - 1U;
+template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::ykeymask = TreeNeighbor<Dimension>::xkeymask << TreeNeighbor<Dimension>::num1dbits;
+template<typename Dimension> const uint64_t TreeNeighbor<Dimension>::zkeymask = TreeNeighbor<Dimension>::ykeymask << TreeNeighbor<Dimension>::num1dbits;
+
 }
 }

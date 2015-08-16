@@ -16,8 +16,6 @@ INSTSRCTARGETS = \
 	$(srcdir)/NestedGridNeighborInst.cc.py \
 	$(srcdir)/TreeNeighborInst.cc.py \
 	$(srcdir)/ConnectivityMapInst.cc.py
-SRCTARGETS = \
-	TreeNeighborVariablesInst.cc
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
