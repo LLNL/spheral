@@ -10,7 +10,8 @@ class FieldOperations:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+        self.dims = dims
         mod.add_include('"%s/FieldOperationsTypes.hh"' % srcdir)
         Spheral = mod.add_cpp_namespace("Spheral")
         self.space = Spheral.add_cpp_namespace("FieldSpace")
@@ -20,9 +21,8 @@ class FieldOperations:
     # Generate bindings.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        for dim in self.dims:
+            self.generateDimBindings(dim)
         return
 
     #---------------------------------------------------------------------------

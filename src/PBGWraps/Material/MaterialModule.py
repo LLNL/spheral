@@ -10,7 +10,9 @@ class Material:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/MaterialTypes.hh"' % srcdir)
@@ -19,12 +21,10 @@ class Material:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("Material")
 
-        self.dimSet = (1, 2, 3)
-
         # Expose types.
         self.MaterialPressureMinType = space.add_enum("MaterialPressureMinType", ["PressureFloor", "ZeroPressure"])
         self.PhysicalConstants = addObject(space, "PhysicalConstants", allow_subclassing=True)
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 self.EquationOfState%(dim)id = addObject(space, "EquationOfState%(dim)id", allow_subclassing=True)
 self.GammaLawGas%(dim)id = addObject(space, "GammaLawGas%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)
@@ -39,7 +39,7 @@ self.IsothermalEquationOfState%(dim)id = addObject(space, "IsothermalEquationOfS
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
         self.generatePhysicalConstantsBindings(self.PhysicalConstants)
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 self.generateEquationOfStateBindings(self.EquationOfState%(dim)id, %(dim)i)
 self.generateGammaLawGasBindings(self.GammaLawGas%(dim)id, %(dim)i)

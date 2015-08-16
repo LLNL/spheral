@@ -13,7 +13,9 @@ class SVPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/SVPHTypes.hh"' % srcdir)
@@ -23,18 +25,11 @@ class SVPH:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         self.space = Spheral.add_cpp_namespace("SVPHSpace")
         
-        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
-        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
-        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
-
-        # Expose types.
-        # self.SVPHHydroBase1d = addObject(self.space, "SVPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)
-        # self.SVPHHydroBase2d = addObject(self.space, "SVPHHydroBase2d", allow_subclassing=True, parent=generichydro2d)
-        # self.SVPHHydroBase3d = addObject(self.space, "SVPHHydroBase3d", allow_subclassing=True, parent=generichydro3d)
-
-        self.SVPHFacetedHydroBase1d = addObject(self.space, "SVPHFacetedHydroBase1d", allow_subclassing=True, parent=generichydro1d)
-        self.SVPHFacetedHydroBase2d = addObject(self.space, "SVPHFacetedHydroBase2d", allow_subclassing=True, parent=generichydro2d)
-        self.SVPHFacetedHydroBase3d = addObject(self.space, "SVPHFacetedHydroBase3d", allow_subclassing=True, parent=generichydro3d)
+        for dim in self.dims:
+            exec('''
+generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
+self.SVPHFacetedHydroBase%(dim)id = addObject(self.space, "SVPHFacetedHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -43,17 +38,11 @@ class SVPH:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        # self.generateSVPHHydroBaseBindings(self.SVPHHydroBase1d, 1)
-        # self.generateSVPHHydroBaseBindings(self.SVPHHydroBase2d, 2)
-        # self.generateSVPHHydroBaseBindings(self.SVPHHydroBase3d, 3)
-        
-        self.generateSVPHFacetedHydroBaseBindings(self.SVPHFacetedHydroBase1d, 1)
-        self.generateSVPHFacetedHydroBaseBindings(self.SVPHFacetedHydroBase2d, 2)
-        self.generateSVPHFacetedHydroBaseBindings(self.SVPHFacetedHydroBase3d, 3)
-        
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        for dim in self.dims:
+            exec('''
+self.generateSVPHFacetedHydroBaseBindings(self.SVPHFacetedHydroBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
+        self.generateDimBindings(dim)
 
         return
 

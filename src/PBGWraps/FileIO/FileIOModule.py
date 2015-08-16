@@ -41,7 +41,7 @@ FileIOTemplateTypes += [
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
 
         # Includes.
         mod.add_include('"%s/FileIO/FileIO.hh"' % topsrcdir)

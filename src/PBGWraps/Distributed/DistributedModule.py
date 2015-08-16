@@ -12,7 +12,9 @@ class Distributed:
     #---------------------------------------------------------------------------
     # Add the types to the module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/DistributedTypes.hh"' % srcdir)
@@ -20,74 +22,49 @@ class Distributed:
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")
         bound = Spheral.add_cpp_namespace("BoundarySpace")
-        Boundary1d = findObject(bound, "Boundary1d")
-        Boundary2d = findObject(bound, "Boundary2d")
-        Boundary3d = findObject(bound, "Boundary3d")
+
         self.space = Spheral.add_cpp_namespace("PartitionSpace")
 
         # Expose types.
-        self.DistributedBoundary1d = addObject(bound, "DistributedBoundary1d", parent=Boundary1d, allow_subclassing=True)
-        self.DistributedBoundary2d = addObject(bound, "DistributedBoundary2d", parent=Boundary2d, allow_subclassing=True)
-        self.DistributedBoundary3d = addObject(bound, "DistributedBoundary3d", parent=Boundary3d, allow_subclassing=True)
+        for dim in self.dims:
+            exec('''
+Boundary%(dim)id = findObject(bound, "Boundary%(dim)id")
 
-        self.NestedGridDistributedBoundary1d = addObject(bound, "NestedGridDistributedBoundary1d", parent=self.DistributedBoundary1d, allow_subclassing=True, is_singleton=True)
-        self.NestedGridDistributedBoundary2d = addObject(bound, "NestedGridDistributedBoundary2d", parent=self.DistributedBoundary2d, allow_subclassing=True, is_singleton=True)
-        self.NestedGridDistributedBoundary3d = addObject(bound, "NestedGridDistributedBoundary3d", parent=self.DistributedBoundary3d, allow_subclassing=True, is_singleton=True)
+self.DistributedBoundary%(dim)id = addObject(bound, "DistributedBoundary%(dim)id", parent=Boundary%(dim)id, allow_subclassing=True)
 
-        self.BoundingVolumeDistributedBoundary1d = addObject(bound, "BoundingVolumeDistributedBoundary1d", parent=self.DistributedBoundary1d, allow_subclassing=True, is_singleton=True)
-        self.BoundingVolumeDistributedBoundary2d = addObject(bound, "BoundingVolumeDistributedBoundary2d", parent=self.DistributedBoundary2d, allow_subclassing=True, is_singleton=True)
-        self.BoundingVolumeDistributedBoundary3d = addObject(bound, "BoundingVolumeDistributedBoundary3d", parent=self.DistributedBoundary3d, allow_subclassing=True, is_singleton=True)
+self.NestedGridDistributedBoundary%(dim)id = addObject(bound, "NestedGridDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
-        self.DomainBoundaryNodes1d = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary1d, allow_subclassing=True)
-        self.DomainBoundaryNodes2d = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary2d, allow_subclassing=True)
-        self.DomainBoundaryNodes3d = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary3d, allow_subclassing=True)
+self.BoundingVolumeDistributedBoundary%(dim)id = addObject(bound, "BoundingVolumeDistributedBoundary%(dim)id", parent=self.DistributedBoundary%(dim)id, allow_subclassing=True, is_singleton=True)
 
-        self.DomainNode1d = addObject(self.space, "DomainNode1d", allow_subclassing=True)
-        self.DomainNode2d = addObject(self.space, "DomainNode2d", allow_subclassing=True)
-        self.DomainNode3d = addObject(self.space, "DomainNode3d", allow_subclassing=True)
+self.DomainBoundaryNodes%(dim)id = addObject(bound, "DomainBoundaryNodes", outer_class=self.DistributedBoundary%(dim)id, allow_subclassing=True)
 
-        self.RedistributeNodes1d = addObject(self.space, "RedistributeNodes1d", allow_subclassing=True)
-        self.RedistributeNodes2d = addObject(self.space, "RedistributeNodes2d", allow_subclassing=True)
-        self.RedistributeNodes3d = addObject(self.space, "RedistributeNodes3d", allow_subclassing=True)
+self.DomainNode%(dim)id = addObject(self.space, "DomainNode%(dim)id", allow_subclassing=True)
 
-        self.DistributeByXPosition1d = addObject(self.space, "DistributeByXPosition1d", allow_subclassing=True)
-        self.DistributeByXPosition2d = addObject(self.space, "DistributeByXPosition2d", allow_subclassing=True)
+self.RedistributeNodes%(dim)id = addObject(self.space, "RedistributeNodes%(dim)id", allow_subclassing=True)
 
-        self.NestedGridRedistributeNodes1d = addObject(self.space, "NestedGridRedistributeNodes1d", parent=self.RedistributeNodes1d, allow_subclassing=True)
-        self.NestedGridRedistributeNodes2d = addObject(self.space, "NestedGridRedistributeNodes2d", parent=self.RedistributeNodes2d, allow_subclassing=True)
-        self.NestedGridRedistributeNodes3d = addObject(self.space, "NestedGridRedistributeNodes3d", parent=self.RedistributeNodes3d, allow_subclassing=True)
+self.NestedGridRedistributeNodes%(dim)id = addObject(self.space, "NestedGridRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.SpaceFillingCurveRedistributeNodes1d = addObject(self.space, "SpaceFillingCurveRedistributeNodes1d", parent=self.RedistributeNodes1d, allow_subclassing=True)
-        self.SpaceFillingCurveRedistributeNodes2d = addObject(self.space, "SpaceFillingCurveRedistributeNodes2d", parent=self.RedistributeNodes2d, allow_subclassing=True)
-        self.SpaceFillingCurveRedistributeNodes3d = addObject(self.space, "SpaceFillingCurveRedistributeNodes3d", parent=self.RedistributeNodes3d, allow_subclassing=True)
+self.SpaceFillingCurveRedistributeNodes%(dim)id = addObject(self.space, "SpaceFillingCurveRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.MortonOrderRedistributeNodes1d = addObject(self.space, "MortonOrderRedistributeNodes1d", parent=self.SpaceFillingCurveRedistributeNodes1d, allow_subclassing=True)
-        self.MortonOrderRedistributeNodes2d = addObject(self.space, "MortonOrderRedistributeNodes2d", parent=self.SpaceFillingCurveRedistributeNodes2d, allow_subclassing=True)
-        self.MortonOrderRedistributeNodes3d = addObject(self.space, "MortonOrderRedistributeNodes3d", parent=self.SpaceFillingCurveRedistributeNodes3d, allow_subclassing=True)
+self.MortonOrderRedistributeNodes%(dim)id = addObject(self.space, "MortonOrderRedistributeNodes%(dim)id", parent=self.SpaceFillingCurveRedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.PeanoHilbertOrderRedistributeNodes1d = addObject(self.space, "PeanoHilbertOrderRedistributeNodes1d", parent=self.SpaceFillingCurveRedistributeNodes1d, allow_subclassing=True)
-        self.PeanoHilbertOrderRedistributeNodes2d = addObject(self.space, "PeanoHilbertOrderRedistributeNodes2d", parent=self.SpaceFillingCurveRedistributeNodes2d, allow_subclassing=True)
-        self.PeanoHilbertOrderRedistributeNodes3d = addObject(self.space, "PeanoHilbertOrderRedistributeNodes3d", parent=self.SpaceFillingCurveRedistributeNodes3d, allow_subclassing=True)
+self.PeanoHilbertOrderRedistributeNodes%(dim)id = addObject(self.space, "PeanoHilbertOrderRedistributeNodes%(dim)id", parent=self.SpaceFillingCurveRedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.SortAndDivideRedistributeNodes1d = addObject(self.space, "SortAndDivideRedistributeNodes1d", parent=self.RedistributeNodes1d, allow_subclassing=True)
-        self.SortAndDivideRedistributeNodes2d = addObject(self.space, "SortAndDivideRedistributeNodes2d", parent=self.RedistributeNodes2d, allow_subclassing=True)
-        self.SortAndDivideRedistributeNodes3d = addObject(self.space, "SortAndDivideRedistributeNodes3d", parent=self.RedistributeNodes3d, allow_subclassing=True)
+self.SortAndDivideRedistributeNodes%(dim)id = addObject(self.space, "SortAndDivideRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.VoronoiRedistributeNodes1d = addObject(self.space, "VoronoiRedistributeNodes1d", parent=self.RedistributeNodes1d, allow_subclassing=True)
-        self.VoronoiRedistributeNodes2d = addObject(self.space, "VoronoiRedistributeNodes2d", parent=self.RedistributeNodes2d, allow_subclassing=True)
-        self.VoronoiRedistributeNodes3d = addObject(self.space, "VoronoiRedistributeNodes3d", parent=self.RedistributeNodes3d, allow_subclassing=True)
+self.VoronoiRedistributeNodes%(dim)id = addObject(self.space, "VoronoiRedistributeNodes%(dim)id", parent=self.RedistributeNodes%(dim)id, allow_subclassing=True)
 
-        self.vector_of_DomainNode1d = addObject(mod, "vector_of_DomainNode1d", allow_subclassing=True)
-        self.vector_of_DomainNode2d = addObject(mod, "vector_of_DomainNode2d", allow_subclassing=True)
-        self.vector_of_DomainNode3d = addObject(mod, "vector_of_DomainNode3d", allow_subclassing=True)
+self.vector_of_DomainNode%(dim)id = addObject(mod, "vector_of_DomainNode%(dim)id", allow_subclassing=True)
 
-        self.pair_ULL_DomainNode1d = addObject(mod, "pair_ULL_DomainNode1d", allow_subclassing=True)
-        self.pair_ULL_DomainNode2d = addObject(mod, "pair_ULL_DomainNode2d", allow_subclassing=True)
-        self.pair_ULL_DomainNode3d = addObject(mod, "pair_ULL_DomainNode3d", allow_subclassing=True)
+self.pair_ULL_DomainNode%(dim)id = addObject(mod, "pair_ULL_DomainNode%(dim)id", allow_subclassing=True)
 
-        self.vector_of_pair_ULL_DomainNode1d = addObject(mod, "vector_of_pair_ULL_DomainNode1d", allow_subclassing=True)
-        self.vector_of_pair_ULL_DomainNode2d = addObject(mod, "vector_of_pair_ULL_DomainNode2d", allow_subclassing=True)
-        self.vector_of_pair_ULL_DomainNode3d = addObject(mod, "vector_of_pair_ULL_DomainNode3d", allow_subclassing=True)
+self.vector_of_pair_ULL_DomainNode%(dim)id = addObject(mod, "vector_of_pair_ULL_DomainNode%(dim)id", allow_subclassing=True)
+''' % {"dim" : dim})
+
+        if 1 in self.dims:
+            self.DistributeByXPosition1d = addObject(self.space, "DistributeByXPosition1d", allow_subclassing=True)
+        if 2 in self.dims:
+            self.DistributeByXPosition2d = addObject(self.space, "DistributeByXPosition2d", allow_subclassing=True)
 
         return
 
@@ -96,68 +73,32 @@ class Distributed:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.distributedBoundaryBindings(self.DistributedBoundary1d, 1)
-        self.distributedBoundaryBindings(self.DistributedBoundary2d, 2)
-        self.distributedBoundaryBindings(self.DistributedBoundary3d, 3)
+        for dim in self.dims:
+            exec('''
+self.distributedBoundaryBindings(self.DistributedBoundary%(dim)id, %(dim)i)
+self.nestedGridDistributedBoundaryBindings(self.NestedGridDistributedBoundary%(dim)id, %(dim)i)
+self.boundingVolumeDistributedBoundaryBindings(self.BoundingVolumeDistributedBoundary%(dim)id, %(dim)i)
+self.domainBoundaryNodesBindings(self.DomainBoundaryNodes%(dim)id, %(dim)i)
+self.domainNodeBindings(self.DomainNode%(dim)id, %(dim)i)
+self.redistributeNodesBindings(self.RedistributeNodes%(dim)id, %(dim)i)
+self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes%(dim)id, %(dim)i)
+self.spaceFillingCurveRedistributeNodesBindings(self.SpaceFillingCurveRedistributeNodes%(dim)id, %(dim)i)
+self.genericOrderRedistributeNodesBindings(self.MortonOrderRedistributeNodes%(dim)id, %(dim)i)
+self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNodes%(dim)id, %(dim)i)
+self.genericSortAndDivideRedistributeNodesBindings(self.SortAndDivideRedistributeNodes%(dim)id, %(dim)i)
+self.voronoiRedistributeNodesBindings(self.VoronoiRedistributeNodes%(dim)id, %(dim)i)
 
-        self.nestedGridDistributedBoundaryBindings(self.NestedGridDistributedBoundary1d, 1)
-        self.nestedGridDistributedBoundaryBindings(self.NestedGridDistributedBoundary2d, 2)
-        self.nestedGridDistributedBoundaryBindings(self.NestedGridDistributedBoundary3d, 3)
+generateStdPairBindings(self.pair_ULL_DomainNode%(dim)id, "uint64_t", "Spheral::PartitionSpace::DomainNode%(dim)id", "pair_ULL_DomainNode%(dim)id")
 
-        self.boundingVolumeDistributedBoundaryBindings(self.BoundingVolumeDistributedBoundary1d, 1)
-        self.boundingVolumeDistributedBoundaryBindings(self.BoundingVolumeDistributedBoundary2d, 2)
-        self.boundingVolumeDistributedBoundaryBindings(self.BoundingVolumeDistributedBoundary3d, 3)
+generateStdVectorBindings(self.vector_of_DomainNode%(dim)id, "Spheral::PartitionSpace::DomainNode%(dim)id", "vector_of_DomainNode%(dim)id", True)
 
-        self.domainBoundaryNodesBindings(self.DomainBoundaryNodes1d, 1)
-        self.domainBoundaryNodesBindings(self.DomainBoundaryNodes2d, 2)
-        self.domainBoundaryNodesBindings(self.DomainBoundaryNodes3d, 3)
+generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode%(dim)id, "pair_ULL_DomainNode%(dim)id", "vector_of_pair_ULL_DomainNode%(dim)id", True)
+''' % {"dim" : dim})
 
-        self.domainNodeBindings(self.DomainNode1d, 1)
-        self.domainNodeBindings(self.DomainNode2d, 2)
-        self.domainNodeBindings(self.DomainNode3d, 3)
-
-        self.redistributeNodesBindings(self.RedistributeNodes1d, 1)
-        self.redistributeNodesBindings(self.RedistributeNodes2d, 2)
-        self.redistributeNodesBindings(self.RedistributeNodes3d, 3)
-
-        self.distributeByXPositionBindings(self.DistributeByXPosition1d, 1)
-        self.distributeByXPositionBindings(self.DistributeByXPosition2d, 2)
-
-        self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes1d, 1)
-        self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes2d, 2)
-        self.nestedGridRedistributeNodesBindings(self.NestedGridRedistributeNodes3d, 3)
-
-        self.spaceFillingCurveRedistributeNodesBindings(self.SpaceFillingCurveRedistributeNodes1d, 1)
-        self.spaceFillingCurveRedistributeNodesBindings(self.SpaceFillingCurveRedistributeNodes2d, 2)
-        self.spaceFillingCurveRedistributeNodesBindings(self.SpaceFillingCurveRedistributeNodes3d, 3)
-
-        self.genericOrderRedistributeNodesBindings(self.MortonOrderRedistributeNodes1d, 1)
-        self.genericOrderRedistributeNodesBindings(self.MortonOrderRedistributeNodes2d, 2)
-        self.genericOrderRedistributeNodesBindings(self.MortonOrderRedistributeNodes3d, 3)
-
-        self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNodes1d, 1)
-        self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNodes2d, 2)
-        self.genericOrderRedistributeNodesBindings(self.PeanoHilbertOrderRedistributeNodes3d, 3)
-
-        self.genericSortAndDivideRedistributeNodesBindings(self.SortAndDivideRedistributeNodes1d, 1)
-        self.sortAndDivideRedistributeNodesBindings2d     (self.SortAndDivideRedistributeNodes2d, 2)
-        self.sortAndDivideRedistributeNodesBindings3d     (self.SortAndDivideRedistributeNodes3d, 3)
-
-        self.voronoiRedistributeNodesBindings(self.VoronoiRedistributeNodes1d, 1)
-        self.voronoiRedistributeNodesBindings(self.VoronoiRedistributeNodes2d, 2)
-        self.voronoiRedistributeNodesBindings(self.VoronoiRedistributeNodes3d, 3)
-
-        generateStdPairBindings(self.pair_ULL_DomainNode1d, "uint64_t", "Spheral::PartitionSpace::DomainNode1d", "pair_ULL_DomainNode1d")
-        generateStdPairBindings(self.pair_ULL_DomainNode2d, "uint64_t", "Spheral::PartitionSpace::DomainNode2d", "pair_ULL_DomainNode2d")
-        generateStdPairBindings(self.pair_ULL_DomainNode3d, "uint64_t", "Spheral::PartitionSpace::DomainNode3d", "pair_ULL_DomainNode3d")
-
-        generateStdVectorBindings(self.vector_of_DomainNode1d, "Spheral::PartitionSpace::DomainNode1d", "vector_of_DomainNode1d", True)
-        generateStdVectorBindings(self.vector_of_DomainNode2d, "Spheral::PartitionSpace::DomainNode2d", "vector_of_DomainNode2d", True)
-        generateStdVectorBindings(self.vector_of_DomainNode3d, "Spheral::PartitionSpace::DomainNode3d", "vector_of_DomainNode3d", True)
-
-        generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode1d, "pair_ULL_DomainNode1d", "vector_of_pair_ULL_DomainNode1d", True)
-        generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode2d, "pair_ULL_DomainNode2d", "vector_of_pair_ULL_DomainNode2d", True)
-        generateStdVectorBindings(self.vector_of_pair_ULL_DomainNode3d, "pair_ULL_DomainNode3d", "vector_of_pair_ULL_DomainNode3d", True)
+        if 1 in self.dims:
+            self.distributeByXPositionBindings(self.DistributeByXPosition1d, 1)
+        if 2 in self.dims:
+            self.distributeByXPositionBindings(self.DistributeByXPosition2d, 2)
 
         return
 

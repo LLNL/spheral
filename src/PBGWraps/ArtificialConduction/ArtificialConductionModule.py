@@ -14,7 +14,9 @@ class ArtificialConduction:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/ArtificialConductionTypes.hh"' % srcdir)
@@ -23,14 +25,12 @@ class ArtificialConduction:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        Physics1d = findObject(space, "Physics1d")
-        Physics2d = findObject(space, "Physics2d")
-        Physics3d = findObject(space, "Physics3d")
-
         # Expose types.
-        self.ArtificialConduction1d = addObject(space, "ArtificialConduction1d", allow_subclassing=True, parent=Physics1d)
-        self.ArtificialConduction2d = addObject(space, "ArtificialConduction2d", allow_subclassing=True, parent=Physics2d)
-        self.ArtificialConduction3d = addObject(space, "ArtificialConduction3d", allow_subclassing=True, parent=Physics3d)
+        for dim in self.dims:
+            exec('''
+Physics%(dim)id = findObject(space, "Physics%(dim)id")
+self.ArtificialConduction%(dim)id = addObject(space, "ArtificialConduction%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -38,9 +38,10 @@ class ArtificialConduction:
     # Add the types to the given module.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        self.generateArtificialConductionBindings(self.ArtificialConduction1d, 1)
-        self.generateArtificialConductionBindings(self.ArtificialConduction2d, 2)
-        self.generateArtificialConductionBindings(self.ArtificialConduction3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateArtificialConductionBindings(self.ArtificialConduction%(dim)id, %(dim)i)
+''' % {"dim" : dim})
         return
 
     #---------------------------------------------------------------------------

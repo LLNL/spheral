@@ -180,7 +180,9 @@ class CXXTypes:
     #---------------------------------------------------------------------------
     # Add all out stuff.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes
         mod.add_include('"%s/CXXTypes.hh"' % srcdir)

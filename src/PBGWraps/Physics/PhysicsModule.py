@@ -51,7 +51,9 @@ class Physics:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/PhysicsTypes.hh"' % srcdir)
@@ -61,21 +63,13 @@ class Physics:
         space = Spheral.add_cpp_namespace("PhysicsSpace")
 
         # Expose types.
-        self.Physics1d = addObject(space, "Physics1d", allow_subclassing=True)
-        self.Physics2d = addObject(space, "Physics2d", allow_subclassing=True)
-        self.Physics3d = addObject(space, "Physics3d", allow_subclassing=True)
-
-        self.GenericHydro1d = addObject(space, "GenericHydro1d", allow_subclassing=True, parent=self.Physics1d)
-        self.GenericHydro2d = addObject(space, "GenericHydro2d", allow_subclassing=True, parent=self.Physics2d)
-        self.GenericHydro3d = addObject(space, "GenericHydro3d", allow_subclassing=True, parent=self.Physics3d)
-
-        self.GenericBodyForce1d = addObject(space, "GenericBodyForce1d", allow_subclassing=True, parent=self.Physics1d)
-        self.GenericBodyForce2d = addObject(space, "GenericBodyForce2d", allow_subclassing=True, parent=self.Physics2d)
-        self.GenericBodyForce3d = addObject(space, "GenericBodyForce3d", allow_subclassing=True, parent=self.Physics3d)
-
-        self.vector_of_Physics1d = addObject(mod, "vector_of_Physics1d", allow_subclassing=True)
-        self.vector_of_Physics2d = addObject(mod, "vector_of_Physics2d", allow_subclassing=True)
-        self.vector_of_Physics3d = addObject(mod, "vector_of_Physics3d", allow_subclassing=True)
+        for dim in self.dims:
+            exec('''
+self.Physics%(dim)id = addObject(space, "Physics%(dim)id", allow_subclassing=True)
+self.GenericHydro%(dim)id = addObject(space, "GenericHydro%(dim)id", allow_subclassing=True, parent=self.Physics%(dim)id)
+self.GenericBodyForce%(dim)id = addObject(space, "GenericBodyForce%(dim)id", allow_subclassing=True, parent=self.Physics%(dim)id)
+self.vector_of_Physics%(dim)id = addObject(mod, "vector_of_Physics%(dim)id", allow_subclassing=True)
+''' % {"dim" : dim})
 
         self.MassDensityType = space.add_enum("MassDensityType", ["SumDensity", "RigorousSumDensity", "HybridSumDensity", "IntegrateDensity", "VoronoiCellDensity", "SumVoronoiCellDensity"])
         self.HEvolutionType = space.add_enum("HEvolutionType", ["IdealH", "IntegrateH"])
@@ -87,21 +81,13 @@ class Physics:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generatePhysicsBindings(self.Physics1d, 1)
-        self.generatePhysicsBindings(self.Physics2d, 2)
-        self.generatePhysicsBindings(self.Physics3d, 3)
-
-        self.generateGenericHydroBindings(self.GenericHydro1d, 1)
-        self.generateGenericHydroBindings(self.GenericHydro2d, 2)
-        self.generateGenericHydroBindings(self.GenericHydro3d, 3)
-
-        self.generateGenericBodyForceBindings(self.GenericBodyForce1d, 1)
-        self.generateGenericBodyForceBindings(self.GenericBodyForce2d, 2)
-        self.generateGenericBodyForceBindings(self.GenericBodyForce3d, 3)
-
-        generateStdVectorBindings(self.vector_of_Physics1d, "Spheral::PhysicsSpace::Physics1d*", "vector_of_Physics1d")
-        generateStdVectorBindings(self.vector_of_Physics2d, "Spheral::PhysicsSpace::Physics2d*", "vector_of_Physics2d")
-        generateStdVectorBindings(self.vector_of_Physics3d, "Spheral::PhysicsSpace::Physics3d*", "vector_of_Physics3d")
+        for dim in self.dims:
+            exec('''
+self.generatePhysicsBindings(self.Physics%(dim)id, %(dim)i)
+self.generateGenericHydroBindings(self.GenericHydro%(dim)id, %(dim)i)
+self.generateGenericBodyForceBindings(self.GenericBodyForce%(dim)id, %(dim)i)
+generateStdVectorBindings(self.vector_of_Physics%(dim)id, "Spheral::PhysicsSpace::Physics%(dim)id*", "vector_of_Physics%(dim)id")
+''' % {"dim" : dim})
 
         return
 

@@ -11,7 +11,9 @@ class Helmholtz:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/HelmholtzTypes.hh"' % srcdir)
@@ -20,9 +22,7 @@ class Helmholtz:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("Material")
 
-        self.dimSet = (1, 2, 3)
-
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 self.EquationOfState%(dim)id = findObject(space, "EquationOfState%(dim)id")
 self.HelmholtzEquationOfState%(dim)id = addObject(space, "HelmholtzEquationOfState%(dim)id", allow_subclassing=True, parent=self.EquationOfState%(dim)id)
@@ -35,7 +35,7 @@ self.HelmholtzEquationOfState%(dim)id = addObject(space, "HelmholtzEquationOfSta
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
         
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 self.generateHelmholtzEquationOfStateBindings(self.HelmholtzEquationOfState%(dim)id, %(dim)i)
                 ''' % {"dim" : dim})                                
