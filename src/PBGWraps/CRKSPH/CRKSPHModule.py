@@ -45,7 +45,7 @@ self.SolidCRKSPHHydroBase%(dim)id = addObject(self.space, "SolidCRKSPHHydroBase%
 self.generateCRKSPHHydroBaseBindings(self.CRKSPHHydroBase%(dim)id, %(dim)i)
 self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
-        self.generateDimBindings(mod, dim)
+            self.generateDimBindings(mod, dim)
 
         return
 
