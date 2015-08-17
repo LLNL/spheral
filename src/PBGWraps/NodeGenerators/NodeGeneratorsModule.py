@@ -79,7 +79,12 @@ class NodeGenerators:
                               refparam("vector_of_SymTensor3d", "H")],
                              docstring = "Compute stuff useful for a NodeGenerator from a polyhedral mesh in a silo file.")
 
-        for ndim in (2, 3):
+        subdims = []
+        if 2 in self.dims:
+            subdims.append(2)
+        if 3 in self.dims:
+            subdims.append(3)
+        for ndim in subdims:
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
             vector = "Vector%id" % ndim
             database = "Spheral::DataBaseSpace::DataBase%id" % ndim
