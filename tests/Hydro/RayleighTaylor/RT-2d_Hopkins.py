@@ -1,3 +1,7 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --ny1=512 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 256x512", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --ny1=256 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 128x256", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --ny1=1028 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 512x1028", np=20)
+
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
 #-------------------------------------------------------------------------------
@@ -137,6 +141,7 @@ dataDir = os.path.join(dataDir,
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
+                       "compatible=%s" % compatibleEnergy,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))

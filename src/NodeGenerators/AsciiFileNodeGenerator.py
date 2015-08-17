@@ -164,7 +164,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                  extraFields = [],
                  initializeBase = True,
                  readFileToMemory = False,
-                 refineNodes = 0):
+                 refineNodes = 0,
+                 rejecter=None):
                  
                  
         self.filename = filename
@@ -229,8 +230,31 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
         
         self.H = mpi.bcast(self.H, root=0)
-        
-    
+
+        if rejecter:
+            self.newH = []
+                
+            for i in xrange(len(self.fieldNames[0])):
+                name = self.fieldNames[0][i] + 'new'
+                self.__dict__[name] = []
+
+            for i in xrange(n):
+                #print rejecter.xmin, rejecter.xmax
+                #print self.x
+                if ((self.x[i] < rejecter.xmax and self.x[i] > rejecter.xmin) and (self.y[i] < rejecter.ymax and self.y[i] > rejecter.ymin) and (self.z[i] < rejecter.zmax and self.z[i] > rejecter.zmin)):
+                    #print "condition green"
+                    self.newH.append(self.H[i])
+                    for j in xrange(len(self.fieldNames[0])):
+                        name = self.fieldNames[0][j] + 'new'
+                        self.__dict__[name].append(self.__dict__[self.fieldNames[0][j]][i])
+
+            self.H = self.newH
+
+            for j in xrange(len(self.fieldNames[0])):
+                name = self.fieldNames[0][j] + 'new'
+                self.__dict__[self.fieldNames[0][j]] = self.__dict__[name]
+
+
         # Initialize the base class.
         if initializeBase:
             fields = tuple([self.x, self.y, self.z, self.m, self.rho, self.vx, self.vy, self.vz, self.eps, self.H] +
