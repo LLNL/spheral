@@ -27,12 +27,17 @@ INSTSRCTARGETS = \
 	$(srcdir)/SolidCRKSPHHydroBaseInst.cc.py
 
 SRCTARGETS = \
-	$(srcdir)/computeVoronoiCentroids.cc \
-	$(srcdir)/centerOfMass.cc \
+	$(srcdir)/centerOfMass.cc
 
 PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py \
 	$(srcdir)/SolidCRKSPHHydros.py
+
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/computeVoronoiCentroids2d.cc
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

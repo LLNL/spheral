@@ -15,13 +15,16 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc.py \
 	$(srcdir)/SPHHydroBaseInst.cc.py
 
-SRCTARGETS = \
-	$(srcdir)/computeHydrostaticEquilibriumPressure.cc
-
 PYTHONTARGETS = \
 	$(srcdir)/SPHHydros.py \
 	$(srcdir)/SPHUtilities.py \
 	$(srcdir)/FacetedSurfaceASPHHydro.py
+
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST3D@")
+SRCTARGETS += \
+	$(srcdir)/computeHydrostaticEquilibriumPressure.cc
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -34,11 +34,13 @@ using NodeSpace::FluidNodeList;
 using BoundarySpace::Boundary;
 
 namespace {
+#ifdef SPHERAL1D
 //------------------------------------------------------------------------------
 // Worker methods specialized by dimension to compute the mass density based
 // on convex hulls.
 //------------------------------------------------------------------------------
 // 1D
+inline
 double hullMassDensity(const std::vector<Dim<1>::Vector>& posInv,
                        const std::vector<Dim<1>::Scalar>& mass) {
   REQUIRE(posInv.size() == mass.size());
@@ -67,10 +69,13 @@ double hullMassDensity(const std::vector<Dim<1>::Vector>& posInv,
   // We've got it.
   return msum*safeInv(vol);
 }
+#endif
 
 //..............................................................................
 // 2D
 //..............................................................................
+#ifdef SPHERAL2D
+inline
 double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
                        const std::vector<Dim<2>::Scalar>& mass) {
   REQUIRE(posInv.size() == mass.size());
@@ -155,10 +160,13 @@ double hullMassDensity(const std::vector<Dim<2>::Vector>& posInv,
   CHECK2(msum > 0.0 and vol > 0.0, "Bad density estimate: " << msum << " " << vol);
   return msum*safeInv(vol);
 }
+#endif
 
 //..............................................................................
 // 3D
 //..............................................................................
+#ifdef SPHERAL3D
+inline
 double hullMassDensity(const std::vector<Dim<3>::Vector>& posInv,
                        const std::vector<Dim<3>::Scalar>& mass) {
   REQUIRE(posInv.size() == mass.size());
@@ -166,6 +174,7 @@ double hullMassDensity(const std::vector<Dim<3>::Vector>& posInv,
   typedef Dim<3>::Vector Vector;
   VERIFY(false);
 }
+#endif
 
 }
 

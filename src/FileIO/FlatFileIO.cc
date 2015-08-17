@@ -620,125 +620,229 @@ read(vector<std::string>& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
-// Write a Scalar Field to the file.
+// 1d fields (write).
 //------------------------------------------------------------------------------
+#ifdef SPHERAL1D
+// Scalar
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
-void
-FlatFileIO::
-write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a Vector Field to the file.
-//------------------------------------------------------------------------------
+//Vector
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
-void
-FlatFileIO::
-write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a Tensor Field to the file.
-//------------------------------------------------------------------------------
+// Tensor
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
-void
-FlatFileIO::
-write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a SymTensor Field to the file.
-//------------------------------------------------------------------------------
+// SymTensor
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
-void
-FlatFileIO::
-write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write a ThirdRankTensor Field to the file.
-//------------------------------------------------------------------------------
+// ThirdRankTensor
 void
 FlatFileIO::
 write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
-void
-FlatFileIO::
-write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  writeGenericType(value, pathName);
-}
-
-//------------------------------------------------------------------------------
-// Write an int Field to the file.
-//------------------------------------------------------------------------------
+// int
 void
 FlatFileIO::
 write(const Field<Dim<1>, int>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
+//------------------------------------------------------------------------------
+// 1d fields (read).
+//------------------------------------------------------------------------------
+// Scalar
+void
+FlatFileIO::
+read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// Vector
+void
+FlatFileIO::
+read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// Tensor
+void
+FlatFileIO::
+read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// SymTensor
+void
+FlatFileIO::
+read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// ThirdRankTensor
+void
+FlatFileIO::
+read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// int
+void
+FlatFileIO::
+read(Field<Dim<1>, int>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+#endif
+
+//------------------------------------------------------------------------------
+// 2d fields (write).
+//------------------------------------------------------------------------------
+#ifdef SPHERAL2D
+// Scalar
+void
+FlatFileIO::
+write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+//Vector
+void
+FlatFileIO::
+write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// Tensor
+void
+FlatFileIO::
+write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// SymTensor
+void
+FlatFileIO::
+write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// ThirdRankTensor
+void
+FlatFileIO::
+write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// int
 void
 FlatFileIO::
 write(const Field<Dim<2>, int>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
+//------------------------------------------------------------------------------
+// 2d fields (read).
+//------------------------------------------------------------------------------
+// Scalar
+void
+FlatFileIO::
+read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// Vector
+void
+FlatFileIO::
+read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// Tensor
+void
+FlatFileIO::
+read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// SymTensor
+void
+FlatFileIO::
+read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// ThirdRankTensor
+void
+FlatFileIO::
+read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// int
+void
+FlatFileIO::
+read(Field<Dim<2>, int>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+#endif
+
+//------------------------------------------------------------------------------
+// 3d fields (write).
+//------------------------------------------------------------------------------
+#ifdef SPHERAL3D
+// Scalar
+void
+FlatFileIO::
+write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+//Vector
+void
+FlatFileIO::
+write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// Tensor
+void
+FlatFileIO::
+write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// SymTensor
+void
+FlatFileIO::
+write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// ThirdRankTensor
+void
+FlatFileIO::
+write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+// int
 void
 FlatFileIO::
 write(const Field<Dim<3>, int>& value, const string pathName) {
@@ -746,130 +850,50 @@ write(const Field<Dim<3>, int>& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
-// Read a Scalar Field from the file.
+// 3d fields (read).
 //------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, Dim<1>::Scalar>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// Scalar
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
-//------------------------------------------------------------------------------
-// Read a Vector Field from the file.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, Dim<1>::Vector>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// Vector
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
-//------------------------------------------------------------------------------
-// Read a Tensor Field from the file.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, Dim<1>::Tensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// Tensor
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
-//------------------------------------------------------------------------------
-// Read a SymTensor Field from the file.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, Dim<1>::SymTensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// SymTensor
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
-//------------------------------------------------------------------------------
-// Read a ThirdRankTensor Field from the file.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// ThirdRankTensor
 void
 FlatFileIO::
 read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
-//------------------------------------------------------------------------------
-// Read an int Field from the file.
-//------------------------------------------------------------------------------
-void
-FlatFileIO::
-read(Field<Dim<1>, int>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
-void
-FlatFileIO::
-read(Field<Dim<2>, int>& value, const string pathName) const {
-  readGenericType(value, pathName);
-}
-
+// int
 void
 FlatFileIO::
 read(Field<Dim<3>, int>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Access the precision we're using to write to the file.

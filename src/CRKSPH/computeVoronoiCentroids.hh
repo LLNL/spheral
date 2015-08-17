@@ -5,6 +5,7 @@
 #define __Spheral__computeVoronoiCentroids__
 
 #include "Geometry/Dimension.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 
@@ -19,14 +20,16 @@ namespace Spheral {
     template<typename Dimension, typename DataType> class FieldList;
   }
 
+  inline
   FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>
-  computeVoronoiCentroids(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position);
+  computeVoronoiCentroids(const FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>& position) { VERIFY2(false, "Unimplemented"); }
 
   FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>
   computeVoronoiCentroids(const FieldSpace::FieldList<Dim<2>, Dim<2>::Vector>& position);
 
+  inline
   FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>
-  computeVoronoiCentroids(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& position);
+  computeVoronoiCentroids(const FieldSpace::FieldList<Dim<3>, Dim<3>::Vector>& position) { VERIFY2(false, "Unimplemented"); }
 
 }
 
