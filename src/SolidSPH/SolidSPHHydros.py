@@ -4,6 +4,9 @@ from SpheralModules.Spheral.PhysicsSpace import *
 from SpheralModules.Spheral.SolidSPHSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic SolidSPHHydro pattern.
 #-------------------------------------------------------------------------------
@@ -48,27 +51,12 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
 """
 
 #-------------------------------------------------------------------------------
-# SolidSPH
+# Make 'em.
 #-------------------------------------------------------------------------------
-exec(SolidSPHHydroFactoryString % {"dim"                  : "1d",
-                                   "classname"            : "SolidSPHHydro",
-                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(SolidSPHHydroFactoryString % {"dim"                  : "2d",
-                                   "classname"            : "SolidSPHHydro",
-                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(SolidSPHHydroFactoryString % {"dim"                  : "3d",
-                                   "classname"            : "SolidSPHHydro",
-                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
-
-#-------------------------------------------------------------------------------
-# SolidASPH
-#-------------------------------------------------------------------------------
-exec(SolidSPHHydroFactoryString % {"dim"                  : "1d",
-                                   "classname"            : "SolidASPHHydro",
-                                   "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(SolidSPHHydroFactoryString % {"dim"                  : "2d",
-                                   "classname"            : "SolidASPHHydro",
-                                   "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(SolidSPHHydroFactoryString % {"dim"                  : "3d",
-                                   "classname"            : "SolidASPHHydro",
-                                   "smoothingScaleMethod" : "ASPHSmoothingScale"})
+for dim in dims:
+    exec(SolidSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "SolidSPHHydro",
+                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(SolidSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "SolidASPHHydro",
+                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})

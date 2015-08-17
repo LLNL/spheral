@@ -2,6 +2,9 @@ from SpheralModules.Spheral import Vector1d, Vector2d, Vector3d
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.NeighborSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic FluidNodeList pattern.
 #-------------------------------------------------------------------------------
@@ -45,6 +48,5 @@ def makeFluidNodeList%(dim)s(name,
 #-------------------------------------------------------------------------------
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
-exec(FluidNodeListFactoryString % {"dim"    : "1d"})
-exec(FluidNodeListFactoryString % {"dim"    : "2d"})
-exec(FluidNodeListFactoryString % {"dim"    : "3d"})
+for dim in dims:
+    exec(FluidNodeListFactoryString % {"dim"    : "%id" % dim})

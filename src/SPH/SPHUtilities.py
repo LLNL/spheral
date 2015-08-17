@@ -1,5 +1,8 @@
 from SpheralModules.Spheral.SPHSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # Update the mass densities of the FluidNodeLists in a DataBase with the sum 
 # definition
@@ -14,11 +17,8 @@ def sumSPHMassDensityImpl(dataBase, W, method):
     method(cm, W, pos, mass, H, rho)
     return
 
-def sumSPHMassDensity1d(dataBase, W):
-    sumSPHMassDensityImpl(dataBase, W, computeSPHSumMassDensity1d)
-
-def sumSPHMassDensity2d(dataBase, W):
-    sumSPHMassDensityImpl(dataBase, W, computeSPHSumMassDensity2d)
-
-def sumSPHMassDensity3d(dataBase, W):
-    sumSPHMassDensityImpl(dataBase, W, computeSPHSumMassDensity3d)
+for dim in dims:
+    exec("""
+def sumSPHMassDensity%(dim)sd(dataBase, W):
+    sumSPHMassDensityImpl(dataBase, W, computeSPHSumMassDensity%(dim)sd)
+""" % {"dim" : dim})

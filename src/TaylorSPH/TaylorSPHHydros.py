@@ -2,6 +2,9 @@ from SpheralModules.Spheral.TaylorSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic TaylorSPHHydro pattern.
 #-------------------------------------------------------------------------------
@@ -30,27 +33,12 @@ class %(classname)s%(dim)s(TaylorSPHHydroBase%(dim)s):
 """
 
 #-------------------------------------------------------------------------------
-# TaylorSPH
+# Make 'em.
 #-------------------------------------------------------------------------------
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "1d",
-                                    "classname"            : "TaylorSPHHydro",
-                                    "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "2d",
-                                    "classname"            : "TaylorSPHHydro",
-                                    "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "3d",
-                                    "classname"            : "TaylorSPHHydro",
-                                    "smoothingScaleMethod" : "SPHSmoothingScale"})
-
-#-------------------------------------------------------------------------------
-# TaylorASPH
-#-------------------------------------------------------------------------------
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "1d",
-                                    "classname"            : "TaylorASPHHydro",
-                                    "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "2d",
-                                    "classname"            : "TaylorASPHHydro",
-                                    "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(TaylorSPHHydroFactoryString % {"dim"                  : "3d",
-                                    "classname"            : "TaylorASPHHydro",
-                                    "smoothingScaleMethod" : "ASPHSmoothingScale"})
+for dim in dims:
+    exec(TaylorSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                        "classname"            : "TaylorSPHHydro",
+                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(TaylorSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                        "classname"            : "TaylorASPHHydro",
+                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
