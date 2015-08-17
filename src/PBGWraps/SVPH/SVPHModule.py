@@ -42,7 +42,7 @@ self.SVPHFacetedHydroBase%(dim)id = addObject(self.space, "SVPHFacetedHydroBase%
             exec('''
 self.generateSVPHFacetedHydroBaseBindings(self.SVPHFacetedHydroBase%(dim)id, %(dim)i)
 ''' % {"dim" : dim})
-        self.generateDimBindings(dim)
+            self.generateDimBindings(dim)
 
         return
 
