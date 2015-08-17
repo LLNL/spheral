@@ -80,24 +80,6 @@ PBGDATE = .pybdate
 PYSTEDEPENDDATE = .pystedependdate
 PYSTEOBJSDATE = .pysteobjsdate
 
-#-------------------------------------------------------------------------------
-# Augment the SRCTARGETS with generated instantiation files.
-EXTRAINSTSRCTARGETS=
-ifeq "@INST1D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst1d.cc,$(INSTSRCTARGETS))
-endif
-ifeq "@INST2D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst2d.cc,$(INSTSRCTARGETS))
-endif
-ifeq "@INST3D@" "yes"
-  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(INSTSRCTARGETS))
-endif
-EXTRAINSTOBJS = $(notdir $(EXTRAINSTSRCTARGETS:.cc=.o))
-SRCTARGETS += $(EXTRAINSTSRCTARGETS)
-
-#-------------------------------------------------------------------------------
-OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))
-
 TAULIBS = # @TAULIBS@
 LIBS = -L$(LIBDIR) @LIBS@ @AIXLIBS@ $(POLYTOPELIBS) $(TAULIBS) $(PARMETISLIBS) $(OPENSUBDIVLIBS)
 
@@ -158,6 +140,27 @@ SHLIBEXT = @SHLIBEXT@
 
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
+
+#-------------------------------------------------------------------------------
+# Augment the SRCTARGETS with generated instantiation files.
+EXTRAINSTSRCTARGETS=
+ifeq "@INST1D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst1d.cc,$(INSTSRCTARGETS))
+  CXXFLAGS += -DSPHERAL1D
+endif
+ifeq "@INST2D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst2d.cc,$(INSTSRCTARGETS))
+  CXXFLAGS += -DSPHERAL2D
+endif
+ifeq "@INST3D@" "yes"
+  EXTRAINSTSRCTARGETS += $(subst Inst.cc.py,Inst3d.cc,$(INSTSRCTARGETS))
+  CXXFLAGS += -DSPHERAL3D
+endif
+EXTRAINSTOBJS = $(notdir $(EXTRAINSTSRCTARGETS:.cc=.o))
+SRCTARGETS += $(EXTRAINSTSRCTARGETS)
+
+#-------------------------------------------------------------------------------
+OBJS = $(notdir $(SRCTARGETS:.cc=.o) $(FSRCTARGETS:.f=.o) $(F90SRCTARGETS:.f90=.o))
 
 #-------------------------------------------------------------------------------
 # Static lib based on the dynamic library.

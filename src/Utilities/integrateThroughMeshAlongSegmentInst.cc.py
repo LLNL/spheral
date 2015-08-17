@@ -1,5 +1,6 @@
 text = """
-#define SPHERAL%(ndim)sD
+// Define a CPP macro for specializations in the .cc file.
+#define SPHERAL%(ndim)sDINSTANTIATION
 
 //------------------------------------------------------------------------------
 // Explicit instantiations.

@@ -50,7 +50,7 @@ rightCellBoundary(const double xi,
 //------------------------------------------------------------------------------
 // Find the points of intersection with the mesh planes for the given segment.
 //------------------------------------------------------------------------------
-#ifdef SPHERAL1D
+#ifdef SPHERAL1DINSTANTIATION
 // 1-D.
 vector<Dim<1>::Vector>
 findIntersections(const Dim<1>::Vector& xmin,
@@ -94,7 +94,7 @@ findIntersections(const Dim<1>::Vector& xmin,
   
 //------------------------------------------------------------------------------
 // 2-D.
-#ifdef SPHERAL2D
+#ifdef SPHERAL2DINSTANTIATION
 vector<Dim<2>::Vector> 
 findIntersections(const Dim<2>::Vector& xmin,
 		  const Dim<2>::Vector& xmax,
@@ -163,7 +163,7 @@ findIntersections(const Dim<2>::Vector& xmin,
   
 //------------------------------------------------------------------------------
 // 3-D.
-#ifdef SPHERAL3D
+#ifdef SPHERAL3DINSTANTIATION
 vector<Dim<3>::Vector> 
 findIntersections(const Dim<3>::Vector& xmin,
 		  const Dim<3>::Vector& xmax,
