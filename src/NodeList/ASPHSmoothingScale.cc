@@ -199,7 +199,7 @@ ASPHSmoothingScale<Dimension>::
 // Time derivative of the smoothing scale.
 //------------------------------------------------------------------------------
 // 1-D case same as SPH.
-#ifdef SPHERAL1D
+#ifdef SPHERAL1DINSTANTIATION
 template<>
 Dim<1>::SymTensor
 ASPHSmoothingScale<Dim<1> >::
@@ -214,7 +214,7 @@ smoothingScaleDerivative(const Dim<1>::SymTensor& H,
 }
 #endif
 
-#ifdef SPHERAL2D
+#ifdef SPHERAL2DINSTANTIATION
 // 2-D ASPH tensor evolution.
 template<>
 Dim<2>::SymTensor
@@ -238,7 +238,7 @@ smoothingScaleDerivative(const Dim<2>::SymTensor& H,
 }
 #endif
 
-#ifdef SPHERAL3D
+#ifdef SPHERAL3DINSTANTIATION
 // 3-D ASPH tensor evolution.
 template<>
 Dim<3>::SymTensor
