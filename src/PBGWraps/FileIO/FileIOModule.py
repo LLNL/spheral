@@ -7,13 +7,18 @@ from PBGutils import *
 #-------------------------------------------------------------------------------
 class FileIO:
 
-    FileIOTypes = []
-    FileIOTemplateTypes = []
-    for dim, Dim in (("1d", "Spheral::Dim<1>"),
-                     ("2d", "Spheral::Dim<2>"),
-                     ("3d", "Spheral::Dim<3>")):
-        exec("""
-FileIOTypes += [
+    #---------------------------------------------------------------------------
+    # Add the types to the given module.
+    #---------------------------------------------------------------------------
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
+
+        self.FileIOTypes = []
+        self.FileIOTemplateTypes = []
+        for ndim in self.dims:
+            exec("""
+self.FileIOTypes += [
         "Vector%(dim)s", "Tensor%(dim)s", "SymTensor%(dim)s", "ThirdRankTensor%(dim)s",
         "vector_of_Vector%(dim)s",
         "vector_of_Tensor%(dim)s",
@@ -26,22 +31,17 @@ FileIOTypes += [
         "Spheral::FieldSpace::ThirdRankTensorField%(dim)s",
         "Spheral::FieldSpace::IntField%(dim)s",
         ]
-FileIOTemplateTypes += [
+self.FileIOTemplateTypes += [
         ("Spheral::FieldSpace::ScalarFieldList%(dim)s", ["%(Dim)s", "double"]),
         ("Spheral::FieldSpace::VectorFieldList%(dim)s", ["%(Dim)s", "Vector%(dim)s"]),
         ("Spheral::FieldSpace::TensorFieldList%(dim)s", ["%(Dim)s", "Tensor%(dim)s"]),
         ("Spheral::FieldSpace::SymTensorFieldList%(dim)s", ["%(Dim)s", "SymTensor%(dim)s"]),
         ("Spheral::FieldSpace::ThirdRankTensorFieldList%(dim)s", ["%(Dim)s", "ThirdRankTensor%(dim)s"]),
         ("Spheral::FieldSpace::IntFieldList%(dim)s", ["%(Dim)s", "int"]),
-        ]""" % {"dim" : dim,
-                "Dim" : Dim})
-    FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",
-                    "double", "std::string", "int", "bool", "unsigned int"]
-
-    #---------------------------------------------------------------------------
-    # Add the types to the given module.
-    #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir, dims):
+        ]""" % {"dim" : "%id" % ndim,
+                "Dim" : "Spheral::Dim<%i>" % ndim})
+        self.FileIOTypes += ["vector_of_int", "vector_of_double", "vector_of_string",
+                             "double", "std::string", "int", "bool", "unsigned int"]
 
         # Includes.
         mod.add_include('"%s/FileIO/FileIO.hh"' % topsrcdir)
