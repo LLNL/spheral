@@ -3,6 +3,9 @@ from SpheralModules.Spheral.SVPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic SVPHHydro pattern.
 #-------------------------------------------------------------------------------
@@ -46,7 +49,8 @@ class %(classname)s%(dim)s(%(basename)sBase%(dim)s):
         return
 """
 
-for dim in ("1d", "2d", "3d"):
+for ndim in dims:
+    dim = "%id" % ndim
     for basename in ("SVPHFacetedHydro",):
         for prefix, smoothingScaleMethod in (("", "SPHSmoothingScale"),
                                              ("A", "ASPHSmoothingScale")):

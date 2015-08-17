@@ -4,10 +4,14 @@
 # Provides convenient constructors for the Tillotson using the canned values
 # in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral.SolidMaterial import \
-    TillotsonEquationOfState1d as RealTillotsonEquationOfState1d, \
-    TillotsonEquationOfState2d as RealTillotsonEquationOfState2d, \
-    TillotsonEquationOfState3d as RealTillotsonEquationOfState3d
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
+for dim in dims:
+    exec("""
+from SpheralModules.Spheral.SolidMaterial import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
+""" % {"dim" : dim})
+
 from SpheralModules.Spheral.Material import PhysicalConstants, PressureFloor, ZeroPressure
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
@@ -154,27 +158,12 @@ def _TillotsonFactory(*args,
 # Create the dimension specific Tillotson factories.  These are the ones
 # you actually use.
 #-------------------------------------------------------------------------------
-# 1D
-def TillotsonEquationOfState1d(*args, **kwargs):
+for dim in dims:
+    exec("""
+def TillotsonEquationOfState%(dim)sd(*args, **kwargs):
     expectedUsageString
-    kwargs["TillConstructor"] = RealTillotsonEquationOfState1d
+    kwargs["TillConstructor"] = RealTillotsonEquationOfState%(dim)sd
     return _TillotsonFactory(*args, **kwargs)
 
-# 2D
-def TillotsonEquationOfState2d(*args, **kwargs):
-    expectedUsageString
-    kwargs["TillConstructor"] = RealTillotsonEquationOfState2d
-    return _TillotsonFactory(*args, **kwargs)
-
-# 3D
-def TillotsonEquationOfState3d(*args, **kwargs):
-    expectedUsageString
-    kwargs["TillConstructor"] = RealTillotsonEquationOfState3d
-    return _TillotsonFactory(*args, **kwargs)
-
-#-------------------------------------------------------------------------------
-# Override the doc strings to provide useful help.
-#-------------------------------------------------------------------------------
-TillotsonEquationOfState1d.__doc__ = expectedUsageString
-TillotsonEquationOfState2d.__doc__ = expectedUsageString
-TillotsonEquationOfState3d.__doc__ = expectedUsageString
+TillotsonEquationOfState%(dim)sd.__doc__ = expectedUsageString
+""" % {"dim" : dim})

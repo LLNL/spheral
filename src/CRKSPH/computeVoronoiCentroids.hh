@@ -6,19 +6,9 @@
 
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
+#include "Field/FieldList.hh"
 
 namespace Spheral {
-
-  // Forward declarations.
-  namespace NeighborSpace {
-    template<typename Dimension> class ConnectivityMap;
-  }
-  namespace KernelSpace {
-    template<typename Dimension> class TableKernel;
-  }
-  namespace FieldSpace {
-    template<typename Dimension, typename DataType> class FieldList;
-  }
 
   inline
   FieldSpace::FieldList<Dim<1>, Dim<1>::Vector>

@@ -27,11 +27,11 @@ INSTSRCTARGETS += \
 endif
 ifeq ("yes", "@INST3D@")
 INSTSRCTARGETS += \
-	$(srcdir)/ConstantZVelocityBoundaryInst.cc \
-	$(srcdir)/SphericalBoundary.cc
+	$(srcdir)/ConstantZVelocityBoundaryInst.cc
 SRCTARGETS += \
 	$(srcdir)/CylindricalBoundary.cc \
-	$(srcdir)/AxialSymmetryBoundary.cc
+	$(srcdir)/AxialSymmetryBoundary.cc \
+	$(srcdir)/SphericalBoundary.cc
 endif
 
 #------------------------------------------------------------------------------

@@ -286,6 +286,8 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         # Dimension dependent bindings.
         for dim in self.dims:
             self.generateDimBindings(dim)
+        for dim in (1, 2, 3):
+            self.generateAllDimBindings(dim)
 
         return
 
@@ -334,9 +336,6 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                                template_parameters = [dim],
                                docstring="Determine unique global node IDs for the nodes in a DataBase.")
 
-        Spheral.add_function("rotationMatrix%id" % ndim, tensor, [constrefparam(vector, "runit")],
-                             docstring="Rotational transformation to align with the given unit vector.")
-
         Spheral.add_function("iterateIdealH", None, [constrefparam(database, "dataBase"),
                                                      constrefparam(vector_of_boundary, "boundaries"),
                                                      constrefparam(tablekernel, "W"),
@@ -366,6 +365,13 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              [constrefparam(database, "dataBase")],
                              docstring = "Compute indices for nodes obeying the Peano-Hilbert ordering.")
 
+        Spheral.add_function("numberDensity",
+                             scalarfieldlist,
+                             [constrefparam(database, "dataBase"), constrefparam(tablekernel, "W")],
+                             template_parameters = [dim],
+                             custom_name = "numberDensity%id" % ndim,
+                             docstring = "Compute the ASPH sum number density for each node in a DataBase.")
+
         Spheral.add_function("integrateThroughMeshAlongSegment%id" % ndim,
                              "double",
                              [constrefparam("vector_of_vector_of_double", "values"),
@@ -375,13 +381,6 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam(vector, "s0"),
                               constrefparam(vector, "s1")],
                              docstring = "Integrate through a lattice sampled field along a line segment.")
-
-        Spheral.add_function("numberDensity",
-                             scalarfieldlist,
-                             [constrefparam(database, "dataBase"), constrefparam(tablekernel, "W")],
-                             template_parameters = [dim],
-                             custom_name = "numberDensity%id" % ndim,
-                             docstring = "Compute the ASPH sum number density for each node in a DataBase.")
 
         Spheral.add_function("testBoxIntersection%id" % ndim,
                              "bool",
@@ -401,6 +400,36 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                              template_parameters = [plane],
                              custom_name = "planarReflectingOperator%id" % ndim,
                              docstring = "Generate the planar reflection transformation for th given plane.")
+
+        return
+
+    #---------------------------------------------------------------------------
+    # Generate dimension dependent bindings.
+    #---------------------------------------------------------------------------
+    def generateAllDimBindings(self, ndim):
+
+        dim = "Dim<%i> " % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        plane = "Plane%id" % ndim
+        nodelist = "NodeList%id" % ndim
+        database = "DataBase%id" % ndim
+        intfield = "IntField%id" % ndim
+        intfieldlist = "IntFieldList%id" % ndim
+        ullfieldlist = "ULLFieldList%id" % ndim
+        scalarfieldlist = "ScalarFieldList%id" % ndim
+        vectorfieldlist = "VectorFieldList%id" % ndim
+        vector_of_boundary = "vector_of_Boundary%id" % ndim
+        tablekernel = "TableKernel%id" % ndim
+        smoothingscalebase = "Spheral::NodeSpace::SmoothingScaleBase%id" % ndim
+
+        Spheral = self.Spheral
+        NodeSpace = self.NodeSpace
+
+        # Expose methods.
+        Spheral.add_function("rotationMatrix%id" % ndim, tensor, [constrefparam(vector, "runit")],
+                             docstring="Rotational transformation to align with the given unit vector.")
 
         return
 

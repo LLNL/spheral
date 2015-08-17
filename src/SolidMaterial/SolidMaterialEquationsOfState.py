@@ -6,23 +6,20 @@
 # the equations of state provided here emulate the original interfaces.
 #-------------------------------------------------------------------------------
 from SpheralModules.Spheral.Material import PhysicalConstants
-from SpheralModules.Spheral.SolidMaterial import (LinearPolynomialEquationOfState1d,
-                                                  LinearPolynomialEquationOfState2d,
-                                                  LinearPolynomialEquationOfState3d,
-                                                  GruneisenEquationOfState1d,
-                                                  GruneisenEquationOfState2d,
-                                                  GruneisenEquationOfState3d,
-                                                  MurnahanEquationOfState1d,
-                                                  MurnahanEquationOfState2d,
-                                                  MurnahanEquationOfState3d,
-                                                  TillotsonEquationOfState1d,
-                                                  TillotsonEquationOfState2d,
-                                                  TillotsonEquationOfState3d,
-                                                  SteinbergGuinanStrength1d,
-                                                  SteinbergGuinanStrength2d,
-                                                  SteinbergGuinanStrength3d)
 from MaterialUnits import MKS, CGS, Cosmological, Solar
 from SolidMaterialUnits import CGuS
+
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
+for dim in dims:
+    exec("""
+from SpheralModules.Spheral.SolidMaterial import (LinearPolynomialEquationOfState%(dim)sd,
+                                                  GruneisenEquationOfState%(dim)sd,
+                                                  MurnahanEquationOfState%(dim)sd,
+                                                  TillotsonEquationOfState%(dim)sd,
+                                                  SteinbergGuinanStrength%(dim)sd)
+""" % {"dim" : dim})
 
 EOSFactoryString = """
 #-------------------------------------------------------------------------------
@@ -252,7 +249,7 @@ class SteinbergGuinanStrength%(units)s%(dim)id(SteinbergGuinanStrength%(dim)id):
 #-------------------------------------------------------------------------------
 # Create the different instantiations.
 #-------------------------------------------------------------------------------
-for dim in (1, 2, 3):
+for dim in dims:
     for units in ("MKS", "CGS", "Cosmological", "Solar", "CGuS"):
         exec(EOSFactoryString % {"dim"   : dim,
                                  "units" : units})

@@ -1,5 +1,8 @@
 from SolidSpheral import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic SolidNodeList defintion.
 #-------------------------------------------------------------------------------
@@ -45,6 +48,5 @@ def makeSolidNodeList%(dim)s(name,
 #-------------------------------------------------------------------------------
 # Create the different SolidNodeLists.
 #-------------------------------------------------------------------------------
-exec(SolidNodeListFactoryString % {"dim" : "1d"})
-exec(SolidNodeListFactoryString % {"dim" : "2d"})
-exec(SolidNodeListFactoryString % {"dim" : "3d"})
+for dim in dims:
+    exec(SolidNodeListFactoryString % {"dim" : "%id" % dim})
