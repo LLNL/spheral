@@ -9,9 +9,10 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ArtificialConduction
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/ArtificialConductionInst.cc \
-	$(srcdir)/ArtificialConductionPolicyInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/ArtificialConductionInst.cc.py \
+	$(srcdir)/ArtificialConductionPolicyInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

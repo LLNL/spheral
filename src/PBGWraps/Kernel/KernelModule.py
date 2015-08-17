@@ -10,7 +10,9 @@ class Kernel:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/KernelTypes.hh"' % srcdir)
@@ -24,7 +26,8 @@ class Kernel:
                       "Hat", "Sinc", "NSincPolynomial", "NBSpline", "QuarticSpline",
                       "QuinticSpline", "Table", "WendlandC4", "WendlandC6")
         for type in self.types:
-            for dim in ("1d", "2d", "3d"):
+            for ndim in self.dims:
+                dim = "%id" % ndim
                 name = type + "Kernel" + dim
                 exec('self.%(name)s = addObject(space, "%(name)s", allow_subclassing=True)' % {"name" : name})
         return
@@ -34,7 +37,7 @@ class Kernel:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             dim = "%id" % ndim
 
             # Generic Kernel types.

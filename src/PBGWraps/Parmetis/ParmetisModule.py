@@ -10,7 +10,9 @@ class Parmetis:
     #---------------------------------------------------------------------------
     # Add the types to the module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/ParmetisTypes.hh"' % srcdir)
@@ -18,20 +20,24 @@ class Parmetis:
         # Namespaces.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PartitionSpace")
-        RedistributeNodes2d = findObject(space, "RedistributeNodes2d")
-        RedistributeNodes3d = findObject(space, "RedistributeNodes3d")
 
         # Expose types.
-        self.ParmetisRedistributeNodes2d = addObject(space, "ParmetisRedistributeNodes2d", parent=RedistributeNodes2d, allow_subclassing=True)
-        self.ParmetisRedistributeNodes3d = addObject(space, "ParmetisRedistributeNodes3d", parent=RedistributeNodes3d, allow_subclassing=True)
+        if 2 in self.dims:
+            RedistributeNodes2d = findObject(space, "RedistributeNodes2d")
+            self.ParmetisRedistributeNodes2d = addObject(space, "ParmetisRedistributeNodes2d", parent=RedistributeNodes2d, allow_subclassing=True)
+        if 3 in self.dims:
+            RedistributeNodes3d = findObject(space, "RedistributeNodes3d")
+            self.ParmetisRedistributeNodes3d = addObject(space, "ParmetisRedistributeNodes3d", parent=RedistributeNodes3d, allow_subclassing=True)
 
     #---------------------------------------------------------------------------
     # Generate the bindings.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.parmetisBindings(self.ParmetisRedistributeNodes2d, 2)
-        self.parmetisBindings(self.ParmetisRedistributeNodes3d, 3)
+        if 2 in self.dims:
+            self.parmetisBindings(self.ParmetisRedistributeNodes2d, 2)
+        if 3 in self.dims:
+            self.parmetisBindings(self.ParmetisRedistributeNodes3d, 3)
 
         return
 

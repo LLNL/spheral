@@ -37,6 +37,7 @@ template<typename Dimension> double equivalentRadius(const double n);
 
 // 1D
 template<>
+inline
 double
 equivalentRadius<Dim<1> >(const double n) {
   return 0.5*n;
@@ -44,6 +45,7 @@ equivalentRadius<Dim<1> >(const double n) {
 
 // 2D
 template<>
+inline
 double
 equivalentRadius<Dim<2> >(const double n) {
   return std::sqrt(n/M_PI);
@@ -51,6 +53,7 @@ equivalentRadius<Dim<2> >(const double n) {
 
 // 3D
 template<>
+inline
 double
 equivalentRadius<Dim<3> >(const double n) {
   return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
@@ -123,11 +126,13 @@ Hdifference(const typename Dimension::SymTensor& H1,
 //------------------------------------------------------------------------------
 // Compute the new symmetric H inverse from the non-symmetric "A" tensor.
 //------------------------------------------------------------------------------
+inline
 Dim<1>::SymTensor
 computeHinvFromA(const Dim<1>::Tensor& A) {
   return Dim<1>::SymTensor::one;
 }
 
+inline
 Dim<2>::SymTensor
 computeHinvFromA(const Dim<2>::Tensor& A) {
   REQUIRE(fuzzyEqual(A.Determinant(), 1.0, 1.0e-8));
@@ -145,6 +150,7 @@ computeHinvFromA(const Dim<2>::Tensor& A) {
   return result;
 }
 
+inline
 Dim<3>::SymTensor
 computeHinvFromA(const Dim<3>::Tensor& A) {
   return Dim<3>::SymTensor::one;
@@ -193,6 +199,7 @@ ASPHSmoothingScale<Dimension>::
 // Time derivative of the smoothing scale.
 //------------------------------------------------------------------------------
 // 1-D case same as SPH.
+#ifdef SPHERAL1DINSTANTIATION
 template<>
 Dim<1>::SymTensor
 ASPHSmoothingScale<Dim<1> >::
@@ -205,7 +212,9 @@ smoothingScaleDerivative(const Dim<1>::SymTensor& H,
                          const Dim<1>::Scalar nPerh) const {
   return -H*DvDx.Trace();
 }
+#endif
 
+#ifdef SPHERAL2DINSTANTIATION
 // 2-D ASPH tensor evolution.
 template<>
 Dim<2>::SymTensor
@@ -227,7 +236,9 @@ smoothingScaleDerivative(const Dim<2>::SymTensor& H,
   result.yy(-H.yx()*(thetaDot + DvDx.xy()) - H.yy()*DvDx.yy());
   return result;
 }
+#endif
 
+#ifdef SPHERAL3DINSTANTIATION
 // 3-D ASPH tensor evolution.
 template<>
 Dim<3>::SymTensor
@@ -265,7 +276,8 @@ smoothingScaleDerivative(const Dim<3>::SymTensor& H,
   result.zz(H.xz()*(Tdot - DvDx.xz()) - H.yz()*(Phidot + DvDx.yz()) - H.zz()*DvDx.zz());
   return result;
 }
-
+#endif
+  
 //------------------------------------------------------------------------------
 // Compute an idealized new H based on the given moments.
 //------------------------------------------------------------------------------

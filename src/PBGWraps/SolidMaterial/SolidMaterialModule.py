@@ -12,7 +12,9 @@ class SolidMaterial:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/SolidMaterialTypes.hh"' % srcdir)
@@ -25,11 +27,9 @@ class SolidMaterial:
         Material = Spheral.add_cpp_namespace("Material")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        self.dimSet = (1, 2, 3)
-
         self.NinthOrderPolynomialFit = addObject(space, "NinthOrderPolynomialFit")
 
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
 Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
@@ -60,7 +60,7 @@ self.PorousStrengthModel%(dim)id = addObject(space, "PorousStrengthModel%(dim)id
 
         generateNinthOrderPolynomialFitBindings(self.NinthOrderPolynomialFit)
 
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 generateSolidEquationOfStateBindings(self.SolidEquationOfState%(dim)id, %(dim)i)
 generatePorousEquationOfStateBindings(self.PorousEquationOfState%(dim)id, %(dim)i)

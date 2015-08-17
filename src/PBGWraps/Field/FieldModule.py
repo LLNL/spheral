@@ -12,7 +12,9 @@ class Field:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/FieldTypes.hh"' % srcdir)
@@ -23,7 +25,7 @@ class Field:
 
         self.FieldStorageType = space.add_enum("FieldStorageType", ["Reference", "Copy"])
 
-        for dim in ("1d", "2d", "3d"):
+        for ndim in self.dims:
             exec("""
 # Expose types.
 self.FieldBase%(dim)s = addObject(space, "FieldBase%(dim)s", allow_subclassing=True)
@@ -58,14 +60,14 @@ self.VectorTensorFieldList%(dim)s =    addObject(space, "VectorTensorFieldList%(
 self.VectorSymTensorFieldList%(dim)s = addObject(space, "VectorSymTensorFieldList%(dim)s", parent=self.FieldListBase%(dim)s)
 
 self.FieldListSet%(dim)s = addObject(space, "FieldListSet%(dim)s", allow_subclassing=True)
-""" % {"dim" : dim})
+""" % {"dim" : "%id" % ndim})
 
             # std::vector<Field*>
             for element in ("Int", "Scalar", "Vector", "Tensor", "SymTensor"):
                 exec("""
 self.vector_of_%(element)sFieldPtr%(dim)s = addObject(mod, "vector_of_%(element)sFieldPtr%(dim)s", allow_subclassing=True)
 self.vector_of_%(element)sFieldList%(dim)s = addObject(mod, "vector_of_%(element)sFieldList%(dim)s", allow_subclassing=True)
-""" % {"element" : element, "dim" : dim})
+""" % {"element" : element, "dim" : "%id" % ndim})
 
         return
 
@@ -74,7 +76,7 @@ self.vector_of_%(element)sFieldList%(dim)s = addObject(mod, "vector_of_%(element
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             dim = "%id" % ndim
             polyvol = {1: "Box1d", 
                        2: "Polygon",

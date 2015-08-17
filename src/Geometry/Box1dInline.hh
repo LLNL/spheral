@@ -273,6 +273,31 @@ volume() const {
 }
 
 //------------------------------------------------------------------------------
+// Distance to a point.
+//------------------------------------------------------------------------------
+inline
+double
+Box1d::
+distance(const GeomVector<1>& p) const {
+  const double r1 = std::abs(p.x() - mCenter.x());
+  return std::abs(r1 - mExtent);
+}
+
+//------------------------------------------------------------------------------
+// Find the point in the box closest to the given point.
+//------------------------------------------------------------------------------
+inline
+GeomVector<1>
+Box1d::
+closestPoint(const GeomVector<1>& p) const {
+  if (p.x() > mCenter.x()) {
+    return GeomVector<1>(p.x() + mExtent);
+  } else {
+    return GeomVector<1>(p.x() - mExtent);
+  }
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 inline

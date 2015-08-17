@@ -9,13 +9,13 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Neighbor
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/GridCellIndexInst.cc \
-	$(srcdir)/GridCellPlaneInst.cc \
-	$(srcdir)/NeighborInst.cc \
-	$(srcdir)/NestedGridNeighborInst.cc \
-	$(srcdir)/TreeNeighborInst.cc \
-	$(srcdir)/ConnectivityMapInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/GridCellIndexInst.cc.py \
+	$(srcdir)/GridCellPlaneInst.cc.py \
+	$(srcdir)/NeighborInst.cc.py \
+	$(srcdir)/NestedGridNeighborInst.cc.py \
+	$(srcdir)/TreeNeighborInst.cc.py \
+	$(srcdir)/ConnectivityMapInst.cc.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

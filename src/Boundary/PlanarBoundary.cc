@@ -33,6 +33,7 @@ using MeshSpace::Mesh;
 // Internal worker method to help with clipping a box range.
 //------------------------------------------------------------------------------
 // 1D
+inline
 void
 clipBoxWithPlane(const GeomPlane<Dim<1> >& plane,
                  Dim<1>::Vector& point) {
@@ -41,6 +42,7 @@ clipBoxWithPlane(const GeomPlane<Dim<1> >& plane,
 
 // 2D
 // For now we only check cardinally aligned planes.
+inline
 void
 clipBoxWithPlane(const GeomPlane<Dim<2> >& plane,
                  Dim<2>::Vector& point) {
@@ -56,6 +58,7 @@ clipBoxWithPlane(const GeomPlane<Dim<2> >& plane,
 
 // 3D
 // For now we only check cardinally aligned planes.
+inline
 void
 clipBoxWithPlane(const GeomPlane<Dim<3> >& plane,
                  Dim<3>::Vector& point) {

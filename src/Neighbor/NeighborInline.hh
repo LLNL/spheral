@@ -4,6 +4,47 @@ namespace Spheral {
 namespace NeighborSpace {
 
 //------------------------------------------------------------------------------
+// Specializations for symmetric tensor smoothing transformation (ASPH).
+// The ASPH tensor has units of inverse length.
+//------------------------------------------------------------------------------
+template<>
+inline
+Dim<1>::Vector
+Neighbor< Dim<1> >::
+HExtent(const Dim<1>::SymTensor& H,
+        const double kernelExtent) {
+  CHECK(H.Determinant() > 0.0);
+  const double r = kernelExtent/H.xx();
+  return Vector(r);
+}
+
+template<>
+inline
+Dim<2>::Vector
+Neighbor< Dim<2> >::
+HExtent(const Dim<2>::SymTensor& H,
+        const double kernelExtent) {
+  const double Hdet = H.Determinant();
+  const SymTensor M = H.square();
+  CHECK(Hdet > 0.0);
+  return kernelExtent/Hdet*Vector(sqrt(M.yy()), sqrt(M.xx()));
+}
+  
+template<>
+inline
+Dim<3>::Vector
+Neighbor< Dim<3> >::
+HExtent(const Dim<3>::SymTensor& H,
+        const double kernelExtent) {
+  const double Hdet = H.Determinant();
+  const SymTensor M = H.square();
+  CHECK(Hdet > 0.0);
+  return kernelExtent/Hdet*Vector(sqrt(M.yy()*M.zz() - M.yz()*M.zy()),
+                        sqrt(M.xx()*M.zz() - M.xz()*M.zx()),
+                        sqrt(M.xx()*M.yy() - M.xy()*M.yx()));
+}
+
+//------------------------------------------------------------------------------
 // Access the sampling kernel extent.
 //------------------------------------------------------------------------------
 template<typename Dimension>

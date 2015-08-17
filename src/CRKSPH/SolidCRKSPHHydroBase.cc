@@ -46,6 +46,7 @@
 #include "Utilities/safeInv.hh"
 #include "FileIO/FileIO.hh"
 #include "SolidSPH/DamagedNodeCouplingWithFrags.hh"
+#include "SolidMaterial/SolidEquationOfState.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -55,6 +56,7 @@ using NodeSpace::SmoothingScaleBase;
 using NodeSpace::NodeList;
 using NodeSpace::FluidNodeList;
 using SolidMaterial::SolidNodeList;
+using SolidMaterial::SolidEquationOfState;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
 using KernelSpace::TableKernel;
@@ -512,10 +514,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
+  for (typename DataBase<Dimension>::ConstSolidNodeListIterator itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
        ++itr, ++nodeListi) {
-    const NodeList<Dimension>& nodeList = **itr;
+    const SolidNodeList<Dimension>& nodeList = **itr;
     const int firstGhostNodei = nodeList.firstGhostNode();
     const Scalar hmin = nodeList.hmin();
     const Scalar hmax = nodeList.hmax();
@@ -531,6 +533,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     // Build the functor we use to compute the effective coupling between nodes.
     DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+
+    // Check if we can identify a reference density.
+    Scalar rho0 = 0.0;
+    try {
+      rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(nodeList.equationOfState()).referenceDensity();
+      // cerr << "Setting reference density to " << rho0 << endl;
+    } catch(...) {
+      // cerr << "BLAGO!" << endl;
+    }
 
     // Iterate over the internal nodes in this NodeList.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -723,19 +734,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               localDvDxi -= fDeffij*weightj*vij*gradWdamj;
               localDvDxj += fDeffij*weighti*vij*gradWdami;
 
-              // We treat positive and negative pressures distinctly, so split 'em up.
-              const Scalar Pposi = max(0.0, Pi),
-                           Pnegi = min(0.0, Pi),
-                           Pposj = max(0.0, Pj),
-                           Pnegj = min(0.0, Pj);
+              // // We treat positive and negative pressures distinctly, so split 'em up.
+              // const Scalar Pposi = max(0.0, Pi),
+              //              Pnegi = min(0.0, Pi),
+              //              Pposj = max(0.0, Pj),
+              //              Pnegj = min(0.0, Pj);
 
               // // Damage scaling of negative pressures.
               // const Scalar Peffi = (Pi > 0.0 ? Pi : fDeffij*Pi);
               // const Scalar Peffj = (Pj > 0.0 ? Pj : fDeffij*Pj);
 
               // Compute the stress tensors.
-              SymTensor sigmai = -Pnegi*SymTensor::one + Si;
-              SymTensor sigmaj = -Pnegj*SymTensor::one + Sj;
+              SymTensor sigmai = -Pi*SymTensor::one + Si;
+              SymTensor sigmaj = -Pj*SymTensor::one + Sj;
 
               // // Compute the tensile correction to add to the stress as described in 
               // // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -750,12 +761,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              const Vector forceij = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad + ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
+              const Vector forceij = 0.5*weighti*weightj*(((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
                                                           fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
-              // Vector forceij = -0.5*weighti*weightj*(fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam - 
-              //                                        ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
-              // Vector forceij = -0.5*weighti*weightj*((sigmai + sigmaj)*deltagrad - 
-              //                                        ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
+              // const Vector forceij = 0.5*weighti*weightj*((Pposi + Pposj)*deltagrad + ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad) -
+              //                                             fDeffij*fDeffij*(sigmai + sigmaj)*deltagraddam);                // <- Type III, with CRKSPH Q forces
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
               DvDti += deltaDvDti;
@@ -766,10 +775,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
-              // DepsDti += 0.5*weighti*weightj*(sigmaj.dot(vij).dot(deltagrad) + workQi)/mi;
-              // DepsDtj += 0.5*weighti*weightj*(sigmai.dot(vij).dot(deltagrad) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
+
+              // DepsDti += 0.5*weighti*weightj*(Pposj*vij.dot(deltagrad) + fDeffij*fDeffij*sigmaj.dot(vij).dot(deltagraddam) + workQi)/mi;
+              // DepsDtj += 0.5*weighti*weightj*(Pposi*vij.dot(deltagrad) + fDeffij*fDeffij*sigmai.dot(vij).dot(deltagraddam) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
@@ -788,9 +798,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);
-
-      // // Time evolution of the mass density.
-      // DrhoDti = -rhoi*DvDxi.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -830,6 +837,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
       const SymTensor spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+
+      // In the presence of damage, add a term to reduce the stress on this point.
+      const Scalar Di = max(0.0, min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+      DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
+
+      // We also adjust the density evolution in the presence of damage.
+      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
       // Increment the work for i.
       worki += Timing::difference(start, Timing::currentTime());

@@ -9,7 +9,9 @@ class Utilities:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/UtilitiesTypes.hh"' % srcdir)
@@ -81,9 +83,7 @@ Spheral.add_function("convertStringToElement", "%(value)s", [param("std::string"
 """ % {"value" : value, "name" : name})
 
         # boundingVolumes
-        for dim, value, vector, inst in (("1d", "Box1d", "Vector1d", "Dim<1>"),
-                                         ("2d", "Polygon", "Vector2d", "Dim<2>"),
-                                         ("3d", "Polyhedron", "Vector3d", "Dim<3>")):
+        for ndim in self.dims:
             exec("""
 Spheral.add_function("boundingBox", None, [constrefparam("vector_of_%(vector)s", "positions"),
                                            refparam("%(vector)s", "xmin"),
@@ -101,10 +101,14 @@ Spheral.add_function("globalBoundingVolumes", None, [constrefparam("DataBase%(di
                                                      refparam("%(value)s", "sampleVolume")],
                                                      template_parameters = ["%(inst)s"],
                                                      custom_name = "globalBoundingVolumes")
-""" % {"dim" : dim, "value" : value, "vector" : vector, "inst" : inst})
+""" % {"dim"   : "%id" % ndim, 
+       "value" : ("Box1d", "Polygon", "Polyhedron")[ndim - 1],
+       "vector": "Vector%id" % ndim,
+       "inst"  : "Dim<%i>" % ndim})
 
         # Stuff that depends on dimension.
-        for dim in ("1d", "2d", "3d"):
+        for ndim in self.dims:
+            dim = "%id" % ndim
             vector = "Vector%s" % dim
             Spheral.add_function("collinear", "bool",
                                  [constrefparam(vector, "a"), constrefparam(vector, "b"), constrefparam(vector, "c"),
@@ -280,9 +284,8 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         self.KeyTraits.add_static_attribute("maxKey", "uint64_t",  is_const=True)
 
         # Dimension dependent bindings.
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        for dim in self.dims:
+            self.generateDimBindings(dim)
 
         return
 

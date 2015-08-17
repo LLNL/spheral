@@ -13,7 +13,9 @@ class ArtificialViscosity:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/ArtificialViscosityTypes.hh"' % srcdir)
@@ -23,14 +25,10 @@ class ArtificialViscosity:
         space = Spheral.add_cpp_namespace("ArtificialViscositySpace")
         physics = Spheral.add_cpp_namespace("PhysicsSpace")
         
-        Physics1d = findObject(physics,"Physics1d")
-        Physics2d = findObject(physics,"Physics2d")
-        Physics3d = findObject(physics,"Physics3d")
-
         # Expose types.
-        self.dimSet = (1, 2, 3)
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
+Physics%(dim)id = findObject(physics,"Physics%(dim)id")
 self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id", allow_subclassing=True)
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.CRKSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CRKSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
@@ -47,7 +45,7 @@ self.VonNeumanViscosity%(dim)id = addObject(space, "VonNeumanViscosity%(dim)id",
     # Add the types to the given module.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)

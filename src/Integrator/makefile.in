@@ -9,14 +9,15 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Integrator
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/IntegratorInst.cc \
-	$(srcdir)/PredictorCorrectorInst.cc \
-	$(srcdir)/SynchronousRK1Inst.cc \
-	$(srcdir)/SynchronousRK2Inst.cc \
-	$(srcdir)/SynchronousRK4Inst.cc \
-	$(srcdir)/CheapSynchronousRK2Inst.cc \
-	$(srcdir)/VerletInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/IntegratorInst.cc.py \
+	$(srcdir)/PredictorCorrectorInst.cc.py \
+	$(srcdir)/SynchronousRK1Inst.cc.py \
+	$(srcdir)/SynchronousRK2Inst.cc.py \
+	$(srcdir)/SynchronousRK4Inst.cc.py \
+	$(srcdir)/CheapSynchronousRK2Inst.cc.py \
+	$(srcdir)/VerletInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

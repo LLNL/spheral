@@ -11,7 +11,9 @@ class Mesh:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/MeshTypes.hh"' % srcdir)
@@ -21,20 +23,16 @@ class Mesh:
         self.space = Spheral.add_cpp_namespace("MeshSpace")
 
         # Expose types.
-        for prefix, dim in (("Line", "1d"),
-                            ("Polygonal", "2d"),
-                            ("Polyhedral", "3d")):
-            exec("""
+        for ndim in self.dims:
+            exec('''
 self.%(prefix)sMesh = addObject(self.space, "%(prefix)sMesh", allow_subclassing=True)
 self.%(prefix)sMeshNode = addObject(self.space, "Node", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
 self.%(prefix)sMeshEdge = addObject(self.space, "Edge", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
 self.%(prefix)sMeshFace = addObject(self.space, "Face", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
 self.%(prefix)sMeshZone = addObject(self.space, "Zone", outer_class=self.%(prefix)sMesh, allow_subclassing=True)
-
-##self.MeshWall%(dim)s = addObject(self.space, "MeshWall%(dim)s", allow_subclassing=True)
-##self.PlanarMeshWall%(dim)s = addObject(self.space, "PlanarMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
-##self.FacetedMeshWall%(dim)s = addObject(self.space, "FacetedMeshWall%(dim)s", allow_subclassing=True, parent=self.MeshWall%(dim)s)
-""" % {"prefix" : prefix, "dim" : dim})
+''' % {"ndim"   : ndim,
+       "dim"    : "%id" % ndim,
+       "prefix" : ("Line", "Polygonal", "Polyhedral")[ndim - 1]})
 
         # self.VoroPP2d = addObject(self.space, "VoroPP2d", allow_subclassing=True)
         # self.VoroPP3d = addObject(self.space, "VoroPP3d", allow_subclassing=True)
@@ -47,24 +45,17 @@ self.%(prefix)sMeshZone = addObject(self.space, "Zone", outer_class=self.%(prefi
     def generateBindings(self, mod):
 
         # Add methods to objects.
-        for prefix, ndim in (("Line", 1),
-                             ("Polygonal", 2),
-                             ("Polyhedral", 3)):
-            exec("""
+        for ndim in self.dims:
+            exec('''
 self.generateMeshBindings(self.%(prefix)sMesh, "%(prefix)sMesh", %(ndim)i)
 self.generateNodeBindings(self.%(prefix)sMeshNode, "%(prefix)sMesh", %(ndim)i)
 self.generateEdgeBindings(self.%(prefix)sMeshEdge, "%(prefix)sMesh", %(ndim)i)
 self.generateFaceBindings(self.%(prefix)sMeshFace, "%(prefix)sMesh", %(ndim)i)
 self.generateZoneBindings(self.%(prefix)sMeshZone, "%(prefix)sMesh", %(ndim)i)
-
-# self.generateMeshWallBindings(self.MeshWall%(dim)s, %(ndim)i)
-# self.generatePlanarMeshWallBindings(self.PlanarMeshWall%(dim)s, %(ndim)i)
-# self.generateFacetedMeshWallBindings(self.FacetedMeshWall%(dim)s, %(ndim)i)
-
 self.addFunctions("%(prefix)sMesh", %(ndim)i)
-""" % {"prefix" : prefix, 
-       "ndim" : ndim, 
-       "dim" : "%id" % ndim})
+''' % {"ndim"   : ndim,
+       "dim"    : "%id" % ndim,
+       "prefix" : ("Line", "Polygonal", "Polyhedral")[ndim - 1]})
 
         # self.generateVoroPPBindings(self.VoroPP2d, "VoroPP2d", 2)
         # self.generateVoroPPBindings(self.VoroPP3d, "VoroPP3d", 3)

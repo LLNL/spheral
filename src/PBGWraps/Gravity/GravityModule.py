@@ -13,7 +13,9 @@ class Gravity:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/GravityTypes.hh"' % srcdir)
@@ -22,17 +24,19 @@ class Gravity:
         Spheral = mod.add_cpp_namespace("Spheral")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         space = Spheral.add_cpp_namespace("GravitySpace")
-        genericbodyforce1d = findObject(PhysicsSpace, "GenericBodyForce1d")
-        genericbodyforce2d = findObject(PhysicsSpace, "GenericBodyForce2d")
-        genericbodyforce3d = findObject(PhysicsSpace, "GenericBodyForce3d")
 
-        # Expose types.
-        self.NBodyGravity1d = addObject(space, "NBodyGravity1d", allow_subclassing=True, parent=genericbodyforce1d)
-        self.NBodyGravity2d = addObject(space, "NBodyGravity2d", allow_subclassing=True, parent=genericbodyforce2d)
-        self.NBodyGravity3d = addObject(space, "NBodyGravity3d", allow_subclassing=True, parent=genericbodyforce3d)
+        for dim in self.dims:
+            exec('''
+genericbodyforce%(dim)id = findObject(PhysicsSpace, "GenericBodyForce%(dim)id")
 
-        self.QuadTreeGravity = addObject(space, "QuadTreeGravity", allow_subclassing=True, parent=genericbodyforce2d)
-        self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
+# Expose types.
+self.NBodyGravity%(dim)id = addObject(space, "NBodyGravity%(dim)id", allow_subclassing=True, parent=genericbodyforce%(dim)id)
+''' % {"dim" : dim})
+
+        if 2 in self.dims:
+            self.QuadTreeGravity = addObject(space, "QuadTreeGravity", allow_subclassing=True, parent=genericbodyforce2d)
+        if 3 in self.dims:
+            self.OctTreeGravity =  addObject(space, "OctTreeGravity", allow_subclassing=True, parent=genericbodyforce3d)
 
         self.GravityTimeStepType = space.add_enum("GravityTimeStepType", ["AccelerationRatio", "DynamicalTime"])
 
@@ -42,12 +46,15 @@ class Gravity:
     # Generate bindings for all objects.
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
-        self.generateNBodyGravityBindings(self.NBodyGravity1d, 1)
-        self.generateNBodyGravityBindings(self.NBodyGravity2d, 2)
-        self.generateNBodyGravityBindings(self.NBodyGravity3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateNBodyGravityBindings(self.NBodyGravity%(dim)id, %(dim)i)
+''' % {"dim" : dim})
 
-        self.generateTreeGravityBindings(self.QuadTreeGravity, "Spheral::GravitySpace::QuadTreeGravity", 2)
-        self.generateTreeGravityBindings(self.OctTreeGravity, "Spheral::GravitySpace::OctTreeGravity", 3)
+        if 2 in self.dims:
+            self.generateTreeGravityBindings(self.QuadTreeGravity, "Spheral::GravitySpace::QuadTreeGravity", 2)
+        if 3 in self.dims:
+            self.generateTreeGravityBindings(self.OctTreeGravity, "Spheral::GravitySpace::OctTreeGravity", 3)
 
         return
 

@@ -36,6 +36,12 @@ SETUP_PYTHONBINDING
 SETUP_SPHERAL_ENV
 
 # -------------------------------------------------
+# Setup the instantions
+# (m4macros/instantiations.m4)
+# -------------------------------------------------
+SETUP_INSTANTIATIONS
+
+# -------------------------------------------------
 # Setup the DistributedMake options
 # (m4macros/distributedmake.m4)
 # -------------------------------------------------

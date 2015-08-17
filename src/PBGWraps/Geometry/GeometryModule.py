@@ -13,7 +13,9 @@ class Geometry:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/GeometryTypes.hh"' % srcdir)
@@ -140,9 +142,8 @@ class Geometry:
         generateStdVectorBindings(self.vector_of_Facet3d, "Spheral::Facet3d", "vector_of_Facet3d", indexAsPointer=True)
 
         # Add the free functions.
-        self.addDimFunctions(self.space, 1)
-        self.addDimFunctions(self.space, 2)
-        self.addDimFunctions(self.space, 3)
+        for dim in self.dims:
+            self.addDimFunctions(self.space, dim)
 
         return
 
@@ -587,6 +588,8 @@ class Geometry:
                                                 param("double", "tol", default_value="1.0e-8")], is_const=True)
         x.add_method("intersect", "bool", [constrefparam(me, "rhs")], is_const=True)
         x.add_method("convexIntersect", "bool", [constrefparam(me, "rhs")], is_const=True)
+        x.add_method("distance", "double", [constrefparam("Vector1d", "point")], is_const=True)
+        x.add_method("closestPoint", "Vector1d", [constrefparam("Vector1d", "point")], is_const=True)
         x.add_function_as_method("const_reference_as_pointer",
                                  retval(ptr("vector_of_Vector1d"), reference_existing_object=True),
                                  [param(me, "self")],

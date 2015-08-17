@@ -64,7 +64,9 @@ class Boundary:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/BoundaryTypes.hh"' % srcdir)
@@ -75,7 +77,7 @@ class Boundary:
         self.space = Spheral.add_cpp_namespace("BoundarySpace")
 
         # Expose types.
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             exec("""
 self.Boundary%(ndim)id = addObject(self.space, "Boundary%(ndim)id", allow_subclassing=True)
 self.PlanarBoundary%(ndim)id = addObject(self.space, "PlanarBoundary%(ndim)id", parent=self.Boundary%(ndim)id)
@@ -89,14 +91,14 @@ self.ConstantBoundary%(ndim)id = addObject(self.space, "ConstantBoundary%(ndim)i
 self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_subclassing=True)
 """ % {"ndim" : ndim})
 
-        self.ConstantYVelocityBoundary2d = addObject(self.space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
-        self.ConstantYVelocityBoundary3d = addObject(self.space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
+        if 2 in self.dims:
+            self.ConstantYVelocityBoundary2d = addObject(self.space, "ConstantYVelocityBoundary2d", parent=self.ConstantVelocityBoundary2d)
 
-        self.ConstantZVelocityBoundary3d = addObject(self.space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
-
-        self.SphericalBoundary = addObject(self.space, "SphericalBoundary", parent=self.Boundary3d)
-
-        self.CylindricalBoundary = addObject(self.space, "CylindricalBoundary", parent=self.Boundary3d)
+        if 3 in self.dims:
+            self.ConstantYVelocityBoundary3d = addObject(self.space, "ConstantYVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
+            self.ConstantZVelocityBoundary3d = addObject(self.space, "ConstantZVelocityBoundary3d", parent=self.ConstantVelocityBoundary3d)
+            self.SphericalBoundary = addObject(self.space, "SphericalBoundary", parent=self.Boundary3d)
+            self.CylindricalBoundary = addObject(self.space, "CylindricalBoundary", parent=self.Boundary3d)
 
         return
 
@@ -105,7 +107,7 @@ self.vecBound%(ndim)id = addObject(mod, "vector_of_Boundary%(ndim)id", allow_sub
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for ndim in (1, 2, 3):
+        for ndim in self.dims:
             exec("""
 self.generateBoundaryBindings(self.Boundary%(ndim)id, %(ndim)i)
 self.generatePlanarBoundaryBindings(self.PlanarBoundary%(ndim)id, %(ndim)i)
@@ -123,15 +125,14 @@ self.space.add_function("dynamicCastBoundary",
                         custom_name = "dynamicCastBoundaryToPlanarBoundary%(ndim)id")
 """ % {"ndim": ndim})
 
-        self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary2d, 2)
-        self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary3d, 3)
+        if 2 in self.dims:
+            self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary2d, 2)
 
-        self.generateConstantZVelocityBoundaryBindings(self.ConstantZVelocityBoundary3d, 3)
-
-        self.generateSphericalBoundaryBindings(self.SphericalBoundary)
-
-        self.generateCylindricalBoundaryBindings(self.CylindricalBoundary)
-
+        if 3 in self.dims:
+            self.generateConstantYVelocityBoundaryBindings(self.ConstantYVelocityBoundary3d, 3)
+            self.generateConstantZVelocityBoundaryBindings(self.ConstantZVelocityBoundary3d, 3)
+            self.generateSphericalBoundaryBindings(self.SphericalBoundary)
+            self.generateCylindricalBoundaryBindings(self.CylindricalBoundary)
         
         return
 

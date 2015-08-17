@@ -9,8 +9,8 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SolidSPH
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/SolidSPHHydroBaseInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/SolidSPHHydroBaseInst.cc.py
 
 PYTHONTARGETS = \
 	$(srcdir)/SolidSPHHydros.py

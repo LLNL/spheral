@@ -66,6 +66,12 @@ public:
   const std::vector<Vector>& vertices() const;
   std::vector<std::vector<unsigned> > facetVertices() const;
 
+  // Compute the minimum distance to a point.
+  double distance(const Vector& p) const;
+
+  // Find the point in the box closest to the given point.
+  Vector closestPoint(const Vector& p) const;
+
   // Compute the volume.
   double volume() const;
 

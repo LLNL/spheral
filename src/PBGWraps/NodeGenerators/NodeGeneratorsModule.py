@@ -10,13 +10,18 @@ class NodeGenerators:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
+
         mod.add_include('"%s/NodeGeneratorsTypes.hh"' % srcdir)
         Spheral = mod.add_cpp_namespace("Spheral")
 
         # Expose types.
-        self.WeightingFunctor2d = addObject(Spheral, "WeightingFunctor2d", allow_subclassing=True)
-        self.WeightingFunctor3d = addObject(Spheral, "WeightingFunctor3d", allow_subclassing=True)
+        if 2 in self.dims:
+            self.WeightingFunctor2d = addObject(Spheral, "WeightingFunctor2d", allow_subclassing=True)
+        if 3 in self.dims:
+            self.WeightingFunctor3d = addObject(Spheral, "WeightingFunctor3d", allow_subclassing=True)
 
         return
 
@@ -27,8 +32,10 @@ class NodeGenerators:
 
         Spheral = mod.add_cpp_namespace("Spheral")
 
-        self.addWeightingFunctorMethods(self.WeightingFunctor2d, 2)
-        self.addWeightingFunctorMethods(self.WeightingFunctor3d, 3)
+        if 2 in self.dims:
+            self.addWeightingFunctorMethods(self.WeightingFunctor2d, 2)
+        if 3 in self.dims:
+            self.addWeightingFunctorMethods(self.WeightingFunctor3d, 3)
 
         Spheral.add_function("generateCylDistributionFromRZ",
                              None,
@@ -72,7 +79,12 @@ class NodeGenerators:
                               refparam("vector_of_SymTensor3d", "H")],
                              docstring = "Compute stuff useful for a NodeGenerator from a polyhedral mesh in a silo file.")
 
-        for ndim in (2, 3):
+        subdims = []
+        if 2 in self.dims:
+            subdims.append(2)
+        if 3 in self.dims:
+            subdims.append(3)
+        for ndim in subdims:
             poly = "Spheral::" + {2 : "Polygon", 3 : "Polyhedron"}[ndim]
             vector = "Vector%id" % ndim
             database = "Spheral::DataBaseSpace::DataBase%id" % ndim

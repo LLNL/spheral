@@ -11,7 +11,9 @@ class ANEOS:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/ANEOSTypes.hh"' % srcdir)
@@ -21,9 +23,7 @@ class ANEOS:
         Material = Spheral.add_cpp_namespace("Material")
         self.space = Spheral.add_cpp_namespace("SolidMaterial")
 
-        self.dimSet = (1, 2, 3)
-
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 EquationOfState%(dim)id = findObject(Material, "EquationOfState%(dim)id")
 self.ANEOS%(dim)id = addObject(self.space, "ANEOS%(dim)id", parent=EquationOfState%(dim)id, allow_subclassing=True)
@@ -36,7 +36,7 @@ self.ANEOS%(dim)id = addObject(self.space, "ANEOS%(dim)id", parent=EquationOfSta
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        for dim in self.dimSet:
+        for dim in self.dims:
             exec('''
 generateANEOSBindings(self.ANEOS%(dim)id, %(dim)i)
 ''' % {"dim" : dim})

@@ -26,6 +26,10 @@ settings.deprecated_virtuals = False
 pkgs_string = "@PYTHONPKGS@"
 pkgs = pkgs_string.split()
 
+# The dimensions we're instantiating.
+dims_string = "@DIMS@"
+dims = [int(x) for x in dims_string.split()]
+
 # Extract the desired output files.
 outfile = sys.argv[1].replace("Bindings", "")
 assert outfile[-2:] == ".C"
@@ -43,7 +47,7 @@ for p in pkgs:
     modname = "%sModule" % p
     exec("import %s" % modname)
     mod.begin_section("SpheralModules_%s" % p)
-    exec("%s = %s.%s(mod, '%s', '%s')" % (p, modname, p, "%s/%s" % (srcdir, p), topsrcdir))
+    exec("%s = %s.%s(mod, '%s', '%s', %s)" % (p, modname, p, "%s/%s" % (srcdir, p), topsrcdir, dims))
     mod.end_section("SpheralModules_%s" % p)
 
 # Now bind methods to the objects.
