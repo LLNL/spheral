@@ -1,0 +1,38 @@
+# -*-makefile-*-
+# SolidSpheral++ SolidMaterial package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = SolidMaterial
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+INSTSRCTARGETS = \
+	$(srcdir)/LinearPolynomialEquationOfStateInst.cc.py \
+	$(srcdir)/GruneisenEquationOfStateInst.cc.py \
+	$(srcdir)/MurnahanEquationOfStateInst.cc.py \
+	$(srcdir)/TillotsonEquationOfStateInst.cc.py \
+	$(srcdir)/SteinbergGuinanStrengthInst.cc.py \
+	$(srcdir)/JohnsonCookStrengthInst.cc.py \
+	$(srcdir)/PorousEquationOfStateInst.cc.py \
+	$(srcdir)/PorousStrengthModelInst.cc.py \
+	$(srcdir)/StrainPorosityInst.cc.py \
+	$(ANEOSSRCS) \
+	$(GEODYNSRCS)
+
+FSRCTARGETS = \
+	$(ANEOSFSRCS)
+
+PYTHONTARGETS = \
+	$(srcdir)/MaterialPropertiesLib.py \
+	$(srcdir)/SolidMaterialUnits.py \
+	$(srcdir)/SolidMaterialEquationsOfState.py \
+	$(srcdir)/ShadowTillotsonEquationOfState.py \
+	$(srcdir)/ShadowConstantStrength.py
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+LIBS += $(ANEOSLIBS) $(GEODYNLIBS)

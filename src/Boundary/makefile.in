@@ -1,0 +1,30 @@
+# -*-makefile-*-
+# Spheral++ Boundary package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Boundary
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/BoundaryInst.cc.py \
+	$(srcdir)/PlanarBoundaryInst.cc.py \
+	$(srcdir)/ReflectingBoundaryInst.cc.py \
+	$(srcdir)/RigidBoundaryInst.cc.py \
+	$(srcdir)/PeriodicBoundaryInst.cc.py \
+	$(srcdir)/ConstantVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantYVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
+	$(srcdir)/ConstantBoundaryInst.cc.py
+SRCTARGETS = \
+	$(srcdir)/ConstantZVelocityBoundaryInst.cc \
+	$(srcdir)/SphericalBoundary.cc \
+	$(srcdir)/CylindricalBoundary.cc \
+	$(srcdir)/AxialSymmetryBoundary.cc
+
+#------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master

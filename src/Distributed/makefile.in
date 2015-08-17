@@ -1,0 +1,41 @@
+# -*-makefile-*-
+# Spheral++ Distributed package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Distributed
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	DistributedBoundaryInst.cc.py \
+	NestedGridDistributedBoundaryInst.cc.py \
+	BoundingVolumeDistributedBoundaryInst.cc.py \
+	RedistributeNodesInst.cc.py \
+	DistributeByXPositionInst.cc.py \
+	NestedGridRedistributeNodesInst.cc.py \
+	SortAndDivideRedistributeNodesInst.cc.py \
+	SpaceFillingCurveRedistributeNodesInst.cc.py \
+	MortonOrderRedistributeNodesInst.cc.py \
+	PeanoHilbertOrderRedistributeNodesInst.cc.py \
+	VoronoiRedistributeNodesInst.cc.py
+SRCTARGETS = \
+	Communicator.cc \
+	SortAndDivideRedistributeNodes1d.cc \
+	SortAndDivideRedistributeNodes2d.cc \
+	SortAndDivideRedistributeNodes3d.cc \
+	waitAllWithDeadlockDetection.cc \
+	$(PARMETISTARGET)
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
+#EXTRAFLAGS += $(PARMETISINCS) -std=c++0x
+LIBS += $(PARMETISLIBS)
+
+#-------------------------------------------------------------------------------
+# Override the default PYFFLEOPT flag, because using g++ with -g on the OSF Dec
+# machines causes an internal compiler error!
+OPTFLAGS = ${DISTRIBUTEDOPT}
+PYFFLEOPT = ${DISTRIBUTEDOPT}
+

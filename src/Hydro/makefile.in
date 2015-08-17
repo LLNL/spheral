@@ -1,0 +1,27 @@
+# -*-makefile-*-
+# Spheral++ Hydro package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = Hydro
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/PressurePolicyInst.cc.py \
+	$(srcdir)/SoundSpeedPolicyInst.cc.py \
+	$(srcdir)/SpecificThermalEnergyPolicyInst.cc.py \
+	$(srcdir)/NonSymmetricSpecificThermalEnergyPolicyInst.cc.py \
+	$(srcdir)/PositionPolicyInst.cc.py \
+	$(srcdir)/VolumePolicyInst.cc.py \
+	$(srcdir)/VoronoiMassDensityPolicyInst.cc.py \
+	$(srcdir)/SumVoronoiMassDensityPolicyInst.cc.py \
+	$(srcdir)/ThirdMomentHourglassControlInst.cc.py
+SRCTARGETS = \
+	$(srcdir)/HydroFieldNames.cc \
+	$(srcdir)/SecondMomentHourglassControlInst.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
