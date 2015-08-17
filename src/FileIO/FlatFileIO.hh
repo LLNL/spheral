@@ -130,6 +130,7 @@ public:
 
   // Require that all FileIO objects provide methods to read and write
   // Fields of specific DataTypes.
+#ifdef SPHERAL1D
   virtual void write(const FieldSpace::Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName);
@@ -137,6 +138,15 @@ public:
   virtual void write(const FieldSpace::Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<1>, int>& field, const std::string pathName);
 
+  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<1>, int>& field, const std::string pathName) const;
+#endif
+
+#ifdef SPHERAL2D
   virtual void write(const FieldSpace::Field<Dim<2>, Dim<1>::Scalar>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName);
@@ -144,6 +154,15 @@ public:
   virtual void write(const FieldSpace::Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<2>, int>& field, const std::string pathName);
 
+  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) const;
+  virtual void read(FieldSpace::Field<Dim<2>, int>& field, const std::string pathName) const;
+#endif
+
+#ifdef SPHERAL3D
   virtual void write(const FieldSpace::Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<3>, Dim<3>::Tensor>& field, const std::string pathName);
@@ -151,26 +170,13 @@ public:
   virtual void write(const FieldSpace::Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName);
   virtual void write(const FieldSpace::Field<Dim<3>, int>& field, const std::string pathName);
 
-  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<1>, int>& field, const std::string pathName) const;
-
-  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) const;
-  virtual void read(FieldSpace::Field<Dim<2>, int>& field, const std::string pathName) const;
-
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) const;
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) const;
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::Tensor>& field, const std::string pathName) const;
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) const;
   virtual void read(FieldSpace::Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) const;
   virtual void read(FieldSpace::Field<Dim<3>, int>& field, const std::string pathName) const;
+#endif
   //******************************************************************************
 
   //------------------------------------------------------------------------------

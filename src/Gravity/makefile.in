@@ -11,7 +11,11 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/NBodyGravityInst.cc.py
+
+# A few of our target files are only valid for certain dimensions.
+ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
 SRCTARGETS = \
 	$(srcdir)/TreeGravityInst.cc
+endif
 
 include $(BUILDTOP)/helpers/makefile_master

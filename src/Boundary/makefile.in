@@ -17,14 +17,22 @@ INSTSRCTARGETS = \
 	$(srcdir)/PeriodicBoundaryInst.cc.py \
 	$(srcdir)/ConstantVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantXVelocityBoundaryInst.cc.py \
-	$(srcdir)/ConstantYVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantRVelocityBoundaryInst.cc.py \
 	$(srcdir)/ConstantBoundaryInst.cc.py
-SRCTARGETS = \
+
+# A few of our target files are only valid for certain dimensions.
+ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
+INSTSRCTARGETS += \
+	$(srcdir)/ConstantYVelocityBoundaryInst.cc.py
+endif
+ifeq ("yes", "@INST3D@")
+INSTSRCTARGETS += \
 	$(srcdir)/ConstantZVelocityBoundaryInst.cc \
-	$(srcdir)/SphericalBoundary.cc \
+	$(srcdir)/SphericalBoundary.cc
+SRCTARGETS += \
 	$(srcdir)/CylindricalBoundary.cc \
 	$(srcdir)/AxialSymmetryBoundary.cc
+endif
 
 #------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

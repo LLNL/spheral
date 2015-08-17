@@ -760,6 +760,7 @@ SiloFileIO::read(vector<Dim<3>::ThirdRankTensor>& value, const string pathName) 
   this->readValueSequence(value, pathName, 27);
 }
 
+#ifdef SPHERAL1D
 //------------------------------------------------------------------------------
 // Write a Field<Dim<1>, Dim<1>::Scalar> to the file.
 //------------------------------------------------------------------------------
@@ -815,126 +816,6 @@ SiloFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const str
 //------------------------------------------------------------------------------
 void
 SiloFileIO::write(const Field<Dim<1>, int>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, Dim<2>::Scalar> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, Dim<2>::Vector> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, Dim<2>::Tensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, Dim<2>::SymTensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, Dim<2>::ThirdRankTensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<2>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<2>, int> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, Dim<3>::Scalar> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, Dim<3>::Vector> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, Dim<3>::Tensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, Dim<3>::SymTensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, Dim<3>::ThirdRankTensor> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
-  this->write(value.name(), pathName + "/name");
-  std::vector<Dim<3>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
-  this->write(values, pathName + "/values");
-}
-
-//------------------------------------------------------------------------------
-// Write a Field<Dim<3>, int> to the file.
-//------------------------------------------------------------------------------
-void
-SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
   this->write(value.name(), pathName + "/name");
   std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
   this->write(values, pathName + "/values");
@@ -1023,6 +904,68 @@ SiloFileIO::read(Field<Dim<1>, int>& value, const string pathName) const {
   CHECK(value.numInternalElements() == values.size());
   copy(values.begin(), values.end(), value.begin());
 }
+#endif
+
+#ifdef SPHERAL2D
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, Dim<2>::Scalar> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, Dim<2>::Vector> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<2>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, Dim<2>::Tensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<2>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, Dim<2>::SymTensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<2>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, Dim<2>::ThirdRankTensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<2>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<2>, int> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<2>, int>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
 
 //------------------------------------------------------------------------------
 // Read a Field<Dim<2>, Dim<2>::Scalar> from the file.
@@ -1106,6 +1049,68 @@ SiloFileIO::read(Field<Dim<2>, int>& value, const string pathName) const {
   value.name(fieldname);
   CHECK(value.numInternalElements() == values.size());
   copy(values.begin(), values.end(), value.begin());
+}
+#endif
+
+#ifdef SPHERAL3D
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, Dim<3>::Scalar> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<double> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, Dim<3>::Vector> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<3>::Vector> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, Dim<3>::Tensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<3>::Tensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, Dim<3>::SymTensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<3>::SymTensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, Dim<3>::ThirdRankTensor> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<Dim<3>::ThirdRankTensor> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
+}
+
+//------------------------------------------------------------------------------
+// Write a Field<Dim<3>, int> to the file.
+//------------------------------------------------------------------------------
+void
+SiloFileIO::write(const Field<Dim<3>, int>& value, const string pathName) {
+  this->write(value.name(), pathName + "/name");
+  std::vector<int> values(value.begin(), value.begin() + value.numInternalElements());
+  this->write(values, pathName + "/values");
 }
 
 //------------------------------------------------------------------------------
@@ -1191,6 +1196,7 @@ SiloFileIO::read(Field<Dim<3>, int>& value, const string pathName) const {
   CHECK(value.numInternalElements() == values.size());
   copy(values.begin(), values.end(), value.begin());
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Set the directory in the current silo file to the path portion of a pathName,

@@ -1,3 +1,4 @@
+text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
@@ -5,8 +6,7 @@
 
 namespace Spheral {
   namespace PhysicsSpace {
-    template class SecondMomentHourglassControl< Dim<1> >;
-    template class SecondMomentHourglassControl< Dim<2> >;
-    // template class SecondMomentHourglassControl< Dim<3> >;
+    template class SecondMomentHourglassControl< Dim< %(ndim)s > >;
   }
 }
+"""
