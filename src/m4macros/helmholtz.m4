@@ -16,7 +16,7 @@ AC_ARG_WITH(helmholtz,
 [  --with-helmholtz ......................... optionally build the interface to HELMHOLTZ (requires the external HELMHOLTZ library)],
 [
    AC_MSG_RESULT(yes)
-   HELMSRCS="HelmholtzEquationOfStateInst.cc"
+   HELMSRCS="HelmholtzEquationOfStateInst.cc.py"
    HELMFSRCS="public_helm.f90 invert_helm.f90"
    PYTHONPKGS+=" Helmholtz" #does something go here!??!
    LDFLAGS+=" $FORTLINK"

@@ -13,7 +13,9 @@ class TaylorSPH:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/TaylorSPHTypes.hh"' % srcdir)
@@ -22,14 +24,11 @@ class TaylorSPH:
         Spheral = mod.add_cpp_namespace("Spheral")
         self.space = Spheral.add_cpp_namespace("TaylorSPHSpace")
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
-        generichydro1d = findObject(PhysicsSpace, "GenericHydro1d")
-        generichydro2d = findObject(PhysicsSpace, "GenericHydro2d")
-        generichydro3d = findObject(PhysicsSpace, "GenericHydro3d")
-
-        # Expose types.
-        self.TaylorSPHHydroBase1d = addObject(self.space, "TaylorSPHHydroBase1d", allow_subclassing=True, parent=generichydro1d)
-        self.TaylorSPHHydroBase2d = addObject(self.space, "TaylorSPHHydroBase2d", allow_subclassing=True, parent=generichydro2d)
-        self.TaylorSPHHydroBase3d = addObject(self.space, "TaylorSPHHydroBase3d", allow_subclassing=True, parent=generichydro3d)
+        for dim in self.dims:
+            exec('''
+generichydro%(dim)id = findObject(PhysicsSpace, "GenericHydro%(dim)id")
+self.TaylorSPHHydroBase%(dim)id = addObject(self.space, "TaylorSPHHydroBase%(dim)id", allow_subclassing=True, parent=generichydro%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -38,13 +37,11 @@ class TaylorSPH:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase1d, 1)
-        self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase2d, 2)
-        self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase3d, 3)
-        
-        self.generateDimBindings(1)
-        self.generateDimBindings(2)
-        self.generateDimBindings(3)
+        for dim in self.dims:
+            exec('''
+self.generateTaylorSPHHydroBaseBindings(self.TaylorSPHHydroBase%(dim)id, %(dim)i)
+''' % {"dim" : dim})
+            self.generateDimBindings(dim)
 
         return
 

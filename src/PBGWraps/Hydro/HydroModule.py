@@ -13,7 +13,9 @@ class Hydro:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/HydroTypes.hh"' % srcdir)
@@ -21,19 +23,20 @@ class Hydro:
         # Namespace.
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PhysicsSpace")
-        physics1d = findObject(space, "Physics1d")
-        physics2d = findObject(space, "Physics2d")
-        physics3d = findObject(space, "Physics3d")
 
         # Expose types.
         self.HydroFieldNames = addObject(Spheral, "HydroFieldNames")
 
-        self.SecondMomentHourglassControl1d = addObject(space, "SecondMomentHourglassControl1d", allow_subclassing=True, parent=physics1d)
-        self.SecondMomentHourglassControl2d = addObject(space, "SecondMomentHourglassControl2d", allow_subclassing=True, parent=physics2d)
+        for dim in self.dims:
+            exec('''
+physics%(dim)id = findObject(space, "Physics%(dim)id")
+self.ThirdMomentHourglassControl%(dim)id = addObject(space, "ThirdMomentHourglassControl%(dim)id", allow_subclassing=True, parent=physics%(dim)id)
+''' % {"dim" : dim})
 
-        self.ThirdMomentHourglassControl1d = addObject(space, "ThirdMomentHourglassControl1d", allow_subclassing=True, parent=physics1d)
-        self.ThirdMomentHourglassControl2d = addObject(space, "ThirdMomentHourglassControl2d", allow_subclassing=True, parent=physics2d)
-        self.ThirdMomentHourglassControl3d = addObject(space, "ThirdMomentHourglassControl3d", allow_subclassing=True, parent=physics3d)
+        if 1 in self.dims:
+            self.SecondMomentHourglassControl1d = addObject(space, "SecondMomentHourglassControl1d", allow_subclassing=True, parent=physics1d)
+        if 2 in self.dims:
+            self.SecondMomentHourglassControl2d = addObject(space, "SecondMomentHourglassControl2d", allow_subclassing=True, parent=physics2d)
 
         # self.VoronoiHourglassControl1d = addObject(space, "VoronoiHourglassControl1d", allow_subclassing=True, parent=physics1d)
         # self.VoronoiHourglassControl2d = addObject(space, "VoronoiHourglassControl2d", allow_subclassing=True, parent=physics2d)
@@ -48,12 +51,15 @@ class Hydro:
 
         self.generateHydroFieldNamesBindings(self.HydroFieldNames)
 
-        self.generateSecondMomentHourglassControlBindings(self.SecondMomentHourglassControl1d, 1)
-        self.generateSecondMomentHourglassControlBindings(self.SecondMomentHourglassControl2d, 2)
+        if 1 in self.dims:
+            self.generateSecondMomentHourglassControlBindings(self.SecondMomentHourglassControl1d, 1)
+        if 2 in self.dims:
+            self.generateSecondMomentHourglassControlBindings(self.SecondMomentHourglassControl2d, 2)
 
-        self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl1d, 1)
-        self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl2d, 2)
-        self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateThirdMomentHourglassControlBindings(self.ThirdMomentHourglassControl%(dim)id, %(dim)i)
+''' % {"dim" : dim})
 
         # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl1d, 1)
         # self.generateVoronoiHourglassControlBindings(self.VoronoiHourglassControl2d, 2)

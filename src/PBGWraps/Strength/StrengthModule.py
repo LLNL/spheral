@@ -12,7 +12,9 @@ class Strength:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/StrengthTypes.hh"' % srcdir)
@@ -25,27 +27,16 @@ class Strength:
         PhysicsSpace = Spheral.add_cpp_namespace("PhysicsSpace")
         NodeSpace = Spheral.add_cpp_namespace("NodeSpace")
 
-        Physics1d = findObject(PhysicsSpace, "Physics1d")
-        Physics2d = findObject(PhysicsSpace, "Physics2d")
-        Physics3d = findObject(PhysicsSpace, "Physics3d")
-
-        FluidNodeList1d = findObject(NodeSpace, "FluidNodeList1d")
-        FluidNodeList2d = findObject(NodeSpace, "FluidNodeList2d")
-        FluidNodeList3d = findObject(NodeSpace, "FluidNodeList3d")
-
         self.SolidFieldNames = addObject(SolidSpheral, "SolidFieldNames")
 
-        self.SolidNodeList1d = addObject(space, "SolidNodeList1d", parent=FluidNodeList1d, allow_subclassing=True)
-        self.SolidNodeList2d = addObject(space, "SolidNodeList2d", parent=FluidNodeList2d, allow_subclassing=True)
-        self.SolidNodeList3d = addObject(space, "SolidNodeList3d", parent=FluidNodeList3d, allow_subclassing=True)
-
-        self.vector_of_SolidNodeList1d = addObject(mod, "vector_of_SolidNodeList1d", allow_subclassing=True)
-        self.vector_of_SolidNodeList2d = addObject(mod, "vector_of_SolidNodeList2d", allow_subclassing=True)
-        self.vector_of_SolidNodeList3d = addObject(mod, "vector_of_SolidNodeList3d", allow_subclassing=True)
-
-        self.vector_of_SolidNodeList1d_iterator = addObject(mod, "vector_of_SolidNodeList1d_iterator", allow_subclassing=True)
-        self.vector_of_SolidNodeList2d_iterator = addObject(mod, "vector_of_SolidNodeList2d_iterator", allow_subclassing=True)
-        self.vector_of_SolidNodeList3d_iterator = addObject(mod, "vector_of_SolidNodeList3d_iterator", allow_subclassing=True)
+        for dim in self.dims:
+            exec('''
+Physics%(dim)id = findObject(PhysicsSpace, "Physics%(dim)id")
+FluidNodeList%(dim)id = findObject(NodeSpace, "FluidNodeList%(dim)id")
+self.SolidNodeList%(dim)id = addObject(space, "SolidNodeList%(dim)id", parent=FluidNodeList%(dim)id, allow_subclassing=True)
+self.vector_of_SolidNodeList%(dim)id = addObject(mod, "vector_of_SolidNodeList%(dim)id", allow_subclassing=True)
+self.vector_of_SolidNodeList%(dim)id_iterator = addObject(mod, "vector_of_SolidNodeList%(dim)id_iterator", allow_subclassing=True)
+''' % {"dim" : dim})
 
         return
 
@@ -56,13 +47,12 @@ class Strength:
 
         self.generateSolidFieldNamesBindings(self.SolidFieldNames)
 
-        self.generateSolidNodeListBindings(self.SolidNodeList1d, 1)
-        self.generateSolidNodeListBindings(self.SolidNodeList2d, 2)
-        self.generateSolidNodeListBindings(self.SolidNodeList3d, 3)
+        for dim in self.dims:
+            exec('''
+self.generateSolidNodeListBindings(self.SolidNodeList%(dim)id, %(dim)i)
+generateStdVectorBindings(self.vector_of_SolidNodeList%(dim)id, "Spheral::SolidMaterial::SolidNodeList%(dim)id*", "vector_of_SolidNodeList%(dim)id")
+''' % {"dim" : dim})
 
-        generateStdVectorBindings(self.vector_of_SolidNodeList1d, "Spheral::SolidMaterial::SolidNodeList1d*", "vector_of_SolidNodeList1d")
-        generateStdVectorBindings(self.vector_of_SolidNodeList2d, "Spheral::SolidMaterial::SolidNodeList2d*", "vector_of_SolidNodeList2d")
-        generateStdVectorBindings(self.vector_of_SolidNodeList3d, "Spheral::SolidMaterial::SolidNodeList3d*", "vector_of_SolidNodeList3d")
         return
 
     #---------------------------------------------------------------------------

@@ -9,22 +9,23 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Kernel
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/BSplineKernel.cc \
-	$(srcdir)/W4SplineKernel.cc \
-	$(srcdir)/GaussianKernel.cc \
-	$(srcdir)/SuperGaussianKernel.cc \
-	$(srcdir)/PiGaussianKernel.cc \
-	$(srcdir)/HatKernel.cc \
-	$(srcdir)/SincKernel.cc \
-	$(srcdir)/NSincPolynomialKernelInst.cc \
-	$(srcdir)/NBSplineKernelInst.cc \
-	$(srcdir)/QuarticSplineKernel.cc \
-	$(srcdir)/QuinticSplineKernel.cc \
-	$(srcdir)/TableKernelInst.cc \
-	$(srcdir)/VolumeIntegrationFunctionsInst.cc \
-	$(srcdir)/WendlandC4Kernel.cc \
-	$(srcdir)/WendlandC6Kernel.cc
+INSTSRCTARGETS = \
+	$(srcdir)/BSplineKernelInst.cc.py \
+	$(srcdir)/W4SplineKernelInst.cc.py \
+	$(srcdir)/GaussianKernelInst.cc.py \
+	$(srcdir)/SuperGaussianKernelInst.cc.py \
+	$(srcdir)/PiGaussianKernelInst.cc.py \
+	$(srcdir)/HatKernelInst.cc.py \
+	$(srcdir)/SincKernelInst.cc.py \
+	$(srcdir)/NSincPolynomialKernelInst.cc.py \
+	$(srcdir)/NBSplineKernelInst.cc.py \
+	$(srcdir)/QuarticSplineKernelInst.cc.py \
+	$(srcdir)/QuinticSplineKernelInst.cc.py \
+	$(srcdir)/TableKernelInst.cc.py \
+	$(srcdir)/VolumeIntegrationFunctionsInst.cc.py \
+	$(srcdir)/WendlandC4KernelInst.cc.py \
+	$(srcdir)/WendlandC6KernelInst.cc.py
+SRCTARGETS =
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

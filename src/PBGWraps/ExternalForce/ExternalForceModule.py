@@ -13,7 +13,9 @@ class ExternalForce:
     #---------------------------------------------------------------------------
     # Add the types to the given module.
     #---------------------------------------------------------------------------
-    def __init__(self, mod, srcdir, topsrcdir):
+    def __init__(self, mod, srcdir, topsrcdir, dims):
+
+        self.dims = dims
 
         # Includes.
         mod.add_include('"%s/ExternalForceTypes.hh"' % srcdir)
@@ -22,22 +24,15 @@ class ExternalForce:
         Spheral = mod.add_cpp_namespace("Spheral")
         space = Spheral.add_cpp_namespace("PhysicsSpace")
 
-        genericbodyforce1d = findObject(space, "GenericBodyForce1d")
-        genericbodyforce2d = findObject(space, "GenericBodyForce2d")
-        genericbodyforce3d = findObject(space, "GenericBodyForce3d")
+        for dim in self.dims:
+            exec('''
+genericbodyforce%(dim)id = findObject(space, "GenericBodyForce%(dim)id")
 
-        # Expose types.
-        self.PointPotential1d = addObject(space, "PointPotential1d", allow_subclassing=True, parent=genericbodyforce1d)
-        self.PointPotential2d = addObject(space, "PointPotential2d", allow_subclassing=True, parent=genericbodyforce2d)
-        self.PointPotential3d = addObject(space, "PointPotential3d", allow_subclassing=True, parent=genericbodyforce3d)
-
-        self.ConstantAcceleration1d = addObject(space, "ConstantAcceleration1d", allow_subclassing=True, parent=genericbodyforce1d)
-        self.ConstantAcceleration2d = addObject(space, "ConstantAcceleration2d", allow_subclassing=True, parent=genericbodyforce2d)
-        self.ConstantAcceleration3d = addObject(space, "ConstantAcceleration3d", allow_subclassing=True, parent=genericbodyforce3d)
-
-        self.LinearAcceleration1d = addObject(space, "LinearAcceleration1d", allow_subclassing=True, parent=genericbodyforce1d)
-        self.LinearAcceleration2d = addObject(space, "LinearAcceleration2d", allow_subclassing=True, parent=genericbodyforce2d)
-        self.LinearAcceleration3d = addObject(space, "LinearAcceleration3d", allow_subclassing=True, parent=genericbodyforce3d)
+# Expose types.
+self.PointPotential%(dim)id = addObject(space, "PointPotential%(dim)id", allow_subclassing=True, parent=genericbodyforce%(dim)id)
+self.ConstantAcceleration%(dim)id = addObject(space, "ConstantAcceleration%(dim)id", allow_subclassing=True, parent=genericbodyforce%(dim)id)
+self.LinearAcceleration%(dim)id = addObject(space, "LinearAcceleration%(dim)id", allow_subclassing=True, parent=genericbodyforce%(dim)id)
+''' % {"dim" : dim})
 
         return
 
@@ -46,17 +41,12 @@ class ExternalForce:
     #---------------------------------------------------------------------------
     def generateBindings(self, mod):
 
-        self.addPointPotentialMethods(self.PointPotential1d, 1)
-        self.addPointPotentialMethods(self.PointPotential2d, 2)
-        self.addPointPotentialMethods(self.PointPotential3d, 3)
-
-        self.addConstantAccelerationMethods(self.ConstantAcceleration1d, 1)
-        self.addConstantAccelerationMethods(self.ConstantAcceleration2d, 2)
-        self.addConstantAccelerationMethods(self.ConstantAcceleration3d, 3)
-
-        self.addLinearAccelerationMethods(self.LinearAcceleration1d, 1)
-        self.addLinearAccelerationMethods(self.LinearAcceleration2d, 2)
-        self.addLinearAccelerationMethods(self.LinearAcceleration3d, 3)
+        for dim in self.dims:
+            exec('''
+self.addPointPotentialMethods(self.PointPotential%(dim)id, %(dim)i)
+self.addConstantAccelerationMethods(self.ConstantAcceleration%(dim)id, %(dim)i)
+self.addLinearAccelerationMethods(self.LinearAcceleration%(dim)id, %(dim)i)
+''' % {"dim" : dim})
 
         return
 

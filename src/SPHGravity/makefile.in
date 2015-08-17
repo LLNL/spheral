@@ -9,8 +9,8 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SPHGravity
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	SPHGravityInst.cc 
+INSTSRCTARGETS = \
+	SPHGravityInst.cc.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

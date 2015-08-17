@@ -9,22 +9,23 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = DataBase
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/StateBaseInst.cc \
-	$(srcdir)/StateInst.cc \
-	$(srcdir)/StateDerivativesInst.cc \
-	$(srcdir)/DataBaseInst.cc \
-	$(srcdir)/IncrementStateInst.cc \
-	$(srcdir)/IncrementBoundedStateInst.cc \
-	$(srcdir)/ReplaceStateInst.cc \
-	$(srcdir)/ReplaceBoundedStateInst.cc \
-	$(srcdir)/CopyStateInst.cc \
-	$(srcdir)/IncrementFieldListInst.cc \
-	$(srcdir)/IncrementBoundedFieldListInst.cc \
-	$(srcdir)/ReplaceFieldListInst.cc \
-	$(srcdir)/ReplaceBoundedFieldListInst.cc \
-	$(srcdir)/CopyFieldListInst.cc \
-	$(srcdir)/CompositeFieldListPolicyInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/StateBaseInst.cc.py \
+	$(srcdir)/StateInst.cc.py \
+	$(srcdir)/StateDerivativesInst.cc.py \
+	$(srcdir)/DataBaseInst.cc.py \
+	$(srcdir)/IncrementStateInst.cc.py \
+	$(srcdir)/IncrementBoundedStateInst.cc.py \
+	$(srcdir)/ReplaceStateInst.cc.py \
+	$(srcdir)/ReplaceBoundedStateInst.cc.py \
+	$(srcdir)/CopyStateInst.cc.py \
+	$(srcdir)/IncrementFieldListInst.cc.py \
+	$(srcdir)/IncrementBoundedFieldListInst.cc.py \
+	$(srcdir)/ReplaceFieldListInst.cc.py \
+	$(srcdir)/ReplaceBoundedFieldListInst.cc.py \
+	$(srcdir)/CopyFieldListInst.cc.py \
+	$(srcdir)/CompositeFieldListPolicyInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

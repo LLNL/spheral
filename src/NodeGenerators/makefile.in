@@ -10,10 +10,12 @@ PKGNAME = NodeGenerators
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 
+INSTSRCTARGETS = \
+	$(srcdir)/relaxNodeDistributionInst.cc.py
+
 SRCTARGETS = \
 	$(srcdir)/generateCylDistributionFromRZ.cc \
 	$(srcdir)/fillFacetedVolume.cc \
-	$(srcdir)/relaxNodeDistributionInst.cc \
 	$(srcdir)/readSiloPolyMesh.cc
 
 PYTHONTARGETS = \

@@ -9,14 +9,17 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Field
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/NodeIteratorBaseInst.cc \
-	$(srcdir)/AllNodeIteratorInst.cc \
-	$(srcdir)/InternalNodeIteratorInst.cc \
-	$(srcdir)/GhostNodeIteratorInst.cc \
-	$(srcdir)/MasterNodeIteratorInst.cc \
-	$(srcdir)/CoarseNodeIteratorInst.cc \
-	$(srcdir)/RefineNodeIteratorInst.cc
+
+INSTSRCTARGETS = \
+	$(srcdir)/NodeIteratorBaseInst.cc.py \
+	$(srcdir)/AllNodeIteratorInst.cc.py \
+	$(srcdir)/InternalNodeIteratorInst.cc.py \
+	$(srcdir)/GhostNodeIteratorInst.cc.py \
+	$(srcdir)/MasterNodeIteratorInst.cc.py \
+	$(srcdir)/CoarseNodeIteratorInst.cc.py \
+	$(srcdir)/RefineNodeIteratorInst.cc.py
+
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

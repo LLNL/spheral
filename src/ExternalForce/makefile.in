@@ -9,11 +9,12 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = ExternalForce
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/PointPotentialInst.cc \
-	$(srcdir)/NFWPotentialInst.cc \
-	$(srcdir)/ConstantAccelerationInst.cc \
-	$(srcdir)/LinearAccelerationInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/PointPotentialInst.cc.py \
+	$(srcdir)/NFWPotentialInst.cc.py \
+	$(srcdir)/ConstantAccelerationInst.cc.py \
+	$(srcdir)/LinearAccelerationInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -9,10 +9,11 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Physics
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
-SRCTARGETS = \
-	$(srcdir)/PhysicsInst.cc \
-	$(srcdir)/GenericHydroInst.cc \
-	$(srcdir)/GenericBodyForceInst.cc
+INSTSRCTARGETS = \
+	$(srcdir)/PhysicsInst.cc.py \
+	$(srcdir)/GenericHydroInst.cc.py \
+	$(srcdir)/GenericBodyForceInst.cc.py
+SRCTARGETS = 
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
