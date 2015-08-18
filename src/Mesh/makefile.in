@@ -11,7 +11,8 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/MeshConstructionUtilities.cc \
-	$(srcdir)/computeElementOwner.cc
+	$(srcdir)/computeElementOwner.cc \
+	$(srcdir)/findMatchingVertex.cc
 
 INSTSRCTARGETS = \
 	$(srcdir)/computeGeneratorsInst.cc.py \
