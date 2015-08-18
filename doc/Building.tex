@@ -314,6 +314,14 @@ This will resulting \Spheral\ headers will be installed under
 and installs both static and shared versions of the libraries.
 
 %-------------------------------------------------------------------------------
+\section{Choosing the dimensionality of the build}
+
+By default \Spheral\ builds instantiations of all the dimensionalities it knows
+about (currently 1D, 2D, and 3D).  It is possible to selectively turn off any of
+those instantiations at configure time with the configure options
+\verb.--without-1d., \verb.--without-2d., and/or \verb.--without-3d..
+
+%-------------------------------------------------------------------------------
 \section{Running \Spheral}
 \Spheral\ is just a set of extensions to the Python language, so running
 \Spheral\ is simply a matter of producing a Python script appropriate for your
