@@ -45,7 +45,8 @@ def dumpPhysicsState(stateThingy,
                      boundaries = None):
 
     # What did we get passed?
-    if max([isinstance(stateThingy, x) for x in [Integrator1d, Integrator2d, Integrator3d]]):
+    dim = type(stateThingy).__name__[-2:]
+    if isinstance(stateThingy, eval("Integrator%s" % dim)):
         integrator = stateThingy
         dataBase = integrator.dataBase()
         state = eval("State%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
@@ -54,7 +55,7 @@ def dumpPhysicsState(stateThingy,
             derivs = eval("StateDerivatives%id(integrator.dataBase(), integrator.physicsPackages())" % integrator.dataBase().nDim)
         currentTime = integrator.currentTime
         currentCycle = integrator.currentCycle
-    elif max([isinstance(stateThingy, x) for x in [State1d, State2d, State3d]]):
+    elif isinstance(stateThingy, eval("State%s" % dim)):
         integrator = None
         dataBase = None
         state = stateThingy
