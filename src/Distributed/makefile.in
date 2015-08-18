@@ -22,11 +22,23 @@ INSTSRCTARGETS = \
 	VoronoiRedistributeNodesInst.cc.py
 SRCTARGETS = \
 	Communicator.cc \
-	SortAndDivideRedistributeNodes1d.cc \
+	waitAllWithDeadlockDetection.cc
+
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST1D@")
+SRCTARGETS += \
+	SortAndDivideRedistributeNodes1d.cc
+endif
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
 	SortAndDivideRedistributeNodes2d.cc \
-	SortAndDivideRedistributeNodes3d.cc \
-	waitAllWithDeadlockDetection.cc \
 	$(PARMETISTARGET)
+endif
+ifeq ("yes", "@INST3D@")
+SRCTARGETS += \
+	SortAndDivideRedistributeNodes3d.cc \
+	$(PARMETISTARGET)
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

@@ -7,6 +7,9 @@ import os
 
 SpheralGnuPlotCache = []
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # Define a dummy Gnuplot class, so that non-master processes can silently
 # and harmlessly accept Gnuplot commands.
@@ -323,9 +326,8 @@ def plotState(thingus,
               tenyFunction = "%s.xx ** -1",
               lineTitle = "Simulation"):
 
-    if (isinstance(thingus, State1d) or
-        isinstance(thingus, State2d) or
-        isinstance(thingus, State3d)):
+    dim = type(thingus).__name__[-2:]
+    if isinstance(thingus, eval("State%s" % dim)):
         rho = thingus.scalarFields(HydroFieldNames.massDensity)
         vel = thingus.vectorFields(HydroFieldNames.velocity)
         eps = thingus.scalarFields(HydroFieldNames.specificThermalEnergy)
@@ -333,9 +335,7 @@ def plotState(thingus,
         H = thingus.symTensorFields(HydroFieldNames.H)
 
     else:
-        assert (isinstance(thingus, DataBase1d) or
-                isinstance(thingus, DataBase2d) or
-                isinstance(thingus, DataBase3d))
+        assert isinstance(thingus, eval("DataBase%s" % dim))
         rho = thingus.fluidMassDensity
         vel = thingus.fluidVelocity
         eps = thingus.fluidSpecificThermalEnergy

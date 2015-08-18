@@ -4,26 +4,31 @@
 import sys
 import gc
 import mpi
+
 from SpheralModules.Spheral import FileIOSpace
-from SpheralModules.Spheral import State1d, State2d, State3d
-from SpheralModules.Spheral import StateDerivatives1d, StateDerivatives2d, StateDerivatives3d
-from SpheralModules.Spheral import iterateIdealH1d, iterateIdealH2d, iterateIdealH3d
-from SpheralModules.Spheral.NodeSpace import ASPHSmoothingScale1d, ASPHSmoothingScale2d, ASPHSmoothingScale3d
-from SpheralModules.Spheral.NodeSpace import SPHSmoothingScale1d, SPHSmoothingScale2d, SPHSmoothingScale3d
-from SpheralModules.Spheral.KernelSpace import TableKernel1d, TableKernel2d, TableKernel3d
-from SpheralModules.Spheral.KernelSpace import BSplineKernel1d, BSplineKernel2d, BSplineKernel3d
 from SpheralModules.Spheral.DataOutput import RestartableObject, RestartRegistrar
 from SpheralModules.Spheral import BoundarySpace
 from SpheralModules.Spheral.FieldSpace import *
 from SpheralModules.Spheral.FileIOSpace import *
-from SpheralModules import vector_of_Physics1d, vector_of_Physics2d, vector_of_Physics3d
 from SpheralTimer import SpheralTimer
 from SpheralConservation import SpheralConservation
-#from ExtendFlatFileIO import FlatFileIO
 from GzipFileIO import GzipFileIO
-
 from SpheralTestUtilities import globalFrame
 from NodeGeneratorBase import ConstantRho
+
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+for dim in dims:
+    exec("""
+from SpheralModules.Spheral import State%(dim)sd
+from SpheralModules.Spheral import StateDerivatives%(dim)sd
+from SpheralModules.Spheral import iterateIdealH%(dim)sd
+from SpheralModules.Spheral.NodeSpace import ASPHSmoothingScale%(dim)sd
+from SpheralModules.Spheral.NodeSpace import SPHSmoothingScale%(dim)sd
+from SpheralModules.Spheral.KernelSpace import TableKernel%(dim)sd
+from SpheralModules.Spheral.KernelSpace import BSplineKernel%(dim)sd
+from SpheralModules import vector_of_Physics%(dim)sd
+""" % {"dim" : dim})
 
 class SpheralController(RestartableObject):
 
@@ -544,14 +549,15 @@ class SpheralController(RestartableObject):
 
         # This is the list of boundary types that need to precede the distributed
         # boundary, since their ghost nodes need to be communicated.
-        precedeDistributed = [BoundarySpace.PeriodicBoundary1d,
-                              BoundarySpace.PeriodicBoundary2d,
-                              BoundarySpace.PeriodicBoundary3d,
-                              BoundarySpace.ConstantBoundary1d,
-                              BoundarySpace.ConstantBoundary2d,
-                              BoundarySpace.ConstantBoundary3d,
-                              BoundarySpace.CylindricalBoundary,
-                              BoundarySpace.SphericalBoundary]
+        precedeDistributed = []
+        if 3 in dims:
+            precedeDistributed += [BoundarySpace.CylindricalBoundary,
+                                   BoundarySpace.SphericalBoundary]
+        for dim in dims:
+            exec("""
+precedeDistributed += [BoundarySpace.PeriodicBoundary%(dim)sd,
+                       BoundarySpace.ConstantBoundary%(dim)sd]
+""" % {"dim" : dim})
 
         # Check if this is a parallel process or not.
         if mpi.procs == 1:
@@ -561,9 +567,7 @@ class SpheralController(RestartableObject):
         # boundary condition and insert it into the list of boundaries for each physics
         # package.
         else:
-            from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary1d, \
-                                                             NestedGridDistributedBoundary2d, \
-                                                             NestedGridDistributedBoundary3d
+            exec("from SpheralModules.Spheral.BoundarySpace import NestedGridDistributedBoundary%s" % self.dim)
             self.domainbc = eval("NestedGridDistributedBoundary%s.instance()" % self.dim)
             # from SpheralModules.Spheral.BoundarySpace import BoundingVolumeDistributedBoundary1d, \
             #                                                  BoundingVolumeDistributedBoundary2d, \
