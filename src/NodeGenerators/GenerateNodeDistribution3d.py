@@ -1351,6 +1351,180 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
 # on a variable resolution Icosahedron.
 # It is recommended for now that you use 0-pi and 0-2pi for theta,phi.
 #-------------------------------------------------------------------------------
+class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, n, densityProfileMethod,
+                 rmin = 0.0,
+                 rmax = 1.0,
+                 zmax = 0.1,
+                 nNodePerh = 2.01,
+                 offset=None):
+        
+        assert n > 0
+        assert rmin < rmax
+        assert zmax >= 0
+        assert nNodePerh > 0.0
+        assert offset is None or len(offset)==3
+
+        self.n = n
+        self.rmin = rmin
+        self.rmax = rmax
+        self.zmax = zmax
+        self.nNodePerh = nNodePerh
+        self.densityProfileMethod = densityProfileMethod
+    
+        # Determine how much total mass there is in the system.
+        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+                                                 rmin, rmax,
+                                                 zmax)
+        print "Total mass of %g in the range r = (%g, %g), z = (0, %g)" % \
+            (self.totalMass, rmin, rmax, zmax)
+        
+        self.laminarMass = self.integrateLaminarMass(self.densityProfileMethod,rmin,rmax)
+
+        self.m0 = self.laminarMass/(self.n*self.n*pi)
+            
+        # Return lists for positions, masses, and H's.
+        self.x = []
+        self.y = []
+        self.z = []
+        self.m = []
+        self.H = []
+
+        zi = 0
+        while zi <= zmax:
+            ri = rmax
+            while ri > rmin:
+                rhoi        = densityProfileMethod(ri,zi)
+                dr          = sqrt(self.m0/rhoi)
+                arclength   = 2.0*pi*ri
+                arcmass     = arclength*dr*rhoi
+                nTheta      = max(1,int(arcmass/self.m0))
+                dTheta      = 2.0*pi/nTheta
+                mi          = arcmass/nTheta
+                hi          = nNodePerh*0.5*(dr + ri*dTheta)
+                Hi          = SymTensor3d(1.0/hi,0.0,0.0,
+                                          0.0,1.0/hi,0.0,
+                                          0.0,0.0,1.0/hi)
+                                          
+                # Now assign the nodes for this radius.
+                for i in xrange(nTheta):
+                    thetai = (i + 0.5)*dTheta
+                    self.x.append(ri*cos(thetai))
+                    self.y.append(ri*sin(thetai))
+                    self.z.append(zi)
+                    self.m.append(mi)
+                    self.H.append(Hi)
+                    #now same for negative z
+                    if (zi>0):
+                        thetai = (i + 0.5)*dTheta
+                        self.x.append(ri*cos(thetai))
+                        self.y.append(ri*sin(thetai))
+                        self.z.append(-zi)
+                        self.m.append(mi)
+                        self.H.append(Hi)
+                #move inward
+                ri          = max(0.0, ri - dr)
+            rho0 = densityProfileMethod(rmin, zi)
+            dz = sqrt(self.m0/rho0)
+            zi += dz
+            
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.y, self.z, self.m, self.H)
+
+        return
+
+
+
+    #---------------------------------------------------------------------------
+    # Numerically integrate the given density profile to determine the total
+    # enclosed mass.
+    #---------------------------------------------------------------------------
+    def integrateTotalMass(self, densityProfileMethod,
+                           rmin, rmax,
+                           zmax,
+                           nrbins = 10000,
+                           nzbins = 1000):
+        assert nrbins > 0
+        assert nrbins % 2 == 0
+        assert nzbins > 0
+        assert nzbins % 2 == 0
+        
+        result = 0
+        dr = (rmax-rmin)/nrbins
+        dz = zmax/nzbins
+        I = []
+        
+        for i in xrange(1,nrbins):
+            r1 = rmin + (i-1)*dr
+            r2 = rmin + i*dr
+            ij = 0
+            for j in xrange(1,nzbins):
+                z1 = (j-1)*dz
+                z2 = j*dz
+                ij += 0.5*r1*dz*(densityProfileMethod(r1,z1)+densityProfileMethod(r1,z2))
+            I.append(ij)
+            if (i>1):
+                result += 0.5*dr*(I[i-1]+I[i-2])
+    
+        return result
+
+    def integrateLaminarMass(self, densityProfileMethod,rmin,rmax,
+                             nrbins = 10000):
+        
+        assert nrbins > 0
+        assert nrbins % 2 == 0
+        
+        h = (rmax - rmin)/nrbins
+        result = (rmin*densityProfileMethod(rmin,0) +
+                  rmax*densityProfileMethod(rmax,0))
+        for i in xrange(1, nrbins):
+            ri = rmin + i*h
+            if i % 2 == 0:
+                result += 4.0*ri*densityProfileMethod(ri,0)
+            else:
+                result += 2.0*ri*densityProfileMethod(ri,0)
+
+        result *= 2*pi*h/3.0
+        return result
+
+    #---------------------------------------------------------------------------
+    # Get the position for the given node index.
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y) == len(self.z)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+
+    #---------------------------------------------------------------------------
+    # Get the mass for the given node index.
+    #---------------------------------------------------------------------------
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    #---------------------------------------------------------------------------
+    # Get the mass density for the given node index.
+    #---------------------------------------------------------------------------
+    def localMassDensity(self, i):
+        return self.densityProfileMethod(sqrt(self.localPosition(i)[0]**2+self.localPosition(i)[1]**2),self.localPosition(i)[2])
+
+    #---------------------------------------------------------------------------
+    # Get the H tensor for the given node index.
+    #---------------------------------------------------------------------------
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
+
+
+#-------------------------------------------------------------------------------
+# Specialized version that generates a variable radial stepping to try
+# and match a given density profile with (nearly) constant mass nodes
+# on a variable resolution Icosahedron.
+# It is recommended for now that you use 0-pi and 0-2pi for theta,phi.
+#-------------------------------------------------------------------------------
 class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
     
     #---------------------------------------------------------------------------
@@ -1444,7 +1618,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                       [12290,6,0],
                       [16386,6,1],
                       [24578,6,2],
-                      [40962,6,3]]
+                      [40962,6,3]
+                      [49154,7,0],
+                      [65538,7,1],
+                      [98306,7,2],
+                      [163842,7,3],
+                      [196610,8,0],
+                      [262146,8,1],
+                      [393218,8,2]]
         
         while ri > rmin:
             # create the database of faces and positions
@@ -1463,9 +1644,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             nr      = 0
             ver     = 0
             for i in xrange(28):
+                nr  = resolution[i][1]
+                ver = resolution[i][2]
                 if (resolution[i][0] > nshell):
-                    nr  = resolution[i][1]
-                    ver = resolution[i][2]
                     break
         
             hi = nNodePerh*(dr)
