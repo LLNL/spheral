@@ -382,25 +382,6 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
                               constrefparam(vector, "s1")],
                              docstring = "Integrate through a lattice sampled field along a line segment.")
 
-        Spheral.add_function("testBoxIntersection%id" % ndim,
-                             "bool",
-                             [constrefparam(vector, "xmin1"), constrefparam(vector, "xmax1"),
-                              constrefparam(vector, "xmin2"), constrefparam(vector, "xmax2")],
-                             docstring = "Test if the two boxes intersect.")
-                              
-        Spheral.add_function("testPointInBox%id" % ndim,
-                             "bool",
-                             [constrefparam(vector, "point"),
-                              constrefparam(vector, "xmin"), constrefparam(vector, "xmax")],
-                             docstring = "Test if the point is in the box.")
-                              
-        Spheral.add_function("planarReflectingOperator",
-                             tensor,
-                             [constrefparam(plane, "plane")],
-                             template_parameters = [plane],
-                             custom_name = "planarReflectingOperator%id" % ndim,
-                             docstring = "Generate the planar reflection transformation for th given plane.")
-
         return
 
     #---------------------------------------------------------------------------
@@ -430,6 +411,25 @@ Spheral.add_function("segmentIntersectEdges", "bool", [constrefparam("%(vector)s
         # Expose methods.
         Spheral.add_function("rotationMatrix%id" % ndim, tensor, [constrefparam(vector, "runit")],
                              docstring="Rotational transformation to align with the given unit vector.")
+
+        Spheral.add_function("testBoxIntersection%id" % ndim,
+                             "bool",
+                             [constrefparam(vector, "xmin1"), constrefparam(vector, "xmax1"),
+                              constrefparam(vector, "xmin2"), constrefparam(vector, "xmax2")],
+                             docstring = "Test if the two boxes intersect.")
+                              
+        Spheral.add_function("testPointInBox%id" % ndim,
+                             "bool",
+                             [constrefparam(vector, "point"),
+                              constrefparam(vector, "xmin"), constrefparam(vector, "xmax")],
+                             docstring = "Test if the point is in the box.")
+                              
+        Spheral.add_function("planarReflectingOperator",
+                             tensor,
+                             [constrefparam(plane, "plane")],
+                             template_parameters = [plane],
+                             custom_name = "planarReflectingOperator%id" % ndim,
+                             docstring = "Generate the planar reflection transformation for th given plane.")
 
         return
 
