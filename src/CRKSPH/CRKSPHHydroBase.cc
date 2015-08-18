@@ -864,8 +864,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= weightj*Wj*vij;
-		XSPHDeltaVj += weighti*Wi*vij;
+                const Vector logvij = log(vij.magnitude2()) * vij.unitVector();
+                XSPHDeltaVi -= weightj*Wj* logvij;
+		XSPHDeltaVj += weighti*Wi* logvij;
               }
 
             }
@@ -889,7 +890,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        DxDti = vi + XSPHDeltaVi;
+        const Vector expvij = exp(0.5*XSPHDeltaVi.magnitude()) * XSPHDeltaVi.unitVector();
+        DxDti = vi + expvij;
       } else {
         DxDti = vi;
       }
