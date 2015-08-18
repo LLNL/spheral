@@ -2,6 +2,9 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic CRKSPHHydro pattern.
 #-------------------------------------------------------------------------------
@@ -40,27 +43,12 @@ class %(classname)s%(dim)s(CRKSPHHydroBase%(dim)s):
 """
 
 #-------------------------------------------------------------------------------
-# CRKSPH
+# Make 'em.
 #-------------------------------------------------------------------------------
-exec(CRKSPHHydroFactoryString % {"dim"                  : "1d",
-                              "classname"            : "CRKSPHHydro",
-                              "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(CRKSPHHydroFactoryString % {"dim"                  : "2d",
-                              "classname"            : "CRKSPHHydro",
-                              "smoothingScaleMethod" : "SPHSmoothingScale"})
-exec(CRKSPHHydroFactoryString % {"dim"                  : "3d",
-                              "classname"            : "CRKSPHHydro",
-                              "smoothingScaleMethod" : "SPHSmoothingScale"})
-
-#-------------------------------------------------------------------------------
-# ACRKSPH
-#-------------------------------------------------------------------------------
-exec(CRKSPHHydroFactoryString % {"dim"                  : "1d",
-                              "classname"            : "ACRKSPHHydro",
-                              "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(CRKSPHHydroFactoryString % {"dim"                  : "2d",
-                              "classname"            : "ACRKSPHHydro",
-                              "smoothingScaleMethod" : "ASPHSmoothingScale"})
-exec(CRKSPHHydroFactoryString % {"dim"                  : "3d",
-                              "classname"            : "ACRKSPHHydro",
-                              "smoothingScaleMethod" : "ASPHSmoothingScale"})
+for dim in dims:
+    exec(CRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                     "classname"            : "CRKSPHHydro",
+                                     "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(CRKSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                     "classname"            : "ACRKSPHHydro",
+                                     "smoothingScaleMethod" : "ASPHSmoothingScale"})
