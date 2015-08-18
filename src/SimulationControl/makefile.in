@@ -9,6 +9,7 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = SimulationControl
 PKGDIR = $(PKGNAME)/
 PYTHONTARGETS = \
+	spheralDimensions.py \
 	$(srcdir)/Spheral.py \
 	$(srcdir)/Spheral1d.py \
 	$(srcdir)/Spheral2d.py \

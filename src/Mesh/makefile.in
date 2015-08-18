@@ -11,27 +11,49 @@ PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/MeshConstructionUtilities.cc \
-	$(srcdir)/findMatchingVertexInst.cc \
-	$(srcdir)/LineMesh.cc \
-	$(srcdir)/LineEdge.cc \
-	$(srcdir)/LineFace.cc \
-	$(srcdir)/LineZone.cc \
-	$(srcdir)/PolygonalMesh.cc \
-	$(srcdir)/PolygonalEdge.cc \
-	$(srcdir)/PolygonalFace.cc \
-	$(srcdir)/PolygonalZone.cc \
-	$(srcdir)/PolyhedralMesh.cc \
-	$(srcdir)/PolyhedralEdge.cc \
-	$(srcdir)/PolyhedralFace.cc \
-	$(srcdir)/PolyhedralZone.cc \
-	$(srcdir)/computeGeneratorsInst.cc \
-	$(srcdir)/generateMeshInst.cc \
-	$(srcdir)/MeshPolicyInst.cc \
-	$(srcdir)/computeElementOwner.cc
+	$(srcdir)/computeElementOwner.cc \
+	$(srcdir)/findMatchingVertex.cc
+
+INSTSRCTARGETS = \
+	$(srcdir)/computeGeneratorsInst.cc.py \
+	$(srcdir)/generateMeshInst.cc.py \
+	$(srcdir)/MeshPolicyInst.cc.py
 
 PYTHONTARGETS = \
 	$(srcdir)/generateMesh.py \
 	$(srcdir)/siloMeshDump.py
+
+# A few of our target files are only valid for certain dimensions.
+ifeq ("yes", "@INST1D@")
+SRCTARGETS += \
+	$(srcdir)/LineMesh.cc \
+	$(srcdir)/LineEdge.cc \
+	$(srcdir)/LineFace.cc \
+	$(srcdir)/LineZone.cc
+endif
+
+ifeq ("yes", "@INST2D@")
+SRCTARGETS += \
+	$(srcdir)/PolygonalMesh.cc \
+	$(srcdir)/PolygonalEdge.cc \
+	$(srcdir)/PolygonalFace.cc \
+	$(srcdir)/PolygonalZone.cc
+endif
+
+ifeq ("yes", "@INST3D@")
+SRCTARGETS += \
+	$(srcdir)/PolyhedralMesh.cc \
+	$(srcdir)/PolyhedralEdge.cc \
+	$(srcdir)/PolyhedralFace.cc \
+	$(srcdir)/PolyhedralZone.cc
+endif
+
+ifneq (,$(filter "yes", "@INST2D@" "@INST3D@"))
+INSTSRCTARGETS += \
+	$(srcdir)/findMatchingVertexInst.cc.py
+endif
+
+
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

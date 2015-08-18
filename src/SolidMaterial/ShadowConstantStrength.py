@@ -4,12 +4,16 @@
 # Provides convenient constructors for the ConstantStrength model using the canned
 # values in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral.SolidMaterial import \
-    ConstantStrength1d as RealConstantStrength1d, \
-    ConstantStrength2d as RealConstantStrength2d, \
-    ConstantStrength3d as RealConstantStrength3d
 from SpheralModules.Spheral.Material import PhysicalConstants
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
+
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
+for dim in dims:
+    exec("""
+from SpheralModules.Spheral.SolidMaterial import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
+""" % {"dim" : dim})
 
 #-------------------------------------------------------------------------------
 # Define a string providing the help for building a ConstantStrength.
@@ -112,27 +116,12 @@ def _ConstantStrengthFactory(*args,
 # Create the dimension specific ConstantStrength factories.  These are the ones
 # you actually use.
 #-------------------------------------------------------------------------------
-# 1D
-def ConstantStrength1d(*args, **kwargs):
+for dim in dims:
+    exec("""
+def ConstantStrength%(dim)sd(*args, **kwargs):
     expectedUsageString
-    kwargs["CSConstructor"] = RealConstantStrength1d
+    kwargs["CSConstructor"] = RealConstantStrength%(dim)sd
     return _ConstantStrengthFactory(*args, **kwargs)
 
-# 2D
-def ConstantStrength2d(*args, **kwargs):
-    expectedUsageString
-    kwargs["CSConstructor"] = RealConstantStrength2d
-    return _ConstantStrengthFactory(*args, **kwargs)
-
-# 3D
-def ConstantStrength3d(*args, **kwargs):
-    expectedUsageString
-    kwargs["CSConstructor"] = RealConstantStrength3d
-    return _ConstantStrengthFactory(*args, **kwargs)
-
-#-------------------------------------------------------------------------------
-# Override the doc strings to provide useful help.
-#-------------------------------------------------------------------------------
-ConstantStrength1d.__doc__ = expectedUsageString
-ConstantStrength2d.__doc__ = expectedUsageString
-ConstantStrength3d.__doc__ = expectedUsageString
+ConstantStrength%(dim)sd.__doc__ = expectedUsageString
+""" % {"dim" : dim})

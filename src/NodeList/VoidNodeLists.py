@@ -2,6 +2,9 @@ from SpheralModules.Spheral import Vector1d, Vector2d, Vector3d
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.NeighborSpace import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # The generic VoidNodeList pattern.
 #-------------------------------------------------------------------------------
@@ -34,6 +37,5 @@ def makeVoidNodeList%(dim)s(name,
 #-------------------------------------------------------------------------------
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
-exec(VoidNodeListFactoryString % {"dim"    : "1d"})
-exec(VoidNodeListFactoryString % {"dim"    : "2d"})
-exec(VoidNodeListFactoryString % {"dim"    : "3d"})
+for dim in dims:
+    exec(VoidNodeListFactoryString % {"dim"    : "%id" % dim})

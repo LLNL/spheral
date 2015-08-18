@@ -47,11 +47,8 @@ def siloPointmeshDump(baseName,
     mpi.barrier()
 
     # We can only pretend this is an RZ mesh if it's 2D.
-    if isinstance(nodeLists[0], NodeList2d):
-        ndim = 2
-    elif isinstance(nodeLists[0], NodeList3d):
-        ndim = 3
-    else:
+    ndim = dimension(nodeLists[0])
+    if not ndim in (2, 3):
         raise ValueError, "You need to provide 2D or 3D information for siloPointMeshDump."
     
     # Characterize the fields we're going to write.
@@ -542,10 +539,6 @@ def writeDefvars(db, fieldwad):
 #-------------------------------------------------------------------------------
 # Extract the dimensionality of a field.
 #-------------------------------------------------------------------------------
-def dimension(field):
-    if "Field2d" in str(field):
-        return 2
-    elif "Field3d" in str(field):
-        return 3
-    else:
-        assert False
+def dimension(x):
+    dim = int(type(x).__name__[-2:-1])
+    return dim

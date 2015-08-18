@@ -16,7 +16,7 @@ class FileIO:
 
         self.FileIOTypes = []
         self.FileIOTemplateTypes = []
-        for ndim in self.dims:
+        for ndim in (1, 2, 3):
             exec("""
 self.FileIOTypes += [
         "Vector%(dim)s", "Tensor%(dim)s", "SymTensor%(dim)s", "ThirdRankTensor%(dim)s",
@@ -24,6 +24,11 @@ self.FileIOTypes += [
         "vector_of_Tensor%(dim)s",
         "vector_of_SymTensor%(dim)s",
         "vector_of_ThirdRankTensor%(dim)s",
+        ]""" % {"dim" : "%id" % ndim,
+                "Dim" : "Spheral::Dim<%i>" % ndim})
+        for ndim in self.dims:
+            exec("""
+self.FileIOTypes += [
         "Spheral::FieldSpace::ScalarField%(dim)s",
         "Spheral::FieldSpace::VectorField%(dim)s",
         "Spheral::FieldSpace::TensorField%(dim)s",

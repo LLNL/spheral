@@ -17,14 +17,6 @@ using FieldSpace::FieldList;
 using NodeSpace::NodeList;
 
 //------------------------------------------------------------------------------
-// 1D
-//------------------------------------------------------------------------------
-FieldList<Dim<1>, Dim<1>::Vector>
-computeVoronoiCentroids(const FieldList<Dim<1>, Dim<1>::Vector>& position) {
-  VERIFY2(false, "Nope!");
-}
-
-//------------------------------------------------------------------------------
 // 2D
 //------------------------------------------------------------------------------
 FieldList<Dim<2>, Dim<2>::Vector>
@@ -115,14 +107,6 @@ computeVoronoiCentroids(const FieldList<Dim<2>, Dim<2>::Vector>& position) {
 
   // That's it.
   return result;
-}
-
-//------------------------------------------------------------------------------
-// 3D
-//------------------------------------------------------------------------------
-FieldList<Dim<3>, Dim<3>::Vector>
-computeVoronoiCentroids(const FieldList<Dim<3>, Dim<3>::Vector>& position) {
-  VERIFY2(false, "computeVoronoiCentroids 3D Unimplemented");
 }
 
 }

@@ -17,6 +17,7 @@ SRCTARGETS = \
 	$(srcdir)/PeanoHilbertTransform.cc \
 	$(srcdir)/RegisterMPIDataTypes.cc \
 	$(srcdir)/RedistributionRegistrar.cc \
+	$(srcdir)/vectorBoundingBoxInst.cc \
 	$(srcdir)/lineSegmentIntersections.cc \
 	$(srcdir)/segmentIntersectEdges.cc \
 	$(srcdir)/pointOnPolygon.cc \
