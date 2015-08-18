@@ -219,6 +219,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
 
         assert self.nf == len(self.fieldNames[0])
 
+        n = 0
+
         if mpi.rank == 0:
             n = len(vals)
             for i in xrange(n):
@@ -230,6 +232,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
         
         self.H = mpi.bcast(self.H, root=0)
+        
+        n = mpi.bcast(n,root=0)
 
         if rejecter:
             self.newH = []
