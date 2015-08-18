@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "findMatchingVertex.cc"
+#include "findMatchingVertexTempl.cc"
 
 namespace Spheral {
   namespace MeshSpace {
