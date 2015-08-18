@@ -40,7 +40,7 @@ centerOfMass(const Dim<1>::FacetedVolume& polyvol,
 //------------------------------------------------------------------------------
 // 2D
 //------------------------------------------------------------------------------
-#ifdef SPHERAL1D
+#ifdef SPHERAL2D
 Dim<2>::Vector
 centerOfMass(const Dim<2>::FacetedVolume& polyvol,
              const Dim<2>::Vector& gradRhoi) {
@@ -67,7 +67,7 @@ centerOfMass(const Dim<2>::FacetedVolume& polyvol,
 //------------------------------------------------------------------------------
 // 3D
 //------------------------------------------------------------------------------
-#ifdef SPHERAL1D
+#ifdef SPHERAL3D
 Dim<3>::Vector
 centerOfMass(const Dim<3>::FacetedVolume& polyvol,
              const Dim<3>::Vector& gradRhoi) {
