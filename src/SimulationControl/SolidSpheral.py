@@ -10,6 +10,9 @@ from SolidNodeLists import *
 from GradyKippTensorDamage import *
 from SolidSPHHydros import *
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.
 # ------------------------------------------------------------------------------
@@ -21,4 +24,6 @@ from SolidMaterialEquationsOfState import *
 # ------------------------------------------------------------------------------
 for shadowedthing in ("TillotsonEquationOfState",
                       "ConstantStrength"):
-    exec("from Shadow%(thing)s import %(thing)s1d, %(thing)s2d, %(thing)s3d" % {"thing" : shadowedthing})
+    for dim in dims:
+        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
+                                                                "dim"   : dim})

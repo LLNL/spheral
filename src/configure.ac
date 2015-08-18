@@ -175,4 +175,5 @@ AC_OUTPUT(helpers/makefile_master \
           ArtificialConduction/makefile \
           PythonMPIInterfaces/makefile \
           PBGWraps/makefile \
-          PBGWraps/SpheralModulesBindings.py)
+          PBGWraps/SpheralModulesBindings.py \
+          SimulationControl/spheralDimensions.py)
