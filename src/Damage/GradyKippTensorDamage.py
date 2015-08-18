@@ -2,6 +2,9 @@ import copy
 from SolidSpheral import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
+
 #-------------------------------------------------------------------------------
 # Define help strings for our constructors.
 #-------------------------------------------------------------------------------
@@ -335,22 +338,11 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 """
 
 #-------------------------------------------------------------------------------
-# GradyKippTensorDamageBenzAsphaug instantiations.
+# Make 'em
 #-------------------------------------------------------------------------------
-exec(GradyKippTensorDamageBAGenString % {"dim": "1d", "help": expectedUsageStringBA})
-exec(GradyKippTensorDamageBAGenString % {"dim": "2d", "help": expectedUsageStringBA})
-exec(GradyKippTensorDamageBAGenString % {"dim": "3d", "help": expectedUsageStringBA})
+for dim in dims:
+    exec(GradyKippTensorDamageBAGenString   % {"dim": "%id" % dim, "help": expectedUsageStringBA})
+    exec(GradyKippTensorDamageOwenGenString % {"dim": "%id" % dim, "help": expectedUsageStringO})
 
-#-------------------------------------------------------------------------------
-# GradyKippTensorDamageOwen instantiations.
-#-------------------------------------------------------------------------------
-exec(GradyKippTensorDamageOwenGenString % {"dim": "1d", "help": expectedUsageStringO})
-exec(GradyKippTensorDamageOwenGenString % {"dim": "2d", "help": expectedUsageStringO})
-exec(GradyKippTensorDamageOwenGenString % {"dim": "3d", "help": expectedUsageStringO})
-
-#-------------------------------------------------------------------------------
-# Aliases
-#-------------------------------------------------------------------------------
-GradyKippTensorDamage1d = GradyKippTensorDamageBenzAsphaug1d
-GradyKippTensorDamage2d = GradyKippTensorDamageBenzAsphaug2d
-GradyKippTensorDamage3d = GradyKippTensorDamageBenzAsphaug3d
+    # Aliases
+    exec("GradyKippTensorDamage%(dim)sd = GradyKippTensorDamageBenzAsphaug%(dim)sd" % {"dim" : dim})

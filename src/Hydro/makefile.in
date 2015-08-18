@@ -9,6 +9,10 @@ BUILDTOP = @abs_top_builddir@
 PKGNAME = Hydro
 PKGDIR = $(PKGNAME)/
 LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+
+SRCTARGETS = \
+	$(srcdir)/HydroFieldNames.cc
+
 INSTSRCTARGETS = \
 	$(srcdir)/PressurePolicyInst.cc.py \
 	$(srcdir)/SoundSpeedPolicyInst.cc.py \
@@ -19,9 +23,12 @@ INSTSRCTARGETS = \
 	$(srcdir)/VoronoiMassDensityPolicyInst.cc.py \
 	$(srcdir)/SumVoronoiMassDensityPolicyInst.cc.py \
 	$(srcdir)/ThirdMomentHourglassControlInst.cc.py
-SRCTARGETS = \
-	$(srcdir)/HydroFieldNames.cc \
-	$(srcdir)/SecondMomentHourglassControlInst.cc
+
+# A few of our target files are only valid for certain dimensions.
+ifneq (,$(filter "yes", "@INST1D@" "@INST2D@"))
+INSTSRCTARGETS += \
+	$(srcdir)/SecondMomentHourglassControlInst.cc.py
+endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

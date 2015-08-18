@@ -2,7 +2,7 @@ from math import *
 
 from NodeGeneratorBase import *
 
-from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, \
+from Spheral import Vector2d, Tensor2d, SymTensor2d, \
      rotationMatrix2d, testPointInBox2d
 from SpheralTestUtilities import fuzzyEqual
 

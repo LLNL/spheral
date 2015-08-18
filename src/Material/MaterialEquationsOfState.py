@@ -5,17 +5,13 @@
 # passing in the units as a constructor argument.  The interfaces & names for 
 # the equations of state provided here emulate the original interfaces.
 #-------------------------------------------------------------------------------
-from SpheralModules.Spheral.Material import (PhysicalConstants, 
-                                             GammaLawGas1d,
-                                             GammaLawGas2d,
-                                             GammaLawGas3d,
-                                             PolytropicEquationOfState1d,
-                                             PolytropicEquationOfState2d,
-                                             PolytropicEquationOfState3d,
-                                             IsothermalEquationOfState1d,
-                                             IsothermalEquationOfState2d,
-                                             IsothermalEquationOfState3d)
 from MaterialUnits import MKS, CGS, Cosmological, Solar
+from SpheralModules.Spheral.Material import PhysicalConstants
+from spheralDimensions import spheralDimensions
+
+dims = spheralDimensions()
+for dim in dims:
+    exec("from SpheralModules.Spheral.Material import GammaLawGas%(dim)id, PolytropicEquationOfState%(dim)id, IsothermalEquationOfState%(dim)id" % {"dim" : dim})
 
 EOSFactoryString = """
 #-------------------------------------------------------------------------------
@@ -79,7 +75,7 @@ class IsothermalEquationOfState%(units)s%(dim)id(IsothermalEquationOfState%(dim)
 #-------------------------------------------------------------------------------
 # Create the different instantiations.
 #-------------------------------------------------------------------------------
-for dim in (1, 2, 3):
+for dim in dims:
     for units in ("MKS", "CGS", "Cosmological", "Solar"):
         exec(EOSFactoryString % {"dim"   : dim,
                                  "units" : units})
