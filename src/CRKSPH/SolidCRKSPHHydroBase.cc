@@ -723,12 +723,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Mass density evolution.
-              DrhoDti += rhoi*weightj*vij.dot(gradWj);
-              DrhoDtj -= rhoj*weighti*vij.dot(gradWi);
+              DrhoDti += fDeffij*rhoi*weightj*vij.dot(gradWdamj);
+              DrhoDtj -= fDeffij*rhoj*weighti*vij.dot(gradWdami);
 
               // Mass density gradient.
-              DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
-              DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
+              DrhoDxi += fDeffij*weightj*(rhoj - rhoi)*gradWdamj;
+              DrhoDxj += fDeffij*weighti*(rhoi - rhoj)*gradWdami;
 
               // Local (damaged) velocity gradient.
               localDvDxi -= fDeffij*weightj*vij*gradWdamj;
@@ -779,8 +779,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Estimate of delta v (for XSPH).
               if (XSPH and (nodeListi == nodeListj)) {
-                XSPHDeltaVi -= weightj*Wj*vij;
-		XSPHDeltaVj += weighti*Wi*vij;
+                XSPHDeltaVi -= fDeffij*weightj*Wdamj*vij;
+		XSPHDeltaVj += fDeffij*weighti*Wdami*vij;
               }
 
             }

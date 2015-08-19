@@ -178,6 +178,8 @@ eosAl = GruneisenEquationOfState(rho0Al,  # reference density
                                  0.0,     # b                  
                                  26.98,  # atomic weight
                                  units)
+eosAl.energyMultiplier = 0.0  # <-- Hack for this particular problem
+
 coldFit = NinthOrderPolynomialFit(0.0,
                                   0.0,
                                   0.0,
@@ -223,6 +225,8 @@ eosTa = GruneisenEquationOfState(rho0Ta,  # reference density
                                  0.0,     # b                  
                                  180.95,  # atomic weight
                                  units)
+eosTa.energyMultiplier = 0.0  # <-- Hack for this particular problem
+
 meltFitTa = NinthOrderPolynomialFit(0.0546,
                                     0.0,
                                     0.0,
