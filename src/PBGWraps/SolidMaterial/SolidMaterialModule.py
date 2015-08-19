@@ -218,6 +218,7 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
     x.add_instance_attribute("gamma0", "double", getter="gamma0", setter="gamma0")
     x.add_instance_attribute("atomicWeight", "double", getter="atomicWeight", setter="atomicWeight")
     x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="externalPressure")
+    x.add_instance_attribute("energyMultiplier", "double", getter="energyMultiplier", setter="energyMultiplier")
 
     return
 
