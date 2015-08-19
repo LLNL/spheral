@@ -54,7 +54,8 @@ GruneisenEquationOfState(const double referenceDensity,
   mb(b),
   mAtomicWeight(atomicWeight),
   mCv(0.0),
-  mExternalPressure(externalPressure) {
+  mExternalPressure(externalPressure),
+  mEnergyMultiplier(1.0) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
 //   mCv = 3.0 * 1000.0*Constants::ElectronCharge*Constants::NAvogadro / mAtomicWeight;
   mCv = 3.0 * constants.molarGasConstant() / mAtomicWeight;
@@ -186,7 +187,7 @@ pressure(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;
-  const double eps = std::max(0.0, specificThermalEnergy);
+  const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   //TODO double check branching and apply eta convention in appropriate branch
   if (mu <= 0.0 or specificThermalEnergy < 0.0) {
@@ -272,7 +273,7 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::gamma(const Scalar massDensity,
-					 const Scalar specificThermalEnergy) const {
+                                           const Scalar specificThermalEnergy) const {
   const double xmu = this->boundedEta(massDensity) - 1.;
   CHECK(xmu!=-1.);
   return (mgamma0 + mb*xmu) / (1. + xmu);
@@ -308,6 +309,7 @@ computeDPDrho(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
+  const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   double ack;
   if (mu <= 0.0) {
@@ -325,13 +327,14 @@ computeDPDrho(const Scalar massDensity,
   const double dpdrho_cold = mC0*mC0*ack;
 
   // Put the whole thing together, depending on the thermal energy.
-  if (mu <= 0.0 or specificThermalEnergy < 0.0) {
+  if (mu <= 0.0 or eps < 0.0) {
     return dpdrho_cold;
   } else {
     const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
-    return dpdrho_cold + mb*specificThermalEnergy + mb*Prho2;
+    return dpdrho_cold + mb*eps + mb*Prho2;
   }
 }
+
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
