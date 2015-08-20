@@ -1551,6 +1551,11 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert nNodePerh > 0.0
         assert offset is None or len(offset)==3
         
+        if offset is None:
+            self.offset = Vector3d(0,0,0)
+        else:
+            self.offset = offset
+        
         self.n = n
         self.rmin = rmin
         self.rmax = rmax
@@ -1722,7 +1727,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
     # Get the mass density for the given node index.
     #---------------------------------------------------------------------------
     def localMassDensity(self, i):
-        return self.densityProfileMethod(self.localPosition(i).magnitude())
+        loc = Vector3d(0,0,0)
+        loc = self.localPosition(i) - self.offset
+        return self.densityProfileMethod(loc.magnitude())
 
     #---------------------------------------------------------------------------
     # Get the H tensor for the given node index.
