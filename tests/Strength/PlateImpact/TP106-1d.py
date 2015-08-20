@@ -24,47 +24,6 @@ units = PhysicalConstants(0.01,  # Unit length in m
                           0.001, # Unit mass in kg
                           1e-6)  # Unit length in sec
 
-# #-------------------------------------------------------------------------------
-# # The strength model used in this test.
-# #-------------------------------------------------------------------------------
-# class TP106StrengthModel(StrengthModel):
-
-#     def __init__(self, 
-#                  rho0,    # reference density
-#                  G0,      # initial shear modulus
-#                  Gmax,    # maximum shear modulus
-#                  Y0,      # initial yield
-#                  Ymax,    # maximum yield
-#                  alpha,   # strain hardening coeff
-#                  ps0,     # initial plastic strain
-#                  beta,    # strain hardening exponent, thermal softening coeff
-#                  Em,      # melt specific energy
-#                  gamma,   # pressure hardening coeff for yield
-#                  gammap): # pressure hardening coeff for shear modulus
-#         StrengthModel.__init__(self)
-#         self.rho0 = rho0
-#         self.Gmax = Gmax
-#         self.Y0 = Y0
-#         self.Ymax = Ymax
-#         self.alpha = alpha
-#         self.ps0 = ps0
-#         self.beta = beta
-#         self.Em = Em
-#         self.gamma = gamma
-#         self.gammap = gammap
-#         return
-
-#     def shearModulus(shearModulus,
-#                      density,
-#                      specificEnergy,
-#                      pressure):
-#         n = shearModulus.numInternalElements
-#         for i in xrange(n):
-#             G[i] = min(self.Gmax,
-#                        self.G0*(1.0 + self.gamma*pressure[i]*(density[i]/self.rho0)**(-1.0/3.0))*exp(-
-
-#         return
-
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 # All (cm, gm, usec) units.
@@ -144,6 +103,7 @@ dataDir = os.path.join(dataDirBase,
                        "strength=%s" % useStrength,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
+                       "densityUpdate=%s" % densityUpdate,
                        "nxAl=%i_nxTa=%i" % (nxAl, nxTa))
 restartDir = os.path.join(dataDir, "restarts")
 visitDir = os.path.join(dataDir, "visit")
@@ -202,6 +162,7 @@ meltFitAl = NinthOrderPolynomialFit(0.0796,
                                     0.0)
 strengthModelAl = SteinbergGuinanStrength(eosAl,
                                           0.2860,        # G0
+                                          0.6470,        # Gmax
                                           6.52,          # A
                                           0.0,           # B
                                           0.0026,        # Y0
@@ -239,6 +200,7 @@ meltFitTa = NinthOrderPolynomialFit(0.0546,
                                     0.0)
 strengthModelTa = SteinbergGuinanStrength(eosTa,
                                           0.6900,        # G0
+                                          0.9860,        # Gmax
                                           1.45,          # A
                                           0.0,           # B
                                           0.0077,        # Y0
