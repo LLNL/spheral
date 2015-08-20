@@ -115,8 +115,8 @@ TAUFLAGS = # @TAUFLAGS@
 DEPFLAG  =   @DEPFLAG@   
 CFLAGS   =   @CFLAGS@ $(INCS) $(TAUFLAGS)
 CXXFLAGS =   @CXXFLAGS@ $(INCS) $(TAUFLAGS)
-MPICCFLAGS = @MPICCFLAGS@
-MPICXXFLAGS = @MPICXXFLAGS@
+MPICCFLAGS =
+MPICXXFLAGS =
 FORTFLAGS =   @FORTFLAGS@
 DYNLIBFLAG = @DYNLIBFLAG@
 SHAREDFLAG = @SHAREDFLAG@
@@ -172,7 +172,7 @@ STATICPBGMODTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
-HEADERS = $(wildcard $(srcdir)/*.hh)
+HEADERS = $(wildcard $(srcdir)/*.hh $(srcdir)/*.h)
 
 #-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
@@ -188,7 +188,7 @@ ifeq "$(PYTHONBINDING)" "PYBINDGEN"
 
   PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS)) $(SPHERALMODULES).C
   PBGOBJS = $(PBGSRCS:.C=.o)
-  PBGMODHEADERS = $(SPHERALMODULES).hh
+  PBGMODHEADERS = $(SPHERALMODULES).hh $(SPHERALMODULES).h
   PBGMODSRCS = $(SPHERALMODULES).C $(PBGMODHEADERS)
   MODPKGS = $(patsubst %, $(srcdir)/%, $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS))))
 
@@ -217,7 +217,7 @@ AIXSHELL=@AIXSHELL@
 CONFIG_SHELL=@CONFIG_SHELL@
 
 #-------------------------------------------------------------------------------
-.SUFFIXES:      .hh .cc .o .d $(DYLIBEXT) $(SHLIBEXT)
+.SUFFIXES:      .hh .h .cc .o .d $(DYLIBEXT) $(SHLIBEXT)
 .SUFFIXES:	Methods.pw Methods.cc Methods.o
 .SUFFIXES:	Bindings.py
 .SUFFIXES:	Wrap.cc Wrap.o
@@ -258,22 +258,21 @@ force_build:
 	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYFFLEOPT) $(EXTRAFLAGS) -I. -w -c .MethodsSource/$(*F)Methods.cc -o $(*F)Methods.o
 
 %Wrap.o: %Wrap.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -c $< -o $(*F)Wrap.o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) -c $< -o $(*F)Wrap.o
 
 %.o: %.cc
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) -c $< -o $(*F).o
 
 %.o: %.f
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
+	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
 
 %.o: %.f90
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
-
+	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
 %.o:	%.cpp
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) -I. -c $< -o $(*F).o
 
 %.o:	%.C
-	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
+	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(EXTRAINCLUDES) -I$(srcdir) -I. -c $< -o $(*F).o
 
 %Inst1d.cc:	%Inst.cc.py
 	@$(PYTHONEXE) $(SPHERALTOP)/helpers/InstantiationGenerator.py $< $@ 1
@@ -321,12 +320,7 @@ endif
 
 #-------------------------------------------------------------------------------
 $(LIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)
-	@echo "################################################################################"
-	@echo "# Building library $(LIBTARGET)"
-	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	$(MPICXX) $(MPICXXFLAGS) $(CXXFLAGS) $(OPTFLAGS) $(DYNLIBFLAG) $(EXTRAINCLUDES) $(LDINSTALLNAME) $(LIBTARGET) $(OBJS) $(PYFFLEOBJS) $(LDFLAGS) $(LDRPATH) $(LIBS) $(EXTRALIBS) $(DEPENDLIBS) $(LIBTARGETFLAGS)
-	cp -f $(LIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------
 $(STATICLIBTARGET): $(LIBTARGET)
@@ -334,8 +328,7 @@ $(STATICLIBTARGET): $(LIBTARGET)
 	@echo "# Building library $(STATICLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	ar -rvs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
-	cp -f $(STATICLIBTARGET) $(LIBDIR)
+	ar rcs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
 
 #-------------------------------------------------------------------------------
 $(THIRDPARTYLIBTARGET): $(OBJS) $(PYFFLEOBJS) $(EXETARGETS)

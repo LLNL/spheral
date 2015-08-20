@@ -196,6 +196,7 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    massDensityCorrection() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    normalization() const;
@@ -250,6 +251,7 @@ protected:
   FieldSpace::FieldList<Dimension, SymTensor> mHideal;
   FieldSpace::FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldSpace::FieldList<Dimension, Scalar>    mEffViscousPressure;
+  FieldSpace::FieldList<Dimension, Scalar>    mMassDensityCorrection;
   FieldSpace::FieldList<Dimension, Scalar>    mViscousWork;
   FieldSpace::FieldList<Dimension, Scalar>    mMassDensitySum;
   FieldSpace::FieldList<Dimension, Scalar>    mNormalization;

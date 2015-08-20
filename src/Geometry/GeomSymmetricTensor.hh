@@ -409,29 +409,29 @@ template<> double GeomSymmetricTensor<1>::maxAbsElement() const;
 template<> double GeomSymmetricTensor<2>::maxAbsElement() const;
 template<> double GeomSymmetricTensor<3>::maxAbsElement() const;
 
-template<> const int GeomSymmetricTensor<1>::nDimensions;
-template<> const int GeomSymmetricTensor<2>::nDimensions;
-template<> const int GeomSymmetricTensor<3>::nDimensions;
+//template<> const int GeomSymmetricTensor<1>::nDimensions;
+//template<> const int GeomSymmetricTensor<2>::nDimensions;
+//template<> const int GeomSymmetricTensor<3>::nDimensions;
 
-template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::zero;
-template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::zero;
-template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
+//template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::zero;
+//template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::zero;
+//template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
 
-template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
-template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
-template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
+//template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
+//template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
+//template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
 
-template<> const GeomSymmetricTensor<1>::size_type GeomSymmetricTensor<1>::mNumElements;
-template<> const GeomSymmetricTensor<2>::size_type GeomSymmetricTensor<2>::mNumElements;
-template<> const GeomSymmetricTensor<3>::size_type GeomSymmetricTensor<3>::mNumElements;
+//template<> const GeomSymmetricTensor<1>::size_type GeomSymmetricTensor<1>::mNumElements;
+//template<> const GeomSymmetricTensor<2>::size_type GeomSymmetricTensor<2>::mNumElements;
+//template<> const GeomSymmetricTensor<3>::size_type GeomSymmetricTensor<3>::mNumElements;
 
-template<> const double GeomSymmetricTensor<1>::onethird;
-template<> const double GeomSymmetricTensor<2>::onethird;
-template<> const double GeomSymmetricTensor<3>::onethird;
+//template<> const double GeomSymmetricTensor<1>::onethird;
+//template<> const double GeomSymmetricTensor<2>::onethird;
+//template<> const double GeomSymmetricTensor<3>::onethird;
 
-template<> const double GeomSymmetricTensor<1>::sqrt3;
-template<> const double GeomSymmetricTensor<2>::sqrt3;
-template<> const double GeomSymmetricTensor<3>::sqrt3;
+//template<> const double GeomSymmetricTensor<1>::sqrt3;
+//template<> const double GeomSymmetricTensor<2>::sqrt3;
+//template<> const double GeomSymmetricTensor<3>::sqrt3;
 
 // Forward declare the global functions.
 template<int nDim> GeomSymmetricTensor<nDim> operator*(double lhs, const GeomSymmetricTensor<nDim>& rhs);
