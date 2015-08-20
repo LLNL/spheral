@@ -5,10 +5,10 @@ namespace FractalSpace
 {
   void poisson_solver(Fractal& fractal,Fractal_Memory& mem,const int& level)
   {
-    double gcells=mem.grid_length;
-    gcells=pow(gcells,3);
-    double FNO=mem.FractalNodes;
-    mem.hypre_max_node_load=4.0*gcells/FNO;
+//     double gcells=mem.grid_length;
+//     gcells=pow(gcells,3);
+//     double FNO=mem.FractalNodes;
+    mem.hypre_max_node_load=50000;
     //    FILE* PFH=mem.p_file->PFHypre;
     ofstream& FHT=mem.p_file->DUMPS;
     int m_size=mem.min_hypre_group_size;
