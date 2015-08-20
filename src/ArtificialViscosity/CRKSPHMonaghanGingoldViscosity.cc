@@ -35,12 +35,15 @@ using BoundarySpace::Boundary;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
 
-namespace {
+//namespace {
 
 //------------------------------------------------------------------------------
 // limiter for velocity projection.
 //------------------------------------------------------------------------------
-double limiter(const double x) {
+template<typename Dimension>
+double 
+CRKSPHMonaghanGingoldViscosity<Dimension>::
+   limiter(const double x)  const {
   if (x > 0.0) {
     // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
     return 2.0/(1.0 + x)*min(1.0, x);            // minmod
@@ -49,7 +52,7 @@ double limiter(const double x) {
   }
 }
 
-}
+//}
 
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.

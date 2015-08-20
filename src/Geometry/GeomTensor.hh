@@ -393,17 +393,17 @@ template<> double GeomTensor<1>::maxAbsElement() const;
 template<> double GeomTensor<2>::maxAbsElement() const;
 template<> double GeomTensor<3>::maxAbsElement() const;
 
-template<> const int GeomTensor<1>::nDimensions;
-template<> const int GeomTensor<2>::nDimensions;
-template<> const int GeomTensor<3>::nDimensions;
+//template<> const int GeomTensor<1>::nDimensions;
+//template<> const int GeomTensor<2>::nDimensions;
+//template<> const int GeomTensor<3>::nDimensions;
 
-template<> const GeomTensor<1> GeomTensor<1>::zero;
-template<> const GeomTensor<2> GeomTensor<2>::zero;
-template<> const GeomTensor<3> GeomTensor<3>::zero;
+//template<> const GeomTensor<1> GeomTensor<1>::zero;
+//template<> const GeomTensor<2> GeomTensor<2>::zero;
+//template<> const GeomTensor<3> GeomTensor<3>::zero;
 
-template<> const GeomTensor<1> GeomTensor<1>::one;
-template<> const GeomTensor<2> GeomTensor<2>::one;
-template<> const GeomTensor<3> GeomTensor<3>::one;
+//template<> const GeomTensor<1> GeomTensor<1>::one;
+//template<> const GeomTensor<2> GeomTensor<2>::one;
+//template<> const GeomTensor<3> GeomTensor<3>::one;
 
 // Forward declare the global functions.
 template<int nDim> GeomTensor<nDim> operator*(double lhs, const GeomTensor<nDim>& rhs);

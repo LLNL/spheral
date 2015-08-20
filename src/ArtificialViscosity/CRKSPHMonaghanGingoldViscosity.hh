@@ -68,6 +68,7 @@ private:
   CRKSPHMonaghanGingoldViscosity();
   CRKSPHMonaghanGingoldViscosity(const CRKSPHMonaghanGingoldViscosity&);
   CRKSPHMonaghanGingoldViscosity& operator=(const CRKSPHMonaghanGingoldViscosity&) const;
+  double limiter(const double x) const ;
 };
 
 }

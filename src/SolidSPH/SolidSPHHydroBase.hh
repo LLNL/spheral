@@ -54,6 +54,7 @@ public:
   SolidSPHHydroBase(const NodeSpace::SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                     const KernelSpace::TableKernel<Dimension>& W,
                     const KernelSpace::TableKernel<Dimension>& WPi,
+                    const KernelSpace::TableKernel<Dimension>& WGrad,
                     ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
                     const double filter,
                     const double cfl,
@@ -106,6 +107,9 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
 
+  // Gradient kernel
+  const KernelSpace::TableKernel<Dimension>& GradKernel() const;
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>& bulkModulus() const;
@@ -123,6 +127,8 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
+  // Gradient kernel
+  const KernelSpace::TableKernel<Dimension>& mGradKernel;
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
   FieldSpace::FieldList<Dimension, Scalar> mBulkModulus;

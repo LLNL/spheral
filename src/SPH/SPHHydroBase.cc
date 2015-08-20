@@ -114,6 +114,7 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
   mEffViscousPressure(FieldSpace::Copy),
+  mMassDensityCorrection(FieldSpace::Copy),
   mViscousWork(FieldSpace::Copy),
   mMassDensitySum(FieldSpace::Copy),
   mNormalization(FieldSpace::Copy),
@@ -159,6 +160,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
+  mMassDensityCorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::massDensityCorrection);
   mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
@@ -342,6 +344,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
+  dataBase.resizeFluidFieldList(mMassDensityCorrection, 0.0, HydroFieldNames::massDensityCorrection, false);
   dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
@@ -363,6 +366,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
   derivs.enroll(mEffViscousPressure);
+  derivs.enroll(mMassDensityCorrection);
   derivs.enroll(mViscousWork);
   derivs.enroll(mMassDensitySum);
   derivs.enroll(mNormalization);
@@ -1378,6 +1382,9 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
+  file.write(mMassDensityCorrection, pathName + "/massDensityCorrection");
+  file.write(mViscousWork, pathName + "/viscousWork");
   file.write(mM, pathName + "/M");
   file.write(mLocalM, pathName + "/localM");
 
