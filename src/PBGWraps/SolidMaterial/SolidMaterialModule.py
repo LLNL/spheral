@@ -430,6 +430,19 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
                        param("double", "G0"),
+                       param("double", "Gmax"),
+                       param("double", "A"),
+                       param("double", "B"),
+                       param("double", "Y0"),
+                       param("double", "Ymax"),
+                       param("double", "Yp"),
+                       param("double", "beta"),
+                       param("double", "gamma0"),
+                       param("double", "nhard"),
+                       constrefparam(ninthorderpolynomial, "coldEnergyFit"),
+                       constrefparam(ninthorderpolynomial, "meltEnergyFit")])
+    x.add_constructor([constrefparam(solidequationofstate, "eos"),
+                       param("double", "G0"),
                        param("double", "A"),
                        param("double", "B"),
                        param("double", "Y0"),
@@ -452,6 +465,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 
     # Attributes.
     x.add_instance_attribute("G0", "double", getter="G0", is_const=True)
+    x.add_instance_attribute("Gmax", "double", getter="G0", is_const=True)
     x.add_instance_attribute("A", "double", getter="A", is_const=True)
     x.add_instance_attribute("B", "double", getter="B", is_const=True)
     x.add_instance_attribute("Y0", "double", getter="Y0", is_const=True)

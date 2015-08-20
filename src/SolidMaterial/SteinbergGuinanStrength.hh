@@ -32,6 +32,19 @@ public:
   // Constructors, destructor.
   SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
                           const double G0,
+                          const double Gmax,
+                          const double A,
+                          const double B,
+                          const double Y0,
+                          const double Ymax,
+                          const double Yp,
+                          const double beta,
+                          const double gamma0,
+                          const double nhard,
+                          const NinthOrderPolynomialFit& coldEnergyFit,
+                          const NinthOrderPolynomialFit& meltEnergyFit);
+  SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
+                          const double G0,
                           const double A,
                           const double B,
                           const double Y0,
@@ -73,6 +86,7 @@ public:
 
   // Access the strength parameters.
   double G0() const;
+  double Gmax() const;
   double A() const;
   double B() const;
   double Y0() const;
@@ -89,6 +103,7 @@ private:
 #ifndef __GCCXML__
   const SolidEquationOfState<Dimension>* mEOSPtr;
   double mG0;
+  double mGmax;
   double mA;
   double mB;
   double mY0;
