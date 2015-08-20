@@ -73,8 +73,8 @@ commandLine(nxAl = 100,
             nPerh = 2.01,
 
             # Material specific bounds on the mass density.
-            etamin = 0.2,
-            etamax = 1.8,
+            etamin = 1e-3,
+            etamax = 1e3,
 
             # Should we run with strength?
             useStrength = True,
@@ -94,7 +94,7 @@ commandLine(nxAl = 100,
             hmax = 0.1,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
