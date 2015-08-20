@@ -54,7 +54,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
             hmin = 1e-5,
-            hmax = 0.1,
+            hmax = 1.0,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
@@ -81,6 +81,8 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             restoreCycle = -1,
             restartStep = 500,
             sampleFreq = 10,
+            vizTime = 1.0,
+            vizStep = 100,
 
             graphics = True,
 
@@ -116,7 +118,8 @@ dataDir = os.path.join(dataDirBase,
                        "densityUpdate=%s" % densityUpdate,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
-visitDir = os.path.join(dataDir, "visit")
+vizDir = os.path.join(dataDir, "visit")
+vizBaseName = "Verney-Cu-%i" % nr
 restartBaseName = os.path.join(restartDir, "Verney-%i" % nr)
 
 #-------------------------------------------------------------------------------
@@ -128,8 +131,8 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-    if not os.path.exists(visitDir):
-        os.makedirs(visitDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -298,7 +301,11 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            vizBaseName = vizBaseName,
+                            vizDir = vizDir,
+                            vizTime = vizTime,
+                            vizStep = vizStep)
 output("control")
 
 #-------------------------------------------------------------------------------
