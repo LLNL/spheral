@@ -29,6 +29,7 @@ units = PhysicalConstants(0.01,  # Unit length in m
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nxAl = 100,
+            nxTa = 0,       # 0 implies automatically mass match against Al
             nPerh = 2.01,
 
             # Material specific bounds on the mass density.
@@ -83,13 +84,15 @@ commandLine(nxAl = 100,
 
             clearDirectories = False,
             dataDirBase = "dumps-TP106-1d",
+            outputFile = "TP106-profiles.gnu",
             )
 
 # Figure out the mass matched resolution.
 rho0Al = 2.785
 rho0Ta = 16.654
-nxTa = int(rho0Ta/rho0Al * nxAl)
-print "Selected %i Ta points to mass match with %i Al points." % (nxTa, nxAl)
+if nxTa == 0:
+    nxTa = int(rho0Ta/rho0Al * nxAl)
+    print "Selected %i Ta points to mass match with %i Al points." % (nxTa, nxAl)
 
 # Hydro constructor.
 if CRKSPH:
@@ -409,6 +412,46 @@ if not steps is None:
 else:
     control.advance(goalTime)
     control.dropRestartFile()
+
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    from SpheralGnuPlotUtilities import multiSort
+    state = State(db, integrator.physicsPackages())
+    outputFile = os.path.join(dataDir, outputFile)
+    pos = state.vectorFields(HydroFieldNames.position)
+    rho = state.scalarFields(HydroFieldNames.massDensity)
+    P = state.scalarFields(HydroFieldNames.pressure)
+    vel = state.vectorFields(HydroFieldNames.velocity)
+    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
+    Hfield = state.symTensorFields(HydroFieldNames.H)
+    S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    xprof = mpi.reduce([x.x for x in internalValues(pos)], mpi.SUM)
+    rhoprof = mpi.reduce(internalValues(rho), mpi.SUM)
+    Pprof = mpi.reduce(internalValues(P), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in internalValues(vel)], mpi.SUM)
+    epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
+    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in internalValues(Hfield)], mpi.SUM)
+    sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
+    mof = mortonOrderIndices(db)
+    mo = mpi.reduce(internalValues(mof), mpi.SUM)
+    if mpi.rank == 0:
+        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof)
+        f = open(outputFile, "w")
+        f.write(("#" + 15*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "m", 
+                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)"))
+        for (xi, rhoi, Pi, vi, epsi, hi, si, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
+            f.write((7*"%16.12e " + 8*"%i " + "\n") %
+                    (xi, rhoi, Pi, vi, epsi, hi, si, mi,
+                     unpackElementUL(packElementDouble(xi)),
+                     unpackElementUL(packElementDouble(rhoi)),
+                     unpackElementUL(packElementDouble(Pi)),
+                     unpackElementUL(packElementDouble(vi)),
+                     unpackElementUL(packElementDouble(epsi)),
+                     unpackElementUL(packElementDouble(hi)),
+                     unpackElementUL(packElementDouble(si))))
+        f.close()
 
 #-------------------------------------------------------------------------------
 # Plot the state.
