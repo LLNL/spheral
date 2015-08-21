@@ -1554,7 +1554,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         if offset is None:
             self.offset = Vector3d(0,0,0)
         else:
-            self.offset = offset
+            self.offset = Vector3d(offset[0],offset[1],offset[2])
         
         self.n = n
         self.rmin = rmin
@@ -1623,7 +1623,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                       [12290,6,0],
                       [16386,6,1],
                       [24578,6,2],
-                      [40962,6,3]
+                      [40962,6,3],
                       [49154,7,0],
                       [65538,7,1],
                       [98306,7,2],
