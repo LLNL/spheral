@@ -1593,6 +1593,23 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.H = []
         ri = rmax
         
+        # new formula for calculating number of points for a given subdivision level
+        # (Nf * Np(n) - Ne * Npe(n) + Nc)
+        # Nf = Number of faces of primitive shape
+        # Np(n) = Number of points in a triangle subdivided n times
+        #       2^(2n-1) + 3*2^(n-1) + 1
+        # Ne = Number of edges of primitive shape
+        # Npe(n) = Number of points along an edge of primitive shape subdivided n times
+        #       2^n + 1
+        # Nc = Number of corners
+        
+        # shapeData = [Nf,Ne,Nc]
+        
+        shapeData = [[ 6, 9, 5],
+                     [ 8,12, 6],
+                     [12,18, 8],
+                     [20,30,12]]
+        
         # first column is total number of shell points
         # second column is number of refinements to reach that shell count
         # third column is shape choice that reaches that shell count
