@@ -33,6 +33,7 @@ units = PhysicalConstants(0.01,  # Unit length in m
 #-------------------------------------------------------------------------------
 commandLine(nr = 10,              # Radial resolution of the shell in points
             seed = "lattice",     # "lattice" or "icosahedral"
+            geometry = "octant",  # choose ("octant", "full").  "octant" not valid with "icosahedral" seed
             nPerh = 2.01,
 
             # Material specific bounds on the mass density.
@@ -41,6 +42,9 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Should we run with strength?
             useStrength = True,
+
+            # How many shells should we create tracer histories for?
+            nshells = 10,
 
             # Hydro parameters.
             CRKSPH = False,
@@ -54,7 +58,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
             hmin = 1e-5,
-            hmax = 1.0,
+            hmax = 10.0,
             cfl = 0.25,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
@@ -91,6 +95,10 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             outputFile = "Verney-Cu-3d.gnu",
         )
 
+assert seed in ("lattice", "icosahedral")
+assert geometry in ("octant", "full")
+assert geometry == "full" or not seed == "icosahedral"
+
 # Material parameters for this test problem.
 rho0Cu = 9.30333
 R0, R1 = 5.0, 10.0        # Inner, outer initial radius
@@ -121,6 +129,7 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 vizBaseName = "Verney-Cu-%i" % nr
 restartBaseName = os.path.join(restartDir, "Verney-%i" % nr)
+historyOutputName = os.path.join(dataDir, "Verney-shell%i.dat")
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -187,17 +196,24 @@ print "Generating node distribution."
 from DistributeNodes import distributeNodesInRange1d
 if seed == "lattice":
     nx = int(R1/(R1 - R0) * nr + 0.5)
-    gen = GenerateNodeDistribution3d(2*nx, 2*nx, 2*nx, rho0Cu,
+    if geometry == "octant":
+        xmin = (0.0, 0.0, 0.0)
+        xmax = (R1, R1, R1)
+    else:
+        xmin = (-R1, -R1, -R1)
+        xmax = ( R1,  R1,  R1)
+        nx = 2*nx
+    gen = GenerateNodeDistribution3d(nx, nx, nx, rho0Cu,
                                      distributionType = seed,
-                                     xmin = (-R1, -R1, -R1),
-                                     xmax = ( R1,  R1,  R1),
+                                     xmin = xmin,
+                                     xmax = xmax,
                                      rmin = R0, 
                                      rmax = R1)
-elif seed == "icosohedral":
-    gen = GenerateIcosahedronMatchingProfile(nr, rho0Cu,
-                                             rmin = R0,
-                                             rmax = R1,
-                                             nNodePerh = nPerh)
+else:
+    gen = GenerateIcosahedronMatchingProfile3d(nr, rho0Cu,
+                                               rmin = R0,
+                                               rmax = R1,
+                                               nNodePerh = nPerh)
 
 distributeNodes3d((nodesCu, gen))
 output("mpi.reduce(nodesCu.numInternalNodes, mpi.MIN)")
@@ -210,7 +226,7 @@ vel = nodesCu.velocity()
 for i in xrange(nodesCu.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
-    vel[i] = U0 * (R0/ri)**2 * rhat
+    vel[i] = -U0 * (R0/ri)**2 * rhat
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -274,6 +290,20 @@ output("hydro.kernel()")
 output("hydro.PiKernel()")
 
 #-------------------------------------------------------------------------------
+# Boundary conditions.
+#-------------------------------------------------------------------------------
+if geometry == "octant":
+    xPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))
+    yPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))
+    zPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 1.0))
+    xbc = ReflectingBoundary(xPlane)
+    ybc = ReflectingBoundary(yPlane)
+    zbc = ReflectingBoundary(zPlane)
+    hydro.appendBoundary(xbc)
+    hydro.appendBoundary(ybc)
+    hydro.appendBoundary(zbc)
+
+#-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
@@ -295,6 +325,49 @@ output("integrator.dtGrowth")
 output("integrator.domainDecompositionIndependent")
 
 #-------------------------------------------------------------------------------
+# Select points to follow histories.
+#-------------------------------------------------------------------------------
+def verneySample(nodes, indices):
+    mass = nodes.mass()
+    pos = nodes.positions()
+    vel = nodes.velocity()
+    rho = nodes.massDensity()
+    eps = nodes.specificThermalEnergy()
+    P = ScalarField("pressure", nodes)
+    nodes.pressure(P)
+    ps = nodes.plasticStrain()
+    mshell = mpi.allreduce(sum([mass[i] for i in indices] + [0.0]), mpi.SUM)
+    assert mshell > 0.0
+    rshell = mpi.allreduce(sum([mass[i]*pos[i].magnitude() for i in indices] + [0.0]), mpi.SUM)
+    vshell = mpi.allreduce(sum([mass[i]*vel[i].dot(pos[i].unitVector()) for i in indices] + [0.0]), mpi.SUM)
+    rhoshell = mpi.allreduce(sum([mass[i]*rho[i] for i in indices] + [0.0]), mpi.SUM)
+    epsshell = mpi.allreduce(sum([mass[i]*eps[i] for i in indices] + [0.0]), mpi.SUM)
+    Pshell = mpi.allreduce(sum([mass[i]*P[i] for i in indices] + [0.0]), mpi.SUM)
+    strainShell = mpi.allreduce(sum([mass[i]*ps[i] for i in indices] + [0.0]), mpi.SUM)
+    rshell /= mshell
+    vshell /= mshell
+    rhoshell /= mshell
+    epsshell /= mshell
+    Pshell /= mshell
+    strainShell /= mshell
+    return rshell, vshell, rhoshell, epsshell, Pshell, strainShell
+
+# Find shells of points in binned radii
+histories = []
+dr = (R1 - R0)/nshells
+pos = nodesCu.positions()
+shellIndices = [[] for i in xrange(nr)]
+for i in xrange(nodesCu.numInternalNodes):
+    ishell = min(nr - 1, int((pos[i].magnitude() - R0)/dr + 0.5))
+    shellIndices[ishell].append(i)
+for ishell in xrange(nshells):
+    n = mpi.allreduce(len(shellIndices[ishell]), mpi.SUM)
+    print "Selected %i nodes for shell %i." % (n, ishell)
+    if n > 0:
+        histories.append(NodeHistory(nodesCu, shellIndices[ishell], verneySample, historyOutputName % ishell, 
+                                     labels = ("r", "vel", "rho", "eps", "P", "plastic strain")))
+
+#-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -307,6 +380,13 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime,
                             vizStep = vizStep)
 output("control")
+
+#-------------------------------------------------------------------------------
+# Add the diagnostics to the controller.
+#-------------------------------------------------------------------------------
+for hist in histories:
+    control.appendPeriodicWork(hist.sample, sampleFreq)
+    hist.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
