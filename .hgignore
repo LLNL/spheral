@@ -9,6 +9,8 @@ syntax: glob
 *.date
 *.dummydate
 *.C
+*.a
+*makefile
 
 # These are files automatically generated in our configure process.
 src/PBGWraps/makefile
@@ -57,3 +59,14 @@ src/PBGWraps/SpheralModules_SPH.C
 src/PBGWraps/SpheralModules_Silo.C
 src/PBGWraps/SpheralModules_Utilities.C
 src/PBGWraps/SpheralModules_WildMagic.C
+src/SimulationControl/spheralDimensions.py
+
+# instantiation files
+*Inst1d.cc
+*Inst2d.cc
+*Inst3d.cc
+*.tar.*
+*.zip
+*.tgz
+
+src/Linux_x86_64/*
