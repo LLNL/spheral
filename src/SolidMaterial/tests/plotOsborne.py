@@ -41,7 +41,7 @@ eosO = OsborneEquationOfState( 1.85, etamin, etamax,     # Parameters from Howel
 #-------------------------------------------------------------------------------
 # Plot the pressure and sound speed for each EOS.
 #-------------------------------------------------------------------------------
-n = 10
+n = 50
 rhoMin, rhoMax = 0.05, 50.0
 drho = (rhoMax - rhoMin)/n
 rho = [rhoMin + i*drho for i in xrange(n + 1)]

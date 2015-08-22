@@ -41,7 +41,7 @@ GruneisenEquationOfState(const double referenceDensity,
                          const Material::MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
-                                  etamax,
+                                  min(etamax, max(0.99*S1/(S1 - 1.0), 2.0)),
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
@@ -183,7 +183,7 @@ pressure(const Scalar massDensity,
   CHECK(valid());
   const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
-  if (fuzzyEqual(eta, this->etamin())) return 0.0;
+  // if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;
@@ -201,8 +201,10 @@ pressure(const Scalar massDensity,
     const double thpt2 = thpt1*mu*ack;
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
     const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
-    return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
+    return this->applyPressureLimits((K0*mu*(eta - 0.5*mgamma0*mu - 0.5*mb*mu*mu)*Dinv*Dinv +
                                       (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
+    // return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
+    //                                   (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
   }
 
 }
@@ -328,11 +330,11 @@ computeDPDrho(const Scalar massDensity,
   const double dpdrho_cold = mC0*mC0*ack;
 
   // Put the whole thing together, depending on the thermal energy.
-  if (eps < 0.0) {
+  if (mu <= 0.0 or eps < 0.0) {
     return dpdrho_cold;
   } else {
     const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
-    return dpdrho_cold + mb*eps + mb*Prho2;
+    return dpdrho_cold + max(0.0, mb*eps + mb*Prho2);
   }
 }
 
