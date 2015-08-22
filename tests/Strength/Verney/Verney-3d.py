@@ -88,7 +88,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Time integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 130.0,
+            goalTime = 150.0,
             steps = None,
             dt = 1e-6,
             dtMin = 1e-6,
@@ -140,6 +140,8 @@ else:
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
+                       geometry,
+                       seed,
                        "strength=%s" % useStrength,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
