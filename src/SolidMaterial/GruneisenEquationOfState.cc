@@ -54,7 +54,8 @@ GruneisenEquationOfState(const double referenceDensity,
   mb(b),
   mAtomicWeight(atomicWeight),
   mCv(0.0),
-  mExternalPressure(externalPressure) {
+  mExternalPressure(externalPressure),
+  mEnergyMultiplier(1.0) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
 //   mCv = 3.0 * 1000.0*Constants::ElectronCharge*Constants::NAvogadro / mAtomicWeight;
   mCv = 3.0 * constants.molarGasConstant() / mAtomicWeight;
@@ -180,13 +181,13 @@ GruneisenEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  const double tiny = 1.0e-10;
+  const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
   if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;
-  const double eps = std::max(0.0, specificThermalEnergy);
+  const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   //TODO double check branching and apply eta convention in appropriate branch
   if (mu <= 0.0 or specificThermalEnergy < 0.0) {
@@ -195,11 +196,11 @@ pressure(const Scalar massDensity,
   } else {
     const double mu1 = mu + 1.0;
     CHECK(mu1 >= -1.0);
-    const double ack = mu1/(mu1*mu1 + tiny);
+    const double ack = 1.0/(sgn(mu1)*max(mu1, tiny));
     const double thpt1 = mu*mu*ack;
     const double thpt2 = thpt1*mu*ack;
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
-    const double Dinv = D/(D*D + tiny);
+    const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
     return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
                                       (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
   }
@@ -272,7 +273,7 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::gamma(const Scalar massDensity,
-					 const Scalar specificThermalEnergy) const {
+                                           const Scalar specificThermalEnergy) const {
   const double xmu = this->boundedEta(massDensity) - 1.;
   CHECK(xmu!=-1.);
   return (mgamma0 + mb*xmu) / (1. + xmu);
@@ -304,10 +305,12 @@ GruneisenEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   CHECK(valid());
+  const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
+  const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   double ack;
   if (mu <= 0.0) {
@@ -318,20 +321,21 @@ computeDPDrho(const Scalar massDensity,
     const double D = 1.0 - (mS1 - 1.0 + (mS2 + mS3*x)*x)*mu;
     const double dNdmu = 1.0 + (2.0 - mgamma0 - 1.5*mb*mu)*mu;
     const double dDdmu = - (mS1 - 1.0 + (mS2*(mu + 2.0) + mS3*(mu + 3.0)*x)*x/(1.0 + mu));
-    const double safeDInverse = D/(D*D + 1.0e-20);
-    ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(safeDInverse));
+    const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
+    ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(Dinv));
   }
   CHECK(ack >= 0.0);
   const double dpdrho_cold = mC0*mC0*ack;
 
   // Put the whole thing together, depending on the thermal energy.
-  if (mu <= 0.0 or specificThermalEnergy < 0.0) {
+  if (eps < 0.0) {
     return dpdrho_cold;
   } else {
     const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
-    return dpdrho_cold + mb*specificThermalEnergy + mb*Prho2;
+    return dpdrho_cold + mb*eps + mb*Prho2;
   }
 }
+
 //------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------

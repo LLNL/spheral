@@ -96,6 +96,11 @@ public:
   void b(const double val);
   void atomicWeight(const double val);
 
+  // Option to scale the thermal energy term by.  This is mostly useful for test problems
+  // where you want to make the Gruneisen independent of energy.
+  double energyMultiplier() const;
+  void energyMultiplier(const double val);
+
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
   double externalPressure() const;
@@ -143,6 +148,7 @@ private:
   double mAtomicWeight;
   double mCv;
   double mExternalPressure;
+  double mEnergyMultiplier;
 
   // No default constructor, copying, or assignment.
   GruneisenEquationOfState();
