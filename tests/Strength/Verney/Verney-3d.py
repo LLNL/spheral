@@ -2,7 +2,7 @@
 # An idealized strength test test where an imploding shell is ultimately stopped
 # at a known radius due to plastic work dissipation.
 #
-# See LA-14379
+# See LA-14379, Howell & Ball 2002 JCP
 #-------------------------------------------------------------------------------
 from math import *
 import shutil
@@ -26,6 +26,22 @@ title("3-D Verney imploding shell test.")
 units = PhysicalConstants(0.01,  # Unit length in m
                           0.001, # Unit mass in kg
                           1e-6)  # Unit length in sec
+
+#-------------------------------------------------------------------------------
+# The analytic function paramterizing the shell evolution.
+#-------------------------------------------------------------------------------
+def F(alpha, lamb, R0, R1, n):
+
+    class integfunc(SimpsonsIntegrationDoubleFunction):
+        def __init__(self, R0, R1):
+            SimpsonsIntegrationDoubleFunction.__init__(self)
+            self.alpha = R1/R0 - 1.0
+            return
+        def __call__(self, x):
+            return x*log(1.0 + self.alpha*(2.0 + self.alpha)/(x*x))
+
+    func = integfunc(R0, R1)
+    return simpsonsIntegrationDouble(func, lamb, 1.0, n)
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -91,8 +107,8 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             graphics = True,
 
             clearDirectories = False,
-            dataDirBase = "dumps-Verney-Cu-3d",
-            outputFile = "Verney-Cu-3d.gnu",
+            dataDirBase = "dumps-Verney-Be-3d",
+            outputFile = "Verney-Be-3d.gnu",
         )
 
 assert seed in ("lattice", "icosahedral")
@@ -100,16 +116,20 @@ assert geometry in ("octant", "full")
 assert geometry == "full" or not seed == "icosahedral"
 
 # Material parameters for this test problem.
-rho0Cu = 9.30333
-R0, R1 = 5.0, 10.0        # Inner, outer initial radius
-G0, Y0 = 0.48, 0.0012     # Shear modulus and yield strength
-r0 = 2.75                 # Expected final inner radius
+rho0Be = 1.845
+R0, R1 = 8.0, 10.0        # Inner, outer initial radius
+G0, Y0 = 1.510, 0.0033    # Shear modulus and yield strength
+r0 = 4.0                  # Expected final inner radius
 delta = R1 - R0
 lamb = r0/R0
 alpha = delta/R0
-beta = lamb**3 + alpha**3 + 3.0*alpha*(alpha* + 1.0)
-F = (1.0 + alpha)**3*log(1.0 + alpha) + lamb**3*log(lamb) + beta*log(beta)/3.0
-U0 = sqrt(4.0*Y0/(3.0*rho0Cu)*R1/delta*F)
+Fval = F(alpha, lamb, R0, R1, 1000)
+u0 = sqrt(2.0*Y0*Fval/(sqrt(3.0)*rho0Be*log(R1/R0)))
+print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
+
+#beta = lamb**3 + alpha**3 + 3.0*alpha*(alpha* + 1.0)
+#F = (1.0 + alpha)**3*log(1.0 + alpha) + lamb**3*log(lamb) + beta*log(beta)/3.0
+#sqrt(4.0*Y0/(3.0*rho0Be)*R1/delta*F)
 
 # Hydro constructor.
 if CRKSPH:
@@ -127,7 +147,7 @@ dataDir = os.path.join(dataDirBase,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
-vizBaseName = "Verney-Cu-%i" % nr
+vizBaseName = "Verney-Be-%i" % nr
 restartBaseName = os.path.join(restartDir, "Verney-%i" % nr)
 historyOutputName = os.path.join(dataDir, "Verney-shell%i.dat")
 
@@ -147,25 +167,29 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eosCu = GruneisenEquationOfState(rho0Cu,  # reference density  
-                                 etamin,  # etamin             
-                                 etamax,  # etamax             
-                                 0.3940,  # C0                 
-                                 1.489,   # S1                 
-                                 0.0,     # S2                 
-                                 0.0,     # S3                 
-                                 2.02,    # gamma0             
-                                 0.47,    # b                  
-                                 63.57,   # atomic weight
-                                 units)
-strengthModelCu = ConstantStrength(0.48,        # G0
-                                   0.0012)      # Y0
+eosBe = OsborneEquationOfState( 1.85, etamin, etamax,     # Parameters from Howell & Ball 2002
+                                0.951168,   # a1
+                                0.345301,   # a2pos
+                               -0.345301,   # asneg
+                                0.926914,   # b0
+                                2.948420,   # b1
+                                0.507979,   # b2pos
+                                0.507979,   # b2neg
+                                0.564362,   # c0
+                                0.620422,   # c1
+                                0.0,        # c2pos
+                                0.0,        # c2neg
+                                0.8,
+                                9.015,
+                                units,
+                                minimumPressure = -0.1)
+strengthModelBe = ConstantStrength(G0, Y0)
 
 #-------------------------------------------------------------------------------
 # If we're not using strength, override the strength models.
 #-------------------------------------------------------------------------------
 if not useStrength:
-    strengthModelCu = NullStrength()
+    strengthModelBe = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
@@ -179,15 +203,15 @@ output("WTPi")
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodesCu = makeSolidNodeList("Copper", eosCu, strengthModelCu,
+nodesBe = makeSolidNodeList("Beryllium", eosBe, strengthModelBe,
                             nPerh = nPerh,
                             hmin = hmin,
                             hmax = hmax,
-                            rhoMin = etamin*rho0Cu,
-                            rhoMax = etamax*rho0Cu,
+                            rhoMin = etamin*rho0Be,
+                            rhoMax = etamax*rho0Be,
                             xmin = -100.0*Vector.one,
                             xmax =  100.0*Vector.one)
-nodeSet = [nodesCu]
+nodeSet = [nodesBe]
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
@@ -203,30 +227,30 @@ if seed == "lattice":
         xmin = (-R1, -R1, -R1)
         xmax = ( R1,  R1,  R1)
         nx = 2*nx
-    gen = GenerateNodeDistribution3d(nx, nx, nx, rho0Cu,
+    gen = GenerateNodeDistribution3d(nx, nx, nx, rho0Be,
                                      distributionType = seed,
                                      xmin = xmin,
                                      xmax = xmax,
                                      rmin = R0, 
                                      rmax = R1)
 else:
-    gen = GenerateIcosahedronMatchingProfile3d(nr, rho0Cu,
+    gen = GenerateIcosahedronMatchingProfile3d(nr, rho0Be,
                                                rmin = R0,
                                                rmax = R1,
                                                nNodePerh = nPerh)
 
-distributeNodes3d((nodesCu, gen))
-output("mpi.reduce(nodesCu.numInternalNodes, mpi.MIN)")
-output("mpi.reduce(nodesCu.numInternalNodes, mpi.MAX)")
-output("mpi.reduce(nodesCu.numInternalNodes, mpi.SUM)")
+distributeNodes3d((nodesBe, gen))
+output("mpi.reduce(nodesBe.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodesBe.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodesBe.numInternalNodes, mpi.SUM)")
 
 # Set node velocites.
-pos = nodesCu.positions()
-vel = nodesCu.velocity()
-for i in xrange(nodesCu.numInternalNodes):
+pos = nodesBe.positions()
+vel = nodesBe.velocity()
+for i in xrange(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
-    vel[i] = -U0 * (R0/ri)**2 * rhat
+    vel[i] = -u0 * (R0/ri) * rhat
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -355,16 +379,16 @@ def verneySample(nodes, indices):
 # Find shells of points in binned radii
 histories = []
 dr = (R1 - R0)/nshells
-pos = nodesCu.positions()
+pos = nodesBe.positions()
 shellIndices = [[] for i in xrange(nr)]
-for i in xrange(nodesCu.numInternalNodes):
+for i in xrange(nodesBe.numInternalNodes):
     ishell = min(nr - 1, int((pos[i].magnitude() - R0)/dr + 0.5))
     shellIndices[ishell].append(i)
 for ishell in xrange(nshells):
     n = mpi.allreduce(len(shellIndices[ishell]), mpi.SUM)
     print "Selected %i nodes for shell %i." % (n, ishell)
     if n > 0:
-        histories.append(NodeHistory(nodesCu, shellIndices[ishell], verneySample, historyOutputName % ishell, 
+        histories.append(NodeHistory(nodesBe, shellIndices[ishell], verneySample, historyOutputName % ishell, 
                                      labels = ("r", "vel", "rho", "eps", "P", "plastic strain")))
 
 #-------------------------------------------------------------------------------
