@@ -150,7 +150,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   CHECK(valid());
   for (int i = 0; i != soundSpeed.size(); ++i) {
     const double dPdrhoi = DPDrho(massDensity(i), specificThermalEnergy(i));
-    CHECK(dPdrho >= 0.0);
+    CHECK(dPdrhoi >= 0.0);
     soundSpeed(i) = sqrt(dPdrhoi);
   }
 }
