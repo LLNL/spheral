@@ -1,3 +1,9 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT CRK, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="RT CRK, nPerh=2.0", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral-NoQ, nPerh=1.5", np=16)
+#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="RT TSPH-NoQ, nPerh=1.5", np=16)
+
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
 #-------------------------------------------------------------------------------
@@ -86,7 +92,7 @@ commandLine(nx1     = 50,
             nTensile = 8,
             
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 4.0,
+            goalTime = 5.0,
             steps = None,
             vizCycle = None,
             vizTime = 0.01,
