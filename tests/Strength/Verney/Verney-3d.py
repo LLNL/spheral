@@ -88,7 +88,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Time integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 100.0,
+            goalTime = 130.0,
             steps = None,
             dt = 1e-6,
             dtMin = 1e-6,
@@ -420,6 +420,7 @@ if not steps is None:
 else:
     control.advance(goalTime)
     control.dropRestartFile()
+    control.conserve.writeHistory(os.path.join(dataDir, "conservation_history.gnu"))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
