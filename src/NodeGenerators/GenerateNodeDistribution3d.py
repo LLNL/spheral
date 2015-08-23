@@ -1655,17 +1655,37 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
-            for i in xrange(28):
-                nr  = resolution[i][1]
-                ver = resolution[i][2]
-                if (resolution[i][0] > nshell):
-                    break
+            counts  = []
         
             hi = nNodePerh*(dr)
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
             if (nshell > 2):
+                for i in xrange(len(shapeData)):
+                    nc  = 0
+                    nco = 0
+                    nrf = 0
+                    while (nc < nshell):
+                        nrf += 1
+                        nco = nc
+                        nc = self.shapeCount(nrf,shapeData[i])
+                    counts.append([i,nrf-1,nco])
+                    counts.append([i,nrf,nc])
+                
+                #print counts
+                
+                diff = 1e13
+                for i in xrange(len(counts)):
+                    dd = abs(counts[i][2] - nshell)
+                    if (dd < diff):
+                        diff = dd
+                        ver = counts[i][0]
+                        nr = counts[i][1]
+                
+                if (nr<0):
+                    nr = 0
+                
                 if (ver==0):
                     self.createHexaSphere(nr)
                 elif (ver==1):
@@ -1680,7 +1700,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 self.positions.append([1,0,0])
                 self.positions.append([-1,0,0])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            print "at r=%g, computed %d total nodes with mass=%g" %(ri,len(self.positions),mi)
+            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(ri,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
                 x       = ri*self.positions[n][0]
                 y       = ri*self.positions[n][1]
