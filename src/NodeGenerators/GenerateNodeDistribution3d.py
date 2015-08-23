@@ -1593,16 +1593,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         self.H = []
         ri = rmax
         
-        # new formula for calculating number of points for a given subdivision level
-        # (Nf * Np(n) - Ne * Npe(n) + Nc)
-        # Nf = Number of faces of primitive shape
-        # Np(n) = Number of points in a triangle subdivided n times
-        #       2^(2n-1) + 3*2^(n-1) + 1
-        # Ne = Number of edges of primitive shape
-        # Npe(n) = Number of points along an edge of primitive shape subdivided n times
-        #       2^n + 1
-        # Nc = Number of corners
-        
         # shapeData = [Nf,Ne,Nc]
         
         shapeData = [[ 6, 9, 5],
@@ -1725,6 +1715,29 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                                    self.x, self.y, self.z, self.m, self.H)
         return
 
+    #---------------------------------------------------------------------------
+    # Compute the number of vertices for a given shape at a specific refinement
+    # level.
+    #  new formula for calculating number of points for a given subdivision level
+    #  (Nf * Np(n) - Ne * Npe(n) + Nc)
+    #  Nf = Number of faces of primitive shape
+    #  Np(n) = Number of points in a triangle subdivided n times
+    #       2^(2n-1) + 3*2^(n-1) + 1
+    #  Ne = Number of edges of primitive shape
+    #  Npe(n) = Number of points along an edge of primitive shape subdivided n times
+    #       2^n + 1
+    #  Nc = Number of corners
+    #---------------------------------------------------------------------------
+    def shapeCount(self, refinement, shape):
+        Nf  = shape[0]
+        Ne  = shape[1]
+        Nc  = shape[2]
+        n   = refinement
+    
+        Npe = 2**n + 1
+        Np  = 2**(2*n-1) + 3*(2**(n-1)) + 1
+        return (Nf * Np - Ne * Npe + Nc)
+    
     #---------------------------------------------------------------------------
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
