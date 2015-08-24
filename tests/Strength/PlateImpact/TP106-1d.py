@@ -427,6 +427,7 @@ if outputFile != "None":
     eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
     Hfield = state.symTensorFields(HydroFieldNames.H)
     S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    ps = state.scalarFields("plastic strain")
     xprof = mpi.reduce([x.x for x in internalValues(pos)], mpi.SUM)
     rhoprof = mpi.reduce(internalValues(rho), mpi.SUM)
     Pprof = mpi.reduce(internalValues(P), mpi.SUM)
@@ -434,23 +435,25 @@ if outputFile != "None":
     epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in internalValues(Hfield)], mpi.SUM)
     sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
+    psprof = mpi.reduce(internalValues(ps), mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
     if mpi.rank == 0:
-        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof)
+        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof)
         f = open(outputFile, "w")
-        f.write(("#" + 15*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "m", 
-                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)"))
-        for (xi, rhoi, Pi, vi, epsi, hi, si, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
-            f.write((7*"%16.12e " + 8*"%i " + "\n") %
-                    (xi, rhoi, Pi, vi, epsi, hi, si, mi,
+        f.write(("#" + 17*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", psprof, "m", 
+                                             "int(x)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
+        for (xi, rhoi, Pi, vi, epsi, hi, si, psi, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof, mo):
+            f.write((8*"%16.12e " + 9*"%i " + "\n") %
+                    (xi, rhoi, Pi, vi, epsi, hi, si, psi, mi,
                      unpackElementUL(packElementDouble(xi)),
                      unpackElementUL(packElementDouble(rhoi)),
                      unpackElementUL(packElementDouble(Pi)),
                      unpackElementUL(packElementDouble(vi)),
                      unpackElementUL(packElementDouble(epsi)),
                      unpackElementUL(packElementDouble(hi)),
-                     unpackElementUL(packElementDouble(si))))
+                     unpackElementUL(packElementDouble(si)),
+                     unpackElementUL(packElementDouble(psi))))
         f.close()
 
 #-------------------------------------------------------------------------------
@@ -476,3 +479,6 @@ if graphics:
                           yFunction = "1.0/%s.xx",
                           plotStyle="linespoints",
                           winTitle="h @ %g %i" % (control.time(), mpi.procs))
+    psPlot = plotFieldList(state.scalarFields("plastic strain"),
+                           plotStyle="linespoints",
+                           winTitle="plastic strain @ %g %i" % (control.time(), mpi.procs))
