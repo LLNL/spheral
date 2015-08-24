@@ -65,6 +65,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Hydro parameters.
             CRKSPH = False,
+            SPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
@@ -89,7 +90,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Time integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 130.0,
+            goalTime = 150.0,
             steps = None,
             dt = 1e-6,
             dtMin = 1e-6,
@@ -130,10 +131,16 @@ print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval,
 
 # Hydro constructor.
 if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
+    if SPH:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = SolidACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SolidSPHHydro
+    if SPH:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SolidASPHHydro
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
