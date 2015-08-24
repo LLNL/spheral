@@ -56,9 +56,6 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             etamin = 1e-3,
             etamax = 1e3,
 
-            # Should we run with strength?
-            useStrength = True,
-
             # How many shells should we create tracer histories for?
             nshells = 10,
 
@@ -140,7 +137,6 @@ else:
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
-                       "strength=%s" % useStrength,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % densityUpdate,
@@ -184,12 +180,6 @@ eosBe = OsborneEquationOfState( 1.85, etamin, etamax,     # Parameters from Howe
                                 units,
                                 minimumPressure = -0.1)
 strengthModelBe = ConstantStrength(G0, Y0)
-
-#-------------------------------------------------------------------------------
-# If we're not using strength, override the strength models.
-#-------------------------------------------------------------------------------
-if not useStrength:
-    strengthModelBe = NullStrength()
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
