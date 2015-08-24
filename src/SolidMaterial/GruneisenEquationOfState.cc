@@ -183,17 +183,16 @@ pressure(const Scalar massDensity,
   CHECK(valid());
   const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
-  // if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double K0 = rho0*mC0*mC0;
   const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   //TODO double check branching and apply eta convention in appropriate branch
-  if (mu <= 0.0 or specificThermalEnergy < 0.0) {
-    return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps - mExternalPressure);
+  // if (mu <= 0.0 or specificThermalEnergy < 0.0) {
+  //   return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps - mExternalPressure);
 
-  } else {
+  // } else {
     const double mu1 = mu + 1.0;
     CHECK(mu1 >= -1.0);
     const double ack = 1.0/(sgn(mu1)*max(mu1, tiny));
@@ -205,7 +204,7 @@ pressure(const Scalar massDensity,
                                       (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
     // return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
     //                                   (mgamma0 + mb*mu)*eps*rho0) - mExternalPressure);
-  }
+  // }
 
 }
 
@@ -330,12 +329,12 @@ computeDPDrho(const Scalar massDensity,
   const double dpdrho_cold = mC0*mC0*ack;
 
   // Put the whole thing together, depending on the thermal energy.
-  if (mu <= 0.0 or eps < 0.0) {
-    return dpdrho_cold;
-  } else {
+  // if (mu <= 0.0 or eps < 0.0) {
+  //   return dpdrho_cold;
+  // } else {
     const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
     return dpdrho_cold + max(0.0, mb*eps + mb*Prho2);
-  }
+  // }
 }
 
 //------------------------------------------------------------------------------
