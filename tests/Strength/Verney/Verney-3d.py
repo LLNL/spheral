@@ -241,7 +241,7 @@ vel = nodesBe.velocity()
 for i in xrange(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
-    vel[i] = -u0 * (R0/ri) * rhat
+    vel[i] = -u0 * (R0/ri)**2 * rhat
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
