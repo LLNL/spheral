@@ -1348,8 +1348,7 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
 #-------------------------------------------------------------------------------
 # Specialized version that generates a variable radial stepping to try
 # and match a given density profile with (nearly) constant mass nodes
-# on a variable resolution Icosahedron.
-# It is recommended for now that you use 0-pi and 0-2pi for theta,phi.
+# in a disk described by a density profile in r and z.
 #-------------------------------------------------------------------------------
 class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
@@ -1700,11 +1699,12 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 self.positions.append([1,0,0])
                 self.positions.append([-1,0,0])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(ri,nshell,len(self.positions),mi)
+            rii = ri - 0.5*dr
+            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
-                x       = ri*self.positions[n][0]
-                y       = ri*self.positions[n][1]
-                z       = ri*self.positions[n][2]
+                x       = rii*self.positions[n][0]
+                y       = rii*self.positions[n][1]
+                z       = rii*self.positions[n][2]
                 if(nshell>1):
                     theta   = acos(z/sqrt(x*x+y*y+z*z))
                     phi     = atan2(y,x)
@@ -1714,9 +1714,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     theta = (thetaMax - thetaMin)/2.0
                     phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(ri*self.positions[n][0])
-                    self.y.append(ri*self.positions[n][1])
-                    self.z.append(ri*self.positions[n][2])
+                    self.x.append(rii*self.positions[n][0])
+                    self.y.append(rii*self.positions[n][1])
+                    self.z.append(rii*self.positions[n][2])
                     self.m.append(mi)
                     self.H.append(SymTensor3d.one*(1.0/hi))
             #self.H.append(Hi)
