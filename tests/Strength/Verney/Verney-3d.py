@@ -141,6 +141,8 @@ dataDir = os.path.join(dataDirBase,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % densityUpdate,
+                       seed,
+                       geometry,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
