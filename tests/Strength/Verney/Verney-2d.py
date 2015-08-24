@@ -62,6 +62,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Hydro parameters.
             CRKSPH = False,
+            SPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 1.0,
@@ -126,10 +127,16 @@ print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval,
 
 # Hydro constructor.
 if CRKSPH:
-    HydroConstructor = SolidCRKSPHHydro
+    if SPH:
+        HydroConstructor = SolidCRKSPHHydro
+    else:
+        HydroConstructor = SolidACRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
-    HydroConstructor = SolidSPHHydro
+    if SPH:
+        HydroConstructor = SolidSPHHydro
+    else:
+        HydroConstructor = SolidASPHHydro
 
 # Directories.
 dataDir = os.path.join(dataDirBase,
@@ -215,6 +222,8 @@ else:
     xmax = ( R1,  R1)
     nx = 2*nx
     thetamax = 2.0*pi
+if seed == "constantDTheta":
+    nx = nr
 gen = GenerateNodeDistribution2d(nx, nx, rho0Be,
                                  distributionType = seed,
                                  xmin = xmin,
