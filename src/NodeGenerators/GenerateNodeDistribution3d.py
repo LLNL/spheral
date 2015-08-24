@@ -1665,17 +1665,37 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
-            for i in xrange(28):
-                nr  = resolution[i][1]
-                ver = resolution[i][2]
-                if (resolution[i][0] > nshell):
-                    break
+            counts  = []
         
             hi = nNodePerh*(dr)
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
             if (nshell > 2):
+                for i in xrange(len(shapeData)):
+                    nc  = 0
+                    nco = 0
+                    nrf = 0
+                    while (nc < nshell):
+                        nrf += 1
+                        nco = nc
+                        nc = self.shapeCount(nrf,shapeData[i])
+                    counts.append([i,nrf-1,nco])
+                    counts.append([i,nrf,nc])
+                
+                #print counts
+                
+                diff = 1e13
+                for i in xrange(len(counts)):
+                    dd = abs(counts[i][2] - nshell)
+                    if (dd < diff):
+                        diff = dd
+                        ver = counts[i][0]
+                        nr = counts[i][1]
+                
+                if (nr<0):
+                    nr = 0
+                
                 if (ver==0):
                     self.createHexaSphere(nr)
                 elif (ver==1):
@@ -1690,12 +1710,11 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 self.positions.append([1,0,0])
                 self.positions.append([-1,0,0])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            rii = ri - 0.5*dr
-            print "at r=%g, computed %d total nodes with mass=%g" %(rii,len(self.positions),mi)
+            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(ri,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
-                x       = rii*self.positions[n][0]
-                y       = rii*self.positions[n][1]
-                z       = rii*self.positions[n][2]
+                x       = ri*self.positions[n][0]
+                y       = ri*self.positions[n][1]
+                z       = ri*self.positions[n][2]
                 if(nshell>1):
                     theta   = acos(z/sqrt(x*x+y*y+z*z))
                     phi     = atan2(y,x)
@@ -1705,9 +1724,9 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     theta = (thetaMax - thetaMin)/2.0
                     phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(rii*self.positions[n][0])
-                    self.y.append(rii*self.positions[n][1])
-                    self.z.append(rii*self.positions[n][2])
+                    self.x.append(ri*self.positions[n][0])
+                    self.y.append(ri*self.positions[n][1])
+                    self.z.append(ri*self.positions[n][2])
                     self.m.append(mi)
                     self.H.append(SymTensor3d.one*(1.0/hi))
             #self.H.append(Hi)
@@ -1726,6 +1745,29 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                                    self.x, self.y, self.z, self.m, self.H)
         return
 
+    #---------------------------------------------------------------------------
+    # Compute the number of vertices for a given shape at a specific refinement
+    # level.
+    #  new formula for calculating number of points for a given subdivision level
+    #  (Nf * Np(n) - Ne * Npe(n) + Nc)
+    #  Nf = Number of faces of primitive shape
+    #  Np(n) = Number of points in a triangle subdivided n times
+    #       2^(2n-1) + 3*2^(n-1) + 1
+    #  Ne = Number of edges of primitive shape
+    #  Npe(n) = Number of points along an edge of primitive shape subdivided n times
+    #       2^n + 1
+    #  Nc = Number of corners
+    #---------------------------------------------------------------------------
+    def shapeCount(self, refinement, shape):
+        Nf  = shape[0]
+        Ne  = shape[1]
+        Nc  = shape[2]
+        n   = refinement
+    
+        Npe = 2**n + 1
+        Np  = 2**(2*n-1) + 3*(2**(n-1)) + 1
+        return (Nf * Np - Ne * Npe + Nc)
+    
     #---------------------------------------------------------------------------
     # Get the position for the given node index.
     #---------------------------------------------------------------------------
