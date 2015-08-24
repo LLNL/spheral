@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Spherical (3D) version.
+# Cylindrical (2D XY) version.
 # An idealized strength test test where an imploding shell is ultimately stopped
 # at a known radius due to plastic work dissipation.
 #
@@ -9,17 +9,17 @@ from math import *
 import shutil
 import mpi
 
-from SolidSpheral3d import *
+from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from NodeHistory import NodeHistory
-from GenerateNodeDistribution3d import *
-from VoronoiDistributeNodes import distributeNodes3d
+from GenerateNodeDistribution2d import *
+from VoronoiDistributeNodes import distributeNodes2d
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
 #-------------------------------------------------------------------------------
-title("3-D Verney imploding shell test.")
+title("2-D Verney imploding shell test.")
 
 #-------------------------------------------------------------------------------
 # Use (cm, gm, usec) units as in paper.
@@ -37,12 +37,9 @@ def F(alpha, lamb, R0, R1, n):
         def __init__(self, R0, R1):
             SimpsonsIntegrationDoubleFunction.__init__(self)
             self.alpha = R1/R0 - 1.0
-            self.thpt = 3.0*(self.alpha +
-                             self.alpha*self.alpha +
-                             self.alpha*self.alpha*self.alpha)
             return
         def __call__(self, x):
-            return x*x*log(1.0 + self.thpt/(x*x*x))
+            return x*log(1.0 + self.alpha*(2.0 + self.alpha)/(x*x))
 
     func = integfunc(R0, R1)
     return simpsonsIntegrationDouble(func, lamb, 1.0, n)
@@ -52,8 +49,8 @@ def F(alpha, lamb, R0, R1, n):
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nr = 10,              # Radial resolution of the shell in points
-            seed = "lattice",     # "lattice" or "icosahedral"
-            geometry = "octant",  # choose ("octant", "full").  "octant" not valid with "icosahedral" seed
+            seed = "lattice",     # "lattice" or "constantDTheta"
+            geometry = "quadrant",  # choose ("quadrant", "full").
             nPerh = 2.01,
 
             # Material specific bounds on the mass density.
@@ -89,7 +86,7 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
 
             # Time integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 130.0,
+            goalTime = 150.0,
             steps = None,
             dt = 1e-6,
             dtMin = 1e-6,
@@ -108,13 +105,12 @@ commandLine(nr = 10,              # Radial resolution of the shell in points
             graphics = True,
 
             clearDirectories = False,
-            dataDirBase = "dumps-Verney-Be-3d",
-            outputFile = "Verney-Be-3d.gnu",
+            dataDirBase = "dumps-Verney-Be-2d",
+            outputFile = "Verney-Be-2d.gnu",
         )
 
-assert seed in ("lattice", "icosahedral")
-assert geometry in ("octant", "full")
-assert geometry == "full" or not seed == "icosahedral"
+assert seed in ("lattice", "constantDTheta")
+assert geometry in ("quadrant", "full")
 
 # Material parameters for this test problem.
 rho0Be = 1.845
@@ -125,7 +121,7 @@ delta = R1 - R0
 lamb = r0/R0
 alpha = delta/R0
 Fval = F(alpha, lamb, R0, R1, 1000)
-u0 = sqrt(4.0*Y0*R1*Fval/(3.0*rho0Be*delta))
+u0 = sqrt(2.0*Y0*Fval/(sqrt(3.0)*rho0Be*log(R1/R0)))
 print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
 
 # Hydro constructor.
@@ -209,28 +205,25 @@ nodeSet = [nodesBe]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 print "Generating node distribution."
-if seed == "lattice":
-    nx = int(R1/(R1 - R0) * nr + 0.5)
-    if geometry == "octant":
-        xmin = (0.0, 0.0, 0.0)
-        xmax = (R1, R1, R1)
-    else:
-        xmin = (-R1, -R1, -R1)
-        xmax = ( R1,  R1,  R1)
-        nx = 2*nx
-    gen = GenerateNodeDistribution3d(nx, nx, nx, rho0Be,
-                                     distributionType = seed,
-                                     xmin = xmin,
-                                     xmax = xmax,
-                                     rmin = R0, 
-                                     rmax = R1)
+nx = int(R1/(R1 - R0) * nr + 0.5)
+if geometry == "quadrant":
+    xmin = (0.0, 0.0)
+    xmax = (R1, R1)
+    thetamax = 0.5*pi
 else:
-    gen = GenerateIcosahedronMatchingProfile3d(nr, rho0Be,
-                                               rmin = R0,
-                                               rmax = R1,
-                                               nNodePerh = nPerh)
+    xmin = (-R1, -R1)
+    xmax = ( R1,  R1)
+    nx = 2*nx
+    thetamax = 2.0*pi
+gen = GenerateNodeDistribution2d(nx, nx, rho0Be,
+                                 distributionType = seed,
+                                 xmin = xmin,
+                                 xmax = xmax,
+                                 theta = thetamax,
+                                 rmin = R0, 
+                                 rmax = R1)
 
-distributeNodes3d((nodesBe, gen))
+distributeNodes2d((nodesBe, gen))
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.SUM)")
@@ -241,7 +234,7 @@ vel = nodesBe.velocity()
 for i in xrange(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
-    vel[i] = -u0 * (R0/ri)**2 * rhat
+    vel[i] = -u0 * R0/ri * rhat
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -307,16 +300,13 @@ output("hydro.PiKernel()")
 #-------------------------------------------------------------------------------
 # Boundary conditions.
 #-------------------------------------------------------------------------------
-if geometry == "octant":
-    xPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))
-    yPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))
-    zPlane = Plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 0.0, 1.0))
+if geometry == "quadrant":
+    xPlane = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
+    yPlane = Plane(Vector(0.0, 0.0), Vector(0.0, 1.0))
     xbc = ReflectingBoundary(xPlane)
     ybc = ReflectingBoundary(yPlane)
-    zbc = ReflectingBoundary(zPlane)
     hydro.appendBoundary(xbc)
     hydro.appendBoundary(ybc)
-    hydro.appendBoundary(zbc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -360,7 +350,7 @@ def verneySample(nodes, indices):
     epsshell = mpi.allreduce(sum([mass[i]*eps[i] for i in indices] + [0.0]), mpi.SUM)
     Pshell = mpi.allreduce(sum([mass[i]*P[i] for i in indices] + [0.0]), mpi.SUM)
     strainShell = mpi.allreduce(sum([mass[i]*ps[i] for i in indices] + [0.0]), mpi.SUM)
-    hshell = mpi.allreduce(sum([mass[i]*3.0/(H[i].Trace()) for i in indices] + [0.0]), mpi.SUM)
+    hshell = mpi.allreduce(sum([mass[i]*2.0/(H[i].Trace()) for i in indices] + [0.0]), mpi.SUM)
     rshell /= mshell
     vshell /= mshell
     rhoshell /= mshell
@@ -435,7 +425,7 @@ if outputFile != "None":
     Pprof = mpi.reduce(internalValues(P), mpi.SUM)
     vprof = mpi.reduce([v.x for v in internalValues(vel)], mpi.SUM)
     epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
-    hprof = mpi.reduce([3.0/(H.Trace()) for H in internalValues(Hfield)], mpi.SUM)
+    hprof = mpi.reduce([2.0/(H.Trace()) for H in internalValues(Hfield)], mpi.SUM)
     sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
@@ -481,6 +471,6 @@ if graphics:
                           winTitle="pressure @ %g" % (control.time()))
     hPlot = plotFieldList(state.symTensorFields("H"),
                           xFunction = "%s.magnitude()",
-                          yFunction = "3.0/%s.Trace()",
+                          yFunction = "2.0/%s.Trace()",
                           plotStyle="points",
                           winTitle="h @ %g" % (control.time()))
