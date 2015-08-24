@@ -121,7 +121,8 @@ delta = R1 - R0
 lamb = r0/R0
 alpha = delta/R0
 Fval = F(alpha, lamb, R0, R1, 1000)
-u0 = sqrt(2.0*Y0*Fval/(sqrt(3.0)*rho0Be*log(R1/R0)))
+u0 = sqrt(4.0*Y0*R1*Fval/(3.0*rho0Be*delta))
+#u0 = sqrt(2.0*Y0*Fval/(sqrt(3.0)*rho0Be*log(R1/R0)))
 print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
 
 #beta = lamb**3 + alpha**3 + 3.0*alpha*(alpha* + 1.0)
