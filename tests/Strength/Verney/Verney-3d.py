@@ -423,6 +423,14 @@ else:
     control.dropRestartFile()
     control.conserve.writeHistory(os.path.join(dataDir, "conservation_history.gnu"))
 
+    # Check the tracer info for the innermost-shell, reporting the discrepancy
+    # from the expected final stopping radius.  Not quite correct since we're sampling
+    # the interior of the shell, but it gives us something quantitative.
+    histories[0].sample(control.totalSteps, control.time(), control.lastDt())
+    rsim0 = histories[0].sampleHistory[-1][0]
+    print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
+                                                                                    rsim0 - r0)
+
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
@@ -437,6 +445,7 @@ if outputFile != "None":
     eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
     Hfield = state.symTensorFields(HydroFieldNames.H)
     S = state.symTensorFields(SolidFieldNames.deviatoricStress)
+    ps = state.scalarFields(SolidFieldNames.plasticStrain)
     rprof = mpi.reduce([x.magnitude() for x in internalValues(pos)], mpi.SUM)
     rhoprof = mpi.reduce(internalValues(rho), mpi.SUM)
     Pprof = mpi.reduce(internalValues(P), mpi.SUM)
@@ -444,23 +453,25 @@ if outputFile != "None":
     epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
     hprof = mpi.reduce([3.0/(H.Trace()) for H in internalValues(Hfield)], mpi.SUM)
     sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
+    psprof = mpi.reduce(internalValues(ps), mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
     if mpi.rank == 0:
-        multiSort(mo, rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof)
+        multiSort(mo, rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof)
         f = open(outputFile, "w")
-        f.write(("#" + 15*" %16s" + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "m", 
-                                             "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)"))
-        for (ri, rhoi, Pi, vi, epsi, hi, si, mi) in zip(rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
-            f.write((7*"%16.12e " + 8*"%i " + "\n") %
-                    (ri, rhoi, Pi, vi, epsi, hi, si, mi,
+        f.write(("#" + 17*" %16s" + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "plastic strain", "m", 
+                                             "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
+        for (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi) in zip(rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof, mo):
+            f.write((8*"%16.12e " + 9*"%i " + "\n") %
+                    (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi,
                      unpackElementUL(packElementDouble(ri)),
                      unpackElementUL(packElementDouble(rhoi)),
                      unpackElementUL(packElementDouble(Pi)),
                      unpackElementUL(packElementDouble(vi)),
                      unpackElementUL(packElementDouble(epsi)),
                      unpackElementUL(packElementDouble(hi)),
-                     unpackElementUL(packElementDouble(si))))
+                     unpackElementUL(packElementDouble(si)),
+                     unpackElementUL(packElementDouble(psi))))
         f.close()
 
 #-------------------------------------------------------------------------------
