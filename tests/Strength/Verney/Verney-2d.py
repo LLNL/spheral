@@ -1,3 +1,7 @@
+#ATS:for seed in ("constantDTheta", "lattice"):
+#ATS:    for (nr, np) in ((10, 1), (20, 4), (40, 10), (80, 40)):
+#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH False" % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_SPH" % (seed, nr))
+#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH True"  % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_CRK" % (seed, nr))
 #-------------------------------------------------------------------------------
 # Cylindrical (2D XY) version.
 # An idealized strength test test where an imploding shell is ultimately stopped
@@ -451,8 +455,8 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof)
         f = open(outputFile, "w")
-        f.write(("#" + 17*" %16s" + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "plastic strain", "m", 
-                                             "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
+        f.write(("#" + 17*' "%16s"' + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "plastic strain", "m", 
+                                               "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
         for (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi) in zip(rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof, mo):
             f.write((8*"%16.12e " + 9*"%i " + "\n") %
                     (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi,
