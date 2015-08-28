@@ -459,8 +459,8 @@ if outputFile != "None":
     if mpi.rank == 0:
         multiSort(mo, rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof)
         f = open(outputFile, "w")
-        f.write(("#" + 17*" %16s" + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "plastic strain", "m", 
-                                             "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
+        f.write(("#" + 17*' "%16s"' + "\n") % ("r", "rho", "P", "v", "eps", "h", "S", "plastic strain", "m", 
+                                               "int(r)", "int(rho)", "int(P)", "int(v)", "int(eps)", "int(h)", "int(S)", "int(ps)"))
         for (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi) in zip(rprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, psprof, mo):
             f.write((8*"%16.12e " + 9*"%i " + "\n") %
                     (ri, rhoi, Pi, vi, epsi, hi, si, psi, mi,
