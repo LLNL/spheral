@@ -498,3 +498,7 @@ if graphics:
                           yFunction = "2.0/%s.Trace()",
                           plotStyle="points",
                           winTitle="h @ %g" % (control.time()))
+    psPlot = plotFieldList(state.scalarFields(SolidFieldNames.plasticStrain),
+                           xFunction = "%s.magnitude()",
+                           plotStyle="points",
+                           winTitle="plastic strain @ %g" % (control.time()))
