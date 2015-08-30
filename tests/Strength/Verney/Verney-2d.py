@@ -1,7 +1,7 @@
 #ATS:for seed in ("constantDTheta", "lattice"):
-#ATS:    for (nr, np) in ((10, 1), (20, 4), (40, 10), (80, 40)):
-#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH False" % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_SPH" % (seed, nr))
-#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH True"  % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_CRK" % (seed, nr))
+#ATS:    for (nr, np) in ((10, 1), (20, 4), (40, 10)): # , (80, 40)):
+#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH False --SPH True" % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_SPH" % (seed, nr))
+#ATS:        test(SELF, "--nr %i --seed %s --CRKSPH True  --SPH True" % (nr, seed), np=np, label="Verney_2d_%s_nr=%i_CRK" % (seed, nr))
 #-------------------------------------------------------------------------------
 # Cylindrical (2D XY) version.
 # An idealized strength test test where an imploding shell is ultimately stopped
