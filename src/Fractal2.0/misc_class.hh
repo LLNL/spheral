@@ -44,12 +44,36 @@ namespace FractalSpace
     {
       return x*x*x;
     }
-    template <class T> static void add_dens(vector <T>& dens,const T& dm, const T& d_x, 
-					    const T& d_y, const T& d_z)
+    template <class T> static void add_dens(vector <T>& dens,const T& dm, T& d_x, 
+					    T& d_y, T& d_z)
     {
-      assert(abs(d_x-0.5) <= 0.5);
-      assert(abs(d_y-0.5) <= 0.5);
-      assert(abs(d_z-0.5) <= 0.5);
+//       assert(abs(d_x-0.5) <= 0.5);
+//       assert(abs(d_y-0.5) <= 0.5);
+//       assert(abs(d_z-0.5) <= 0.5);
+      if(abs(d_x-0.5) > 0.5)
+	{
+	  cout << "dx error " << abs(d_x-0.5)-0.5 << "\n";
+	  if(d_x > 1.0)
+	    d_x=1.0;
+	  else
+	    d_x=0.0;
+	}
+      if(abs(d_y-0.5) > 0.5)
+	{
+	  cout << "dy error " << abs(d_y-0.5)-0.5 << "\n";
+	  if(d_y > 1.0)
+	    d_y=1.0;
+	  else
+	    d_y=0.0;
+	}
+      if(abs(d_z-0.5) > 0.5)
+	{
+	  cout << "dz error " << abs(d_z-0.5)-0.5 << "\n";
+	  if(d_z > 1.0)
+	    d_z=1.0;
+	  else
+	    d_z=0.0;
+	}
       T d_1=(1.0-d_x)*(1.0-d_y);
       T d_2=d_x*(1.0-d_y);
       T d_3=(1.0-d_x)*d_y;
