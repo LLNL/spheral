@@ -23,6 +23,75 @@ using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
 
+namespace {
+
+//------------------------------------------------------------------------------
+// Store the Field values of the given DataType for the given NodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+void
+storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
+                 const std::vector<int>& nodeIDs,
+                 std::map<std::string, std::vector<DataType> >& values) {
+
+  // Iterate over all the Fields defined on the NodeList.
+  for (typename NodeSpace::NodeList<Dimension>::const_FieldBaseIterator fieldItr = nodeList.registeredFieldsBegin();
+       fieldItr != nodeList.registeredFieldsEnd();
+       ++fieldItr) {
+
+    // Determine if this Field is the type we're looking for.
+    if (typeid(**fieldItr) == typeid(FieldSpace::Field<Dimension, DataType>)) {
+      const FieldSpace::Field<Dimension, DataType>& field = (const FieldSpace::Field<Dimension, DataType>&) **fieldItr;
+
+      // Build a vector of the values of this field on the requested nodes.
+      std::vector<DataType> vals;
+      vals.reserve(nodeIDs.size());
+      for (typename std::vector<int>::const_iterator nodeItr = nodeIDs.begin();
+           nodeItr != nodeIDs.end();
+           ++nodeItr) {
+        CHECK(*nodeItr >= 0 && *nodeItr < field.numElements());
+        vals.push_back(field(*nodeItr));
+      }
+      CHECK(vals.size() == nodeIDs.size());
+
+      // Put this data into the result.
+      const std::string key = StateBase<Dimension>::key(**fieldItr);
+      CHECK(values.find(key) == values.end());
+      values[key] = vals;
+    }
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Set the ghost values in the given field using the given map.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+void
+setGhostValues(FieldSpace::Field<Dimension, DataType>& field,
+               const std::vector<int>& ghostNodes,
+               const std::map<std::string, std::vector<DataType> >& values) {
+
+  const NodeSpace::NodeList<Dimension>& nodeList = field.nodeList();
+
+  // Find this Field in the set of stored values.
+  const std::string key = StateBase<Dimension>::key(field);
+  typename std::map<std::string, std::vector<DataType> >::const_iterator itr = values.find(key);
+
+  // Now set the ghost values.
+  if (itr != values.end()) {
+    const std::vector<DataType>& ghostValues = itr->second;;
+    CHECK(ghostValues.size() == ghostNodes.size());
+    for (int i = 0; i < ghostNodes.size(); ++i) {
+      CHECK(ghostNodes[i] >= nodeList.firstGhostNode() &&
+            ghostNodes[i] < nodeList.numNodes());
+      field(ghostNodes[i]) = ghostValues[i];
+    }
+  }
+
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Construct with the given set of nodes.
 //------------------------------------------------------------------------------
@@ -31,8 +100,9 @@ ConstantBoundary<Dimension>::
 ConstantBoundary(const NodeList<Dimension>& nodeList,
                  const vector<int>& nodeIDs):
   Boundary<Dimension>(),
-  mNumConstantNodes(nodeIDs.size()),
   mNodeListPtr(&nodeList),
+  mNodeIDs(nodeIDs),
+  mNumConstantNodes(nodeIDs.size()),
   mScalarValues(),
   mVectorValues(),
   mTensorValues(),
@@ -40,14 +110,8 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
   mThirdRankTensorValues(),
   mVectorScalarValues() {
 
-  // Store the field values on the given nodes.
-  storeFieldValues<int>(nodeList, nodeIDs, mIntValues);
-  storeFieldValues<Scalar>(nodeList, nodeIDs, mScalarValues);
-  storeFieldValues<Vector>(nodeList, nodeIDs, mVectorValues);
-  storeFieldValues<Tensor>(nodeList, nodeIDs, mTensorValues);
-  storeFieldValues<SymTensor>(nodeList, nodeIDs, mSymTensorValues);
-  storeFieldValues<ThirdRankTensor>(nodeList, nodeIDs, mThirdRankTensorValues);
-  storeFieldValues<std::vector<Scalar> >(nodeList, nodeIDs, mVectorScalarValues);
+  // Make an initial copy of the ghost state.
+  this->initializeProblemStartup();
 
   // Once we're done the boundary condition should be in a valid state.
   ENSURE(valid());
@@ -110,11 +174,11 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Set the ghost node positions.
     Field<Dimension, Vector>& positions = nodeList.positions();
-    setGhostValues<Vector>(positions, mVectorValues);
+    setGhostValues(positions, this->ghostNodes(nodeList), mVectorValues);
 
     // Set the ghost H fields.
     Field<Dimension, SymTensor>& Hfield = nodeList.Hfield();
-    setGhostValues<SymTensor>(Hfield, mSymTensorValues);
+    setGhostValues(Hfield, this->ghostNodes(nodeList), mSymTensorValues);
 
 //     // Update the neighbor information.
 //     const vector<int>& ghostNodes = this->ghostNodes(nodeList);
@@ -131,7 +195,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
-  setGhostValues<int>(field, mIntValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mIntValues);
 }
 
 // Specialization for scalar fields.
@@ -139,7 +203,15 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  setGhostValues<Scalar>(field, mScalarValues);
+  cerr << "--> " << field.name() << " ";
+  const std::string key = StateBase<Dimension>::key(field);
+  typename std::map<std::string, std::vector<Scalar> >::const_iterator itr = mScalarValues.find(key);
+  cerr << (itr != mScalarValues.end()) << " : ";
+  // if (itr != mScalarValues.end()) {
+  //   std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<Scalar>(std::cerr, " "));
+  // }
+  std::cerr << endl;
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mScalarValues);
 }
 
 // Specialization for Vector fields.
@@ -147,7 +219,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  setGhostValues<Vector>(field, mVectorValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mVectorValues);
 }
 
 // Specialization for Tensor fields.
@@ -155,7 +227,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  setGhostValues<Tensor>(field, mTensorValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mTensorValues);
 }
 
 // Specialization for symmetric tensors.
@@ -163,7 +235,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  setGhostValues<SymTensor>(field, mSymTensorValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mSymTensorValues);
 }
 
 // Specialization for third rank tensors.
@@ -171,7 +243,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  setGhostValues<ThirdRankTensor>(field, mThirdRankTensorValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mThirdRankTensorValues);
 }
 
 // Specialization for vector<scalar> fields.
@@ -179,7 +251,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
-  setGhostValues<std::vector<Scalar> >(field, mVectorScalarValues);
+  setGhostValues(field, this->ghostNodes(field.nodeList()), mVectorScalarValues);
 }
 
 //------------------------------------------------------------------------------
@@ -248,41 +320,41 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 }
 
 //------------------------------------------------------------------------------
+// On problem startup we take our snapshot of the state.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::initializeProblemStartup() {
+
+  // Clear any existing data.
+  mIntValues.clear();
+  mScalarValues.clear();
+  mVectorValues.clear();
+  mTensorValues.clear();
+  mSymTensorValues.clear();
+  mThirdRankTensorValues.clear();
+  mVectorScalarValues.clear();
+
+  // Now take a snapshot of the Fields.
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mIntValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mScalarValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mVectorValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mTensorValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mSymTensorValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mThirdRankTensorValues);
+  storeFieldValues(*mNodeListPtr, mNodeIDs, mVectorScalarValues);
+
+  // Once we're done the boundary condition should be in a valid state.
+  ENSURE(valid());
+}
+
+//------------------------------------------------------------------------------
 // Test if the constant boundary is minimally valid.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
 ConstantBoundary<Dimension>::valid() const {
-  bool ok = true;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<int> >::const_iterator
-         itr = mIntValues.begin();
-       itr != mIntValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<Scalar> >::const_iterator
-         itr = mScalarValues.begin();
-       itr != mScalarValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<Vector> >::const_iterator
-         itr = mVectorValues.begin();
-       itr != mVectorValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<Tensor> >::const_iterator
-         itr = mTensorValues.begin();
-       itr != mTensorValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<SymTensor> >::const_iterator
-         itr = mSymTensorValues.begin();
-       itr != mSymTensorValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<ThirdRankTensor> >::const_iterator
-         itr = mThirdRankTensorValues.begin();
-       itr != mThirdRankTensorValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  for (typename std::map<const FieldBase<Dimension>*, std::vector<std::vector<Scalar> > >::const_iterator
-         itr = mVectorScalarValues.begin();
-       itr != mVectorScalarValues.end();
-       ++itr) ok = ok && itr->first->nodeListPtr() == mNodeListPtr;
-  return ok;
+  return true;
 }
 
 }

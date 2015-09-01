@@ -11,6 +11,7 @@
 
 #include "Boundary.hh"
 #include "NodeList/NodeList.hh"
+#include "DataBase/StateBase.hh" // For constructing Field keys.
 
 namespace Spheral {
   namespace NodeSpace {
@@ -39,6 +40,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
   ConstantBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
@@ -78,6 +80,9 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
 
+  // After physics have been initialized we take a snapshot of the node state.
+  virtual void initializeProblemStartup();
+
   // Minimal valid test.
   virtual bool valid() const;
 
@@ -85,36 +90,19 @@ public:
   int numConstantNodes() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
 
-#ifndef __GCCXML__
-  // Helper method for inserting Field values in the internal map data 
-  // structures.
-  template<typename DataType>
-  void storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
-                        const std::vector<int>& nodeIDs,
-                        std::map<const FieldSpace::FieldBase<Dimension>*, 
-                                 std::vector<DataType> >& values) const;
-
-  // Set the ghost values in the given field using the given map.
-  template<typename DataType>
-  void setGhostValues(FieldSpace::Field<Dimension, DataType>& field,
-                      const std::map<const FieldSpace::FieldBase<Dimension>*, 
-                                     std::vector<DataType> >& values) const;
-#endif
-
 private:
   //--------------------------- Private Interface ---------------------------//
-#ifndef __GCCXML__
-  int mNumConstantNodes;
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  std::vector<int> mNodeIDs;
+  int mNumConstantNodes;
 
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<int> > mIntValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Scalar> > mScalarValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Vector> > mVectorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<Tensor> > mTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<SymTensor> > mSymTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<ThirdRankTensor> > mThirdRankTensorValues;
-  std::map<const FieldSpace::FieldBase<Dimension>*, std::vector<std::vector<Scalar> > > mVectorScalarValues;
-#endif
+  std::map<KeyType, std::vector<int> > mIntValues;
+  std::map<KeyType, std::vector<Scalar> > mScalarValues;
+  std::map<KeyType, std::vector<Vector> > mVectorValues;
+  std::map<KeyType, std::vector<Tensor> > mTensorValues;
+  std::map<KeyType, std::vector<SymTensor> > mSymTensorValues;
+  std::map<KeyType, std::vector<ThirdRankTensor> > mThirdRankTensorValues;
+  std::map<KeyType, std::vector<std::vector<Scalar> > > mVectorScalarValues;
 
   // No default or copy constructors.
   ConstantBoundary();
@@ -124,9 +112,7 @@ private:
 }
 }
 
-#ifndef __GCCXML__
 #include "ConstantBoundaryInline.hh"
-#endif
 
 #else
 

@@ -212,6 +212,7 @@ self.space.add_function("dynamicCastBoundary",
         x.add_method("enforceFieldListBoundary", None, [refparam(symtensorfieldlist, "fieldList")], is_const=True)
         x.add_method("enforceFieldListBoundary", None, [refparam(thirdranktensorfieldlist, "fieldList")], is_const=True)
 
+        x.add_method("initializeProblemStartup", None, [], is_virtual=True)
         x.add_method("finalizeGhostBoundary", None, [], is_const=True, is_virtual=True)
         x.add_method("clip", None, [refparam(vector, "xmin"), refparam(vector, "xmax")], is_const=True, is_virtual=True)
 
