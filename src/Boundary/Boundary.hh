@@ -157,6 +157,10 @@ public:
                               const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
 
+  // Some boundaries need to know when a problem is starting up and all the physics
+  // packages have been initialized.
+  virtual void initializeProblemStartup() {};
+
   // Provide an optional hook that is to be called when all ghost boundaries are
   // to have been set.
   virtual void finalizeGhostBoundary() const {};
