@@ -64,7 +64,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   // The field of ghost positions for this NodeList.
   Field<Dim<3>, vector<Vector> >& ghostPositions = **(mGhostPositions.fieldForNodeList(nodeList));
 
-  // The ghost node indicies.
+  // The ghost node indices.
   const int currentNumGhostNodes = nodeList.numGhostNodes();
   int ghostNodeIndex = nodeList.numNodes();
 
@@ -159,7 +159,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
       }
     }
 
-    // Set the control and ghost node indicies for this internal node.
+    // Set the control and ghost node indices for this internal node.
     const int nghosti = ghostPositions(i).size();
     CHECK(nghosti > 0);
     controlNodes.reserve(controlNodes.size() + nghosti);

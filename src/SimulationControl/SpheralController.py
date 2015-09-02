@@ -169,6 +169,8 @@ class SpheralController(RestartableObject):
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
+            for bc in package.boundaryConditions():
+                bc.initializeProblemStartup()
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
         self.integrator.initialize(state, derivs)
