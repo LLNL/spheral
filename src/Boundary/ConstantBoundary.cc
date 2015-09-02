@@ -257,9 +257,7 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
     // and H's.
     for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
       if (mNodeFlags[i] == 0 and mDenialPlane.compare(pos(i)) == 1) {
-        cerr << "Mapping " << i << " " << pos(i) << " -> ";
         pos(i) = mapPositionThroughPlanes(pos(i), mDenialPlane, mDenialPlane);
-        cerr << pos(i) << endl;
         vel(i) = mReflectOperator*vel(i);
         H(i) = (mReflectOperator*H(i)*mReflectOperator).Symmetric();
       }
