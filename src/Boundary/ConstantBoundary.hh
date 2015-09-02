@@ -10,6 +10,7 @@
 #define ConstantBoundary_HH
 
 #include "Boundary.hh"
+#include "Geometry/GeomPlane.hh"
 #include "NodeList/NodeList.hh"
 #include "DataBase/StateBase.hh" // For constructing Field keys.
 
@@ -44,7 +45,8 @@ public:
 
   // Constructors and destructors.
   ConstantBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
-                   const std::vector<int>& nodeIDs);
+                   const std::vector<int>& nodeIDs,
+                   const GeomPlane<Dimension>& denialPlane);
   virtual ~ConstantBoundary();
 
   //**********************************************************************
@@ -87,14 +89,18 @@ public:
   virtual bool valid() const;
 
   // Accessor methods.
+  std::vector<int> nodeIndices() const;
   int numConstantNodes() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
+  Tensor reflectOperator() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  std::vector<int> mNodeIDs;
+  std::vector<int> mNodeFlags;
   int mNumConstantNodes;
+  GeomPlane<Dimension> mDenialPlane;
+  Tensor mReflectOperator;
 
   std::map<KeyType, std::vector<int> > mIntValues;
   std::map<KeyType, std::vector<Scalar> > mScalarValues;

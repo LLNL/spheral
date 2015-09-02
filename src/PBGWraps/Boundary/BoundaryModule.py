@@ -487,11 +487,11 @@ self.space.add_function("dynamicCastBoundary",
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"), 
-                           refparam("vector_of_int", "nodeIndicies")])
+                           refparam("vector_of_int", "nodeIndices")])
 
         # Attributes.
         #x.add_instance_attribute("nodeList", retval(const_ptr(nodelist), caller_owns_return=True), getter="nodeListPtr", is_const=True)
-        x.add_instance_attribute("nodeIndicies", "vector_of_int", getter="nodeIndicies", is_const=True)
+        x.add_instance_attribute("nodeIndices", "vector_of_int", getter="nodeIndices", is_const=True)
 
         # Methods.
         const_ref_return_value(x, me, "%s::nodeList" % me, nodelist, [], "nodeList")
@@ -541,7 +541,7 @@ self.space.add_function("dynamicCastBoundary",
         connectivitymap = "ConnectivityMap%id" % ndim
 
         # Constructors.
-        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndicies")])
+        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndices")])
 
         return
 
@@ -577,7 +577,7 @@ self.space.add_function("dynamicCastBoundary",
         connectivitymap = "ConnectivityMap%id" % ndim
 
         # Constructors.
-        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndicies")])
+        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndices")])
 
         return
 
@@ -613,7 +613,7 @@ self.space.add_function("dynamicCastBoundary",
         connectivitymap = "ConnectivityMap%id" % ndim
 
         # Constructors.
-        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndicies")])
+        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndices")])
 
         return
 
@@ -649,15 +649,16 @@ self.space.add_function("dynamicCastBoundary",
         connectivitymap = "ConnectivityMap%id" % ndim
 
         # Constructors.
-        x.add_constructor([refparam(nodelist, "nodeList"), refparam("vector_of_int", "nodeIndicies")])
+        x.add_constructor([refparam(nodelist, "nodeList"), 
+                           refparam("vector_of_int", "nodeIndices"),
+                           refparam(plane, "denialPlane")])
 
         # Attributes.
         x.add_instance_attribute("numConstantNodes", "int", getter="numConstantNodes", is_const=True)
+        x.add_instance_attribute("reflectOperator", tensor, getter="reflectOperator", is_const=True)
 
         # Methods.
-#         x.add_function_as_method("getNodeListPtr", retval(ptr(nodelist), reference_existing_object=True), [param(me, "self")],
-#                                  template_parameters = [dim, me],
-#                                  custom_name = "nodeList")
+        x.add_method("nodeIndices", "vector_of_int", [], is_const=True)
         
         # Virtual methods.
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
