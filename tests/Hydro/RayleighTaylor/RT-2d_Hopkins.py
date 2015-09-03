@@ -213,7 +213,7 @@ if restoreCycle is None:
                                            rho = ExponentialDensity(rhoB,
                                                                     rhoT,
                                                                     delta),
-                                           distributionType = "lattice",
+                                           distributionType = "xstaggeredLattice",
                                            xmin = (x0,y0 - nybound*dy),
                                            xmax = (x1,y1 + nybound*dy),
                                            nNodePerh = nPerh,
