@@ -124,6 +124,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
@@ -148,12 +149,6 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "Rayleigh-Taylor-2d")
 vizBaseName = "Rayleigh-Taylor-2d"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
