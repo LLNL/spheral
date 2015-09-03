@@ -26,52 +26,30 @@ namespace FractalSpace
     int average=count_sum1/count_sum0;
     int nodes_eff=count_sum1*count_sum1/count_sum2;
 
+    int max_on_node=max((average*3)/2,mem.hypre_max_node_load);
     bool spread_even = average >= mem.hypre_max_average_load;
-    bool OOM = count_max >= mem.hypre_max_node_load;
+    bool OOM = count_max > max_on_node;
 
     HYP.ij_countsB=HYP.ij_counts;
-    fprintf(PFH," Hypre on Nodes %d %d %d \n",average,count_max,nodes_eff);
+    fprintf(PFH," Hypre on Nodes %d %d %d %d %d\n",average,count_max,nodes_eff,mem.hypre_max_node_load,max_on_node);
     fprintf(PFH," Hypre Load Balance %d %d \n",spread_even,OOM);
     if(!mem.hypre_load_balance)
       return 0;
     if(!OOM)
       return 0;
     load_balance=true;
-    int trySmooth=0;
-    int maxload=mem.hypre_max_node_load;
-    int maxload9=(maxload*9)/10;
-    int smoothMAX=(40*HypreNodes)/1024;
-    smoothMAX=max(40,smoothMAX);
-    bool too_many=false;
-    do {
-      vector <int> countsC=HYP.ij_countsB;
-      too_many=false;
-      for(int HR=0;HR<HypreNodes;HR++)
-	{
-	  if(countsC[HR] > mem.hypre_max_node_load)
-	    {
-	      too_many=true;
-	      int off=(countsC[HR]-maxload9)/5;
-	      //		int off=countsC[HR]/20;
-	      HYP.ij_countsB[HR]-=2*off;
-	      if(HR > 0)
-		HYP.ij_countsB[HR-1]+=off;
-	      else
-		HYP.ij_countsB[HR]+=off;
-	      if(HR < HypreNodes-1)
-		HYP.ij_countsB[HR+1]+=off;
-	      else
-		HYP.ij_countsB[HR]+=off;
-	    }
-	}
-      trySmooth++;
-    } while(too_many && trySmooth < smoothMAX);
-    HYP.ij_offsetsB[0]=0;
-    fprintf(PFH," offsets balance %d \t %d \t %d \n",0,HYP.ij_offsetsB[0],HYP.ij_countsB[0]);
-    for(int HR=1;HR<=HypreNodes;HR++)
+    for(int HR=1;HR<HypreNodes;HR++)
+      HYP.ij_offsetsB[HR]=min(HYP.ij_offsetsB[HR],HYP.ij_offsetsB[HR-1]+max_on_node);
+    if(HYP.ij_offsetsB[HypreNodes]-HYP.ij_offsetsB[HypreNodes-1] > max_on_node)
+      for(int HR=HypreNodes;HR>1;HR--)
+	HYP.ij_offsetsB[HR-1]=max(HYP.ij_offsetsB[HR-1],HYP.ij_offsetsB[HR]-max_on_node);
+    int offes=0;
+    for(int HR=0;HR<HypreNodes;HR++)
       {
-	HYP.ij_offsetsB[HR]=HYP.ij_offsetsB[HR-1]+HYP.ij_countsB[HR-1];
-	fprintf(PFH," offsets balance %d \t %d \t %d \n",HR,HYP.ij_offsetsB[HR],HYP.ij_countsB[HR]);
+	int offe=max(HYP.ij_offsetsB[HR]-HYP.ij_offsets[HR],0)+max(HYP.ij_offsets[HR+1]-HYP.ij_offsetsB[HR+1],0);
+	offes+=offe;
+	HYP.ij_countsB[HR]=HYP.ij_offsetsB[HR+1]-HYP.ij_offsetsB[HR];
+	fprintf(PFH," offsets balance %7d %10d %7d %10d %7d %7d %7d \n",HR,HYP.ij_offsets[HR],HYP.ij_counts[HR],HYP.ij_offsetsB[HR],HYP.ij_countsB[HR],offe,offes);
       }
     int first_on_new_node=HYP.ij_offsetsB[HypreRank];
     int last_on_new_node=HYP.ij_offsetsB[HypreRank+1]-1;
