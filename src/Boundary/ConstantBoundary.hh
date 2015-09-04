@@ -44,7 +44,7 @@ public:
   typedef typename StateBase<Dimension>::KeyType KeyType;
 
   // Constructors and destructors.
-  ConstantBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
+  ConstantBoundary(NodeSpace::NodeList<Dimension>& nodeList,
                    const std::vector<int>& nodeIDs,
                    const GeomPlane<Dimension>& denialPlane);
   virtual ~ConstantBoundary();
@@ -89,18 +89,19 @@ public:
   virtual bool valid() const;
 
   // Accessor methods.
-  std::vector<int> nodeIndices() const;
+  const std::vector<int>& nodeIndices() const;
   int numConstantNodes() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
   Tensor reflectOperator() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  std::vector<int> mNodeFlags;
+  NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  std::vector<int> mNodeIDs;
   int mNumConstantNodes;
   GeomPlane<Dimension> mDenialPlane;
   Tensor mReflectOperator;
+  bool mActive;
 
   std::map<KeyType, std::vector<int> > mIntValues;
   std::map<KeyType, std::vector<Scalar> > mScalarValues;

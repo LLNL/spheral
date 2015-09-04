@@ -363,8 +363,6 @@ for i in xrange(nodes.numInternalNodes):
     elif pos[i].y > y1:
         yhigh.append(i)
 ybc1 = ConstantBoundary(nodes, ylow, yp1)
-print "### BLAGO ####"
-
 ybc2 = ConstantBoundary(nodes, yhigh, yp2)
 
 bcSet = [ybc1, ybc2, xbc]  # <-- ybc should be first!
@@ -412,6 +410,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = True,
+                            vizGhosts = True,
                             SPH = SPH)
 output("control")
 
