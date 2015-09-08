@@ -75,23 +75,26 @@ template<typename Dimension, typename DataType>
 void
 resetValues(FieldSpace::Field<Dimension, DataType>& field,
             const std::vector<int>& nodeIDs,
-            const std::map<std::string, std::vector<DataType> >& values) {
+            const std::map<std::string, std::vector<DataType> >& values,
+            const bool dieOnMissingField) {
 
   const NodeSpace::NodeList<Dimension>& nodeList = field.nodeList();
 
   // Find this Field in the set of stored values.
   const std::string key = StateBase<Dimension>::key(field);
   typename std::map<std::string, std::vector<DataType> >::const_iterator itr = values.find(key);
-  VERIFY2(itr != values.end(),
+  VERIFY2(itr != values.end() or not dieOnMissingField,
           "ConstantBoundary error: " << key << " not found in stored field values.");
 
   // Now set the values.
-  const std::vector<DataType>& newValues = itr->second;;
-  CHECK(newValues.size() == nodeIDs.size());
-  for (int i = 0; i < nodeIDs.size(); ++i) {
-    CHECK(nodeIDs[i] >= 0 &&
-          nodeIDs[i] < nodeList.numNodes());
-    field(nodeIDs[i]) = newValues[i];
+  if (itr != values.end()) {
+    const std::vector<DataType>& newValues = itr->second;;
+    CHECK2(newValues.size() == nodeIDs.size(), newValues.size() << " " << nodeIDs.size());
+    for (int i = 0; i < nodeIDs.size(); ++i) {
+      CHECK(nodeIDs[i] >= 0 &&
+            nodeIDs[i] < nodeList.numNodes());
+      field(nodeIDs[i]) = newValues[i];
+    }
   }
 }
 
@@ -102,15 +105,16 @@ resetValues(FieldSpace::Field<Dimension, DataType>& field,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ConstantBoundary<Dimension>::
-ConstantBoundary(const NodeList<Dimension>& nodeList,
+ConstantBoundary(NodeList<Dimension>& nodeList,
                  const vector<int>& nodeIDs,
                  const GeomPlane<Dimension>& denialPlane):
   Boundary<Dimension>(),
   mNodeListPtr(&nodeList),
-  mNodeFlags(nodeList.numInternalNodes(), 0),
+  mNodeIDs(nodeIDs),
   mNumConstantNodes(nodeIDs.size()),
   mDenialPlane(denialPlane),
   mReflectOperator(planarReflectingOperator(denialPlane)),
+  mActive(false),
   mScalarValues(),
   mVectorValues(),
   mTensorValues(),
@@ -118,16 +122,13 @@ ConstantBoundary(const NodeList<Dimension>& nodeList,
   mThirdRankTensorValues(),
   mVectorScalarValues() {
 
-  // Store the ids of the nodes we're watching.
-  for (vector<int>::const_iterator itr = nodeIDs.begin();
-       itr < nodeIDs.end();
-       ++itr) {
-    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
-    mNodeFlags[*itr] = 1;
-  }
-
-  // Make an initial copy of the ghost state.
-  this->initializeProblemStartup();
+  // // Store the ids of the nodes we're watching.
+  // for (vector<int>::const_iterator itr = nodeIDs.begin();
+  //      itr < nodeIDs.end();
+  //      ++itr) {
+  //   REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+  //   mNodeFlags[*itr] = 1;
+  // }
 
   // Issue a big old warning!
   if (Process::getRank() == 0) cerr << "WARNING: ConstantBoundary is currently not compatible with redistributing nodes!\nMake sure you don't allow redistribution with this Boundary condition." << endl;
@@ -144,32 +145,62 @@ ConstantBoundary<Dimension>::~ConstantBoundary() {
 }
 
 //------------------------------------------------------------------------------
-// Provide the setGhostNodes for a NodeList.  No-op.
+// setGhostNodes
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
+  cerr << "1" << endl;
+
+  if (mActive and &nodeList == mNodeListPtr) {
+    typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
+    vector<int>& cNodes = boundaryNodes.controlNodes;
+    vector<int>& gNodes = boundaryNodes.ghostNodes;
+    cerr << "2" << endl;
+    
+    unsigned currentNumGhostNodes = nodeList.numGhostNodes();
+    unsigned firstNewGhostNode = nodeList.numNodes();
+    nodeList.numGhostNodes(currentNumGhostNodes + mNumConstantNodes);
+    mNodeIDs = vector<int>(mNumConstantNodes);
+    cNodes = vector<int>(mNumConstantNodes);
+    gNodes = vector<int>(mNumConstantNodes);
+    cerr << "3" << endl;
+    for (int i = 0; i != mNumConstantNodes; ++i) {
+      mNodeIDs[i] = firstNewGhostNode + i;
+      cNodes[i] = mNodeIDs[i];
+      gNodes[i] = mNodeIDs[i];
+    }
+    cerr << "4" << endl;
+    
+    this->updateGhostNodes(nodeList);
+    cerr << "5" << endl;
+  }
 }
 
 //------------------------------------------------------------------------------
-// Provide the updateGhostNodes for a NodeList.  No-op.
+// updateGhostNodes
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 updateGhostNodes(NodeList<Dimension>& nodeList) {
+  if (mActive and &nodeList == mNodeListPtr) {
+    this->applyGhostBoundary(nodeList.positions());
+    this->applyGhostBoundary(nodeList.Hfield());
+  }
 }
 
 //------------------------------------------------------------------------------
-// Apply the boundary condition to fields of different DataTypes.  No-op.
+// Apply the boundary condition to fields of different DataTypes.
 //------------------------------------------------------------------------------
 // Specialization for int fields.
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, int>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mIntValues, false);
 }
 
 // Specialization for scalar fields.
@@ -177,6 +208,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mScalarValues, false);
 }
 
 // Specialization for Vector fields.
@@ -184,6 +216,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mVectorValues, false);
 }
 
 // Specialization for Tensor fields.
@@ -191,6 +224,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mTensorValues, false);
 }
 
 // Specialization for symmetric tensors.
@@ -198,6 +232,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mSymTensorValues, false);
 }
 
 // Specialization for third rank tensors.
@@ -205,18 +240,19 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mThirdRankTensorValues, false);
 }
 
-// Specialization for vector<Scalar> fields.
+// Specialization for vector<scalar> fields.
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& field) const {
+  if (mActive) resetValues(field, this->nodeIndices(), mVectorScalarValues, false);
 }
 
 //------------------------------------------------------------------------------
-// Provide the setViolationNodes for a NodeList.  A no-op for this boundary 
-// condition.
+// Provide the setViolationNodes for a NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -231,7 +267,8 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
     vector<int>& vNodes = boundaryNodes.violationNodes;
     const Field<Dimension, Vector>& pos = nodeList.positions();
     for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
-      if (mNodeFlags[i] == 1 or mDenialPlane.compare(pos(i)) == -1) vNodes.push_back(i);
+      if (mDenialPlane.compare(pos(i)) == -1) vNodes.push_back(i);
+      // if (mNodeFlags[i] == 1 or mDenialPlane.compare(pos(i)) == -1) vNodes.push_back(i);
     }
 
     this->updateViolationNodes(nodeList);
@@ -250,13 +287,13 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
     Field<Dimension, Vector>& pos = nodeList.positions();
     Field<Dimension, Vector>& vel = nodeList.velocity();
     Field<Dimension, SymTensor>& H = nodeList.Hfield();
-    this->enforceBoundary(pos);
-    this->enforceBoundary(H);
+    // this->enforceBoundary(pos);
+    // this->enforceBoundary(H);
 
     // Look for any nodes in violation of the plane and reset their positions
     // and H's.
     for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
-      if (mNodeFlags[i] == 0 and mDenialPlane.compare(pos(i)) == 1) {
+      if (mDenialPlane.compare(pos(i)) == 1) {
         pos(i) = mapPositionThroughPlanes(pos(i), mDenialPlane, mDenialPlane);
         vel(i) = mReflectOperator*vel(i);
         H(i) = (mReflectOperator*H(i)*mReflectOperator).Symmetric();
@@ -273,7 +310,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, int>& field) const {
-  resetValues(field, this->nodeIndices(), mIntValues);
+  // resetValues(field, this->nodeIndices(), mIntValues);
 }
 
 // Specialization for scalar fields.
@@ -281,7 +318,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
-  resetValues(field, this->nodeIndices(), mScalarValues);
+  // resetValues(field, this->nodeIndices(), mScalarValues);
 }
 
 // Specialization for Vector fields.
@@ -289,7 +326,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
-  resetValues(field, this->nodeIndices(), mVectorValues);
+  // resetValues(field, this->nodeIndices(), mVectorValues);
 }
 
 // Specialization for Tensor fields.
@@ -297,7 +334,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::Tensor>& field) const {
-  resetValues(field, this->nodeIndices(), mTensorValues);
+  // resetValues(field, this->nodeIndices(), mTensorValues);
 }
 
 // Specialization for symmetric tensors.
@@ -305,7 +342,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::SymTensor>& field) const {
-  resetValues(field, this->nodeIndices(), mSymTensorValues);
+  // resetValues(field, this->nodeIndices(), mSymTensorValues);
 }
 
 // Specialization for third rank tensors.
@@ -313,7 +350,7 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
 enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) const {
-  resetValues(field, this->nodeIndices(), mThirdRankTensorValues);
+  // resetValues(field, this->nodeIndices(), mThirdRankTensorValues);
 }
 
 // // Specialization for vector<scalar> fields.
@@ -325,7 +362,9 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 // }
 
 //------------------------------------------------------------------------------
-// On problem startup we take our snapshot of the state.
+// On problem startup we take our snapshot of the state.  We also then
+// destroy the original internal nodes, as we will be replacing them
+// with ghosts from now on.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -349,6 +388,13 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
   storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
   storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
   storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
+
+  // Remove the origial internal nodes.
+  mNodeListPtr->deleteNodes(nodeIDs);
+  mNodeIDs.clear();
+
+  // Turn the BC on.
+  mActive = true;
 
   // Once we're done the boundary condition should be in a valid state.
   ENSURE(valid());

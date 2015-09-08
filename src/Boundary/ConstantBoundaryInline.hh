@@ -8,14 +8,10 @@ namespace BoundarySpace {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-std::vector<int>
+const std::vector<int>&
 ConstantBoundary<Dimension>::
 nodeIndices() const {
-  std::vector<int> result;
-  for (int i = 0; i != mNodeListPtr->numInternalNodes(); ++i) {
-    if (mNodeFlags[i] == 1) result.push_back(i);
-  }
-  return result;
+  return mNodeIDs;
 }
 
 //------------------------------------------------------------------------------
