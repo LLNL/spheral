@@ -53,7 +53,6 @@ commandLine(nx1 = 128,
             
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
@@ -119,24 +118,25 @@ commandLine(nx1 = 128,
 
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
+    if SPH:
         HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
 elif CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
+    if SPH:
         HydroConstructor = CRKSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
     else:
+        HydroConstructor = ACRKSPHHydro
+else:
+    if SPH:
         HydroConstructor = SPHHydro
+    else:
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
                        "gval=%g" % (gval),
+                       "w0=%g" % w0,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
