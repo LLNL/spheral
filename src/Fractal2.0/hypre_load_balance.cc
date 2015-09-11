@@ -23,16 +23,15 @@ namespace FractalSpace
 	//	fprintf(PFH," Hypre counts \t %d \t %d \n",HR,HYP.ij_counts[HR]);
       }
 
-    int average=count_sum1/count_sum0;
+    double average=count_sum1/count_sum0;
     int nodes_eff=count_sum1*count_sum1/count_sum2;
 
-    int max_on_node=max((average*60)/20,mem.hypre_max_node_load);
-    bool spread_even = average >= max_on_node;
+    int max_on_node=max((int)(average*mem.hypre_multiplier),mem.hypre_max_node_load);
+//     bool spread_even = average >= max_on_node;
     bool OOM = count_max > max_on_node;
 
     HYP.ij_countsB=HYP.ij_counts;
-    fprintf(PFH," Hypre on Nodes %d %d %d %d %d\n",average,count_max,nodes_eff,mem.hypre_max_node_load,max_on_node);
-    fprintf(PFH," Hypre Load Balance %d %d \n",spread_even,OOM);
+    fprintf(PFH," Hypre on Nodes %d %d %d %d %d %d %d \n",(int)average,count_max,nodes_eff,mem.hypre_max_node_load,mem.hypre_multiplier,max_on_node,OOM);
     load_balance=false;
     if(HypreNodes == 1)
       return 0;

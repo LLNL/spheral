@@ -37,10 +37,16 @@ int main(int argc, char* argv[])
   double SHRINK=0.0;
   if(argc >= 8)
     SHRINK=atof(argv[7]);
+  int HYPREMAXONNODE=40000;
+  if(argc >= 9)
+    HYPREMAXONNODE=atoi(argv[8]);
+  double HYPREMULTIPLIER=2.0;
+  if(argc >= 10)
+    HYPREMULTIPLIER=atof(argv[9]);
   if(Mess::IAMROOT)
     {
       cerr << "starting out " << argc << " " << FRN << " " << _inteL_ << " " << GRL << " " << FractalNodes0 << " " << FractalNodes1 << " " << FractalNodes2;
-      cerr << " " << NumberParticles << " " << SHRINK << "\n";
+      cerr << " " << NumberParticles << " " << SHRINK << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
       int ar=0;
       while(ar < argc)
 	{
@@ -89,7 +95,10 @@ int main(int argc, char* argv[])
   PFM->setBaseDirectory(BaseDirectory);
   PFM->setRunIdentifier(RunIdentifier);
   PFM->setTimeTrial(TimeTrial);
+  PFM->hypre_max_node_load=HYPREMAXONNODE;
+  PFM->hypre_multiplier=HYPREMULTIPLIER;
   fractal_memory_setup(PFM);
+
 
   int FractalNodes=PFM->p_mess->FractalNodes;
   FFTNodes=PFM->p_mess->FFTNodes;
@@ -121,8 +130,8 @@ int main(int argc, char* argv[])
   vector <double> velz(NumberParticles,0.0);
   vector <double> masses(NumberParticles,m);
   PFM->hypre_load_balance=true;
-  PFM->hypre_max_node_load=30000;
-  PFM->hypre_max_average_load=20000;
+//   PFM->hypre_max_node_load=30000;
+//   PFM->hypre_max_average_load=20000;
   PFM->number_steps_total=1603;
   //  PFM->number_steps_total=13;
   PFM->number_steps_out=20;
