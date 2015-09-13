@@ -48,7 +48,7 @@ namespace FractalSpace
 	  break;
 	for(int HR=HypreNodes;HR>1;HR--)
 	  HYP.ij_offsetsB[HR-1]=max(HYP.ij_offsetsB[HR-1],HYP.ij_offsetsB[HR]-max_on_node);
-	if(HYP.ij_offsetsB[1] <= max_on_node)
+	if(HYP.ij_offsetsB[1]-HYP.ij_offsetsB[0] <= max_on_node)
 	  break;
 	loops++;
       }
@@ -67,7 +67,7 @@ namespace FractalSpace
 	HYP.ij_countsB[HR]=HYP.ij_offsetsB[HR+1]-HYP.ij_offsetsB[HR];
 	maxC=max(maxC,HYP.ij_counts[HR]);
 	maxCB=max(maxCB,HYP.ij_countsB[HR]);
-	fprintf(PFH," offsets balance %7d %10d %7d %10d %7d %7d %7d \n",HR,HYP.ij_offsets[HR],HYP.ij_counts[HR],HYP.ij_offsetsB[HR],HYP.ij_countsB[HR],offe,offes);
+// 	fprintf(PFH," offsets balance %7d %10d %7d %10d %7d %7d %7d \n",HR,HYP.ij_offsets[HR],HYP.ij_counts[HR],HYP.ij_offsetsB[HR],HYP.ij_countsB[HR],offe,offes);
       }
     int first_on_new_node=HYP.ij_offsetsB[HypreRank];
     int last_on_new_node=HYP.ij_offsetsB[HypreRank+1]-1;
