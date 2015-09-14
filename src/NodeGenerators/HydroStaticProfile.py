@@ -9,7 +9,8 @@ from math import *
 # 3-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp3d():
-    from Spheral3d import *
+    from SolidSpheral3d import makeVoidNodeList
+    from SolidSpheral3d import ScalarField
     def __init__(self,
                  rho0,
                  rMax,
@@ -85,7 +86,8 @@ class HydroStaticProfileConstantTemp3d():
 # 2-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp2d():
-    from Spheral2d import *
+    from SolidSpheral2d import makeVoidNodeList
+    from SolidSpheral2d import ScalarField
     def __init__(self,
                  rho0,
                  rMax,
