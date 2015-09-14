@@ -121,6 +121,23 @@ GruneisenEquationOfState<Dimension>::atomicWeight(const double val) {
 }
 
 //------------------------------------------------------------------------------
+// Get and set the energy multiplier.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+GruneisenEquationOfState<Dimension>::energyMultiplier() const {
+  return mEnergyMultiplier;
+}
+
+template<typename Dimension>
+inline
+void
+GruneisenEquationOfState<Dimension>::energyMultiplier(const double val) {
+  mEnergyMultiplier = val;
+}
+
+//------------------------------------------------------------------------------
 // Get Cv.
 //------------------------------------------------------------------------------
 template<typename Dimension>

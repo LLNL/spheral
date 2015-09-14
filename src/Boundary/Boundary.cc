@@ -214,9 +214,9 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
             newGhostNodes.push_back(newGhostIndex);
             old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;
             ++newGhostIndex;
-            CHECK(boundaryNodes.controlNodes[k] < myOldFirstGhostNode);
+            // CHECK(boundaryNodes.controlNodes[k] < myOldFirstGhostNode);  // <-- Not true for the ConstantBoundary
             newControlNodes.push_back(old2newIndexMap(nodeListi, boundaryNodes.controlNodes[k]));
-            CHECK(newControlNodes.back() < myNewFirstGhostNode);
+            // CHECK(newControlNodes.back() < myNewFirstGhostNode);  // <-- Not true for the ConstantBoundary
           } else {
             ++numNodesRemoved[nodeListi];
           }
