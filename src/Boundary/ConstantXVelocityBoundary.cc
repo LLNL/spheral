@@ -25,8 +25,8 @@ using FileIOSpace::FileIO;
 template<typename Dimension>
 ConstantXVelocityBoundary<Dimension>::
 ConstantXVelocityBoundary(const NodeList<Dimension>& nodeList,
-                          const vector<int>& nodeIndicies):
-  ConstantVelocityBoundary<Dimension>(nodeList, nodeIndicies) {
+                          const vector<int>& nodeIndices):
+  ConstantVelocityBoundary<Dimension>(nodeList, nodeIndices) {
 }
 
 //------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 
     // This is the velocity field, so enforce the boundary.
     int i = 0;
-    const vector<int> nodeIDs = this->nodeIndicies();
+    const vector<int> nodeIDs = this->nodeIndices();
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr, ++i) {

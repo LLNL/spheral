@@ -51,7 +51,7 @@ public:
 
   // Constructors and destructors.
   ConstantVelocityBoundary(const NodeSpace::NodeList<Dimension>& nodeList,
-                           const std::vector<int>& nodeIndicies);
+                           const std::vector<int>& nodeIndices);
   virtual ~ConstantVelocityBoundary();
 
   //**********************************************************************
@@ -87,9 +87,9 @@ public:
   virtual void enforceBoundary(FieldSpace::Field<Dimension, ThirdRankTensor>& field) const;
   //**********************************************************************
 
-  // Allow read only access to the node indicies and their forced velocities.
+  // Allow read only access to the node indices and their forced velocities.
   const NodeSpace::NodeList<Dimension>& nodeList() const;
-  std::vector<int> nodeIndicies() const;
+  std::vector<int> nodeIndices() const;
   std::vector<Vector> velocityCondition() const;
 
   // Determine if the boundary is in a "valid", ready to use state.

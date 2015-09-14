@@ -102,9 +102,9 @@ private:
   DataOutput::RestartRegistrationType mRestart;
 #endif
 
-  // Method to set the ghost node indicies for a given NodeList once the
+  // Method to set the ghost node indices for a given NodeList once the
   // master nodes are set.
-  void setGhostNodeIndicies(NodeSpace::NodeList<Dimension>& nodeList);
+  void setGhostNodeIndices(NodeSpace::NodeList<Dimension>& nodeList);
 };
 
 }
