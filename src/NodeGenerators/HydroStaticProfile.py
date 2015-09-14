@@ -32,6 +32,14 @@ class HydroStaticProfileConstantTemp3d():
         y   = self.y0
         dy  = 0
         
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        tempf[0] = temp
+        
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
@@ -44,8 +52,11 @@ class HydroStaticProfileConstantTemp3d():
             else:
                 eos = eostup[0]
         
-            e       = eos.specificThermalEnergy(rho,temp)
-            K       = eos.bulkModulus(rho,e)
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
@@ -95,6 +106,14 @@ class HydroStaticProfileConstantTemp2d():
         y   = self.y0
         dy  = 0
         
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        tempf[0] = temp
+        
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
@@ -107,8 +126,11 @@ class HydroStaticProfileConstantTemp2d():
             else:
                 eos = eostup[0]
             
-            e       = eos.specificThermalEnergy(rho,temp)
-            K       = eos.bulkModulus(rho,e)
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
             dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
