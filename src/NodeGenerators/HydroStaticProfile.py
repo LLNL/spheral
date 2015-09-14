@@ -9,8 +9,6 @@ from math import *
 # 3-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp3d():
-    from SolidSpheral3d import makeVoidNodeList
-    from SolidSpheral3d import ScalarField
     def __init__(self,
                  rho0,
                  rMax,
@@ -26,6 +24,9 @@ class HydroStaticProfileConstantTemp3d():
         self.rho0   = rho0
         self.soln   = []
         
+        from SolidSpheral3d import makeVoidNodeList
+        from SolidSpheral3d import ScalarField
+
         eoscount    = len(eostup)/2
         
         r   = self.rMax
@@ -34,7 +35,7 @@ class HydroStaticProfileConstantTemp3d():
         y   = self.y0
         dy  = 0
         
-        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        nodes   = makeVoidNodeList("nodes1", numInternal=1)
         ef      = ScalarField("eps", nodes)
         Kf      = ScalarField("mod", nodes)
         rhof    = ScalarField("rho", nodes)
@@ -86,8 +87,6 @@ class HydroStaticProfileConstantTemp3d():
 # 2-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp2d():
-    from SolidSpheral2d import makeVoidNodeList
-    from SolidSpheral2d import ScalarField
     def __init__(self,
                  rho0,
                  rMax,
@@ -104,6 +103,9 @@ class HydroStaticProfileConstantTemp2d():
         eoscount    = len(eostup)/2
         self.soln   = []
         
+        from SolidSpheral2d import makeVoidNodeList
+        from SolidSpheral2d import ScalarField
+
         r   = self.rMax
         rho = self.rho0
         dr  = self.rMax/self.nbins
