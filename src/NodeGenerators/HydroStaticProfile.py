@@ -9,6 +9,7 @@ from math import *
 # 3-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp3d():
+    from Spheral3d import *
     def __init__(self,
                  rho0,
                  rMax,
@@ -84,6 +85,7 @@ class HydroStaticProfileConstantTemp3d():
 # 2-D solvers
 #-------------------------------------------------------------------------------
 class HydroStaticProfileConstantTemp2d():
+    from Spheral2d import *
     def __init__(self,
                  rho0,
                  rMax,
