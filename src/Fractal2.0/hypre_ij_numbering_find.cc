@@ -3,7 +3,7 @@
 #include "headers.hh"
 namespace FractalSpace
 {
-  bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level)
+  bool hypre_ij_numbering(Fractal_Memory& mem,HypHest& HYP,vector <Point*>& hypre_points,const int& level,const bool& buffer_groups)
   {
     double time0=mem.p_mess->Clock();
     const int FractalRank=mem.p_mess->FractalRank;
@@ -17,14 +17,12 @@ namespace FractalSpace
     vector <Point*> receive_list;
     fprintf(PFH," HBox %d %d %d %d %d %d \n",HBox[0],HBox[1],HBox[2],HBox[3],HBox[4],HBox[5]);
     fprintf(PFH," HSBox %d %d %d %d %d %d \n",HSBox[0],HSBox[1],HSBox[2],HSBox[3],HSBox[4],HSBox[5]);
-    //    vector <Point*>hypre_pointsB;
-    unsigned int minsize=mem.min_hypre_group_size;
     for(vector <Group*>::const_iterator group_itr=mem.all_groups[level].begin();
 	group_itr!=mem.all_groups[level].end();group_itr++)
       {
 	Group& group=**group_itr;
 	bool bg=group.get_buffer_group();
-	if(group.list_points.size() <= minsize && !bg)
+	if(buffer_groups != bg)
 	  continue;
 	for(vector<Point*>::const_iterator point_itr=group.list_points.begin();point_itr !=group.list_points.end();++point_itr)
 	  {
@@ -48,10 +46,7 @@ namespace FractalSpace
     double time1=mem.p_mess->Clock();
     int count=hypre_points.size();
     mem.p_mess->IAmAHypreNode=count > 0;
-//     mem.p_mess->Full_Stop_Do_Not_Argue();
-//     double tguess=-mem.p_mess->Clock();
     mem.p_mess->How_Many_On_Nodes(count,HYP.ij_counts);
-//     tguess+=mem.p_mess->Clock();
     mem.Touchy=mem.TouchWhichBoxes;
     //
     vector <int> pos_lefts(3);
@@ -66,12 +61,16 @@ namespace FractalSpace
 	int FR=mem.TouchWhichBoxes[TW];
 	if(FR != FractalRank && HYP.ij_counts[FR] > 0 && overlap(pos_lefts,pos_rights,mem.HRBoxesLev[FR][level]))
 	  mem.Touchy.push_back(FR);
-      }    
-    int totals=std::accumulate(HYP.ij_counts.begin(),HYP.ij_counts.end(),0);
+      }
+    int _BEGIN_=0;    
+    int totals=std::accumulate(HYP.ij_counts.begin(),HYP.ij_counts.end(),_BEGIN_);
     double time2=mem.p_mess->Clock();
     node_groups(mem,HYP);
     HYP.ij_counts.resize(FractalNodes);
-    HYP.ij_offsets.assign(FractalNodes+1,0);
+    if(totals > 0)
+      HYP.ij_offsets.assign(FractalNodes+1,_BEGIN_);
+    else
+      HYP.ij_offsets.assign(FractalNodes+1,0);
     mem.p_mess->Hranks.clear();
     mem.p_mess->IHranks.assign(FractalNodes,-1);
     int HypreNodes=0;
@@ -86,7 +85,7 @@ namespace FractalSpace
 	    HypreNodes++;
 	  }
       }
-    if(totals == 0)
+    if(totals == _BEGIN_)
       return false;
     int HR=0;
     for(int FR=0;FR<FractalNodes;FR++)
@@ -117,6 +116,9 @@ namespace FractalSpace
     assert(HypreRank == mem.p_mess->HypreRank);
     HYP.ij_countsB=HYP.ij_counts;
     HYP.ij_offsetsB=HYP.ij_offsets;
+    //
+//     mem.p_mess->Fake_Stop_Do_Not_Argue();
+    //
     if(!mem.p_mess->IAmAHypreNode)
       return true;
     count=HYP.ij_offsets[HypreRank];
