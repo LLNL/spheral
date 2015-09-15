@@ -32,6 +32,12 @@ const std::string Spheral::HydroFieldNames::soundSpeed = "sound speed";
 const std::string Spheral::HydroFieldNames::pairAccelerations = "pair-wise accelerations";
 const std::string Spheral::HydroFieldNames::pairWork = "pair-wise work";
 const std::string Spheral::HydroFieldNames::omegaGradh = "grad h corrections";
+///***************CULLEN********************************************************************
+const std::string Spheral::HydroFieldNames::prevDvDt = "stored previous timestep acceleration";
+const std::string Spheral::HydroFieldNames::prevDivV = "stored previous timestep divergence";
+const std::string Spheral::HydroFieldNames::cullAlpha = "stored evolved Cullen 2010 viscosity Alpha";
+//****************CULLEN********************************************************************
+
 const std::string Spheral::HydroFieldNames::numberDensitySum = "number density sum";
 const std::string Spheral::HydroFieldNames::timeStepMask = "time step mask";
 const std::string Spheral::HydroFieldNames::m0_CRKSPH = "m0 CRKSPH moment";
