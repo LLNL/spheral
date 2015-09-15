@@ -8,8 +8,6 @@ from Spheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
-from CompositeNodeDistribution import *
-from CentroidalVoronoiRelaxation import *
 
 import mpi
 import DistributeNodes
@@ -24,7 +22,7 @@ class ExponentialDensity:
         self.delta = delta
         return
     def __call__(self, r):
-        return self.rho1+(self.rho2-self.rho1)/(1+exp(-(r.y-0.5)/delta))
+        return self.rho1+(self.rho2-self.rho1)/(1+exp(-(r-0.5)/delta))
 
 title("Rayleigh-Taylor hydrostatic equilibrium test problem in 1D")
 
@@ -126,7 +124,7 @@ dataDir = os.path.join(dataDir,
                        "filter=%s" % filter,
                        "compatible=%s" % compatibleEnergy,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
-                       "%ix%i" % (nx1, ny1),
+                       "%i" % nx1,
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -185,7 +183,7 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     # Add some points above and below the problem to represent the infinite atmosphere.
-    nybound = 10
+    nxbound = 10
     dx = (x1 - x0)/nx1
     from DistributeNodes import distributeNodesInRange1d
     distributeNodesInRange1d([(nodes, nx1 + 2*nxbound, rhoT,
@@ -206,7 +204,7 @@ if restoreCycle is None:
         P0 = rhoT/gamma
         rho[i] = rhoFunc(xi)
         mass[i] = dx*rho[i]
-        Pi = P0 + gval*rho[i]*(yi-0.5)
+        Pi = P0 + gval*rho[i]*(xi-0.5)
         eps0 = Pi/((gamma - 1.0)*rho[i])
         eps[i]=eps0
 
@@ -307,7 +305,7 @@ if bArtificialConduction:
 pos = nodes.positions()
 nodeIndices = vector_of_int()
 for i in xrange(nodes.numInternalNodes):
-    if pos[i].y > y0 and pos[i].y < y1:
+    if pos[i].x > x0 and pos[i].x < x1:
         nodeIndices.append(i)
 
 gravity = ConstantAcceleration1d(Vector1d(0.0, gval),
@@ -320,7 +318,7 @@ packages.append(gravity)
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 xp1 = Plane(Vector(x0), Vector( 1.0))
-xp2 = Plane(Vector(x0), Vector(-1.0))
+xp2 = Plane(Vector(x1), Vector(-1.0))
 
 # The x boundary will be a snapshot of the state of the points above and below
 # the x-cutoffs.
@@ -331,6 +329,8 @@ for i in xrange(nodes.numInternalNodes):
         xlow.append(i)
     elif pos[i].x > x1:
         xhigh.append(i)
+print list(xlow)
+print list(xhigh)
 xbc1 = ConstantBoundary(nodes, xlow, xp1)
 xbc2 = ConstantBoundary(nodes, xhigh, xp2)
 
@@ -378,8 +378,6 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            vizDerivs = True,
-                            vizGhosts = True,
                             SPH = SPH)
 output("control")
 
@@ -400,9 +398,9 @@ if serialDump:
     serialData = []
     i,j = 0,0
     for i in xrange(procs):
-            if rank == i:
-                for j in xrange(nodes.numInternalNodes):
-                    serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
+        if rank == i:
+            for j in xrange(nodes.numInternalNodes):
+                serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')
