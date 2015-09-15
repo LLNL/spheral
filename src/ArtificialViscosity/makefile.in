@@ -1,0 +1,25 @@
+# -*-makefile-*-
+# Spheral++ ArtificialViscosity package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = ArtificialViscosity
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+INSTSRCTARGETS = \
+	$(srcdir)/ArtificialViscosityInst.cc.py \
+	$(srcdir)/MonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/MorrisMonaghanReducingViscosityInst.cc.py \
+	$(srcdir)/TensorMonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/FiniteVolumeViscosityInst.cc.py \
+	$(srcdir)/CRKSPHMonaghanGingoldViscosityInst.cc.py \
+	$(srcdir)/TensorSVPHViscosityInst.cc.py \
+	$(srcdir)/TensorCRKSPHViscosityInst.cc.py \
+	$(srcdir)/VonNeumanViscosityInst.cc.py
+SRCTARGETS =
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
