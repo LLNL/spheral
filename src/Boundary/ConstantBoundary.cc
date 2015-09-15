@@ -50,7 +50,7 @@ storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
       for (typename std::vector<int>::const_iterator nodeItr = nodeIDs.begin();
            nodeItr != nodeIDs.end();
            ++nodeItr) {
-        CHECK(*nodeItr >= 0 && *nodeItr < field.numElements());
+        CHECK2(*nodeItr >= 0 && *nodeItr < field.numElements(), *nodeItr << " " << field.numElements());
         vals.push_back(field(*nodeItr));
       }
       CHECK(vals.size() == nodeIDs.size());
