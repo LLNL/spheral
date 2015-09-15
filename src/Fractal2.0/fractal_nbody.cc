@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   if(Ranky == 0)
     {
       cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
-      cout << " " << _mulT_ << " " << HYPREMAXONNODE << HYPREMULTIPLIER << "\n";
+      cout << " " << _mulT_ << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
     }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
   p_fractal_memory->FractalNodes0=FR0;

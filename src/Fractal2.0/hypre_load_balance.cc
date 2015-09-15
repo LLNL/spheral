@@ -67,7 +67,8 @@ namespace FractalSpace
 	HYP.ij_countsB[HR]=HYP.ij_offsetsB[HR+1]-HYP.ij_offsetsB[HR];
 	maxC=max(maxC,HYP.ij_counts[HR]);
 	maxCB=max(maxCB,HYP.ij_countsB[HR]);
-// 	fprintf(PFH," offsets balance %7d %10d %7d %10d %7d %7d %7d \n",HR,HYP.ij_offsets[HR],HYP.ij_counts[HR],HYP.ij_offsetsB[HR],HYP.ij_countsB[HR],offe,offes);
+ 	if(HypreRank == 0)
+	  fprintf(PFH," offsets balance %7d %10d %7d %10d %7d %7d %7d \n",HR,HYP.ij_offsets[HR],HYP.ij_counts[HR],HYP.ij_offsetsB[HR],HYP.ij_countsB[HR],offe,offes);
       }
     int first_on_new_node=HYP.ij_offsetsB[HypreRank];
     int last_on_new_node=HYP.ij_offsetsB[HypreRank+1]-1;

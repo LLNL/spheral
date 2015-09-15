@@ -1733,6 +1733,11 @@ namespace FractalSpace
   {
     MPI_Barrier(FractalWorld);
   }
+  void Mess::Fake_Stop_Do_Not_Argue() const
+  {
+    if(FractalRank != 0)
+      MPI_Barrier(FractalWorld);
+  }
   void Mess::Full_Stop(MPI_Comm& World) const
   {
     if(time_trial)
@@ -1741,6 +1746,13 @@ namespace FractalSpace
   void Mess::Full_Stop_Do_Not_Argue(MPI_Comm& World) const
   {
     MPI_Barrier(World);
+  }
+  void Mess::Fake_Stop_Do_Not_Argue(MPI_Comm& World) const
+  {
+    int Ranky;
+    MPI_Comm_rank(World,&Ranky);
+    if(Ranky != 0)
+      MPI_Barrier(World);
   }
   void Mess::zeroR()
   {
