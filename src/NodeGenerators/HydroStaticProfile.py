@@ -35,7 +35,7 @@ class HydroStaticProfileConstantTemp3d():
         y   = self.y0
         dy  = 0
         
-        nodes   = makeVoidNodeList("nodes1", numInternal=1)
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
         ef      = ScalarField("eps", nodes)
         Kf      = ScalarField("mod", nodes)
         rhof    = ScalarField("rho", nodes)
