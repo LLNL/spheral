@@ -113,11 +113,15 @@ namespace FractalSpace
   }
   void Point::get_pos_point(vector <int>& pos) const
   {
-    pos=pos_point;
+//     pos=pos_point;
+    if(pos.size() < 3)
+      pos.resize(3);
+    std::copy(pos_point,pos_point+3,pos.begin());
   }
   void Point::set_pos_point(const vector <int>& pos)
   {
-    pos_point=pos;
+//     pos_point=pos;
+    std::copy(pos.begin(),pos.begin()+3,pos_point);
   }
   void Point::set_pos_point(const int& x,const int& y,const int& z)
   {
@@ -319,11 +323,15 @@ namespace FractalSpace
   }
   void Point::get_force_point(vector <double>& force) const
   {
-    force=force_point;
+//     force=force_point;
+    if(force.size() < 3)
+      force.resize(3);
+    std::copy(force_point,force_point+3,force.begin());
   }
   void Point::set_force_point(vector <double>& force)
   {
-    force_point=force;
+//     force_point=force;
+    std::copy(force.begin(),force.begin()+3,force_point);
   }
   double Point::get_force_point_x() const
   {
@@ -450,11 +458,15 @@ namespace FractalSpace
   //
   void Point::get_point_ud(vector <Point*>& point_6) const
   {
-    point_6=point_ud;
+//     point_6=point_ud;
+    if(point_6.size() < 6)
+      point_6.resize(6);
+    std::copy(point_ud,point_ud+6,point_6.begin());
   }
   void Point::set_point_ud(vector <Point*>& point_6)
   {
-    point_ud=point_6;
+//     point_ud=point_6;
+    std::copy(point_6.begin(),point_6.begin()+6,point_ud);
   }
   Point* Point::get_point_up_x() const
   {
@@ -692,14 +704,23 @@ namespace FractalSpace
       get_point_ud_0(5)->potential_point-
       6.0*potential_point;
   }
+//   void Point::force_shear_point_make()
+//   {
+//     if(force_shear_point == 0)
+//       force_shear_point= new double[6];
+//   }
   void Point::force_shear_point_zero()
   {
     force_shear_point.clear();
+//     if(force_shear_point != 0)
+//       delete [] force_shear_point;
+//     force_shear_point=0;
   }
   void Point::copy_force_shear_point(Point& p0)
   {
     force_shear_point.resize(6);
     force_shear_point=p0.force_shear_point;
+//     std::copy(p0.force_shear_point,p0.force_shear_point+6,force_shear_point);
   }
   void Point::copy_density_point(Point& p0,Point& p1)
   {
@@ -716,21 +737,21 @@ namespace FractalSpace
   void Point::copy_force_shear_point_6()
   {
     force_shear_point.resize(6);
-    for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+    for(unsigned int ni=0;ni<6;ni++)
       force_shear_point[ni]=(get_point_ud_0(0)->force_shear_point[ni]+get_point_ud_0(1)->force_shear_point[ni]+get_point_ud_0(2)->force_shear_point[ni]+
 			     get_point_ud_0(3)->force_shear_point[ni]+get_point_ud_0(4)->force_shear_point[ni]+get_point_ud_0(5)->force_shear_point[ni])/6.0;
   }
   void Point::copy_force_shear_point_4(vector <int>& witch)
   {
     force_shear_point.resize(6);
-    for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+    for(unsigned int ni=0;ni<6;ni++)
       force_shear_point[ni]=(get_point_ud_0(witch[0])->force_shear_point[ni]+get_point_ud_0(witch[1])->force_shear_point[ni]+
 			     get_point_ud_0(witch[2])->force_shear_point[ni]+get_point_ud_0(witch[3])->force_shear_point[ni])*0.25;
   }
   void Point::copy_force_shear_point_2(vector <int>& witch)
   {
     force_shear_point.resize(6);
-    for(unsigned int ni=0;ni<force_shear_point.size();ni++)
+    for(unsigned int ni=0;ni<6;ni++)
       force_shear_point[ni]=(get_point_ud_0(witch[0])->force_shear_point[ni]+get_point_ud_0(witch[1])->force_shear_point[ni])*0.5;
   }
   void Point::copy_force_shear_point_1()
@@ -739,6 +760,7 @@ namespace FractalSpace
     if(point_pointer != 0)
       {
 	force_shear_point=point_pointer->force_shear_point;
+// 	std::copy(point_pointer->force_shear_point,point_pointer->force_shear_point+6,force_shear_point);
 	return;
       }
     dump();
@@ -822,6 +844,9 @@ namespace FractalSpace
   {
     // (fx,x)(fx,y)(fx,z)(fy,y)(fy,z)(fz,z)
     force_shear_point.resize(1);
+//     if(force_shear_point != 0)
+//       delete [] force_shear_point;
+//     force_shear_point= new double[1];
     force_shear_point[0]=
       (-(get_point_ud_0(0)->force_point[0]-get_point_ud_0(1)->force_point[0])
        -(get_point_ud_0(2)->force_point[0]-get_point_ud_0(3)->force_point[0])
@@ -834,6 +859,9 @@ namespace FractalSpace
   void Point::get_shear(vector <double>& s) const
   {
     s=force_shear_point;
+//     if(s.size() < 6)
+//       s.resize(6);
+//     std::copy(force_shear_point,force_shear_point+6,s.begin());
   }
   void Point::add_dens_at_point(const double& d)
   {
