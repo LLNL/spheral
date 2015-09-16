@@ -24,6 +24,9 @@ class HydroStaticProfileConstantTemp3d():
         self.rho0   = rho0
         self.soln   = []
         
+        from SolidSpheral3d import makeVoidNodeList
+        from SolidSpheral3d import ScalarField
+
         eoscount    = len(eostup)/2
         
         r   = self.rMax
@@ -31,6 +34,14 @@ class HydroStaticProfileConstantTemp3d():
         dr  = self.rMax/self.nbins
         y   = self.y0
         dy  = 0
+        
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        tempf[0] = temp
         
         while(r>0):
             # get the eos for this radius
@@ -44,8 +55,11 @@ class HydroStaticProfileConstantTemp3d():
             else:
                 eos = eostup[0]
         
-            e       = eos.specificThermalEnergy(rho,temp)
-            K       = eos.bulkModulus(rho,e)
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
@@ -89,11 +103,22 @@ class HydroStaticProfileConstantTemp2d():
         eoscount    = len(eostup)/2
         self.soln   = []
         
+        from SolidSpheral2d import makeVoidNodeList
+        from SolidSpheral2d import ScalarField
+
         r   = self.rMax
         rho = self.rho0
         dr  = self.rMax/self.nbins
         y   = self.y0
         dy  = 0
+        
+        nodes   = makeVoidNodeList("nodes", numInternal=1)
+        ef      = ScalarField("eps", nodes)
+        Kf      = ScalarField("mod", nodes)
+        rhof    = ScalarField("rho", nodes)
+        tempf   = ScalarField("temp", nodes)
+        
+        tempf[0] = temp
         
         while(r>0):
             # get the eos for this radius
@@ -107,8 +132,11 @@ class HydroStaticProfileConstantTemp2d():
             else:
                 eos = eostup[0]
             
-            e       = eos.specificThermalEnergy(rho,temp)
-            K       = eos.bulkModulus(rho,e)
+            rhof[0] = rho
+            eos.setSpecificThermalEnergy(ef,rhof,tempf)
+            e       = ef[0]
+            eos.setBulkModulus(Kf,rhof,ef)
+            K       = Kf[0]
             dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
