@@ -5,6 +5,7 @@
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "SolidMaterial/LinearPolynomialEquationOfState.hh"
 #include "SolidMaterial/GruneisenEquationOfState.hh"
+#include "SolidMaterial/OsborneEquationOfState.hh"
 #include "SolidMaterial/TillotsonEquationOfState.hh"
 #include "SolidMaterial/MurnahanEquationOfState.hh"
 #include "SolidMaterial/StrengthModel.hh"
@@ -45,6 +46,10 @@ typedef LinearPolynomialEquationOfState<Dim<3> > LinearPolynomialEquationOfState
 typedef GruneisenEquationOfState<Dim<1> > GruneisenEquationOfState1d;
 typedef GruneisenEquationOfState<Dim<2> > GruneisenEquationOfState2d;
 typedef GruneisenEquationOfState<Dim<3> > GruneisenEquationOfState3d;
+
+typedef OsborneEquationOfState<Dim<1> > OsborneEquationOfState1d;
+typedef OsborneEquationOfState<Dim<2> > OsborneEquationOfState2d;
+typedef OsborneEquationOfState<Dim<3> > OsborneEquationOfState3d;
 
 typedef TillotsonEquationOfState<Dim<1> > TillotsonEquationOfState1d;
 typedef TillotsonEquationOfState<Dim<2> > TillotsonEquationOfState2d;

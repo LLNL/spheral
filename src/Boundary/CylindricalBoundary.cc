@@ -65,7 +65,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
   // The fields of ghost positions and delta angles for this NodeList.
   Field<Dim<3>, Scalar>& deltaPhi = **(mDeltaPhi.fieldForNodeList(nodeList));
 
-  // The ghost node indicies.
+  // The ghost node indices.
   const int currentNumGhostNodes = nodeList.numGhostNodes();
   int ghostNodeIndex = nodeList.numNodes();
 

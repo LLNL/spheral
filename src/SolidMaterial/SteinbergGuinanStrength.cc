@@ -27,6 +27,7 @@ template<typename Dimension>
 SteinbergGuinanStrength<Dimension>::
 SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
                         const double G0,     
+                        const double Gmax,     
                         const double A,      
                         const double B,      
                         const double Y0,     
@@ -40,6 +41,40 @@ SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
   StrengthModel<Dimension>(),
   mEOSPtr(&eos),
   mG0(G0),
+  mGmax(Gmax),
+  mA(A),
+  mB(B),
+  mY0(Y0),
+  mYmax(Ymax),
+  mYp(Yp),
+  mbeta(beta),
+  mgamma0(gamma0),
+  mnhard(nhard),
+  mColdEnergyFit(coldEnergyFit),
+  mMeltEnergyFit(meltEnergyFit) {
+}
+
+//------------------------------------------------------------------------------
+// Constructor (backwards compatible one without Gmax).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+SteinbergGuinanStrength<Dimension>::
+SteinbergGuinanStrength(const SolidEquationOfState<Dimension>& eos,
+                        const double G0,     
+                        const double A,      
+                        const double B,      
+                        const double Y0,     
+                        const double Ymax,
+                        const double Yp,
+                        const double beta,
+                        const double gamma0, 
+                        const double nhard,
+                        const NinthOrderPolynomialFit& coldEnergyFit,
+                        const NinthOrderPolynomialFit& meltEnergyFit):
+  StrengthModel<Dimension>(),
+  mEOSPtr(&eos),
+  mG0(G0),
+  mGmax(1e100),
   mA(A),
   mB(B),
   mY0(Y0),
@@ -83,10 +118,11 @@ shearModulus(FieldSpace::Field<Dimension, Scalar>& shearModulus,
     for (unsigned i = 0; i != density.numInternalElements(); ++i) {
       const double eta = mEOSPtr->boundedEta(density(i));
       CHECK(distinctlyGreaterThan(eta, 0.0));
-      shearModulus(i) = mG0*max(1.0e-10,
-                                meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
-                                                                                       mA*max(0.0, pressure(i))/FastMath::CubeRootHalley2(eta) -
-                                                                                       mB*min(0.0, T(i))));
+      shearModulus(i) = min(mGmax, 
+                            mG0*max(1.0e-10,
+                                    meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
+                                                                                           mA*max(0.0, pressure(i))/FastMath::CubeRootHalley2(eta) -
+                                                                                           mB*min(0.0, T(i)))));
       CHECK(distinctlyGreaterThan(shearModulus(i), 0.0));
     }
   }
@@ -115,13 +151,9 @@ yieldStrength(FieldSpace::Field<Dimension, Scalar>& yieldStrength,
     this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure);
     for (unsigned i = 0; i != density.numInternalElements(); ++i) {
       const double eta = mEOSPtr->boundedEta(density(i));
-      if (fuzzyEqual(eta, mEOSPtr->etamin())) {
-        yieldStrength(i) = 0.0;
-      } else {
-        CHECK(distinctlyGreaterThan(eta, 0.0));
-        const double Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
-        yieldStrength(i) *= Yhard/mG0;
-      }
+      CHECK(distinctlyGreaterThan(eta, 0.0));
+      const double Yhard = mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard);
+      yieldStrength(i) = min(mYmax, Yhard/mG0*yieldStrength(i));
     }
   }
 }
@@ -218,6 +250,13 @@ double
 SteinbergGuinanStrength<Dimension>::
 G0() const {
   return mG0;
+}
+
+template<typename Dimension>
+double
+SteinbergGuinanStrength<Dimension>::
+Gmax() const {
+  return mGmax;
 }
 
 template<typename Dimension>

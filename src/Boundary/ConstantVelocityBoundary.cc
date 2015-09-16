@@ -26,7 +26,7 @@ using FileIOSpace::FileIO;
 template<typename Dimension>
 ConstantVelocityBoundary<Dimension>::
 ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
-                         const vector<int>& nodeIndicies):
+                         const vector<int>& nodeIndices):
   Boundary<Dimension>(),
   mNodeListPtr(&nodeList),
   mNodes("Constant Nodes", nodeList, 0),
@@ -34,8 +34,8 @@ ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
   mRestart(DataOutput::registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
-  for (vector<int>::const_iterator itr = nodeIndicies.begin();
-       itr < nodeIndicies.end();
+  for (vector<int>::const_iterator itr = nodeIndices.begin();
+       itr < nodeIndices.end();
        ++itr) {
     REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
     mNodes(*itr) = 1;
@@ -141,7 +141,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
   if (&nodeList == mNodeListPtr) {
     BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
     vector<int>& vNodes = boundaryNodes.violationNodes;
-    vNodes = nodeIndicies();
+    vNodes = nodeIndices();
   }
 }
 
@@ -188,7 +188,7 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
       field.name() == HydroFieldNames::velocity) {
 
     // This is the velocity field, so enforce the boundary.
-    const vector<int> nodeIDs = nodeIndicies();
+    const vector<int> nodeIDs = nodeIndices();
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr) {
@@ -225,7 +225,7 @@ enforceBoundary(Field<Dimension, typename Dimension::ThirdRankTensor>& field) co
 template<typename Dimension>
 bool
 ConstantVelocityBoundary<Dimension>::valid() const {
-  return nodeIndicies().size() == velocityCondition().size();
+  return nodeIndices().size() == velocityCondition().size();
 }
 
 //------------------------------------------------------------------------------

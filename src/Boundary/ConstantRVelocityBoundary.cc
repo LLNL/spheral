@@ -63,7 +63,7 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
 
     // This is the velocity field, so enforce the boundary.
     int j = 0;
-    const vector<int> nodeIDs = this->nodeIndicies();
+    const vector<int> nodeIDs = this->nodeIndices();
     const Field<Dimension, Vector>& positions = this->nodeList().positions();
     CHECK(nodeIDs.size() == mRadialVelocity.size());
     for (vector<int>::const_iterator itr = nodeIDs.begin();

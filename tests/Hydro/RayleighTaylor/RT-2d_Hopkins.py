@@ -1,3 +1,7 @@
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --ny1=512 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 256x512", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --ny1=256 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 128x256", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --ny1=1028 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 512x1028", np=20)
+
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
 #-------------------------------------------------------------------------------
@@ -45,11 +49,10 @@ commandLine(nx1 = 128,
             gamma = 1.4,
             mu = 1.0,
             
-            nPerh = 1.51,
+            nPerh = 2.01,
             
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
@@ -98,7 +101,6 @@ commandLine(nx1 = 128,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
             
-            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,
@@ -116,27 +118,30 @@ commandLine(nx1 = 128,
 
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
+    if SPH:
         HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
 elif CRKSPH:
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    if SPH:
         HydroConstructor = CRKSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
     else:
+        HydroConstructor = ACRKSPHHydro
+else:
+    if SPH:
         HydroConstructor = SPHHydro
+    else:
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataDir,
                        "gval=%g" % (gval),
+                       "w0=%g" % w0,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
+                       "compatible=%s" % compatibleEnergy,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
@@ -144,12 +149,6 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "Rayleigh-Taylor-2d")
 vizBaseName = "Rayleigh-Taylor-2d"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -202,15 +201,18 @@ output("nodes.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = ExponentialDensity(rhoB,
-                                                                     rhoT,
-                                                                     delta),
-                                            distributionType = "lattice",
-                                            xmin = (x0,y0),
-                                            xmax = (x1,y1),
-                                            nNodePerh = nPerh,
-                                            SPH = SPH)
+    # Add some points above and below the problem to represent the infinite atmosphere.
+    nybound = 10
+    dy = (y1 - y0)/ny1
+    generator = GenerateNodeDistribution2d(nx1, ny1 + 2*nybound,
+                                           rho = ExponentialDensity(rhoB,
+                                                                    rhoT,
+                                                                    delta),
+                                           distributionType = "xstaggeredLattice",
+                                           xmin = (x0,y0 - nybound*dy),
+                                           xmax = (x1,y1 + nybound*dy),
+                                           nNodePerh = nPerh,
+                                           SPH = SPH)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -218,7 +220,6 @@ if restoreCycle is None:
         from DistributeNodes import distributeNodes2d
 
     distributeNodes2d((nodes, generator))
-
 
     #Set IC
     vel = nodes.velocity()
@@ -314,7 +315,6 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     
@@ -323,7 +323,6 @@ if boolReduceViscosity:
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -333,30 +332,40 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Construct the gravitational acceleration object.
 #-------------------------------------------------------------------------------
-nodeIndicies = vector_of_int()
-
+pos = nodes.positions()
+nodeIndices = vector_of_int()
 for i in xrange(nodes.numInternalNodes):
-    nodeIndicies.append(i)
+    if pos[i].y > y0 and pos[i].y < y1:
+        nodeIndices.append(i)
 
 gravity = ConstantAcceleration2d(Vector2d(0.0, gval),
                                   nodes,
-                                  nodeIndicies)
+                                  nodeIndices)
 
 packages.append(gravity)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xp1 = Plane(Vector(x0, y0), Vector( 1.0, 0.0))
-xp2 = Plane(Vector(x1, y0), Vector(-1.0, 0.0))
-yp1 = Plane(Vector(x0, y0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(x0, y1), Vector(0.0, -1.0))
+xp1 = Plane(Vector(x0, y0), Vector( 1.0,  0.0))
+xp2 = Plane(Vector(x1, y0), Vector(-1.0,  0.0))
+yp1 = Plane(Vector(x0, y0), Vector( 0.0,  1.0))
+yp2 = Plane(Vector(x0, y1), Vector( 0.0, -1.0))
 xbc = PeriodicBoundary(xp1, xp2)
-#ybc = PeriodicBoundary(yp1, yp2)
-ybc1 = ReflectingBoundary(yp1)
-ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc1, ybc2]
-#bcSet = [xbc,ybc1]
+
+# The y boundary will be a snapshot of the state of the points above and below
+# the y-cutoffs.
+pos = nodes.positions()
+ylow, yhigh = vector_of_int(), vector_of_int()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].y < y0:
+        ylow.append(i)
+    elif pos[i].y > y1:
+        yhigh.append(i)
+ybc1 = ConstantBoundary(nodes, ylow, yp1)
+ybc2 = ConstantBoundary(nodes, yhigh, yp2)
+
+bcSet = [ybc1, ybc2, xbc]  # <-- ybc should be first!
 
 for bc in bcSet:
     for p in packages:
@@ -389,24 +398,19 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            redistributeStep = redistributeStep,
-                            vizMethod = vizMethod,
+                            redistributeStep = None,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = True,
+                            vizGhosts = True,
                             SPH = SPH)
 output("control")
 
