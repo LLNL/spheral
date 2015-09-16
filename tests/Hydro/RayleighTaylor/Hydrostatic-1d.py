@@ -51,7 +51,6 @@ commandLine(nx1 = 128,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
-            boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
             aMax = 2.0,
@@ -102,6 +101,7 @@ commandLine(nx1 = 128,
             comparisonFile = "None",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
+            graphics = True,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
@@ -283,14 +283,6 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
-    packages.append(evolveReducingViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
 if bArtificialConduction:
@@ -329,8 +321,6 @@ for i in xrange(nodes.numInternalNodes):
         xlow.append(i)
     elif pos[i].x > x1:
         xhigh.append(i)
-print list(xlow)
-print list(xhigh)
 xbc1 = ConstantBoundary(nodes, xlow, xp1)
 xbc2 = ConstantBoundary(nodes, xhigh, xp2)
 
@@ -339,6 +329,7 @@ bcSet = [xbc1, xbc2]
 for bc in bcSet:
     for p in packages:
         p.appendBoundary(bc)
+del bc
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -374,10 +365,6 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = None,
-                            vizBaseName = vizBaseName,
-                            vizDir = vizDir,
-                            vizStep = vizCycle,
-                            vizTime = vizTime,
                             SPH = SPH)
 output("control")
 
@@ -391,6 +378,10 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if graphics:
+    from SpheralGnuPlotUtilities import *
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotGhosts=True)
 
 if serialDump:
     procs = mpi.procs
