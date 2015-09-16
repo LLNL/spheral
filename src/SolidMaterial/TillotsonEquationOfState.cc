@@ -71,7 +71,7 @@ TillotsonEquationOfState(const double referenceDensity,
   mAtomicWeight(atomicWeight),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
   mExternalPressure(externalPressure) {
-  VERIFY(distinctlyGreaterThan(mAtomicWeight, 0.0));
+  VERIFY(distinctlyGreaterThan(mAtomicWeight/constants.molarGasConstant(),0.0));
 }
 
 //------------------------------------------------------------------------------

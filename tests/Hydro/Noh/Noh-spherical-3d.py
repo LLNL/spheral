@@ -87,7 +87,7 @@ commandLine(seed = "lattice",
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-spherical-Noh",
-            outputFile = "None",
+            outputFile = "Noh_spherical_profiles.gnu",
             comparisonFile = "None",
 
             graphics = True,

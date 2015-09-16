@@ -39,6 +39,7 @@ self.StrainPorosity%(dim)id = addObject(space, "StrainPorosity%(dim)id", parent=
 
 self.LinearPolynomialEquationOfState%(dim)id = addObject(space, "LinearPolynomialEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.GruneisenEquationOfState%(dim)id = addObject(space, "GruneisenEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.OsborneEquationOfState%(dim)id = addObject(space, "OsborneEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.TillotsonEquationOfState%(dim)id = addObject(space, "TillotsonEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.MurnahanEquationOfState%(dim)id = addObject(space, "MurnahanEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 
@@ -68,6 +69,7 @@ generateStrainPorosityBindings(self.StrainPorosity%(dim)id, %(dim)i)
 
 generateLinearPolynomialEquationOfStateBindings(self.LinearPolynomialEquationOfState%(dim)id, %(dim)i)
 generateGruneisenEquationOfStateBindings(self.GruneisenEquationOfState%(dim)id, %(dim)i)
+generateOsborneEquationOfStateBindings(self.OsborneEquationOfState%(dim)id, %(dim)i)
 generateTillotsonEquationOfStateBindings(self.TillotsonEquationOfState%(dim)id, %(dim)i)
 generateMurnahanEquationOfStateBindings(self.MurnahanEquationOfState%(dim)id, %(dim)i)
 
@@ -217,6 +219,62 @@ def generateGruneisenEquationOfStateBindings(x, ndim):
     x.add_instance_attribute("b", "double", getter="b", setter="b")
     x.add_instance_attribute("gamma0", "double", getter="gamma0", setter="gamma0")
     x.add_instance_attribute("atomicWeight", "double", getter="atomicWeight", setter="atomicWeight")
+    x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="externalPressure")
+    x.add_instance_attribute("energyMultiplier", "double", getter="energyMultiplier", setter="energyMultiplier")
+
+    return
+
+#---------------------------------------------------------------------------
+# OsborneEquationOfState
+#---------------------------------------------------------------------------
+def generateOsborneEquationOfStateBindings(x, ndim):
+
+    # Constructors.
+    x.add_constructor([param("double", "referenceDensity"),
+                       param("double", "etamin"),
+                       param("double", "etamax"),
+                       param("double", "a1"),
+                       param("double", "a2pos"),
+                       param("double", "a2neg"),
+                       param("double", "b0"),
+                       param("double", "b1"),
+                       param("double", "b2pos"),
+                       param("double", "b2neg"),
+                       param("double", "c0"),
+                       param("double", "c1"),
+                       param("double", "c2pos"),
+                       param("double", "c2neg"),
+                       param("double", "E0"),
+                       param("double", "atomicWeight"),
+                       constrefparam("PhysicalConstants", "constants"),
+                       param("double", "externalPressure", default_value="0.0"),
+                       param("double", "minimumPressure", default_value="-std::numeric_limits<double>::max()"),
+                       param("double", "maximumPressure", default_value="std::numeric_limits<double>::max()"),
+                       param("MaterialPressureMinType", "minPressureType", default_value="PressureFloor")])
+
+    # Generic EOS interface.
+    generateEquationOfStateVirtualBindings(x, ndim, False)
+
+    # Methods.
+    x.add_method("DPDrho", "double", [param("double", "rho"),
+                                      param("double", "specificThermalEnergy")], is_const=True)
+    x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+
+    # Attributes.
+    x.add_instance_attribute("a1", "double", getter="a1", setter="a1")
+    x.add_instance_attribute("a2pos", "double", getter="a2pos", setter="a2pos")
+    x.add_instance_attribute("a2neg", "double", getter="a2neg", setter="a2neg")
+    x.add_instance_attribute("b0", "double", getter="b0", setter="b0")
+    x.add_instance_attribute("b1", "double", getter="b1", setter="b1")
+    x.add_instance_attribute("b2pos", "double", getter="b2pos", setter="b2pos")
+    x.add_instance_attribute("b2neg", "double", getter="b2neg", setter="b2neg")
+    x.add_instance_attribute("c0", "double", getter="c0", setter="c0")
+    x.add_instance_attribute("c1", "double", getter="c1", setter="c1")
+    x.add_instance_attribute("c2pos", "double", getter="c2pos", setter="c2pos")
+    x.add_instance_attribute("c2neg", "double", getter="c2neg", setter="c2neg")
+    x.add_instance_attribute("E0", "double", getter="E0", setter="E0")
+    x.add_instance_attribute("atomicWeight", "double", getter="atomicWeight", setter="atomicWeight")
+    x.add_instance_attribute("Cv", "double", getter="Cv", is_const=True)
     x.add_instance_attribute("externalPressure", "double", getter="externalPressure", setter="externalPressure")
 
     return
@@ -429,6 +487,19 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
     # Constructors.
     x.add_constructor([constrefparam(solidequationofstate, "eos"),
                        param("double", "G0"),
+                       param("double", "Gmax"),
+                       param("double", "A"),
+                       param("double", "B"),
+                       param("double", "Y0"),
+                       param("double", "Ymax"),
+                       param("double", "Yp"),
+                       param("double", "beta"),
+                       param("double", "gamma0"),
+                       param("double", "nhard"),
+                       constrefparam(ninthorderpolynomial, "coldEnergyFit"),
+                       constrefparam(ninthorderpolynomial, "meltEnergyFit")])
+    x.add_constructor([constrefparam(solidequationofstate, "eos"),
+                       param("double", "G0"),
                        param("double", "A"),
                        param("double", "B"),
                        param("double", "Y0"),
@@ -451,6 +522,7 @@ def generateSteinbergGuinanStrengthBindings(x, ndim):
 
     # Attributes.
     x.add_instance_attribute("G0", "double", getter="G0", is_const=True)
+    x.add_instance_attribute("Gmax", "double", getter="G0", is_const=True)
     x.add_instance_attribute("A", "double", getter="A", is_const=True)
     x.add_instance_attribute("B", "double", getter="B", is_const=True)
     x.add_instance_attribute("Y0", "double", getter="Y0", is_const=True)

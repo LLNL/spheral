@@ -1,98 +1,77 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT CRK, nPerh=1.5", np=16)
-#ATS:test(SELF, "--CRKSPH=True --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="RT CRK, nPerh=2.0", np=16)
-#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral, nPerh=1.5", np=16)
-#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51 --serialDump=True", label="RT Spheral-NoQ, nPerh=1.5", np=16)
-#ATS:test(SELF, "--CRKSPH=False --nx1=128 --nx2=128 --ny1=256 --ny2=512 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=1.51  --serialDump=True --compatibleEnergy=False", label="RT TSPH-NoQ, nPerh=1.5", np=16)
-
 #-------------------------------------------------------------------------------
-# This is the basic Rayleigh-Taylor Problem
+# This is a test of maintaining hydrostatic equilibrium with constant boundaries,
+# akin to how we handle the Rayleigh-Taylor problem.
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
-from Spheral2d import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution2d import *
-from CompositeNodeDistribution import *
-from CentroidalVoronoiRelaxation import *
 
 import mpi
 import DistributeNodes
 
-title("Rayleigh-Taylor test problem in 2D")
-
 class ExponentialDensity:
     def __init__(self,
-                 y1,
-                 rho0,
-                 alpha):
-        self.y1 = y1
-        self.rho0 = rho0
-        self.alpha = alpha
+                 rho1,
+                 rho2,
+                 delta):
+        self.rho1 = rho1
+        self.rho2 = rho2
+        self.delta = delta
         return
     def __call__(self, r):
-        return self.rho0*exp(self.alpha*(r.y - self.y1))
+        return self.rho1+(self.rho2-self.rho1)/(1+exp(-(r-0.5)/delta))
+
+title("Rayleigh-Taylor hydrostatic equilibrium test problem in 1D")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1     = 50,
-            ny1     = 100,
-            nx2     = 50,
-            ny2     = 200,
-            reso    = 1,    # optional scale modifier for the resolution in all directions
-            rho0    = 1.0,
-            eps0    = 1.0,
-            x0      = 0.0,
-            x1      = 1.0,
-            y0      = 0.0,
-            y1      = 2.0,  # position of the interface
-            y2      = 6.0,
-            P0      = 1.0,  # pressure at top of simulation (y2)
-            freq    = 1.0,
-            alpha   = 0.01, # amplitude of displacement
-            beta    = 5.0,  # speed at which displacement decays away from midline
-            S       = 2.0,  # density jump at surface
-            g0      = -2.0, # gravitational acceleration
+commandLine(nx1 = 128,
+            rhoT = 2.0,
+            rhoB = 1.0,
+            x0 = 0.0,
+            x1 = 1.0,
+            gval = -0.5,
+	    w0  = 0.025,
+            delta = 0.025, 
+            gamma = 1.4,
+            mu = 1.0,
             
-            gamma   = 5.0/3.0,
-            mu      = 1.0,
+            nPerh = 2.01,
             
-            nPerh   = 1.51,
-            
-            SVPH    = False,
-            CRKSPH  = False,
-            ASPH    = False,
-            SPH     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            filter  = 0.0,   # CRKSPH filtering
+            SVPH = False,
+            CRKSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
-            boolReduceViscosity = False,
-            nh      = 5.0,
-            aMin    = 0.1,
-            aMax    = 2.0,
-            Qhmult  = 1.0,
-            Cl      = 1.0,
-            Cq      = 1.0,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            Cl = 1.0,
+            Cq = 1.0,
             linearInExpansion = False,
             Qlimiter = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
-            hmin    = 0.0001,
-            hmax    = 0.5,
+            hmin = 0.0001,
+            hmax = 0.5,
             hminratio = 0.1,
-            cfl     = 0.5,
+            cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 5.0,
+            goalTime = 20.0,
             steps = None,
             vizCycle = None,
             vizTime = 0.01,
@@ -112,74 +91,45 @@ commandLine(nx1     = 50,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
             
-            useVoronoiOutput = False,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
-            dataDir = "dumps-Rayleigh-Taylor-2d-constRho",
+            dataDir = "dumps-Rayleigh-Taylor-1d_hopkins",
             outputFile = "None",
             comparisonFile = "None",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
+            graphics = True,
             
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )
 
-nx1 = nx1*reso
-nx2 = nx2*reso
-ny1 = ny1*reso
-ny2 = ny2*reso
-
-#-------------------------------------------------------------------------------
-# Computing and printing the growth rate
-#-------------------------------------------------------------------------------
-atwood  = (S-1.0)/(S+1.0)
-zdot    = sqrt(freq*atwood*abs(g0))
-
-print "\n\n\nzdot = exp({0:3.3e}*t)  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
-
-
-
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
+    HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    HydroConstructor = CRKSPHHydro
 else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
+    HydroConstructor = SPHHydro
 
 dataDir = os.path.join(dataDir,
-                       "S=%g" % (S),
-                       "CRKSPH=%s" % CRKSPH,
+                       "gval=%g" % (gval),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
+                       "compatible=%s" % compatibleEnergy,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
-                       "%ix%i" % (nx1, ny1 + ny2),
+                       "%i" % nx1,
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "Rayleigh-Taylor-2d")
-vizBaseName = "Rayleigh-Taylor-2d"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+restartBaseName = os.path.join(restartDir, "Rayleigh-Taylor-1d")
+vizBaseName = "Rayleigh-Taylor-1d"
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -217,90 +167,53 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("High density gas", eos,
+nodes = makeFluidNodeList("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
                            nPerh = nPerh)
-nodes2 = makeFluidNodeList("Low density gas", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           hminratio = hminratio,
-                           nPerh = nPerh)
-nodeSet = [nodes1, nodes2]
-for nodes in nodeSet:
-    output("nodes.name")
-    output("nodes.hmin")
-    output("nodes.hmax")
-    output("nodes.hminratio")
-    output("nodes.nodesPerSmoothingScale")
+output("nodes.name")
+output("nodes.hmin")
+output("nodes.hmax")
+output("nodes.hminratio")
+output("nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(nx1, ny1,
-                                            rho = rho0/S,
-                                            distributionType = "lattice",
-                                            xmin = (x0,y0),
-                                            xmax = (x1,y1),
+    # Add some points above and below the problem to represent the infinite atmosphere.
+    nxbound = 10
+    dx = (x1 - x0)/nx1
+    from DistributeNodes import distributeNodesInRange1d
+    distributeNodesInRange1d([(nodes, nx1 + 2*nxbound, rhoT,
+                               (x0 - nxbound*dx,
+                                x1 + nxbound*dx))],
+                             nPerh = nPerh)
 
-                                            nNodePerh = nPerh,
-                                            SPH = SPH)
-    generator2 = GenerateNodeDistribution2d(nx2, ny2,
-                                            rho = rho0,
-                                            distributionType = "lattice",
-                                            xmin = (x0,y1),
-                                            xmax = (x1,y2),
-                                            nNodePerh = nPerh,
-                                            SPH = SPH)
-
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
-
-    distributeNodes2d((nodes1, generator1),
-                      (nodes2, generator2))
-
-    # A helpful method for setting y displacement.
-    def dy(ri):
-        thpt = alpha*cos(2.0*pi*ri.x*freq)
-        return thpt*exp(-beta*abs(ri.y-y1))
-
-    # Finish initial conditions.
-    eps1 = nodes1.specificThermalEnergy()
-    eps2 = nodes2.specificThermalEnergy()
-    pos1 = nodes1.positions()
-    pos2 = nodes2.positions()
-    
-    rho1 = rho0/S
-    rho2 = rho0
-    P01  = P0 + g0*(y1-y2)*(rho2-rho1)
-    P02  = P0
-
-    
-    for i in xrange(nodes1.numInternalNodes):
-        y = pos1[i].y
-        eps1[i] = (P01+g0*rho1*(y-y2))/((gamma-1.0)*rho1)
-    for i in xrange(nodes2.numInternalNodes):
-        y = pos2[i].y
-        eps2[i] = (P02+g0*rho2*(y-y2))/((gamma-1.0)*rho2)
-    #nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
-    #nodes2.specificThermalEnergy(ScalarField("tmp", nodes2, eps0/S))
-    for nodes in (nodes1,nodes2):
-        pos = nodes.positions()
-        vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
-            pos[i].y += dy(pos[i])
+    #Set IC
+    eps = nodes.specificThermalEnergy()
+    pos = nodes.positions()
+    rho = nodes.massDensity()
+    mass = nodes.mass()
+    rhoFunc = ExponentialDensity(rhoB,
+                                 rhoT,
+                                 delta)
+    for i in xrange(nodes.numInternalNodes):
+        xi = pos[i].x
+        P0 = rhoT/gamma
+        rho[i] = rhoFunc(xi)
+        mass[i] = dx*rho[i]
+        Pi = P0 + gval*rho[i]*(xi-0.5)
+        eps0 = Pi/((gamma - 1.0)*rho[i])
+        eps[i]=eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
 db = DataBase()
 output("db")
-for nodes in nodeSet:
-    db.appendNodeList(nodes)
+db.appendNodeList(nodes)
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
@@ -337,8 +250,6 @@ if SVPH:
                              fcellPressure = fcellPressure,
                              xmin = Vector(-2.0, -2.0),
                              xmax = Vector(3.0, 3.0))
-# xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
-# xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
     hydro = HydroConstructor(WT, WTPi, q,
                              filter = filter,
@@ -372,18 +283,8 @@ output("hydro.HEvolution")
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
-    packages.append(evolveReducingViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
 #-------------------------------------------------------------------------------
-
 if bArtificialConduction:
     #q.reducingViscosityCorrection = True
     ArtyCond = ArtificialConduction(WT,arCondAlpha)
@@ -393,32 +294,42 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Construct the gravitational acceleration object.
 #-------------------------------------------------------------------------------
+pos = nodes.positions()
+nodeIndices = vector_of_int()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].x > x0 and pos[i].x < x1:
+        nodeIndices.append(i)
 
-gravity1 = ConstantAcceleration2d(Vector2d(0.0, g0),
-                                  nodes1)
-gravity2 = ConstantAcceleration2d(Vector2d(0.0, g0),
-                                  nodes2)
+gravity = ConstantAcceleration1d(Vector1d(0.0, gval),
+                                  nodes,
+                                  nodeIndices)
 
-packages.append(gravity1)
-packages.append(gravity2)
+packages.append(gravity)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xp1 = Plane(Vector(x0, y0), Vector( 1.0, 0.0))
-xp2 = Plane(Vector(x1, y0), Vector(-1.0, 0.0))
-yp1 = Plane(Vector(x0, y0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(x0, y2), Vector(0.0, -1.0))
-xbc = PeriodicBoundary(xp1, xp2)
-#ybc = PeriodicBoundary(yp1, yp2)
-ybc1 = ReflectingBoundary(yp1)
-ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc1, ybc2]
-#bcSet = [xbc,ybc1]
+xp1 = Plane(Vector(x0), Vector( 1.0))
+xp2 = Plane(Vector(x1), Vector(-1.0))
+
+# The x boundary will be a snapshot of the state of the points above and below
+# the x-cutoffs.
+pos = nodes.positions()
+xlow, xhigh = vector_of_int(), vector_of_int()
+for i in xrange(nodes.numInternalNodes):
+    if pos[i].x < x0:
+        xlow.append(i)
+    elif pos[i].x > x1:
+        xhigh.append(i)
+xbc1 = ConstantBoundary(nodes, xlow, xp1)
+xbc2 = ConstantBoundary(nodes, xhigh, xp2)
+
+bcSet = [xbc1, xbc2]
 
 for bc in bcSet:
     for p in packages:
         p.appendBoundary(bc)
+del bc
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -447,24 +358,13 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            redistributeStep = redistributeStep,
-                            vizMethod = vizMethod,
-                            vizBaseName = vizBaseName,
-                            vizDir = vizDir,
-                            vizStep = vizCycle,
-                            vizTime = vizTime,
+                            redistributeStep = None,
                             SPH = SPH)
 output("control")
 
@@ -479,16 +379,19 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
+if graphics:
+    from SpheralGnuPlotUtilities import *
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotGhosts=True)
+
 if serialDump:
     procs = mpi.procs
     rank = mpi.rank
     serialData = []
     i,j = 0,0
     for i in xrange(procs):
-        for nodeL in nodeSet:
-            if rank == i:
-                for j in xrange(nodeL.numInternalNodes):
-                    serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
+        if rank == i:
+            for j in xrange(nodes.numInternalNodes):
+                serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')

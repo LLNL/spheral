@@ -45,7 +45,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
-  // An internal type to hold the paired control/ghost node indicies.
+  // An internal type to hold the paired control/ghost node indices.
   // Also maintains a list of any internal nodes that are in violation
   // of the boundary condition.
   struct BoundaryNodes {
@@ -60,7 +60,7 @@ public:
 
   // Boundary conditions define three types of nodes:
   //   Control nodes -- the real nodes which are being shadowed as ghosts.
-  //   Ghost nodes -- the indicies of the ghost nodes corresponding to the 
+  //   Ghost nodes -- the indices of the ghost nodes corresponding to the 
   //                  controls.
   //   Violation nodes -- any internal nodes in the NodeList that our out
   //                      of bounds for this boundary condition.
@@ -156,6 +156,10 @@ public:
   virtual void swapFaceValues(FieldSpace::Field<Dimension, std::vector<Vector> >& field,
                               const MeshSpace::Mesh<Dimension>& mesh) const { VERIFY2(false, "Not implemented"); }
   //**********************************************************************
+
+  // Some boundaries need to know when a problem is starting up and all the physics
+  // packages have been initialized.
+  virtual void initializeProblemStartup() {};
 
   // Provide an optional hook that is to be called when all ghost boundaries are
   // to have been set.

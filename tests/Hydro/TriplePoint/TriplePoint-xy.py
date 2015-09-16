@@ -108,6 +108,7 @@ commandLine(
     restoreCycle = None,
     restartStep = 200,
     dataDir = "dumps-triplepoint-xy",
+    serialDump = False, #whether to dump a serial ascii file at the end for viz
     )
 
 # Decide on our hydro algorithm.
@@ -143,7 +144,8 @@ baseDir = os.path.join(dataDir,
                        "fcentroidal=%1.3f" % fcentroidal,
                        "fcellPressure=%1.3f" % fcellPressure,
                        "filter=%f" % filter,
-                       "%ix%i" % (nx1 + nx2, ny1 + ny2))
+                       "%ix%i" % (nx1 + nx2, ny1 + ny2),
+                       "Cl=%3.1f_Cq=%3.1f" % (Cl,Cq))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "triplepoint-xy-%ix%i" % (nx1 + nx2, ny1 + ny2))
 
@@ -420,3 +422,22 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if serialDump:
+  procs = mpi.procs
+  rank = mpi.rank
+  serialData = []
+  i,j,k = 0,0,0
+  for i in xrange(procs):
+    if rank == i:
+        k = 0
+        for nodeL in nodeSet:
+            for j in xrange(nodeL.numInternalNodes):
+                serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j],k])
+            k = k + 1
+  serialData = mpi.reduce(serialData,mpi.SUM)
+  if rank == 0:
+    f = open(baseDir + "/serialDump.ascii",'w')
+    for i in xrange(len(serialData)):
+      f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][5],serialData[i][4]))
+    f.close()
