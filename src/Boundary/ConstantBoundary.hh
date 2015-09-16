@@ -89,7 +89,7 @@ public:
   virtual bool valid() const;
 
   // Accessor methods.
-  const std::vector<int>& nodeIndices() const;
+  std::vector<int> nodeIndices() const;
   int numConstantNodes() const;
   const NodeSpace::NodeList<Dimension>& nodeList() const;
   Tensor reflectOperator() const;
@@ -97,7 +97,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   NodeSpace::NodeList<Dimension>* mNodeListPtr;
-  std::vector<int> mNodeIDs;
+  FieldSpace::Field<Dimension, int> mNodeFlags;
   int mNumConstantNodes;
   GeomPlane<Dimension> mDenialPlane;
   Tensor mReflectOperator;

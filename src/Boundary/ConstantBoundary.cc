@@ -2,6 +2,8 @@
 // ConstantBoundary -- A boundary condition to enforce a constant 
 // velocity on a given set of nodes.
 //----------------------------------------------------------------------------//
+#include "boost/lexical_cast.hpp"
+
 #include "ConstantBoundary.hh"
 #include "Boundary.hh"
 #include "mapPositionThroughPlanes.hh"
@@ -64,6 +66,7 @@ storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
       const std::string key = StateBase<Dimension>::key(**fieldItr);
       CHECK2(values.find(key) == values.end(), key);
       values[key] = vals;
+      cerr << "Stored " << vals.size() << " values for " << key << endl;
     }
   }
 }
@@ -88,8 +91,8 @@ resetValues(FieldSpace::Field<Dimension, DataType>& field,
 
   // Now set the values.
   if (itr != values.end()) {
-    const std::vector<DataType>& newValues = itr->second;;
-    CHECK2(newValues.size() == nodeIDs.size(), newValues.size() << " " << nodeIDs.size());
+    const std::vector<DataType>& newValues = itr->second;
+    CHECK2(newValues.size() == nodeIDs.size(), key << " " << newValues.size() << " " << nodeIDs.size());
     for (int i = 0; i < nodeIDs.size(); ++i) {
       CHECK(nodeIDs[i] >= 0 &&
             nodeIDs[i] < nodeList.numNodes());
@@ -110,7 +113,7 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
                  const GeomPlane<Dimension>& denialPlane):
   Boundary<Dimension>(),
   mNodeListPtr(&nodeList),
-  mNodeIDs(nodeIDs),
+  mNodeFlags("ConstantBoundary node flags " + boost::lexical_cast<std::string>(nodeList.numFields()), nodeList, 0),
   mNumConstantNodes(nodeIDs.size()),
   mDenialPlane(denialPlane),
   mReflectOperator(planarReflectingOperator(denialPlane)),
@@ -122,13 +125,13 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mThirdRankTensorValues(),
   mVectorScalarValues() {
 
-  // // Store the ids of the nodes we're watching.
-  // for (vector<int>::const_iterator itr = nodeIDs.begin();
-  //      itr < nodeIDs.end();
-  //      ++itr) {
-  //   REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
-  //   mNodeFlags[*itr] = 1;
-  // }
+  // Store the ids of the nodes we're watching.
+  for (vector<int>::const_iterator itr = nodeIDs.begin();
+       itr < nodeIDs.end();
+       ++itr) {
+    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+    mNodeFlags[*itr] = 1;
+  }
 
   // Issue a big old warning!
   if (Process::getRank() == 0) cerr << "WARNING: ConstantBoundary is currently not compatible with redistributing nodes!\nMake sure you don't allow redistribution with this Boundary condition." << endl;
@@ -152,30 +155,25 @@ void
 ConstantBoundary<Dimension>::
 setGhostNodes(NodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
-  cerr << "1" << endl;
 
   if (mActive and &nodeList == mNodeListPtr) {
     typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
     vector<int>& cNodes = boundaryNodes.controlNodes;
     vector<int>& gNodes = boundaryNodes.ghostNodes;
-    cerr << "2" << endl;
     
     unsigned currentNumGhostNodes = nodeList.numGhostNodes();
     unsigned firstNewGhostNode = nodeList.numNodes();
     nodeList.numGhostNodes(currentNumGhostNodes + mNumConstantNodes);
-    mNodeIDs = vector<int>(mNumConstantNodes);
     cNodes = vector<int>(mNumConstantNodes);
     gNodes = vector<int>(mNumConstantNodes);
-    cerr << "3" << endl;
     for (int i = 0; i != mNumConstantNodes; ++i) {
-      mNodeIDs[i] = firstNewGhostNode + i;
-      cNodes[i] = mNodeIDs[i];
-      gNodes[i] = mNodeIDs[i];
+      const int j = firstNewGhostNode + i;
+      mNodeFlags(j) = 1;
+      cNodes[i] = j;
+      gNodes[i] = j;
     }
-    cerr << "4" << endl;
     
     this->updateGhostNodes(nodeList);
-    cerr << "5" << endl;
   }
 }
 
@@ -209,6 +207,10 @@ void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
   if (mActive) resetValues(field, this->nodeIndices(), mScalarValues, false);
+  const std::vector<int> ids = this->nodeIndices();
+  cerr << "Set ghosts for " << field.name() << " :";
+  for (std::vector<int>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr) cerr << " " << field(*itr);
+  cerr << endl;
 }
 
 // Specialization for Vector fields.
@@ -370,31 +372,44 @@ template<typename Dimension>
 void
 ConstantBoundary<Dimension>::initializeProblemStartup() {
 
-  // Clear any existing data.
-  mIntValues.clear();
-  mScalarValues.clear();
-  mVectorValues.clear();
-  mTensorValues.clear();
-  mSymTensorValues.clear();
-  mThirdRankTensorValues.clear();
-  mVectorScalarValues.clear();
+  if (not mActive) {
 
-  // Now take a snapshot of the Fields.
-  const vector<int> nodeIDs = this->nodeIndices();
-  storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mScalarValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mVectorValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mTensorValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
-  storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
+    // Clear any existing data.
+    mIntValues.clear();
+    mScalarValues.clear();
+    mVectorValues.clear();
+    mTensorValues.clear();
+    mSymTensorValues.clear();
+    mThirdRankTensorValues.clear();
+    mVectorScalarValues.clear();
 
-  // Remove the origial internal nodes.
-  mNodeListPtr->deleteNodes(nodeIDs);
-  mNodeIDs.clear();
+    // Now take a snapshot of the Fields.
+    const vector<int> nodeIDs = this->nodeIndices();
+    cerr << "Node IDs: ";
+    std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+    cerr << endl;
+    storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mScalarValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mSymTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
+    storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
 
-  // Turn the BC on.
-  mActive = true;
+    for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
+         itr != mScalarValues.end();
+         ++itr) {
+      cerr << " --> " << itr->first << " : ";
+      std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<double>(std::cerr, " "));
+      cerr << endl;
+    }
+
+    // Remove the origial internal nodes.
+    mNodeListPtr->deleteNodes(nodeIDs);
+
+    // Turn the BC on.
+    mActive = true;
+  }
 
   // Once we're done the boundary condition should be in a valid state.
   ENSURE(valid());
