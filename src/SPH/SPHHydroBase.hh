@@ -247,6 +247,9 @@ protected:
   FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;
   FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV;
   FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha;
+  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt2;
+  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;
+  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
 #endif
 
   // Some internal scratch fields.
