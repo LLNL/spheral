@@ -647,6 +647,7 @@ self.space.add_function("dynamicCastBoundary",
         derivatives = "StateDerivatives%id" % ndim
         database = "Spheral::DataBaseSpace::DataBase%id" % ndim
         connectivitymap = "ConnectivityMap%id" % ndim
+        fileio = "Spheral::FileIOSpace::FileIO"
 
         # Constructors.
         x.add_constructor([refparam(nodelist, "nodeList"), 
@@ -662,6 +663,12 @@ self.space.add_function("dynamicCastBoundary",
         
         # Virtual methods.
         x.add_method("valid", "bool", [], is_const=True, is_virtual=True)
+        x.add_method("label", "std::string", [], is_const=True, is_virtual=True)
+        x.add_method("dumpState", None, [refparam(fileio, "fileIO"),
+                                         refparam("std::string", "pathName")], is_const=True, is_virtual=True)
+        x.add_method("restoreState", None, [refparam(fileio, "fileIO"),
+                                            refparam("std::string", "pathName")], is_virtual=True)
+
 
         # Generate the abstract interface.
         generateBoundaryVirtualBindings(x, ndim, False)

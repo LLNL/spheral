@@ -2,7 +2,9 @@
 // ConstantBoundary -- A boundary condition to enforce a constant 
 // velocity on a given set of nodes.
 //----------------------------------------------------------------------------//
+#include "boost/foreach.hpp"
 #include "boost/lexical_cast.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include "ConstantBoundary.hh"
 #include "Boundary.hh"
@@ -10,6 +12,7 @@
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
+#include "FileIO/FileIO.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
 
@@ -25,6 +28,7 @@ using FieldSpace::FieldBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
 using DataBaseSpace::DataBase;
+using FileIOSpace::FileIO;
 
 namespace {
 
@@ -66,7 +70,7 @@ storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
       const std::string key = StateBase<Dimension>::key(**fieldItr);
       CHECK2(values.find(key) == values.end(), key);
       values[key] = vals;
-      cerr << "Stored " << vals.size() << " values for " << key << endl;
+      // cerr << "Stored " << vals.size() << " values for " << key << endl;
     }
   }
 }
@@ -113,7 +117,8 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
                  const GeomPlane<Dimension>& denialPlane):
   Boundary<Dimension>(),
   mNodeListPtr(&nodeList),
-  mNodeFlags("ConstantBoundary node flags " + boost::lexical_cast<std::string>(nodeList.numFields()), nodeList, 0),
+  mBoundaryCount(nodeList.numFields()),
+  mNodeFlags("ConstantBoundaryNodeFlags" + boost::lexical_cast<std::string>(mBoundaryCount), nodeList, 0),
   mNumConstantNodes(nodeIDs.size()),
   mDenialPlane(denialPlane),
   mReflectOperator(planarReflectingOperator(denialPlane)),
@@ -123,7 +128,8 @@ ConstantBoundary(NodeList<Dimension>& nodeList,
   mTensorValues(),
   mSymTensorValues(),
   mThirdRankTensorValues(),
-  mVectorScalarValues() {
+  mVectorScalarValues(),
+  mRestart(DataOutput::registerWithRestart(*this)) {
 
   // Store the ids of the nodes we're watching.
   for (vector<int>::const_iterator itr = nodeIDs.begin();
@@ -207,10 +213,10 @@ void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
   if (mActive) resetValues(field, this->nodeIndices(), mScalarValues, false);
-  const std::vector<int> ids = this->nodeIndices();
-  cerr << "Set ghosts for " << field.name() << " :";
-  for (std::vector<int>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr) cerr << " " << field(*itr);
-  cerr << endl;
+  // const std::vector<int> ids = this->nodeIndices();
+  // cerr << "Set ghosts for " << field.name() << " :";
+  // for (std::vector<int>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr) cerr << " " << field(*itr);
+  // cerr << endl;
 }
 
 // Specialization for Vector fields.
@@ -385,9 +391,9 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
 
     // Now take a snapshot of the Fields.
     const vector<int> nodeIDs = this->nodeIndices();
-    cerr << "Node IDs: ";
-    std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-    cerr << endl;
+    // cerr << "Node IDs: ";
+    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+    // cerr << endl;
     storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mScalarValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorValues);
@@ -396,13 +402,13 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
 
-    for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
-         itr != mScalarValues.end();
-         ++itr) {
-      cerr << " --> " << itr->first << " : ";
-      std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<double>(std::cerr, " "));
-      cerr << endl;
-    }
+    // for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
+    //      itr != mScalarValues.end();
+    //      ++itr) {
+    //   cerr << " --> " << itr->first << " : ";
+    //   std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<double>(std::cerr, " "));
+    //   cerr << endl;
+    // }
 
     // Remove the origial internal nodes.
     mNodeListPtr->deleteNodes(nodeIDs);
@@ -422,6 +428,144 @@ template<typename Dimension>
 bool
 ConstantBoundary<Dimension>::valid() const {
   return true;
+}
+
+//------------------------------------------------------------------------------
+// Return a unique label for restart.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::string
+ConstantBoundary<Dimension>::label() const {
+  return "ConstantBoundary" + boost::lexical_cast<std::string>(mBoundaryCount);
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+dumpState(FileIO& file, string pathName) const {
+  file.write(mNumConstantNodes, pathName + "/numConstantNodes");
+  file.write(mActive, pathName + "/active");
+  file.write(mBoundaryCount, pathName + "/boundaryCount");
+
+  vector<std::string> keys;
+  BOOST_FOREACH(const typename IntStorageType::value_type& p, mIntValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/IntValues/" + p.first);
+  }
+  file.write(keys, pathName + "/IntValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename ScalarStorageType::value_type& p, mScalarValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/ScalarValues/" + p.first);
+  }
+  file.write(keys, pathName + "/ScalarValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename VectorStorageType::value_type& p, mVectorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/VectorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/VectorValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename TensorStorageType::value_type& p, mTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/TensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/TensorValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename SymTensorStorageType::value_type& p, mSymTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/SymTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/SymTensorValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename ThirdRankTensorStorageType::value_type& p, mThirdRankTensorValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/ThirdRankTensorValues/" + p.first);
+  }
+  file.write(keys, pathName + "/ThirdRankTensorValues/keys");
+
+  keys.clear();
+  BOOST_FOREACH(const typename VectorScalarStorageType::value_type& p, mVectorScalarValues) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/VectorScalarValues/" + p.first);
+  }
+  file.write(keys, pathName + "/VectorScalarValues/keys");
+}
+
+//------------------------------------------------------------------------------
+// Read the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConstantBoundary<Dimension>::
+restoreState(const FileIO& file, string pathName)  {
+  file.read(mNumConstantNodes, pathName + "/numConstantNodes");
+  file.read(mActive, pathName + "/active");
+  file.read(mBoundaryCount, pathName + "/boundaryCount");
+
+  vector<std::string> keys;
+  file.read(keys, pathName + "/IntValues/keys");
+  mIntValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mIntValues[key] = std::vector<int>();
+    file.read(mIntValues[key], pathName + "/IntValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/ScalarValues/keys");
+  mScalarValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mScalarValues[key] = std::vector<Scalar>();
+    file.read(mScalarValues[key], pathName + "/ScalarValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/VectorValues/keys");
+  mVectorValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mVectorValues[key] = std::vector<Vector>();
+    file.read(mVectorValues[key], pathName + "/VectorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/TensorValues/keys");
+  mTensorValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mTensorValues[key] = std::vector<Tensor>();
+    file.read(mTensorValues[key], pathName + "/TensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/SymTensorValues/keys");
+  mSymTensorValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mSymTensorValues[key] = std::vector<SymTensor>();
+    file.read(mSymTensorValues[key], pathName + "/SymTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/ThirdRankTensorValues/keys");
+  mThirdRankTensorValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mThirdRankTensorValues[key] = std::vector<ThirdRankTensor>();
+    file.read(mThirdRankTensorValues[key], pathName + "/ThirdRankTensorValues/" + key);
+  }
+
+  keys.clear();
+  file.read(keys, pathName + "/VectorScalarValues/keys");
+  mVectorScalarValues.clear();
+  BOOST_FOREACH(const std::string key, keys) {
+    mVectorScalarValues[key] = std::vector<std::vector<Scalar> >();
+    file.read(mVectorScalarValues[key], pathName + "/VectorScalarValues/" + key);
+  }
 }
 
 }
