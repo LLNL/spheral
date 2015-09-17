@@ -183,7 +183,7 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     # Add some points above and below the problem to represent the infinite atmosphere.
-    nxbound = 10
+    nxbound = 20
     dx = (x1 - x0)/nx1
     from DistributeNodes import distributeNodesInRange1d
     distributeNodesInRange1d([(nodes, nx1 + 2*nxbound, rhoT,
