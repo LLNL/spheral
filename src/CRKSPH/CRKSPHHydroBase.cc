@@ -195,6 +195,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Initialize the kernel correction fields.
+  dataBase.updateConnectivityMap(false);
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const TableKernel<Dimension>& W = this->kernel();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
