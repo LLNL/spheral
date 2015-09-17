@@ -409,8 +409,6 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            vizDerivs = True,
-                            vizGhosts = True,
                             SPH = SPH)
 output("control")
 
