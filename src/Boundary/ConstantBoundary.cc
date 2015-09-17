@@ -66,7 +66,7 @@ storeFieldValues(const NodeSpace::NodeList<Dimension>& nodeList,
       const std::string key = StateBase<Dimension>::key(**fieldItr);
       CHECK2(values.find(key) == values.end(), key);
       values[key] = vals;
-      cerr << "Stored " << vals.size() << " values for " << key << endl;
+      // cerr << "Stored " << vals.size() << " values for " << key << endl;
     }
   }
 }
@@ -207,10 +207,10 @@ void
 ConstantBoundary<Dimension>::
 applyGhostBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
   if (mActive) resetValues(field, this->nodeIndices(), mScalarValues, false);
-  const std::vector<int> ids = this->nodeIndices();
-  cerr << "Set ghosts for " << field.name() << " :";
-  for (std::vector<int>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr) cerr << " " << field(*itr);
-  cerr << endl;
+  // const std::vector<int> ids = this->nodeIndices();
+  // cerr << "Set ghosts for " << field.name() << " :";
+  // for (std::vector<int>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr) cerr << " " << field(*itr);
+  // cerr << endl;
 }
 
 // Specialization for Vector fields.
@@ -385,9 +385,9 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
 
     // Now take a snapshot of the Fields.
     const vector<int> nodeIDs = this->nodeIndices();
-    cerr << "Node IDs: ";
-    std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
-    cerr << endl;
+    // cerr << "Node IDs: ";
+    // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
+    // cerr << endl;
     storeFieldValues(*mNodeListPtr, nodeIDs, mIntValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mScalarValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorValues);
@@ -396,13 +396,13 @@ ConstantBoundary<Dimension>::initializeProblemStartup() {
     storeFieldValues(*mNodeListPtr, nodeIDs, mThirdRankTensorValues);
     storeFieldValues(*mNodeListPtr, nodeIDs, mVectorScalarValues);
 
-    for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
-         itr != mScalarValues.end();
-         ++itr) {
-      cerr << " --> " << itr->first << " : ";
-      std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<double>(std::cerr, " "));
-      cerr << endl;
-    }
+    // for (typename std::map<KeyType, std::vector<Scalar> >::const_iterator itr = mScalarValues.begin();
+    //      itr != mScalarValues.end();
+    //      ++itr) {
+    //   cerr << " --> " << itr->first << " : ";
+    //   std::copy(itr->second.begin(), itr->second.end(), std::ostream_iterator<double>(std::cerr, " "));
+    //   cerr << endl;
+    // }
 
     // Remove the origial internal nodes.
     mNodeListPtr->deleteNodes(nodeIDs);
