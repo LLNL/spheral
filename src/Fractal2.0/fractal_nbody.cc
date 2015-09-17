@@ -41,16 +41,27 @@ int main(int argc, char* argv[])
   int _mulT_=4;
   if(argc >= 7)
     _mulT_=atoi(argv[6]);
+
+  int HYPREMAXONNODE=40000;
+  if(argc >= 8)
+    HYPREMAXONNODE=atoi(argv[7]);
+  double HYPREMULTIPLIER=2.0;
+  if(argc >= 9)
+    HYPREMULTIPLIER=atof(argv[8]);
+
+
   if(Ranky == 0)
     {
       cout << "starting out " << argc << " " << argv[0] << " " << FRN << " " << _inteL_ << " " << GRL << " " << FR0 << " " << FR1 << " " << FR2;
-      cout << " " << _mulT_ << "\n";
+      cout << " " << _mulT_ << " " << HYPREMAXONNODE << " " << HYPREMULTIPLIER << "\n";
     }
   Fractal_Memory* p_fractal_memory= new Fractal_Memory;
   p_fractal_memory->FractalNodes0=FR0;
   p_fractal_memory->FractalNodes1=FR1;
   p_fractal_memory->FractalNodes2=FR2;
   p_fractal_memory->grid_length=GRL;
+  p_fractal_memory->hypre_max_node_load=HYPREMAXONNODE;
+  p_fractal_memory->hypre_multiplier=HYPREMULTIPLIER;
   fractal_memory_parameters(*p_fractal_memory,_inteL_,_mulT_);  
   int FractalRank;
   //  MPI_Comm_rank(MPI_COMM_WORLD,&FractalRank);

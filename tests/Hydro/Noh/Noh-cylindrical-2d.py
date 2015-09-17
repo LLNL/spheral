@@ -1,9 +1,5 @@
-#ATS:t0 = test(SELF,       "--steps=40 --restartStep 20  --graphics False --vizTime None --clearDirectories True", np=4, label="Cylindrical Noh restart test INITIAL RUN")
-#ATS:t1 = testif(t0, SELF, "--steps 20 --restartStep 100 --graphics False --vizTime None --restoreCycle 20 --checkRestart True", np=4, label="Cylindrical Noh restart test RESTARTED CHECK")
-#ATS:t2 = testif(t1, SELF, "--steps 40 --restartStep 20  --graphics False --vizTime None --clearDirectories True --IntegratorConstructor SynchronousRK2Integrator", np=4, label="Cylindrical Noh restart test INITIAL RUN (SynchronousRK2)")
-#ATS:t3 = testif(t2, SELF, "--steps 20 --restartStep 100 --graphics False --vizTime None --restoreCycle 20 --checkRestart True --IntegratorConstructor SynchronousRK2Integrator", np=4, label="Cylindrical Noh restart test RESTARTED CHECK (SynchronousRK2)")
-#ATS:t10 = test(SELF,        "--steps 40 --graphics False --vizTime None --dataDir 'dumps-cylindrical-reproducing' --clearDirectories True  --domainIndependent True --outputFile 'Noh-cylindrical-1proc-reproducing.txt'", np=1, label="Cylindrical Noh domain independence test SERIAL RUN")
-#ATS:t11 = testif(t10, SELF, "--steps 40 --graphics False --vizTime None --dataDir 'dumps-cylindrical-reproducing' --clearDirectories False --domainIndependent True --outputFile 'Noh-cylindrical-4proc-reproducing.txt' --comparisonFile 'Noh-cylindrical-1proc-reproducing.txt'", np=4, label="Cylindrical Noh domain independence test 4 PROC RUN")
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.

@@ -20,7 +20,7 @@ namespace FractalSpace
     bool edge_point;
     bool mass_point;
     int number_in_list;
-    //    int which_Slice;
+//     int which_Slice;
     //
     int ij_number;
     vector <int>ij_ud;
@@ -28,10 +28,15 @@ namespace FractalSpace
     vector <bool> eureka_dau;
     double potential_point;
     double density_point;
-    vector <int> pos_point;
-    vector <Point*> point_ud;
-    vector <double>force_point;
+//     vector <int> pos_point;
+    int* pos_point;
+//     vector <Point*> point_ud;
+    Point** point_ud;
+//     vector <double>force_point;
+    double* force_point;
     vector <double>force_shear_point;
+//     double* force_shear_point;
+        
   public:
     vector <Particle*> list_particles;
     //    vector <Particle*> list_other_particles;
@@ -71,17 +76,37 @@ namespace FractalSpace
       mass_point(false),
       number_in_list(-1),
       potential_point(0.0),
-      density_point(0.0),
-      pos_point(3,-1),
-      point_ud(6,nothing),
-      force_point(3,0.0)
+      density_point(0.0)
+//       pos_point(3,-1),
+//       point_ud(6,nothing),
+//       force_point(3,0.0)
     {
+//       force_shear_point=0;
+      point_ud= new Point*[6];
+      std::fill(point_ud,point_ud+6,nothing);
+      pos_point= new int[3];
+      std::fill(pos_point,pos_point+3,-1);
+      force_point= new double[3];
+      std::fill(force_point,force_point+3,0.0);
       number_points++;
     }
     ~Point()
     {    
+      delete [] pos_point;
+      delete [] point_ud;
+      delete [] force_point;
+//       if(force_shear_point != 0)
+// 	delete [] force_shear_point;
       number_points--;
     }
+    Point* get_point_up_x_0() const;
+    Point* get_point_up_y_0() const;
+    Point* get_point_up_z_0() const;
+    Point* get_point_down_x_0() const;
+    Point* get_point_down_y_0() const;
+    Point* get_point_down_z_0() const;
+    Point* get_point_ud_0(const int& i,const int& tag) const;
+    Point* get_point_ud_0(const int& i) const;
     void set_found_it(bool fi);
     bool get_found_it() const;
     void set_mass_point(bool what);
@@ -163,29 +188,21 @@ namespace FractalSpace
     void get_point_ud(vector <Point*>& point_6) const;
     void set_point_ud(vector <Point*>& point_6);
     Point* get_point_up_x() const;
-    Point* get_point_up_x_0() const;
     void set_point_up_x(Point* p_point);
     Point* get_point_up_y() const;
-    Point* get_point_up_y_0() const;
     void set_point_up_y(Point* p_point);
     Point* get_point_up_z() const;
-    Point* get_point_up_z_0() const;
     void set_point_up_z(Point* p_point);
     Point* get_point_down_x() const;
-    Point* get_point_down_x_0() const;
     void set_point_down_x(Point* p_point);
     void down_from_up(Point* p_up_x,Point* p_up_y,Point* p_up_z);
     void down_from_up();
     void up_from_down();
     Point* get_point_down_y() const;
-    Point* get_point_down_y_0() const;
     void set_point_down_y(Point* p_point);
     Point* get_point_down_z() const;
-    Point* get_point_down_z_0() const;
     void set_point_down_z(Point* p_point);
     Point* get_point_ud(const int& i) const;
-    Point* get_point_ud_0(const int& i,const int& tag) const;
-    Point* get_point_ud_0(const int& i) const;
     void set_point_ud(Point* p_point,const int& i);
     Point* get_point_pointer() const;
     Point* get_point_pointer_t() const;
@@ -194,6 +211,7 @@ namespace FractalSpace
     void set_p_daughter_point(Point* p_d_point);
     void point_pointers_all(Point& high_point);
     double laplacian() const;
+    void force_shear_point_make();
     void force_shear_point_zero();
     void copy_force_shear_point(Point& p0);
     void copy_density_point(Point& p0,Point& p1);
