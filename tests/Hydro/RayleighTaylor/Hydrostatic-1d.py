@@ -158,8 +158,8 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+WT = TableKernel(BSplineKernel(), 10000)
+WTPi = WT
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -206,7 +206,7 @@ if restoreCycle is None:
         mass[i] = dx*rho[i]
         Pi = P0 + gval*rho[i]*(xi-0.5)
         eps0 = Pi/((gamma - 1.0)*rho[i])
-        eps[i]=eps0
+        eps[i] = eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -300,7 +300,7 @@ for i in xrange(nodes.numInternalNodes):
     if pos[i].x > x0 and pos[i].x < x1:
         nodeIndices.append(i)
 
-gravity = ConstantAcceleration1d(Vector1d(0.0, gval),
+gravity = ConstantAcceleration1d(Vector1d(gval),
                                   nodes,
                                   nodeIndices)
 
