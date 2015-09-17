@@ -92,7 +92,7 @@ commandLine(nx1 = 128,
             gradhCorrection = False,
             
             clearDirectories = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
@@ -145,12 +145,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -158,8 +152,8 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+WT = TableKernel(BSplineKernel(), 10000)
+WTPi = WT
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -167,7 +161,7 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes = makeFluidNodeList("High density gas", eos,
+nodes = makeFluidNodeList("gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
@@ -181,32 +175,31 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    # Add some points above and below the problem to represent the infinite atmosphere.
-    nxbound = 10
-    dx = (x1 - x0)/nx1
-    from DistributeNodes import distributeNodesInRange1d
-    distributeNodesInRange1d([(nodes, nx1 + 2*nxbound, rhoT,
-                               (x0 - nxbound*dx,
-                                x1 + nxbound*dx))],
-                             nPerh = nPerh)
+# Add some points above and below the problem to represent the infinite atmosphere.
+nxbound = 20
+dx = (x1 - x0)/nx1
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes, nx1 + 2*nxbound, rhoT,
+                           (x0 - nxbound*dx,
+                            x1 + nxbound*dx))],
+                         nPerh = nPerh)
 
-    #Set IC
-    eps = nodes.specificThermalEnergy()
-    pos = nodes.positions()
-    rho = nodes.massDensity()
-    mass = nodes.mass()
-    rhoFunc = ExponentialDensity(rhoB,
-                                 rhoT,
-                                 delta)
-    for i in xrange(nodes.numInternalNodes):
-        xi = pos[i].x
-        P0 = rhoT/gamma
-        rho[i] = rhoFunc(xi)
-        mass[i] = dx*rho[i]
-        Pi = P0 + gval*rho[i]*(xi-0.5)
-        eps0 = Pi/((gamma - 1.0)*rho[i])
-        eps[i]=eps0
+#Set IC
+eps = nodes.specificThermalEnergy()
+pos = nodes.positions()
+rho = nodes.massDensity()
+mass = nodes.mass()
+rhoFunc = ExponentialDensity(rhoB,
+                             rhoT,
+                             delta)
+for i in xrange(nodes.numInternalNodes):
+    xi = pos[i].x
+    P0 = rhoT/gamma
+    rho[i] = rhoFunc(xi)
+    mass[i] = dx*rho[i]
+    Pi = P0 + gval*rho[i]*(xi-0.5)
+    eps0 = Pi/((gamma - 1.0)*rho[i])
+    eps[i] = eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -300,7 +293,7 @@ for i in xrange(nodes.numInternalNodes):
     if pos[i].x > x0 and pos[i].x < x1:
         nodeIndices.append(i)
 
-gravity = ConstantAcceleration1d(Vector1d(0.0, gval),
+gravity = ConstantAcceleration1d(Vector1d(gval),
                                   nodes,
                                   nodeIndices)
 

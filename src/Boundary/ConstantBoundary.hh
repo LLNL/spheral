@@ -94,22 +94,41 @@ public:
   const NodeSpace::NodeList<Dimension>& nodeList() const;
   Tensor reflectOperator() const;
 
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const;
+  virtual void dumpState(FileIOSpace::FileIO& file, std::string pathName) const;
+  virtual void restoreState(const FileIOSpace::FileIO& file, std::string pathName);
+  //****************************************************************************
+
 private:
   //--------------------------- Private Interface ---------------------------//
   NodeSpace::NodeList<Dimension>* mNodeListPtr;
+  int mBoundaryCount;
   FieldSpace::Field<Dimension, int> mNodeFlags;
   int mNumConstantNodes;
   GeomPlane<Dimension> mDenialPlane;
   Tensor mReflectOperator;
   bool mActive;
 
-  std::map<KeyType, std::vector<int> > mIntValues;
-  std::map<KeyType, std::vector<Scalar> > mScalarValues;
-  std::map<KeyType, std::vector<Vector> > mVectorValues;
-  std::map<KeyType, std::vector<Tensor> > mTensorValues;
-  std::map<KeyType, std::vector<SymTensor> > mSymTensorValues;
-  std::map<KeyType, std::vector<ThirdRankTensor> > mThirdRankTensorValues;
-  std::map<KeyType, std::vector<std::vector<Scalar> > > mVectorScalarValues;
+  typedef std::map<KeyType, std::vector<int> > IntStorageType;
+  typedef std::map<KeyType, std::vector<Scalar> > ScalarStorageType;
+  typedef std::map<KeyType, std::vector<Vector> > VectorStorageType;
+  typedef std::map<KeyType, std::vector<Tensor> > TensorStorageType;
+  typedef std::map<KeyType, std::vector<SymTensor> > SymTensorStorageType;
+  typedef std::map<KeyType, std::vector<ThirdRankTensor> > ThirdRankTensorStorageType;
+  typedef std::map<KeyType, std::vector<std::vector<Scalar> > > VectorScalarStorageType;
+
+  IntStorageType mIntValues;
+  ScalarStorageType mScalarValues;
+  VectorStorageType mVectorValues;
+  TensorStorageType mTensorValues;
+  SymTensorStorageType mSymTensorValues;
+  ThirdRankTensorStorageType mThirdRankTensorValues;
+  VectorScalarStorageType mVectorScalarValues;
+
+  // The restart registration.
+  DataOutput::RestartRegistrationType mRestart;
 
   // No default or copy constructors.
   ConstantBoundary();
