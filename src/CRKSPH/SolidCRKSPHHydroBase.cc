@@ -179,6 +179,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mGradAdamage = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH + " damage");
   mGradBdamage = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH + " damage");
 
+  // Copy the standard CRK corrections to the damage forms.
+  mAdamage.assignFields(this->A());
+  mBdamage.assignFields(this->B());
+  mGradAdamage.assignFields(this->gradA());
+  mGradBdamage.assignFields(this->gradB());
+
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
        itr != dataBase.solidNodeListEnd();
