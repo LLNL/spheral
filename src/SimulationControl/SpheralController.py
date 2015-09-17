@@ -164,6 +164,9 @@ class SpheralController(RestartableObject):
         if restoreCycle is None and not skipInitialPeriodicWork:
             self.iterateIdealH()
 
+        # Create ghost nodes for the physics packages to initialize with.
+        self.integrator.setGhostNodes()
+
         # Initialize the integrator and packages.
         db = self.integrator.dataBase()
         packages = self.integrator.physicsPackages()
