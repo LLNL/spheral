@@ -91,7 +91,7 @@ commandLine(nx1 = 128,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
             
-            clearDirectories = False,
+            clearDirectories = True,
             restoreCycle = None,
             restartStep = 100,
             redistributeStep = 500,
