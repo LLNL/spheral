@@ -194,10 +194,15 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //      boundItr != this->boundaryEnd();
   //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
-  // // Compute the kernel correction fields.
-  // const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  // const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  // computeCRKSPHCorrections(connectivityMap, W, mVolume, position, H, mM0, mM1, mM2, mA0, mA, mB, mC, mD, mGradA, mGradB);
+  // Initialize the kernel correction fields.
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const TableKernel<Dimension>& W = this->kernel();
+  const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
+  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, mA, mB, mGradA, mGradB);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
