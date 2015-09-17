@@ -202,7 +202,7 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     # Add some points above and below the problem to represent the infinite atmosphere.
-    nybound = 10
+    nybound = 20
     dy = (y1 - y0)/ny1
     generator = GenerateNodeDistribution2d(nx1, ny1 + 2*nybound,
                                            rho = ExponentialDensity(rhoB,
