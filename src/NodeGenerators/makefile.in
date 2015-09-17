@@ -40,7 +40,8 @@ PYTHONTARGETS = \
 	$(srcdir)/FacetedSurfaceGenerator.py \
 	$(srcdir)/AsciiFileNodeGenerator.py \
 	$(srcdir)/HydroStaticProfile.py \
-	$(srcdir)/SiloPolyMeshGenerator.py
+	$(srcdir)/SiloPolyMeshGenerator.py \
+	$(srcdir)/GenerateRatioSlab2d.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
