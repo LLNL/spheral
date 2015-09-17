@@ -5,7 +5,6 @@
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_SPHHydroBase_hh__
 #define __Spheral_SPHHydroBase_hh__
-//#define GRADH
 //#define CULLEN
 
 #include <string>
@@ -232,6 +231,7 @@ protected:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+  bool mBoolPSPH;
 
   // Magnitude of the hourglass/parasitic mode filter.
   double mfilter;
@@ -251,6 +251,9 @@ protected:
   FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;
   FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
 #endif
+  //PSPH Fields
+  FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
+  FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
