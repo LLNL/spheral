@@ -200,9 +200,24 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const TableKernel<Dimension>& W = this->kernel();
   const FieldList<Dimension, Vector> position = dataBase.fluidPosition();
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
-  const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-  const FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
-  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
+  FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(mass);
+    (*boundItr)->applyFieldListGhostBoundary(massDensity);
+  }
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  FieldList<Dimension, Scalar> vol = mass/massDensity;
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol);
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
   computeCRKSPHCorrections(connectivityMap, W, vol, position, H, mA, mB, mGradA, mGradB);
 
   // Initialize the pressure and sound speed.
