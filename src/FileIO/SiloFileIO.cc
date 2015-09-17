@@ -24,6 +24,7 @@ string SILO_mangle(const string& x) {
   boost::replace_all(result, " ", "_");
   boost::replace_all(result, ".", "_p_");
   boost::replace_all(result, ",", "_c_");
+  boost::replace_all(result, "|", "_P_");
   return result;
 }
 

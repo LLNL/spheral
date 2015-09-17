@@ -80,7 +80,7 @@ commandLine(nx1 = 400,
             useRefinement = False,
 
             clearDirectories = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 200,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",

@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -11,7 +11,6 @@ from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
@@ -91,7 +90,7 @@ commandLine(KernelConstructor = BSplineKernel,
             useVoronoiOutput = False,
             clearDirectories = False,
             vizDerivs = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-cylindrical-Noh",
@@ -163,12 +162,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -201,43 +194,42 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 pos = nodes1.positions()
 vel = nodes1.velocity()
-if restoreCycle is None:
-    if seed == "square":
-        generator = GenerateSquareNodeDistribution(nRadial,
-                                                   nTheta,
-                                                   rho0,
-                                                   xmin,
-                                                   xmax,
-                                                   nNodePerh = nPerh,
-                                                   SPH = True)
-    else:
-        generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
-                                               rmin = rmin,
-                                               rmax = rmax,
-                                               xmin = xmin,
-                                               xmax = xmax,
-                                               theta = theta,
-                                               azimuthalOffsetFraction = azimuthalOffsetFraction,
+if seed == "square":
+    generator = GenerateSquareNodeDistribution(nRadial,
+                                               nTheta,
+                                               rho0,
+                                               xmin,
+                                               xmax,
                                                nNodePerh = nPerh,
                                                SPH = True)
+else:
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           theta = theta,
+                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           nNodePerh = nPerh,
+                                           SPH = True)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-        #from PeanoHilbertDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes1, generator))
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
-    output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
+distributeNodes2d((nodes1, generator))
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
+output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    # Set node specific thermal energies
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
+# Set node specific thermal energies
+nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
 
-    # Set node velocities
-    for nodeID in xrange(nodes1.numNodes):
-        vel[nodeID] = pos[nodeID].unitVector()*vr0
+# Set node velocities
+for nodeID in xrange(nodes1.numNodes):
+    vel[nodeID] = pos[nodeID].unitVector()*vr0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
