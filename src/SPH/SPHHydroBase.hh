@@ -198,6 +198,8 @@ public:
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    omegaGradh() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    PSPHpbar() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    PSPHcorrection() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
