@@ -14,6 +14,7 @@
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
+#include "computePSPHCorrections.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
@@ -113,6 +114,9 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPrevDivV2(FieldSpace::Copy),
   mCullAlpha2(FieldSpace::Copy),
 #endif
+  mBoolPSPH(false),
+  mPSPHpbar(FieldSpace::Copy),
+  mPSPHcorrection(FieldSpace::Copy),
   mTimeStepMask(FieldSpace::Copy),
   mPressure(FieldSpace::Copy),
   mSoundSpeed(FieldSpace::Copy),
@@ -170,6 +174,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(1.0, HydroFieldNames::omegaGradh);
+  mPSPHpbar = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHpbar);
+  mPSPHcorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::PSPHcorrection);
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
@@ -246,6 +252,8 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mOmegaGradh, 1.0, HydroFieldNames::omegaGradh);
+  dataBase.resizeFluidFieldList(mPSPHpbar, 1.0, HydroFieldNames::PSPHpbar);
+  dataBase.resizeFluidFieldList(mPSPHcorrection, 1.0, HydroFieldNames::PSPHcorrection);
 #ifdef CULLEN
   //cout << "IN REGISTER, divv=" << mPrevDivV(0, 10) << endl;
   dataBase.resizeFluidFieldList(mPrevDvDt, Vector::zero, HydroFieldNames::prevDvDt, false);
@@ -342,10 +350,12 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mPressure, pressurePolicy);
   state.enroll(mSoundSpeed, csPolicy);
 
-  // Register the grad h correction term.
-  // We deliberately make this non-dynamic here.  This correction is computed
+  // Register the grad h and PSPH correction terms
+  // We deliberately make this non-dynamic here.  These corrections are computed
   // during SPHHydroBase::initialize, not as part of our usual state update.
   state.enroll(mOmegaGradh);
+  state.enroll(mPSPHpbar);
+  state.enroll(mPSPHcorrection);
 #ifdef CULLEN
   state.enroll(mPrevDvDt);
   state.enroll(mPrevDivV);
@@ -442,6 +452,23 @@ initialize(const typename Dimension::Scalar time,
   // Initialize the grad h corrrections if needed.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WPi = this->PiKernel();
+  if (mBoolPSPH){
+
+    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+    const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+    const FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+    FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+    computePSPHCorrections(connectivityMap, this->kernel(), mass, position, specificThermalEnergy, H, PSPHpbar, PSPHcorrection);
+    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr) {
+         (*boundItr)->applyFieldListGhostBoundary(PSPHpbar);
+         (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
+    }
+  }
   if (mGradhCorrection) {
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -506,6 +533,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
+
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -515,6 +545,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
+  CHECK(PSPHpbar.size() == numNodeLists);
+  CHECK(PSPHcorrection.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -572,16 +604,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
-#ifdef GRADH
-  FieldList<Dimension, Scalar> Pbar(FieldSpace::Copy);
-  FieldList<Dimension, Scalar> Fcorr(FieldSpace::Copy);
-  for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-    const NodeList<Dimension>& nodeList = mass[nodeListk]->nodeList();
-    Pbar.appendNewField("Pbar grad h correction", nodeList, 0.0);
-    Fcorr.appendNewField("Fcorr grad h correction", nodeList, 0.0);
-  }
 
-# ifdef CULLEN
+#ifdef CULLEN
   FieldList<Dimension, Vector> prevDvDt = state.fields(HydroFieldNames::prevDvDt, Vector::zero);
   FieldList<Dimension, Scalar> prevDivV = state.fields(HydroFieldNames::prevDivV, 0.0);
   FieldList<Dimension, Scalar> cullAlpha = state.fields(HydroFieldNames::cullAlpha, 0.0);
@@ -603,9 +627,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     cull_sigv.appendNewField("Cullen signal velocity Scalar", nodeList, 0.0);
     temp_arr.appendNewField("Scractch", nodeList, 0.0);
   }
-# endif//CULLEN
-  //const double gamma=(5.0/3.0);
-  const double gamma=1.4;
 
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -644,20 +665,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& ci = soundSpeed(nodeListi, i);
-/*
-      if(i== 10 && nodeListi==0){
-                cout << "BEFORE i=" << i << " temp_arr=" << temp_arr(nodeListi, i) << endl;
-                cout << "BEFORE i=" << i << " prevDVDTi=" << prevDvDt(nodeListi, i) << " prevDVDTi2=" << prevDvDt2(nodeListi, i) << endl;
-                cout << "BEFORE i=" << i << " prevDivVi=" << prevDivV(nodeListi, i) << " prevDivVi2=" << prevDivV2(nodeListi, i) << endl;
-                cout << "BEFORE i=" << i << " cullAlpha=" << cullAlpha(nodeListi, i) << " cullAlpha2=" << cullAlpha2(nodeListi, i) <<endl;
-      }
-*/
-
-      Scalar& Pbari=Pbar(nodeListi, i);
-      Scalar& Fcorri=Fcorr(nodeListi, i);
-      Scalar gradPbari=0.0;
-      Scalar Nbari=0.0;
-      Scalar gradNbari=0.0;
 
       // Get the connectivity info for this node.
       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
@@ -714,13 +721,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
 
-              const Scalar xj=(gamma-1)*mj*epsj;
-              const Scalar gradh=invhi*(Dimension::nDim*Wi+etaMagi*gWi);
-              Pbari += xj*Wi;
-              Nbari += Wi;
-              gradPbari -= xj*gradh;
-              gradNbari -= gradh;
-# ifdef CULLEN
         
               const Vector dvij= prevDvDt(nodeListi, i) - prevDvDt(nodeListj, j); 
               const Vector vij = vi - vj;
@@ -732,25 +732,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               cull_R(nodeListi,i) += mj*Wi*((0.0 < divV)-(divV < 0.0));
               Scalar& sigvi= cull_sigv(nodeListi,i);
               sigvi = max((0.5*(ci+cj)-min(0.0,vij.dot(rij.unitVector()))),sigvi);//MAYBE INCORRECT, PERHAPS USE cij=0.5(ci+cj)
-# endif//CULLEN
-
           }
         }
       }
-# ifdef CULLEN
       cull_R(nodeListi,i) = cull_R(nodeListi,i)/rhoi;
-# endif //CULLEN
-      const Scalar fi=1.0+gradNbari*safeInv(Dimension::nDim*Nbari*invhi);
-      Fcorri=gradPbari*safeInv(Dimension::nDim*(gamma-1)*Nbari*invhi*fi);
     }
   }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-  (*boundaryItr)->applyFieldListGhostBoundary(Pbar);
-  (*boundaryItr)->applyFieldListGhostBoundary(Fcorr);
-# ifdef CULLEN
   (*boundaryItr)->applyFieldListGhostBoundary(cull_D);
   (*boundaryItr)->applyFieldListGhostBoundary(cull_Da);
   (*boundaryItr)->applyFieldListGhostBoundary(cull_T);
@@ -762,13 +753,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   (*boundaryItr)->applyFieldListGhostBoundary(prevDvDt2);
   (*boundaryItr)->applyFieldListGhostBoundary(prevDivV2);
   (*boundaryItr)->applyFieldListGhostBoundary(cullAlpha2);
-# endif//CULLEN
   }
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   nodeListi=0; //Reset nodeListi to zero
-#endif//GRADH
+#endif//CULLEN
 
 
 
@@ -982,112 +972,108 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoj > 0.0);
               const double Prhoi = Peffi/(rhoi*rhoi);
               const double Prhoj = Peffj/(rhoj*rhoj);
-#ifdef GRADH
-              const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
-              Scalar& Fcorri=Fcorr(nodeListi, i);
-              Scalar& Fcorrj=Fcorr(nodeListj, j);
-              Scalar& Pbari=Pbar(nodeListi, i);
-              Scalar& Pbarj=Pbar(nodeListj, j);
+              const Scalar& Fcorri=PSPHcorrection(nodeListi, i);
+              const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
+              const Scalar& Pbari=PSPHpbar(nodeListi, i);
+              const Scalar& Pbarj=PSPHpbar(nodeListj, j);
               const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj);
               const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
+              const double gamma=1.4;//NEED TO BE A CLASS VARIABLE
+              const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
+              Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
+              if(mBoolPSPH){
 #ifdef CULLEN
-              //NEED PREVIOUS DvDti and PREVIOUS div_Vi AND PREVIOUS ALPHA
-              const Scalar invhi = (Hi.Trace()/Dimension::nDim);
-              const Scalar invhj = (Hj.Trace()/Dimension::nDim);
-              const Tensor hat_Vi = cull_D(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
- 	      const Tensor hat_Vj = cull_D(nodeListj, j)*(cull_T(nodeListj, j).Inverse());
-              const Tensor hat_Ai = cull_Da(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
- 	      const Tensor hat_Aj = cull_Da(nodeListj, j)*(cull_T(nodeListj, j).Inverse());
-              Scalar& div_Vi = prevDivV2(nodeListi, i);
-              Scalar& div_Vj = prevDivV2(nodeListj, j);
-              //if(i== 10 && nodeListi==0)cout << "before 2 i=" << i << " div_vi=" <<  div_Vi << endl;
-              div_Vi = hat_Vi.Trace();
-              div_Vj = hat_Vj.Trace();
-              //if(i== 10 && nodeListi==0)cout << "after 2 i=" << i << " div_vi=" <<  div_Vi << endl;
-              //if(i== 10 && nodeListi==0)cout << "after 22 i=" << i << " prevDivV=" <<  prevDivV(nodeListi, i) << endl;
-              const Scalar DdivViDt = (hat_Ai-hat_Vi*hat_Vi).Trace();
-              const Scalar DdivVjDt = (hat_Aj-hat_Vj*hat_Vj).Trace();
-              const Scalar B_eta = 1.0;//Parameter = 1.0 in Hopkins 2014, = 2.0 in Cullen 2010
-              const Scalar alph_max = 2.0;//Parameter = 2.0 in Hopkins 2014 and Price 2004, = 1.5 in Rosswog 2000
-              const Scalar alph_min = 0.02;//Parameter = 0.02 in Hopkins 2014 
-              const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014 
-              const Scalar tau_const = 0.05; //Parameter = 0.05 Cullen
-              const Scalar beta_c = 0.7; //Parameter = 0.7 Hopkins 2014
-              const Scalar beta_d = 0.05; //Parameter = 0.05 Hopkins 2014
-              const Scalar f_kern = 1.0/3.0; //Parameter = 1/3 Hopkins 2014 for quinitc spline (not sure if it is the same spline used here and if that matters)
-              const Tensor Si = 0.5*(hat_Vi+hat_Vi.Transpose())-div_Vi/Dimension::nDim*Tensor::one;
-              const Tensor Sj = 0.5*(hat_Vj+hat_Vj.Transpose())-div_Vj/Dimension::nDim*Tensor::one;
-              const Scalar cull_etaConsti = pow(abs(B_eta*pow((1.0-cull_R(nodeListi, i)),4.0)*div_Vi),2.0);
-              const Scalar cull_etaConstj = pow(abs(B_eta*pow((1.0-cull_R(nodeListj, j)),4.0)*div_Vj),2.0);
-              const Scalar cull_etai = cull_etaConsti*safeInv(cull_etaConsti+((Si*(Si.Transpose())).Trace()));
-              const Scalar cull_etaj = cull_etaConstj*safeInv(cull_etaConstj+((Sj*(Sj.Transpose())).Trace()));
-              const Scalar Ai = cull_etai*max(-DdivViDt,0.0);
-              const Scalar Aj = cull_etaj*max(-DdivVjDt,0.0);
-              const Scalar alph_loci = alph_max*Ai*safeInv(Ai+cull_sigv(nodeListi, i)*cull_sigv(nodeListi, i)*invhi*invhi);
-              const Scalar alph_locj = alph_max*Aj*safeInv(Aj+cull_sigv(nodeListj, j)*cull_sigv(nodeListj, j)*invhj*invhj);
-              
-              const Scalar taui = safeInv(invhi*2*tau_const*cull_sigv(nodeListi, i));
-              const Scalar tauj = safeInv(invhj*2*tau_const*cull_sigv(nodeListj, j));
-              const Scalar& old_alpha_i = cullAlpha(nodeListi, i);
-              const Scalar& old_alpha_j = cullAlpha(nodeListj, j);
-              const Scalar alph_tmpi = (DdivViDt < 0.0 ) ? alph_max*abs(DdivViDt)*safeInv(abs(DdivViDt)+beta_c*ci*ci*invhi*invhi/f_kern/f_kern): 0.0;
-              const Scalar alph_tmpj = (DdivVjDt < 0.0 ) ? alph_max*abs(DdivVjDt)*safeInv(abs(DdivVjDt)+beta_c*cj*cj*invhj*invhj/f_kern/f_kern): 0.0;
-              const Scalar alph_zeroi = (alph_tmpi >= old_alpha_i) ? alph_tmpi : alph_tmpi + (old_alpha_i-alph_tmpi)*exp(-beta_d*dt*abs(cull_sigv(nodeListi, i))*invhi/2.0/f_kern);
-              const Scalar alph_zeroj = (alph_tmpj >= old_alpha_j) ? alph_tmpj : alph_tmpj + (old_alpha_j-alph_tmpj)*exp(-beta_d*dt*abs(cull_sigv(nodeListj, j))*invhj/2.0/f_kern);
-              Scalar& alpha_i = cullAlpha2(nodeListi, i);
-              Scalar& alpha_j = cullAlpha2(nodeListj, j);
-              temp_arr(nodeListi, i)=alph_loci;
-              temp_arr(nodeListj, j)=alph_locj;
-              if(old_alpha_i < alph_loci)
-                alpha_i = alph_loci;  
-              else
-                alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
-              if(old_alpha_j < alph_locj)
-                alpha_j = alph_locj;  
-              else
-                alpha_j = alph_locj + (old_alpha_j-alph_locj)*exp(-dt*safeInv(tauj));
+                //NEED PREVIOUS DvDti and PREVIOUS div_Vi AND PREVIOUS ALPHA
+                const Scalar invhi = (Hi.Trace()/Dimension::nDim);
+                const Scalar invhj = (Hj.Trace()/Dimension::nDim);
+                const Tensor hat_Vi = cull_D(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
+   	        const Tensor hat_Vj = cull_D(nodeListj, j)*(cull_T(nodeListj, j).Inverse());
+                const Tensor hat_Ai = cull_Da(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
+   	        const Tensor hat_Aj = cull_Da(nodeListj, j)*(cull_T(nodeListj, j).Inverse());
+                Scalar& div_Vi = prevDivV2(nodeListi, i);
+                Scalar& div_Vj = prevDivV2(nodeListj, j);
+                //if(i== 10 && nodeListi==0)cout << "before 2 i=" << i << " div_vi=" <<  div_Vi << endl;
+                div_Vi = hat_Vi.Trace();
+                div_Vj = hat_Vj.Trace();
+                //if(i== 10 && nodeListi==0)cout << "after 2 i=" << i << " div_vi=" <<  div_Vi << endl;
+                //if(i== 10 && nodeListi==0)cout << "after 22 i=" << i << " prevDivV=" <<  prevDivV(nodeListi, i) << endl;
+                const Scalar DdivViDt = (hat_Ai-hat_Vi*hat_Vi).Trace();
+                const Scalar DdivVjDt = (hat_Aj-hat_Vj*hat_Vj).Trace();
+                const Scalar B_eta = 1.0;//Parameter = 1.0 in Hopkins 2014, = 2.0 in Cullen 2010
+                const Scalar alph_max = 2.0;//Parameter = 2.0 in Hopkins 2014 and Price 2004, = 1.5 in Rosswog 2000
+                const Scalar alph_min = 0.02;//Parameter = 0.02 in Hopkins 2014 
+                const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014 
+                const Scalar tau_const = 0.05; //Parameter = 0.05 Cullen
+                const Scalar beta_c = 0.7; //Parameter = 0.7 Hopkins 2014
+                const Scalar beta_d = 0.05; //Parameter = 0.05 Hopkins 2014
+                const Scalar f_kern = 1.0/3.0; //Parameter = 1/3 Hopkins 2014 for quinitc spline (not sure if it is the same spline used here and if that matters)
+                const Tensor Si = 0.5*(hat_Vi+hat_Vi.Transpose())-div_Vi/Dimension::nDim*Tensor::one;
+                const Tensor Sj = 0.5*(hat_Vj+hat_Vj.Transpose())-div_Vj/Dimension::nDim*Tensor::one;
+                const Scalar cull_etaConsti = pow(abs(B_eta*pow((1.0-cull_R(nodeListi, i)),4.0)*div_Vi),2.0);
+                const Scalar cull_etaConstj = pow(abs(B_eta*pow((1.0-cull_R(nodeListj, j)),4.0)*div_Vj),2.0);
+                const Scalar cull_etai = cull_etaConsti*safeInv(cull_etaConsti+((Si*(Si.Transpose())).Trace()));
+                const Scalar cull_etaj = cull_etaConstj*safeInv(cull_etaConstj+((Sj*(Sj.Transpose())).Trace()));
+                const Scalar Ai = cull_etai*max(-DdivViDt,0.0);
+                const Scalar Aj = cull_etaj*max(-DdivVjDt,0.0);
+                const Scalar alph_loci = alph_max*Ai*safeInv(Ai+cull_sigv(nodeListi, i)*cull_sigv(nodeListi, i)*invhi*invhi);
+                const Scalar alph_locj = alph_max*Aj*safeInv(Aj+cull_sigv(nodeListj, j)*cull_sigv(nodeListj, j)*invhj*invhj);
+                
+                const Scalar taui = safeInv(invhi*2*tau_const*cull_sigv(nodeListi, i));
+                const Scalar tauj = safeInv(invhj*2*tau_const*cull_sigv(nodeListj, j));
+                const Scalar& old_alpha_i = cullAlpha(nodeListi, i);
+                const Scalar& old_alpha_j = cullAlpha(nodeListj, j);
+                const Scalar alph_tmpi = (DdivViDt < 0.0 ) ? alph_max*abs(DdivViDt)*safeInv(abs(DdivViDt)+beta_c*ci*ci*invhi*invhi/f_kern/f_kern): 0.0;
+                const Scalar alph_tmpj = (DdivVjDt < 0.0 ) ? alph_max*abs(DdivVjDt)*safeInv(abs(DdivVjDt)+beta_c*cj*cj*invhj*invhj/f_kern/f_kern): 0.0;
+                const Scalar alph_zeroi = (alph_tmpi >= old_alpha_i) ? alph_tmpi : alph_tmpi + (old_alpha_i-alph_tmpi)*exp(-beta_d*dt*abs(cull_sigv(nodeListi, i))*invhi/2.0/f_kern);
+                const Scalar alph_zeroj = (alph_tmpj >= old_alpha_j) ? alph_tmpj : alph_tmpj + (old_alpha_j-alph_tmpj)*exp(-beta_d*dt*abs(cull_sigv(nodeListj, j))*invhj/2.0/f_kern);
+                Scalar& alpha_i = cullAlpha2(nodeListi, i);
+                Scalar& alpha_j = cullAlpha2(nodeListj, j);
+                temp_arr(nodeListi, i)=alph_loci;
+                temp_arr(nodeListj, j)=alph_locj;
+                if(old_alpha_i < alph_loci)
+                  alpha_i = alph_loci;  
+                else
+                  alpha_i = alph_loci + (old_alpha_i-alph_loci)*exp(-dt*safeInv(taui));
+                if(old_alpha_j < alph_locj)
+                  alpha_j = alph_locj;  
+                else
+                  alpha_j = alph_locj + (old_alpha_j-alph_locj)*exp(-dt*safeInv(tauj));
 //#define HOPKINS
-#ifdef HOPKINS
-              alpha_i = max(cull_etai*alph_zeroi,alph_min);
-              alpha_j = max(cull_etaj*alph_zeroj,alph_min);
-#endif
-              
-              
-              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci*alpha_i + Qaccj*alpha_j;
-              //if alpha_i > alpha_loci, alpha_i=alpha_loci... else Dalpha_i/Dt = (alpha_loci-alpha_i)/tau_i
+ #ifdef HOPKINS
+                alpha_i = max(cull_etai*alph_zeroi,alph_min);
+                alpha_j = max(cull_etaj*alph_zeroj,alph_min);
+ #endif
+                
+                
+                deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci*alpha_i + Qaccj*alpha_j;//Use alpha from Cullen (And Hopkins)
 #else
-              const Vector deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
+                deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;//Dont use Cullen Viscosity coeficient. 
 #endif //CULLEN
-#else
-              const Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
+              }
 
-#endif//GRADH
               DvDti -= mj*deltaDvDt;
               DvDtj += mi*deltaDvDt;
 
               // Specific thermal energy evolution.
-#ifdef GRADH
-# ifdef CULLEN
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi*alpha_i);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj*alpha_j);
+              if(mBoolPSPH){
+#ifdef CULLEN
+                DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi*alpha_i);
+                DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj*alpha_j);
 #  ifdef HOPKINS
-              const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
-              //DepsDti += (Vs > 0.0)*alph_c*mj*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+0.001)*(rhoi+rhoj));
-              //DepsDtj += (Vs > 0.0)*alph_c*mi*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+0.001)*(rhoi+rhoj));
-              DepsDti += (Vs > 0.0)*alph_c*mi*mj*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+0.001)*(rhoi+rhoj));
-              DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+0.001)*(rhoi+rhoj));
-              alpha_i = alph_zeroi;
-              alpha_j = alph_zeroj;
+                const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
+                DepsDti += (Vs > 0.0)*alph_c*mi*mj*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj));
+                DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(alpha_i+alpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj));
+                alpha_i = alph_zeroi;
+                alpha_j = alph_zeroj;
 #  endif
-# else
-              DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
-              DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
-# endif//CULLEN
 #else
-              DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
-              DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
-#endif//GRADH
-
+                DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
+                DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
+#endif//CULLEN
+              }else{//Normal SPH Formulation
+                DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
+                DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
+              }
 
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(-mj*deltaDvDt);
@@ -1442,6 +1428,8 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 #ifdef CULLEN
   FieldList<Dimension, Vector> prevDvDt = state.fields(HydroFieldNames::prevDvDt, Vector::zero);
   FieldList<Dimension, Scalar> prevDivV = state.fields(HydroFieldNames::prevDivV, 0.0);
@@ -1474,6 +1462,8 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(omega);
+    (*boundaryItr)->applyFieldListGhostBoundary(PSPHpbar);
+    (*boundaryItr)->applyFieldListGhostBoundary(PSPHcorrection);
 #ifdef CULLEN
     (*boundaryItr)->applyFieldListGhostBoundary(prevDvDt);
     (*boundaryItr)->applyFieldListGhostBoundary(prevDivV);
@@ -1504,6 +1494,8 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
+  FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 #ifdef CULLEN
   FieldList<Dimension, Vector> prevDvDt = state.fields(HydroFieldNames::prevDvDt, Vector::zero);
   FieldList<Dimension, Scalar> prevDivV = state.fields(HydroFieldNames::prevDivV, 0.0);
@@ -1534,6 +1526,8 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->enforceFieldListBoundary(omega);
+    (*boundaryItr)->enforceFieldListBoundary(PSPHpbar);
+    (*boundaryItr)->enforceFieldListBoundary(PSPHcorrection);
 #ifdef CULLEN
     (*boundaryItr)->enforceFieldListBoundary(prevDvDt);
     (*boundaryItr)->enforceFieldListBoundary(prevDivV);
@@ -1645,6 +1639,8 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.write(mOmegaGradh, pathName + "/omegaGradh");
+  file.write(mPSPHpbar, pathName + "/PSPHpbar");
+  file.write(mPSPHcorrection, pathName + "/PSPHcorrection");
 #ifdef CULLEN
   file.write(mPrevDvDt, pathName + "/prevDvDt");
   file.write(mPrevDivV, pathName + "/prevDivV");
@@ -1697,6 +1693,8 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mCullAlpha2, pathName + "/cullAlpha2");
 #endif
   file.read(mOmegaGradh, pathName + "/omegaGradh");
+  file.read(mPSPHpbar, pathName + "/PSPHpbar");
+  file.read(mPSPHcorrection, pathName + "/PSPHcorrection");
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
