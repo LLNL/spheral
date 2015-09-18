@@ -102,7 +102,7 @@ commandLine(nx1 = 128,
             gradhCorrection = False,
             
             clearDirectories = False,
-            restoreCycle = None,
+            restoreCycle = -1,
             restartStep = 100,
             redistributeStep = 500,
             checkRestart = False,
@@ -164,12 +164,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -200,43 +194,42 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    # Add some points above and below the problem to represent the infinite atmosphere.
-    nybound = 20
-    dy = (y1 - y0)/ny1
-    generator = GenerateNodeDistribution2d(nx1, ny1 + 2*nybound,
-                                           rho = ExponentialDensity(rhoB,
-                                                                    rhoT,
-                                                                    delta),
-                                           distributionType = "xstaggeredLattice",
-                                           xmin = (x0,y0 - nybound*dy),
-                                           xmax = (x1,y1 + nybound*dy),
-                                           nNodePerh = nPerh,
-                                           SPH = SPH)
+# Add some points above and below the problem to represent the infinite atmosphere.
+nybound = 20
+dy = (y1 - y0)/ny1
+generator = GenerateNodeDistribution2d(nx1, ny1 + 2*nybound,
+                                       rho = ExponentialDensity(rhoB,
+                                                                rhoT,
+                                                                delta),
+                                       distributionType = "xstaggeredLattice",
+                                       xmin = (x0,y0 - nybound*dy),
+                                       xmax = (x1,y1 + nybound*dy),
+                                       nNodePerh = nPerh,
+                                       SPH = SPH)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-    distributeNodes2d((nodes, generator))
+distributeNodes2d((nodes, generator))
 
-    #Set IC
-    vel = nodes.velocity()
-    eps = nodes.specificThermalEnergy()
-    pos = nodes.positions()
-    rho = nodes.massDensity()
-    for i in xrange(nodes.numInternalNodes):
-        xi, yi = pos[i]
-        P0 = rhoT/gamma
-        Pi = P0 + gval*rho[i]*(yi-0.5)
-        velx = 0.0
-        vely = 0.0
-        if yi > 0.3 and yi < 0.7:
-          vely = w0*(1+cos(8.0*pi*(xi+0.25)))*(1+cos(5.0*pi*(yi-0.5)))
-        vel[i]=Vector(velx,vely)
-        eps0 = Pi/((gamma - 1.0)*rho[i])
-        eps[i]=eps0
+#Set IC
+vel = nodes.velocity()
+eps = nodes.specificThermalEnergy()
+pos = nodes.positions()
+rho = nodes.massDensity()
+for i in xrange(nodes.numInternalNodes):
+    xi, yi = pos[i]
+    P0 = rhoT/gamma
+    Pi = P0 + gval*rho[i]*(yi-0.5)
+    velx = 0.0
+    vely = 0.0
+    if yi > 0.3 and yi < 0.7:
+      vely = w0*(1+cos(8.0*pi*(xi+0.25)))*(1+cos(5.0*pi*(yi-0.5)))
+    vel[i]=Vector(velx,vely)
+    eps0 = Pi/((gamma - 1.0)*rho[i])
+    eps[i]=eps0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
