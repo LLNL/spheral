@@ -12,6 +12,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/computeSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeSPHOmegaGradhCorrectionInst.cc.py \
+	$(srcdir)/computePSPHCorrectionsInst.cc.py \
 	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc.py \
 	$(srcdir)/SPHHydroBaseInst.cc.py
 
