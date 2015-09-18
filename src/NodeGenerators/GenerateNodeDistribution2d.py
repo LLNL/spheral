@@ -1135,8 +1135,10 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
         # If the user provided a constant for rho, then use the constantRho
         # class to provide this value.
         if type(densityProfileMethod) == type(1.0):
+            self.rho = ConstantRho(densityProfileMethod)
             self.densityProfileMethod = ConstantRho(densityProfileMethod)
         else:
+            self.rho = densityProfileMethod
             self.densityProfileMethod = densityProfileMethod
 
         # Determine how much total mass there is in the system.
@@ -1224,19 +1226,17 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
         # Start at ymax, and work our way down.
         yy = xmax[1]
         while yy > xmin[1]:
-            rhoi = densityProfileMethod(Vector2d(0.0, yy))
+            rhoi = self.densityProfileMethod(Vector2d(0.0, yy))
             dy = sqrt(self.m0/rhoi)
             hy = 1.0/(nNodePerh*dy)
             H0 = SymTensor2d(hx, 0.0, 0.0, hy)
             for i in xrange(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 m0 = dx*dy*rho(Vector2d(xx, yy))
-                if ((r >= rmin or rmin is None) and
-                    (r <= rmax or rmax is None)):
-                    x.append(xx)
-                    y.append(yy)
-                    m.append(m0)
-                    H.append(H0)
+                x.append(xx)
+                y.append(yy)
+                m.append(m0)
+                H.append(H0)
             # Decrement to the next y bin inward.
             yy = max(xmin[1], yy - dy)
 

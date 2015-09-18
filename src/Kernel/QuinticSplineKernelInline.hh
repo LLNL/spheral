@@ -29,7 +29,7 @@ template<>
 inline
 QuinticSplineKernel< Dim<3> >::QuinticSplineKernel():
   Kernel<Dim<3>, QuinticSplineKernel< Dim<3> > >() {
-  setVolumeNormalization(7.0/(4.0*M_PI));
+  setVolumeNormalization(7.0/(40.0*M_PI));
   setKernelExtent(2.0);
   setInflectionPoint(0.342037); // (2.0/15.0*(7.0 - pow(2.0, 1.0/3.0) - pow(22.0, 2.0/3.0)));
 }
