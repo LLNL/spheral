@@ -128,6 +128,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           useVelocityMagnitudeForDt,
                           compatibleEnergyEvolution,
                           gradhCorrection,
+                          false,              // Currently don't support PSPH in solids
                           XSPH,
                           correctVelocityGradient,
                           sumMassDensityOverAllNodeLists,

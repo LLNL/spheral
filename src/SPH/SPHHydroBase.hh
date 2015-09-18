@@ -5,6 +5,7 @@
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_SPHHydroBase_hh__
 #define __Spheral_SPHHydroBase_hh__
+//#define CULLEN
 
 #include <string>
 
@@ -59,6 +60,7 @@ public:
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
                const bool gradhCorrection,
+               const bool PSPH,
                const bool XSPH,
                const bool correctVelocityGradient,
                const bool sumMassDensityOverAllNodeLists,
@@ -153,6 +155,10 @@ public:
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
 
+  // Flag to determine if we're using the PSPH (or so-called DISPH) algorithm.
+  bool PSPH() const;
+  void PSPH(const bool val);
+
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(const bool val);
@@ -230,6 +236,7 @@ protected:
   PhysicsSpace::MassDensityType mDensityUpdate;
   PhysicsSpace::HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
+  bool mBoolPSPH;
 
   // Magnitude of the hourglass/parasitic mode filter.
   double mfilter;
@@ -239,6 +246,19 @@ protected:
 
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;
+
+  //CULLEN VISCOSITY Fields
+#ifdef CULLEN
+  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;
+  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV;
+  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha;
+  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt2;
+  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;
+  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
+#endif
+  //PSPH Fields
+  FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
+  FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;
 
   // Some internal scratch fields.
   FieldSpace::FieldList<Dimension, int>       mTimeStepMask;
