@@ -60,6 +60,7 @@ public:
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
                const bool gradhCorrection,
+               const bool PSPH,
                const bool XSPH,
                const bool correctVelocityGradient,
                const bool sumMassDensityOverAllNodeLists,
@@ -153,6 +154,10 @@ public:
   // Flag to determine if we're using the grad h correction.
   bool gradhCorrection() const;
   void gradhCorrection(const bool val);
+
+  // Flag to determine if we're using the PSPH (or so-called DISPH) algorithm.
+  bool PSPH() const;
+  void PSPH(const bool val);
 
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;

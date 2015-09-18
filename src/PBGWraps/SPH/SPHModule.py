@@ -145,6 +145,7 @@ self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
                            param("int", "compatibleEnergyEvolution", default_value="true"),
                            param("int", "gradhCorrection", default_value="false"),
+                           param("int", "PSPH", default_value="false"),
                            param("int", "XSPH", default_value="true"),
                            param("int", "correctVelocityGradient", default_value="false"),
                            param("int", "sumMassDensityOverAllNodeLists", default_value="true"),
@@ -203,6 +204,7 @@ self.generateSPHHydroBaseBindings(self.SPHHydroBase%(dim)id, %(dim)i)
         x.add_instance_attribute("compatibleEnergyEvolution", "bool", getter="compatibleEnergyEvolution", setter="compatibleEnergyEvolution")
         x.add_instance_attribute("gradhCorrection", "bool", getter="gradhCorrection", setter="gradhCorrection")
         x.add_instance_attribute("correctVelocityGradient", "bool", getter="correctVelocityGradient", setter="correctVelocityGradient")
+        x.add_instance_attribute("PSPH", "bool", getter="PSPH", setter="PSPH")
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("sumMassDensityOverAllNodeLists", "bool", getter="sumMassDensityOverAllNodeLists", setter="sumMassDensityOverAllNodeLists")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
