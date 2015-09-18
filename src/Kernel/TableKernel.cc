@@ -9,20 +9,6 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/bisectSearch.hh"
 
-#include "BSplineKernel.hh"
-#include "W4SplineKernel.hh"
-#include "GaussianKernel.hh"
-#include "SuperGaussianKernel.hh"
-#include "PiGaussianKernel.hh"
-#include "SincKernel.hh"
-#include "NSincPolynomialKernel.hh"
-#include "NBSplineKernel.hh"
-#include "HatKernel.hh"
-#include "QuarticSplineKernel.hh"
-#include "QuinticSplineKernel.hh"
-#include "WendlandC4Kernel.hh"
-#include "WendlandC6Kernel.hh"
-
 namespace Spheral {
 namespace KernelSpace {
 
