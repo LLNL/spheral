@@ -282,6 +282,23 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
+PSPHpbar() const {
+  return mPSPHpbar;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
+PSPHcorrection() const {
+  return mPSPHcorrection;
+}
+
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
 }
