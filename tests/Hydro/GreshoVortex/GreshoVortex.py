@@ -50,7 +50,6 @@ commandLine(
 
     SVPH = False,
     CRKSPH = False,
-    ASPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
     KernelConstructor = BSplineKernel,
@@ -110,26 +109,21 @@ commandLine(
 
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
+    if SPH:
         HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
 elif CRKSPH:
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if CRKSPH:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+    if SPH:
+        HydroConstructor = CRKSPHHydro
+    else:
+        HydroConstructor = ACRKSPHHydro
+else:
+    if SPH:
+        HydroConstructor = SPHHydro
+    else:
+        HydroConstructor = ASPHHydro
 
 #-------------------------------------------------------------------------------
 # Build our directory paths.
