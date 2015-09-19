@@ -98,7 +98,7 @@ template<typename Dimension>
 inline
 void
 CRKSPHHydroBase<Dimension>::filter(const double val) {
-  VERIFY(val >= 0.0 and val <= 1.0);
+  // VERIFY(val >= 0.0 and val <= 1.0);
   mfilter = val;
 }
 
