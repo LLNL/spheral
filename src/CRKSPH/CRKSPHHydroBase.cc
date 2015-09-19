@@ -540,8 +540,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
-  const HatKernel<Dimension> Wfilter(1.0, 1.0);
   const Scalar W0 = W.kernelValue(0.0, 1.0);
+  const HatKernel<Dimension> Wfilter(0.5*W.kernelExtent(), 2.0*W0);
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -840,8 +840,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Add the filtering correction.
               const Vector gradWfilteri = Hi * etai.unitVector() * Wfilter.gradValue(etaMagi, Hdeti);
               const Vector gradWfilterj = Hj * etaj.unitVector() * Wfilter.gradValue(etaMagj, Hdetj);
-              const Scalar Pfilter = max(0.0, mfilter)*FastMath::square(min(0.0, vij.dot(rij.unitVector())));   // Actually P/rho unitwise.
-              forceij += mi*mj*(Pfilter/rhoi*gradWfilteri + Pfilter/rhoj*gradWfilterj);                         // SPH-like low-order force.
+              const Scalar Pfilteri = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*Pi;
+              const Scalar Pfilterj = max(0.0, mfilter)*max(0.0, W(etaMagj, 1.0)/WnPerh - 1.0)*Pj;
+              forceij += mi*mj*(Pfilteri/(rhoi*rhoi)*gradWfilteri + Pfilterj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
+              // const Scalar Pfilter = max(0.0, mfilter)*FastMath::square(min(0.0, vij.dot(rij.unitVector())));   // Actually P/rho unitwise.
+              // forceij += mi*mj*(Pfilter/rhoi*gradWfilteri + Pfilter/rhoj*gradWfilterj);                         // SPH-like low-order force.
 
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
@@ -857,8 +860,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
 
               // Add the filter heating component.
-              DepsDti += mj*Pfilter/rhoi*(vij.dot(gradWfilteri));
-              DepsDtj += mi*Pfilter/rhoj*(vij.dot(gradWfilterj));
+              DepsDti += mj*Pfilteri/(rhoi*rhoi)*(vij.dot(gradWfilteri));
+              DepsDtj += mi*Pfilterj/(rhoj*rhoj)*(vij.dot(gradWfilterj));
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
