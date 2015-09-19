@@ -58,7 +58,7 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 
-#include "Kernel/ExpInvKernel.hh"
+#include "Kernel/HatKernel.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -72,7 +72,7 @@ using NodeSpace::FluidNodeList;
 using FileIOSpace::FileIO;
 using ArtificialViscositySpace::ArtificialViscosity;
 using KernelSpace::TableKernel;
-using KernelSpace::ExpInvKernel;
+using KernelSpace::HatKernel;
 using DataBaseSpace::DataBase;
 using FieldSpace::Field;
 using FieldSpace::FieldList;
@@ -540,7 +540,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
-  const ExpInvKernel<Dimension> Wfilter; //(1.0, 1.0);
+  const HatKernel<Dimension> Wfilter(1.0, 1.0);
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
   // A few useful constants we'll use in the following loop.
