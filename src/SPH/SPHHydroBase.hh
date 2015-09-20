@@ -5,7 +5,6 @@
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_SPHHydroBase_hh__
 #define __Spheral_SPHHydroBase_hh__
-//#define CULLEN
 
 #include <string>
 
@@ -249,15 +248,6 @@ protected:
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;
 
-  //CULLEN VISCOSITY Fields
-#ifdef CULLEN
-  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt;
-  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV;
-  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha;
-  FieldSpace::FieldList<Dimension, Vector>    mPrevDvDt2;
-  FieldSpace::FieldList<Dimension, Scalar>    mPrevDivV2;
-  FieldSpace::FieldList<Dimension, Scalar>    mCullAlpha2;
-#endif
   //PSPH Fields
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHpbar;
   FieldSpace::FieldList<Dimension, Scalar>    mPSPHcorrection;

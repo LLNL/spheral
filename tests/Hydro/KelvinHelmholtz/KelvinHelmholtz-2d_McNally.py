@@ -56,6 +56,7 @@ commandLine(nx1 = 100,
             SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
+            KernelConstructor = BSplineKernel,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -65,6 +66,14 @@ commandLine(nx1 = 100,
             aMin = 0.1,
             aMax = 2.0,
             Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             Cl = 1.0, 
             Cq = 1.0,
             linearInExpansion = False,
@@ -77,6 +86,7 @@ commandLine(nx1 = 100,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
 
@@ -116,6 +126,7 @@ commandLine(nx1 = 100,
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 assert numNodeLists in (1, 2)
 
@@ -181,8 +192,8 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+WT = TableKernel(KernelConstructor(), 1000)
+WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -374,6 +385,7 @@ else:
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
+                             PSPH = PSPH,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
@@ -396,8 +408,12 @@ packages = [hydro]
 
 if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+    
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.

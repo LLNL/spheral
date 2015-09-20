@@ -50,8 +50,8 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   // Zero out the result.
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
-  //const double gamma = 5.0/3.0;//NEEDS TO COME FROM THE INTERFACE!
-  const double gamma = 1.5;//NEEDS TO COME FROM THE INTERFACE!
+  const double gamma = 5.0/3.0;//NEEDS TO COME FROM THE INTERFACE!
+  //const double gamma = 1.5;//NEEDS TO COME FROM THE INTERFACE!
 
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
