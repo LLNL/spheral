@@ -802,7 +802,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
                 DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
               }
-#define HOPKINS
+//#define HOPKINS
 #  ifdef HOPKINS //ADD ARITIFICIAL CONDUCTIVITY IN HOPKINS 2014A
                 const Scalar alph_c = 0.25;//Parameter = 0.25 in Hopkins 2014
                 const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
