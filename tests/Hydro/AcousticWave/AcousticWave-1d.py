@@ -381,32 +381,6 @@ if graphics == "gnu":
                                 winTitle = "volume",
                                 colorNodeLists = False)
     elif CRKSPH:
-        A0=hydro.A0()
-	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
-        tmp=[]
-        for i in range(A0[0].__len__()):
-		tmp.append(A0[0][i])
-        A=np.array(tmp)
-        #ret=smooth(A,11,'hamming') 
-        CoeffBx = Gnuplot.Data(A,
-                               with_ = "points",
-                               #with_ = "lines",
-                               title = "Bx",
-                               inline = True)
-        p0 = generateNewGnuPlot()
-        p0.plot(CoeffBx)
-        p0.title("COEFF")
-        p0.refresh()
-        #print(A0.size())
-        #A=np.array(A0)
-        #ret=smooth(A,11,'hamming')
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                colorNodeLists = False)
-        A0Plot = plotFieldList(hydro.A0(),
-                               winTitle = "A0",
-                               colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
@@ -443,11 +417,10 @@ if outputFile != "None":
     stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
              rhoans, Pans, vans, uans, hans]
     if CRKSPH:
-        A0prof = mpi.reduce(hydro.A0()[0].internalValues(), mpi.SUM)
         Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
         Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
-        labels += ["A0", "A", "B"]
-        stuff += [A0prof, Aprof, Bprof]
+        labels += ["A", "B"]
+        stuff += [Aprof, Bprof]
 
     if mpi.rank == 0:
         multiSort(*tuple(stuff))
