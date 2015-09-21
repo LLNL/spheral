@@ -57,6 +57,7 @@ commandLine(nx1 = 100,
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
+            order = 5,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -192,8 +193,14 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+#WT = TableKernel(KernelConstructor(), 1000)
+#WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -205,10 +212,12 @@ nodes1 = makeFluidNodeList("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
 nodes2 = makeFluidNodeList("Low density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            hminratio = hminratio,
                            nPerh = nPerh)
 nodeSet = [nodes1, nodes2]
