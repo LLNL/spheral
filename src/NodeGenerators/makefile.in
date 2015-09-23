@@ -40,6 +40,7 @@ PYTHONTARGETS = \
 	$(srcdir)/FacetedSurfaceGenerator.py \
 	$(srcdir)/AsciiFileNodeGenerator.py \
 	$(srcdir)/HydroStaticProfile.py \
+	$(srcdir)/StretchedLattice3d.py \
 	$(srcdir)/SiloPolyMeshGenerator.py \
 	$(srcdir)/GenerateRatioSlab2d.py
 
