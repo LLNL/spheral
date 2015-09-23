@@ -11,7 +11,8 @@ commandLine(nPerh   = 2.01,
             rmin    = 0.0,
             rmax    = 2.0,
             scaler  = 0.4,
-            nr      = 10)
+            nr      = 10,
+            seed    = "ico")
 
 class densityProf:
     def __init__(self,scaleR):
@@ -19,7 +20,7 @@ class densityProf:
         return
     def __call__(self,r):
         return 1.0e6*exp(-r/self.R)
-
+#return (2.2-r)/self.R
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -53,8 +54,15 @@ output("nodes.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 rhoProfile = densityProf(scaler)
 
-generator = GenerateIcosahedronMatchingProfile3d(nr,rhoProfile,rmin,rmax,
-                                                 nNodePerh = nPerh)
+if seed == "ico":
+    generator = GenerateIcosahedronMatchingProfile3d(nr,rhoProfile,rmin,rmax,
+                                                     nNodePerh = nPerh)
+elif seed == "random":
+    generator = GenerateRandomNodesMatchingProfile3d(nr,rhoProfile,rmin,rmax,
+                                                     nNodePerh = nPerh)
+elif seed == "altaz":
+    generator = GenerateLongitudinalNodesMatchingProfile3d(nr,rhoProfile,rmin,rmax,
+                                                           nNodePerh = nPerh)
 nodes.numInternalNodes = generator.localNumNodes()
 
 distributeNodes((nodes, generator))
@@ -75,3 +83,19 @@ vizfile = SpheralVisitDump(baseFileName = "icosahedron_test",
                                            HfieldInv],
                            )
 vizfile.dump(0.0, 0)
+
+procs = mpi.procs
+rank = mpi.rank
+serialData = []
+i,j = 0,0
+for i in xrange(procs):
+    if rank == i:
+        for j in xrange(nodes.numInternalNodes):
+            serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
+serialData = mpi.reduce(serialData,mpi.SUM)
+if rank == 0:
+    f = open("serialIcoDump.ascii",'w')
+    for i in xrange(len(serialData)):
+        f.write("{0} {1} {2} {3} {4}\n".format(i,sqrt(pow(serialData[i][0][0],2.0)+pow(serialData[i][0][1],2.0)+pow(serialData[i][0][2],2.0)),serialData[i][1],serialData[i][2],serialData[i][3]))
+    f.close()
+
