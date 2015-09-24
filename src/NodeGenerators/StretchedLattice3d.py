@@ -56,7 +56,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         self.phiMax     = phiMax
         self.nNodePerh  = nNodePerh
         
-        self.xmin       = Vector3d(rmax,rmax,rmax)
+        self.xmin       = Vector3d(-rmax,-rmax,-rmax)
         self.xmax       = Vector3d(rmax,rmax,rmax)
         
         # no reason to support a constant density method here, just use a regular lattice for that
@@ -74,7 +74,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         self.rho0       = self.totalMass/self.vol
     
         # compute kappa first
-        k = 3/(rho0*rmax**3) * self.totalMass/(4.0*pi)
+        k = 3/(self.rho0*rmax**3) * self.totalMass/(4.0*pi)
         print "Found kappa={0:3.3f}. Was that what you expected?".format(k)
             
         # create the unstretched lattice
@@ -88,8 +88,14 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                                      self.nNodePerh)
 
         nx  = 2*nr+1
-        eta = (xmax[0] - xmin[0])/nx
+        eta = (self.xmax[0] - self.xmin[0])/nx
         
+        # Initialize the base class.  If "serialInitialization" is True, this
+        # is where the points are broken up between processors as well.
+        serialInitialization = True
+        NodeGeneratorBase.__init__(self, serialInitialization,
+                                   self.x, self.y, self.z, self.m, self.H)
+    
         return
     
     #---------------------------------------------------------------------------
@@ -178,7 +184,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                             nNodePerh = 2.01):
         
         assert nr > 0
-        assert rho > 0
+        assert rho0 > 0
         
         nx = 2*nr+1
         ny = 2*nr+1
@@ -189,6 +195,8 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         dz = (xmax[2] - xmin[2])/nz
         
         n = nx*ny*nz
+        print xmax,xmin
+        print "nx={0:f} dx={1:3.3e}".format(nx,dx)
 
         hx = 1.0/(nNodePerh*dx)
         hy = 1.0/(nNodePerh*dy)

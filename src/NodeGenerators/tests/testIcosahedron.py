@@ -1,5 +1,6 @@
 from Spheral3d import *
 from GenerateNodeDistribution3d import *
+from StretchedLattice3d import *
 from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
 from SpheralTestUtilities import *
 from SpheralVisitDump import *
@@ -63,6 +64,9 @@ elif seed == "random":
 elif seed == "altaz":
     generator = GenerateLongitudinalNodesMatchingProfile3d(nr,rhoProfile,rmin,rmax,
                                                            nNodePerh = nPerh)
+elif seed == "lattice":
+    generator = GenerateStretchedLattice3d(nr,rhoProfile,rmin,rmax,
+                                           nNodePerh = nPerh)
 nodes.numInternalNodes = generator.localNumNodes()
 
 distributeNodes((nodes, generator))
