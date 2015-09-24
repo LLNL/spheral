@@ -5,8 +5,12 @@ from NodeGeneratorBase import *
 from Spheral import Vector3d
 from Spheral import Tensor3d
 from Spheral import SymTensor3d
+from Spheral import pair_double_double
 
 from Spheral import vector_of_int, vector_of_double, vector_of_SymTensor3d, vector_of_vector_of_double
+from SpheralTestUtilities import *
+from Spheral import NewtonRaphsonFunction, newtonRaphsonFindRoot
+from SpheralGnuPlotUtilities import multiSort
 
 import mpi
 procID = mpi.rank
@@ -16,6 +20,23 @@ nProcs = mpi.procs
 # Class to generate 3-D node positions in a stretched lattice
 #-------------------------------------------------------------------------------
 class GenerateStretchedLattice3d(NodeGeneratorBase):
+
+    class nrFunc(NewtonRaphsonFunction):
+        def __init__(self,k,rho0,r0,eta,rp,rho,dr):
+            NewtonRaphsonFunction.__init__(self)
+            self.k = k
+            self.rho0 = rho0
+            self.r0 = r0
+            self.eta = eta
+            self.rp = rp
+            self.rho = rho
+            self.const = k*r0**(2)*rho0*eta
+            self.dr = dr
+            return
+        def __call__(self,x):
+            fst = (self.rho(x) - self.rho(x-self.dr))/self.dr * (x-self.rp)*x*x
+            scd = self.rho(x) * (x*x + (x-self.rp)*(2)*x*x)
+            return pair_double_double(((x-self.rp)*x**(2)*self.rho(x)-self.const),fst + scd)
 
     #---------------------------------------------------------------------------
     # Constructor
@@ -72,13 +93,14 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         # what this means is this currently only supports creating a full sphere and then
         # cutting out the middle to rmin if rmin > 0
         self.rho0       = self.totalMass/self.vol
+        print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(self.totalMass,self.rho0)
     
         # compute kappa first
         k = 3/(self.rho0*rmax**3) * self.totalMass/(4.0*pi)
         print "Found kappa={0:3.3f}. Was that what you expected?".format(k)
             
         # create the unstretched lattice
-        self.x, self.y, self.z, self.m, self.H = \
+        self.xl, self.yl, self.zl, self.ml, self.Hl = \
             self.latticeDistribution(self.nr,
                                      self.rho0,
                                      self.m0,
@@ -87,8 +109,58 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                                      self.rmax,
                                      self.nNodePerh)
 
+
+        self.rl = []
+        for i in xrange(len(self.xl)):
+            self.rl.append(sqrt(self.xl[i]**2+self.yl[i]**2+self.zl[i]**2))
+        
+        multiSort(self.rl,self.xl,self.yl,self.zl)
+        
         nx  = 2*nr+1
         eta = (self.xmax[0] - self.xmin[0])/nx
+
+
+
+        rp  = 0
+        r0p = 0
+        rn  = 0
+        for i in xrange(1,len(self.rl)+1):
+            if (self.rl[i] <= rmax):
+                r0 = self.rl[i]
+                if (abs(r0-r0p)/r0>1e-10):
+                    eta = r0-r0p
+                    print "Found eta={0:3.3e} @ r0,rp = {1:3.3e},{2:3.3e}".format(eta,r0,rp)
+                    stretch = self.nrFunc(k,self.rho0,r0,eta,rp,self.densityProfileMethod,eta/100.0)
+                    # want to do a check here to determine the range based on slope of function
+                    lrmax = rmax
+                    if self.dfunc(r0,eta,rp,eta/100.0,self.densityProfileMethod) > 0:
+                        lrmax = r0
+                    rn = newtonRaphsonFindRoot(stretch,0,lrmax,1.0e-15, 1.0e-15)
+                rp  = rn
+                r0p = r0
+        
+        '''
+        for ix in xrange(nr):
+            idx = (2*nr+1)*nr*(2*nr+2)
+            i   = ix + nr + 1 + idx
+            mi  = i - 2*ix
+            j   = idx + (2*nr+1)*ix
+            mj  = idx - (2*nr+1)*ix
+            k   = idx + ix*(2*nr+1)**2
+            mk  = idx - ix*(2*nr+1)**2
+            print i
+            r0 = sqrt(self.x[i]*self.x[i] + self.y[i]*self.y[i] + self.z[i]*self.z[i])
+            rn = r0
+            dr = eta/10.0
+            
+            myFunc = myClass()
+            #rn = self.rootFind(rn,k,self.rho0,r0,eta,rp,dr,r0,self.densityProfileMethod,ns)
+            #self.x[i] = self.x[i] * rn/r0
+            #self.y[i] = self.y[i] * rn/r0
+            #self.z[i] = self.z[i] * rn/r0
+            #rp = rn
+        
+        '''
         
         # Initialize the base class.  If "serialInitialization" is True, this
         # is where the points are broken up between processors as well.
@@ -151,29 +223,36 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     # Helper functions for newton raphson
     #---------------------------------------------------------------------------
-    def func(self,x,k,rho0,r0,eta,rp):
-        const = k*r0**(2)*rho0*eta
-        return ((x-rp)*x**(2)*rho(x)-const)
-
-    def dfunc(self,x,eta,rp,dr):
+    
+    def dfunc(self,x,eta,rp,dr,rho):
         fst = (rho(x) - rho(x-dr))/dr * (x-rp)*x*x
         scd = rho(x) * (x*x + (x-rp)*(2)*x*x)
         return fst + scd
+    '''
+    def func(self,x,k,rho0,r0,eta,rp,rho):
+        const = k*r0**(2)*rho0*eta
+        print x
+        return ((x-rp)*x**(2)*rho(x)-const)
 
-    def rootFind(self,x,k,rho0,r0,eta,rp,dr,guess,nsteps=100):
-        for i in xrange(ns):
+
+    
+    def rootFind(self,x,k,rho0,r0,eta,rp,dr,guess,rho,nsteps=100):
+        for i in xrange(nsteps):
             f = self.func(x = guess,
                           k = k,
                           rho0 = rho0,
                           r0 = r0,
                           eta = eta,
-                          rp = rp)
+                          rp = rp,
+                          rho = rho)
             df = self.dfunc(x = guess,
                             eta = eta,
                             rp = rp,
-                            dr = dr)
+                            dr = dr,
+                            rho = rho)
             guess = guess - f/df
-
+        return guess
+        '''
     #-------------------------------------------------------------------------------
     # Seed positions/masses on the unstretched lattice
     #-------------------------------------------------------------------------------
@@ -195,8 +274,6 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         dz = (xmax[2] - xmin[2])/nz
         
         n = nx*ny*nz
-        print xmax,xmin
-        print "nx={0:f} dx={1:3.3e}".format(nx,dx)
 
         hx = 1.0/(nNodePerh*dx)
         hy = 1.0/(nNodePerh*dy)
@@ -211,20 +288,16 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         m = []
         H = []
 
-        imin, imax = self.globalIDRange(n)
-        for iglobal in xrange(imin, imax):
-            i = iglobal % nx
-            j = (iglobal // nx) % ny
-            k = iglobal // (nx*ny)
-            xx = xmin[0] + (i + 0.5)*dx
-            yy = xmin[1] + (j + 0.5)*dy
-            zz = xmin[2] + (k + 0.5)*dz
-            r2 = (xx)**2 + (yy)**2 + (zz)**2
-            if (rmax is None or r2 <= rmax**2):
-               x.append(xx)
-               y.append(yy)
-               z.append(zz)
-               m.append(m0)
-               H.append(H0)
+        for k in xrange(nz):
+            for j in xrange(ny):
+                for i in xrange(nx):
+                    xx = xmin[0] + (i + 0.5)*dx
+                    yy = xmin[1] + (j + 0.5)*dy
+                    zz = xmin[2] + (k + 0.5)*dz
+                    x.append(xx)
+                    y.append(yy)
+                    z.append(zz)
+                    m.append(m0)
+                    H.append(H0)
        
         return x, y, z, m, H
