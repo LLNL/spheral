@@ -1,6 +1,6 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --ny1=512 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 256x512", np=20)
-#ATS:test(SELF, "--CRKSPH=True --nx1=128 --ny1=256 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 128x256", np=20)
-#ATS:test(SELF, "--CRKSPH=True --nx1=512 --ny1=1028 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 512x1028", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --ny1=512 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 256x512", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=128 --ny1=256 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 128x256", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --ny1=1028 --goalTime=4 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=1.01  --serialDump=True --compatibleEnergy=True", label="RT crk, 512x1028", np=20)
 
 #-------------------------------------------------------------------------------
 # This is the basic Rayleigh-Taylor Problem
@@ -14,6 +14,8 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
+from NodeHistory import NodeHistory
+from RTMixLength import RTMixLength
 
 import mpi
 import DistributeNodes
@@ -49,7 +51,7 @@ commandLine(nx1 = 128,
             gamma = 1.4,
             mu = 1.0,
             
-            nPerh = 2.01,
+            nPerh = 1.01,
             
             SVPH = False,
             CRKSPH = False,
@@ -81,7 +83,7 @@ commandLine(nx1 = 128,
             nTensile = 8,
             
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 20.0,
+            goalTime = 4.0,
             steps = None,
             vizCycle = None,
             vizTime = 0.01,
@@ -105,7 +107,7 @@ commandLine(nx1 = 128,
             restoreCycle = -1,
             restartStep = 100,
             redistributeStep = 500,
-            checkRestart = False,
+            sampleFreq = 20,
             dataDir = "dumps-Rayleigh-Taylor-2d_hopkins",
             outputFile = "None",
             comparisonFile = "None",
@@ -171,8 +173,8 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000, Qhmult)
+WT = TableKernel(NBSplineKernel(5), 10000)
+WTPi = TableKernel(NBSplineKernel(5), 1000, Qhmult)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -181,10 +183,11 @@ kernelExtent = WT.kernelExtent
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("High density gas", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           hminratio = hminratio,
-                           nPerh = nPerh)
+                          hmin = hmin,
+                          hmax = hmax,
+                          hminratio = hminratio,
+                          nPerh = nPerh,
+                          kernelExtent = kernelExtent)
 output("nodes.name")
 output("nodes.hmin")
 output("nodes.hmax")
@@ -389,6 +392,14 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Build the history object to measure the time-dependent mix length.
+#-------------------------------------------------------------------------------
+mixlengthhistory = NodeHistory(nodes, [], 
+                               sampleMethod = RTMixLength(nodes, 0.5, 95.0),
+                               filename = os.path.join(dataDir, "mix_length.gnu"),
+                               labels = ("yhigh", "ylow", "L"))
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -404,6 +415,10 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime,
                             SPH = SPH)
 output("control")
+
+# Add the periodic work.
+control.appendPeriodicWork(mixlengthhistory.sample, sampleFreq)
+mixlengthhistory.flushHistory()  # <-- in case of restart
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
