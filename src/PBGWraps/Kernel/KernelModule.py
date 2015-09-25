@@ -153,6 +153,7 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
             x.add_constructor([constrefparam(W, "kernel"),
                                param("int", "numPoints", default_value="1000"),
                                param("double", "hmult", default_value="1.0")])
+            x.add_method("augment", None, [constrefparam(W, "W")])
 
         # Methods.
         x.add_method("kernelAndGradValue", "pair_double_double", [param("double", "etaMagnitude"), param("double", "Hdet")], is_const=True)

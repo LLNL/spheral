@@ -41,6 +41,10 @@ public:
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
 
+  // Linearly combine with another kernel.
+  template<typename KernelType>
+  void augment(const KernelType& kernel);
+
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(double etaMagnitude, double Hdet) const;
 
