@@ -52,7 +52,8 @@ commandLine(
     CRKSPH = False,
     SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
     filter = 0.0,  # For CRKSPH
-    KernelConstructor = BSplineKernel,
+    KernelConstructor = NBSplineKernel,
+    order = 5,
     Qconstructor = MonaghanGingoldViscosity,
     #Qconstructor = TensorMonaghanGingoldViscosity,
     boolReduceViscosity = False,
@@ -181,8 +182,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
+if KernelConstructor == NBSplineKernel:
+    WT = TableKernel(KernelConstructor(order), 1000)
+else:
+    WT = TableKernel(KernelConstructor(), 1000)
+WTPi = WT
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -191,10 +195,11 @@ kernelExtent = WT.kernelExtent
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("fluid", eos,
-                               hmin = hmin,
-                               hmax = hmax,
-                               hminratio = hminratio,
-                               nPerh = nPerh)
+                          hmin = hmin,
+                          hmax = hmax,
+                          hminratio = hminratio,
+                          nPerh = nPerh,
+                          kernelExtent = kernelExtent)
 output("nodes.name")
 output("    nodes.hmin")
 output("    nodes.hmax")
