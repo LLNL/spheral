@@ -476,6 +476,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
+  const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
 
   // The connectivity.
@@ -607,7 +608,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar& ci = soundSpeed(nodeListi, i);
       const Scalar& omegai = omega(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
+      const Scalar safeOmegai = 1.0/max(tiny, omegai);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(omegai > 0.0);
@@ -672,7 +673,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& cj = soundSpeed(nodeListj, j);
               const Scalar& omegaj = omega(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
+              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Hdetj > 0.0);
@@ -723,7 +724,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
               const double rij2 = rij.magnitude2();
-              const SymTensor thpt = rij.selfdyad()/(rij2 + 1.0e-10) / FastMath::square(Dimension::pownu12(rij2 + 1.0e-10));
+              const SymTensor thpt = rij.selfdyad()/max(tiny, rij2*FastMath::square(Dimension::pownu12(rij2)));
               weightedNeighborSumi += fweightij*std::abs(gWi);
               weightedNeighborSumj += fweightij*std::abs(gWj);
               massSecondMomenti += fweightij*gradWi.magnitude2()*thpt;
@@ -886,9 +887,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0 + 1.0e-30;
+        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDti = vi + XSPHDeltaVi/XSPHWeightSumi;
+        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
         DxDti = vi;
       }
