@@ -93,6 +93,7 @@ namespace FractalSpace
     {
       WallTime=Clock();
       cerr << " Empty Mess " << "\n";
+//       cerr << " HypreWorldEMPTY " << FractalRank << " " << &FractalWorld << endl;
     }
     Mess(const bool& MR,const int& GR,const bool& PR,const int& NP,
 	 int& FR0,int& FR1,int& FR2,const int& FN,MPI_Comm& FW):
@@ -143,6 +144,7 @@ namespace FractalSpace
 	  number_particles_total=NP;
 	  length_x=grid_length;
 	}
+//       cerr << " HypreWorld0A " << FractalRank << " " << &FractalWorld << endl;
       //      if(FractalRank == 0)
       //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
     }
@@ -187,6 +189,7 @@ namespace FractalSpace
 	}
       //      if(FractalRank == 0)
       //	cerr << " made a mess " << FractalRank << " " << FractalNodes << " " << length_x << " " << start_x << " " << total_memory << "\n";
+//       cerr << " HypreWorld0B " << FractalRank << " " << &FractalWorld << endl;
     }
     ~Mess()
     {

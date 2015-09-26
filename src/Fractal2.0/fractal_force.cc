@@ -222,10 +222,10 @@ namespace FractalSpace
     //--------------------------------------------------------------------------
     double d_0=0.0; 
     if(fractal.get_periodic())
-      {
-	d_0=fractal.get_omega_start()*0.375/(4.0*atan(1.0));
+//       {
+      d_0=fractal.get_omega_start()*0.375/(4.0*atan(1.0));
 	//	FileFractal << "density 0 " << fractal.get_omega_start() << " " << d_0 << "\n";
-      }
+//       }
     fractal.set_density_0(d_0);
     //--------------------------------------------------------------------------
     // Generating the head group at level 0. It holds a box of points
@@ -239,9 +239,9 @@ namespace FractalSpace
     //    FileFractal << "group f " << p_group << " " << misc.p_group_0 << "\n";
     fractal_memory.all_groups.resize(fractal.get_level_max()+1);
     fractal_memory.all_groups[0].push_back(p_group);
-    fractal_memory.all_buffer_groups.resize(fractal.get_level_max()+1);
-    fractal_memory.all_buffer_groups[0].push_back(p_group);
-    fractal_memory.all_inside_groups.resize(fractal.get_level_max()+1);
+//     fractal_memory.all_buffer_groups.resize(fractal.get_level_max()+1);
+//     fractal_memory.all_buffer_groups[0].push_back(p_group);
+//     fractal_memory.all_inside_groups.resize(fractal.get_level_max()+1);
     //--------------------------------------------------------------------------
     // If isolated BC and this is the first time through fractal_force
     // call isolated_solver to generate the FT of the Green's function only.
@@ -403,10 +403,10 @@ namespace FractalSpace
 	    //	    if(misc.get_debug()) FileFractal << "into high_groups" << "\n";
 	    high_groups(group);
 	    //	    if(misc.get_debug()) FileFractal << "out of high_groups" << group.list_high_groups.size() << "\n";
-	    group.head_number.resize(0);
-	    group.list_high.resize(0);  	
-	    //	    really_clear(group.head_number);
-	    //	    really_clear(group.list_high);  	
+// 	    group.head_number.clear();
+// 	    group.list_high.clear();  	
+// 	    really_clear(group.head_number);
+// 	    really_clear(group.list_high);  	
 	    fractal.timing(1,13);
 	    //--------------------------------------------------------------------------
 	    // Loop over all high_groups
@@ -445,10 +445,10 @@ namespace FractalSpace
 		//--------------------------------------------------------------------------
 		group_counter++;
 		fractal_memory.all_groups[level+1].push_back(p_new_group);
-		if(p_new_group->get_buffer_group())
-		  fractal_memory.all_buffer_groups[level+1].push_back(p_new_group);
-		else
-		  fractal_memory.all_inside_groups[level+1].push_back(p_new_group);
+// 		if(p_new_group->get_buffer_group())
+// 		  fractal_memory.all_buffer_groups[level+1].push_back(p_new_group);
+// 		else
+// 		  fractal_memory.all_inside_groups[level+1].push_back(p_new_group);
 	      }
 	  }
 	fractal.timing_lev(2,level+1);

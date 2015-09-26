@@ -17,7 +17,7 @@ namespace FractalSpace
 	    Group& high_group=*p_high_group;
 	    group.list_high_groups.push_back(p_high_group);
 	    high_group.set_p_generated_from_group(p_group);
-	    high_group.list_high_points.reserve(n_high_p);
+// 	    high_group.list_high_points.reserve(n_high_p);
 	    high_group.list_high_points.push_back(group.list_high[n]);
 	    family[n]=p_high_group;
 	    group.list_high[n]->set_p_in_high_group(family[n]);
@@ -32,5 +32,7 @@ namespace FractalSpace
 	    group.list_high[n]->set_p_in_high_group(p_high_g);
 	  }
       }
+    group.head_number.clear();
+    group.list_high.clear();  	
   }
 }
