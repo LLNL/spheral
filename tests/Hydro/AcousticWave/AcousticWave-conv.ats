@@ -1,7 +1,7 @@
 #-*-python-*-
 # This is an ATS script to coordinate running convergence tests of the acoustic wave.
-cfl = 0.5
-nPerh = 1.0
+cfl = 0.25
+nPerh = 1.51
 filter = 0.0
 kernel = "NBSplineKernel"
 order = 5
