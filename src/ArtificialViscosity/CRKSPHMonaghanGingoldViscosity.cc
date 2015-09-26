@@ -43,7 +43,10 @@ namespace {
 double limiter(const double x) {
   if (x > 0.0) {
     // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
-    return 2.0/(1.0 + x)*min(1.0, x);            // minmod
+    return 2.0/(1.0 + x)*
+      // min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
+      2.0*x/(1.0 + x);        // van Leer
+      // min(1.0, x);            // minmod
   } else {
     return 0.0;
   }
