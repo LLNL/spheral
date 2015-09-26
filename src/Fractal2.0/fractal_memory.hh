@@ -151,8 +151,8 @@ namespace FractalSpace
     vector <int> masks_level_init;
     //
     vector < vector<Group*> > all_groups;
-    vector < vector<Group*> > all_buffer_groups;
-    vector < vector<Group*> > all_inside_groups;
+//     vector < vector<Group*> > all_buffer_groups;
+//     vector < vector<Group*> > all_inside_groups;
     Misc* p_misc; 
     Fractal* p_fractal;
     Mess* p_mess;
