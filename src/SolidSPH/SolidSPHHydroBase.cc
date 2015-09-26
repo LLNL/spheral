@@ -310,6 +310,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
+  const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
   const Scalar epsTensile = this->epsilonTensile();
   const bool compatibleEnergy = this->compatibleEnergyEvolution();
@@ -450,7 +451,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Si = S(nodeListi, i);
       const Scalar& mui = mu(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
-      const Scalar safeOmegai = omegai/(omegai*omegai + 1.0e-4);
+      const Scalar safeOmegai = 1.0/max(tiny, omegai);
       const int fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -517,7 +518,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& omegaj = omega(nodeListj, j);
               const SymTensor& Sj = S(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
-              const Scalar safeOmegaj = omegaj/(omegaj*omegaj + 1.0e-4);
+              const Scalar safeOmegaj = 1.0/max(tiny, omegaj);
               const int fragIDj = fragIDs(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
