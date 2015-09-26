@@ -57,7 +57,7 @@ commandLine(nx1 = 100,
             linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-2,
-            hmin = 0.0001, 
+            hmin = 1.0e-10,
             hmax = 0.1,
             cfl = 0.5,
             XSPH = False,
@@ -74,8 +74,8 @@ commandLine(nx1 = 100,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             steps = None,
             goalTime = 5.0,
-            dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dt = 1.0e-10,
+            dtMin = 1.0e-10, 
             dtMax = 0.1,
             dtGrowth = 2.0,
             dtverbose = False,
@@ -140,11 +140,11 @@ eos = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 10000)
-  WTPi = TableKernel(NBSplineKernel(order), 10000)
+  WT = TableKernel(NBSplineKernel(order), 1000000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000000)
 else:
-  WT = TableKernel(KernelConstructor(), 10000)
-  WTPi = TableKernel(KernelConstructor(), 10000)
+  WT = TableKernel(KernelConstructor(), 1000000)
+  WTPi = TableKernel(KernelConstructor(), 1000000)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
