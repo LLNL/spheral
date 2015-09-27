@@ -4,7 +4,9 @@ cfl = 0.25
 filter = 0.0
 kernel = "NBSplineKernel"
 order = 5
-for nPerh in (0.8, 1.0, 1.2):
+
+# These nperh choices correspond to radii in particles of (1.5, 3, 3.6, 4)
+for nPerh in (0.5, 1.0, 1.2, 1.33):
     for crk, Cl, Cq, label in ((False, 0.0, 0.0, "SPH-ZeroQ"),
                                (False, 1.0, 1.0, "SPH"),
                                (True,  0.0, 0.0, "CRK-ZeroQ"),
