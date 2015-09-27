@@ -39,6 +39,8 @@ commandLine(seed = "lattice",
 
             gamma = 5.0/3.0,
             mu = 1.0,
+	    KernelConstructor = BSplineKernel,
+            order = 5,
 
             SVPH = False,
             CRKSPH = False,
@@ -56,10 +58,24 @@ commandLine(seed = "lattice",
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
+            boolReduceViscosity = False,
+            nhQ = 5.0,
+            nhL = 10.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -95,6 +111,7 @@ commandLine(seed = "lattice",
 
 rho0 = 1.0
 eps0 = 0.0
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 if SVPH:
     if SPH:
@@ -117,7 +134,9 @@ dataDir = os.path.join(dataDir,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
+                       "Qconstructor=%s" % Qconstructor,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "boolReduceViscosity=%s" % boolReduceViscosity,
                        "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -156,8 +175,14 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+#WT = TableKernel(KernelConstructor(), 1000)
+#WTPi = TableKernel(KernelConstructor(), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -169,7 +194,8 @@ nodes1 = makeFluidNodeList("nodes1", eos,
                              hmin = hmin,
                              hmax = hmax,
                              hminratio = hminratio,
-                             nPerh = nPerh)
+                             nPerh = nPerh,
+                             kernelExtent = kernelExtent)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
@@ -265,6 +291,7 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -276,6 +303,18 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    #q.reducingViscosityCorrection = True
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -376,6 +415,17 @@ import NohAnalyticSolution
 answer = NohAnalyticSolution.NohSolution(3,
                                          h0 = nPerh*rmax/nx)
 
+r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+if mpi.rank == 0:
+        L1 = 0.0
+        for i in xrange(len(rho)):
+          L1 = L1 + abs(rho[i]-rhoans[i])
+        L1_tot = L1 / len(rho)
+        print "L1=",L1_tot,"\n"
+        with open("Converge.txt", "a") as myfile:
+          myfile.write("%s %s %s %s %s\n" % (nx, ny,nz,nx+ny+nz, L1_tot))
 if graphics:
 
     # Plot the node positions.
@@ -443,8 +493,10 @@ if graphics:
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-        for (name, data, ans) in [("Mass Density", rho, rhoans),
+        with open("Converge.txt", "a") as myfile:
+          myfile.write("%s %s %s %s " % (nx, ny,nz,nx+ny+nz))
+          print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+          for (name, data, ans) in [("Mass Density", rho, rhoans),
                                   ("Pressure", P, Pans),
                                   ("Velocity", v, vans),
                                   ("Thermal E", eps, epsans)]:
@@ -455,6 +507,8 @@ if graphics:
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            myfile.write("\t\t%g \t\t%g \t\t%g" % (L1, L2, Linf))
+          myfile.write("\n")
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

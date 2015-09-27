@@ -24,6 +24,8 @@ commandLine(seed = "constantDTheta",
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 1.51,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -45,6 +47,19 @@ commandLine(seed = "constantDTheta",
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
 
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
@@ -52,6 +67,7 @@ commandLine(seed = "constantDTheta",
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
             XSPH = False,
+            PSPH = False,
             rhomin = 1e-10,
 
             steps = None,
@@ -81,6 +97,7 @@ commandLine(seed = "constantDTheta",
             serialDump=True,
             )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -166,10 +183,17 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
+#WT = TableKernel(BSplineKernel(), 1000)
+#WTPi = WT
 output("WT")
 output("WTPi")
+kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -177,6 +201,7 @@ output("WTPi")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh,
                            rhoMin = rhomin)
 
@@ -296,6 +321,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
@@ -307,6 +333,19 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
