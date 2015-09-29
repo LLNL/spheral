@@ -45,7 +45,7 @@ double limiter(const double x) {
     // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
     return 2.0/(1.0 + x)*
       // min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
-      2.0*x/(1.0 + x);        // van Leer
+       2.0*x/(1.0 + x);        // van Leer
       // min(1.0, x);            // minmod
   } else {
     return 0.0;
@@ -144,6 +144,29 @@ Piij(const unsigned nodeListi, const unsigned i,
     const Scalar fj = this->curlVelocityMagnitude(DvDxj)/(this->curlVelocityMagnitude(DvDxj) + abs(DvDxj.Trace()) + eps2*cj*hjinv);
     fshear = min(fi, fj);
   }
+/*
+  else{
+    const Tensor Shi = 0.5*(DvDxi+DvDxi.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+    const Tensor Shj = 0.5*(DvDxj+DvDxj.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+    const Scalar csneg = this->negligibleSoundSpeed();
+    const Scalar hiinv = Hi.Trace()/Dimension::nDim;
+    const Scalar hjinv = Hj.Trace()/Dimension::nDim;
+    const Scalar ci = max(csneg, csi);
+    const Scalar cj = max(csneg, csj);
+    //const Tensor DivVi = (1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+    //const Tensor DivVj = (1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+    const Scalar DivVi = DvDxi.Trace();
+    const Scalar DivVj = DvDxj.Trace();
+    //const Scalar fi = (DivVi*(DivVi.Transpose())).Trace()/((DvDxi*(DvDxi.Transpose())).Trace() + eps2*ci*hiinv);
+    //const Scalar fj = (DivVj*(DivVj.Transpose())).Trace()/((DvDxj*(DvDxj.Transpose())).Trace() + eps2*cj*hjinv);
+    //const Scalar fi = (DivVi*(DivVi.Transpose())).Trace()/((DvDxi*(DvDxi.Transpose())).Trace() + 1e-30);
+    //const Scalar fj = (DivVj*(DivVj.Transpose())).Trace()/((DvDxj*(DvDxj.Transpose())).Trace() + 1e-30);
+    const Scalar fi = DivVi*DivVi*safeInv((Shi*Shi.Transpose()).Trace()+DivVi*DivVi);
+    const Scalar fj = DivVj*DivVj*safeInv((Shj*Shj.Transpose()).Trace()+DivVj*DivVj);
+    fshear = min(fi, fj);
+    fshear = 1.0;
+  }
+*/
 
   // Compute the corrected velocity difference.
   Vector vij = vi - vj;
@@ -167,6 +190,8 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
+  //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
+  //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
@@ -178,12 +203,23 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Vector vij12 = 0.5*(vi + vj);
   // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
 
+  const Tensor Si = 0.5*(DvDxi+DvDxi.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  const Tensor Sj = 0.5*(DvDxj+DvDxj.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  //const Tensor Si = DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  //const Tensor Sj = DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
+  //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
   const Scalar phii = limiter(ri);
   const Scalar phij = limiter(rj);
 
   // "Mike" method.
   const Vector vi1 = vi - phii*DvDxi*xij;
   const Vector vj1 = vj + phij*DvDxj*xij;
+  //const Vector vi1 = vi - DvDxi*xij;
+  //const Vector vj1 = vj + DvDxj*xij;
+  //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
+  //const Vector vj1 = vj + (DvDxj-(1.0-phij)*(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
+  
   vij = vi1 - vj1;
   
   // Compute mu.
