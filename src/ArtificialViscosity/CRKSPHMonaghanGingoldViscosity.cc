@@ -188,33 +188,46 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar phiAi = swebyLimiter(rAi, 2.0);
   // const Scalar phiAj = swebyLimiter(rAj, 2.0);
 
-  const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
-  const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
-  //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
+  // An experiment by Mike: try decomposing the velocity gradient into the symmetric and anti-symmetic 
+  // parts.  Apply the limiter to just the symmetric piece, and always use the anti-symmetric portion
+  // to project the velocity.
+  const SymTensor DvDxSi = DvDxi.Symmetric();
+  const Tensor    DvDxAi = DvDxi.SkewSymmetric();
+  const SymTensor DvDxSj = DvDxj.Symmetric();
+  const Tensor    DvDxAj = DvDxj.SkewSymmetric();
+  const Scalar gradi = (DvDxSi.dot(xij)).dot(xij);
+  const Scalar gradj = (DvDxSj.dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
-  // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
-  // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
-  // const Scalar divi = abs(DvDxi.Trace());
-  // const Scalar divj = abs(DvDxj.Trace());
-  // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  // const Vector vij12 = 0.5*(vi + vj);
-  // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
+  // const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
+  // const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
+  // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
+  // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
+  // const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  // const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  // // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
+  // // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
+  // // const Scalar divi = abs(DvDxi.Trace());
+  // // const Scalar divj = abs(DvDxj.Trace());
+  // // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  const Tensor Si = 0.5*(DvDxi+DvDxi.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  const Tensor Sj = 0.5*(DvDxj+DvDxj.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
-  //const Tensor Si = DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  //const Tensor Sj = DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
-  //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
-  //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
+  // // const Vector vij12 = 0.5*(vi + vj);
+  // // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
+
+  // const Tensor Si = 0.5*(DvDxi+DvDxi.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  // const Tensor Sj = 0.5*(DvDxj+DvDxj.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  // //const Tensor Si = DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
+  // //const Tensor Sj = DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
+  // //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
+  // //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
+
   const Scalar phii = limiter(ri);
   const Scalar phij = limiter(rj);
 
   // "Mike" method.
-  const Vector vi1 = vi - phii*DvDxi*xij;
-  const Vector vj1 = vj + phij*DvDxj*xij;
+  const Vector vi1 = vi - (phii*DvDxSi + DvDxAi)*xij;
+  const Vector vj1 = vj + (phij*DvDxSj + DvDxAj)*xij;
   //const Vector vi1 = vi - DvDxi*xij;
   //const Vector vj1 = vj + DvDxj*xij;
   //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
