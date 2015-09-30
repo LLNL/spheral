@@ -22,6 +22,8 @@ commandLine(seed = "lattice",
             nx = 20,
             ny = 100,
             nPerh = 2.01,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             x0 = 0.0,
             x1 = 0.2,
@@ -36,21 +38,38 @@ commandLine(seed = "lattice",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            HydroConstructor = SPHHydro,
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
+            boolReduceViscosity = False,
+            nhQ = 5.0,
+            nhL = 10.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
+            linearConsistent = False,
             Cl = 1.0, 
             Cq = 0.75,
             Qlimiter = False,
+            linearInExpansion = False,
             balsaraCorrection = False,
             epsilon2 = 1e-2,
+            fslice = 0.5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
-            XSPH = True,
+            XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
+            filter = 0.0,
             hourglass = None,
             hourglassOrder = 0,
             hourglassLimiter = 0,
@@ -60,6 +79,9 @@ commandLine(seed = "lattice",
             goalTime = 0.6,
             steps = None,
             vizCycle = None,
+	    SVPH = False,
+            CRKSPH = False,
+            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             vizTime = 0.05,
             dt = 0.0001,
             dtMin = 1.0e-5, 
@@ -68,22 +90,46 @@ commandLine(seed = "lattice",
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
+            HUpdate = IdealH,
             HEvolution = IdealH,
             domainIndependent = False,
-            rigorousBoundaries = True,
+            rigorousBoundaries = False,
             dtverbose = False,
 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = False,
+            compatibleEnergy = True,
             gradhCorrection = False,
 
+            useVoronoiOutput = False,
             clearDirectories = False,
+            vizDerivs = False,
+            checkRestart = False,
             restoreCycle = None,
             restartStep = 1000,
             dataRoot = "dumps-shearingNoh-2d",
 
             graphics = True,
+            outputFile = "None",
+            comparisonFile = "None",
+
             )
+assert not(boolReduceViscosity and boolCullenViscosity)
+if SVPH:
+    if SPH:
+        HydroConstructor = SVPHFacetedHydro
+    else:
+        HydroConstructor = ASVPHFacetedHydro
+elif CRKSPH:
+    if SPH:
+        HydroConstructor = CRKSPHHydro
+    else:
+        HydroConstructor = ACRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
+else:
+    if SPH:
+        HydroConstructor = SPHHydro
+    else:
+        HydroConstructor = ASPHHydro
 
 dataDir = os.path.join(dataRoot,
                        str(HydroConstructor).split()[1].replace(">", "").replace("'",""),
@@ -98,6 +144,10 @@ dataDir = os.path.join(dataRoot,
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "Noh-shear-2d-%ix%i" % (nx, ny))
+if vizTime is None and vizCycle is None:
+    vizBaseName = None
+else:
+    vizBaseName = "Noh-shear-2d-%ix%i" % (nx, ny)
 
 xmin = (x0, y0)
 xmax = (x1, y1)
@@ -116,12 +166,6 @@ if mpi.rank == 0:
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# If we're restarting, find the set of most recent restart files.
-#-------------------------------------------------------------------------------
-if restoreCycle is None:
-    restoreCycle = findLastRestart(restartBaseName)
-
-#-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
 eos = GammaLawGasMKS(gamma, mu)
@@ -130,10 +174,16 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
+
 output("WT")
 output("WTPi")
+kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -141,8 +191,13 @@ output("WTPi")
 nodes1 = makeFluidNodeList("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
-
+output("nodes1")
+output("nodes1.hmin")
+output("nodes1.hmax")
+output("nodes1.hminratio")
+output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set node properties.
 #-------------------------------------------------------------------------------
@@ -152,7 +207,8 @@ if restoreCycle is None:
     generator1 = GenerateNodeDistribution2d(nx, ny, rho1, seed,
                                             xmin = xmin,
                                             xmax = xmax,
-                                            nNodePerh = nPerh)
+                                            nNodePerh = nPerh,
+                                            SPH = True)
     n1 = generator1.globalNumNodes()
 
     if mpi.procs > 1:
@@ -186,7 +242,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq)
+if Qconstructor is TensorSVPHViscosity:
+    q = Qconstructor(Cl, Cq, fslice)
+else:
+    q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -200,30 +259,64 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
-                         cfl = cfl,
-                         compatibleEnergyEvolution = compatibleEnergy,
-                         gradhCorrection = gradhCorrection,
-                         XSPH = XSPH,
-                         densityUpdate = densityUpdate,
-                         HUpdate = HEvolution,
-                         epsTensile = epsilonTensile,
-                         nTensile = nTensile)
+if SVPH:
+    hydro = HydroConstructor(WT, q,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             densityUpdate = densityUpdate,
+                             XSVPH = XSPH,
+                             linearConsistent = linearConsistent,
+                             generateVoid = False,
+                             HUpdate = HUpdate,
+                             fcentroidal = fcentroidal,
+                             fcellPressure = fcellPressure,
+                             xmin = Vector(-1.1, -1.1),
+                             xmax = Vector( 1.1,  1.1))
+elif CRKSPH:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             XSPH = XSPH,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate)
+else:
+    hydro = HydroConstructor(WT, WTPi, q,
+                             filter = filter,
+                             cfl = cfl,
+                             compatibleEnergyEvolution = compatibleEnergy,
+                             gradhCorrection = gradhCorrection,
+                             densityUpdate = densityUpdate,
+                             HUpdate = HUpdate,
+                             PSPH = PSPH,
+                             XSPH = XSPH,
+                             epsTensile = epsilonTensile,
+                             nTensile = nTensile)
+
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.gradhCorrection")
-output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.epsilonTensile")
-output("hydro.nTensile")
+
+
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -267,21 +360,32 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    import SpheralPointmeshSiloDump
+    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
+
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            vizBaseName = "Noh-shear-2d-%ix%i" % (nx, ny),
+                            restoreCycle = restoreCycle,
+                            vizMethod = vizMethod,
+                            vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            vizDerivs = vizDerivs,
+                            skipInitialPeriodicWork = SVPH,
+                            SPH = True,)
 output("control")
 
 # Smooth the initial conditions.
 if restoreCycle is not None:
     control.loadRestartFile(restoreCycle)
 else:
-    control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
         print "Reinitializing node masses."
@@ -294,12 +398,25 @@ else:
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
 
 else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
@@ -352,3 +469,50 @@ if graphics:
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+#-------------------------------------------------------------------------------
+# If requested, write out the state in a global ordering to a file.
+#-------------------------------------------------------------------------------
+if outputFile != "None":
+    outputFile = os.path.join(dataDir, outputFile)
+    from SpheralGnuPlotUtilities import multiSort
+    P = ScalarField("pressure", nodes1)
+    nodes1.pressure(P)
+    xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
+    yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
+    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
+    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
+    Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
+    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    mof = mortonOrderIndices(db)
+    mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+    if mpi.rank == 0:
+        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
+        f = open(outputFile, "w")
+        f.write(("# " + 21*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "QWork",
+                                              "rhoans", "Pans", "vans", "epsans",
+                                              "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo, Qprof,
+                                                     rhoans, Pans, vans, epsans):
+            f.write((8*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
+                                                                              rhoansi, Pansi, vansi, epsansi,
+                                                                              unpackElementUL(packElementDouble(xi)),
+                                                                              unpackElementUL(packElementDouble(yi)),
+                                                                              unpackElementUL(packElementDouble(rhoi)),
+                                                                              unpackElementUL(packElementDouble(Pi)),
+                                                                              unpackElementUL(packElementDouble(vi)),
+                                                                              unpackElementUL(packElementDouble(epsi)),
+                                                                              unpackElementUL(packElementDouble(hi))))
+        f.close()
+
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)

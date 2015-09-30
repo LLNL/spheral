@@ -17,6 +17,8 @@ commandLine(nRadial = 50,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 1.51,
+            KernelConstructor = BSplineKernel,
+	    order = 5, 
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -38,11 +40,26 @@ commandLine(nRadial = 50,
             HUpdate = IdealH,
             filter = 0.0,
 
+            boolReduceViscosity = False,
+            nh = 5.0,
+            aMin = 0.1,
+            aMax = 2.0,
+            Qhmult = 1.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
+
             HydroConstructor = SPHHydro,
             hmin = 1e-15,
             hmax = 1.0,
             cfl = 0.5,
             useVelocityMagnitudeForDt = True,
+            PSPH = False,
             XSPH = False,
             rhomin = 1e-10,
 
@@ -69,6 +86,7 @@ commandLine(nRadial = 50,
             outputFile = "None",
             )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
 h0 = 1.0/nRadial*nPerh
@@ -138,8 +156,15 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
+#WT = TableKernel(BSplineKernel(), 1000)
+#WTPi = WT
+kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")
 
@@ -150,6 +175,7 @@ nodes1 = makeFluidNodeList("nodes1", eos,
                            hmin = hmin,
                            hmax = hmax,
                            nPerh = nPerh,
+ 			   kernelExtent = kernelExtent,
                            rhoMin = rhomin)
 
 #-------------------------------------------------------------------------------
@@ -244,6 +270,7 @@ else:
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              HUpdate = HEvolution)
 output("hydro")
 output("hydro.kernel()")
@@ -255,6 +282,18 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
+
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
