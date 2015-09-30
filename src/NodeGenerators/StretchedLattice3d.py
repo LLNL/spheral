@@ -77,8 +77,8 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         self.phiMax     = phiMax
         self.nNodePerh  = nNodePerh
         
-        self.xmin       = Vector3d(-rmax,-rmax,-rmax)
-        self.xmax       = Vector3d(rmax,rmax,rmax)
+        self.xmin       = Vector3d(-1.1*rmax,-1.1*rmax,-1.1*rmax)
+        self.xmax       = Vector3d(1.1*rmax,1.1*rmax,1.1*rmax)
         
         # no reason to support a constant density method here, just use a regular lattice for that
         self.densityProfileMethod = densityProfileMethod
@@ -116,11 +116,42 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         
         multiSort(self.rl,self.xl,self.yl,self.zl)
         
+        self.x = []
+        self.y = []
+        self.z = []
+        self.m = []
+        self.H = []
+        
         nx  = 2*nr+1
         eta = (self.xmax[0] - self.xmin[0])/nx
 
-
-
+        dr  = eta * 0.01    # this will essentially be the error in the new dumb way
+        r0p = 0
+        rp  = 0
+        rn  = 0
+        for i in xrange(1,len(self.rl)):
+            r0 = self.rl[i]
+            if (abs(r0-r0p)/r0>1e-10):
+                sol     = r0**3*self.rho0/3.0
+                iter    = int(rmax // dr)
+                fn      = 0
+                for j in xrange(iter+1):
+                    rj  = dr*j
+                    rjj = dr*(j+1)
+                    fj  = rj**2 * densityProfileMethod(rj)
+                    fjj = rjj**2 * densityProfileMethod(rjj)
+                    fn  = fn + 0.5*(fj+fjj)*dr
+                    if (fn>=sol):
+                        rn = rj
+                        break
+            r0p = r0
+            if (rn <= rmax):
+                self.x.append(self.xl[i] * rn/r0)
+                self.y.append(self.yl[i] * rn/r0)
+                self.z.append(self.zl[i] * rn/r0)
+                self.m.append(self.ml[i])
+                self.H.append(self.Hl[i])
+        '''
         rp  = 0
         r0p = 0
         rn  = 0
@@ -139,7 +170,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                 rp  = rn
                 r0p = r0
         
-        '''
+        
         for ix in xrange(nr):
             idx = (2*nr+1)*nr*(2*nr+2)
             i   = ix + nr + 1 + idx

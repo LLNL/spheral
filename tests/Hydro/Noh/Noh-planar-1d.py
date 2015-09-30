@@ -437,6 +437,14 @@ A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+L1 = 0.0
+for i in xrange(len(rho)):
+  L1 = L1 + abs(rho[i]-rhoans[i])
+L1_tot = L1 / len(rho)
+if mpi.rank == 0 and outputFile != "None":
+ print "L1=",L1_tot,"\n"
+ with open("Converge.txt", "a") as myfile:
+    myfile.write("%s %s\n" % (nx1, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

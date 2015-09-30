@@ -61,6 +61,14 @@ commandLine(
     nhL = 10.0,
     aMin = 0.1,
     aMax = 2.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
@@ -75,6 +83,7 @@ commandLine(
     hminratio = 0.1,
     cfl = 0.5,
     XSPH = False,
+    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
 
@@ -108,6 +117,7 @@ commandLine(
     outputFile = "None",
     )
 
+assert not(boolReduceViscosity and boolCullenViscosity)
 # Decide on our hydro algorithm.
 if SVPH:
     if SPH:
@@ -140,7 +150,8 @@ baseDir = os.path.join(dataDir,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "XSPH=%s" % XSPH,
+                       "PSPH=%s" % PSPH,
+                       "Cullen=%s" % boolCullenViscosity,
                        "nPerh=%3.1f" % nPerh,
                        "fcentroidal=%f" % max(fcentroidal, filter),
                        "fcellPressure=%f" % fcellPressure,
@@ -182,11 +193,14 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor == NBSplineKernel:
-    WT = TableKernel(KernelConstructor(order), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
 else:
-    WT = TableKernel(KernelConstructor(), 1000)
-WTPi = WT
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
+#WT = TableKernel(KernelConstructor(), 1000)
+#WTPi = WT # TableKernel(HatKernel(1.0, 1.0), 1000)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -195,11 +209,11 @@ kernelExtent = WT.kernelExtent
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
 nodes = makeFluidNodeList("fluid", eos,
-                          hmin = hmin,
-                          hmax = hmax,
-                          hminratio = hminratio,
-                          nPerh = nPerh,
-                          kernelExtent = kernelExtent)
+                               hmin = hmin,
+                               hmax = hmax,
+                               hminratio = hminratio,
+                               kernelExtent = kernelExtent,
+                               nPerh = nPerh)
 output("nodes.name")
 output("    nodes.hmin")
 output("    nodes.hmax")
@@ -325,6 +339,7 @@ else:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
+                             PSPH = PSPH,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
@@ -343,12 +358,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 
 #-------------------------------------------------------------------------------
@@ -501,13 +516,32 @@ if outputFile != "None":
     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
     vprof = mpi.reduce([v.magnitude() for v in nodes.velocity().internalValues()], mpi.SUM)
+    velx = mpi.reduce([v.x for v in nodes.velocity().internalValues()], mpi.SUM)
+    vely = mpi.reduce([v.y for v in nodes.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes.specificThermalEnergy().internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
+
     if mpi.rank == 0:
         rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
+        L1 = 0.0
+        for i in xrange(len(xprof)):
+           rhat = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).unitVector()
+           vel_vec = Vector(velx[i],vely[i])
+           vaz = (vel_vec - vel_vec.dot(rhat)*rhat).magnitude()
+           vans = 0.0
+           if rprof[i] < 0.2:
+             vans = 5*rprof[i]
+           elif rprof[i] < 0.4:
+             vans = 2.0-5.0*rprof[i]
+           else:
+             vans = 0.0
+           L1 = L1 + abs(vaz-vans)
+        L1 = L1/len(xprof)
+        with open("Converge.txt.%s" % nPerh, "a") as myfile:
+          myfile.write("%s\t %s\n" % (nx1,L1))
         f = open(outputFile, "w")
         f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
