@@ -54,14 +54,17 @@ commandLine(nx1 = 100,
             Cq = 0.0,
             linearInExpansion = False,
             Qlimiter = False,
-            epsilon2 = 1e-2,
+            epsilon2 = 1e-30,
             hmin = 1.0e-10,
             hmax = 0.1,
             cfl = 0.5,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             SVPH = False,
             CRKSPH = False,
@@ -78,7 +81,7 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HUpdate = IdealH,
+            HUpdate = IntegrateH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -133,8 +136,18 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 10000)
-WTPi = TableKernel(BSplineKernel(), 10000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000000)
+  WTPi = TableKernel(KernelConstructor(), 1000000)
+output("WT")
+output("WTPi")
+kernelExtent = WT.kernelExtent
+
+#WT = TableKernel(BSplineKernel(), 10000)
+#WTPi = TableKernel(BSplineKernel(), 10000)
 output("WT")
 output("WTPi")
 
@@ -144,6 +157,7 @@ output("WTPi")
 nodes1 = makeFluidNodeList("nodes1", eos,
                            hmin = hmin,
                            hmax = hmax,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
@@ -192,13 +206,14 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
+H = nodes1.Hfield()
 dx = (x1 - x0)/nx1
 xi = x0
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
-    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
-    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-15, 1.0e-15)
+    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
+    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
     rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
     rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
@@ -206,6 +221,7 @@ for i in xrange(nodes1.numInternalNodes):
     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
     mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
+    H[i] *= rho[i]/rho1
 # xi0 = 0.0
 # dx0 = (x1 - x0)/nx1
 # for i in xrange(nodes1.numInternalNodes):
@@ -283,6 +299,7 @@ else:
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              epsTensile = epsilonTensile,
@@ -451,9 +468,9 @@ if outputFile != "None":
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in xrange(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, xmin, xmax)
-            L2 = Pn.gridpnorm(2, xmin, xmax)
-            Linf = Pn.gridpnorm("inf", xmin, xmax)
+            L1 = Pn.pnormAverage(1, xmin, xmax)
+            L2 = Pn.pnormAverage(2, xmin, xmax)
+            Linf = Pn.pnormAverage("inf", xmin, xmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
