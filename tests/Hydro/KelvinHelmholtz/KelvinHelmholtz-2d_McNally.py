@@ -121,6 +121,8 @@ commandLine(nx1 = 100,
             dataDir = "dumps-KelvinHelmholtz-2d_McNally",
             outputFile = "None",
             comparisonFile = "None",
+            graphMixing = False,
+            mixInterval = 0.1,
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             
@@ -507,6 +509,45 @@ output("control")
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
+
+elif graphMixing: 
+    nsteps = int(goalTime/mixInterval)
+    print "NSTEPS=",nsteps," dt=",mixInterval
+    t_mix = 0.0
+    for i in xrange(nsteps):
+      t_mix = t_mix + mixInterval
+      if(t_mix > goalTime):
+         t_mix = goalTime
+      control.advance(t_mix, maxSteps)
+      control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
+      control.dropRestartFile()
+      si = []
+      ci = []
+      di = []
+      for nodeL in nodeSet:
+       xprof = mpi.reduce([x.x for x in nodeL.positions().internalValues()], mpi.SUM)
+       yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
+       vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
+       hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
+       if mpi.rank == 0:
+        for j in xrange (len(xprof)):
+          if yprof[j] < 0.5:
+            si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
+            ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
+            di.append(hprof[j]*hprof[j]*exp(-4.0*pi*abs(yprof[j]-0.25)))
+          else:
+            si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+            ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+            di.append(hprof[j]*hprof[j]*exp(-4.0*pi*abs((1.0-yprof[j])-0.25)))
+      if mpi.rank == 0:
+        S=sum(si)
+        C=sum(ci)
+        D=sum(di)
+        M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
+        print "At time t = %s, Mixing Amp M = %s \n" % (t_mix,M)
+        with open("MixingModeAmp.txt", "a") as myfile:
+          myfile.write("%s\t %s\n" % (t_mix, M))
+  
 
 else:
     control.advance(goalTime, maxSteps)
