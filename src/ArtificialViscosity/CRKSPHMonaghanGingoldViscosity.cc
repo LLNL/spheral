@@ -52,6 +52,12 @@ double limiter(const double x) {
   }
 }
 
+double superbee(const double xi) {
+  const double x = abs(x);
+  return 2.0/(1.0 + x)*
+    max(min(2.0*x, 1.0), min(x, 2.0));
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -195,10 +201,14 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Tensor    DvDxAi = DvDxi.SkewSymmetric();
   const SymTensor DvDxSj = DvDxj.Symmetric();
   const Tensor    DvDxAj = DvDxj.SkewSymmetric();
-  const Scalar gradi = (DvDxSi.dot(xij)).dot(xij);
-  const Scalar gradj = (DvDxSj.dot(xij)).dot(xij);
-  const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
-  const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  const Scalar gradSi = (DvDxSi.dot(xij)).dot(xij);
+  const Scalar gradSj = (DvDxSj.dot(xij)).dot(xij);
+  const Scalar gradAi = (DvDxAi.dot(xij)).dot(xij);
+  const Scalar gradAj = (DvDxAj.dot(xij)).dot(xij);
+  const Scalar rSi = gradSi/(sgn(gradSj)*max(1.0e-30, abs(gradSj)));
+  const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
+  const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
+  const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
 
   // const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   // const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
@@ -222,12 +232,14 @@ Piij(const unsigned nodeListi, const unsigned i,
   // //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
   // //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
 
-  const Scalar phii = limiter(ri);
-  const Scalar phij = limiter(rj);
+  const Scalar phiSi = limiter(rSi);
+  const Scalar phiSj = limiter(rSj);
+  const Scalar phiAi = superbee(rAi);
+  const Scalar phiAj = superbee(rAj);
 
   // "Mike" method.
-  const Vector vi1 = vi - (phii*DvDxSi + DvDxAi)*xij;
-  const Vector vj1 = vj + (phij*DvDxSj + DvDxAj)*xij;
+  const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
+  const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
   //const Vector vi1 = vi - DvDxi*xij;
   //const Vector vj1 = vj + DvDxj*xij;
   //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
