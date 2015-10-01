@@ -40,22 +40,44 @@ namespace {
 //------------------------------------------------------------------------------
 // limiter for velocity projection.
 //------------------------------------------------------------------------------
-double limiter(const double x) {
+double limiterBJ(const double x) {
   if (x > 0.0) {
-    // return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
-    return 2.0/(1.0 + x)*
-      // min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
-       2.0*x/(1.0 + x);        // van Leer
-      // min(1.0, x);            // minmod
+    return min(1.0, 4.0/(x + 1.0)*min(1.0, x));  // Barth-Jesperson
   } else {
     return 0.0;
   }
 }
 
-double superbee(const double xi) {
-  const double x = abs(x);
-  return 2.0/(1.0 + x)*
-    max(min(2.0*x, 1.0), min(x, 2.0));
+double limiterMC(const double x) {
+  if (x > 0.0) {
+    return 2.0/(1.0 + x)*min(2.0*x, min(0.5*(1.0 + x), 2.0));   // monotonized central
+  } else {
+    return 0.0;
+  }
+}
+
+double limiterVL(const double x) {
+  if (x > 0.0) {
+    return 2.0/(1.0 + x)*2.0*x/(1.0 + x);                       // van Leer
+  } else {
+    return 0.0;
+  }
+}
+
+double limiterMM(const double x) {
+  if (x > 0.0) {
+    return 2.0/(1.0 + x)*min(1.0, x);                           // minmod
+  } else {
+    return 0.0;
+  }
+}
+
+double limiterSB(const double x) {
+  if (x > 0.0) {
+    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));     // superbee
+  } else {
+    return 0.0;
+  }
 }
 
 }
@@ -194,28 +216,28 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar phiAi = swebyLimiter(rAi, 2.0);
   // const Scalar phiAj = swebyLimiter(rAj, 2.0);
 
-  // An experiment by Mike: try decomposing the velocity gradient into the symmetric and anti-symmetic 
-  // parts.  Apply the limiter to just the symmetric piece, and always use the anti-symmetric portion
-  // to project the velocity.
-  const SymTensor DvDxSi = DvDxi.Symmetric();
-  const Tensor    DvDxAi = DvDxi.SkewSymmetric();
-  const SymTensor DvDxSj = DvDxj.Symmetric();
-  const Tensor    DvDxAj = DvDxj.SkewSymmetric();
-  const Scalar gradSi = (DvDxSi.dot(xij)).dot(xij);
-  const Scalar gradSj = (DvDxSj.dot(xij)).dot(xij);
-  const Scalar gradAi = (DvDxAi.dot(xij)).dot(xij);
-  const Scalar gradAj = (DvDxAj.dot(xij)).dot(xij);
-  const Scalar rSi = gradSi/(sgn(gradSj)*max(1.0e-30, abs(gradSj)));
-  const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
-  const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
-  const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
+  // // An experiment by Mike: try decomposing the velocity gradient into the symmetric and anti-symmetic 
+  // // parts.  Apply the limiter to just the symmetric piece, and always use the anti-symmetric portion
+  // // to project the velocity.
+  // const SymTensor DvDxSi = DvDxi.Symmetric();
+  // const Tensor    DvDxAi = DvDxi.SkewSymmetric();
+  // const SymTensor DvDxSj = DvDxj.Symmetric();
+  // const Tensor    DvDxAj = DvDxj.SkewSymmetric();
+  // const Scalar gradSi = (DvDxSi.dot(xij)).dot(xij);
+  // const Scalar gradSj = (DvDxSj.dot(xij)).dot(xij);
+  // const Scalar gradAi = (DvDxAi.dot(xij)).dot(xij);
+  // const Scalar gradAj = (DvDxAj.dot(xij)).dot(xij);
+  // const Scalar rSi = gradSi/(sgn(gradSj)*max(1.0e-30, abs(gradSj)));
+  // const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
+  // const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
+  // const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
 
-  // const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
-  // const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
+  const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
+  const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
   // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
-  // const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
-  // const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   // // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
   // // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
   // // const Scalar divi = abs(DvDxi.Trace());
@@ -232,14 +254,19 @@ Piij(const unsigned nodeListi, const unsigned i,
   // //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
   // //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
 
-  const Scalar phiSi = limiter(rSi);
-  const Scalar phiSj = limiter(rSj);
-  const Scalar phiAi = superbee(rAi);
-  const Scalar phiAj = superbee(rAj);
+  const Scalar phii = limiterVL(ri);
+  const Scalar phij = limiterVL(rj);
+
+  // const Scalar phiSi = limiterSB(rSi);
+  // const Scalar phiSj = limiterSB(rSj);
+  // const Scalar phiAi = limiterSB(rAi);
+  // const Scalar phiAj = limiterSB(rAj);
 
   // "Mike" method.
-  const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
-  const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
+  const Vector vi1 = vi - phii*DvDxi*xij;
+  const Vector vj1 = vj + phij*DvDxj*xij;
+  // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
+  // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
   //const Vector vi1 = vi - DvDxi*xij;
   //const Vector vj1 = vj + DvDxj*xij;
   //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
