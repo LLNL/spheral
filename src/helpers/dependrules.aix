@@ -1,0 +1,19 @@
+%.d: %.cc
+	@$(SHELL) -ec 'echo "Building dependencies for $*.cc"; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -c $< > /dev/null; \
+	cat $*.u | sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
+	rm -f $*.u; \
+	[ -s $@ ] || rm -f $@'
+
+%Methods.d: %Methods.pw
+	@mkdir -p .MethodsSource
+	@rm -f .MethodsSource/$*Methods.cc
+	@$(PYTHONEXE) $(PYFFLEDIR)/pyffle.py $*Methods.pw > .MethodsSource/$*Methods.cc
+	@$(SHELL) -ec 'echo "Building dependencies for $*Methods.pw"; \
+	$(MPICXX) $(DEPFLAG) $(CXXFLAGS) $(EXTRAFLAGS) $(EXTRAINCLUDES) -I. -c .MethodsSource/$*Methods.cc > /dev/null; \
+	cat $*Methods.u | \
+	sed '\''s/\($*\)\Methods.o[ :]*/\1Methods.o $@ : /g'\'' | \
+	sed '\''s/\.MethodsSource\/$*Methods.cc/$*Methods.pw/g'\'' > $@; \
+	[ -s $@ ] || rm -f $@'
+	@rm -f $*Methods.u
+	@rm -f .MethodsSource/$*Methods.cc
