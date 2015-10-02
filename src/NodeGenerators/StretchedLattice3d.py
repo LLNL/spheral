@@ -77,31 +77,33 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         self.phiMax     = phiMax
         self.nNodePerh  = nNodePerh
         
-        self.xmin       = Vector3d(-1.1*rmax,-1.1*rmax,-1.1*rmax)
-        self.xmax       = Vector3d(1.1*rmax,1.1*rmax,1.1*rmax)
+        self.xmin       = Vector3d(-2.0*rmax,-2.0*rmax,-2.0*rmax)
+        self.xmax       = Vector3d(2.0*rmax,2.0*rmax,2.0*rmax)
         
         # no reason to support a constant density method here, just use a regular lattice for that
         self.densityProfileMethod = densityProfileMethod
         
         # Determine how much total mass there is in the system.
-        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+        targetMass = self.integrateTotalMass(self.densityProfileMethod,
                                                  rmax)
         
-        self.ntot       = 4.0/3.0*pi*(nr**3)
-        self.m0         = self.totalMass/self.ntot
+        targetN         = 4.0/3.0*pi*(nr**3)
+        self.m0         = targetMass/targetN
         self.vol        = 4.0/3.0*pi*(rmax**3)
         # what this means is this currently only supports creating a full sphere and then
         # cutting out the middle to rmin if rmin > 0
-        self.rho0       = self.totalMass/self.vol
-        print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(self.totalMass,self.rho0)
+        self.rho0       = targetMass/self.vol
+        print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0)
     
         # compute kappa first
-        k = 3/(self.rho0*rmax**3) * self.totalMass/(4.0*pi)
-        print "Found kappa={0:3.3f}. Was that what you expected?".format(k)
-            
+        # k = 3/(self.rho0*rmax**3) * targetMass/(4.0*pi)
+        # print "Found kappa={0:3.3f}. Was that what you expected?".format(k)
+        
+        nlat = 2*nr
+        
         # create the unstretched lattice
         self.xl, self.yl, self.zl, self.ml, self.Hl = \
-            self.latticeDistribution(self.nr,
+            self.latticeDistribution(nlat,
                                      self.rho0,
                                      self.m0,
                                      self.xmin,    # (xmin, ymin, zmin)
@@ -114,6 +116,8 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         for i in xrange(len(self.xl)):
             self.rl.append(sqrt(self.xl[i]**2+self.yl[i]**2+self.zl[i]**2))
         
+        print "Sorting unstretched lattice..."
+        
         multiSort(self.rl,self.xl,self.yl,self.zl)
         
         self.x = []
@@ -122,8 +126,10 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         self.m = []
         self.H = []
         
-        nx  = 2*nr+1
+        nx  = 2*nlat+1
         eta = (self.xmax[0] - self.xmin[0])/nx
+        
+        print "Stretching lattice..."
 
         dr  = eta * 0.01    # this will essentially be the error in the new dumb way
         r0p = 0
@@ -133,7 +139,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
             r0 = self.rl[i]
             if (abs(r0-r0p)/r0>1e-10):
                 sol     = r0**3*self.rho0/3.0
-                iter    = int(rmax // dr)
+                iter    = int(10*rmax // dr)
                 fn      = 0
                 for j in xrange(iter+1):
                     rj  = dr*j
@@ -151,6 +157,13 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                 self.z.append(self.zl[i] * rn/r0)
                 self.m.append(self.ml[i])
                 self.H.append(self.Hl[i])
+    
+        seededMass = sum(self.m)
+        
+        mAdj = targetMass / seededMass
+        for i in xrange(len(self.m)):
+            self.m[i] = self.m[i] * mAdj
+        
         '''
         rp  = 0
         r0p = 0
@@ -251,39 +264,6 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         result = result * 4.0*pi
         return result
 
-    #---------------------------------------------------------------------------
-    # Helper functions for newton raphson
-    #---------------------------------------------------------------------------
-    
-    def dfunc(self,x,eta,rp,dr,rho):
-        fst = (rho(x) - rho(x-dr))/dr * (x-rp)*x*x
-        scd = rho(x) * (x*x + (x-rp)*(2)*x*x)
-        return fst + scd
-    '''
-    def func(self,x,k,rho0,r0,eta,rp,rho):
-        const = k*r0**(2)*rho0*eta
-        print x
-        return ((x-rp)*x**(2)*rho(x)-const)
-
-
-    
-    def rootFind(self,x,k,rho0,r0,eta,rp,dr,guess,rho,nsteps=100):
-        for i in xrange(nsteps):
-            f = self.func(x = guess,
-                          k = k,
-                          rho0 = rho0,
-                          r0 = r0,
-                          eta = eta,
-                          rp = rp,
-                          rho = rho)
-            df = self.dfunc(x = guess,
-                            eta = eta,
-                            rp = rp,
-                            dr = dr,
-                            rho = rho)
-            guess = guess - f/df
-        return guess
-        '''
     #-------------------------------------------------------------------------------
     # Seed positions/masses on the unstretched lattice
     #-------------------------------------------------------------------------------
