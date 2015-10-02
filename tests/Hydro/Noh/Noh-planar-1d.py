@@ -21,6 +21,7 @@ title("1-D integrated hydro test -- planar Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
+            order = 5,
 
             nx1 = 100,
             rho1 = 1.0,
@@ -172,8 +173,13 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000,)
+kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")
 
@@ -185,12 +191,14 @@ if solid:
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
     
 output("nodes1")
