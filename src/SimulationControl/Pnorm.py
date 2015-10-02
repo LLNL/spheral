@@ -50,7 +50,7 @@ class Pnorm:
                 rp = rmax
             else:
                 rp = 0.5*(rData[j][0] + rData[j+1][0])
-            weightData[i] = rp - rm
+            weightData[i] = max(0.0, rp - rm)
             assert weightData[i] >= 0.0
 
         # That's it, we now have the grid weighting.
