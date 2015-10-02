@@ -1,7 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH CRK, nPerh=2.0", np=10)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH Spheral, nPerh=2.0", np=10)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=2.01 --serialDump=True", label="KH Spheral-NoQ, nPerh=2.0", np=10)
-#ATS:test(SELF, "--CRKSPH=False --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=0.0 --Cq=0.0 --clearDirectories=False --filter=0 --nPerh=2.01  --serialDump=True --compatibleEnergy=False", label="KH TSPH-NoQ, nPerh=2.0", np=10)
+#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
+#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
@@ -123,6 +121,7 @@ commandLine(nx1 = 256,
             comparisonFile = "None",
             graphMixing = False,
             mixInterval = 0.1,
+            mixFile = "MixingModeAmp.gnu",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             
@@ -532,11 +531,14 @@ def mixingScale(cycle, t, dt):
       D=sum(di)
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
       print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
-      with open("MixingModeAmp.txt", "a") as myfile:
+      with open(mixFile, "a") as myfile:
         myfile.write("%s\t %s\n" % (t, M))
 
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)
+    myfile = open(mixFile, "w")
+    myfile.write("# time           mixamp\n")
+    myfile.close()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
