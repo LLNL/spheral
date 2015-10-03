@@ -2,6 +2,7 @@ from SpheralModules.Spheral.CRKSPHSpace import *
 from SpheralModules.Spheral.NodeSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
 from SpheralModules.Spheral.PhysicsSpace import *
+from SpheralModules.Spheral.KernelSpace import *
 
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
@@ -16,6 +17,7 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  W,
                  WPi,
                  Q,
+                 Wfilter = TableKernel%(dim)s(NBSplineKernel%(dim)s(7),1000),
                  filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
@@ -31,6 +33,7 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              W,
                                              WPi,
                                              Q,
+                                             Wfilter,
                                              filter,
                                              cfl,
                                              useVelocityMagnitudeForDt,

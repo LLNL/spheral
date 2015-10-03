@@ -92,6 +92,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const TableKernel<Dimension>& W,
                 const TableKernel<Dimension>& WPi,
                 ArtificialViscosity<Dimension>& Q,
+                const TableKernel<Dimension>& Wfilter,
                 const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
@@ -102,6 +103,7 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                 const double epsTensile,
                 const double nTensile):
   GenericHydro<Dimension>(W, WPi, Q, cfl, useVelocityMagnitudeForDt),
+  mFilterKernel(Wfilter),
   mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
@@ -540,11 +542,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
+  const TableKernel<Dimension>& Wfilter = this->filterKernel();
   const Scalar W0 = W.kernelValue(0.0, 1.0);
 
-  const NBSplineKernel<Dimension> Wfilter(7);
-  // const HatKernel<Dimension> Wfilter(W.kernelExtent(), W0);
-  // const HatKernel<Dimension> Wfilter(1.0/(**dataBase.fluidNodeListBegin()).nodesPerSmoothingScale(), W0);
+  // const NBSplineKernel<Dimension> WfilterBase(9);
+  // const TableKernel<Dimension> Wfilter(WfilterBase, 1000, W.kernelExtent()/WfilterBase.kernelExtent());
+  // // const HatKernel<Dimension> Wfilter(W.kernelExtent(), W0);
+  // // const HatKernel<Dimension> Wfilter(1.0/(**dataBase.fluidNodeListBegin()).nodesPerSmoothingScale(), W0);
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
@@ -826,6 +830,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
               DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
+              // We're going to augment the pressure by a small factor that wants points to stay in
+              // integer multiples of nperh away.
+              const Scalar Peffi = (1.0 + max(0.0, mfilter)*cos(M_PI*etaMagi/nPerh))*Pi;
+              const Scalar Peffj = (1.0 + max(0.0, mfilter)*cos(M_PI*etaMagj/nPerh))*Pj;
+
               // // Determine an effective pressure including a term to fight the tensile instability.
               // const Scalar fij = mEpsTensile*pow(0.5*(W(etaMagi, 1.0) + W(etaMagj, 1.0))/WnPerh, mnTensile);
               // // const Scalar fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
@@ -838,23 +847,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
               Vector deltaDvDti, deltaDvDtj;
-              Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
+              Vector forceij = 0.5*weighti*weightj*((Peffi + Peffj)*deltagrad + 
                                                     ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
 
-              // Add the filtering correction.
-              const Vector gradWfilteri = Hi * etai.unitVector() * Wfilter.gradValue(etaMagi, Hdeti);
-              const Vector gradWfilterj = Hj * etaj.unitVector() * Wfilter.gradValue(etaMagj, Hdetj);
+              // // Add the filtering correction.
+              // const Vector gradWfilteri = Hi * etai.unitVector() * Wfilter.gradValue(etaMagi, Hdeti);
+              // const Vector gradWfilterj = Hj * etaj.unitVector() * Wfilter.gradValue(etaMagj, Hdetj);
 
-              // const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pi + rhoi*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
-              // const Scalar Pfj = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pj + rhoj*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
+              // // const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pi + rhoi*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
+              // // const Scalar Pfj = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pj + rhoj*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
+              // // forceij += mi*mj*(Pfi/(rhoi*rhoi)*gradWfilteri + Pfj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
+
+              // // const Scalar ff = max(0.0, mfilter)*max(0.0, 1.0/nPerh - min(etaMagi, etaMagj))*nPerh;
+              // // forceij = (1.0 - ff)*forceij + ff*mi*mj*(Pi/(rhoi*rhoi)*gradWfilteri + Pj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
+
+              // const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*Pi;
+              // const Scalar Pfj = max(0.0, mfilter)*max(0.0, W(etaMagj, 1.0)/WnPerh - 1.0)*Pj;
               // forceij += mi*mj*(Pfi/(rhoi*rhoi)*gradWfilteri + Pfj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
-
-              // const Scalar ff = max(0.0, mfilter)*max(0.0, 1.0/nPerh - min(etaMagi, etaMagj))*nPerh;
-              // forceij = (1.0 - ff)*forceij + ff*mi*mj*(Pi/(rhoi*rhoi)*gradWfilteri + Pj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
-
-              const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*Pi;
-              const Scalar Pfj = max(0.0, mfilter)*max(0.0, W(etaMagj, 1.0)/WnPerh - 1.0)*Pj;
-              forceij += mi*mj*(Pfi/(rhoi*rhoi)*gradWfilteri + Pfj/(rhoj*rhoj)*gradWfilterj);           // SPH-like low-order force.
 
               deltaDvDti = -forceij/mi;
               deltaDvDtj =  forceij/mj;
@@ -866,12 +875,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(Peffj*vij.dot(deltagrad) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Peffi*vij.dot(deltagrad) + workQj)/mj;
 
-              // Add the filter heating component.
-              DepsDti += mj*Pfi/(rhoi*rhoi)*(vij.dot(gradWfilteri));
-              DepsDtj += mi*Pfj/(rhoj*rhoj)*(vij.dot(gradWfilterj));
+              // // Add the filter heating component.
+              // DepsDti += mj*Pfi/(rhoi*rhoi)*(vij.dot(gradWfilteri));
+              // DepsDtj += mi*Pfj/(rhoj*rhoj)*(vij.dot(gradWfilterj));
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
@@ -1083,6 +1092,74 @@ finalize(const typename Dimension::Scalar time,
   //   massDensity.assignFields(massDensitySum);
   }
 
+  // // Add any filtering component to the node movement.
+  // // This form looks for points that are too close based on specific volume.
+  // if (mfilter < 0.0) {
+  //   const TableKernel<Dimension>& W = this->kernel();
+  //   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  //   FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  //   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  //   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //   const unsigned numNodeLists = mass.size();
+  //   const Scalar W0 = W.kernelValue(0.0, 1.0);
+  //   FieldList<Dimension, Vector> deltar = dataBase.newFluidFieldList(Vector::zero, "delta position");
+  //   FieldList<Dimension, Scalar> deltav = dataBase.newFluidFieldList(0.0, "delta velocity");
+  //   FieldList<Dimension, Scalar> weightsum = dataBase.newFluidFieldList(0.0, "delta velocity weight sum");
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //          iItr != connectivityMap.end(nodeListi);
+  //          ++iItr) {
+  //       const int i = *iItr;
+  //       const Vector& ri = position(nodeListi, i);
+  //       const Vector& vi = velocity(nodeListi, i);
+  //       const Scalar mi = mass(nodeListi, i);
+  //       const Scalar rhoi = massDensity(nodeListi, i);
+  //       const SymTensor& Hi = H(nodeListi, i);
+  //       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
+  //       for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+  //         for (typename vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
+  //              jItr != fullConnectivity[nodeListj].end();
+  //              ++jItr) {
+  //           const unsigned j = *jItr;
+  //           const Vector& rj = position(nodeListj, j);
+  //           const Vector& vj = velocity(nodeListj, j);
+  //           const Scalar mj = mass(nodeListj, j);
+  //           const Scalar rhoj = massDensity(nodeListj, j);
+  //           const Vector rji = rj - ri;
+  //           const Vector rjihat = rji.unitVector();
+  //           const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
+  //           // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
+  //           // deltar(nodeListi, i) -= deltai*rjihat;
+  //           const Scalar etai = (Hi*rji).magnitude();
+  //           const Scalar weight = W.kernelValue(etai, 1.0)/W0 * (vj - vi).magnitude();
+  //           deltar(nodeListi, i) -= weight*deltai*rjihat;
+  //           weightsum(nodeListi, i) += weight;
+  //           deltav(nodeListi, i) += weight*(vj - vi).magnitude();
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   // Apply the filtering.
+  //   const FieldList<Dimension, Vector> DxDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
+  //   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //     const unsigned n = position[nodeListi]->numInternalElements();
+  //     for (unsigned i = 0; i != n; ++i) {
+  //       // const Scalar hi = 1.0/(H(nodeListi, i).eigenValues().maxElement());
+  //       // const Scalar mag0 = DvDx(nodeListi, i).eigenValues().maxAbsElement()*hi*dt;
+  //       // const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
+  //       const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
+  //       if (mag0 > 0.0) {
+  //         const Scalar deltamag = deltar(nodeListi, i).magnitude();
+  //         const Scalar effmag = std::abs(mfilter)*deltamag;
+  //         // const Scalar effmag = std::abs(mfilter)*min(mag0, deltamag);
+  //         position(nodeListi, i) += effmag*deltar(nodeListi, i).unitVector();
+  //       }
+  //     }
+  //   }
+
   // Add any filtering component to the node movement.
   // This form looks for points that are too close based on specific volume.
   if (mfilter < 0.0) {
@@ -1102,6 +1179,8 @@ finalize(const typename Dimension::Scalar time,
       for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
            iItr != connectivityMap.end(nodeListi);
            ++iItr) {
+        const Scalar nPerh = position[nodeListi]->nodeList().nodesPerSmoothingScale();
+        CHECK(nPerh > 0.0);
         const int i = *iItr;
         const Vector& ri = position(nodeListi, i);
         const Vector& vi = velocity(nodeListi, i);
@@ -1120,10 +1199,10 @@ finalize(const typename Dimension::Scalar time,
             const Scalar rhoj = massDensity(nodeListj, j);
             const Vector rji = rj - ri;
             const Vector rjihat = rji.unitVector();
-            const Scalar deltai = 2.0*max(0.0, volumeSpacing<Dimension>(mi/rhoi) + volumeSpacing<Dimension>(mj/rhoj) - rji.magnitude());
-            // const Scalar deltai = max(0.0, 2.0*volumeSpacing<Dimension>((mi + mj)/(rhoi + rhoj)) - rji.magnitude());
-            // deltar(nodeListi, i) -= deltai*rjihat;
             const Scalar etai = (Hi*rji).magnitude();
+            const Scalar etatarget = Scalar(max(1, int(etai*nPerh + 0.5)))/nPerh;
+            const Scalar hi = rji.magnitude()/max(1.0e-30, etai);
+            const Scalar deltai = hi*(etatarget - etai);
             const Scalar weight = W.kernelValue(etai, 1.0)/W0 * (vj - vi).magnitude();
             deltar(nodeListi, i) -= weight*deltai*rjihat;
             weightsum(nodeListi, i) += weight;
@@ -1138,11 +1217,9 @@ finalize(const typename Dimension::Scalar time,
     for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
       const unsigned n = position[nodeListi]->numInternalElements();
       for (unsigned i = 0; i != n; ++i) {
-        // const Scalar hi = 1.0/(H(nodeListi, i).eigenValues().maxElement());
-        // const Scalar mag0 = DvDx(nodeListi, i).eigenValues().maxAbsElement()*hi*dt;
-        // const Scalar mag0 = DxDt(nodeListi, i).magnitude() * dt;
-        const Scalar mag0 = deltav(nodeListi, i)*safeInv(weightsum(nodeListi, i))*dt;
+        const Scalar mag0 = deltav(nodeListi, i)/max(1.0e-30, weightsum(nodeListi, i))*dt;
         if (mag0 > 0.0) {
+          deltar(nodeListi, i) /= max(1.0e-30, weightsum(nodeListi, i));
           const Scalar deltamag = deltar(nodeListi, i).magnitude();
           const Scalar effmag = std::abs(mfilter)*deltamag;
           // const Scalar effmag = std::abs(mfilter)*min(mag0, deltamag);

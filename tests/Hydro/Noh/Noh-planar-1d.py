@@ -174,11 +174,11 @@ strength = NullStrength()
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000)
+    Wbase = NBSplineKernel(order)
 else:
-  WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000,)
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000) #, hmult=1.0/Wbase.kernelExtent)
+WTPi = WT
 kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")

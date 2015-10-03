@@ -120,7 +120,7 @@ commandLine(nx1 = 256,
             outputFile = "None",
             comparisonFile = "None",
             graphMixing = False,
-            mixInterval = 0.1,
+            mixInterval = 0.02,
             mixFile = "MixingModeAmp.gnu",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
@@ -380,7 +380,10 @@ if SVPH:
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
+    Wf = NBSplineKernel(9)
+    WTf = TableKernel(Wf, 10000, hmult=WT.kernelExtent/Wf.kernelExtent)
     hydro = HydroConstructor(WT, WTPi, q,
+                             Wfilter = WTf,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
