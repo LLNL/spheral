@@ -66,6 +66,12 @@ public:
     // Physics methods.
     // Increment the derivatives.
     virtual
+    void initialize(const Scalar time,
+                             const Scalar dt,
+                             const DataBaseSpace::DataBase<Dimension>& dataBase,
+                             State<Dimension>& state,
+                             StateDerivatives<Dimension>& derivatives);
+    virtual
     void evaluateDerivatives(const Scalar time,
                              const Scalar dt,
                              const DataBaseSpace::DataBase<Dimension>& dataBase,
