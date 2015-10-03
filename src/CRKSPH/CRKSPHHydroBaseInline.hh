@@ -140,6 +140,16 @@ nTensile(const typename Dimension::Scalar val) {
 }
 
 //------------------------------------------------------------------------------
+// The filtering kernel.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const KernelSpace::TableKernel<Dimension>& 
+CRKSPHHydroBase<Dimension>::filterKernel() const {
+  return mFilterKernel;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
