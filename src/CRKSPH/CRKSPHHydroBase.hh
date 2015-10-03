@@ -203,6 +203,11 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
     
+  const FieldSpace::FieldList<Dimension, Scalar>&    Af() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    Bf() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradAf() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    gradBf() const;
+    
   const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
   //****************************************************************************
@@ -260,6 +265,11 @@ private:
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
+    
+  FieldSpace::FieldList<Dimension, Scalar>    mAf;
+  FieldSpace::FieldList<Dimension, Vector>    mBf;
+  FieldSpace::FieldList<Dimension, Vector>    mGradAf;
+  FieldSpace::FieldList<Dimension, Tensor>    mGradBf;
     
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 
