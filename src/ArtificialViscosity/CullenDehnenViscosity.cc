@@ -272,9 +272,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
 }
 
-//------------------------------------------------------------------------------
-// Determine the principle derivatives.
-//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
@@ -283,6 +280,18 @@ CullenDehnenViscosity<Dimension>::
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
+}
+//------------------------------------------------------------------------------
+// Determine the Cullen Coefficients
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CullenDehnenViscosity<Dimension>::
+initialize(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) {
     // The kernels
     const TableKernel<Dimension>& W = this->kernel();
 
@@ -466,7 +475,8 @@ CullenDehnenViscosity<Dimension>::
         const Scalar invhi = (Hi.Trace()/Dimension::nDim);
         const Tensor hat_Vi = cull_D(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
         const Tensor hat_Ai = cull_Da(nodeListi, i)*(cull_T(nodeListi, i).Inverse());
-        Scalar& div_Vi = prevDivV2(nodeListi, i);
+        //Scalar& div_Vi = prevDivV2(nodeListi, i);
+        Scalar& div_Vi = prevDivV(nodeListi, i);
         div_Vi = hat_Vi.Trace();
         const Scalar DdivViDt = (hat_Ai-hat_Vi*hat_Vi).Trace();
         const Tensor Si = 0.5*(hat_Vi+hat_Vi.Transpose())-div_Vi/Dimension::nDim*Tensor::one;
@@ -476,10 +486,11 @@ CullenDehnenViscosity<Dimension>::
         const Scalar alph_loci = malphMax*Ai*safeInv(Ai+cull_sigv(nodeListi, i)*cull_sigv(nodeListi, i)*invhi*invhi);
         
         const Scalar taui = safeInv(invhi*2.0*mbetaD*cull_sigv(nodeListi, i));
-        const Scalar& old_alpha_i = cullAlpha(nodeListi, i);
+        const Scalar old_alpha_i = cullAlpha(nodeListi, i);
         const Scalar alph_tmpi = (DdivViDt < 0.0 ) ? malphMax*abs(DdivViDt)*safeInv(abs(DdivViDt)+mbetaC*ci*ci*invhi*invhi/mfKern/mfKern): 0.0;
         const Scalar alph_zeroi = (alph_tmpi >= old_alpha_i) ? alph_tmpi : alph_tmpi + (old_alpha_i-alph_tmpi)*exp(-mbetaD*dt*abs(cull_sigv(nodeListi, i))*invhi/2.0/mfKern);
-        Scalar& alpha_i = cullAlpha2(nodeListi, i);
+        //Scalar& alpha_i = cullAlpha2(nodeListi, i);
+        Scalar& alpha_i = cullAlpha(nodeListi, i);
         temp_arr(nodeListi, i)=alph_loci;
         if(old_alpha_i < alph_loci)
           alpha_i = alph_loci;  
@@ -532,8 +543,8 @@ finalize(const typename Dimension::Scalar time,
       }
 */
           prevDvDt(nodeListi, i)= DvDt(nodeListi, i);//Copy over the stored values from the previous timestep
-          prevDivV(nodeListi, i)=prevDivV2(nodeListi, i);
-          cullAlpha(nodeListi, i)=cullAlpha2(nodeListi, i);
+          //prevDivV(nodeListi, i)=prevDivV2(nodeListi, i);
+         // cullAlpha(nodeListi, i)=cullAlpha2(nodeListi, i);
 /*
       if(i== 10 && nodeListi==0){
                 cout << "AFTER2 i=" << i << " prevDivVi=" << prevDivV(nodeListi, i) << " prevDivVi2=" << prevDivV2(nodeListi, i) << endl;
