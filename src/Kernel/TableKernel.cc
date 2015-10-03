@@ -197,12 +197,13 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // Fill in the kernel and gradient values.  Note that we will go ahead and fold
   // the normalization constants in here, so we don't have to multiply by them
   // in the value lookups.
+  const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = mStepSize/hmult;
   for (int i = 0; i < numPoints; ++i) {
     CHECK(i*mStepSize >= 0.0);
-    mKernelValues[i] = kernel(i*deta, 1.0);
-    mGradValues[i] = kernel.grad(i*deta, 1.0);
-    mGrad2Values[i] = kernel.grad2(i*deta, 1.0);
+    mKernelValues[i] = correction*kernel(i*deta, 1.0);
+    mGradValues[i] = correction*kernel.grad(i*deta, 1.0);
+    mGrad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
   }
 
   // Set the delta kernel values for internal use.

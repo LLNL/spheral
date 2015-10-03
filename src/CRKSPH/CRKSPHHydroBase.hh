@@ -55,6 +55,7 @@ public:
                   const KernelSpace::TableKernel<Dimension>& W,
                   const KernelSpace::TableKernel<Dimension>& WPi,
                   ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
+                  const KernelSpace::TableKernel<Dimension>& Wfilter,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -171,6 +172,9 @@ public:
   Scalar nTensile() const;
   void nTensile(const Scalar val);
 
+  // Access the stored filter interpolation kernel.
+  const KernelSpace::TableKernel<Dimension>& filterKernel() const;
+
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -210,6 +214,9 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  // The filtering kernel.
+  const KernelSpace::TableKernel<Dimension>& mFilterKernel;
+
   // The method defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
