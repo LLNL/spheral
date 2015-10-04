@@ -165,7 +165,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mStepSize(0.0),
   mNperhValues(0),
   mWsumValues(0),
-  mMinNperh(0.5),
+  mMinNperh(0.25),
   mMaxNperh(10.0) {
 
   // Pre-conditions.

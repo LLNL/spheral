@@ -201,7 +201,7 @@ else:
   WT = TableKernel(KernelConstructor(), 1000)
   WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 Wfbase = NBSplineKernel(9)
-WTf = TableKernel(Wfbase, 1000, hmult=0.5*WT.kernelExtent/Wfbase.kernelExtent)
+WTf = TableKernel(Wfbase, 1000, hmult=1.0/(nPerh*Wfbase.kernelExtent))
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent

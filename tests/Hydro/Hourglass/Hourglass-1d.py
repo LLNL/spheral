@@ -81,7 +81,7 @@ eos = GammaLawGasMKS(gamma, mu)
 WT = TableKernel(NBSplineKernel(5), 1000)
 WTPi = WT
 Wfbase = NBSplineKernel(7)
-WTf = TableKernel(Wfbase, 1000, hmult=0.5*WT.kernelExtent/Wfbase.kernelExtent)
+WTf = TableKernel(Wfbase, 1000, hmult = 1.0/(nPerh*Wfbase.kernelExtent))
 kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")
