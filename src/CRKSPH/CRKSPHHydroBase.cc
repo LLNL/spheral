@@ -897,63 +897,69 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
                                                     ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
 
-              // Add the filtering correction.
-              Scalar ff = 0.0;
-              if (mfilter > 0.0) {
-                const Scalar hscale = 1.0/(nPerh*W.kernelExtent());
-                const SymTensor Hfi = Hi/hscale;
-                const SymTensor Hfj = Hj/hscale;
-                const Scalar Hdeti = Hfi.Determinant();
-                const Scalar Hdetj = Hfj.Determinant();
-                
-                const Vector etai = Hfi*rij;
-                const Vector etaj = Hfj*rij;
-                const Scalar etaMagi = etai.magnitude();
-                const Scalar etaMagj = etaj.magnitude();
-                const Vector Hetai = Hfi*etai.unitVector();
-                const Vector Hetaj = Hfj*etaj.unitVector();
-
-                const Vector gradWQi = W.gradValue(etaMagi, Hdeti) * Hetai;
-                const Vector gradWQj = W.gradValue(etaMagj, Hdetj) * Hetaj;
-
-                const Scalar mui = abs(vij.dot(etai)/(etai.magnitude2() + tiny));
-                const Scalar muj = abs(vij.dot(etaj)/(etaj.magnitude2() + tiny));
-
-                const Scalar Cl = 0.0, Cq = 1.0;
-                const Scalar ei = Cl*ci*mui + Cq*mui*mui;
-                const Scalar ej = Cl*cj*muj + Cq*muj*muj;
-
-                const Vector Qacci = 0.5*ei/rhoi*gradWQi;
-                const Vector Qaccj = 0.5*ej/rhoj*gradWQj;
-                const Scalar workQi = vij.dot(Qacci);
-                const Scalar workQj = vij.dot(Qaccj);
-                // if (i == 0) cerr << "  " << j << " " << rj << " " << -(Qacci + Qaccj).x() << endl;
-
-                // Filter contribution to the force.
-                forceij -= mfilter*mi*mj*(Qacci + Qaccj);
-
-                // Add the filter heating component.
-                DepsDti += mfilter*mj*workQi;
-                DepsDtj += mfilter*mi*workQj;
-              }
-
               // // Add the filtering correction.
               // Scalar ff = 0.0;
               // if (mfilter > 0.0) {
-              //   Scalar gWfi, gWfj, Wfi, Wfj;
-              //   Vector gradWfi, gradWfj;
-              //   CRKSPHKernelAndGradient(Wf,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Afi, Bfi, gradAfi, gradBfi, Wfj, gWfj, gradWfj);
-              //   CRKSPHKernelAndGradient(Wf, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Afj, Bfj, gradAfj, gradBfj, Wfi, gWfi, gradWfi);
-              //   const Vector deltagradf = gradWfj - gradWfi;
-              //   ff = mfilter*W(min(etai, etaj), 1.0);
+              //   const Scalar hscale = 1.0/(nPerh*W.kernelExtent());
+              //   const SymTensor Hfi = Hi/hscale;
+              //   const SymTensor Hfj = Hj/hscale;
+              //   const Scalar Hdeti = Hfi.Determinant();
+              //   const Scalar Hdetj = Hfj.Determinant();
+                
+              //   const Vector etai = Hfi*rij;
+              //   const Vector etaj = Hfj*rij;
+              //   const Scalar etaMagi = etai.magnitude();
+              //   const Scalar etaMagj = etaj.magnitude();
+              //   const Vector Hetai = Hfi*etai.unitVector();
+              //   const Vector Hetaj = Hfj*etaj.unitVector();
+
+              //   const Vector gradWQi = W.gradValue(etaMagi, Hdeti) * Hetai;
+              //   const Vector gradWQj = W.gradValue(etaMagj, Hdetj) * Hetaj;
+
+              //   // const Scalar mui = abs(vi.dot(etai))/(etai.magnitude2() + tiny);
+              //   // const Scalar muj = abs(vj.dot(etaj))/(etaj.magnitude2() + tiny);
+              //   const Scalar mui = abs(vij.dot(etai)/(etai.magnitude2() + tiny));
+              //   const Scalar muj = abs(vij.dot(etaj)/(etaj.magnitude2() + tiny));
+
+              //   const Scalar Cl = 0.0, Cq = 1.0;
+              //   const Scalar ei = Cl*ci*mui + Cq*mui*mui;
+              //   const Scalar ej = Cl*cj*muj + Cq*muj*muj;
+
+              //   const Vector Qacci = 0.5*ei/rhoi*gradWQi;
+              //   const Vector Qaccj = 0.5*ej/rhoj*gradWQj;
+              //   const Scalar workQi = vij.dot(Qacci);
+              //   const Scalar workQj = vij.dot(Qaccj);
+              //   if (i == 0) cerr << "  " << j << " " << rj << " " << -(Qacci + Qaccj).x() << " " 
+              //                    << rhoi*ei << " " << rhoj*ej << " " << Pi << " " << Pj << endl;
+              //   // if (i == 0) cerr << "  " << j << " " << rj << " " << -(Qacci + Qaccj).x() << endl;
 
               //   // Filter contribution to the force.
-              //   forceij = (1.0 - ff)*forceij + ff*0.5*weighti*weightj*(Pi + Pj)*deltagradf;
+              //   forceij += mfilter*mi*mj*(Qacci + Qaccj);
 
               //   // Add the filter heating component.
-              //   DepsDti += ff*0.5*weighti*weightj*(Pj*vij.dot(deltagradf))/mi;
-              //   DepsDtj += ff*0.5*weighti*weightj*(Pi*vij.dot(deltagradf))/mj;
+              //   DepsDti += mfilter*mj*workQi;
+              //   DepsDtj += mfilter*mi*workQj;
               // }
+
+              // Add the filtering correction.
+              if (mfilter > 0.0) {
+                Scalar gWfi, gWfj, Wfi, Wfj;
+                Vector gradWfi, gradWfj;
+                CRKSPHKernelAndGradient(Wf,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Afi, Bfi, gradAfi, gradBfi, Wfj, gWfj, gradWfj);
+                CRKSPHKernelAndGradient(Wf, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Afj, Bfj, gradAfj, gradBfj, Wfi, gWfi, gradWfi);
+                const Vector deltagradf = gradWfj - gradWfi;
+
+                // Filter contribution to the force.
+                Vector forceij_f = 0.5*weighti*weightj*(Pi + Pj)*deltagradf;
+                const Scalar mag0 = forceij.magnitude();
+                const Scalar mag1 = forceij_f.magnitude();
+                const Scalar mult = min(mfilter*mag0, mag1)*safeInv(mag1);
+                forceij += mult*forceij_f;
+
+                // Add the filter heating component.
+                DepsDti += mult*0.5*weighti*weightj*(Pj*vij.dot(deltagradf))/mi;
+                DepsDtj += mult*0.5*weighti*weightj*(Pi*vij.dot(deltagradf))/mj;
+              }
 
               // const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pi + rhoi*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
               // const Scalar Pfj = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pj + rhoj*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
@@ -974,8 +980,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += (1.0 - ff)*0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;
-              DepsDtj += (1.0 - ff)*0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
+              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;
+              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {

@@ -20,7 +20,9 @@ commandLine(nx1 = 100,
             wavelength = 0.05,
             amplitude = 0.25,
 
-            a0 = Vector(1.0),
+            # Initial bulk velocity
+            a0 = 0.5,
+            v0 = 0.0,
 
             SVPH = False,
             CRKSPH = False,
@@ -109,11 +111,16 @@ output("nodes1.numNodes")
 # Set node specific thermal energies
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 
-# Displace the nodes in a pattern that looks like the tensile instability clumping.
 dx = (x1 - x0)/nx1
+pos = nodes1.positions()
+vel = nodes1.velocity()
 for i in xrange(nodes1.numInternalNodes):
+
+    # Displace the nodes in a pattern that looks like the tensile instability clumping.
     delta = amplitude*((-1.0)**(i % 2))*dx # amplitude*sin(2.0*pi*nodes1.positions()[i].x/wavelength)
-    nodes1.positions()[i].x += delta
+    pos[i].x += delta
+
+    vel[i].x = v0 + a0*sin(2.0*pi*pos[i].x)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -186,15 +193,6 @@ output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 packages = [hydro]
-
-# #-------------------------------------------------------------------------------
-# # Construct a constant acceleration package.
-# #-------------------------------------------------------------------------------
-# indices = vector_of_int()
-# for i in xrange(nodes1.numInternalNodes):
-#     indices.append(i)
-# accel = ConstantAcceleration(a0, nodes1, indices)
-# packages.append(accel)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
