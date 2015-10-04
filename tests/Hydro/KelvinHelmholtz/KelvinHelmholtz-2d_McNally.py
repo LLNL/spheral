@@ -200,8 +200,8 @@ if KernelConstructor==NBSplineKernel:
 else:
   WT = TableKernel(KernelConstructor(), 1000)
   WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
-#WT = TableKernel(KernelConstructor(), 1000)
-#WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+Wfbase = NBSplineKernel(9)
+WTf = TableKernel(Wfbase, 1000, hmult=0.5*WT.kernelExtent/Wfbase.kernelExtent)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -381,7 +381,6 @@ if SVPH:
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
     Wf = NBSplineKernel(9)
-    WTf = TableKernel(Wf, 10000, hmult=WT.kernelExtent/Wf.kernelExtent)
     hydro = HydroConstructor(WT, WTPi, q,
                              Wfilter = WTf,
                              filter = filter,
