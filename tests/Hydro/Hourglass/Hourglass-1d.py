@@ -267,3 +267,4 @@ aplot = plotFieldList(a,
                       plotStyle = "linespoints",
                       winTitle = "Acceleration")
 
+drplot = plotNodeSpacing1d(db)
