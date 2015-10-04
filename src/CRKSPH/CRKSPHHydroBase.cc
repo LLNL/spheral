@@ -572,6 +572,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const TableKernel<Dimension>& WQ = this->PiKernel();
   const TableKernel<Dimension>& Wf = this->filterKernel();
   const Scalar W0 = W.kernelValue(0.0, 1.0);
+  const Scalar Wf0 = Wf.kernelValue(0.0, 1.0);
 
   // const NBSplineKernel<Dimension> WfilterBase(9);
   // const TableKernel<Dimension> Wfilter(WfilterBase, 1000, W.kernelExtent()/WfilterBase.kernelExtent());
@@ -897,21 +898,25 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                     ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
 
               // Add the filtering correction.
+              Scalar ff = 0.0;
               if (mfilter > 0.0) {
                 Scalar gWfi, gWfj, Wfi, Wfj;
                 Vector gradWfi, gradWfj;
                 CRKSPHKernelAndGradient(Wf,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Afi, Bfi, gradAfi, gradBfi, Wfj, gWfj, gradWfj);
                 CRKSPHKernelAndGradient(Wf, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Afj, Bfj, gradAfj, gradBfj, Wfi, gWfi, gradWfi);
                 const Vector deltagradf = gradWfj - gradWfi;
-                const Scalar Pfi = mfilter*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*Pi;
-                const Scalar Pfj = mfilter*max(0.0, W(etaMagj, 1.0)/WnPerh - 1.0)*Pj;
+                // const Scalar Pfi = mfilter*Pi;
+                // const Scalar Pfj = mfilter*Pj;
+                // const Scalar Pfi = mfilter*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*Pi;
+                // const Scalar Pfj = mfilter*max(0.0, W(etaMagj, 1.0)/WnPerh - 1.0)*Pj;
+                ff = mfilter*W(min(etai, etaj), 1.0);
 
                 // Filter contribution to the force.
-                forceij += 0.5*weighti*weightj*(Pfi + Pfj)*deltagradf;
+                forceij = (1.0 - ff)*forceij + ff*0.5*weighti*weightj*(Pi + Pj)*deltagradf;
 
                 // Add the filter heating component.
-                DepsDti += 0.5*weighti*weightj*(Pfj*vij.dot(deltagradf))/mi;
-                DepsDtj += 0.5*weighti*weightj*(Pfi*vij.dot(deltagradf))/mj;
+                DepsDti += ff*0.5*weighti*weightj*(Pj*vij.dot(deltagradf))/mi;
+                DepsDtj += ff*0.5*weighti*weightj*(Pi*vij.dot(deltagradf))/mj;
               }
 
               // const Scalar Pfi = max(0.0, mfilter)*max(0.0, W(etaMagi, 1.0)/WnPerh - 1.0)*(Pi + rhoi*FastMath::square(min(0.0, vij.dot(rij.unitVector()))));
@@ -933,8 +938,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
 
               // Specific thermal energy evolution.
-              DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;
-              DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
+              DepsDti += (1.0 - ff)*0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;
+              DepsDtj += (1.0 - ff)*0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
