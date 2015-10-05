@@ -11,7 +11,7 @@ commandLine(nPerh   = 2.01,
             hmax    = 1e6,
             rmin    = 0.0,
             rmax    = 2.0,
-            scaler  = 0.4,
+            scaler  = 0.6,
             nr      = 10,
             seed    = "ico")
 
