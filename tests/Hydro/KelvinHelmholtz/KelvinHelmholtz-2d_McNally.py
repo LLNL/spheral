@@ -195,13 +195,13 @@ eos = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
+    Wbase = NBSplineKernel(order)
 else:
-  WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
+WTPi = WT
 Wfbase = NBSplineKernel(9)
-WTf = TableKernel(Wfbase, 1000, hmult=1.0/(nPerh*Wfbase.kernelExtent))
+WTf = TableKernel(Wfbase, 1000, hmult=0.5*WT.kernelExtent/Wfbase.kernelExtent)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
