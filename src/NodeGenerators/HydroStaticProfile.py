@@ -85,24 +85,54 @@ class LaneEmdenSolver():
         self.soln.sort()
 
     def __call__(self,r):
+        return self.density(r)
+
+    def density(self,r):
         rho = self.rho0
-        e   = self.e0
         for i in xrange(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
                     f0  = self.soln[i-1][1]
+                    r1  = self.soln[i][0]
+                    r0  = self.soln[i-1][0]
+                    rho = (f1-f0)*(r-r1)/(r1-r0)+f1
+                else:
+                    rho = self.soln[0][1]
+                break
+        return rho
+                
+                
+                
+    def energy(self,r):
+        e   = self.e0
+        for i in xrange(len(self.soln)):
+            if(self.soln[i][0] > r):
+                if(i>0):
                     e1  = self.soln[i][2]
                     e0  = self.soln[i-1][2]
                     r1  = self.soln[i][0]
                     r0  = self.soln[i-1][0]
-                    rho = (f1-f0)*(r-r1)/(r1-r0)+f1
                     e   = (e1-e0)*(r-r1)/(r1-r0)+e1
                 else:
-                    rho = self.soln[0][1]
                     e   = self.soln[0][2]
                 break
-        return rho,e
+        return e
+
+
+class WeppnerSolver():
+    def __init__(self,
+                 rhoc,
+                 rMax,
+                 Tc,
+                 gamma,
+                 kappa,
+                 eostup,
+                 units,
+                 nbins=1000):
+                 
+    def __call__(self,r):
+
 
 class HydroStaticProfileConstantTemp3d():
     def __init__(self,
