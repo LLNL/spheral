@@ -55,7 +55,6 @@ public:
                   const KernelSpace::TableKernel<Dimension>& W,
                   const KernelSpace::TableKernel<Dimension>& WPi,
                   ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                  const KernelSpace::TableKernel<Dimension>& Wfilter,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -172,9 +171,6 @@ public:
   Scalar nTensile() const;
   void nTensile(const Scalar val);
 
-  // Access the stored filter interpolation kernel.
-  const KernelSpace::TableKernel<Dimension>& filterKernel() const;
-
   // The state field lists we're maintaining.
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
@@ -203,11 +199,6 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
     
-  const FieldSpace::FieldList<Dimension, Scalar>&    Af() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    Bf() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    gradAf() const;
-  const FieldSpace::FieldList<Dimension, Tensor>&    gradBf() const;
-    
   const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
   //****************************************************************************
@@ -219,9 +210,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // The filtering kernel.
-  const KernelSpace::TableKernel<Dimension>& mFilterKernel;
-
   // The method defining how we evolve smoothing scales.
   const NodeSpace::SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
@@ -265,11 +253,6 @@ private:
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
-    
-  FieldSpace::FieldList<Dimension, Scalar>    mAf;
-  FieldSpace::FieldList<Dimension, Vector>    mBf;
-  FieldSpace::FieldList<Dimension, Vector>    mGradAf;
-  FieldSpace::FieldList<Dimension, Tensor>    mGradBf;
     
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 

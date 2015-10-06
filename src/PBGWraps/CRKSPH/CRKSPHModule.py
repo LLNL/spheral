@@ -148,18 +148,13 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         self.space.add_function("computeCRKSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
-                                 constrefparam(tablekernel, "Wf"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(vectorfieldlist, "gradA"),
-                                 refparam(tensorfieldlist, "gradB"),
-                                 refparam(scalarfieldlist, "Af"),
-                                 refparam(vectorfieldlist, "Bf"),
-                                 refparam(vectorfieldlist, "gradAf"),
-                                 refparam(tensorfieldlist, "gradBf")],
+                                 refparam(tensorfieldlist, "gradB")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHCorrections%id" % ndim)
         self.space.add_function("computeCRKSPHCorrections", None,
@@ -334,7 +329,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
                            refparam(artificialviscosity, "Q"),
-                           constrefparam(tablekernel, "Wfilter"),
                            param("double", "filter", default_value="0.1"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
@@ -399,7 +393,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         x.add_instance_attribute("XSPH", "bool", getter="XSPH", setter="XSPH")
         x.add_instance_attribute("filter", "double", getter="filter", setter="filter")
 
-        const_ref_return_value(x, me, "%s::filterKernel" % me, tablekernel, [], "filterKernel")
         const_ref_return_value(x, me, "%s::smoothingScaleMethod" % me, smoothingscalebase, [], "smoothingScaleMethod")
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
@@ -480,7 +473,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
                            refparam(artificialviscosity, "Q"),
-                           constrefparam(tablekernel, "Wfilter"),
                            param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.25"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),

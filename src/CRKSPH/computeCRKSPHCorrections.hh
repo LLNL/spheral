@@ -26,18 +26,13 @@ namespace Spheral {
     void
     computeCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
                              const KernelSpace::TableKernel<Dimension>& W,
-                             const KernelSpace::TableKernel<Dimension>& Wf,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
-                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
-                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& Af,
-                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& Bf,
-                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradAf,
-                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradBf);
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB);
 
     // Version allowing arbitrary function for pair-wise node coupling.
     template<typename Dimension>

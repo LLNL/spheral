@@ -200,8 +200,6 @@ else:
     Wbase = KernelConstructor()
 WT = TableKernel(Wbase, 1000)
 WTPi = WT
-Wfbase = NBSplineKernel(9)
-WTf = TableKernel(Wfbase, 1000, hmult=0.5*WT.kernelExtent/Wfbase.kernelExtent)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -382,7 +380,6 @@ if SVPH:
 elif CRKSPH:
     Wf = NBSplineKernel(9)
     hydro = HydroConstructor(WT, WTPi, q,
-                             Wfilter = WTf,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
