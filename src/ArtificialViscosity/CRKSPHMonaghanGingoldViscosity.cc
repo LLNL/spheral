@@ -251,7 +251,8 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   const Scalar phii = limiterVL(ri);
   const Scalar phij = limiterVL(rj);
-  const Scalar fphi = max(0.0, 1.0 - min(phii, phij));
+  const Scalar fphii = max(0.0, 1.0 - phii);
+  const Scalar fphij = max(0.0, 1.0 - phij);
 
   // // "Mike" method.
   // const Vector vi1 = vi - phii*DvDxi*xij;
@@ -270,10 +271,10 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  const Scalar ei = fphi*fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                                 Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
-  const Scalar ej = fphi*fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
-                                 Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+  const Scalar ei = fphii*fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
+                                  Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  const Scalar ej = fphij*fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
+                                  Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (linearInExp or quadInExp), ej << " " << csj << " " << muj);
 
