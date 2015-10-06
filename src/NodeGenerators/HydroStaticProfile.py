@@ -130,9 +130,9 @@ class WeppnerSolver():
                  eostup,
                  units,
                  nbins=1000):
-                 
+        nothing = 0
     def __call__(self,r):
-
+        return 0
 
 class HydroStaticProfileConstantTemp3d():
     def __init__(self,
