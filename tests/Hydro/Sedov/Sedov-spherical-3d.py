@@ -20,6 +20,8 @@ commandLine(seed = "lattice",
             ny = 50,
             nz = 50,
             nPerh = 1.51,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -153,8 +155,12 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
 output("WT")
 output("WTPi")
 
