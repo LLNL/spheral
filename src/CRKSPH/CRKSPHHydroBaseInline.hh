@@ -140,16 +140,6 @@ nTensile(const typename Dimension::Scalar val) {
 }
 
 //------------------------------------------------------------------------------
-// The filtering kernel.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const KernelSpace::TableKernel<Dimension>& 
-CRKSPHHydroBase<Dimension>::filterKernel() const {
-  return mFilterKernel;
-}
-
-//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -350,38 +340,6 @@ const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
 CRKSPHHydroBase<Dimension>::
 gradB() const {
   return mGradB;
-}
-  
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-Af() const {
-  return mAf;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-Bf() const {
-  return mBf;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-gradAf() const {
-  return mGradAf;
-}
-
-template<typename Dimension>
-inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
-CRKSPHHydroBase<Dimension>::
-gradBf() const {
-  return mGradBf;
 }
   
 template<typename Dimension>

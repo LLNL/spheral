@@ -497,8 +497,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const FieldList<Dimension, Scalar> PSPHpbar = state.fields(HydroFieldNames::PSPHpbar, 0.0);
   const FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::reducingViscosityMultiplierQ, 0.0);
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierL = state.fields(HydroFieldNames::reducingViscosityMultiplierL, 0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -511,8 +509,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(omega.size() == numNodeLists);
   CHECK(PSPHpbar.size() == numNodeLists);
   CHECK(PSPHcorrection.size() == numNodeLists);
-  CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
-  CHECK(reducingViscosityMultiplierL.size() == numNodeLists);
 
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -850,14 +846,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK2(not mCompatibleEnergyEvolution or 
-             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
-             (pairAccelerationsi.size() == numNeighborsi),
-             "Bad sizing for pair accelerations!  "
-             << i << " "
-             << firstGhostNodei << " "
-             << pairAccelerationsi.size() << " "
-             << numNeighborsi);
+      CHECK(not mCompatibleEnergyEvolution or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
+            (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.
       const Scalar deltaTimePair = Timing::difference(start, Timing::currentTime())/(ncalc + 1.0e-30);

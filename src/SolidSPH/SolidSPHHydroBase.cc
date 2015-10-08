@@ -683,8 +683,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not compatibleEnergy or 
-            //            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
+      CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
+            (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 
       // Get the time for pairwise interactions.

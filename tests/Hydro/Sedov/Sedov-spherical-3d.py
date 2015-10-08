@@ -20,6 +20,8 @@ commandLine(seed = "lattice",
             ny = 50,
             nz = 50,
             nPerh = 1.51,
+            KernelConstructor = BSplineKernel,
+            order = 5,
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -153,8 +155,12 @@ eos = GammaLawGasMKS(gamma, mu)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
 output("WT")
 output("WTPi")
 
@@ -391,12 +397,12 @@ if mpi.rank == 0:
 if outputFile != "None" and mpi.rank == 0:
     outputFile = os.path.join(dataDir, outputFile)
     f = open(outputFile, "w")
-    f.write(("# " + 15*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "m", "P", "v", "eps", "A",
+    f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "z", "rho", "m", "P", "v", "eps", "A",
                                           "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
     for (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai, 
          rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, zprof, rho, mass, P, v, eps, A,
                                                                rhoans, Pans, vans, epsans, Aans, hans):
-         f.write((15*"%16.12e " + "\n") % (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai,
+         f.write((16*"%16.12e " + "\n") % (ri, xi, yi, zi, rhoi, mi, Pi, vi, epsi, Ai,
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
 
