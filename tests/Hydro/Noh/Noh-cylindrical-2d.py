@@ -150,7 +150,6 @@ dataDir = os.path.join(dataDir,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "boolReduceViscosity=%s" % boolReduceViscosity,
-                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")

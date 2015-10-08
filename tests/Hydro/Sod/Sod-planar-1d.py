@@ -119,7 +119,8 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
-                       "%i" % (nx1 + nx2))
+                       "%i" % (nx1 + nx2),
+                       "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
