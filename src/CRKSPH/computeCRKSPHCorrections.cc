@@ -35,18 +35,13 @@ template<typename Dimension>
 void
 computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const TableKernel<Dimension>& W,
-                         const TableKernel<Dimension>& Wf,
                          const FieldList<Dimension, typename Dimension::Scalar>& weight,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
-                         FieldList<Dimension, typename Dimension::Tensor>& gradB,
-                         FieldList<Dimension, typename Dimension::Scalar>& Af,
-                         FieldList<Dimension, typename Dimension::Vector>& Bf,
-                         FieldList<Dimension, typename Dimension::Vector>& gradAf,
-                         FieldList<Dimension, typename Dimension::Tensor>& gradBf) {
+                         FieldList<Dimension, typename Dimension::Tensor>& gradB) {
 
   // Pre-conditions.
   const size_t numNodeLists = A.size();
@@ -56,10 +51,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(B.size() == numNodeLists);
   REQUIRE(gradA.size() == numNodeLists);
   REQUIRE(gradB.size() == numNodeLists);
-  REQUIRE(Af.size() == numNodeLists);
-  REQUIRE(Bf.size() == numNodeLists);
-  REQUIRE(gradAf.size() == numNodeLists);
-  REQUIRE(gradBf.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -75,12 +66,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   FieldList<Dimension, Vector> gradm0(FieldSpace::Copy);
   FieldList<Dimension, Tensor> gradm1(FieldSpace::Copy);
   FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::Copy);
-  FieldList<Dimension, Scalar> mf0(FieldSpace::Copy);
-  FieldList<Dimension, Vector> mf1(FieldSpace::Copy);
-  FieldList<Dimension, SymTensor> mf2(FieldSpace::Copy);
-  FieldList<Dimension, Vector> gradmf0(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> gradmf1(FieldSpace::Copy);
-  FieldList<Dimension, ThirdRankTensor> gradmf2(FieldSpace::Copy);
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = A[nodeListi]->nodeList();
     m0.appendNewField("zeroth moment", nodeList, 0.0);
@@ -89,12 +74,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
     gradm0.appendNewField("grad zeroth moment", nodeList, Vector::zero);
     gradm1.appendNewField("grad first moment", nodeList, Tensor::zero);
     gradm2.appendNewField("grad second moment", nodeList, ThirdRankTensor::zero);
-    mf0.appendNewField("filter zeroth moment", nodeList, 0.0);
-    mf1.appendNewField("filter first moment", nodeList, Vector::zero);
-    mf2.appendNewField("filter second moment", nodeList, SymTensor::zero);
-    gradmf0.appendNewField("filter grad zeroth moment", nodeList, Vector::zero);
-    gradmf1.appendNewField("filter grad first moment", nodeList, Tensor::zero);
-    gradmf2.appendNewField("filter grad second moment", nodeList, ThirdRankTensor::zero);
   }
 
   // Walk the FluidNodeLists.
@@ -115,11 +94,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Self contribution.
       const Scalar wwi =  weight(nodeListi, i)*W(0.0, Hdeti);
-      const Scalar wwfi = weight(nodeListi, i)*Wf(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
-      mf0(nodeListi, i) += wwfi;
-      gradmf1(nodeListi, i) += Tensor::one*wwfi;
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -160,13 +136,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Wj = WWj.first;
             const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
 
-            const std::pair<double, double> WWfi = Wf.kernelAndGradValue(etai.magnitude(), Hdeti);
-            const Scalar Wfi = WWfi.first;
-            const Vector gradWfi = -(Hi*etai.unitVector())*WWfi.second;
-            const std::pair<double, double> WWfj = Wf.kernelAndGradValue(etaj.magnitude(), Hdetj);
-            const Scalar Wfj = WWfj.first;
-            const Vector gradWfj = (Hj*etaj.unitVector())*WWfj.second;
-
             // Zeroth moment. 
             const Scalar wwi = wi*Wi;
             const Scalar wwj = wj*Wj;
@@ -175,23 +144,11 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             gradm0(nodeListi, i) += wj*gradWj;
             gradm0(nodeListj, j) += wi*gradWi;
 
-            const Scalar wwfi = wi*Wfi;
-            const Scalar wwfj = wj*Wfj;
-            mf0(nodeListi, i) += wwfj;
-            mf0(nodeListj, j) += wwfi;
-            gradmf0(nodeListi, i) += wj*gradWfj;
-            gradmf0(nodeListj, j) += wi*gradWfi;
-
             // First moment. 
             m1(nodeListi, i) += wwj * rij;
             m1(nodeListj, j) -= wwi * rij;
             gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
             gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
-
-            mf1(nodeListi, i) += wwfj * rij;
-            mf1(nodeListj, j) -= wwfi * rij;
-            gradmf1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWfj) + Tensor::one*Wfj);
-            gradmf1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWfi) + Tensor::one*Wfi);
 
             // Second moment.
             const SymTensor thpt = rij.selfdyad();
@@ -200,12 +157,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
             gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
 
-            mf2(nodeListi, i) += wwfj*thpt;
-            mf2(nodeListj, j) += wwfi*thpt;
-            gradmf2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWfj);
-            gradmf2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWfi);
-
-              
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
@@ -213,12 +164,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
                 gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
                 gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
-
-                gradmf2(nodeListi, i)(ii, jj, jj) += wwfj*rij(ii);
-                gradmf2(nodeListi, i)(jj, ii, jj) += wwfj*rij(ii);
-
-                gradmf2(nodeListj, j)(ii, jj, jj) -= wwfi*rij(ii);
-                gradmf2(nodeListj, j)(jj, ii, jj) -= wwfi*rij(ii);
               }
             }
           }
@@ -250,31 +195,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             }
           }
         }
-
-        const SymTensor mf2inv = abs(mf2(nodeListi, i).Determinant()) > 1.0e-10 ? mf2(nodeListi, i).Inverse() : SymTensor::zero;
-        const Vector mf2invmf1 = mf2inv*mf1(nodeListi, i);
-        const Scalar Afinv = mf0(nodeListi, i) - mf2invmf1.dot(mf1(nodeListi, i));
-        CHECK(Afinv != 0.0);
-        Af(nodeListi, i) = 1.0/Afinv;
-        Bf(nodeListi, i) = -mf2invmf1;
-        gradAf(nodeListi, i) = -Af(nodeListi, i)*Af(nodeListi, i)*gradmf0(nodeListi, i);
-        gradBf(nodeListi, i) = Tensor::zero;
-        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-          for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-            for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-              gradAf(nodeListi, i)(ii) += Af(nodeListi, i)*Af(nodeListi, i)*mf2inv(jj,kk)*mf1(nodeListi, i)(kk)*gradmf1(nodeListi, i)(jj,ii);
-              gradAf(nodeListi, i)(ii) += Af(nodeListi, i)*Af(nodeListi, i)*mf2inv(jj,kk)*gradmf1(nodeListi, i)(kk,ii)*mf1(nodeListi, i)(jj);
-              gradBf(nodeListi, i)(ii,jj) -= mf2inv(ii,kk)*gradmf1(nodeListi, i)(kk,jj);
-              for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
-                for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                  gradAf(nodeListi, i)(ii) -= Af(nodeListi, i)*Af(nodeListi, i)*mf2inv(jj,kk)*gradmf2(nodeListi, i)(kk,ll,ii)*mf2inv(ll,mm)*mf1(nodeListi, i)(mm)*mf1(nodeListi, i)(jj);
-                  gradBf(nodeListi, i)(ii,jj) += mf2inv(ii,kk)*gradmf2(nodeListi, i)(kk,ll,jj)*mf2inv(ll,mm)*mf1(nodeListi, i)(mm);
-                }
-              }
-            }
-          }
-        }
-
       }
     }
   }

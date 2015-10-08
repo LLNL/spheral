@@ -51,8 +51,8 @@ source("../src/Utilities/tests/testSimpsonsIntegration.py")
 
 # Mesh tests.
 source("../src/Mesh/tests/testLineMesh.py")
-source("../src/Mesh/tests/testPolygonalMesh.py")
-source("../src/Mesh/tests/testPolyhedralMesh.py")
+# source("../src/Mesh/tests/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
+# source("../src/Mesh/tests/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
 
 # Hydro tests
 source("Hydro/HydroTests.ats")
