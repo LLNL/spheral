@@ -8,7 +8,7 @@ filter = 0.0
 KernelConstructor = "NBSplineKernel"
 order = 5
 linearInExpansion = False
-for crk, label in (#(False, "SPH"),
+for crk, label in ((False, "SPH"),
                    (True, "CRK"),):
     test(script = "Hydro/Sod/Sod-planar-1d.py",
          clas = "--CRKSPH %s --KernelConstructor %s --order %i --cfl %g --nPerh %g --Cl %g --Cq %g --linearInExpansion %s --filter %g --graphics True --clearDirectories True --outputFile Sod-planar.ascii" % (crk, KernelConstructor, order, cfl, nPerh, Cl, Cq, linearInExpansion, filter), 
