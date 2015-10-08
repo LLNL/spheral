@@ -114,7 +114,6 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const TableKernel<Dimension>& W,
                      const TableKernel<Dimension>& WPi,
                      ArtificialViscosity<Dimension>& Q,
-                     const TableKernel<Dimension>& Wfilter,
                      const double filter,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
@@ -128,7 +127,6 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              W,
                              WPi,
                              Q,
-                             Wfilter,
                              filter,
                              cfl,
                              useVelocityMagnitudeForDt,
@@ -797,7 +795,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
       }
       const size_t numNeighborsi = connectivityMap.numNeighborsForNode(&nodeList, i);
-      CHECK(not compatibleEnergy or 
+      CHECK(not this->compatibleEnergyEvolution() or NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent() or
             (i >= firstGhostNodei and pairAccelerationsi.size() == 0) or
             (pairAccelerationsi.size() == numNeighborsi));
 

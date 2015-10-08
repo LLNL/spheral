@@ -47,6 +47,7 @@ commandLine(nx1 = 400,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearInExpansion = False,
+            quadraticInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-4,
             hmin = 1e-10,
@@ -145,7 +146,7 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000, hmult=0.5)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
   WTPi = TableKernel(KernelConstructor(), 1000,)
@@ -223,7 +224,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
+q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
 q.limiter = Qlimiter
 q.epsilon2 = epsilon2
 output("q")

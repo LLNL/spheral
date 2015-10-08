@@ -54,6 +54,8 @@ commandLine(
     ny3 = 30,
 
     nPerh = 1.51,
+    KernelConstructor = BSplineKernel,
+    order = 5,
 
     SVPH = False,
     CRKSPH = False,
@@ -185,8 +187,12 @@ eos3 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
