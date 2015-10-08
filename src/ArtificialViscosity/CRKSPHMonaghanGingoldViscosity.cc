@@ -74,7 +74,7 @@ double limiterMM(const double x) {
 
 double limiterSB(const double x) {
   if (x > 0.0) {
-    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));     // superbee
+    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));    // superbee
   } else {
     return 0.0;
   }
@@ -240,6 +240,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  CHECK(min(ri, rj) <= 1.0);
+  const Scalar phi = limiterMM(min(ri, rj));
 
   // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
   // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
@@ -249,32 +251,32 @@ Piij(const unsigned nodeListi, const unsigned i,
   // // const Scalar divj = abs(DvDxj.Trace());
   // // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  const Scalar phii = limiterVL(ri);
-  const Scalar phij = limiterVL(rj);
-  const Scalar fphii = max(0.0, 1.0 - phii);
-  const Scalar fphij = max(0.0, 1.0 - phij);
+  // const Scalar phii = limiterVL(max(0.0, min(ri, 2.0 - ri)));
+  // const Scalar phij = limiterVL(max(0.0, min(rj, 2.0 - rj)));
+  // const Scalar fphii = max(0.0, 1.0 - phii);
+  // const Scalar fphij = max(0.0, 1.0 - phij);
 
-  // // "Mike" method.
-  // const Vector vi1 = vi - phii*DvDxi*xij;
-  // const Vector vj1 = vj + phij*DvDxj*xij;
-  // // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
-  // // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
-  // //const Vector vi1 = vi - DvDxi*xij;
-  // //const Vector vj1 = vj + DvDxj*xij;
-  // //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
-  // //const Vector vj1 = vj + (DvDxj-(1.0-phij)*(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
+  // "Mike" method.
+  const Vector vi1 = vi - phi*DvDxi*xij;
+  const Vector vj1 = vj + phi*DvDxj*xij;
+  // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
+  // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
+  //const Vector vi1 = vi - DvDxi*xij;
+  //const Vector vj1 = vj + DvDxj*xij;
+  //const Vector vi1 = vi - (DvDxi-(1.0-phii)*(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace())*xij;
+  //const Vector vj1 = vj + (DvDxj-(1.0-phij)*(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace())*xij;
   
-  // vij = vi1 - vj1;
+  vij = vi1 - vj1;
   
   // Compute mu.
   const Scalar mui = vij.dot(etai)/(etai.magnitude2() + eps2);
   const Scalar muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
 
   // The artificial internal energy.
-  const Scalar ei = fphii*fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                                  Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
-  const Scalar ej = fphij*fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
-                                  Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
+  const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
+                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
+  const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
+                             Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
   CHECK2(ej >= 0.0 or (linearInExp or quadInExp), ej << " " << csj << " " << muj);
 
