@@ -55,7 +55,6 @@ public:
                        const KernelSpace::TableKernel<Dimension>& W,
                        const KernelSpace::TableKernel<Dimension>& WPi,
                        ArtificialViscositySpace::ArtificialViscosity<Dimension>& Q,
-                       const KernelSpace::TableKernel<Dimension>& Wfilter,
                        const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,

@@ -74,7 +74,7 @@ double limiterMM(const double x) {
 
 double limiterSB(const double x) {
   if (x > 0.0) {
-    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));     // superbee
+    return 2.0/(1.0 + x)*max(min(2.0*x, 1.0), min(x, 2.0));    // superbee
   } else {
     return 0.0;
   }
@@ -231,40 +231,34 @@ Piij(const unsigned nodeListi, const unsigned i,
   // const Scalar rSj = gradSj/(sgn(gradSi)*max(1.0e-30, abs(gradSi)));
   // const Scalar rAi = gradAi/(sgn(gradAj)*max(1.0e-30, abs(gradAj)));
   // const Scalar rAj = gradAj/(sgn(gradAi)*max(1.0e-30, abs(gradAi)));
+  // const Scalar phiSi = limiterSB(rSi);
+  // const Scalar phiSj = limiterSB(rSj);
+  // const Scalar phiAi = limiterSB(rAi);
+  // const Scalar phiAj = limiterSB(rAj);
 
   const Scalar gradi = (DvDxi.dot(xij)).dot(xij);
   const Scalar gradj = (DvDxj.dot(xij)).dot(xij);
-  // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
-  // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  CHECK(min(ri, rj) <= 1.0);
+  const Scalar phi = limiterMM(min(ri, rj));
+
+  // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
+  // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
   // // const Scalar curli = this->curlVelocityMagnitude(DvDxi);
   // // const Scalar curlj = this->curlVelocityMagnitude(DvDxj);
   // // const Scalar divi = abs(DvDxi.Trace());
   // // const Scalar divj = abs(DvDxj.Trace());
   // // const Scalar betaij = min(2.0, 1.0 + min(curli/max(1.0e-30, curli + divi), curlj/max(1.0e-30, curlj + divj)));
 
-  // // const Vector vij12 = 0.5*(vi + vj);
-  // // const Scalar phimax = min(1.0, abs(vij.dot(xij)*safeInv(vij12.dot(xij))));
-
-  // const Tensor Si = 0.5*(DvDxi+DvDxi.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  // const Tensor Sj = 0.5*(DvDxj+DvDxj.Transpose())-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
-  // //const Tensor Si = DvDxi-(1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace();
-  // //const Tensor Sj = DvDxj-(1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace();
-  // //const Scalar phii = max(limiter(ri),(Si*(Si.Transpose())).Trace()/max((DvDxi*(DvDxi.Transpose())).Trace(),1.0e-30));
-  // //const Scalar phij = max(limiter(rj),(Sj*(Sj.Transpose())).Trace()/max((DvDxj*(DvDxj.Transpose())).Trace(),1.0e-30));
-
-  const Scalar phii = limiterVL(ri);
-  const Scalar phij = limiterVL(rj);
-
-  // const Scalar phiSi = limiterSB(rSi);
-  // const Scalar phiSj = limiterSB(rSj);
-  // const Scalar phiAi = limiterSB(rAi);
-  // const Scalar phiAj = limiterSB(rAj);
+  // const Scalar phii = limiterVL(max(0.0, min(ri, 2.0 - ri)));
+  // const Scalar phij = limiterVL(max(0.0, min(rj, 2.0 - rj)));
+  // const Scalar fphii = max(0.0, 1.0 - phii);
+  // const Scalar fphij = max(0.0, 1.0 - phij);
 
   // "Mike" method.
-  const Vector vi1 = vi - phii*DvDxi*xij;
-  const Vector vj1 = vj + phij*DvDxj*xij;
+  const Vector vi1 = vi - phi*DvDxi*xij;
+  const Vector vj1 = vj + phi*DvDxj*xij;
   // const Vector vi1 = vi - (phiSi*DvDxSi + phiAi*DvDxAi)*xij;
   // const Vector vj1 = vj + (phiSj*DvDxSj + phiAj*DvDxAj)*xij;
   //const Vector vi1 = vi - DvDxi*xij;
@@ -280,7 +274,7 @@ Piij(const unsigned nodeListi, const unsigned i,
 
   // The artificial internal energy.
   const Scalar ei = fshear*(-Cl*rvAlphaL(nodeListi,i)*csi*(linearInExp    ? mui                : min(0.0, mui)) +
-                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)))) ;
+                             Cq *rvAlphaQ(nodeListi,i)   *(quadInExp      ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui))));
   const Scalar ej = fshear*(-Cl*rvAlphaL(nodeListj,j)*csj*(linearInExp    ? muj                : min(0.0, muj)) +
                              Cq *rvAlphaQ(nodeListj,j)   *(quadInExp      ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj))));
   CHECK2(ei >= 0.0 or (linearInExp or quadInExp), ei << " " << csi << " " << mui);
