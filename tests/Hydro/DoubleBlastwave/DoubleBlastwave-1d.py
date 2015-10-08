@@ -92,7 +92,8 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
-                       "%i" % (nx))
+                       "%i" % (nx),
+                       "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "DoubleBlastwave-1d-%i")
 plotDir = os.path.join(dataDir, "plots")
