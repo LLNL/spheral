@@ -55,12 +55,12 @@ commandLine(asph = False,
             thetaMin = 0.0,
             thetaMax = 2.0*pi,
             rmin = 0.0,
-            rmax = 15.0,
-            nPerh = 2.01,
+            rmax = 3.0,
+            nPerh = 1.51,
 
             # Properties of the central gravitating particle.
             G0 = 1.0,
-            M0 = 1000.0,
+            M0 = 1.0,
             Rc = 0.5,
             R0 = Vector(0.0, 0.0),
 
@@ -91,7 +91,7 @@ commandLine(asph = False,
             Cl = 1.0,
             Cq = 0.75,
             Qlimiter = False,
-            balsaraCorrection = True,
+            balsaraCorrection = False,
             epsilon2 = 1e-4,
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 0.1,
@@ -104,6 +104,7 @@ commandLine(asph = False,
             sumForMassDensity = RigorousSumDensity,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
+            filter = 0.0,
 
             # Timestep constraints
             cfl = 0.5,
@@ -119,8 +120,8 @@ commandLine(asph = False,
             dtGrowth = 2.0,
             maxSteps = None,
             statsStep = 10,
-            redistributeStep = 100,
-            restartStep = 100,
+            redistributeStep = 500,
+            restartStep = 500,
             restoreCycle = None,
             smoothIters = 0,
             rigorousBoundaries = True,
@@ -147,6 +148,7 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
+    Qconstructor = CRKSPHMonaghanGingoldViscosity
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
@@ -202,7 +204,7 @@ class KeplerianPressureDiskProfile:
         return pow(a,1.0/(self.gamma-1.0))
 
     def velocity(self, r):
-        return sqrt((1.0-self.f)**2*self.GM*r*2/pow(r**2+self.rc**2,3.0/2.0))
+        return sqrt((1.0-self.f)*self.GM*r**2/pow(r**2+self.rc**2,3.0/2.0))
 
     def pressure(self, r):
         return self.f*self.K*self.rho(r)**self.gamma
@@ -220,8 +222,8 @@ eos = PolytropicEquationOfStateMKS(fractionPressureSupport*polytropicConstant,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(5), 100)
-WTPi = TableKernel(NBSplineKernel(3), 100)
+WT = TableKernel(NBSplineKernel(5), 1000)
+WTPi = TableKernel(NBSplineKernel(5), 1000)
 output('WT')
 output('WTPi')
 
