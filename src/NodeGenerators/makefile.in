@@ -42,7 +42,8 @@ PYTHONTARGETS = \
 	$(srcdir)/HydroStaticProfile.py \
 	$(srcdir)/StretchedLattice3d.py \
 	$(srcdir)/SiloPolyMeshGenerator.py \
-	$(srcdir)/GenerateRatioSlab2d.py
+	$(srcdir)/GenerateRatioSlab2d.py \
+	$(srcdir)/GenerateRatioSphere.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
