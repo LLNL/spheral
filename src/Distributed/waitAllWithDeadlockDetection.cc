@@ -9,7 +9,9 @@
 // standalone dohickey.
 //----------------------------------------------------------------------------//
 #include "mpi.h"
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #include <time.h>
 #include <vector>
@@ -130,7 +132,11 @@ waitallWithDeadlockDetection(const string label,
           cout << report.str();
         } else {
           // Sleep for 1 ms (1000 us).
+#if WIN32
+           _sleep(1000);
+#else
           usleep(1000);
+#endif
         }
       }
 

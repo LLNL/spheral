@@ -89,9 +89,9 @@ using PhysicsSpace::HEvolutionType;
 template<typename Dimension>
 CRKSPHHydroBase<Dimension>::
 CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                ArtificialViscosity<Dimension>& Q,
                 const TableKernel<Dimension>& W,
                 const TableKernel<Dimension>& WPi,
-                ArtificialViscosity<Dimension>& Q,
                 const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,

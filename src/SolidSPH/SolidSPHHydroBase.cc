@@ -102,9 +102,10 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidSPHHydroBase<Dimension>::
 SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                  ArtificialViscosity<Dimension>& Q,
                   const TableKernel<Dimension>& W,
                   const TableKernel<Dimension>& WPi,
-                  ArtificialViscosity<Dimension>& Q,
+                  const TableKernel<Dimension>& WGrad,
                   const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -120,9 +121,9 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const Vector& xmin,
                   const Vector& xmax):
   SPHHydroBase<Dimension>(smoothingScaleMethod, 
+                          Q,
                           W,
                           WPi,
-                          Q,
                           filter,
                           cfl,
                           useVelocityMagnitudeForDt,
@@ -138,6 +139,7 @@ SolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           nTensile,
                           xmin,
                           xmax),
+  mGradKernel(WGrad),
   mDdeviatoricStressDt(FieldSpace::Copy),
   mBulkModulus(FieldSpace::Copy),
   mShearModulus(FieldSpace::Copy),
@@ -306,12 +308,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
   const TableKernel<Dimension>& WQ = this->PiKernel();
+  const TableKernel<Dimension>& WG = this->GradKernel();
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
   typedef typename Timing::Time Time;
   const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
+  const Scalar WQ0 = WQ(0.0, 1.0);
   const Scalar epsTensile = this->epsilonTensile();
   const bool compatibleEnergy = this->compatibleEnergyEvolution();
   const bool XSPH = this->XSPH();
@@ -366,6 +370,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  FieldList<Dimension, Scalar> rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
   FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
   FieldList<Dimension, Scalar> XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
@@ -386,6 +391,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
+  CHECK(rhoSumCorrection.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(pairAccelerations.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
@@ -471,6 +477,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
+      Scalar& rhoSumCorrectioni = rhoSumCorrection(nodeListi, i);
       Scalar& viscousWorki = viscousWork(nodeListi, i);
       vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
       Scalar& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
@@ -535,6 +542,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Tensor& localMj = localM(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
               Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
+              Scalar& rhoSumCorrectionj = rhoSumCorrection(nodeListj, j);
               Scalar& viscousWorkj = viscousWork(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
               Scalar& XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
@@ -560,14 +568,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Wi = WWi.first;
               const Scalar gWi = WWi.second;
               const Vector gradWi = gWi*Hetai;
-              const Vector gradWQi = WQ.gradValue(etaMagi, Hdeti) * Hetai;
+              const std::pair<double, double> WQWi = WQ.kernelAndGradValue(etaMagi, Hdeti);
+              const Scalar WQi = WQWi.first;
+              const Scalar gWQi = WQWi.second;
+              const Vector gradWQi = gWQi*Hetai;
+              const Vector gradWGi = WG.gradValue(etaMagi, Hdeti) * Hetai;
 
               const Vector Hetaj = Hj*etaj.unitVector();
               const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
               const Scalar Wj = WWj.first;
               const Scalar gWj = WWj.second;
               const Vector gradWj = gWj*Hetaj;
-              const Vector gradWQj = WQ.gradValue(etaMagj, Hdetj) * Hetaj;
+              const std::pair<double, double> WQWj = WQ.kernelAndGradValue(etaMagj, Hdetj);
+              const Scalar WQj = WQWj.first;
+              const Scalar gWQj = WQWj.second;
+              const Vector gradWQj = gWQj*Hetaj;
+              const Vector gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
               // Determine how we're applying damage.
               const Scalar fDeffij = coupling(nodeListi, i, nodeListj, j);
@@ -586,6 +602,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 rhoSumi += mj*Wi;
                 rhoSumj += mi*Wj;
               }
+
+              // Contribution to the sum density correction
+              rhoSumCorrectioni += mj * WQi / rhoj ;
+              rhoSumCorrectionj += mi * WQj / rhoi ;
 
               // Mass density evolution.
               const Vector vij = vi - vj;
@@ -606,8 +626,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
-              effViscousPressurei += mj/rhoj * Qi * Wi;
-              effViscousPressurej += mi/rhoi * Qj * Wj;
+              effViscousPressurei += mj*Qi*WQi/rhoj;
+              effViscousPressurej += mi*Qj*WQj/rhoi;
               viscousWorki += mj*workQi;
               viscousWorkj += mi*workQj;
 
@@ -642,8 +662,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               DvDtj -= mi*deltaDvDt;
 
               // Pair-wise portion of grad velocity.
-              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWi);
-              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWj);
+              const Tensor deltaDvDxi = fDeffij*vij.dyad(gradWGi);
+              const Tensor deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
               // Specific thermal energy evolution.
               DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
@@ -692,6 +712,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
+
+      // Add the self-contribution to density sum correction.
+      rhoSumCorrectioni += mi*WQ0*Hdeti/rhoi ;
+
+      // Correct the effective viscous pressure.
+      effViscousPressurei /= rhoSumCorrectioni ;
 
       // Finish the continuity equation.
       DrhoDti *= mi*safeOmegai;

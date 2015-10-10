@@ -24,6 +24,7 @@ struct HydroFieldNames {
   static const std::string specificThermalEnergy;
   static const std::string maxViscousPressure;
   static const std::string effectiveViscousPressure;
+  static const std::string massDensityCorrection;
   static const std::string viscousWork;
   static const std::string XSPHDeltaV;
   static const std::string XSPHWeightSum;

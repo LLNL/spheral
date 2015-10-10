@@ -348,5 +348,5 @@ readObject(PyObject* pathObj) const {
 }
 #endif
 
-} 
+}
 }

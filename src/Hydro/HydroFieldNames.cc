@@ -19,6 +19,7 @@ const std::string Spheral::HydroFieldNames::normalization = "normalization";
 const std::string Spheral::HydroFieldNames::specificThermalEnergy = "specific thermal energy";
 const std::string Spheral::HydroFieldNames::maxViscousPressure = "max viscous pressure";
 const std::string Spheral::HydroFieldNames::effectiveViscousPressure = "effective viscous pressure";
+const std::string Spheral::HydroFieldNames::massDensityCorrection = "density summation correction";
 const std::string Spheral::HydroFieldNames::viscousWork = "viscous work rate";
 const std::string Spheral::HydroFieldNames::XSPHDeltaV = "XSPH delta vi";
 const std::string Spheral::HydroFieldNames::XSPHWeightSum = "XSPH weight sum";

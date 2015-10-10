@@ -326,9 +326,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           refparam(artificialviscosity, "Q"),
                            param("double", "filter", default_value="0.1"),
                            param("double", "cfl", default_value="0.5"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),
@@ -470,9 +470,9 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Constructors.
         x.add_constructor([constrefparam(smoothingscalebase, "smoothingScaleMethod"),
+                           refparam(artificialviscosity, "Q"),
                            constrefparam(tablekernel, "W"),
                            constrefparam(tablekernel, "WPi"),
-                           refparam(artificialviscosity, "Q"),
                            param("double", "filter", default_value="0.0"),
                            param("double", "cfl", default_value="0.25"),
                            param("int", "useVelocityMagnitudeForDt", default_value="false"),

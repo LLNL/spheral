@@ -567,7 +567,6 @@ KAI)
   BOOSTEXT="-$JAMTOOLSET"
   ;;
 VACPP)
-  CXXFLAGS="$CXXFLAGS -I/usr/include -DHAVE_XCPT -qstaticinline -qtempinc -qrtti=dynamiccast"
   FORTFLAGS="$FORTFLAGS -fpic"
   SHAREDFLAG="$SHAREDFLAG -G -qmkshrobj"
   DEPFLAG="-M -E"

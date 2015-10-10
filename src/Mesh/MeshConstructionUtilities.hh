@@ -333,7 +333,7 @@ exchangeTuples(const std::vector<boost::tuple<T, T, T> >& localKeys,
 #ifdef USE_MPI
   using namespace std;
   using namespace boost;
-  typedef tuple<T, T, T> Key;
+  typedef boost::tuple<T, T, T> Key;
 
   const unsigned rank = Process::getRank();
 
