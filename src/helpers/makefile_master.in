@@ -172,7 +172,7 @@ STATICPBGMODTARGET = $(PBGMODTARGET:.$(SHLIBEXT)=.a)
 
 #-------------------------------------------------------------------------------
 # Find all the header files in the current directory.
-HEADERS = $(wildcard $(srcdir)/*.hh)
+HEADERS = $(wildcard $(srcdir)/*.hh $(srcdir)/*.h)
 
 #-------------------------------------------------------------------------------
 CXXPKGS = @CXXPKGS@
@@ -188,7 +188,7 @@ ifeq "$(PYTHONBINDING)" "PYBINDGEN"
 
   PBGSRCS = $(patsubst %, $(SPHERALMODULES)_%.C, $(PYTHONPKGS)) $(SPHERALMODULES).C
   PBGOBJS = $(PBGSRCS:.C=.o)
-  PBGMODHEADERS = $(SPHERALMODULES).hh
+  PBGMODHEADERS = $(SPHERALMODULES).hh $(SPHERALMODULES).h
   PBGMODSRCS = $(SPHERALMODULES).C $(PBGMODHEADERS)
   MODPKGS = $(patsubst %, $(srcdir)/%, $(join $(PYTHONPKGS), $(patsubst %, /%Module.py, $(PYTHONPKGS))))
 
@@ -217,7 +217,7 @@ AIXSHELL=@AIXSHELL@
 CONFIG_SHELL=@CONFIG_SHELL@
 
 #-------------------------------------------------------------------------------
-.SUFFIXES:      .hh .cc .o .d $(DYLIBEXT) $(SHLIBEXT)
+.SUFFIXES:      .hh .h .cc .o .d $(DYLIBEXT) $(SHLIBEXT)
 .SUFFIXES:	Methods.pw Methods.cc Methods.o
 .SUFFIXES:	Bindings.py
 .SUFFIXES:	Wrap.cc Wrap.o
@@ -267,7 +267,7 @@ force_build:
 	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
 
 %.o: %.f90
-	$(FORT) $(FORTFLAGS) $(OPTFLAGS) $(EXTRAFLAGS) -c $< -o $(*F).o
+	$(FORT) $(FORTFLAGS) -c $< -o $(*F).o
 
 %.o:	%.cpp
 	$(MPICXX) $(MPICXXFLAGS) $(INCS) $(BPLINCS) $(CXXFLAGS) $(PYOPT) $(EXTRAFLAGS) -I. -c $< -o $(*F).o
@@ -334,7 +334,7 @@ $(STATICLIBTARGET): $(LIBTARGET)
 	@echo "# Building library $(STATICLIBTARGET)"
 	@echo "################################################################################"
 	@mkdir -p $(LIBDIR)
-	ar -rvs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
+	ar rcs $(STATICLIBTARGET) $(OBJS) $(PYFFLEOBJS)
 	cp -f $(STATICLIBTARGET) $(LIBDIR)
 
 #-------------------------------------------------------------------------------

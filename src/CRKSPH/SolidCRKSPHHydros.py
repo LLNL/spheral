@@ -14,9 +14,9 @@ SolidCRKSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
                  filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
@@ -27,6 +27,8 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
         SolidCRKSPHHydroBase%(dim)s.__init__(self,
                                              self._smoothingScaleMethod,
                                              W,

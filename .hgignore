@@ -13,6 +13,8 @@ syntax: glob
 *.silo
 *.job
 *.job.out
+*.a
+*makefile
 
 # These are files automatically generated in our configure process.
 src/PBGWraps/makefile

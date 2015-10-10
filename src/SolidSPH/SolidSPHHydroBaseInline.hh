@@ -2,6 +2,17 @@ namespace Spheral {
 namespace SolidSPHSpace {
 
 //------------------------------------------------------------------------------
+// Access the kernel used for artificial viscosity gradients.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const KernelSpace::TableKernel<Dimension>&
+SolidSPHHydroBase<Dimension>::
+GradKernel() const {
+  return mGradKernel;
+}
+
+//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

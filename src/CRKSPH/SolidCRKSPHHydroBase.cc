@@ -111,9 +111,9 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidCRKSPHHydroBase<Dimension>::
 SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+                     ArtificialViscosity<Dimension>& Q,
                      const TableKernel<Dimension>& W,
                      const TableKernel<Dimension>& WPi,
-                     ArtificialViscosity<Dimension>& Q,
                      const double filter,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
@@ -124,9 +124,9 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const double epsTensile,
                      const double nTensile):
   CRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
+                             Q,
                              W,
                              WPi,
-                             Q,
                              filter,
                              cfl,
                              useVelocityMagnitudeForDt,

@@ -331,6 +331,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
+massDensityCorrection() const {
+  return mMassDensityCorrection;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+SPHHydroBase<Dimension>::
 viscousWork() const {
   return mViscousWork;
 }

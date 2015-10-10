@@ -14,9 +14,10 @@ SolidSPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
 
     def __init__(self,
-                 W,
-                 WPi,
                  Q,
+                 W,
+                 WPi = None,
+                 WGrad = None,
                  filter = 0.0,
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
@@ -30,11 +31,16 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  epsTensile = 0.3,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        if WGrad is None:
+            WGrad = W
         SolidSPHHydroBase%(dim)s.__init__(self,
                                           self._smoothingScaleMethod,
+                                          Q,
                                           W,
                                           WPi,
-                                          Q,
+                                          WGrad,
                                           filter,
                                           cfl,
                                           useVelocityMagnitudeForDt,
