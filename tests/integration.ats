@@ -20,7 +20,7 @@ source("../src/CRKSPH/tests/testInterpolation.py")
 
 # SVPH unit tests
 source("../src/SVPH/tests/testSVPHInterpolation-1d.py")
-source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
+# source("../src/SVPH/tests/testSVPHInterpolation-2d.py")
 
 # Field unit tests
 source("../src/Field/tests/testField.py")

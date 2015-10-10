@@ -7,6 +7,7 @@ namespace FractalSpace
   {
     FILE* PFH=mem.p_file->PFHypre;
     int HypreNodes=mem.p_mess->HypreNodes;
+    int FractalRank=mem.p_mess->FractalRank;
     int HypreRank=mem.p_mess->HypreRank;
     int count_max=-1;
     double count_sum0=HypreNodes;
@@ -25,13 +26,14 @@ namespace FractalSpace
 
     double average=count_sum1/count_sum0;
     int nodes_eff=count_sum1*count_sum1/count_sum2;
-
+    int iaverage=average;
     int max_on_node=max((int)(average*mem.hypre_multiplier),mem.hypre_max_node_load);
 //     bool spread_even = average >= max_on_node;
     bool OOM = count_max > max_on_node;
-
+//     cerr << " loading " << FractalRank << " " << HypreRank << " " << average << " " << count_max << " " << nodes_eff << " ";
+//     cerr << mem.hypre_max_node_load << " " << mem.hypre_multiplier << " " << max_on_node << " " << OOM << endl;
     HYP.ij_countsB=HYP.ij_counts;
-    fprintf(PFH," Hypre on Nodes %d %d %d %d %d %d %d \n",(int)average,count_max,nodes_eff,mem.hypre_max_node_load,mem.hypre_multiplier,max_on_node,OOM);
+//     fprintf(PFH," Hypre on Nodes %d %d %d %d %d %d \n",iaverage,count_max,nodes_eff,mem.hypre_max_node_load,mem.hypre_multiplier,max_on_node);
     load_balance=false;
     if(HypreNodes == 1)
       return 0;

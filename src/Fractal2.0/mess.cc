@@ -643,10 +643,16 @@ namespace FractalSpace
       }
     MPI_Group_incl(HypreGroup,RanksH[2].size(),&(*RanksH[2].begin()),&HG[2]);
     MPI_Comm_create(HypreWorld,HG[2],&HComms[2]);
+//     cerr << " HypreWorldB " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[2] << " " << &HComms[2] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldB %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[2],&HComms[2]);
     MPI_Group_incl(HypreGroup,RanksH[1].size(),&(*RanksH[1].begin()),&HG[1]);
     MPI_Comm_create(HypreWorld,HG[1],&HComms[1]);
+//     cerr << " HypreWorldC " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[1] << " " << &HComms[1] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldC %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[1],&HComms[1]);
     MPI_Group_incl(HypreGroup,RanksH[0].size(),&(*RanksH[0].begin()),&HG[0]);
     MPI_Comm_create(HypreWorld,HG[0],&HComms[0]);
+//     cerr << " HypreWorldD " << FractalRank << " " << &HypreGroup << " " << &HypreWorld << " " << &HG[0] << " " << &HComms[0] << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldD %p %p %p %p \n",&HypreGroup,&HypreWorld,&HG[0],&HComms[0]);
   }
   void Mess::make_MPI_Groups()
   {
@@ -1793,6 +1799,8 @@ namespace FractalSpace
     HypreRank=MyHypreRank();
     if(!IAmAHypreNode)
       return;
+//     cerr << " HypreWorldA " << FractalRank << " " << &FractalGroup << " " << &FractalWorld << " " << &HypreGroup << " " << &HypreWorld << endl;
+//     fprintf(p_file->PFHypre,"HypreWorldA %p %p %p %p \n",&FractalGroup,&FractalWorld,&HypreGroup,&HypreWorld);
     make_MPI_Hypre_Groups();
   }
   void Mess::HypreGroupFree()
