@@ -24,7 +24,7 @@ class Kernel:
         # Expose types.
         self.types = ("BSpline", "W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",
                       "Hat", "Sinc", "NSincPolynomial", "NBSpline", "QuarticSpline",
-                      "QuinticSpline", "Table", "WendlandC4", "WendlandC6")
+                      "QuinticSpline", "Table", "WendlandC4", "WendlandC6", "ExpInv")
         for type in self.types:
             for ndim in self.dims:
                 dim = "%id" % ndim
@@ -41,7 +41,7 @@ class Kernel:
             dim = "%id" % ndim
 
             # Generic Kernel types.
-            for type in ("BSpline", "W4Spline", "SuperGaussian", "WendlandC4", "WendlandC6"):
+            for type in ("BSpline", "W4Spline", "SuperGaussian", "WendlandC4", "WendlandC6", "QuarticSpline", "QuinticSpline", "ExpInv"):
                 name = type + "Kernel" + dim
                 exec("self.generateDefaultKernelBindings(self.%s, %i)" % (name, ndim))
             # Now some specialized bindings for kernels.
@@ -52,8 +52,6 @@ self.generateHatKernelBindings(self.HatKernel%(dim)s, %(ndim)i)
 self.generateSincKernelBindings(self.SincKernel%(dim)s, %(ndim)i)
 self.generateNSincPolynomialKernelBindings(self.NSincPolynomialKernel%(dim)s, %(ndim)i)
 self.generateNBSplineKernelBindings(self.NBSplineKernel%(dim)s, %(ndim)i)
-self.generateDefaultKernelBindings(self.QuarticSplineKernel%(dim)s, %(ndim)i)
-self.generateDefaultKernelBindings(self.QuinticSplineKernel%(dim)s, %(ndim)i)
 self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
 """ % {"dim" : dim, "ndim" : ndim})
 
@@ -155,6 +153,7 @@ self.generateTableKernelBindings(self.TableKernel%(dim)s, %(ndim)i)
             x.add_constructor([constrefparam(W, "kernel"),
                                param("int", "numPoints", default_value="1000"),
                                param("double", "hmult", default_value="1.0")])
+            x.add_method("augment", None, [constrefparam(W, "W")])
 
         # Methods.
         x.add_method("kernelAndGradValue", "pair_double_double", [param("double", "etaMagnitude"), param("double", "Hdet")], is_const=True)

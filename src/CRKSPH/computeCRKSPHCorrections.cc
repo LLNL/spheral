@@ -93,7 +93,7 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Scalar Hdeti = Hi.Determinant();
 
       // Self contribution.
-      const Scalar wwi = weight(nodeListi, i)*W(0.0, Hdeti);
+      const Scalar wwi =  weight(nodeListi, i)*W(0.0, Hdeti);
       m0(nodeListi, i) += wwi;
       gradm1(nodeListi, i) += Tensor::one*wwi;
 
@@ -157,7 +157,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
             gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
 
-              
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
@@ -173,7 +172,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
       if (i < firstGhostNodei) {
-        // CHECK2(abs(m2(nodeListi, i).Determinant()) > 1.0e-30, i << " " << m0(nodeListi, i) << " " << m2(nodeListi, i) << " " << m2(nodeListi, i).Determinant());
         const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
         const Vector m2invm1 = m2inv*m1(nodeListi, i);
         const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
@@ -197,20 +195,9 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
             }
           }
         }
-
-        // // BLAGO!
-        // // Force only zeroth corrections.
-        // A(nodeListi, i) = A0(nodeListi, i);
-        // B(nodeListi, i) = Vector::zero;
-        // gradA(nodeListi, i) = -FastMath::square(A(nodeListi, i))*gradm0(nodeListi, i);
-        // gradB(nodeListi, i) = Tensor::zero;
-        // // BLAGO!
-
       }
     }
   }
-
-  // Note -- we are suspending the next order corrections for now!
 }
 
 //------------------------------------------------------------------------------
@@ -453,8 +440,6 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       }
     }
   }
-
-  // Note -- we are suspending the next order corrections for now!
 }
 
 }

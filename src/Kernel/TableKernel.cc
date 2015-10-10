@@ -9,20 +9,6 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/bisectSearch.hh"
 
-#include "BSplineKernel.hh"
-#include "W4SplineKernel.hh"
-#include "GaussianKernel.hh"
-#include "SuperGaussianKernel.hh"
-#include "PiGaussianKernel.hh"
-#include "SincKernel.hh"
-#include "NSincPolynomialKernel.hh"
-#include "NBSplineKernel.hh"
-#include "HatKernel.hh"
-#include "QuarticSplineKernel.hh"
-#include "QuinticSplineKernel.hh"
-#include "WendlandC4Kernel.hh"
-#include "WendlandC6Kernel.hh"
-
 namespace Spheral {
 namespace KernelSpace {
 
@@ -179,7 +165,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mStepSize(0.0),
   mNperhValues(0),
   mWsumValues(0),
-  mMinNperh(0.5),
+  mMinNperh(0.25),
   mMaxNperh(10.0) {
 
   // Pre-conditions.
@@ -187,7 +173,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   VERIFY(hmult > 0.0);
 
   // Set the volume normalization and kernel extent.
-  this->setVolumeNormalization(kernel.volumeNormalization() / Dimension::pownu(hmult));
+  this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.
   this->setKernelExtent(hmult * kernel.kernelExtent());
   this->setInflectionPoint(hmult * kernel.inflectionPoint());
 
@@ -211,12 +197,13 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // Fill in the kernel and gradient values.  Note that we will go ahead and fold
   // the normalization constants in here, so we don't have to multiply by them
   // in the value lookups.
+  const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = mStepSize/hmult;
   for (int i = 0; i < numPoints; ++i) {
     CHECK(i*mStepSize >= 0.0);
-    mKernelValues[i] = kernel(i*deta, 1.0);
-    mGradValues[i] = kernel.grad(i*deta, 1.0);
-    mGrad2Values[i] = kernel.grad2(i*deta, 1.0);
+    mKernelValues[i] = correction*kernel(i*deta, 1.0);
+    mGradValues[i] = correction*kernel.grad(i*deta, 1.0);
+    mGrad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
   }
 
   // Set the delta kernel values for internal use.
@@ -274,6 +261,52 @@ operator=(const TableKernel<Dimension>& rhs) {
     mMaxNperh = rhs.mMaxNperh;
   }
   return *this;
+}
+
+//------------------------------------------------------------------------------
+// Linearly combine with another kernel.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename KernelType>
+void
+TableKernel<Dimension>::augment(const KernelType& kernel) {
+
+  // Set the volume normalization and kernel extent.
+  const double norm0 = this->volumeNormalization();
+  const double norm1 = kernel.volumeNormalization();
+  this->setVolumeNormalization(norm0 + norm1);
+  this->setInflectionPoint(0.5*(this->inflectionPoint() + kernel.inflectionPoint()));  // Punting for now.
+
+  // Fill in the kernel and gradient values.  Note that we will go ahead and fold
+  // the normalization constants in here, so we don't have to multiply by them
+  // in the value lookups.
+  const double deta = mStepSize;
+  for (int i = 0; i < mNumPoints; ++i) {
+    CHECK(i*mStepSize >= 0.0);
+    mKernelValues[i] = 0.5*(mKernelValues[i] + kernel(i*deta, 1.0));
+    mGradValues[i] = 0.5*(mGradValues[i] + kernel.grad(i*deta, 1.0));
+    mGrad2Values[i] = 0.5*(mGrad2Values[i] + kernel.grad2(i*deta, 1.0));
+  }
+
+  // Set the delta kernel values for internal use.
+  this->setParabolicCoeffs();
+
+  // // Adjust the table kernel values to reproduce the volume integral as closely as possible.
+  // const double vol1 = simpsonsVolumeIntegral<Dimension, TableKernel<Dimension> >(*this, 0.0, kernel.kernelExtent(), 10*numPoints);
+  // const double f = 1.0/vol1; // /(this->volumeNormalization());
+  // std::cerr << "Scaling: " << f << " " << vol1 << " " << this->volumeNormalization() << std::endl;
+  // for (int i = 0; i < numPoints; ++i) {
+  //   mKernelValues[i] *= f;
+  // }
+
+  // // Reset the delta kernel values for internal use.
+  // this->setDeltaKernelValues();
+
+  // Set the table of n per h values.
+  this->setNperhValues();
+
+  // That should be it, so we should have left the kernel in a valid state.
+  ENSURE(valid());
 }
 
 //------------------------------------------------------------------------------
@@ -394,8 +427,8 @@ setNperhValues(const bool scaleTo1D) {
   REQUIRE(this->kernelExtent() > 0.0);
 
   // Size the Nperh array.
-  mWsumValues.resize(mNumPoints);
-  mNperhValues.resize(mNumPoints);
+  mWsumValues = vector<double>(mNumPoints);
+  mNperhValues = vector<double>(mNumPoints);
 
   // For the allowed range of n per h, sum up the kernel values.
   const double dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1);

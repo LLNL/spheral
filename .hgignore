@@ -9,6 +9,10 @@ syntax: glob
 *.date
 *.dummydate
 *.C
+*.log
+*.silo
+*.job
+*.job.out
 
 # These are files automatically generated in our configure process.
 src/PBGWraps/makefile

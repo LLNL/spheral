@@ -42,11 +42,15 @@ class Pnorm:
         weightData = [0.0]*n
         for j in xrange(n):
             i = rData[j][1]
-            jm = max(j - 1, 0)
-            jp = min(j + 1, n - 1)
-            rm = max(rmin, min(rmax, rData[jm][0]))
-            rp = max(rmin, min(rmax, rData[jp][0]))
-            weightData[i] = 0.5*(rp - rm)
+            if j == 0:
+                rm = rmin
+            else:
+                rm = 0.5*(rData[j-1][0] + rData[j][0])
+            if j == n - 1:
+                rp = rmax
+            else:
+                rp = 0.5*(rData[j][0] + rData[j+1][0])
+            weightData[i] = max(0.0, rp - rm)
             assert weightData[i] >= 0.0
 
         # That's it, we now have the grid weighting.

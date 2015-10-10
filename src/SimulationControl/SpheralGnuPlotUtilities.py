@@ -722,6 +722,22 @@ def plotVelocityField2d(dataBase,
                              title)
 
 #-------------------------------------------------------------------------------
+# Plot the node spacing in 1D.
+#-------------------------------------------------------------------------------
+def plotNodeSpacing1d(dataBase):
+    pos = dataBase.globalPosition
+    xvals = []
+    for ifield in xrange(len(pos)):
+        xvals += [pos[ifield][i].x for i in xrange(pos[ifield].numInternalElements)]
+    xvals = mpi.allreduce(xvals, mpi.SUM)
+    xvals.sort()
+    deltas = [xvals[i+1] - xvals[i] for i in xrange(len(xvals) - 1)] + [xvals[-1] - xvals[-2]]
+    plot = generateNewGnuPlot()
+    d = Gnuplot.Data(xvals, deltas, with_="lines")
+    plot.plot(d)
+    return plot
+
+#-------------------------------------------------------------------------------
 # Plot an arbitrary vector field as a set of arrows.
 #-------------------------------------------------------------------------------
 def plotVectorField2d(dataBase, fieldList,

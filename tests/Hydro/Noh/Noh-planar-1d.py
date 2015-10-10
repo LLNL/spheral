@@ -21,6 +21,7 @@ title("1-D integrated hydro test -- planar Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(KernelConstructor = BSplineKernel,
+            order = 5,
 
             nx1 = 100,
             rho1 = 1.0,
@@ -105,25 +106,25 @@ commandLine(KernelConstructor = BSplineKernel,
             comparisonFile = "None",
 
             # Parameters for the test acceptance.,
-            L1rho =   0.059517       ,
-            L2rho =   0.234803       ,
-            Linfrho = 1.69835        ,
+            L1rho =   0.0587603, 		
+            L2rho =   0.233607,
+            Linfrho = 1.70012,
                                                            
-            L1P =     0.0218862      ,
-            L2P =     0.0915099      ,
-            LinfP =   0.667126       ,
+            L1P =     0.021621,
+            L2P =     0.0910545,
+            LinfP =   0.667976,
                                                            
-            L1v =     0.023729       ,
-            L2v =     0.117924       ,
-            Linfv =   0.848251       ,
+            L1v =     0.0234762,
+            L2v =     0.117328,
+            Linfv =   0.84881,
                                                            
-            L1eps =   0.0114841      ,
-            L2eps =   0.0535023      ,
-            Linfeps = 0.370852       ,
+            L1eps =   0.0113634,
+            L2eps =   0.0532294,
+            Linfeps = 0.371081,
                                                
-            L1h =     0.000315869    ,
-            L2h =     0.00125931     ,
-            Linfh =   0.00761168     ,
+            L1h =     0.000312939,
+            L2h =     0.00125403,
+            Linfh =   0.00761903,
 
             tol = 1.0e-5,
 
@@ -146,7 +147,8 @@ else:
 
 dataDir = os.path.join(dataDirBase,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
-                       str(Qconstructor).split("'")[1].split(".")[-1])
+                       str(Qconstructor).split("'")[1].split(".")[-1],
+                       "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
@@ -172,8 +174,13 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+if KernelConstructor==NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000) #, hmult=1.0/Wbase.kernelExtent)
+WTPi = WT
+kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")
 
@@ -185,12 +192,14 @@ if solid:
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
 else:
     nodes1 = makeFluidNodeList("nodes1", eos, 
                                hmin = hmin,
                                hmax = hmax,
                                nPerh = nPerh,
+                               kernelExtent = kernelExtent,
                                NeighborType = NeighborType)
     
 output("nodes1")
@@ -437,6 +446,14 @@ A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+L1 = 0.0
+for i in xrange(len(rho)):
+  L1 = L1 + abs(rho[i]-rhoans[i])
+L1_tot = L1 / len(rho)
+if mpi.rank == 0 and outputFile != "None":
+ print "L1=",L1_tot,"\n"
+ with open("Converge.txt", "a") as myfile:
+    myfile.write("%s %s\n" % (nx1, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

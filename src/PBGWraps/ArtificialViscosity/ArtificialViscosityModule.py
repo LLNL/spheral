@@ -33,6 +33,7 @@ self.ArtificialViscosity%(dim)id = addObject(space, "ArtificialViscosity%(dim)id
 self.MonaghanGingoldViscosity%(dim)id = addObject(space, "MonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.CRKSPHMonaghanGingoldViscosity%(dim)id = addObject(space, "CRKSPHMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.MonaghanGingoldViscosity%(dim)id)
 self.MorrisMonaghanReducingViscosity%(dim)id = addObject(space, "MorrisMonaghanReducingViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
+self.CullenDehnenViscosity%(dim)id = addObject(space, "CullenDehnenViscosity%(dim)id", allow_subclassing=True, parent=Physics%(dim)id)
 self.TensorMonaghanGingoldViscosity%(dim)id = addObject(space, "TensorMonaghanGingoldViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.FiniteVolumeViscosity%(dim)id = addObject(space, "FiniteVolumeViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
 self.TensorSVPHViscosity%(dim)id = addObject(space, "TensorSVPHViscosity%(dim)id", allow_subclassing=True, parent=self.ArtificialViscosity%(dim)id)
@@ -51,6 +52,7 @@ self.addArtificialViscosityMethods(self.ArtificialViscosity%(dim)id, %(dim)i)
 self.addMonaghanGingoldViscosityMethods(self.MonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addCRKSPHMonaghanGingoldViscosityMethods(self.CRKSPHMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addMorrisMonaghanReducingViscosityMethods(self.MorrisMonaghanReducingViscosity%(dim)id, %(dim)i)
+self.addCullenDehnenViscosityMethods(self.CullenDehnenViscosity%(dim)id, %(dim)i)
 self.addTensorMonaghanGingoldViscosityMethods(self.TensorMonaghanGingoldViscosity%(dim)id, %(dim)i)
 self.addFiniteVolumeViscosityMethods(self.FiniteVolumeViscosity%(dim)id, %(dim)i)
 self.addTensorSVPHViscosityMethods(self.TensorSVPHViscosity%(dim)id, %(dim)i)
@@ -218,6 +220,50 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
         const_ref_return_value(x, me, "%s::DrvAlphaDtL" % me, scalarfieldlist, [], "DrvAlphaDtL")
     
         return
+
+    #---------------------------------------------------------------------------
+    # Add methods to the CullenDehnenViscosity
+    #---------------------------------------------------------------------------
+    def addCullenDehnenViscosityMethods(self, x, ndim):
+
+        me = "Spheral::ArtificialViscositySpace::CullenDehnenViscosity%id" % ndim
+        scalarfieldlist = "Spheral::FieldSpace::ScalarFieldList%id" % ndim
+        artificialviscosity = "Spheral::ArtificialViscositySpace::ArtificialViscosity%id" % ndim
+        tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
+        vectorfieldlist = "Spheral::FieldSpace::VectorFieldList%id" % ndim
+
+        # Constructors.
+        x.add_constructor([refparam(artificialviscosity,"q"),
+                           constrefparam(tablekernel, "W"),
+                           param("double", "alphMax", default_value="2.0"),
+                           param("double", "alphMin", default_value="0.02"),
+                           param("double", "betaC", default_value="0.7"),
+                           param("double", "betaD", default_value="0.05"),
+                           param("double", "betaE", default_value="1.0"),
+                           param("double", "fKern", default_value="0.33333"),
+                           param("int", "boolHopkins", default_value="true")])
+
+        # Add the abstract methods.
+        generatePhysicsVirtualBindings(x, ndim, False)
+
+        # Attributes
+        x.add_instance_attribute("alphMax", "double", getter="alphMax", setter="alphMax")
+        x.add_instance_attribute("alphMin", "double", getter="alphMin", setter="alphMin")
+        x.add_instance_attribute("betaE", "double", getter="betaE", setter="betaE")
+        x.add_instance_attribute("betaD", "double", getter="betaD", setter="betaD")
+        x.add_instance_attribute("betaC", "double", getter="betaC", setter="betaC")
+        x.add_instance_attribute("fKern", "double", getter="fKern", setter="fKern")
+        x.add_instance_attribute("boolHopkins", "double", getter="boolHopkins", setter="boolHopkins")
+
+        # Methods.
+        const_ref_return_value(x, me, "%s::PrevDvDt" % me, vectorfieldlist, [], "PrevDvDt")
+        const_ref_return_value(x, me, "%s::PrevDivV" % me, scalarfieldlist, [], "PrevDivV")
+        const_ref_return_value(x, me, "%s::PrevDivV2" % me, scalarfieldlist, [], "PrevDivV2")
+        const_ref_return_value(x, me, "%s::CullAlpha" % me, scalarfieldlist, [], "CullAlpha")
+        const_ref_return_value(x, me, "%s::CullAlpha2" % me, scalarfieldlist, [], "CullAlpha2")
+   
+        return
+
 
     #---------------------------------------------------------------------------
     # Add methods to the TensorMonaghanGingoldViscosity.

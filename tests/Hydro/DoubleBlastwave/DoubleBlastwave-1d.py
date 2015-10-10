@@ -22,6 +22,7 @@ commandLine(
     CRKSPH = False,
     cfl = 0.5,
     XSPH = False,
+    PSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
     filter = 0.00,
@@ -31,6 +32,7 @@ commandLine(
     gradhCorrection = False,
     linearConsistent = False,
     KernelConstructor = BSplineKernel,
+    order = 5,
 
     # Q
     Qconstructor = MonaghanGingoldViscosity,
@@ -39,6 +41,20 @@ commandLine(
     linearInExpansion = False,
     Qlimiter = False,
     epsilon2 = 1e-4,
+  
+    boolReduceViscosity = False,
+    nh = 5.0,
+    aMin = 0.1,
+    aMax = 2.0,
+    Qhmult = 1.0,
+    boolCullenViscosity = False,
+    alphMax = 2.0,
+    alphMin = 0.02,
+    betaC = 0.7,
+    betaD = 0.05,
+    betaE = 1.0,
+    fKern = 1.0/3.0,
+    boolHopkinsCorrection = True,
 
     # Integrator.
     IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -63,6 +79,7 @@ commandLine(
     restartBaseName = "DoubleBlastwave-restart",
     graphics = True,
 )
+assert not(boolReduceViscosity and boolCullenViscosity)
 
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
@@ -75,7 +92,8 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
-                       "%i" % (nx))
+                       "%i" % (nx),
+                       "nPerh=%s" % nPerh)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "DoubleBlastwave-1d-%i")
 plotDir = os.path.join(dataDir, "plots")
@@ -100,8 +118,15 @@ eos = GammaLawGasMKS(1.4, 2.0)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(KernelConstructor(), 1000)
-WTPi = WT
+if KernelConstructor==NBSplineKernel:
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000)
+else:
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000)
+#WT = TableKernel(KernelConstructor(), 1000)
+#WTPi = WT
+kernelExtent = WT.kernelExtent
 output("WT")
 output("WTPi")
 
@@ -111,6 +136,7 @@ output("WTPi")
 nodes = makeFluidNodeList("nodes", eos, 
                            hmin = hmin,
                            hmax = hmax,
+			   kernelExtent = kernelExtent,
                            nPerh = nPerh)
 nodeSet = [nodes]
 
@@ -190,11 +216,23 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
 
 packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Construct the MMRV physics object.
+#-------------------------------------------------------------------------------
+
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

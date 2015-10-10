@@ -78,9 +78,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+WT = TableKernel(NBSplineKernel(5), 1000)
+WTPi = WT
+Wfbase = NBSplineKernel(7)
+WTf = TableKernel(Wfbase, 1000, hmult = 1.0/(nPerh*Wfbase.kernelExtent))
 kernelExtent = WT.kernelExtent
-WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
 output("WTPi")
 
@@ -157,13 +159,14 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+    hydro = CRKSPHHydro(WT, WTPi, q, 
+                        Wfilter = WTf,
+                        filter = filter,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        XSPH = XSPH,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate)
 else:
     hydro = SPHHydro(WT, WTPi, q,
                      cfl = cfl,

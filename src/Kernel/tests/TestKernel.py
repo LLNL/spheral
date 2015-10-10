@@ -48,6 +48,9 @@ kernelDict = {'spline': [BSplineKernel1d(),
               'wendlandc6': [WendlandC6Kernel1d(),
                              WendlandC6Kernel2d(),
                              WendlandC6Kernel3d()],
+              'expinv': [ExpInvKernel1d(),
+                         ExpInvKernel2d(),
+                         ExpInvKernel3d()],
 ##              'quartic': [QuarticSplineKernel1d(),
 ##                          QuarticSplineKernel2d(),
 ##                          QuarticSplineKernel3d()],
@@ -108,6 +111,7 @@ titleDict = {'spline':  'B Spline Kernel',
              'spline9': '9th order b spline Kernel',
              'spline11': '11th order b spline Kernel',
              'wendlandc6': 'Wendland C6 Kernel',
+             'expinv' : 'Exponential inverse Kernel',
              }
 
 plots = []

@@ -34,7 +34,6 @@ using FieldSpace::FieldList;
 using FieldSpace::FieldListBase;
 using NeighborSpace::ConnectivityMap;
 using KernelSpace::TableKernel;
-using KernelSpace::BSplineKernel;
 
 //------------------------------------------------------------------------------
 // Specialized method to compute the pair-wise contribution to the moment.
