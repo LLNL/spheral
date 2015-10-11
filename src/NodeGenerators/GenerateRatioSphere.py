@@ -29,7 +29,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  center = (0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
                  nNodePerh = 2.01,
-                 SPH = False):
+                 SPH = False,
+                 rejecter = None):
 
         assert drCenter > 0.0
         assert drRatio > 0.0
@@ -108,6 +109,14 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             self.m[i] *= massCorrection
         print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, M1)
 
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
+                                                              self.y,
+                                                              self.m,
+                                                              self.H)
+
         # Have the base class break up the serial node distribution
         # for parallel cases.
         NodeGeneratorBase.__init__(self, True,
@@ -161,7 +170,8 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
                  center = (0.0, 0.0, 0.0),
                  distributionType = "constantDTheta",   # one of (constantDTheta, constantNTheta)
                  nNodePerh = 2.01,
-                 SPH = False):
+                 SPH = False,
+                 rejecter = None):
 
         assert thetamax <= pi
 
@@ -240,6 +250,14 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
 
         self.center = Vector3d(*center)
 
+        # If the user provided a "rejecter", give it a pass
+        # at the nodes.
+        if rejecter:
+            self.x, self.y, self.z, self.m, self.H = rejecter(self.x,
+                                                              self.y,
+                                                              self.z,
+                                                              self.m,
+                                                              self.H)
         # Initialize the base class.
         NodeGeneratorBase.__init__(self, False,
                                    self.x, self.y, self.z, self.m, self.H)
