@@ -2,9 +2,6 @@
 #include <limits.h>
 #include <string>
 
-#include "GeomVector.hh"
-#include "GeomTensor.hh"
-#include "GeomSymmetricTensor.hh"
 #include "GeomThirdRankTensor.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
@@ -447,7 +444,7 @@ std::istream&
 operator>>(std::istream& is, GeomThirdRankTensor<nDim>& ten) {
   std::string parenthesis;
   is >> parenthesis;
-  for (typename GeomTensor<nDim>::iterator elementItr = ten.begin();
+  for (typename GeomThirdRankTensor<nDim>::iterator elementItr = ten.begin();
        elementItr != ten.end();
        ++elementItr) {
     is >> *elementItr;
@@ -464,7 +461,7 @@ inline
 std::ostream&
 operator<<(std::ostream& os, const GeomThirdRankTensor<nDim>& ten) {
   os << "( ";
-  for (typename GeomTensor<nDim>::const_iterator itr = ten.begin();
+  for (typename GeomThirdRankTensor<nDim>::const_iterator itr = ten.begin();
        itr != ten.end(); ++itr) {
     os << *itr << " ";
   }

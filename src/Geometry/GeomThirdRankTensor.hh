@@ -11,9 +11,6 @@
 
 #include <iostream>
 
-#include "Geometry/GeomVector_fwd.hh"
-#include "Geometry/GeomTensor_fwd.hh"
-#include "Geometry/GeomSymmetricTensor_fwd.hh"
 #include "Geometry/GeomThirdRankTensor_fwd.hh"
 
 namespace Spheral {
