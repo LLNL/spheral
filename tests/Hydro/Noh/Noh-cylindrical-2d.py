@@ -1,5 +1,5 @@
-#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
-#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=True --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
+#ATS:test(SELF, "--CRKSPH=False --nRadial=100 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --filter=0 --nPerh=2.01 --graphics False", label="KH CRK, nPerh=2.0", np=20)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -508,32 +508,34 @@ if graphics:
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
-    # Report the error norms.
-    rmin, rmax = 0.05, 0.35
-    r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-    rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
-    v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
-    eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
-    Pf = ScalarField("pressure", nodes1)
-    nodes1.pressure(Pf)
-    P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
-    if mpi.rank == 0:
-        from SpheralGnuPlotUtilities import multiSort
-        import Pnorm
-        multiSort(r, rho, v, eps, P)
-        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-        for (name, data, ans) in [("Mass Density", rho, rhoans),
-                                  ("Pressure", P, Pans),
-                                  ("Velocity", v, vans),
-                                  ("Thermal E", eps, epsans)]:
-            assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
-            Pn = Pnorm.Pnorm(error, r)
-            L1 = Pn.gridpnorm(1, rmin, rmax)
-            L2 = Pn.gridpnorm(2, rmin, rmax)
-            Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+#-------------------------------------------------------------------------------
+# Report the error norms.
+#-------------------------------------------------------------------------------
+rmin, rmax = 0.05, 0.35
+r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
+eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
+Pf = ScalarField("pressure", nodes1)
+nodes1.pressure(Pf)
+P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+if mpi.rank == 0:
+    from SpheralGnuPlotUtilities import multiSort
+    import Pnorm
+    multiSort(r, rho, v, eps, P)
+    rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    for (name, data, ans) in [("Mass Density", rho, rhoans),
+                              ("Pressure", P, Pans),
+                              ("Velocity", v, vans),
+                              ("Thermal E", eps, epsans)]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in xrange(len(data))]
+        Pn = Pnorm.Pnorm(error, r)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
