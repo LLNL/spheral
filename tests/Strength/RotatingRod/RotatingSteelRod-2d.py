@@ -156,9 +156,7 @@ strengthModel = SteinbergGuinanStrengthCGS(eos,
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -171,6 +169,7 @@ nodes = makeSolidNodeList("Stainless steel", eos, strengthModel,
                           hminratio = hminratio,
                           rhoMin = etamin*rho0,
                           rhoMax = etamax*rho0,
+                          kernelExtent = kernelExtent,
                           xmin = Vector(-10*xlength, -10*ylength),  # Box size for neighbor selection
                           xmax = Vector( 10*xlength,  10*ylength))  # Box size for neighbor selection
 
@@ -243,9 +242,8 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,

@@ -106,9 +106,7 @@ if restoreCycle is None:
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 100000)
-WTPi = TableKernel(BSplineKernel(), 100000)
 output("WT")
-output("WTPi")
 
 #===============================================================================
 # Material properties
@@ -175,9 +173,8 @@ gravity = OctTreeGravity(G = G,
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          compatibleEnergyEvolution = compatibleEnergy,
                          gradhCorrection = gradhCorrection,
