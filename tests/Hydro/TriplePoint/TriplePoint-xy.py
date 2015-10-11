@@ -189,12 +189,9 @@ eos3 = GammaLawGasMKS(gamma1, mu, minimumPressure = 0.0)
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -204,17 +201,20 @@ leftNodes = makeFluidNodeList("Left", eos1,
                               hmin = hmin,
                               hmax = hmax,
                               hminratio = hminratio,
-                              nPerh = nPerh)
+                              nPerh = nPerh,
+                              kernelExtent = kernelExtent)
 topNodes = makeFluidNodeList("Top", eos2,
                              hmin = hmin,
                              hmax = hmax,
                              hminratio = hminratio,
-                             nPerh = nPerh)
+                             nPerh = nPerh,
+                             kernelExtent = kernelExtent)
 bottomNodes = makeFluidNodeList("Bottom", eos3,
                                 hmin = hmin,
                                 hmax = hmax,
                                 hminratio = hminratio,
-                                nPerh = nPerh)
+                                nPerh = nPerh,
+                                kernelExtent = kernelExtent)
 nodeSet = (leftNodes, topNodes, bottomNodes)
 for nodes in nodeSet:
     output("nodes.name")
@@ -301,7 +301,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -316,7 +317,8 @@ if SVPH:
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -324,9 +326,8 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT,
-                             WTPi,
-                             q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,

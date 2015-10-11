@@ -185,14 +185,9 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000)
-#WT = TableKernel(BSplineKernel(), 1000)
-#WTPi = WT
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -307,7 +302,8 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -315,7 +311,8 @@ if CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
@@ -342,7 +339,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 

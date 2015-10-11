@@ -387,9 +387,7 @@ strengthPMMA = SteinbergGuinanStrengthCGS(eosPMMA,
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = TableKernel(BSplineKernel(), 1000)
 output('WT')
-output('WTPi')
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
@@ -519,7 +517,8 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-hydro = HydroConstructor(WT, WTPi, q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergy,

@@ -141,9 +141,7 @@ eos = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 WT = TableKernel(KernelConstructor(), 1000)
-WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
-output("WTPi")
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
@@ -228,7 +226,8 @@ output("q.limiter")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = SVPHFacetedHydro(WT, q,
+    hydro = SVPHFacetedHydro(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -241,15 +240,17 @@ if SVPH:
                              xmin = Vector(-100.0),
                              xmax = Vector( 100.0))
 elif CRKSPH:
-    hydro = CRKSPHHydro(WT, WTPi, q,
-                      filter = filter,
-                      cfl = cfl,
-                      compatibleEnergyEvolution = compatibleEnergy,
-                      XSPH = XSPH,
-                      densityUpdate = densityUpdate,
-                      HUpdate = HUpdate)
+    hydro = CRKSPHHydro(W = WT, 
+                        Q = q,
+                        filter = filter,
+                        cfl = cfl,
+                        compatibleEnergyEvolution = compatibleEnergy,
+                        XSPH = XSPH,
+                        densityUpdate = densityUpdate,
+                        HUpdate = HUpdate)
 else:
-    hydro = SPHHydro(WT, WTPi, q,
+    hydro = SPHHydro(W = WT, 
+                     Q = q,
                      cfl = cfl,
                      compatibleEnergyEvolution = compatibleEnergy,
                      gradhCorrection = gradhCorrection,

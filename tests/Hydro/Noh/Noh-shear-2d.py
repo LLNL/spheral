@@ -176,13 +176,9 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000)
-
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -260,7 +256,8 @@ output("q.balsaraShearCorrection")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(WT, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              densityUpdate = densityUpdate,
@@ -273,7 +270,8 @@ if SVPH:
                              xmin = Vector(-1.1, -1.1),
                              xmax = Vector( 1.1,  1.1))
 elif CRKSPH:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT,
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -281,7 +279,8 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(WT, WTPi, q,
+    hydro = HydroConstructor(W = WT, 
+                             Q = q,
                              filter = filter,
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -301,8 +300,6 @@ output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
-
-
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
@@ -313,7 +310,7 @@ if boolReduceViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 
