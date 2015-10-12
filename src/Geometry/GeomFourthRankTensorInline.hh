@@ -2,7 +2,7 @@
 #include <limits.h>
 #include <string>
 
-#include "GeomThirdRankTensor.hh"
+#include "GeomFourthRankTensor.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
@@ -13,9 +13,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor():
-  RankNTensor<nDim, 3, GeomThirdRankTensor>() {
+GeomFourthRankTensor<nDim>::
+GeomFourthRankTensor():
+  RankNTensor<nDim, 4, GeomFourthRankTensor>() {
 }
 
 //------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ GeomThirdRankTensor():
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor(const double val):
-  RankNTensor<nDim, 3, GeomThirdRankTensor>(val) {
+GeomFourthRankTensor<nDim>::
+GeomFourthRankTensor(const double val):
+  RankNTensor<nDim, 4, GeomFourthRankTensor>(val) {
 }
 
 //------------------------------------------------------------------------------
@@ -33,9 +33,9 @@ GeomThirdRankTensor(const double val):
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
-  RankNTensor<nDim, 3, GeomThirdRankTensor>(rhs) {
+GeomFourthRankTensor<nDim>::
+GeomFourthRankTensor(const GeomFourthRankTensor& rhs):
+  RankNTensor<nDim, 4, GeomFourthRankTensor>(rhs) {
 }
 
 //------------------------------------------------------------------------------
@@ -43,8 +43,8 @@ GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-~GeomThirdRankTensor() {
+GeomFourthRankTensor<nDim>::
+~GeomFourthRankTensor() {
 }
 
 //------------------------------------------------------------------------------
@@ -52,10 +52,10 @@ GeomThirdRankTensor<nDim>::
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>&
-GeomThirdRankTensor<nDim>::
-operator=(const GeomThirdRankTensor& rhs) {
-  RankNTensor<nDim, 3, GeomThirdRankTensor>::operator=(rhs);
+GeomFourthRankTensor<nDim>&
+GeomFourthRankTensor<nDim>::
+operator=(const GeomFourthRankTensor& rhs) {
+  RankNTensor<nDim, 4, GeomFourthRankTensor>::operator=(rhs);
   return *this;
 }
 
@@ -64,10 +64,10 @@ operator=(const GeomThirdRankTensor& rhs) {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>&
-GeomThirdRankTensor<nDim>::
+GeomFourthRankTensor<nDim>&
+GeomFourthRankTensor<nDim>::
 operator=(const double rhs) {
-  RankNTensor<nDim, 3, GeomThirdRankTensor>::operator=(rhs);
+  RankNTensor<nDim, 4, GeomFourthRankTensor>::operator=(rhs);
   return *this;
 }
 
@@ -77,21 +77,23 @@ operator=(const double rhs) {
 template<int nDim>
 inline
 double
-GeomThirdRankTensor<nDim>::
-operator()(const GeomThirdRankTensor::size_type i,
-           const GeomThirdRankTensor::size_type j,
-           const GeomThirdRankTensor::size_type k) const {
-  return mElements[(i*nDim + j)*nDim + k];
+GeomFourthRankTensor<nDim>::
+operator()(const GeomFourthRankTensor::size_type i,
+           const GeomFourthRankTensor::size_type j,
+           const GeomFourthRankTensor::size_type k,
+           const GeomFourthRankTensor::size_type m) const {
+  return mElements[((i*nDim + j)*nDim + k)*nDim + m];
 }
 
 template<int nDim>
 inline
 double&
-GeomThirdRankTensor<nDim>::
-operator()(const GeomThirdRankTensor::size_type i,
-           const GeomThirdRankTensor::size_type j,
-           const GeomThirdRankTensor::size_type k) {
-  return mElements[(i*nDim + j)*nDim + k];
+GeomFourthRankTensor<nDim>::
+operator()(const GeomFourthRankTensor::size_type i,
+           const GeomFourthRankTensor::size_type j,
+           const GeomFourthRankTensor::size_type k,
+           const GeomFourthRankTensor::size_type m) {
+  return mElements[((i*nDim + j)*nDim + k)*nDim + m];
 }
 
 }
