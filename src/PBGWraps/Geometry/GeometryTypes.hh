@@ -17,6 +17,7 @@
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/GeomPolygon.hh"
 #include "Geometry/GeomPolyhedron.hh"
+#include "Geometry/invertRankNTensor.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;

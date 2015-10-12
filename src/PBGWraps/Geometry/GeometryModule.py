@@ -430,10 +430,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # Misc methods.
-        x.add_function_as_method("printReprThirdRankTensor", "std::string", [param(me, "self")],
-                                 template_parameters = [me],
-                                 custom_name = "__repr__")
+        # # Misc methods.
+        # x.add_function_as_method("printReprThirdRankTensor", "std::string", [param(me, "self")],
+        #                          template_parameters = [me],
+        #                          custom_name = "__repr__")
     
         return
 
@@ -455,10 +455,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # Misc methods.
-        x.add_function_as_method("printReprFourthRankTensor", "std::string", [param(me, "self")],
-                                 template_parameters = [me],
-                                 custom_name = "__repr__")
+        # # Misc methods.
+        # x.add_function_as_method("printReprFourthRankTensor", "std::string", [param(me, "self")],
+        #                          template_parameters = [me],
+        #                          custom_name = "__repr__")
     
         return
 
@@ -861,6 +861,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
     #-------------------------------------------------------------------------------
     def addDimFunctions(self, space, ndim):
 
+        fourthranktensor = "FourthRankTensor%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
@@ -872,4 +873,11 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                            template_parameters = ["Dim<%i> " % ndim],
                            custom_name = "computeEigenValues",
                            docstring = "Compute the eigen values & vectors for a field of symmetric tensors.")
+
+        space.add_function("invertRankNTensor", fourthranktensor,
+                           [constrefparam(fourthranktensor, "tensor")],
+                           template_parameters = [fourthranktensor],
+                           custom_name = "invertRankNTensor",
+                           docstring = "Invert a fouth rank tensor.")
+
         return
