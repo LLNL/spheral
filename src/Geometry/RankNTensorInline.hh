@@ -166,7 +166,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator+(const RankNTensor& rhs) const {
-  Descendant result(*this);
+  Descendant result(dynamic_cast<const Descendant&>(*this));
   result += rhs;
   return result;
 }
@@ -217,7 +217,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator*(const double rhs) const {
-  Descendant result(*this);
+  Descendant result(dynamic_cast<const Descendant&>(*this));
   result *= rhs;
   return result;
 }
@@ -231,7 +231,7 @@ Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator/(const double rhs) const {
   REQUIRE(rhs != 0.0);
-  Descendant result(*this);
+  Descendant result(dynamic_cast<const Descendant&>(*this));
   result /= rhs;
   return result;
 }
@@ -358,7 +358,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 squareElements() const {
-  Descendant result(*this);
+  Descendant result(dynamic_cast<const Descendant&>(*this));
   for (size_type i = 1; i != Descendant::numElements; ++i) 
     result.mElements[i] *= mElements[i];
   return result;
@@ -388,8 +388,8 @@ template<int nDim, int rank, typename Descendant>
 inline
 Descendant
 operator*(const double lhs,
-          const Descendant& rhs) {
-  Descendant result(rhs);
+          const RankNTensor<nDim, rank, Descendant>& rhs) {
+  Descendant result(dynamic_cast<const Descendant&>(rhs));
   result *= lhs;
   return result;
 }
@@ -400,7 +400,7 @@ operator*(const double lhs,
 template<int nDim, int rank, typename Descendant>
 inline
 std::istream&
-operator>>(std::istream& is, RankNTensor<nDim,rank, Descendant>& ten) {
+operator>>(std::istream& is, RankNTensor<nDim, rank, Descendant>& ten) {
   std::string parenthesis;
   is >> parenthesis;
   for (typename RankNTensor<nDim,rank, Descendant>::iterator elementItr = ten.begin();
@@ -418,7 +418,7 @@ operator>>(std::istream& is, RankNTensor<nDim,rank, Descendant>& ten) {
 template<int nDim, int rank, typename Descendant>
 inline
 std::ostream&
-operator<<(std::ostream& os, const RankNTensor<nDim,rank,Descendant>& ten) {
+operator<<(std::ostream& os, const RankNTensor<nDim, rank,Descendant>& ten) {
   os << "( ";
   for (typename RankNTensor<nDim,rank,Descendant>::const_iterator itr = ten.begin();
        itr != ten.end(); ++itr) {

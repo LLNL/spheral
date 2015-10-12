@@ -96,4 +96,28 @@ operator()(const GeomFourthRankTensor::size_type i,
   return mElements[((i*nDim + j)*nDim + k)*nDim + m];
 }
 
+//------------------------------------------------------------------------------
+// Have the global functions use the generic RankNTensor methods.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+GeomFourthRankTensor<nDim>
+operator*(const double lhs, const GeomFourthRankTensor<nDim>& rhs) {
+  return lhs * dynamic_cast<const RankNTensor<nDim, 3, GeomFourthRankTensor<nDim> >&>(rhs);
+}
+
+template<int nDim>
+inline
+::std::istream&
+operator>>(std::istream& is, GeomFourthRankTensor<nDim>& rhs) {
+  return operator>>(is, dynamic_cast<const RankNTensor<nDim, 3, GeomFourthRankTensor<nDim> >&>(rhs));
+}
+
+template<int nDim>
+inline
+::std::ostream&
+operator<<(std::ostream& os, const GeomFourthRankTensor<nDim>& rhs) {
+  return operator<<(os, dynamic_cast<const RankNTensor<nDim, 3, GeomFourthRankTensor<nDim> >&>(rhs));
+}
+
 }

@@ -94,4 +94,28 @@ operator()(const GeomThirdRankTensor::size_type i,
   return mElements[(i*nDim + j)*nDim + k];
 }
 
+//------------------------------------------------------------------------------
+// Have the global functions use the generic RankNTensor methods.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+GeomThirdRankTensor<nDim>
+operator*(const double lhs, const GeomThirdRankTensor<nDim>& rhs) {
+  return lhs * dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs);
+}
+
+template<int nDim>
+inline
+::std::istream&
+operator>>(std::istream& is, GeomThirdRankTensor<nDim>& rhs) {
+  return operator>>(is, dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
+}
+
+template<int nDim>
+inline
+::std::ostream&
+operator<<(std::ostream& os, const GeomThirdRankTensor<nDim>& rhs) {
+  return operator<<(os, dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
+}
+
 }

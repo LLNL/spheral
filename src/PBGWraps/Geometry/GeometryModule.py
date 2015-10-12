@@ -27,7 +27,7 @@ class Geometry:
         # Expose types.
         for dim in ("1d", "2d", "3d"):
             exec("""
-self.Vector%(dim)s = addObject(Spheral, "Vector1d")
+self.Vector%(dim)s = addObject(Spheral, "Vector%(dim)s")
 self.Tensor%(dim)s = addObject(Spheral, "Tensor%(dim)s")
 self.SymTensor%(dim)s = addObject(Spheral, "SymTensor%(dim)s")
 self.ThirdRankTensor%(dim)s = addObject(Spheral, "ThirdRankTensor%(dim)s")
@@ -448,10 +448,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         self.addRankNTensorMethods(x, ndim, me)
 
         # Index by indicies.
-        x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k")], custom_name="__call__")
+        x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m")], custom_name="__call__")
         x.add_function_as_method("assignFourthRankTensorElement",
                                  None,
-                                 [param(me, "self"), param("int", "i"), param("int", "j"), param("int", "k"), param("double", "val")],
+                                 [param(me, "self"), param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("double", "val")],
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
