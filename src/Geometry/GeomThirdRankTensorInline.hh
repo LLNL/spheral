@@ -108,7 +108,7 @@ template<int nDim>
 inline
 ::std::istream&
 operator>>(std::istream& is, GeomThirdRankTensor<nDim>& rhs) {
-  return operator>>(is, dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
+  return operator>>(is, dynamic_cast<RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
 }
 
 template<int nDim>
