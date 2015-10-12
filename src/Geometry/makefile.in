@@ -28,6 +28,8 @@ SRCTARGETS = \
 	$(srcdir)/GeomFacet3d.cc \
 	$(srcdir)/GeomPolygon.cc \
 	$(srcdir)/GeomPolyhedron.cc
+INSTSRCTARGETS = \
+	$(srcdir)/invertRankNTensorInst.cc.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
