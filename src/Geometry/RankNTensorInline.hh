@@ -127,10 +127,10 @@ Zero() {
 template<int nDim, int rank, typename Descendant>
 inline
 Descendant
-RankNTensor<nDim,rank, Descendant>::
+RankNTensor<nDim, rank, Descendant>::
 operator-() const {
-  Descendant result;
-  for (size_type i = 0; i != Descendant::numElements; ++i) result.mElements[i] = -mElements[i];
+  Descendant result(dynamic_cast<const Descendant&>(*this));
+  result *= -1.0;
   return result;
 }
 
@@ -360,7 +360,7 @@ RankNTensor<nDim,rank, Descendant>::
 squareElements() const {
   Descendant result(dynamic_cast<const Descendant&>(*this));
   for (size_type i = 1; i != Descendant::numElements; ++i) 
-    result.mElements[i] *= mElements[i];
+    *(result.begin() + i) *= mElements[i];
   return result;
 }
 
