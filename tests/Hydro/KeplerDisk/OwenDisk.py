@@ -1,3 +1,10 @@
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.5 --serialDump=True", label="Kepler SPH balsara, nPerh=1.5 fp=0.5", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --fractionPressureSupport=0.25 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.25", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --fractionPressureSupport=0.05 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.05", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.05 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.05 balsara", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.95 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.95 balsara", np=20)
+#ATS:test(SELF, "--CRKSPH=False --n=50 --cfl=0.25 --Cl=1.0 --Cq=1.0 --filter=0 --nPerh=1.51 --balsaraCorrection=True --fractionPressureSupport=0.25 --serialDump=True", label="Kepler SPH, nPerh=1.5 fp=0.25 balsara", np=20)
+
 #-------------------------------------------------------------------------------
 # This test problem sets up a gas disk in a fixed potential from a softened
 # point mass.  The fractionPressureSupport parameter selects the ratio of
@@ -128,7 +135,7 @@ commandLine(asph = False,
             dtverbose = False,
             
             serialDump = False,
-            serialDumpEach = 10,
+            serialDumpEach = 100,
             
             vizCycle = None,
             vizTime = 0.1,
@@ -157,6 +164,8 @@ else:
 
 # Data output info.
 dataDir = "owen-%i" % n
+dataDir = os.path.join(dataDir, "fp=%f" % (fractionPressureSupport))
+dataDir = os.path.join(dataDir, "CRK=%s-Balsara=%s-nPerh=%f" % (CRKSPH,balsaraCorrection,nPerh))
 restartBaseName = "%s/KeplerianDisk-f=%f-n=%i" % (dataDir,
                                                   fractionPressureSupport,
                                                   n)
