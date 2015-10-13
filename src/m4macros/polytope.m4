@@ -22,12 +22,11 @@ AC_ARG_WITH(triangle,
 [
    AC_MSG_RESULT(yes)
    USE_TRIANGLE=0
-   #POLYTOPELIBS="$POLYTOPELIBS -lvoro_2d"
 ],
 [
    AC_MSG_RESULT(no)
    USE_TRIANGLE=1
-   POLYTOPELIBS="$POLYTOPELIBS -ltriangle"
+   POLYTOPELIBS+=" -ltriangle"
 ]
 )
 
@@ -40,12 +39,11 @@ AC_ARG_WITH(tetgen,
 [
    AC_MSG_RESULT(yes)
    USE_TETGEN=0
-   #POLYTOPELIBS="$POLYTOPELIBS -lvoro_3d"
 ],
 [
    AC_MSG_RESULT(no)
    USE_TETGEN=1
-   POLYTOPELIBS="$POLYTOPELIBS -ltetgen"
+   POLYTOPELIBS+=" -ltetgen"
 ]
 )
 
@@ -66,9 +64,9 @@ AC_ARG_WITH(polytope,
 [
    AC_MSG_RESULT(no)
    USE_POLYTOPE=1
-   EXTRATHIRDPARTYTARGETS+=" $(POLYTOPEBUILDDATE)"
-   POLYTOPEFLAGS="prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
-   POLYTOPELIBS="-lpolytope -lvoro_2d -lvoro_3d"
+   EXTRATHIRDPARTYTARGETS+=" \$(POLYTOPEBUILDDATE)"
+   POLYTOPEFLAGS+=" prefix=\$(prefix) boost_root=\$(prefix) use_python=1 build_tests=0 python_exe=$PYTHON python_version=$PYTHONVERSION"
+   POLYTOPELIBS+=" -lpolytope -lvoro_2d -lvoro_3d"
 ]
 )
 
