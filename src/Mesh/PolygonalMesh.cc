@@ -8,7 +8,9 @@
 #include <sstream>
 #include "boost/foreach.hpp"
 
+#ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
+#endif
 
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
@@ -24,6 +26,7 @@ using namespace boost;
 
 namespace {
 
+#ifndef NOPOLYTOPE
 //------------------------------------------------------------------------------
 // Internal worker method with common code for building from a 2D polytope
 // tessellation.
@@ -143,6 +146,7 @@ void buildFromPolytope(polytope::Tessellation<2, double>& tessellation,
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
 }
+#endif
 
 }
 
@@ -165,6 +169,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::Vector& xmin,
                     const Dim<2>::Vector& xmax) {
 
+#ifndef NOPOLYTOPE
   // Some useful typedefs.
   typedef Dim<2> Dimension;
 
@@ -253,6 +258,7 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -263,6 +269,7 @@ void
 Mesh<Dim<2> >::
 reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     const Dim<2>::FacetedVolume& boundary) {
+#ifndef NOPOLYTOPE
 
   // Some useful typedefs.
   typedef Dim<2> Dimension;
@@ -367,6 +374,8 @@ reconstructInternal(const vector<Dim<2>::Vector>& generators,
                     mNeighborDomains,
                     mSharedNodes,
                     mSharedFaces);
+
+#endif
 }
 
 //------------------------------------------------------------------------------
