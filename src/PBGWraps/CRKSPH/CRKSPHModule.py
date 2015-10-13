@@ -132,18 +132,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
-        # Hull sum density.
-        self.space.add_function("computeHullSumMassDensity", None,
-                                [constrefparam(connectivitymap, "connectivityMap"),
-                                 constrefparam(tablekernel, "W"),
-                                 constrefparam(vectorfieldlist, "position"),
-                                 constrefparam(scalarfieldlist, "mass"),
-                                 constrefparam(symtensorfieldlist, "H"),
-                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
-                                 refparam(scalarfieldlist, "massDensity")],
-                                template_parameters = [dim],
-                                custom_name = "computeHullSumMassDensity%id" % ndim)
-
         # CRKSPH corrections.
         self.space.add_function("computeCRKSPHCorrections", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
@@ -256,11 +244,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                               refparam(polyvolfieldlist, "polyvol"),
                               refparam(scalarfieldlist, "volume")],
                              docstring = "Compute the hull volume for each point in a FieldList of positions.")
-
-        # Compute the centroids.
-        Spheral.add_function("computeVoronoiCentroids", vectorfieldlist,
-                             [constrefparam(vectorfieldlist, "position")],
-                             docstring = "Compute the Voronoi based centroids for each point in a FieldList of positions.")
 
         # Compute the H scaled volume for each point.
         Spheral.add_function("computeHVolumes", None,
