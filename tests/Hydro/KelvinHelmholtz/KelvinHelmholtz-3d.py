@@ -33,8 +33,6 @@ commandLine(nx = 200,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
-            numNodeLists = 2,  # If 2, makes this a two material problem.
-
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -122,7 +120,6 @@ commandLine(nx = 200,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
 
-assert numNodeLists in (1, 2)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -213,7 +210,7 @@ nodesHigh = makeFluidNodeList("High density gas", eos,
                            kernelExtent = kernelExtent,
                            hminratio = hminratio,
                            nPerh = nPerh)
-nodeSet = [nodes1, nodes2]
+nodeSet = [nodesLow, nodesHigh]
 for nodes in nodeSet:
     output("nodes.name")
     output("nodes.hmin")
@@ -225,14 +222,14 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generatorHigh = GenerateNodeDistribution2d(nx1, ny1,
+    generatorHigh = GenerateNodeDistribution3d(nx, ny, nz,
                                             rho = rho2,
                                             distributionType = "lattice",
                                             xmin = (0.0, 0.0, 0.0),
                                             xmax = (1.0, 0.5, 1.0),
                                             nNodePerh = nPerh,
                                             SPH = SPH)
-    generatorLow = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+    generatorLow = GenerateNodeDistribution3d(nx, ny, nz,
                                              rho = rho1,
                                              distributionType = "lattice",
                                              xmin = (0.0, 0.5, 0.0),
@@ -244,78 +241,37 @@ if restoreCycle is None:
     else:
         from DistributeNodes import distributeNodes3d
 
-    if numNodeLists == 2:
-        distributeNodes3d((nodesLow, generatorLow),
-                          (nodesHigh, generatorHigh))
-    else:
-        gen = CompositeNodeDistribution(generatorLow, generatorHigh)
-        distributeNodes2d((nodesLow, gen))
+    distributeNodes3d((nodesLow, generatorLow),
+                      (nodesHigh, generatorHigh))
+
 
     # Finish initial conditions.
     rhom = 0.5*(rho1-rho2)
     vxm = 0.5*(vx1-vx2)
-    if numNodeLists == 2:
-        for (nodes, vx) in ((nodes1, vx1),
-                            (nodes2, vx2)):
-            pos = nodes.positions()
-            vel = nodes.velocity()
-            rho = nodes.massDensity()
-            eps = nodes.specificThermalEnergy()
-            mass = nodes.mass()
-            for i in xrange(nodes.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                rho[i] = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
-    else:
-        pos = nodes1.positions()
-        vel = nodes1.velocity()
-        rho = nodes1.massDensity()
-        eps = nodes1.specificThermalEnergy()
-        mass = nodes1.mass()
-        for i in xrange(nodes1.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
-
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
+    for (nodes, vx) in ((nodesLow, vx1),
+                        (nodesHigh, vx2)):
+        pos = nodes.positions()
+        vel = nodes.velocity()
+        rho = nodes.massDensity()
+        eps = nodes.specificThermalEnergy()
+        mass = nodes.mass()
+        for i in xrange(nodes.numInternalNodes):
+            yval = pos[i].y
+            xval = pos[i].x
+            zval = pos[i].z
+            velx = 0.0
+            rho[i] = 0.0
+            vely = delta*sin(4*pi*xval)*sin(4*pi*zval)
+            if yval >= 0 and yval < 0.5:
+               rho[i]=rho1 + rhom*exp((yval-0.5)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 + vxm*exp((yval-0.5)/smooth)
+            elif yval >= 0.5 and yval < 1:
+               rho[i]=rho2 - rhom*exp((0.5-yval)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 - vxm*exp((0.5-yval)/smooth)
+            vel[i] = Vector(velx + vxboost, vely + vyboost,0)
+            eps[i] = P1/((gamma - 1.0)*rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -358,8 +314,8 @@ if SVPH:
                              HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
-                             xmin = Vector(-2.0, -2.0),
-                             xmax = Vector(3.0, 3.0))
+                             xmin = Vector(-2.0, -2.0, -2.0),
+                             xmax = Vector(3.0, 3.0,3.0))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
@@ -423,15 +379,21 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xp1 = Plane(Vector(0.0, 0.0), Vector( 1.0, 0.0))
-xp2 = Plane(Vector(1.0, 0.0), Vector(-1.0, 0.0))
-yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
-xbc = PeriodicBoundary(xp1, xp2)
-ybc = PeriodicBoundary(yp1, yp2)
-#ybc1 = ReflectingBoundary(yp1)
-#ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc]
+xPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 1.0,  0.0, 0.0))
+xPlane1 = Plane(Vector(1.0, 0.0, 0.0), Vector(-1.0,  0.0, 0.0))
+yPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  1.0, 0.0))
+yPlane1 = Plane(Vector(0.0, 1.0, 0.0), Vector( 0.0, -1.0, 0.0))
+zPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  0.0, 1.0))
+zPlane1 = Plane(Vector(0.0, 0.0, 1.0), Vector( 0.0,  0.0, -1.0))
+
+xbc = PeriodicBoundary(xPlane0, xPlane1)
+#ybc = PeriodicBoundary(yPlane0, yPlane1)
+zbc = PeriodicBoundary(zPlane0, zPlane1)
+
+ybc1 = ReflectingBoundary(yPlane0)
+ybc2 = ReflectingBoundary(yPlane1)
+
+bcSet = [xbc, zbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
