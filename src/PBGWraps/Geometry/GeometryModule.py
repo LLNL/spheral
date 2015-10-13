@@ -484,9 +484,9 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
     def addRankNTensorMethods(self, x, ndim, me):
     
         # Instance attributes.
-        x.add_static_attribute("nrank", "int", True)
-        x.add_static_attribute("nDimensions", "int", True)
-        x.add_static_attribute("numElements", "int", True)
+        x.add_static_attribute("nrank", "unsigned int", is_const=True)
+        x.add_static_attribute("nDimensions", "unsigned int", is_const=True)
+        x.add_static_attribute("numElements", "unsigned int", is_const=True)
     
         # Constructors.
         x.add_constructor([])
