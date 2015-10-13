@@ -20,6 +20,7 @@
 #include "GeomSymmetricTensor.hh"
 #include "Geom3Vector.hh"
 #include "GeomThirdRankTensor.hh"
+#include "GeomFourthRankTensor.hh"
 #include "Box1d.hh"
 #include "GeomPolygon.hh"
 #include "GeomPolyhedron.hh"
@@ -40,6 +41,7 @@ public:
   typedef GeomTensor<1> Tensor;
   typedef GeomSymmetricTensor<1> SymTensor;
   typedef GeomThirdRankTensor<1> ThirdRankTensor;
+  typedef GeomFourthRankTensor<1> FourthRankTensor;
   typedef GeomVector<1> WMVector;
   typedef Box1d Box;
   typedef Box1d ConvexHull;
@@ -61,6 +63,7 @@ public:
   typedef GeomTensor<2> Tensor;
   typedef GeomSymmetricTensor<2> SymTensor;
   typedef GeomThirdRankTensor<2> ThirdRankTensor;
+  typedef GeomFourthRankTensor<2> FourthRankTensor;
   typedef GeomPolygon ConvexHull;
   typedef GeomPolygon FacetedVolume;
   static const int nDim;
@@ -80,6 +83,7 @@ public:
   typedef GeomTensor<3> Tensor;
   typedef GeomSymmetricTensor<3> SymTensor;
   typedef GeomThirdRankTensor<3> ThirdRankTensor;
+  typedef GeomFourthRankTensor<3> FourthRankTensor;
   typedef GeomPolyhedron ConvexHull;
   typedef GeomPolyhedron FacetedVolume;
   static const int nDim;
