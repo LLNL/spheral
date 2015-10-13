@@ -319,7 +319,6 @@ all:	$(PYTHONBUILDDATE) \
 	$(SILOBUILDDATE) \
 	$(EIGENBUILDDATE) \
 	$(MPMATHBUILDDATE) \
-	$(POLYTOPEBUILDDATE) \
 	$(OPENSUBDIVTARGETS) \
 	$(EXTRATHIRDPARTYTARGETS) \
 #	$(HYPREBUILDDATE)
@@ -842,7 +841,7 @@ $(HASHMAPBUILDDATE):	$(HASHMAPDIST)
 $(VISITWRITERDIST):
 	$(CURL) "$(VISITWRITERURL)" > $(VISITWRITERDIST)
 
-$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST) $(POLYTOPEBUILDDATE)
+$(VISITWRITERBUILDDATE):  $(VISITWRITERDIST)
 	@echo "################################################################################"
 	@echo "# Building $(VISITWRITERDIST)"
 	@echo "################################################################################"

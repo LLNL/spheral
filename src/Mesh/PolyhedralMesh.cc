@@ -8,7 +8,9 @@
 #include <sstream>
 #include "boost/foreach.hpp"
 
+#ifndef NOPOLYTOPE
 #include "polytope/polytope.hh"
+#endif
 
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
@@ -40,6 +42,7 @@ Mesh<Dim<3> >::
 reconstructInternal(const vector<Dim<3>::Vector>& generators,
                     const Dim<3>::Vector& xmin,
                     const Dim<3>::Vector& xmax) {
+#ifndef NOPOLYTOPE
 
   // Some useful typedefs.
   typedef Dim<3> Dimension;
@@ -189,6 +192,8 @@ reconstructInternal(const vector<Dim<3>::Vector>& generators,
   if (Process::getRank() == 0) cerr << "PolyhedralMesh:: required " 
                                     << Timing::difference(t0, Timing::currentTime())
                                     << " seconds to construct mesh elements." << endl;
+
+#endif
 }
 
 //------------------------------------------------------------------------------
