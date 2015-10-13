@@ -13,7 +13,6 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 INSTSRCTARGETS = \
 	$(srcdir)/computeCRKSPHSumMassDensityInst.cc.py \
 	$(srcdir)/computeSolidCRKSPHSumMassDensityInst.cc.py \
-	$(srcdir)/computeHullSumMassDensityInst.cc.py \
 	$(srcdir)/computeCRKSPHCorrectionsInst.cc.py \
 	$(srcdir)/computeCRKSPHEvaluationInst.cc.py \
 	$(srcdir)/computeCRKSPHIntegralInst.cc.py \
@@ -33,11 +32,11 @@ PYTHONTARGETS = \
 	$(srcdir)/CRKSPHHydros.py \
 	$(srcdir)/SolidCRKSPHHydros.py
 
-# A few of our target files are only valid for certain dimensions.
-ifeq ("yes", "@INST2D@")
-SRCTARGETS += \
-	$(srcdir)/computeVoronoiCentroids2d.cc
-endif
+# # A few of our target files are only valid for certain dimensions.
+# ifeq ("yes", "@INST2D@")
+# SRCTARGETS += \
+# 	$(srcdir)/computeVoronoiCentroids2d.cc
+# endif
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master

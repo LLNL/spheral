@@ -15,7 +15,6 @@
 #include "computeHullVolumes.hh"
 #include "computeNeighborHull.hh"
 #include "computeCRKSPHSumMassDensity.hh"
-#include "computeHullSumMassDensity.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
 #include "computeHVolumes.hh"
@@ -1037,15 +1036,6 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-
-    // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-    // FieldList<Dimension, Scalar> vol = mass/massDensity;
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(vol);
-    // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-    //      boundaryItr != this->boundaryEnd();
-    //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
     computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
