@@ -189,7 +189,7 @@ class HydroStaticProfileConstantTemp3d():
             
             print "dy, dr, rho, y, G, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,units.G,K)
             
-            dy      = dr*(1.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,2.0))
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
             rho     = rho - y*dr
