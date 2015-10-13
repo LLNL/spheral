@@ -11,11 +11,13 @@
 #include "Geometry/GeomTensor.hh"
 #include "Geometry/GeomSymmetricTensor.hh"
 #include "Geometry/GeomThirdRankTensor.hh"
+#include "Geometry/GeomFourthRankTensor.hh"
 #include "Geometry/EigenStruct.hh"
 #include "Geometry/computeEigenValues.hh"
 #include "Geometry/GeomPlane.hh"
 #include "Geometry/GeomPolygon.hh"
 #include "Geometry/GeomPolyhedron.hh"
+#include "Geometry/invertRankNTensor.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;
@@ -40,6 +42,10 @@ typedef GeomSymmetricTensor<3> SymTensor3d;
 typedef GeomThirdRankTensor<1> ThirdRankTensor1d;
 typedef GeomThirdRankTensor<2> ThirdRankTensor2d;
 typedef GeomThirdRankTensor<3> ThirdRankTensor3d;
+
+typedef GeomFourthRankTensor<1> FourthRankTensor1d;
+typedef GeomFourthRankTensor<2> FourthRankTensor2d;
+typedef GeomFourthRankTensor<3> FourthRankTensor3d;
 
 typedef EigenStruct<1> EigenStruct1d;
 typedef EigenStruct<2> EigenStruct2d;
@@ -147,6 +153,21 @@ assignThirdRankTensorElement(TRT& self,
 }
 
 //------------------------------------------------------------------------------
+// Set the given element of a third rank tensor.
+//------------------------------------------------------------------------------
+template<typename TRT>
+inline
+void
+assignFourthRankTensorElement(TRT& self,
+                              const size_t i,
+                              const size_t j,
+                              const size_t k,
+                              const size_t m,
+                              const double val) {
+  self(i,j,k,m) = val;
+}
+
+//------------------------------------------------------------------------------
 // Nice string representations (Vector)
 //------------------------------------------------------------------------------
 template<typename Vector>
@@ -197,6 +218,34 @@ printReprThirdRankTensor(const TRTensor& val) {
       s << "( ";
       for (size_t k = 0; k != TRTensor::nDimensions; ++k) {
         s << val(i, j, k) << " ";
+      }
+      s << ")";
+    }
+    s << ")";
+  }
+  s << ")";
+  return s.str();
+}
+
+//------------------------------------------------------------------------------
+// Nice string representations (FourthRankTensor)
+//------------------------------------------------------------------------------
+template<typename FRTensor>
+inline
+std::string
+printReprFourthRankTensor(const FRTensor& val) {
+  std::stringstream s;
+  s << "Tensor" << FRTensor::nDimensions << "d(";
+  for (size_t i = 0; i != FRTensor::nDimensions; ++i) {
+    s << "( ";
+    for (size_t j = 0; j != FRTensor::nDimensions; ++j) {
+      s << "( ";
+      for (size_t k = 0; k != FRTensor::nDimensions; ++k) {
+        s << "( ";
+        for (size_t m = 0; m != FRTensor::nDimensions; ++m) {
+          s << val(i, j, k, m) << " ";
+        }
+        s << ")";
       }
       s << ")";
     }
