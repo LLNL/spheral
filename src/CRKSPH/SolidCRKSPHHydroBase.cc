@@ -17,7 +17,6 @@
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHSumMassDensity.hh"
 #include "computeSolidCRKSPHSumMassDensity.hh"
-#include "computeHullSumMassDensity.hh"
 #include "gradientCRKSPH.hh"
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -904,20 +903,7 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
     DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-
-    // FieldList<Dimension, Scalar> massDensity0(massDensity);
-    // massDensity0.copyFields();
-    // DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
-    // computeSolidCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity0, coupling, massDensity);
-
     computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
-
-    // computeHullSumMassDensity(connectivityMap, this->kernel(), position, mass, H, coupling, massDensity);
-
-    // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
-    // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
-    // computeHullVolumes(connectivityMap, this->kernel().kernelExtent(), position, H, polyvol, vol);
-    // SPHSpace::computeSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
