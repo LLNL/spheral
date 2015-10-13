@@ -32,6 +32,7 @@ self.Tensor%(dim)s = addObject(Spheral, "Tensor%(dim)s")
 self.SymTensor%(dim)s = addObject(Spheral, "SymTensor%(dim)s")
 self.ThirdRankTensor%(dim)s = addObject(Spheral, "ThirdRankTensor%(dim)s")
 self.FourthRankTensor%(dim)s = addObject(Spheral, "FourthRankTensor%(dim)s")
+self.FifthRankTensor%(dim)s = addObject(Spheral, "FifthRankTensor%(dim)s")
 self.EigenStruct%(dim)s = addObject(Spheral, "EigenStruct%(dim)s")
 self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
 """ % {"dim" : dim})
@@ -108,6 +109,11 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         self.addFourthRankTensorMethods(self.FourthRankTensor1d, 1)
         self.addFourthRankTensorMethods(self.FourthRankTensor2d, 2)
         self.addFourthRankTensorMethods(self.FourthRankTensor3d, 3)
+
+        # Add methods to FifthRankTensors.
+        self.addFifthRankTensorMethods(self.FifthRankTensor1d, 1)
+        self.addFifthRankTensorMethods(self.FifthRankTensor2d, 2)
+        self.addFifthRankTensorMethods(self.FifthRankTensor3d, 3)
 
         # Add methods to EigenStructs.
         self.addEigenStructMethods(self.EigenStruct1d, 1)
@@ -430,15 +436,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # # Misc methods.
-        # x.add_function_as_method("printReprThirdRankTensor", "std::string", [param(me, "self")],
-        #                          template_parameters = [me],
-        #                          custom_name = "__repr__")
-    
         return
 
     #-------------------------------------------------------------------------------
-    # Helper method for wrapping FouthRankTensor.
+    # Helper method for wrapping FourthRankTensor.
     #-------------------------------------------------------------------------------
     def addFourthRankTensorMethods(self, x, ndim):
     
@@ -455,11 +456,26 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # # Misc methods.
-        # x.add_function_as_method("printReprFourthRankTensor", "std::string", [param(me, "self")],
-        #                          template_parameters = [me],
-        #                          custom_name = "__repr__")
+        return
+
+    #-------------------------------------------------------------------------------
+    # Helper method for wrapping FifthRankTensor.
+    #-------------------------------------------------------------------------------
+    def addFifthRankTensorMethods(self, x, ndim):
     
+        me = "FifthRankTensor%id" % ndim
+
+        # Add the base methods.
+        self.addRankNTensorMethods(x, ndim, me)
+
+        # Index by indicies.
+        x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("int", "n")], custom_name="__call__")
+        x.add_function_as_method("assignFifthRankTensorElement",
+                                 None,
+                                 [param(me, "self"), param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("int", "n"), param("double", "val")],
+                                 template_parameters = [me],
+                                 custom_name = "__call__")
+
         return
 
     #-------------------------------------------------------------------------------
@@ -862,6 +878,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
     def addDimFunctions(self, space, ndim):
 
         fourthranktensor = "FourthRankTensor%id" % ndim
+        fifthranktensor = "FifthRankTensor%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim

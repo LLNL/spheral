@@ -2,7 +2,7 @@
 #include <limits.h>
 #include <string>
 
-#include "GeomThirdRankTensor.hh"
+#include "GeomFifthRankTensor.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
@@ -13,9 +13,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor():
-  RankNTensor<nDim, 3, GeomThirdRankTensor>() {
+GeomFifthRankTensor<nDim>::
+GeomFifthRankTensor():
+  RankNTensor<nDim, 5, GeomFifthRankTensor>() {
 }
 
 //------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ GeomThirdRankTensor():
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor(const double val):
-  RankNTensor<nDim, 3, GeomThirdRankTensor>(val) {
+GeomFifthRankTensor<nDim>::
+GeomFifthRankTensor(const double val):
+  RankNTensor<nDim, 5, GeomFifthRankTensor>(val) {
 }
 
 //------------------------------------------------------------------------------
@@ -33,9 +33,9 @@ GeomThirdRankTensor(const double val):
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
-  RankNTensor<nDim, 3, GeomThirdRankTensor>(rhs) {
+GeomFifthRankTensor<nDim>::
+GeomFifthRankTensor(const GeomFifthRankTensor& rhs):
+  RankNTensor<nDim, 5, GeomFifthRankTensor>(rhs) {
 }
 
 //------------------------------------------------------------------------------
@@ -43,8 +43,8 @@ GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>::
-~GeomThirdRankTensor() {
+GeomFifthRankTensor<nDim>::
+~GeomFifthRankTensor() {
 }
 
 //------------------------------------------------------------------------------
@@ -52,10 +52,10 @@ GeomThirdRankTensor<nDim>::
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>&
-GeomThirdRankTensor<nDim>::
-operator=(const GeomThirdRankTensor& rhs) {
-  RankNTensor<nDim, 3, GeomThirdRankTensor>::operator=(rhs);
+GeomFifthRankTensor<nDim>&
+GeomFifthRankTensor<nDim>::
+operator=(const GeomFifthRankTensor& rhs) {
+  RankNTensor<nDim, 5, GeomFifthRankTensor>::operator=(rhs);
   return *this;
 }
 
@@ -64,10 +64,10 @@ operator=(const GeomThirdRankTensor& rhs) {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>&
-GeomThirdRankTensor<nDim>::
+GeomFifthRankTensor<nDim>&
+GeomFifthRankTensor<nDim>::
 operator=(const double rhs) {
-  RankNTensor<nDim, 3, GeomThirdRankTensor>::operator=(rhs);
+  RankNTensor<nDim, 5, GeomFifthRankTensor>::operator=(rhs);
   return *this;
 }
 
@@ -77,23 +77,27 @@ operator=(const double rhs) {
 template<int nDim>
 inline
 double
-GeomThirdRankTensor<nDim>::
-operator()(const GeomThirdRankTensor::size_type i,
-           const GeomThirdRankTensor::size_type j,
-           const GeomThirdRankTensor::size_type k) const {
-  REQUIRE(i < nDim and j < nDim and k < nDim);
-  return mElements[(i*nDim + j)*nDim + k];
+GeomFifthRankTensor<nDim>::
+operator()(const GeomFifthRankTensor::size_type i,
+           const GeomFifthRankTensor::size_type j,
+           const GeomFifthRankTensor::size_type k,
+           const GeomFifthRankTensor::size_type m,
+           const GeomFifthRankTensor::size_type n) const {
+  REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim and n < nDim);
+  return mElements[(((i*nDim + j)*nDim + k)*nDim + m)*nDim + n];
 }
 
 template<int nDim>
 inline
 double&
-GeomThirdRankTensor<nDim>::
-operator()(const GeomThirdRankTensor::size_type i,
-           const GeomThirdRankTensor::size_type j,
-           const GeomThirdRankTensor::size_type k) {
-  REQUIRE(i < nDim and j < nDim and k < nDim);
-  return mElements[(i*nDim + j)*nDim + k];
+GeomFifthRankTensor<nDim>::
+operator()(const GeomFifthRankTensor::size_type i,
+           const GeomFifthRankTensor::size_type j,
+           const GeomFifthRankTensor::size_type k,
+           const GeomFifthRankTensor::size_type m,
+           const GeomFifthRankTensor::size_type n) {
+  REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim and n < nDim);
+  return mElements[(((i*nDim + j)*nDim + k)*nDim + m)*nDim + n];
 }
 
 //------------------------------------------------------------------------------
@@ -101,23 +105,23 @@ operator()(const GeomThirdRankTensor::size_type i,
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
-GeomThirdRankTensor<nDim>
-operator*(const double lhs, const GeomThirdRankTensor<nDim>& rhs) {
-  return lhs * dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs);
+GeomFifthRankTensor<nDim>
+operator*(const double lhs, const GeomFifthRankTensor<nDim>& rhs) {
+  return lhs * dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs);
 }
 
 template<int nDim>
 inline
 ::std::istream&
-operator>>(std::istream& is, GeomThirdRankTensor<nDim>& rhs) {
-  return operator>>(is, dynamic_cast<RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
+operator>>(std::istream& is, GeomFifthRankTensor<nDim>& rhs) {
+  return operator>>(is, dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
 }
 
 template<int nDim>
 inline
 ::std::ostream&
-operator<<(std::ostream& os, const GeomThirdRankTensor<nDim>& rhs) {
-  return operator<<(os, dynamic_cast<const RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> >&>(rhs));
+operator<<(std::ostream& os, const GeomFifthRankTensor<nDim>& rhs) {
+  return operator<<(os, dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
 }
 
 }
