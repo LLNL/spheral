@@ -52,6 +52,20 @@ namespace Spheral {
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradAc,
                              FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradBc);
 
+    // Quadratic Correction Version assuming full pair-wise node coupling
+    template<typename Dimension>
+    void
+    computeCRKSPHCorrections(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                             const KernelSpace::TableKernel<Dimension>& W,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
+                             const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Vector>& gradA,
+                             FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& gradB,
+                             FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC);
   }
 }
 

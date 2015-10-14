@@ -24,6 +24,7 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                  XSPH = True,
                  densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
+                 correctionOrder = LinearOrder,
                  epsTensile = 0.0,
                  nTensile = 4.0):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -41,6 +42,7 @@ class %(classname)s%(dim)s(SolidCRKSPHHydroBase%(dim)s):
                                              XSPH,
                                              densityUpdate,
                                              HUpdate,
+                                             correctionOrder,
                                              epsTensile,
                                              nTensile)
         return
