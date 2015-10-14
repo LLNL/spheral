@@ -185,7 +185,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         x.add_instance_attribute("y", "double", False, "y", "y")
         x.add_instance_attribute("z", "double", False, "z", "z")
     
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "index")], custom_name="__call__")
     
         # Add sequence methods.
@@ -300,7 +300,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         x.add_instance_attribute("zy", "double", False, "zy", "zy")
         x.add_instance_attribute("zz", "double", False, "zz", "zz")
     
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "row"), param("int", "column")], custom_name="__call__")
         x.add_function_as_method("assignSecondRankTensorElement",
                                  None,
@@ -435,7 +435,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         # Add the base methods.
         self.addRankNTensorMethods(x, ndim, me)
 
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k")], custom_name="__call__")
         x.add_function_as_method("assignThirdRankTensorElement",
                                  None,
@@ -455,7 +455,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         # Add the base methods.
         self.addRankNTensorMethods(x, ndim, me)
 
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m")], custom_name="__call__")
         x.add_function_as_method("assignFourthRankTensorElement",
                                  None,
@@ -475,7 +475,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         # Add the base methods.
         self.addRankNTensorMethods(x, ndim, me)
 
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("int", "n")], custom_name="__call__")
         x.add_function_as_method("assignFifthRankTensorElement",
                                  None,
@@ -494,6 +494,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         x.add_static_attribute("nrank", "unsigned int", is_const=True)
         x.add_static_attribute("nDimensions", "unsigned int", is_const=True)
         x.add_static_attribute("numElements", "unsigned int", is_const=True)
+        x.add_static_attribute("zero", me, True)
     
         # Constructors.
         x.add_constructor([])

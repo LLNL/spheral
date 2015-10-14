@@ -27,6 +27,9 @@ commandLine(
     hmin = 0.0001, 
     hmax = 10.0,
 
+    # What order of reproducing kernel should we use (0,1,2)?
+    correctionOrder = 1,
+    
     # Should we randomly perturb the positions?
     ranfrac = 0.2,
     seed = 14892042,
@@ -239,8 +242,10 @@ dfCRKSPH = VectorField("CRKSPH derivative values", nodes1)
 
 A_fl = db.newFluidScalarFieldList(0.0, "A")
 B_fl = db.newFluidVectorFieldList(Vector.zero, "B")
+C_fl = db.newFluidTensorFieldList(Tensor.zero, "C")
 gradA_fl = db.newFluidVectorFieldList(Vector.zero, "gradA")
 gradB_fl = db.newFluidTensorFieldList(Tensor.zero, "gradB")
+gradC_fl = db.newFluidThirdRankTensorFieldList(ThirdRankTensor.zero, "gradB")
 
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
@@ -252,8 +257,8 @@ H_fl = db.fluidHfield
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #weight_fl = db.newFluidScalarFieldList(1.0, "volume")
 #computeHullVolumes(cm, position_fl, polyvol_fl, weight_fl)
-computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, 
-                         A_fl, B_fl, gradA_fl, gradB_fl)
+computeCRKSPHCorrections(cm, WT, weight_fl, position_fl, H_fl, correctionOrder,
+                         A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl)
 
 # Extract the field state for the following calculations.
 positions = position_fl[0]
@@ -261,8 +266,10 @@ weight = weight_fl[0]
 H = H_fl[0]
 A = A_fl[0]
 B = B_fl[0]
+C = C_fl[0]
 gradA = gradA_fl[0]
 gradB = gradB_fl[0]
+gradC = gradC_fl[0]
 
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
@@ -274,8 +281,10 @@ for i in xrange(nodes1.numInternalNodes):
     wi = weight[i]
     Ai = A[i]
     Bi = B[i]
+    Ci = C[i]
     gradAi = gradA[i]
     gradBi = gradB[i]
+    gradCi = gradC[i]
     fi = f[i]
 
     # Self contribution.
@@ -309,19 +318,22 @@ for i in xrange(nodes1.numInternalNodes):
         dummy = 0.0
         gradWRj = Vector()
         WRj, dummy = CRKSPHKernelAndGradient(WT,
-                                           rij,
-                                           -etai,
-                                           Hi,
-                                           Hdeti,
-                                           etaj,
-                                           Hj,
-                                           Hdetj,
-                                           Ai,
-                                           Bi,
-                                           gradAi,
-                                           gradBi,
-                                           gradWRj)
-        assert fuzzyEqual(WRj, CRKSPHKernel(WT, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi), 1.0e-5)
+                                             correctionOrder,
+                                             rij,
+                                             -etai,
+                                             Hi,
+                                             Hdeti,
+                                             etaj,
+                                             Hj,
+                                             Hdetj,
+                                             Ai,
+                                             Bi,
+                                             Ci,
+                                             gradAi,
+                                             gradBi,
+                                             gradCi,
+                                             gradWRj)
+        assert fuzzyEqual(WRj, CRKSPHKernel(WT, correctionOrder, rij, etai, Hdeti, etaj, Hdetj, Ai, Bi, Ci), 1.0e-5)
 
         # Increment our interpolated values.
         fSPH[i] += fj * wj*Wj
@@ -339,11 +351,11 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 f_fl = ScalarFieldList()
 f_fl.appendField(f)
-fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, 
-                               cm, WT)
+fCRKSPH_fl = interpolateCRKSPH(f_fl, position_fl, weight_fl, H_fl, A_fl, B_fl, C_fl,
+                               cm, correctionOrder, WT)
 dfCRKSPH_fl = gradientCRKSPH(f_fl, position_fl, weight_fl, H_fl,
-                             A_fl, B_fl, gradA_fl, gradB_fl,
-                             cm, WT)
+                             A_fl, B_fl, C_fl, gradA_fl, gradB_fl, gradC_fl,
+                             cm, correctionOrder, WT)
 
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
