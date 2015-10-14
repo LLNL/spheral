@@ -39,6 +39,25 @@ HEvolution(const PhysicsSpace::HEvolutionType type) {
 }
 
 //------------------------------------------------------------------------------
+// Choose which order we use for the CRK Corrections
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+CRKSPHSpace::CRKOrder
+CRKSPHHydroBase<Dimension>::correctionOrder() const {
+  return mCorrectionOrder;
+}
+
+template<typename Dimension>
+inline
+void
+CRKSPHHydroBase<Dimension>::
+correctionOrder(const CRKSPHSpace::CRKOrder order) {
+  mCorrectionOrder = order;
+}
+
+
+//------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.
 //------------------------------------------------------------------------------
@@ -328,6 +347,14 @@ B() const {
 
 template<typename Dimension>
 inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+CRKSPHHydroBase<Dimension>::
+C() const {
+  return mC;
+}
+
+template<typename Dimension>
+inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
 gradA() const {
@@ -342,6 +369,14 @@ gradB() const {
   return mGradB;
 }
   
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+CRKSPHHydroBase<Dimension>::
+gradC() const {
+  return mGradC;
+}
+
 template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&

@@ -62,6 +62,7 @@ public:
                        const bool XSPH,
                        const PhysicsSpace::MassDensityType densityUpdate,
                        const PhysicsSpace::HEvolutionType HUpdate,
+                       const CRKSPHSpace::CRKOrder correctionOrder,
                        const double epsTensile,
                        const double nTensile);
 
