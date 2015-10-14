@@ -250,5 +250,158 @@ innerProduct(const typename Dimension::ThirdRankTensor& A,
   return _innerProduct<Dimension, typename Dimension::SymTensor>(A, B);
 }
 
+//------------------------------------------------------------------------------
+// Inner product of a rank 4 tensor with a Vector.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::ThirdRankTensor
+innerProduct(const typename Dimension::FourthRankTensor& A,
+             const typename Dimension::Vector& B) {
+  typename Dimension::ThirdRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k) += A(i,j,k,m)*B(m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::ThirdRankTensor
+innerProduct(const typename Dimension::Vector& A,
+             const typename Dimension::FourthRankTensor& B) {
+  typename Dimension::ThirdRankTensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j,k) += A(m)*B(m,i,j,k);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
+// Inner product of a rank 4 tensor with a rank 2 tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+innerProduct(const typename Dimension::FourthRankTensor& A,
+             const typename Dimension::Tensor& B) {
+  typename Dimension::Tensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j) += A(i,j,k,m)*B(m,k);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+innerProduct(const typename Dimension::FourthRankTensor& A,
+             const typename Dimension::SymTensor& B) {
+  typename Dimension::Tensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j) += A(i,j,k,m)*B(m,k);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+innerProduct(const typename Dimension::Tensor& A,
+             const typename Dimension::FourthRankTensor& B) {
+  typename Dimension::Tensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j) += A(k,m)*B(m,k,i,j);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+innerProduct(const typename Dimension::SymTensor& A,
+             const typename Dimension::FourthRankTensor& B) {
+  typename Dimension::Tensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,j) += A(k,m)*B(m,k,i,j);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
+// Inner product of a rank 4 tensor with a rank 3 tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Vector
+innerProduct(const typename Dimension::FourthRankTensor& A,
+             const typename Dimension::ThirdRankTensor& B) {
+  typename Dimension::Vector C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i) += A(i,j,k,m)*B(m,k,j);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Vector
+innerProduct(const typename Dimension::ThirdRankTensor& A,
+             const typename Dimension::FourthRankTensor& B) {
+  typename Dimension::Vector C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i) += A(j,k,m)*B(m,k,j,i);
+        }
+      }
+    }
+  }
+  return C;
+}
+
 }
 #endif

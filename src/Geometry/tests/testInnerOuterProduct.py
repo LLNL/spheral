@@ -74,7 +74,7 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(type)
             result = innerProduct(x, y)
             answer = 0.0
-            for i in xrange(type.numElements):
+            for i in xrange(dim):
                 answer += x[i]*y[i]
             self.failUnless(result == answer)
         return
@@ -91,8 +91,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(vtype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(vtype.nDimensions):
-                    for j in xrange(vtype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
                         answer[i] += x(i,j)*y(j)
                 self.failUnless(result == answer)
         return
@@ -109,8 +109,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(vtype.nDimensions):
-                    for j in xrange(vtype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
                         answer[i] += x(j)*y(j,i)
                 self.failUnless(result == answer)
         return
@@ -127,8 +127,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(vtype.nDimensions):
-                    for j in xrange(vtype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
                         answer[j] += x(i)*y(i,j)
                 self.failUnless(result == answer)
         return
@@ -145,9 +145,9 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(vtype)
             result = innerProduct(x, y)
             answer = ttype()
-            for i in xrange(vtype.nDimensions):
-                for j in xrange(vtype.nDimensions):
-                    for k in xrange(vtype.nDimensions):
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
                         answer[dim*i + j] += x(i,j,k)*y(k)
             self.failUnless(result == answer)
         return
@@ -164,9 +164,9 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(trttype)
             result = innerProduct(x, y)
             answer = ttype()
-            for i in xrange(vtype.nDimensions):
-                for j in xrange(vtype.nDimensions):
-                    for k in xrange(vtype.nDimensions):
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
                         answer[dim*j + k] += x(i)*y(i,j,k)
             self.failUnless(result == answer)
         return
@@ -185,15 +185,15 @@ class TestInnerProduct(unittest.TestCase):
                     y = fillRandom(t2type)
                     result = innerProduct(x, y)
                     answer = atype()
-                    for i in xrange(atype.nDimensions):
-                        for j in xrange(atype.nDimensions):
-                            for k in xrange(atype.nDimensions):
+                    for i in xrange(dim):
+                        for j in xrange(dim):
+                            for k in xrange(dim):
                                 answer[dim*i + j] += x(i,k)*y(k,j)
                     self.failUnless(result == answer)
         return
 
     #---------------------------------------------------------------------------
-    # tensor . thirdranktensor
+    # thirdranktensor . tensor
     #---------------------------------------------------------------------------
     def testTensorDotThirdRankTensor(self):
         for ttypestring in ("Tensor%id", "SymTensor%id"):
@@ -204,17 +204,17 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = trttype()
-                for i in xrange(ttype.nDimensions):
-                    for j in xrange(ttype.nDimensions):
-                        for k in xrange(ttype.nDimensions):
-                            for m in xrange(ttype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
                                 z = answer(i, j, k) + x(i, j, m)*y(m, k)
                                 answer(i, j, k, z)
                 self.failUnless(result == answer)
         return
 
     #---------------------------------------------------------------------------
-    # thirdranktensor . tensor
+    # tensor . thirdranktensor
     #---------------------------------------------------------------------------
     def testThirdRankTensorDotTensor(self):
         for ttypestring in ("Tensor%id", "SymTensor%id"):
@@ -225,13 +225,139 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(trttype)
                 result = innerProduct(x, y)
                 answer = trttype()
-                for i in xrange(ttype.nDimensions):
-                    for j in xrange(ttype.nDimensions):
-                        for k in xrange(ttype.nDimensions):
-                            for m in xrange(ttype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
                                 z = answer(i, j, k) + x(i, m)*y(m, j, k)
                                 answer(i, j, k, z)
                 self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # fourthranktensor . vector
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDotVector(self):
+        for dim in dims:
+            vtype = eval("Vector%id" % dim)
+            trttype = eval("ThirdRankTensor%id" % dim)
+            frttype = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(frttype)
+            y = fillRandom(vtype)
+            result = innerProduct(x, y)
+            answer = trttype()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            z = answer(i,j,k) + x(i,j,k,m)*y(m)
+                            answer(i, j, k, z)
+            self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # vector . fourthranktensor
+    #---------------------------------------------------------------------------
+    def testVectorDotFourthRankTensor(self):
+        for dim in dims:
+            vtype = eval("Vector%id" % dim)
+            trttype = eval("ThirdRankTensor%id" % dim)
+            frttype = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(vtype)
+            y = fillRandom(frttype)
+            result = innerProduct(x, y)
+            answer = trttype()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            z = answer(i,j,k) + x(m)*y(m,i,j,k)
+                            answer(i, j, k, z)
+            self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # fourthranktensor . tensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDotTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                frttype = eval("FourthRankTensor%id" % dim)
+                ttype = eval(ttypestring % dim)
+                resulttype = eval("Tensor%id" % dim)
+                x = fillRandom(frttype)
+                y = fillRandom(ttype)
+                result = innerProduct(x, y)
+                answer = resulttype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                z = answer(i, j) + x(i, j, k, m)*y(m, k)
+                                answer(i, j, z)
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # tensor . fourthranktensor
+    #---------------------------------------------------------------------------
+    def testTensorDotFourthRankTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                frttype = eval("FourthRankTensor%id" % dim)
+                ttype = eval(ttypestring % dim)
+                resulttype = eval("Tensor%id" % dim)
+                x = fillRandom(ttype)
+                y = fillRandom(frttype)
+                result = innerProduct(x, y)
+                answer = resulttype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                z = answer(i, j) + x(k, m)*y(m, k, i, j)
+                                answer(i, j, z)
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # fourthranktensor . thirdranktensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDotThirdRankTensor(self):
+        for dim in dims:
+            frttype = eval("FourthRankTensor%id" % dim)
+            trttype = eval("ThirdRankTensor%id" % dim)
+            vtype = eval("Vector%id" % dim)
+            x = fillRandom(frttype)
+            y = fillRandom(trttype)
+            result = innerProduct(x, y)
+            answer = vtype()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            answer[i] += x(i, j, k, m)*y(m, k, j)
+            self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # thirdranktensor . fourthranktensor 
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDotFourthRankTensor(self):
+        for dim in dims:
+            frttype = eval("FourthRankTensor%id" % dim)
+            trttype = eval("ThirdRankTensor%id" % dim)
+            vtype = eval("Vector%id" % dim)
+            x = fillRandom(trttype)
+            y = fillRandom(frttype)
+            result = innerProduct(x, y)
+            answer = vtype()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            answer[i] += x(j, k, m)*y(m, k, j, i)
+            self.failUnless(result == answer)
         return
 
     #---------------------------------------------------------------------------
@@ -277,8 +403,8 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(type)
             result = outerProduct(x, y)
             answer = ttype()
-            for i in xrange(type.numElements):
-                for j in xrange(type.numElements):
+            for i in xrange(dim):
+                for j in xrange(dim):
                     answer(i, j, x[i]*y[j])
             self.failUnless(result == answer)
         return
@@ -296,9 +422,9 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(vtype)
                 result = outerProduct(x, y)
                 answer = trttype()
-                for i in xrange(vtype.nDimensions):
-                    for j in xrange(vtype.nDimensions):
-                        for k in xrange(vtype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
                             answer(i, j, k, x(i,j)*y(k))
                 self.failUnless(result == answer)
         return
@@ -316,9 +442,9 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = outerProduct(x, y)
                 answer = trttype()
-                for i in xrange(vtype.nDimensions):
-                    for j in xrange(vtype.nDimensions):
-                        for k in xrange(vtype.nDimensions):
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
                             answer(i, j, k, x(i)*y(j,k))
                 self.failUnless(result == answer)
         return
