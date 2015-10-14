@@ -189,15 +189,18 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
 
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const int numNodeLists = dataBase.numFluidNodeLists();
 
   // Compute the basic velocity gradient.
   const FieldList<Dimension, Scalar> vol = mass/rho;
-  mGradVel = CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, gradA, gradB, connectivityMap, W, NodeCoupling());
+  const int correctionOrder = 1;//Using Linear Correction
+  mGradVel = CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder, W, NodeCoupling());
   sigma = mGradVel;
   sigma.copyFields();
 
@@ -233,7 +236,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Compute the gradient of div vel.
-  gradDivVelocity = CRKSPHSpace::gradientCRKSPH(divVel, position, vol, H, A, B, gradA, gradB, connectivityMap, W, NodeCoupling());
+  gradDivVelocity = CRKSPHSpace::gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder, W, NodeCoupling());
 
   // Apply boundary conditions.
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
