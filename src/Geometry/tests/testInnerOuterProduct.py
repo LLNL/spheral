@@ -98,20 +98,20 @@ class TestInnerProduct(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
-    # tensor . vector
+    #  vector . tensor
     #---------------------------------------------------------------------------
-    def testTensorDotVector(self):
+    def testVectorDotTensor(self):
         for typestring in ("Tensor%id", "SymTensor%id"):
             for dim in dims:
                 vtype = eval("Vector%id" % dim)
                 ttype = eval(typestring % dim)
-                x = fillRandom(ttype)
-                y = fillRandom(vtype)
+                x = fillRandom(vtype)
+                y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = vtype()
                 for i in xrange(vtype.nDimensions):
                     for j in xrange(vtype.nDimensions):
-                        answer[i] += x(i,j)*y(j)
+                        answer[i] += x(j)*y(j,i)
                 self.failUnless(result == answer)
         return
 
@@ -231,6 +231,95 @@ class TestInnerProduct(unittest.TestCase):
                             for m in xrange(ttype.nDimensions):
                                 z = answer(i, j, k) + x(i, m)*y(m, j, k)
                                 answer(i, j, k, z)
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # scalar x value
+    #---------------------------------------------------------------------------
+    def testScalarOuterThing(self):
+        for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
+            for dim in dims:
+                type = eval(typestring % dim)
+                x = rangen.uniform(*ranrange)
+                y = fillRandom(type)
+                result = outerProduct(x, y)
+                answer = type()
+                for i in xrange(type.numElements):
+                    answer[i] = x*y[i]
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # value x scalar
+    #---------------------------------------------------------------------------
+    def testThingOuterScalar(self):
+        for typestring in ("Vector%id", "Tensor%id", "SymTensor%id", "ThirdRankTensor%id"):
+            for dim in dims:
+                type = eval(typestring % dim)
+                x = rangen.uniform(*ranrange)
+                y = fillRandom(type)
+                result = outerProduct(y, x)
+                answer = type()
+                for i in xrange(type.numElements):
+                    answer[i] = x*y[i]
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # vector x vector
+    #---------------------------------------------------------------------------
+    def testVectorOuterVector(self):
+        for dim in dims:
+            type = eval("Vector%id" % dim)
+            ttype = eval("Tensor%id" % dim)
+            x = fillRandom(type)
+            y = fillRandom(type)
+            result = outerProduct(x, y)
+            answer = ttype()
+            for i in xrange(type.numElements):
+                for j in xrange(type.numElements):
+                    answer(i, j, x[i]*y[j])
+            self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    # tensor x vector
+    #---------------------------------------------------------------------------
+    def testTensorOuterVector(self):
+        for typestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                vtype = eval("Vector%id" % dim)
+                ttype = eval(typestring % dim)
+                trttype = eval("ThirdRankTensor%id" % dim)
+                x = fillRandom(ttype)
+                y = fillRandom(vtype)
+                result = outerProduct(x, y)
+                answer = trttype()
+                for i in xrange(vtype.nDimensions):
+                    for j in xrange(vtype.nDimensions):
+                        for k in xrange(vtype.nDimensions):
+                            answer(i, j, k, x(i,j)*y(k))
+                self.failUnless(result == answer)
+        return
+
+    #---------------------------------------------------------------------------
+    #  vector x tensor
+    #---------------------------------------------------------------------------
+    def testVectorOuterTensor(self):
+        for typestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                vtype = eval("Vector%id" % dim)
+                ttype = eval(typestring % dim)
+                trttype = eval("ThirdRankTensor%id" % dim)
+                x = fillRandom(vtype)
+                y = fillRandom(ttype)
+                result = outerProduct(x, y)
+                answer = trttype()
+                for i in xrange(vtype.nDimensions):
+                    for j in xrange(vtype.nDimensions):
+                        for k in xrange(vtype.nDimensions):
+                            answer(i, j, k, x(i)*y(j,k))
                 self.failUnless(result == answer)
         return
 

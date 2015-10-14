@@ -146,6 +146,20 @@ containsGeomType(Type& self,
 }
 
 //------------------------------------------------------------------------------
+// Set the given element of a second rank tensor.
+//------------------------------------------------------------------------------
+template<typename TT>
+inline
+void
+assignSecondRankTensorElement(TT& self,
+                              const size_t i,
+                              const size_t j,
+                              const double val) {
+  VERIFY(i < TT::nDimensions and j < TT::nDimensions);
+  self(i,j) = val;
+}
+
+//------------------------------------------------------------------------------
 // Set the given element of a third rank tensor.
 //------------------------------------------------------------------------------
 template<typename TT>
@@ -161,7 +175,7 @@ assignThirdRankTensorElement(TT& self,
 }
 
 //------------------------------------------------------------------------------
-// Set the given element of a third rank tensor.
+// Set the given element of a fourth rank tensor.
 //------------------------------------------------------------------------------
 template<typename TT>
 inline
@@ -177,7 +191,7 @@ assignFourthRankTensorElement(TT& self,
 }
 
 //------------------------------------------------------------------------------
-// Set the given element of a third rank tensor.
+// Set the given element of a fifth rank tensor.
 //------------------------------------------------------------------------------
 template<typename TT>
 inline
