@@ -228,7 +228,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, mA, mB, mGradA, mGradB);
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -458,7 +458,7 @@ initialize(const typename Dimension::Scalar time,
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, A, B, gradA, gradB);
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -474,7 +474,7 @@ initialize(const typename Dimension::Scalar time,
   // Get the pressure and velocity gradients.
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  DvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, gradA, gradB, connectivityMap, W, NodeCoupling()));
+  DvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
@@ -686,8 +686,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar ci = soundSpeed(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
       const Vector& Bi = B(nodeListi, i);
+      const Tensor& Ci = C(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
       const Tensor& gradBi = gradB(nodeListi, i);
+      const ThirdRankTensor& gradCi = gradC(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
       CHECK2(mi > 0.0, i << " " << mi);
@@ -756,8 +758,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar cj = soundSpeed(nodeListj, j);
               const Scalar Aj = A(nodeListj, j);
               const Vector& Bj = B(nodeListj, j);
+              const Tensor& Cj = C(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
               const Tensor& gradBj = gradB(nodeListj, j);
+              const ThirdRankTensor& gradCj = gradC(nodeListj, j);
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
               CHECK(mj > 0.0);
@@ -794,8 +798,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj;
               Vector gradWi, gradWj;
-              CRKSPHKernelAndGradient(W,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, gradAi, gradBi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, gradAj, gradBj, Wi, gWi, gradWi);
+              CRKSPHKernelAndGradient(W, correctionOrder(),  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
+              CRKSPHKernelAndGradient(W, correctionOrder(), -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
               const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
