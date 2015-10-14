@@ -33,7 +33,8 @@ public:
   typedef unsigned size_type;
 
   // Useful static member data.
-  static const int nDimensions;
+  static const size_type nDimensions;
+  static const size_type numElements;
   static const GeomVector zero;
   static const GeomVector one;
 

@@ -19,6 +19,8 @@
 #include "Geometry/GeomPolygon.hh"
 #include "Geometry/GeomPolyhedron.hh"
 #include "Geometry/invertRankNTensor.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/outerProduct.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;

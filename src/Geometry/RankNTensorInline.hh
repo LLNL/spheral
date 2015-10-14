@@ -76,6 +76,25 @@ operator=(const double rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Return the (index) element using the bracket operator.
+//------------------------------------------------------------------------------
+template<int nDim, int rank, typename Descendant>
+inline
+double
+RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) const {
+  REQUIRE(index < Descendant::numElements);
+  return *(begin() + index);
+}
+
+template<int nDim, int rank, typename Descendant>
+inline
+double&
+RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) {
+  REQUIRE(index < Descendant::numElements);
+  return *(begin() + index);
+}
+
+//------------------------------------------------------------------------------
 // Iterators.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>

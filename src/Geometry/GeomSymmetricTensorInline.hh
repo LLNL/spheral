@@ -33,7 +33,7 @@ GeomSymmetricTensor<2>::elementIndex(const GeomSymmetricTensor<2>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (5 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < mNumElements);
+  ENSURE(result >= 0 and result < numElements);
   return result;
 }
 
@@ -47,7 +47,7 @@ GeomSymmetricTensor<3>::elementIndex(const GeomSymmetricTensor<3>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (7 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < mNumElements);
+  ENSURE(result >= 0 and result < numElements);
   return result;
 }
 
@@ -266,6 +266,25 @@ GeomSymmetricTensor<nDim>::operator()(const typename GeomSymmetricTensor<nDim>::
   REQUIRE(row < nDim);
   REQUIRE(column < nDim);
   return *(begin() + elementIndex(row, column));
+}
+
+//------------------------------------------------------------------------------
+// Return the (index) element using the bracket operator.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+double
+GeomSymmetricTensor<nDim>::operator[](typename GeomSymmetricTensor<nDim>::size_type index) const {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
+}
+
+template<int nDim>
+inline
+double&
+GeomSymmetricTensor<nDim>::operator[](typename GeomSymmetricTensor<nDim>::size_type index) {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
 }
 
 //------------------------------------------------------------------------------
@@ -762,7 +781,7 @@ template<int nDim>
 inline
 typename GeomSymmetricTensor<nDim>::iterator
 GeomSymmetricTensor<nDim>::end() {
-  return &(this->mxx) + mNumElements;
+  return &(this->mxx) + numElements;
 }
 
 template<int nDim>
@@ -776,7 +795,7 @@ template<int nDim>
 inline
 typename GeomSymmetricTensor<nDim>::const_iterator
 GeomSymmetricTensor<nDim>::end() const {
-  return &(this->mxx) + mNumElements;
+  return &(this->mxx) + numElements;
 }
 
 //------------------------------------------------------------------------------

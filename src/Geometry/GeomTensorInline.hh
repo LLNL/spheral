@@ -243,6 +243,25 @@ GeomTensor<nDim>::operator()(const typename GeomTensor<nDim>::size_type row,
 }
 
 //------------------------------------------------------------------------------
+// Return the (index) element using the bracket operator.
+//------------------------------------------------------------------------------
+template<int nDim>
+inline
+double
+GeomTensor<nDim>::operator[](typename GeomTensor<nDim>::size_type index) const {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
+}
+
+template<int nDim>
+inline
+double&
+GeomTensor<nDim>::operator[](typename GeomTensor<nDim>::size_type index) {
+  REQUIRE(index < numElements);
+  return *(begin() + index);
+}
+
+//------------------------------------------------------------------------------
 // Return the individual elements, mapped as:
 //    xx, xy, xz     11, 12, 13
 //    yx, yy, yz  =  21, 22, 23
