@@ -1537,7 +1537,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
-                 offset=None):
+                 offset=None,
+                 rMaxForMassMatching=None):
         
         assert n > 0
         assert rmin < rmax
@@ -1572,10 +1573,16 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             self.densityProfileMethod = densityProfileMethod
         
         # Determine how much total mass there is in the system.
-        self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
-                                                 rmin, rmax,
-                                                 thetaMin, thetaMax,
-                                                 phiMin, phiMax)
+        if rMaxForMassMatching is None:
+            self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+                                                     rmin, rmax,
+                                                     thetaMin, thetaMax,
+                                                     phiMin, phiMax)
+        else:
+            self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
+                                                     0.0, rMaxForMassMatching,
+                                                     thetaMin, thetaMax,
+                                                     phiMin, phiMax)
         print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
             (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
 
