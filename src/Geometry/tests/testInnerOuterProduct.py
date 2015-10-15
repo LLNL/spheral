@@ -45,7 +45,7 @@ class TestInnerProduct(unittest.TestCase):
                 answer = type()
                 for i in xrange(type.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -61,7 +61,7 @@ class TestInnerProduct(unittest.TestCase):
                 answer = type()
                 for i in xrange(type.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ class TestInnerProduct(unittest.TestCase):
             answer = 0.0
             for i in xrange(dim):
                 answer += x[i]*y[i]
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -94,7 +94,7 @@ class TestInnerProduct(unittest.TestCase):
                 for i in xrange(dim):
                     for j in xrange(dim):
                         answer[i] += x(i,j)*y(j)
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -112,7 +112,7 @@ class TestInnerProduct(unittest.TestCase):
                 for i in xrange(dim):
                     for j in xrange(dim):
                         answer[i] += x(j)*y(j,i)
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ class TestInnerProduct(unittest.TestCase):
                 for i in xrange(dim):
                     for j in xrange(dim):
                         answer[j] += x(i)*y(i,j)
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class TestInnerProduct(unittest.TestCase):
                 for j in xrange(dim):
                     for k in xrange(dim):
                         answer[dim*i + j] += x(i,j,k)*y(k)
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ class TestInnerProduct(unittest.TestCase):
                 for j in xrange(dim):
                     for k in xrange(dim):
                         answer[dim*j + k] += x(i)*y(i,j,k)
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -189,7 +189,7 @@ class TestInnerProduct(unittest.TestCase):
                         for j in xrange(dim):
                             for k in xrange(dim):
                                 answer[dim*i + j] += x(i,k)*y(k,j)
-                    self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -210,7 +210,7 @@ class TestInnerProduct(unittest.TestCase):
                             for m in xrange(dim):
                                 z = answer(i, j, k) + x(i, j, m)*y(m, k)
                                 answer(i, j, k, z)
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -231,7 +231,7 @@ class TestInnerProduct(unittest.TestCase):
                             for m in xrange(dim):
                                 z = answer(i, j, k) + x(i, m)*y(m, j, k)
                                 answer(i, j, k, z)
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -252,7 +252,7 @@ class TestInnerProduct(unittest.TestCase):
                         for m in xrange(dim):
                             z = answer(i,j,k) + x(i,j,k,m)*y(m)
                             answer(i, j, k, z)
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -273,7 +273,7 @@ class TestInnerProduct(unittest.TestCase):
                         for m in xrange(dim):
                             z = answer(i,j,k) + x(m)*y(m,i,j,k)
                             answer(i, j, k, z)
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -282,20 +282,20 @@ class TestInnerProduct(unittest.TestCase):
     def testFourthRankTensorDotTensor(self):
         for ttypestring in ("Tensor%id", "SymTensor%id"):
             for dim in dims:
-                frttype = eval("FourthRankTensor%id" % dim)
-                ttype = eval(ttypestring % dim)
-                resulttype = eval("Tensor%id" % dim)
-                x = fillRandom(frttype)
-                y = fillRandom(ttype)
+                r2type = eval(ttypestring % dim)
+                r4type = eval("FourthRankTensor%id" % dim)
+                x = fillRandom(r4type)
+                y = fillRandom(r2type)
                 result = innerProduct(x, y)
-                answer = resulttype()
+                answer = r4type()
                 for i in xrange(dim):
                     for j in xrange(dim):
                         for k in xrange(dim):
                             for m in xrange(dim):
-                                z = answer(i, j) + x(i, j, k, m)*y(m, k)
-                                answer(i, j, z)
-                self.failUnless(result == answer)
+                                for n in xrange(dim):
+                                    z = answer(i, j, k, n) + x(i, j, k, m)*y(m, n)
+                                    answer(i, j, k, n, z)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -304,60 +304,20 @@ class TestInnerProduct(unittest.TestCase):
     def testTensorDotFourthRankTensor(self):
         for ttypestring in ("Tensor%id", "SymTensor%id"):
             for dim in dims:
-                frttype = eval("FourthRankTensor%id" % dim)
-                ttype = eval(ttypestring % dim)
-                resulttype = eval("Tensor%id" % dim)
-                x = fillRandom(ttype)
-                y = fillRandom(frttype)
+                r2type = eval(ttypestring % dim)
+                r4type = eval("FourthRankTensor%id" % dim)
+                x = fillRandom(r2type)
+                y = fillRandom(r4type)
                 result = innerProduct(x, y)
-                answer = resulttype()
+                answer = r4type()
                 for i in xrange(dim):
                     for j in xrange(dim):
                         for k in xrange(dim):
                             for m in xrange(dim):
-                                z = answer(i, j) + x(k, m)*y(m, k, i, j)
-                                answer(i, j, z)
-                self.failUnless(result == answer)
-        return
-
-    #---------------------------------------------------------------------------
-    # fourthranktensor . thirdranktensor
-    #---------------------------------------------------------------------------
-    def testFourthRankTensorDotThirdRankTensor(self):
-        for dim in dims:
-            frttype = eval("FourthRankTensor%id" % dim)
-            trttype = eval("ThirdRankTensor%id" % dim)
-            vtype = eval("Vector%id" % dim)
-            x = fillRandom(frttype)
-            y = fillRandom(trttype)
-            result = innerProduct(x, y)
-            answer = vtype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            answer[i] += x(i, j, k, m)*y(m, k, j)
-            self.failUnless(result == answer)
-        return
-
-    #---------------------------------------------------------------------------
-    # thirdranktensor . fourthranktensor 
-    #---------------------------------------------------------------------------
-    def testThirdRankTensorDotFourthRankTensor(self):
-        for dim in dims:
-            frttype = eval("FourthRankTensor%id" % dim)
-            trttype = eval("ThirdRankTensor%id" % dim)
-            vtype = eval("Vector%id" % dim)
-            x = fillRandom(trttype)
-            y = fillRandom(frttype)
-            result = innerProduct(x, y)
-            answer = vtype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            answer[i] += x(j, k, m)*y(m, k, j, i)
-            self.failUnless(result == answer)
+                                for n in xrange(dim):
+                                    z = answer(i, k, m, n) + x(i, j)*y(j, k, m, n)
+                                    answer(i, k, m, n, z)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -373,7 +333,7 @@ class TestInnerProduct(unittest.TestCase):
                 answer = type()
                 for i in xrange(type.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -389,7 +349,7 @@ class TestInnerProduct(unittest.TestCase):
                 answer = type()
                 for i in xrange(type.numElements):
                     answer[i] = x*y[i]
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -406,7 +366,7 @@ class TestInnerProduct(unittest.TestCase):
             for i in xrange(dim):
                 for j in xrange(dim):
                     answer(i, j, x[i]*y[j])
-            self.failUnless(result == answer)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -426,7 +386,7 @@ class TestInnerProduct(unittest.TestCase):
                     for j in xrange(dim):
                         for k in xrange(dim):
                             answer(i, j, k, x(i,j)*y(k))
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -446,7 +406,7 @@ class TestInnerProduct(unittest.TestCase):
                     for j in xrange(dim):
                         for k in xrange(dim):
                             answer(i, j, k, x(i)*y(j,k))
-                self.failUnless(result == answer)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
 if __name__ == "__main__":
