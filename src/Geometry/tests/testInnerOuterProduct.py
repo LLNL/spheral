@@ -361,7 +361,7 @@ class TestInnerProduct(unittest.TestCase):
                         for m in xrange(dim):
                             for n in xrange(dim):
                                 for p in xrange(dim):
-                                    z = answer(i, j, k, n, p) + x(i, j, k)*y(k, m, n, p)
+                                    z = answer(i, j, m, n, p) + x(i, j, k)*y(k, m, n, p)
                                     answer(i, j, m, n, p, z)
             self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
