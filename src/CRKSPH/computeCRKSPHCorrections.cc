@@ -11,6 +11,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerProduct.hh"
+#include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -323,16 +324,16 @@ computeLinearCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap
 template<typename Dimension>
 void
 computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
-                         const TableKernel<Dimension>& W,
-                         const FieldList<Dimension, typename Dimension::Scalar>& weight,
-                         const FieldList<Dimension, typename Dimension::Vector>& position,
-                         const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         FieldList<Dimension, typename Dimension::Scalar>& A,
-                         FieldList<Dimension, typename Dimension::Vector>& B,
-                         FieldList<Dimension, typename Dimension::Tensor>& C,
-                         FieldList<Dimension, typename Dimension::Vector>& gradA,
-                         FieldList<Dimension, typename Dimension::Tensor>& gradB,
-                         FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC) {
+                                  const TableKernel<Dimension>& W,
+                                  const FieldList<Dimension, typename Dimension::Scalar>& weight,
+                                  const FieldList<Dimension, typename Dimension::Vector>& position,
+                                  const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                  FieldList<Dimension, typename Dimension::Scalar>& A,
+                                  FieldList<Dimension, typename Dimension::Vector>& B,
+                                  FieldList<Dimension, typename Dimension::Tensor>& C,
+                                  FieldList<Dimension, typename Dimension::Vector>& gradA,
+                                  FieldList<Dimension, typename Dimension::Tensor>& gradB,
+                                  FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC) {
 
   // Pre-conditions.
   const size_t numNodeLists = A.size();
@@ -350,12 +351,17 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+
+  const double tiny = 1.0e-30;
 
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
   FieldList<Dimension, Scalar> m0(FieldSpace::Copy);
   FieldList<Dimension, Vector> m1(FieldSpace::Copy);
   FieldList<Dimension, SymTensor> m2(FieldSpace::Copy);
+  FieldList<Dimension, ThirdRankTensor> m3(FieldSpace::Copy);
+  FieldList<Dimension, FourthRankTensor> m4(FieldSpace::Copy);
   FieldList<Dimension, Vector> gradm0(FieldSpace::Copy);
   FieldList<Dimension, Tensor> gradm1(FieldSpace::Copy);
   FieldList<Dimension, ThirdRankTensor> gradm2(FieldSpace::Copy);
@@ -364,6 +370,8 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
     m0.appendNewField("zeroth moment", nodeList, 0.0);
     m1.appendNewField("first moment", nodeList, Vector::zero);
     m2.appendNewField("second moment", nodeList, SymTensor::zero);
+    m3.appendNewField("third moment", nodeList, ThirdRankTensor::zero);
+    m4.appendNewField("fourth moment", nodeList, FourthRankTensor::zero);
     gradm0.appendNewField("grad zeroth moment", nodeList, Vector::zero);
     gradm1.appendNewField("grad first moment", nodeList, Tensor::zero);
     gradm2.appendNewField("grad second moment", nodeList, ThirdRankTensor::zero);
@@ -459,38 +467,41 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
                 gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
               }
             }
+
+            // Third and fourth moment.
+            ThirdRankTensor thpt3;
+            FourthRankTensor thpt4;
+            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                  thpt3(ii,jj,kk) = rij(ii)*rij(jj)*rij(kk);
+                  for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+                    thpt4(ii,jj,kk,mm) = rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                  }
+                }
+              }
+            }
+            m3(nodeListi, i) += wwj*thpt3;
+            m3(nodeListj, j) += wwi*thpt3;
+            m4(nodeListi, i) += wwj*thpt4;
+            m4(nodeListj, j) += wwi*thpt4;
+
           }
         }
       }
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
-      if (i < firstGhostNodei) {
-        const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
-        const Vector m2invm1 = m2inv*m1(nodeListi, i);
-        const Scalar Ainv = m0(nodeListi, i) - m2invm1.dot(m1(nodeListi, i));
-        CHECK(Ainv != 0.0);
-        A(nodeListi, i) = 1.0/Ainv;
-        B(nodeListi, i) = -m2invm1;
-        C(nodeListi, i) = Tensor::zero;
-        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*gradm0(nodeListi, i);
-        gradB(nodeListi, i) = Tensor::zero;
-        gradC(nodeListi, i) = ThirdRankTensor::zero;
-        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-          for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-            for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-              gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*m1(nodeListi, i)(kk)*gradm1(nodeListi, i)(jj,ii);
-              gradA(nodeListi, i)(ii) += A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm1(nodeListi, i)(kk,ii)*m1(nodeListi, i)(jj);
-              gradB(nodeListi, i)(ii,jj) -= m2inv(ii,kk)*gradm1(nodeListi, i)(kk,jj);
-              for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
-                for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                  gradA(nodeListi, i)(ii) -= A(nodeListi, i)*A(nodeListi, i)*m2inv(jj,kk)*gradm2(nodeListi, i)(kk,ll,ii)*m2inv(ll,mm)*m1(nodeListi, i)(mm)*m1(nodeListi, i)(jj);
-                  gradB(nodeListi, i)(ii,jj) += m2inv(ii,kk)*gradm2(nodeListi, i)(kk,ll,jj)*m2inv(ll,mm)*m1(nodeListi, i)(mm);
-                }
-              }
-            }
-          }
-        }
-      }
+      // if (i < firstGhostNodei) {
+      //   const SymTensor m2inv = abs(m2(nodeListi, i).Determinant()) > 1.0e-10 ? m2(nodeListi, i).Inverse() : SymTensor::zero;
+      //   const FourthRankTensor m4inv = invertRankNTensor(m4(nodeListi, i));
+      //   const Scalar Bden = 1.0 - innerProduct<Dimension>(m3(nodeListi, i), innerProduct<Dimension>(m4inv, innerProduct<Dimension>(m3(nodeListi, i), m2inv)));
+      //   B(nodeListi, i) = (-innerProduct<Dimension>(m1(nodeListi, i), m2inv) + 
+      //                      innerProduct<Dimension>(m2(nodeListi, i), innerProduct<Dimension>(m4inv, innerProduct<Dimension>(m3(nodeListi, i), m2inv))))/max(tiny, abs(Bden))*sgn(Bden);
+      //   C(nodeListi, i) = -innerProduct<Dimension>(m2(nodeListi, i) + innerProduct<Dimension>(B(nodeListi, i), m3(nodeListi, i)), m4inv);
+      //   const Scalar Ainv = m0(nodeListi, i) - innerProduct<Dimension>(B(nodeListi, i), m1(nodeListi, i)) + innerProduct<Dimension>(C(nodeListi, i), m2(nodeListi, i));
+      //   CHECK(Ainv != 0.0);
+      //   A(nodeListi, i) = 1.0/Ainv;
+      // }
     }
   }
 }

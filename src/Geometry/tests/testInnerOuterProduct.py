@@ -321,6 +321,52 @@ class TestInnerProduct(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
+    # fourthranktensor . thirdranktensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDotThirdRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r4type)
+            y = fillRandom(r3type)
+            result = innerProduct(x, y)
+            answer = r5type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    z = answer(i, j, k, n, p) + x(i, j, k, m)*y(m, n, p)
+                                    answer(i, j, k, n, p, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    #  thirdranktensor . fourthranktensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDotFourthRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r3type)
+            y = fillRandom(r4type)
+            result = innerProduct(x, y)
+            answer = r5type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    z = answer(i, j, k, n, p) + x(i, j, k)*y(k, m, n, p)
+                                    answer(i, j, m, n, p, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
     # scalar x value
     #---------------------------------------------------------------------------
     def testScalarOuterThing(self):
