@@ -11,6 +11,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Geometry/outerProduct.hh"
 #include "Geometry/innerProduct.hh"
+#include "Geometry/invertRankNTensor.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -568,8 +569,8 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
         gradB(nodeListi, i) = Tensor::zero;
         gradC(nodeListi, i) = ThirdRankTensor::zero;
         //const FourthRankTensor m4Pinv = abs(m4P(nodeListi, i).Determinant()) > 1.0e-10 ? m4P(nodeListi, i).Inverse() : FourthRankTensor::zero;
-        //const FourthRankTensor m4Pinv = m4P(nodeListi, i).Inverse();
-        const FourthRankTensor m4Pinv = FourthRankTensor::zero;
+        const FourthRankTensor m4Pinv = invertRankNTensor(m4P(nodeListi, i));
+        // const FourthRankTensor m4Pinv = FourthRankTensor::zero;
         //const Tensor L2 = m2(nodeListi, i) - m3P(nodeListi, i).dot(m4Pinv.dot(m3(nodeListi, i)));
         //const Tensor L2 = m2(nodeListi, i) - innerProduct<Dimension>(m3P(nodeListi, i),innerProduct<Dimension>(m4Pinv,m3(nodeListi, i)));
         Tensor L2 = Tensor::zero;

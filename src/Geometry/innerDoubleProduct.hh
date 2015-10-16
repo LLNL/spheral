@@ -18,31 +18,55 @@ inline
 typename Dimension::Scalar
 innerDoubleProduct(const typename Dimension::Tensor& A,
                    const typename Dimension::Tensor& B) {
-   return A.doubledot(B);
-}
-
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-innerDoubleProduct(const typename Dimension::SymTensor& A,
-             const typename Dimension::SymTensor& B) {
-   return A.doubledot(B);
+  typename Dimension::Scalar C = 0.0;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      C += A(i,j)*B(j,i);
+    }
+  }
+  return C;
 }
 
 template<typename Dimension>
 inline
 typename Dimension::Scalar
 innerDoubleProduct(const typename Dimension::Tensor& A,
-             const typename Dimension::SymTensor& B) {
-   return A.doubledot(B);
+                   const typename Dimension::SymTensor& B) {
+  typename Dimension::Scalar C = 0.0;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      C += A(i,j)*B(j,i);
+    }
+  }
+  return C;
 }
 
 template<typename Dimension>
 inline
 typename Dimension::Scalar
 innerDoubleProduct(const typename Dimension::SymTensor& A,
-             const typename Dimension::Tensor& B) {
-   return A.doubledot(B);
+                   const typename Dimension::Tensor& B) {
+  typename Dimension::Scalar C = 0.0;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      C += A(i,j)*B(j,i);
+    }
+  }
+  return C;
+}
+
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+innerDoubleProduct(const typename Dimension::SymTensor& A,
+                   const typename Dimension::SymTensor& B) {
+  typename Dimension::Scalar C = 0.0;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      C += A(i,j)*B(j,i);
+    }
+  }
+  return C;
 }
 
 //------------------------------------------------------------------------------
@@ -128,12 +152,11 @@ _innerDoubleProduct(const SecondRankTensor& A,
     for (size_t j = 0; j != Dimension::nDim; ++j) {
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
-          C(k,m) = A(i,j)*B(j,i,k,m);
+          C(k,m) += A(i,j)*B(j,i,k,m);
         }
       }
     }
   }
-  std::cerr << "Yepper : " << C << endl;
   return C;
 }
 
@@ -166,7 +189,7 @@ _innerDoubleProduct(const typename Dimension::FourthRankTensor& A,
     for (size_t j = 0; j != Dimension::nDim; ++j) {
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
-          C(i,j) = A(i,j,k,m)*B(m,k);
+          C(i,j) += A(i,j,k,m)*B(m,k);
         }
       }
     }
@@ -204,7 +227,7 @@ innerDoubleProduct(const typename Dimension::ThirdRankTensor& A,
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
-            C(i,m,n) = A(i,j,k)*B(k,j,m,n);
+            C(i,m,n) += A(i,j,k)*B(k,j,m,n);
           }
         }
       }
@@ -227,7 +250,7 @@ innerDoubleProduct(const typename Dimension::FourthRankTensor& A,
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
-            C(i,j,n) = A(i,j,k,m)*B(m,k,n);
+            C(i,j,n) += A(i,j,k,m)*B(m,k,n);
           }
         }
       }
@@ -251,7 +274,7 @@ innerDoubleProduct(const typename Dimension::FourthRankTensor& A,
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
             for (size_t p = 0; p != Dimension::nDim; ++p) {
-              C(i,j,n,p) = A(i,j,k,m)*B(m,k,n,p);
+              C(i,j,n,p) += A(i,j,k,m)*B(m,k,n,p);
             }
           }
         }
@@ -275,7 +298,7 @@ _innerDoubleProduct(const SecondRankTensor& A,
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
-            C(k,m,n) = A(i,j)*B(j,i,k,m,n);
+            C(k,m,n) += A(i,j)*B(j,i,k,m,n);
           }
         }
       }
@@ -314,7 +337,7 @@ _innerDoubleProduct(const typename Dimension::FifthRankTensor& A,
       for (size_t k = 0; k != Dimension::nDim; ++k) {
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
-            C(i,j,k) = A(i,j,k,m,n)*B(n,m);
+            C(i,j,k) += A(i,j,k,m,n)*B(n,m);
           }
         }
       }
@@ -354,7 +377,7 @@ innerDoubleProduct(const typename Dimension::ThirdRankTensor& A,
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
             for (size_t p = 0; p != Dimension::nDim; ++p) {
-              C(i,m,n,p) = A(i,j,k)*B(k,j,m,n,p);
+              C(i,m,n,p) += A(i,j,k)*B(k,j,m,n,p);
             }
           }
         }
@@ -379,7 +402,7 @@ innerDoubleProduct(const typename Dimension::FifthRankTensor& A,
         for (size_t m = 0; m != Dimension::nDim; ++m) {
           for (size_t n = 0; n != Dimension::nDim; ++n) {
             for (size_t p = 0; p != Dimension::nDim; ++p) {
-              C(i,j,k,p) = A(i,j,k,m,n)*B(n,m,p);
+              C(i,j,k,p) += A(i,j,k,m,n)*B(n,m,p);
             }
           }
         }
@@ -405,7 +428,7 @@ innerDoubleProduct(const typename Dimension::FourthRankTensor& A,
           for (size_t n = 0; n != Dimension::nDim; ++n) {
             for (size_t p = 0; p != Dimension::nDim; ++p) {
               for (size_t q = 0; q != Dimension::nDim; ++q) {
-                C(i,j,n,p,q) = A(i,j,k,m)*B(m,k,n,p,q);
+                C(i,j,n,p,q) += A(i,j,k,m)*B(m,k,n,p,q);
               }
             }
           }
@@ -432,7 +455,7 @@ innerDoubleProduct(const typename Dimension::FifthRankTensor& A,
           for (size_t n = 0; n != Dimension::nDim; ++n) {
             for (size_t p = 0; p != Dimension::nDim; ++p) {
               for (size_t q = 0; q != Dimension::nDim; ++q) {
-                C(i,j,k,p,q) = A(i,j,k,m,n)*B(n,m,p,q);
+                C(i,j,k,p,q) += A(i,j,k,m,n)*B(n,m,p,q);
               }
             }
           }
