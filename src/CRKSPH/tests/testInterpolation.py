@@ -65,6 +65,7 @@ commandLine(
     graphics = True,
     plotKernels = False,
     outputFile = "None",
+    plotSPH = True,
 )
 
 assert testCase in ("linear", "quadratic", "step")
@@ -430,14 +431,16 @@ if graphics:
 
     p1 = generateNewGnuPlot()
     p1.plot(ansdata)
-    p1.replot(SPHdata)
+    if plotSPH:
+     p1.replot(SPHdata)
     p1.replot(CRKSPHdata)
     p1("set key top left")
     p1.title("Interpolated values")
     p1.refresh()
 
     p2 = generateNewGnuPlot()
-    p2.plot(errSPHdata)
+    if plotSPH:
+     p2.plot(errSPHdata)
     p2.replot(errCRKSPHdata)
     p2.title("Error in interpolation")
     p2.refresh()
@@ -466,14 +469,16 @@ if graphics:
 
     p3 = generateNewGnuPlot()
     p3.plot(dansdata)
-    p3.replot(dSPHdata)
+    if plotSPH:
+     p3.replot(dSPHdata)
     p3.replot(dCRKSPHdata)
     p3("set key top left")
     p3.title("Derivative values")
     p3.refresh()
 
     p4 = generateNewGnuPlot()
-    p4.plot(errdSPHdata)
+    if plotSPH:
+     p4.plot(errdSPHdata)
     p4.replot(errdCRKSPHdata)
     p4.title("Error in derivatives")
     p4.refresh()
@@ -496,10 +501,12 @@ if graphics:
         Hdetj = H[j].Determinant()
         Aj = A[j]
         Bj = B[j].x
+        Cj = C[j].xx
         nsamp = 100
         dx = 4.0/nsamp
         W = [WT.kernelValue(abs(i*dx - 2.0), Hdetj) for i in xrange(nsamp)]
-        WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj) for i, x in enumerate(W)]
+        #WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj) for i, x in enumerate(W)]
+        WR = [x*Aj*(1.0 + Bj*(2.0 - i*dx)*hj+Cj*(2.0 - i*dx)*(2.0 - i*dx)*hj*hj) for i, x in enumerate(W)]
         p7.plot(W)
         p7.replot(WR)
         p7.title("Kernel")
@@ -550,10 +557,12 @@ if plotKernels:
         hi = 1.0/Hi.xx
         Ai = A[i]
         Bi = B[i]
+        Ci = C[i]
 
         dx = 2.0*kernelExtent*hi/50
         x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
-        y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
+        #y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
+        y = [Ai*(1.0 + Bi.x*(xi - xj)+Ci.xx*(xi-xj)*(xi-xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
         d = Gnuplot.Data(x, y, with_="lines", inline=True)
         pk.replot(d)
 
