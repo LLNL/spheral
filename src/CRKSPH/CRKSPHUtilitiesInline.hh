@@ -26,12 +26,19 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
            const typename Dimension::Scalar& Ai,
            const typename Dimension::Vector& Bi,
            const typename Dimension::Tensor& Ci) {
+  typedef typename Dimension::Tensor Tensor;
   if(correctionOrder == 0){
       return Ai*W(etaj.magnitude(), Hdetj);
   }else if(correctionOrder == 1){
       return Ai*(1.0 + Bi.dot(rij))*W(etaj.magnitude(), Hdetj);
   }else {//correctionOrder == 2
-      return Ai*(1.0 + Bi.dot(rij)+Ci.dot(rij).dot(rij))*W(etaj.magnitude(), Hdetj);
+      Tensor CiP = Tensor::zero;
+      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+           if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+        }
+      }
+      return Ai*(1.0 + Bi.dot(rij)+CiP.dot(rij).dot(rij))*W(etaj.magnitude(), Hdetj);
   }
 }
 
@@ -61,6 +68,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
                       typename Dimension::Vector& gradWCRKSPH) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
   const std::pair<Scalar, Scalar> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
   const Scalar Wj = WWj.first; 
   if(correctionOrder == 0){
@@ -81,15 +89,27 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
        }
      }
   }else {//correctionOrder == 2
-     //NOT IMPLEMENTED YET
-     WCRKSPH = Ai*(1.0 + Bi.dot(rij) + Ci.dot(rij).dot(rij))*Wj;
+      Tensor CiP = Tensor::zero;
+      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+           if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+        }
+      }
+     WCRKSPH = Ai*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*Wj;
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
      //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*Wj;
      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
          gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
+         if(ii <= jj)gradWCRKSPH(ii) += Ai*Wj*CiP(ii,jj)*rij(jj);
+         if(jj <= ii)gradWCRKSPH(ii) += Ai*Wj*CiP(jj,ii)*rij(jj);
+         for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+            if(jj <= kk)gradWCRKSPH(ii) += Ai*Wj*gradCi(jj,kk,ii)*rij(jj)*rij(kk);
+         }
+    
        }
      }
   }
