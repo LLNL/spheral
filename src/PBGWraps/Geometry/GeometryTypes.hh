@@ -21,6 +21,7 @@
 #include "Geometry/invertRankNTensor.hh"
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
+#include "Geometry/innerDoubleProduct.hh"
 #include "Utilities/DataTypeTraits.hh"
 
 using namespace Spheral;
