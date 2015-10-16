@@ -2131,10 +2131,10 @@ inline
 double
 GeomTensor<2>::
 doubledot(const GeomTensor<2>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->myx)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) +
+          (this->mxx)*(rhs.xy()) + (this->mxy)*(rhs.yy()) +
+          (this->myx)*(rhs.xx()) + (this->myy)*(rhs.yx()) +
+          (this->myx)*(rhs.xy()) + (this->myy)*(rhs.yy()));
 }
 
 template<>
@@ -2142,15 +2142,15 @@ inline
 double
 GeomTensor<3>::
 doubledot(const GeomTensor<3>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxz)*(rhs.xz()) +
-          (this->myx)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()) +
-          (this->myz)*(rhs.yz()) +
-          (this->mzx)*(rhs.zx()) +
-          (this->mzy)*(rhs.zy()) +
-          (this->mzz)*(rhs.zz()));
+  return ((this->mxx)*rhs.xx() + (this->mxy)*rhs.yx() + (this->mxz)*rhs.zx() +
+          (this->mxx)*rhs.xy() + (this->mxy)*rhs.yy() + (this->mxz)*rhs.zy() +
+          (this->mxx)*rhs.xz() + (this->mxy)*rhs.yz() + (this->mxz)*rhs.zz() +
+          (this->myx)*rhs.xx() + (this->myy)*rhs.yx() + (this->myz)*rhs.zx() +
+          (this->myx)*rhs.xy() + (this->myy)*rhs.yy() + (this->myz)*rhs.zy() +
+          (this->myx)*rhs.xz() + (this->myy)*rhs.yz() + (this->myz)*rhs.zz() +
+          (this->mzx)*rhs.xx() + (this->mzy)*rhs.yx() + (this->mzz)*rhs.zx() +
+          (this->mzx)*rhs.xy() + (this->mzy)*rhs.yy() + (this->mzz)*rhs.zy() +
+          (this->mzx)*rhs.xz() + (this->mzy)*rhs.yz() + (this->mzz)*rhs.zz());
 }
 
 //------------------------------------------------------------------------------
@@ -2169,10 +2169,10 @@ inline
 double
 GeomTensor<2>::
 doubledot(const GeomSymmetricTensor<2>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->myx)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()));
+  return ((this->mxx)*(rhs.xx()) + (this->mxy)*(rhs.yx()) +
+          (this->mxx)*(rhs.xy()) + (this->mxy)*(rhs.yy()) +
+          (this->myx)*(rhs.xx()) + (this->myy)*(rhs.yx()) +
+          (this->myx)*(rhs.xy()) + (this->myy)*(rhs.yy()));
 }
 
 template<>
@@ -2180,15 +2180,15 @@ inline
 double
 GeomTensor<3>::
 doubledot(const GeomSymmetricTensor<3>& rhs) const {
-  return ((this->mxx)*(rhs.xx()) +
-          (this->mxy)*(rhs.xy()) +
-          (this->mxz)*(rhs.xz()) +
-          (this->myx)*(rhs.yx()) +
-          (this->myy)*(rhs.yy()) +
-          (this->myz)*(rhs.yz()) +
-          (this->mzx)*(rhs.zx()) +
-          (this->mzy)*(rhs.zy()) +
-          (this->mzz)*(rhs.zz()));
+  return ((this->mxx)*rhs.xx() + (this->mxy)*rhs.yx() + (this->mxz)*rhs.zx() +
+          (this->mxx)*rhs.xy() + (this->mxy)*rhs.yy() + (this->mxz)*rhs.zy() +
+          (this->mxx)*rhs.xz() + (this->mxy)*rhs.yz() + (this->mxz)*rhs.zz() +
+          (this->myx)*rhs.xx() + (this->myy)*rhs.yx() + (this->myz)*rhs.zx() +
+          (this->myx)*rhs.xy() + (this->myy)*rhs.yy() + (this->myz)*rhs.zy() +
+          (this->myx)*rhs.xz() + (this->myy)*rhs.yz() + (this->myz)*rhs.zz() +
+          (this->mzx)*rhs.xx() + (this->mzy)*rhs.yx() + (this->mzz)*rhs.zx() +
+          (this->mzx)*rhs.xy() + (this->mzy)*rhs.yy() + (this->mzz)*rhs.zy() +
+          (this->mzx)*rhs.xz() + (this->mzy)*rhs.yz() + (this->mzz)*rhs.zz());
 }
 
 //------------------------------------------------------------------------------
@@ -2207,10 +2207,10 @@ inline
 double
 GeomTensor<2>::
 selfDoubledot() const {
-  return (FastMath::square(this->mxx) +
-          FastMath::square(this->mxy) +
-          FastMath::square(this->myx) +
-          FastMath::square(this->myy));
+  return ((this->mxx)*(this->mxx) + (this->mxy)*(this->myx) +
+          (this->mxx)*(this->mxy) + (this->mxy)*(this->myy) +
+          (this->myx)*(this->mxx) + (this->myy)*(this->myx) +
+          (this->myx)*(this->mxy) + (this->myy)*(this->myy));
 }
 
 template<>
@@ -2218,15 +2218,15 @@ inline
 double
 GeomTensor<3>::
 selfDoubledot() const {
-  return (FastMath::square(this->mxx) +
-          FastMath::square(this->mxy) +
-          FastMath::square(this->mxz) +
-          FastMath::square(this->myx) +
-          FastMath::square(this->myy) +
-          FastMath::square(this->myz) +
-          FastMath::square(this->mzx) +
-          FastMath::square(this->mzy) +
-          FastMath::square(this->mzz));
+  return ((this->mxx)*(this->mxx) + (this->mxy)*(this->myx) + (this->mxz)*(this->mzx) +
+          (this->mxx)*(this->mxy) + (this->mxy)*(this->myy) + (this->mxz)*(this->mzy) +
+          (this->mxx)*(this->mxz) + (this->mxy)*(this->myz) + (this->mxz)*(this->mzz) +
+          (this->myx)*(this->mxx) + (this->myy)*(this->myx) + (this->myz)*(this->mzx) +
+          (this->myx)*(this->mxy) + (this->myy)*(this->myy) + (this->myz)*(this->mzy) +
+          (this->myx)*(this->mxz) + (this->myy)*(this->myz) + (this->myz)*(this->mzz) +
+          (this->mzx)*(this->mxx) + (this->mzy)*(this->myx) + (this->mzz)*(this->mzx) +
+          (this->mzx)*(this->mxy) + (this->mzy)*(this->myy) + (this->mzz)*(this->mzy) +
+          (this->mzx)*(this->mxz) + (this->mzy)*(this->myz) + (this->mzz)*(this->mzz));
 }
 
 //------------------------------------------------------------------------------

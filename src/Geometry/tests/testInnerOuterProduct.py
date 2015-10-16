@@ -455,5 +455,48 @@ class TestInnerProduct(unittest.TestCase):
                 self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
+    #---------------------------------------------------------------------------
+    # tensor .. tensor
+    #---------------------------------------------------------------------------
+    def testTensorDoubleDotTensor(self):
+        for ttypestring1 in ("Tensor%id", "SymTensor%id"):
+            for ttypestring2 in ("Tensor%id", "SymTensor%id"):
+                for dim in dims:
+                    t1type = eval(ttypestring1 % dim)
+                    t2type = eval(ttypestring2 % dim)
+                    x = fillRandom(t1type)
+                    y = fillRandom(t2type)
+                    result = innerDoubleProduct(x, y)
+                    answer = 0.0
+                    for i in xrange(dim):
+                        for j in xrange(dim):
+                            answer += x(i,j)*x(j,i)
+                    self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # tensor .. fourthranktensor
+    #---------------------------------------------------------------------------
+    def testTensorDoubleDotFourthRankTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                ttype = eval("Tensor%id" % dim)
+                r2type = eval(ttypestring % dim)
+                r4type = eval("FourthRankTensor%id" % dim)
+                x = fillRandom(r2type)
+                y = fillRandom(r4type)
+                result = innerDoubleProduct(x, y)
+                answer = ttype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                z = answer(k, m) + x(i, j)*y(j, i, k, m)
+                                answer[k*dim + m] =  z
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+
+
 if __name__ == "__main__":
     unittest.main()
