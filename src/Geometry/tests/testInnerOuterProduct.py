@@ -17,6 +17,16 @@ rangen = random.Random()
 ranrange = (-1.0, 1.0)
 
 #===============================================================================
+# Compare two tensor'ish types to some tolerance.
+#===============================================================================
+def isEqual(x, y,
+            tol = 1.0e-10):
+    if len(x) != len(y):
+        return False
+    disc = sum([abs(xi - yi) for (xi, yi) in zip(x, y)])/len(x)
+    return disc < tol
+
+#===============================================================================
 # Generate a random geometric type.
 #===============================================================================
 def fillRandom(Constructor):
@@ -366,6 +376,11 @@ class TestInnerProduct(unittest.TestCase):
             self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
+#===============================================================================
+# Test class for outer product.
+#===============================================================================
+class TestOuterProduct(unittest.TestCase):
+
     #---------------------------------------------------------------------------
     # scalar x value
     #---------------------------------------------------------------------------
@@ -455,6 +470,11 @@ class TestInnerProduct(unittest.TestCase):
                 self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
+#===============================================================================
+# Test class for double inner product.
+#===============================================================================
+class TestDoubleInnerProduct(unittest.TestCase):
+
     #---------------------------------------------------------------------------
     # tensor .. tensor
     #---------------------------------------------------------------------------
@@ -467,11 +487,53 @@ class TestInnerProduct(unittest.TestCase):
                     x = fillRandom(t1type)
                     y = fillRandom(t2type)
                     result = innerDoubleProduct(x, y)
+                    result2 = x.doubledot(y)
                     answer = 0.0
                     for i in xrange(dim):
                         for j in xrange(dim):
-                            answer += x(i,j)*x(j,i)
+                            answer += x(i,j)*y(j,i)
                     self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+                    self.failUnless(result2 == answer, "Mismatch: %s != %s" % (result2, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # tensor .. thirdranktensor
+    #---------------------------------------------------------------------------
+    def testTensorDoubleDotThirdRankTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                vtype = eval("Vector%id" % dim)
+                r2type = eval(ttypestring % dim)
+                r3type = eval("ThirdRankTensor%id" % dim)
+                x = fillRandom(r2type)
+                y = fillRandom(r3type)
+                result = innerDoubleProduct(x, y)
+                answer = vtype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            answer[k] += x(i, j)*y(j, i, k)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # thirdranktensor .. tensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDoubleDotTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                vtype = eval("Vector%id" % dim)
+                r2type = eval(ttypestring % dim)
+                r3type = eval("ThirdRankTensor%id" % dim)
+                x = fillRandom(r3type)
+                y = fillRandom(r2type)
+                result = innerDoubleProduct(x, y)
+                answer = vtype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            answer[i] += x(i, j, k)*y(k, j)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
     #---------------------------------------------------------------------------
@@ -492,11 +554,232 @@ class TestInnerProduct(unittest.TestCase):
                         for k in xrange(dim):
                             for m in xrange(dim):
                                 z = answer(k, m) + x(i, j)*y(j, i, k, m)
-                                answer[k*dim + m] =  z
+                                answer(k, m, z)
                 self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
+    #---------------------------------------------------------------------------
+    # fourthranktensor .. tensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDoubleDotTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                ttype = eval("Tensor%id" % dim)
+                r2type = eval(ttypestring % dim)
+                r4type = eval("FourthRankTensor%id" % dim)
+                x = fillRandom(r4type)
+                y = fillRandom(r2type)
+                result = innerDoubleProduct(x, y)
+                answer = ttype()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                z = answer(i, j) + x(i, j, k, m)*y(m, k)
+                                answer(i, j, z)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
 
+    #---------------------------------------------------------------------------
+    # thirdranktensor .. fourthranktensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDoubleDotFourthRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(r3type)
+            y = fillRandom(r4type)
+            result = innerDoubleProduct(x, y)
+            answer = r3type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                z = answer(i, m, n) + x(i, j, k)*y(k, j, m, n)
+                                answer(i, m, n, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    #  fourthranktensor .. thirdranktensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDoubleDotThirdRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(r4type)
+            y = fillRandom(r3type)
+            result = innerDoubleProduct(x, y)
+            answer = r3type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                z = answer(i, j, n) + x(i, j, k, m)*y(m, k, n)
+                                answer(i, j, n, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    #  fourthranktensor .. fourthranktensor
+    #---------------------------------------------------------------------------
+    def testFourthRankTensorDoubleDotFourthRankTensor(self):
+        for dim in dims:
+            r4type = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(r4type)
+            y = fillRandom(r4type)
+            result = innerDoubleProduct(x, y)
+            answer = r4type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    z = answer(i, j, n, p) + x(i, j, k, m)*y(m, k, n, p)
+                                    answer(i, j, n, p, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # tensor .. fifthranktensor
+    #---------------------------------------------------------------------------
+    def testTensorDoubleDotFifthRankTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                r2type = eval(ttypestring % dim)
+                r3type = eval("ThirdRankTensor%id" % dim)
+                r5type = eval("FifthRankTensor%id" % dim)
+                x = fillRandom(r2type)
+                y = fillRandom(r5type)
+                result = innerDoubleProduct(x, y)
+                answer = r3type()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                for n in xrange(dim):
+                                    z = answer(k,m,n) + x(i,j)*y(j,i,k,m,n)
+                                    answer(k,m,n,z)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # fifthranktensor .. tensor
+    #---------------------------------------------------------------------------
+    def testFifthRankTensorDoubleDotTensor(self):
+        for ttypestring in ("Tensor%id", "SymTensor%id"):
+            for dim in dims:
+                r2type = eval(ttypestring % dim)
+                r3type = eval("ThirdRankTensor%id" % dim)
+                r5type = eval("FifthRankTensor%id" % dim)
+                x = fillRandom(r5type)
+                y = fillRandom(r2type)
+                result = innerDoubleProduct(x, y)
+                answer = r3type()
+                for i in xrange(dim):
+                    for j in xrange(dim):
+                        for k in xrange(dim):
+                            for m in xrange(dim):
+                                for n in xrange(dim):
+                                    z = answer(i,j,k) + x(i,j,k,m,n)*y(n,m)
+                                    answer(i,j,k,z)
+                self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # thirdranktensor .. fifthranktensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDoubleDotFifthRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r3type)
+            y = fillRandom(r5type)
+            result = innerDoubleProduct(x, y)
+            answer = r4type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    z = answer(i,m,n,p) + x(i,j,k)*y(k,j,m,n,p)
+                                    answer(i,m,n,p,z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # fifthranktensor .. thirdranktensor
+    #---------------------------------------------------------------------------
+    def testFifthRankTensorDoubleDotThirdRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r5type)
+            y = fillRandom(r3type)
+            result = innerDoubleProduct(x, y)
+            answer = r4type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    z = answer(i,j,k,p) + x(i,j,k,m,n)*y(n,m,p)
+                                    answer(i,j,k,p,z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # fourthranktensor .. fifthranktensor
+    #---------------------------------------------------------------------------
+    def FourthRankTensorDoubleDotFifthRankTensor(self):
+        for dim in dims:
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r4type)
+            y = fillRandom(r5type)
+            result = innerDoubleProduct(x, y)
+            answer = r5type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    for q in xrange(dim):
+                                        z = answer(i,j,n,p,q) + x(i,j,k,m)*y(m,k,n,p,q)
+                                        answer(i,j,n,p,q,z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
+    # fifthranktensor .. fourthranktensor
+    #---------------------------------------------------------------------------
+    def FifthRankTensorDoubleDotFourthRankTensor(self):
+        for dim in dims:
+            r4type = eval("FourthRankTensor%id" % dim)
+            r5type = eval("FifthRankTensor%id" % dim)
+            x = fillRandom(r5type)
+            y = fillRandom(r4type)
+            result = innerDoubleProduct(x, y)
+            answer = r5type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                for p in xrange(dim):
+                                    for q in xrange(dim):
+                                        z = answer(i,j,k,p,q) + x(i,j,k,m,n)*y(n,m,p,q)
+                                        answer(i,j,k,p,q,z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,7 @@
 
 namespace Spheral {
 
+// General form.
 template<typename Tensor>
 Tensor
 invertRankNTensor(const Tensor& tensor) {
@@ -42,3 +43,4 @@ invertRankNTensor(const Tensor& tensor) {
 }
 
 }
+
