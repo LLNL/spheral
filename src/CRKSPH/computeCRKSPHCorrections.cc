@@ -855,7 +855,7 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
               }
             }
             m3(nodeListi, i) += wwj*thpt3;
-            m3(nodeListj, j) += wwi*thpt3;
+            m3(nodeListj, j) -= wwi*thpt3;
             m4(nodeListi, i) += wwj*thpt4;
             m4(nodeListj, j) += wwi*thpt4;
           }
@@ -864,12 +864,33 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
 
       // Based on the moments we can calculate the CRKSPH corrections terms and their gradients.
       if (i < firstGhostNodei) {
+        // const Scalar m0i = m0(nodeListi, i);
+        // const Scalar m1i = m1(nodeListi, i).x();
+        // const Scalar m2i = m2(nodeListi, i).xx();
+        // const Scalar m3i = m3(nodeListi, i)(0,0,0);
+        // const Scalar m4i = m4(nodeListi, i)(0,0,0,0);
+        // const Scalar m2inv = abs(m2i) > 1.0e-30 ? 1.0/m2i : 0.0;
+        // const Scalar L = m3i*m2inv*m3i - m4i;
+        // const Scalar Linv = abs(L) > 1.0e-30 ? 1.0/L : 0.0;
+        // C(nodeListi, i).xx((m2i - m1i*m2inv*m3i)*Linv);
+        // B(nodeListi, i).x(-(m1i + C(nodeListi, i).xx()*m3i)*m2inv);
+        // const Scalar Ainv = m0i + B(nodeListi, i).x()*m1i + C(nodeListi, i).xx()*m2i;
+        // CHECK(Ainv != 0.0);
+        // A(nodeListi, i) = 1.0/Ainv;
+
+        // cerr << " --> " << i << " " 
+        //      << A(nodeListi,i)*(m0i + B(nodeListi, i).x()*m1i + C(nodeListi, i).xx()*m2i) << " "
+        //      << A(nodeListi,i)*(m1i + B(nodeListi, i).x()*m2i + C(nodeListi, i).xx()*m3i) << " "
+        //      << A(nodeListi,i)*(m2i + B(nodeListi, i).x()*m3i + C(nodeListi, i).xx()*m4i) << endl
+        //      << "     " << m0i << " " << m1i << " " << m2i << " " << m3i << " " << m4i << endl
+        //      << "     " << A(nodeListi,i) << " " << B(nodeListi,i) << " " << C(nodeListi, i) << endl;
+
         const Scalar  m0i = m0(nodeListi, i);
         const Vector& m1i = m1(nodeListi, i);
         const SymTensor& m2i = m2(nodeListi, i);
         const ThirdRankTensor& m3i = m3(nodeListi, i);
         const FourthRankTensor& m4i = m4(nodeListi, i);
-        const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-10 ? m2i.Inverse() : SymTensor::zero;
+        const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-20 ? m2i.Inverse() : SymTensor::zero;
         const FourthRankTensor L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
         const FourthRankTensor Linv = invertRankNTensor(L);
         C(nodeListi, i) = innerDoubleProduct<Dimension>(m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i)), Linv);
@@ -1149,7 +1170,8 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          }else if(correctionOrder == 1){
                            computeLinearCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,gradA,gradB);
                          }else if(correctionOrder == 2){
-                           computeQuadraticCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
+                           // computeQuadraticCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
+                           computeQuadraticCRKSPHCorrectionsMike(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
                          }
       
 }
