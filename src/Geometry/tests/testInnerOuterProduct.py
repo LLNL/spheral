@@ -537,6 +537,26 @@ class TestDoubleInnerProduct(unittest.TestCase):
         return
 
     #---------------------------------------------------------------------------
+    # thirdranktensor .. thirdranktensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDoubleDotThirdRankTensor(self):
+        for dim in dims:
+            r2type = eval("Tensor%id" % dim)
+            r3type = eval("ThirdRankTensor%id" % dim)
+            x = fillRandom(r3type)
+            y = fillRandom(r3type)
+            result = innerDoubleProduct(x, y)
+            answer = r2type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            z = answer(i,m) + x(i,j,k)*y(k,j,m)
+                            answer(i,m,z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
+    #---------------------------------------------------------------------------
     # tensor .. fourthranktensor
     #---------------------------------------------------------------------------
     def testTensorDoubleDotFourthRankTensor(self):

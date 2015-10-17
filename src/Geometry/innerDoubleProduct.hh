@@ -140,6 +140,27 @@ innerDoubleProduct(const typename Dimension::ThirdRankTensor& A,
 }
 
 //------------------------------------------------------------------------------
+// A^{ijk} B^{kjm}, Inner double product of two rank 3 tensors.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Tensor
+innerDoubleProduct(const typename Dimension::ThirdRankTensor& A,
+                   const typename Dimension::ThirdRankTensor& B) {
+  typename Dimension::Tensor C;
+  for (size_t i = 0; i != Dimension::nDim; ++i) {
+    for (size_t j = 0; j != Dimension::nDim; ++j) {
+      for (size_t k = 0; k != Dimension::nDim; ++k) {
+        for (size_t m = 0; m != Dimension::nDim; ++m) {
+          C(i,m) += A(i,j,k)*B(k,j,m);
+        }
+      }
+    }
+  }
+  return C;
+}
+
+//------------------------------------------------------------------------------
 // A^{ij} B^{jikm}, Inner double product of a rank 2 tensor with a rank 4 tensor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename SecondRankTensor>
