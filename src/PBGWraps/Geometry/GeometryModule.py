@@ -1207,6 +1207,13 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                            template_parameters=[dim],
                            custom_name="innerDoubleProduct")
 
+        # thirdranktensor .. thirdranktensor
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
         # tensor .. fourthranktensor
         space.add_function("innerDoubleProduct", tensor,
                            [constrefparam(tensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
