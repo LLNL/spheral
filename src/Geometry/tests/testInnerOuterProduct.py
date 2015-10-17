@@ -376,6 +376,27 @@ class TestInnerProduct(unittest.TestCase):
             self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
         return
 
+    #---------------------------------------------------------------------------
+    # thirdranktensor . thirdranktensor
+    #---------------------------------------------------------------------------
+    def testThirdRankTensorDotThirdRankTensor(self):
+        for dim in dims:
+            r3type = eval("ThirdRankTensor%id" % dim)
+            r4type = eval("FourthRankTensor%id" % dim)
+            x = fillRandom(r3type)
+            y = fillRandom(r3type)
+            result = innerProduct(x, y)
+            answer = r4type()
+            for i in xrange(dim):
+                for j in xrange(dim):
+                    for k in xrange(dim):
+                        for m in xrange(dim):
+                            for n in xrange(dim):
+                                z = answer(i, j, k, n, p) + x(i, j, k)*y(k, m, n)
+                                answer(i, j, m, n, z)
+            self.failUnless(result == answer, "Mismatch: %s != %s" % (result, answer))
+        return
+
 #===============================================================================
 # Test class for outer product.
 #===============================================================================
