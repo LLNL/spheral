@@ -491,7 +491,7 @@ if graphics:
                        yFunction = "%s.x",
                        winTitle = "C++ grad CRKSPH",
                        colorNodeLists = False)
-                       
+
     # Plot the kernel shapes as appropriate.
     if testDim == "1d":
         p7 = generateNewGnuPlot()
@@ -529,23 +529,23 @@ if graphics:
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":
-        from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
-        dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
-                                        listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
-                                                        yans, dyans,
-                                                        errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-                                        listOfFieldLists = [weight_fl, 
-                                                            A_fl, B_fl, gradA_fl, gradB_fl,
-                                                            dfCRKSPH_fl])
-        dumper.dump(0.0, 0)
-        # from siloPointmeshDump import siloPointmeshDump
-        # siloPointmeshDump("testInterpolation_%s_2d" % testCase,
-        #                   fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
-        #                             yans, dyans,
-        #                             errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
-        #                   fieldLists = [weight_fl, 
-        #                                 A_fl, B_fl, gradA_fl, gradB_fl,
-        #                                 dfCRKSPH_fl])
+        # from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
+        # dumper = SpheralVoronoiSiloDump("testInterpolation_%s_2d" % testCase,
+        #                                 listOfFields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
+        #                                                 yans, dyans,
+        #                                                 errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
+        #                                 listOfFieldLists = [weight_fl, 
+        #                                                     A_fl, B_fl, gradA_fl, gradB_fl,
+        #                                                     dfCRKSPH_fl])
+        # dumper.dump(0.0, 0)
+        from siloPointmeshDump import siloPointmeshDump
+        siloPointmeshDump("testInterpolation_%s_2d" % testCase,
+                          fields = [fSPH, fCRKSPH, dfSPH, dfCRKSPH,
+                                    yans, dyans,
+                                    errySPH, erryCRKSPH, errdySPH, errdyCRKSPH],
+                          fieldLists = [weight_fl, 
+                                        A_fl, B_fl, gradA_fl, gradB_fl,
+                                        dfCRKSPH_fl])
 
 if plotKernels:
     import Gnuplot
