@@ -6,6 +6,7 @@
 // Created by JMO, Fri Aug  8 16:16:33 PDT 2008
 //----------------------------------------------------------------------------//
 #include "Kernel/TableKernel.hh"
+#include "Geometry/innerDoubleProduct.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -32,13 +33,14 @@ CRKSPHKernel(const KernelSpace::TableKernel<Dimension>& W,
   }else if(correctionOrder == 1){
       return Ai*(1.0 + Bi.dot(rij))*W(etaj.magnitude(), Hdetj);
   }else {//correctionOrder == 2
-      Tensor CiP = Tensor::zero;
-      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-           if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
-        }
-      }
-      return Ai*(1.0 + Bi.dot(rij)+CiP.dot(rij).dot(rij))*W(etaj.magnitude(), Hdetj);
+      // Tensor CiP = Tensor::zero;
+      // for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+      //   for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+      //      if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+      //   }
+      // }
+      // return Ai*(1.0 + Bi.dot(rij)+CiP.dot(rij).dot(rij))*W(etaj.magnitude(), Hdetj);
+    return Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*W(etaj.magnitude(), Hdetj);
   }
 }
 
@@ -89,23 +91,23 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
        }
      }
   }else {//correctionOrder == 2
-      Tensor CiP = Tensor::zero;
-      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-           if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
-        }
-      }
-     WCRKSPH = Ai*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*Wj;
+      // Tensor CiP = Tensor::zero;
+      // for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+      //   for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+      //      if(ii <= jj)CiP(ii,jj)=Ci(ii,jj);
+      //   }
+      // }
+     WCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj;
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
      //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
      gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
-     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij) + CiP.dot(rij).dot(rij))*Wj;
+     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Ci.dot(rij).dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij) + Ci.dot(rij).dot(rij))*Wj;
      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
          gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
-         if(ii <= jj)gradWCRKSPH(ii) += Ai*Wj*CiP(ii,jj)*rij(jj);
-         if(jj <= ii)gradWCRKSPH(ii) += Ai*Wj*CiP(jj,ii)*rij(jj);
+         if(ii <= jj)gradWCRKSPH(ii) += Ai*Wj*Ci(ii,jj)*rij(jj);
+         if(jj <= ii)gradWCRKSPH(ii) += Ai*Wj*Ci(jj,ii)*rij(jj);
          for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
             if(jj <= kk)gradWCRKSPH(ii) += Ai*Wj*gradCi(jj,kk,ii)*rij(jj)*rij(kk);
          }

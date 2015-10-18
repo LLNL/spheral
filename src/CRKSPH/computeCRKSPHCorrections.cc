@@ -2,6 +2,8 @@
 // Compute the CRKSPH corrections.
 //------------------------------------------------------------------------------
 #include <stdio.h>
+#include "Eigen/Dense"
+
 #include "computeCRKSPHCorrections.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -30,6 +32,47 @@ using NodeSpace::NodeList;
 using Geometry::outerProduct;
 using Geometry::innerProduct;
 using Geometry::innerDoubleProduct;
+
+namespace {
+
+//------------------------------------------------------------------------------
+// This is a specialized solver for C used in the quadratic RK "Mike" method.
+// 1D
+void solveC(const Dim<1>::FourthRankTensor& L,
+            const Dim<1>::Tensor& Q,
+            Dim<1>::Tensor& C,
+            const double& tiny = 1.0e-15) {
+  C(0,0) = std::abs(L(0,0,0,0)) > 1.0e-15 ? Q(0,0)/L(0,0,0,0) : 0.0;
+}
+
+// 2D
+void solveC(const Dim<2>::FourthRankTensor& L,
+            const Dim<2>::Tensor& Q,
+            Dim<2>::Tensor& C) {
+  typedef Eigen::Matrix<double, 4, 4, Eigen::RowMajor> MatrixType;
+  typedef Eigen::Matrix<double, 4, 1> VectorType;
+  MatrixType A;
+  VectorType b;
+  A << L(0,0,0,0) , L(1,0,0,0) , L(0,1,0,0) , L(1,1,0,0) ,
+       L(0,0,1,0) , L(1,0,1,0) , L(0,1,1,0) , L(1,1,1,0) ,
+       L(0,0,0,1) , L(1,0,0,1) , L(0,1,0,1) , L(1,1,0,1) ,
+       L(0,0,1,1) , L(1,0,1,1) , L(0,1,1,1) , L(1,1,1,1);
+  b << Q(0,0) , Q(1,0) , Q(0,1) , Q(1,1);
+  VectorType x = A.colPivHouseholderQr().solve(b);
+  C(0,0) = x(0);
+  C(0,1) = x(1);
+  C(1,0) = x(2);
+  C(1,1) = x(3);
+}
+
+// 3D
+void solveC(const Dim<3>::FourthRankTensor& L,
+            const Dim<3>::Tensor& Q,
+            Dim<3>::Tensor& C) {
+}
+//------------------------------------------------------------------------------
+
+}
 
 //------------------------------------------------------------------------------
 // CRKSPH Zeroth Order Corrections Method 
@@ -890,14 +933,33 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
         const SymTensor& m2i = m2(nodeListi, i);
         const ThirdRankTensor& m3i = m3(nodeListi, i);
         const FourthRankTensor& m4i = m4(nodeListi, i);
-        const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-20 ? m2i.Inverse() : SymTensor::zero;
+        const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-15 ? m2i.Inverse() : SymTensor::zero;
         const FourthRankTensor L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
-        const FourthRankTensor Linv = invertRankNTensor(L);
-        C(nodeListi, i) = innerDoubleProduct<Dimension>(m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i)), Linv);
+
+        // const FourthRankTensor Linv = invertRankNTensor(L);
+        // C(nodeListi, i) = innerDoubleProduct<Dimension>(m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i)), Linv);
+
+        // const Tensor L2 = innerDoubleProduct<Dimension>(Tensor::one, L);
+        // const Tensor Q = m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i));
+        // const Tensor Qinv = abs(Q.Determinant()) > 1.0e-15 ? Q.Inverse() : Tensor::zero;
+        // const Tensor Cinv = innerProduct<Dimension>(L2, Qinv);
+        // C(nodeListi, i) = abs(Cinv.Determinant()) > 1.0e-15 ? Cinv.Inverse() : Tensor::zero;
+
+        const Tensor Q = m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i));
+        solveC(L, Q, C(nodeListi, i));
+
         B(nodeListi, i) = -innerProduct<Dimension>((m1i + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i)), m2inv);
         const Scalar Ainv = m0i + innerProduct<Dimension>(B(nodeListi, i), m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i);
         CHECK(Ainv != 0.0);
         A(nodeListi, i) = 1.0/Ainv;
+
+        // cerr << " --> " << i << " " 
+        //      << A(nodeListi,i)*(m0i + B(nodeListi, i).dot(m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i)) << " "
+        //      << A(nodeListi,i)*(m1i + innerProduct<Dimension>(B(nodeListi, i), m2i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i)) << " "
+        //      << A(nodeListi,i)*(m2i + innerProduct<Dimension>(B(nodeListi, i), m3i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m4i)) << endl
+        //      << "     " << m0i << " " << m1i << " " << m2i << " " << m3i << " " << m4i << endl
+        //      << "     " << A(nodeListi,i) << " " << B(nodeListi,i) << " " << C(nodeListi, i) << endl;
+
       }
 
     }
