@@ -109,7 +109,8 @@ commandLine(nx1 = 128,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
-            
+           
+            correctionOrder = LinearOrder, 
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
@@ -120,7 +121,7 @@ commandLine(nx1 = 128,
             redistributeStep = 500,
             sampleFreq = 20,
             dataDir = "dumps-Rayleigh-Taylor-2d_hopkins",
-            outputFile = "None",
+            outputFile = "RT_Hopkins.txt",
             comparisonFile = "None",
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
@@ -155,7 +156,9 @@ dataDir = os.path.join(dataDir,
                        "densityUpdate=%s" % (densityUpdate),
                        "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
+                       "PSPH=%s" % PSPH,
                        "compatible=%s" % compatibleEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
@@ -302,6 +305,7 @@ elif CRKSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -464,7 +468,7 @@ if serialDump:
                     serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
-        f = open(dataDir + "/serialDump.ascii",'w')
+        f = open(outputFile,'w')
         for i in xrange(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()

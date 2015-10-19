@@ -11,6 +11,8 @@ from findLastRestart import *
 from SpheralVisitDump import dumpPhysicsState
 
 from GenerateNodeDistribution2d import *
+from CompositeNodeDistribution import *
+from CentroidalVoronoiRelaxation import *
 
 title("2-D integrated hydro test -- Shearing Planar Noh problem")
 
@@ -65,6 +67,7 @@ commandLine(seed = "lattice",
             hmax = 0.5,
             hminratio = 0.1,
             cfl = 0.5,
+            useVelocityMagnitudeForDt = False,
             XSPH = False,
             PSPH = False,
             epsilonTensile = 0.0,
@@ -96,6 +99,7 @@ commandLine(seed = "lattice",
             rigorousBoundaries = False,
             dtverbose = False,
 
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
@@ -104,6 +108,7 @@ commandLine(seed = "lattice",
             clearDirectories = False,
             vizDerivs = False,
             checkRestart = False,
+            redistributeStep = 500,
             restoreCycle = None,
             restartStep = 1000,
             dataRoot = "dumps-shearingNoh-2d",
@@ -137,8 +142,10 @@ dataDir = os.path.join(dataRoot,
                        "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
+                       "PSPH=%s" % PSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
                        "gradhCorrection=%s" % gradhCorrection,
                        "nx=%i_ny=%i" % (nx, ny))
 restartDir = os.path.join(dataDir, "restarts")
@@ -164,6 +171,12 @@ if mpi.rank == 0:
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
 mpi.barrier()
+
+#-------------------------------------------------------------------------------
+# If we're restarting, find the set of most recent restart files.
+#-------------------------------------------------------------------------------
+if restoreCycle is None:
+    restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -276,6 +289,7 @@ elif CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -283,6 +297,7 @@ else:
                              Q = q,
                              filter = filter,
                              cfl = cfl,
+                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              gradhCorrection = gradhCorrection,
                              densityUpdate = densityUpdate,
@@ -369,6 +384,7 @@ control = SpheralController(integrator, WT,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
+                            redistributeStep = redistributeStep,
                             vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
@@ -410,10 +426,6 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
@@ -476,6 +488,7 @@ if outputFile != "None":
     nodes1.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
     yprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
+    rprof = mpi.reduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
@@ -485,7 +498,9 @@ if outputFile != "None":
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
-        rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
+        import NohAnalyticSolution
+        answer = NohAnalyticSolution.NohSolution(1,
+                                             h0 = nPerh*y1/ny)
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
@@ -513,3 +528,7 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

@@ -104,6 +104,7 @@ commandLine(
     dtverbose = False,
 
     densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = False,
 
@@ -327,6 +328,7 @@ elif CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -523,10 +525,11 @@ if outputFile != "None":
         rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
         L1 = 0.0
+        vazprof = []
         for i in xrange(len(xprof)):
            rhat = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).unitVector()
            vel_vec = Vector(velx[i],vely[i])
-           vaz = (vel_vec - vel_vec.dot(rhat)*rhat).magnitude()
+           vazprof.append((vel_vec - vel_vec.dot(rhat)*rhat).magnitude())
            vans = 0.0
            if rprof[i] < 0.2:
              vans = 5*rprof[i]
@@ -534,15 +537,15 @@ if outputFile != "None":
              vans = 2.0-5.0*rprof[i]
            else:
              vans = 0.0
-           L1 = L1 + abs(vaz-vans)
+           L1 = L1 + abs(vazprof[i]-vans)
         L1 = L1/len(xprof)
         with open("Converge.txt.%s" % nPerh, "a") as myfile:
           myfile.write("%s\t %s\n" % (nx1,L1))
         f = open(outputFile, "w")
         f.write(("# " + 16*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo):
-            f.write((8*"%16.12e " + "%i " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+        for (ri, xi, yi, rhoi, Pi, vi, vaz, epsi, hi, mi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, vazprof, epsprof, hprof, mo):
+            f.write((9*"%16.12e " + "%i " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, vaz, epsi, hi, mi,
                                                                unpackElementUL(packElementDouble(xi)),
                                                                unpackElementUL(packElementDouble(yi)),
                                                                unpackElementUL(packElementDouble(rhoi)),
