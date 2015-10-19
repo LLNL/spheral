@@ -90,6 +90,7 @@ commandLine(KernelConstructor = BSplineKernel,
             statsStep = 10,
             smoothIters = 0,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
@@ -149,7 +150,8 @@ dataDir = os.path.join(dataDir,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "boolReduceViscosity=%s" % boolReduceViscosity,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "Qconstruct=%s" % Qconstructor,
                        "filter=%f" % filter,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
@@ -298,6 +300,7 @@ elif CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -395,7 +398,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            skipInitialPeriodicWork = SVPH,
+                            #skipInitialPeriodicWork = SVPH,
                             SPH = True,        # Only for iterating H
                             )
 output("control")
@@ -430,10 +433,6 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # Plot the results.
@@ -508,34 +507,32 @@ if graphics:
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
-#-------------------------------------------------------------------------------
-# Report the error norms.
-#-------------------------------------------------------------------------------
-rmin, rmax = 0.05, 0.35
-r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
-rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
-v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
-eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
-Pf = ScalarField("pressure", nodes1)
-nodes1.pressure(Pf)
-P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
-if mpi.rank == 0:
-    from SpheralGnuPlotUtilities import multiSort
-    import Pnorm
-    multiSort(r, rho, v, eps, P)
-    rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-    for (name, data, ans) in [("Mass Density", rho, rhoans),
-                              ("Pressure", P, Pans),
-                              ("Velocity", v, vans),
-                              ("Thermal E", eps, epsans)]:
-        assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
-        Pn = Pnorm.Pnorm(error, r)
-        L1 = Pn.gridpnorm(1, rmin, rmax)
-        L2 = Pn.gridpnorm(2, rmin, rmax)
-        Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+    # Report the error norms.
+    rmin, rmax = 0.05, 0.35
+    r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
+    rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
+    v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
+    eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
+    Pf = ScalarField("pressure", nodes1)
+    nodes1.pressure(Pf)
+    P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
+    if mpi.rank == 0:
+        from SpheralGnuPlotUtilities import multiSort
+        import Pnorm
+        multiSort(r, rho, v, eps, P)
+        rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        for (name, data, ans) in [("Mass Density", rho, rhoans),
+                                  ("Pressure", P, Pans),
+                                  ("Velocity", v, vans),
+                                  ("Thermal E", eps, epsans)]:
+            assert len(data) == len(ans)
+            error = [data[i] - ans[i] for i in xrange(len(data))]
+            Pn = Pnorm.Pnorm(error, r)
+            L1 = Pn.gridpnorm(1, rmin, rmax)
+            L2 = Pn.gridpnorm(2, rmin, rmax)
+            Linf = Pn.gridpnorm("inf", rmin, rmax)
+            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -584,3 +581,7 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

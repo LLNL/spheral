@@ -56,6 +56,7 @@ commandLine(nx1 = 256,
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
             order = 5,
+            correctionOrder = LinearOrder,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -156,8 +157,10 @@ dataDir = os.path.join(dataDir,
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
+                       "correctionOrder=%s" % (correctionOrder),
                        "compatibleEnergy=%s" % (compatibleEnergy),
-                       "XSPH=%s" % XSPH,
+                       "PSPH=%s" % (PSPH),
+                       "Cullen=%s" % (boolCullenViscosity),
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
@@ -388,6 +391,7 @@ elif CRKSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -512,13 +516,16 @@ def mixingScale(cycle, t, dt):
     si = []
     ci = []
     di = []
+    ke = []
     for nodeL in nodeSet:
      xprof = mpi.reduce([x.x for x in nodeL.positions().internalValues()], mpi.SUM)
      yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
      vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
+     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
      if mpi.rank == 0:
       for j in xrange (len(xprof)):
+        ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
         if yprof[j] < 0.5:
           si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
           ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
@@ -532,9 +539,10 @@ def mixingScale(cycle, t, dt):
       C=sum(ci)
       D=sum(di)
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
+      KE = max(ke)
       print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
       with open(mixFile, "a") as myfile:
-        myfile.write("%s\t %s\n" % (t, M))
+        myfile.write("%s\t %s\t %s\n" % (t, M, KE))
 
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)

@@ -94,6 +94,7 @@ commandLine(seed = "lattice",
             rigorousBoundaries = False,
             dtverbose = False,
 
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = False,
@@ -135,7 +136,7 @@ dataDir = os.path.join(dataDir,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "boolReduceViscosity=%s" % boolReduceViscosity,
+                       "boolCullenViscosity=%s" % boolCullenViscosity,
                        "filter=%f" % filter,
                        "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
 restartDir = os.path.join(dataDir, "restarts")
@@ -277,6 +278,7 @@ elif CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -399,11 +401,6 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
-
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
-if compatibleEnergy and abs(Eerror) > 1e-10:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # Plot the results.
@@ -555,3 +552,8 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+if compatibleEnergy and abs(Eerror) > 1e-10:
+    raise ValueError, "Energy error outside allowed bounds."
+
