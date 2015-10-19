@@ -45,6 +45,14 @@ void solveC(const Dim<1>::FourthRankTensor& L,
   C(0,0) = std::abs(L(0,0,0,0)) > 1.0e-15 ? Q(0,0)/L(0,0,0,0) : 0.0;
 }
 
+void solveGradC(const Dim<1>::FourthRankTensor& L,
+            const Dim<1>::ThirdRankTensor& gQ,
+            Dim<1>::ThirdRankTensor& gC,
+            const double& tiny = 1.0e-15) {
+  gC(0,0,0) = std::abs(L(0,0,0,0)) > 1.0e-15 ? gQ(0,0,0)/L(0,0,0,0) : 0.0;
+}
+
+
 // 2D
 void solveC(const Dim<2>::FourthRankTensor& L,
             const Dim<2>::Tensor& Q,
@@ -63,6 +71,32 @@ void solveC(const Dim<2>::FourthRankTensor& L,
   C(1,0) = x(1);
   C(1,1) = x(2);
 }
+void solveGradC(const Dim<2>::FourthRankTensor& L,
+            const Dim<2>::ThirdRankTensor& gQ,
+            Dim<2>::ThirdRankTensor& gC) {
+  typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> MatrixType;
+  typedef Eigen::Matrix<double, 3, 1> VectorType;
+  MatrixType A;
+  VectorType b1;
+  VectorType b2;
+  A << L(0,0,0,0), L(1,0,0,0) + L(0,1,0,0), L(1,1,0,0),
+       L(0,0,1,0), L(1,0,1,0) + L(0,1,1,0), L(1,1,1,0),
+       L(0,0,1,1), L(1,0,1,1) + L(0,1,1,1), L(1,1,1,1);
+  b1 << gQ(0,0,0), gQ(1,0,0),  gQ(1,1,0);
+  b2 << gQ(0,0,1), gQ(1,0,1),  gQ(1,1,1);
+  VectorType x1 = A.colPivHouseholderQr().solve(b1);
+  VectorType x2 = A.colPivHouseholderQr().solve(b2);
+  gC(0,0,0) = x1(0);
+  gC(0,1,0) = x1(1);
+  gC(1,0,0) = x1(1);
+  gC(1,1,0) = x1(2);
+  gC(0,0,1) = x2(0);
+  gC(0,1,1) = x2(1);
+  gC(1,0,1) = x2(1);
+  gC(1,1,1) = x2(2);
+ 
+}
+
 
 // 3D
 void solveC(const Dim<3>::FourthRankTensor& L,
@@ -90,6 +124,44 @@ void solveC(const Dim<3>::FourthRankTensor& L,
   C(2,1) = x(4);
   C(2,2) = x(5);
 }
+void solveGradC(const Dim<3>::FourthRankTensor& L,
+            const Dim<3>::ThirdRankTensor& gQ,
+            Dim<3>::ThirdRankTensor& gC) {
+  typedef Eigen::Matrix<double, 6, 6, Eigen::RowMajor> MatrixType;
+  typedef Eigen::Matrix<double, 6, 1> VectorType;
+  MatrixType A;
+  VectorType b1;
+  VectorType b2;
+  A << L(0,0,0,0), L(1,0,0,0) + L(0,1,0,0), L(2,0,0,0) + L(0,2,0,0), L(1,1,0,0), L(2,1,0,0) + L(1,2,0,0), L(2,2,0,0),
+       L(0,0,1,0), L(1,0,1,0) + L(0,1,1,0), L(2,0,1,0) + L(0,2,1,0), L(1,1,1,0), L(2,1,1,0) + L(1,2,1,0), L(2,2,1,0),
+       L(0,0,2,0), L(1,0,2,0) + L(0,1,2,0), L(2,0,2,0) + L(0,2,2,0), L(1,1,2,0), L(2,1,2,0) + L(1,2,2,0), L(2,2,2,0),
+       L(0,0,1,1), L(1,0,1,1) + L(0,1,1,1), L(2,0,1,1) + L(0,2,1,1), L(1,1,1,1), L(2,1,1,1) + L(1,2,1,1), L(2,2,1,1),
+       L(0,0,2,1), L(1,0,2,1) + L(0,1,2,1), L(2,0,2,1) + L(0,2,2,1), L(1,1,2,1), L(2,1,2,1) + L(1,2,2,1), L(2,2,2,1),
+       L(0,0,2,2), L(1,0,2,2) + L(0,1,2,2), L(2,0,2,2) + L(0,2,2,2), L(1,1,2,2), L(2,1,2,2) + L(1,2,2,2), L(2,2,2,2);
+  b1 << gQ(0,0,0), gQ(1,0,0), gQ(2,0,0), gQ(1,1,0), gQ(2,1,0), gQ(2,2,0);
+  b2 << gQ(0,0,1), gQ(1,0,1), gQ(2,0,1), gQ(1,1,1), gQ(2,1,1), gQ(2,2,1);
+  VectorType x1 = A.colPivHouseholderQr().solve(b1);
+  VectorType x2 = A.colPivHouseholderQr().solve(b2);
+  gC(0,0,0) = x1(0);
+  gC(0,1,0) = x1(1);
+  gC(0,2,0) = x1(2);
+  gC(1,0,0) = x1(1);
+  gC(1,1,0) = x1(3);
+  gC(1,2,0) = x1(4);
+  gC(2,0,0) = x1(2);
+  gC(2,1,0) = x1(4);
+  gC(2,2,0) = x1(5);
+  gC(0,0,1) = x2(0);
+  gC(0,1,1) = x2(1);
+  gC(0,2,1) = x2(2);
+  gC(1,0,1) = x2(1);
+  gC(1,1,1) = x2(3);
+  gC(1,2,1) = x2(4);
+  gC(2,0,1) = x2(2);
+  gC(2,1,1) = x2(4);
+  gC(2,2,1) = x2(5);
+}
+
 
 
 //------------------------------------------------------------------------------
@@ -898,13 +970,6 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
 
                 gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
                 gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
-                // if(ii <= jj){
-                //   gradm2P(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
-                //   gradm2P(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
-
-                //   gradm2P(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
-                //   gradm2P(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
-                // }
               }
             }
 
@@ -929,8 +994,6 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
                }
               }
             }
-
-
 
             // Fourth Moment
             FourthRankTensor thpt4 = outerProduct<Dimension>(thpt3,rij);
@@ -988,6 +1051,11 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
         const SymTensor& m2i = m2(nodeListi, i);
         const ThirdRankTensor& m3i = m3(nodeListi, i);
         const FourthRankTensor& m4i = m4(nodeListi, i);
+        const Vector&  gm0i = gradm0(nodeListi, i);
+        const Tensor& gm1i = gradm1(nodeListi, i);
+        const ThirdRankTensor& gm2i = gradm2(nodeListi, i);
+        const FourthRankTensor& gm3i = gradm3(nodeListi, i);
+        const FifthRankTensor& gm4i = gradm4(nodeListi, i);
         const SymTensor m2inv = abs(m2i.Determinant()) > 1.0e-15 ? m2i.Inverse() : SymTensor::zero;
         const FourthRankTensor L = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, m3i)) - m4i;
 
@@ -1002,11 +1070,55 @@ computeQuadraticCRKSPHCorrectionsMike(const ConnectivityMap<Dimension>& connecti
 
         const Tensor Q = m2i - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, m3i));
         solveC(L, Q, C(nodeListi, i));
+        const Vector coef = (m1i + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i));
 
-        B(nodeListi, i) = -innerProduct<Dimension>((m1i + innerDoubleProduct<Dimension>(C(nodeListi, i), m3i)), m2inv);
+        B(nodeListi, i) = -innerProduct<Dimension>(coef, m2inv);
         const Scalar Ainv = m0i + innerProduct<Dimension>(B(nodeListi, i), m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i);
         CHECK(Ainv != 0.0);
         A(nodeListi, i) = 1.0/Ainv;
+        // Gradients (unfortunately for some gradient terms need to explicitly do for loops (or would need inner product that specified which indices).
+
+        ThirdRankTensor gradQ = gradm2(nodeListi, i) - innerProduct<Dimension>(m1i, innerProduct<Dimension>(m2inv, gm3i));
+        FifthRankTensor gradL = innerProduct<Dimension>(m3i, innerProduct<Dimension>(m2inv, gm3i)) - gm4i;
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+         for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+          for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+           for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
+            for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+             gradQ(ii,jj,kk) -= gm1i(ll,kk)*m2inv(ll,mm)*m3i(mm,ii,jj);
+             for (size_t nn = 0; nn != Dimension::nDim; ++nn) {
+              for (size_t oo = 0; oo != Dimension::nDim; ++oo) {
+               gradQ(ii,jj,kk) += m1i(ll)*m2inv(ll,mm)*gm2i(mm,nn,kk)*m2inv(nn,oo)*m3i(oo,ii,jj);
+               gradL(ii,jj,kk,ll,mm) += gm3i(ii,jj,nn,mm)*m2inv(nn,oo)*m3i(oo,kk,ll);
+               for (size_t pp = 0; pp != Dimension::nDim; ++pp) {
+                for (size_t qq = 0; qq != Dimension::nDim; ++qq) {
+                 gradL(ii,jj,kk,ll,mm) -= m3i(ii,jj,nn)*m2inv(nn,oo)*gm2i(oo,pp,mm)*m2inv(pp,qq)*m3i(qq,kk,ll);
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        gradQ -= innerDoubleProduct<Dimension>(C(nodeListi, i),gradL);//Not really gradQ but gradQ - CgradL 
+        solveGradC(L,gradQ,gradC(nodeListi, i));
+        gradB(nodeListi, i) = -innerProduct<Dimension>(m2inv,(gm1i+innerDoubleProduct<Dimension>(m3i,gradC(nodeListi, i))+innerDoubleProduct<Dimension>(C(nodeListi, i),gm3i)));
+        for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+         for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+          for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+           for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
+            for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+              gradB(nodeListi, i)(ii,jj) += coef(kk)*m2inv(kk,ll)*gm2i(ll,mm,jj)*m2inv(mm,ii);
+            }
+           }
+          }
+         }
+        }
+        gradA(nodeListi, i) = -A(nodeListi, i)*A(nodeListi, i)*(gm0i + innerProduct<Dimension>(m1i,gradB(nodeListi, i)) + innerProduct<Dimension>(B(nodeListi, i),gm1i)+innerDoubleProduct<Dimension>(C(nodeListi, i),gm2i)+innerDoubleProduct<Dimension>(m2i,gradC(nodeListi, i)));
+
+      
 
         // cerr << " --> " << i << " " 
         //      << A(nodeListi,i)*(m0i + B(nodeListi, i).dot(m1i) + innerDoubleProduct<Dimension>(C(nodeListi, i), m2i)) << " "
