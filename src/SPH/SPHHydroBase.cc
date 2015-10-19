@@ -781,15 +781,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar& Fcorrj=PSPHcorrection(nodeListj, j);
               const Scalar& Pbari=PSPHpbar(nodeListi, i);
               const Scalar& Pbarj=PSPHpbar(nodeListj, j);
-              const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj);
-              const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
+              //const Scalar Fij=1.0-Fcorri*safeInv(mj*epsj);
+              //const Scalar Fji=1.0-Fcorrj*safeInv(mi*epsi);
+              const Scalar Fij=1.0-Fcorri/max(mj*epsj,tiny);
+              const Scalar Fji=1.0-Fcorrj/max(mi*epsi,tiny);
               //const double gamma=1.4;//NEED TO BE A CLASS VARIABLE
               const double gamma=5.0/3.0;//NEED TO BE A CLASS VARIABLE
               const double engCoef=(gamma-1)*(gamma-1)*epsi*epsj;
               Vector deltaDvDt = Prhoi*safeOmegai*gradWi + Prhoj*safeOmegaj*gradWj + Qacci + Qaccj;
 
               if(mBoolPSPH){
-                deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
+                deltaDvDt = engCoef*(gradWi*Fij/max(Pbari,tiny) + gradWj*Fji/max(Pbarj,tiny)) + Qacci + Qaccj;
+                //deltaDvDt = engCoef*(gradWi*Fij*safeInv(Pbari) + gradWj*Fji*safeInv(Pbarj)) + Qacci + Qaccj;
               }
 
               DvDti -= mj*deltaDvDt;
@@ -797,8 +800,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Specific thermal energy evolution.
               if(mBoolPSPH){
-                DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
-                DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
+                DepsDti += mj*(engCoef*deltaDrhoDti*Fij/max(Pbari,tiny) + workQi);
+                DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji/max(Pbarj,tiny) + workQj);
+                //DepsDti += mj*(engCoef*deltaDrhoDti*Fij*safeInv(Pbari) + workQi);
+                //DepsDtj += mi*(engCoef*deltaDrhoDtj*Fji*safeInv(Pbarj) + workQj);
               }else{//Normal SPH Formulation
                 DepsDti += mj*(Prhoi*deltaDrhoDti + workQi);
                 DepsDtj += mi*(Prhoj*deltaDrhoDtj + workQj);
@@ -809,8 +814,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 const Scalar Vs = ci+cj-3.0*vij.dot(rij.unitVector());
                 const Scalar& Qalpha_i = reducingViscosityMultiplierL(nodeListi, i); //Both L and Q corrections are the same for Cullen Viscosity
                 const Scalar& Qalpha_j = reducingViscosityMultiplierL(nodeListj, j); //Both L and Q corrections are the same for Cullen Viscosity
-                DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj));
-                DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj)*(rhoi+rhoj));
+                //DepsDti += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+                //DepsDtj += (Vs > 0.0)*alph_c*mi*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pi-Pj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pi+Pj+1e-30)*(rhoi+rhoj+1e-30));
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*0.5*(rhoi+rhoj),tiny) : 0.0;
+                DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))/max((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                //const Scalar tmpi = (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //const Scalar tmpj = (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += tmpi;
+                //DepsDtj += tmpj;
+                //DepsDti += (Vs > 0.0) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDtj += (Vs > 0.0) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj)) : 0.0;
+                //DepsDti += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mj*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsi-epsj)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
+                //DepsDtj += (Vs > 0.0 && Pbari > 1e-4 && Pbarj > 1e-4) ? alph_c*mi*(Qalpha_i+Qalpha_j)*0.5*Vs*(epsj-epsi)*abs(Pbari-Pbarj)*((gradWi+gradWj).dot(rij.unitVector()))*safeInv((Pbari+Pbarj)*(rhoi+rhoj),tiny) : 0.0;
 #  endif
 
               if (mCompatibleEnergyEvolution) {

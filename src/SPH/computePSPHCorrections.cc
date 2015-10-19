@@ -50,8 +50,9 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   // Zero out the result.
   PSPHpbar = 0.0;
   PSPHcorrection = 0.0;
+  const double tiny = 1.0e-30;
   const double gamma = 5.0/3.0;//NEEDS TO COME FROM THE INTERFACE!
-  //const double gamma = 1.5;//NEEDS TO COME FROM THE INTERFACE!
+  //const double gamma = 1.4;//NEEDS TO COME FROM THE INTERFACE!
 
   // Walk the FluidNodeLists.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -116,8 +117,10 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
 
         }
       }
-      const Scalar fi=1.0+gradNbari*safeInv(Dimension::nDim*Nbari*invhi);
-      PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gamma-1)*Nbari*invhi*fi);
+      //const Scalar fi=1.0+gradNbari*safeInv(Dimension::nDim*Nbari*invhi);
+      //PSPHcorrection(nodeListi, i)=gradPbari*safeInv(Dimension::nDim*(gamma-1)*Nbari*invhi*fi);
+      const Scalar fi=1.0+gradNbari/max(Dimension::nDim*Nbari*invhi,tiny);
+      PSPHcorrection(nodeListi, i)=gradPbari/max(Dimension::nDim*(gamma-1)*Nbari*invhi*fi,tiny);
     }
   }
 }
