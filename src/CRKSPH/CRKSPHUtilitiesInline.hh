@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------------//
 #include "Kernel/TableKernel.hh"
 #include "Geometry/innerDoubleProduct.hh"
+#include "Geometry/innerProduct.hh"
 
 namespace Spheral {
 namespace CRKSPHSpace {
@@ -101,8 +102,13 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
      gradWSPH = WWj.second;
      const Vector gradWj = Hj*etaj.unitVector() * WWj.second;
      //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*(Bi + gradBi*rij)*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
-     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
-     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Ci.dot(rij).dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij) + Ci.dot(rij).dot(rij))*Wj;
+     //gradWCRKSPH = Ai*(1.0 + Bi.dot(rij))*gradWj + Ai*Bi*Wj + gradAi*(1.0 + Bi.dot(rij))*Wj;
+     gradWCRKSPH = Ai*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*gradWj + Ai*Bi*Wj;
+     gradWCRKSPH += gradAi*(1.0 + Bi.dot(rij) + Geometry::innerDoubleProduct<Dimension>(Ci, rij.selfdyad()))*Wj;
+     gradWCRKSPH += Ai*(Geometry::innerProduct<Dimension>(rij,gradBi))*Wj;
+     gradWCRKSPH += Ai*(Geometry::innerDoubleProduct<Dimension>(rij.selfdyad(),gradCi))*Wj;
+     gradWCRKSPH += 2.0*Ai*(Geometry::innerProduct<Dimension>(rij,Ci))*Wj;
+/*
      for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
        for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
          gradWCRKSPH(ii) += Ai*Wj*gradBi(jj,ii)*rij(jj);
@@ -114,6 +120,7 @@ CRKSPHKernelAndGradient(const KernelSpace::TableKernel<Dimension>& W,
     
        }
      }
+*/
   }
 }
 
