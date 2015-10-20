@@ -49,6 +49,14 @@ commandLine(KernelConstructor = BSplineKernel,
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
+            boolCullenViscosity = False,
+            alphMax = 2.0,
+            alphMin = 0.02,
+            betaC = 0.7,
+            betaD = 0.05,
+            betaE = 1.0,
+            fKern = 1.0/3.0,
+            boolHopkinsCorrection = True,
             linearConsistent = False,
             fcentroidal = 0.0,
             fcellPressure = 0.0,
@@ -63,6 +71,7 @@ commandLine(KernelConstructor = BSplineKernel,
             cfl = 0.5,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
+            PSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             hourglass = None,
@@ -85,6 +94,7 @@ commandLine(KernelConstructor = BSplineKernel,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -130,7 +140,7 @@ commandLine(KernelConstructor = BSplineKernel,
 
             graphics = True,
             )
-
+assert not(boolReduceViscosity and boolCullenViscosity)
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
@@ -139,6 +149,7 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+    gradhCorrection = False
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
@@ -148,7 +159,11 @@ else:
 dataDir = os.path.join(dataDirBase,
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
-                       "nPerh=%s" % nPerh)
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "Qconstruct=%s" % Qconstructor,
+                       "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 
@@ -275,6 +290,7 @@ elif CRKSPH:
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
@@ -288,6 +304,7 @@ else:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate,
                              XSPH = XSPH,
+                             PSPH = PSPH,
                              epsTensile = epsilonTensile,
                              nTensile = nTensile)
 output("hydro")
@@ -304,12 +321,12 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-
 if boolReduceViscosity:
-    #q.reducingViscosityCorrection = True
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    
     packages.append(evolveReducingViscosityMultiplier)
+elif boolCullenViscosity:
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -508,10 +525,6 @@ if graphics:
     for p, filename in plots:
         p.hardcopy(os.path.join(dataDir, filename), terminal="png")
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
-if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
@@ -622,3 +635,7 @@ if mpi.rank == 0:
 
 
 
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
+if checkEnergy and abs(Eerror) > 1e-13:
+    raise ValueError, "Energy error outside allowed bounds."

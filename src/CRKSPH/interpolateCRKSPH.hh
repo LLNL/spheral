@@ -29,7 +29,9 @@ namespace Spheral {
                       const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                       const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                       const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                      const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
                       const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                      const int correctionOrder,
                       const KernelSpace::TableKernel<Dimension>& W,
                       const NodeCoupling& nodeCoupling = NodeCoupling());
 

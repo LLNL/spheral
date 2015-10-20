@@ -32,7 +32,9 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
                   const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                   const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                   const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
+                  const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,
                   const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
+                  const int correctionOrder,
                   const KernelSpace::TableKernel<Dimension>& W,
                   const NodeCoupling& nodeCoupling) {
 
@@ -43,6 +45,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
   REQUIRE(H.size() == numNodeLists);
   REQUIRE(A.size() == numNodeLists);
   REQUIRE(B.size() == numNodeLists);
+  REQUIRE(C.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -75,6 +78,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
       const Scalar Hdeti = Hi.Determinant();
       const Scalar& Ai = A(nodeListi, i);
       const Vector& Bi = B(nodeListi, i);
+      const Tensor& Ci = C(nodeListi, i);
       const DataType& Fi = fieldList(nodeListi, i);
       DataType& resulti = result(nodeListi, i);
 
@@ -120,6 +124,7 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Scalar Hdetj = Hj.Determinant();
               const Scalar& Aj = A(nodeListj, j);
               const Vector& Bj = B(nodeListj, j);
+              const Tensor& Cj = C(nodeListj, j);
               const DataType& Fj = fieldList(nodeListj, j);
               DataType& resultj = result(nodeListj, j);
 
@@ -129,8 +134,8 @@ interpolateCRKSPH(const FieldSpace::FieldList<Dimension, DataType>& fieldList,
               const Vector etaj = Hj*rij;
 
               // Kernel weight.
-              const Scalar Wj = CRKSPHKernel(W,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi);
-              const Scalar Wi = CRKSPHKernel(W, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj);
+              const Scalar Wj = CRKSPHKernel(W, correctionOrder,  rij, etai, Hdeti, etaj, Hdetj, Ai, Bi, Ci);
+              const Scalar Wi = CRKSPHKernel(W, correctionOrder, -rij, etaj, Hdetj, etai, Hdeti, Aj, Bj, Cj);
 
               // Increment the pair-wise values.
               resulti += wj*Fj*Wj;

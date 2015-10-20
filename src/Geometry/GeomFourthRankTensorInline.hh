@@ -82,6 +82,7 @@ operator()(const GeomFourthRankTensor::size_type i,
            const GeomFourthRankTensor::size_type j,
            const GeomFourthRankTensor::size_type k,
            const GeomFourthRankTensor::size_type m) const {
+  REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim);
   return mElements[((i*nDim + j)*nDim + k)*nDim + m];
 }
 
@@ -93,6 +94,7 @@ operator()(const GeomFourthRankTensor::size_type i,
            const GeomFourthRankTensor::size_type j,
            const GeomFourthRankTensor::size_type k,
            const GeomFourthRankTensor::size_type m) {
+  REQUIRE(i < nDim and j < nDim and k < nDim and m < nDim);
   return mElements[((i*nDim + j)*nDim + k)*nDim + m];
 }
 

@@ -136,36 +136,47 @@ class WeppnerSolver():
 
 class HydroStaticProfileConstantTemp3d():
     def __init__(self,
-                 rho0,
-                 rMax,
-                 temp,
-                 eostup,
+                 rho0,      # Density at Radius
+                 rMax,      # Radius
+                 M0,        # Mass at Radius
+                 temp,      # Temperature throughout
+                 eostup,    # tuple that indicates how materials/eos change
                  units,
-                 y0=0,
                  nbins=1000):
 
-        self.y0     = y0
-        self.rMax   = rMax
-        self.nbins  = nbins
-        self.rho0   = rho0
-        self.soln   = []
+        self.soln = []
+        self.rho0 = rho0
         
         from SolidSpheral3d import makeVoidNodeList
         from SolidSpheral3d import ScalarField
 
         eoscount    = len(eostup)/2
         
-        r   = self.rMax
-        rho = self.rho0
-        dr  = self.rMax/self.nbins
-        y   = self.y0
-        dy  = 0
-        
         nodes   = makeVoidNodeList("nodes", numInternal=1)
         ef      = ScalarField("eps", nodes)
         Kf      = ScalarField("mod", nodes)
         rhof    = ScalarField("rho", nodes)
         tempf   = ScalarField("temp", nodes)
+        
+        # get the eos for this radius
+        if(eoscount>1):
+            eos = eostup[2*(eoscount-1)]
+        else:
+            eos = eostup[0]
+        
+        rhof[0] = rho0
+        eos.setSpecificThermalEnergy(ef,rhof,tempf)
+        e       = ef[0]
+        eos.setBulkModulus(Kf,rhof,ef)
+        K       = Kf[0]
+        
+        y0  = -M0*units.G/(rMax**2)*(rho0**2)/K
+        
+        r   = rMax
+        rho = rho0
+        dr  = rMax/nbins
+        y   = y0
+        dy  = 0
         
         tempf[0] = temp
         
@@ -189,7 +200,7 @@ class HydroStaticProfileConstantTemp3d():
             
             print "dy, dr, rho, y, G, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,units.G,K)
             
-            dy      = dr*(1.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,2.0))
+            dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
             rho     = rho - y*dr
@@ -266,7 +277,7 @@ class HydroStaticProfileConstantTemp2d():
             e       = ef[0]
             eos.setBulkModulus(Kf,rhof,ef)
             K       = Kf[0]
-            dy      = dr*(1.0/rho*y*y - 2.0/r*y - units.G/K*2.0*pi*pow(rho,2.0)/r)
+            dy      = dr*(2.0/rho*y*y - 1.0/r*y - units.G/K*2.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
             y       = y + dy
             rho     = rho - y*dr
