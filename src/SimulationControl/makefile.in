@@ -31,6 +31,7 @@ PYTHONTARGETS = \
 	$(srcdir)/SpheralGnuPlotUtilities.py \
 	$(srcdir)/findLastRestart.py \
 	$(srcdir)/Pnorm.py \
+	$(srcdir)/filearraycmp.py \
 	$(srcdir)/numericalIntegration.py \
 	$(srcdir)/newtonRaphson.py \
 	$(srcdir)/bisectFunction.py \
