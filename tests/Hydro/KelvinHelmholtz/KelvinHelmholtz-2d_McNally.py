@@ -547,7 +547,7 @@ def mixingScale(cycle, t, dt):
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)
     myfile = open(mixFile, "w")
-    myfile.write("# time           mixamp\n")
+    myfile.write("# time           mixamp                     KEMax\n")
     myfile.close()
 
 #-------------------------------------------------------------------------------
