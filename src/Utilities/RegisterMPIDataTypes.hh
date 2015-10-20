@@ -31,6 +31,7 @@ public:
   MPI_Datatype MPI_SymTensor1d, MPI_SymTensor2d, MPI_SymTensor3d;
   MPI_Datatype MPI_ThirdRankTensor1d, MPI_ThirdRankTensor2d, MPI_ThirdRankTensor3d;
   MPI_Datatype MPI_FourthRankTensor1d, MPI_FourthRankTensor2d, MPI_FourthRankTensor3d;
+  MPI_Datatype MPI_FifthRankTensor1d, MPI_FifthRankTensor2d, MPI_FifthRankTensor3d;
 #endif
 
 private:

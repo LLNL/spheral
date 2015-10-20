@@ -32,6 +32,7 @@ self.Tensor%(dim)s = addObject(Spheral, "Tensor%(dim)s")
 self.SymTensor%(dim)s = addObject(Spheral, "SymTensor%(dim)s")
 self.ThirdRankTensor%(dim)s = addObject(Spheral, "ThirdRankTensor%(dim)s")
 self.FourthRankTensor%(dim)s = addObject(Spheral, "FourthRankTensor%(dim)s")
+self.FifthRankTensor%(dim)s = addObject(Spheral, "FifthRankTensor%(dim)s")
 self.EigenStruct%(dim)s = addObject(Spheral, "EigenStruct%(dim)s")
 self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
 """ % {"dim" : dim})
@@ -109,6 +110,11 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         self.addFourthRankTensorMethods(self.FourthRankTensor2d, 2)
         self.addFourthRankTensorMethods(self.FourthRankTensor3d, 3)
 
+        # Add methods to FifthRankTensors.
+        self.addFifthRankTensorMethods(self.FifthRankTensor1d, 1)
+        self.addFifthRankTensorMethods(self.FifthRankTensor2d, 2)
+        self.addFifthRankTensorMethods(self.FifthRankTensor3d, 3)
+
         # Add methods to EigenStructs.
         self.addEigenStructMethods(self.EigenStruct1d, 1)
         self.addEigenStructMethods(self.EigenStruct2d, 2)
@@ -159,7 +165,8 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         me = vecName
 
         # Instance attributes.
-        x.add_static_attribute("nDimensions", "int", True)
+        x.add_static_attribute("nDimensions", "unsigned int", True)
+        x.add_static_attribute("numElements", "unsigned int", True)
         x.add_static_attribute("zero", me, True)
         x.add_static_attribute("one", me, True)
     
@@ -178,7 +185,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         x.add_instance_attribute("y", "double", False, "y", "y")
         x.add_instance_attribute("z", "double", False, "z", "z")
     
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "index")], custom_name="__call__")
     
         # Add sequence methods.
@@ -269,7 +276,8 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         symtenType = findObject(self.space, symten)
     
         # Instance attributes.
-        x.add_static_attribute("nDimensions", "int", True)
+        x.add_static_attribute("nDimensions", "unsigned int", True)
+        x.add_static_attribute("numElements", "unsigned int", True)
         x.add_static_attribute("zero", me, True)
         x.add_static_attribute("one", me, True)
     
@@ -292,8 +300,13 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         x.add_instance_attribute("zy", "double", False, "zy", "zy")
         x.add_instance_attribute("zz", "double", False, "zz", "zz")
     
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "row"), param("int", "column")], custom_name="__call__")
+        x.add_function_as_method("assignSecondRankTensorElement",
+                                 None,
+                                 [param(me, "self"), param("int", "i"), param("int", "j"), param("double", "val")],
+                                 template_parameters = [me],
+                                 custom_name = "__call__")
     
         # Add sequence methods.
         x.add_function_as_method("sizeGeomType", "unsigned int",
@@ -422,7 +435,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         # Add the base methods.
         self.addRankNTensorMethods(x, ndim, me)
 
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k")], custom_name="__call__")
         x.add_function_as_method("assignThirdRankTensorElement",
                                  None,
@@ -430,15 +443,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # # Misc methods.
-        # x.add_function_as_method("printReprThirdRankTensor", "std::string", [param(me, "self")],
-        #                          template_parameters = [me],
-        #                          custom_name = "__repr__")
-    
         return
 
     #-------------------------------------------------------------------------------
-    # Helper method for wrapping FouthRankTensor.
+    # Helper method for wrapping FourthRankTensor.
     #-------------------------------------------------------------------------------
     def addFourthRankTensorMethods(self, x, ndim):
     
@@ -447,7 +455,7 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
         # Add the base methods.
         self.addRankNTensorMethods(x, ndim, me)
 
-        # Index by indicies.
+        # Index by indices.
         x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m")], custom_name="__call__")
         x.add_function_as_method("assignFourthRankTensorElement",
                                  None,
@@ -455,11 +463,26 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                                  template_parameters = [me],
                                  custom_name = "__call__")
 
-        # # Misc methods.
-        # x.add_function_as_method("printReprFourthRankTensor", "std::string", [param(me, "self")],
-        #                          template_parameters = [me],
-        #                          custom_name = "__repr__")
+        return
+
+    #-------------------------------------------------------------------------------
+    # Helper method for wrapping FifthRankTensor.
+    #-------------------------------------------------------------------------------
+    def addFifthRankTensorMethods(self, x, ndim):
     
+        me = "FifthRankTensor%id" % ndim
+
+        # Add the base methods.
+        self.addRankNTensorMethods(x, ndim, me)
+
+        # Index by indices.
+        x.add_method("operator()", "double", [param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("int", "n")], custom_name="__call__")
+        x.add_function_as_method("assignFifthRankTensorElement",
+                                 None,
+                                 [param(me, "self"), param("int", "i"), param("int", "j"), param("int", "k"), param("int", "m"), param("int", "n"), param("double", "val")],
+                                 template_parameters = [me],
+                                 custom_name = "__call__")
+
         return
 
     #-------------------------------------------------------------------------------
@@ -468,9 +491,10 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
     def addRankNTensorMethods(self, x, ndim, me):
     
         # Instance attributes.
-        x.add_static_attribute("nrank", "int", True)
-        x.add_static_attribute("nDimensions", "int", True)
-        x.add_static_attribute("numElements", "int", True)
+        x.add_static_attribute("nrank", "unsigned int", is_const=True)
+        x.add_static_attribute("nDimensions", "unsigned int", is_const=True)
+        x.add_static_attribute("numElements", "unsigned int", is_const=True)
+        x.add_static_attribute("zero", me, True)
     
         # Constructors.
         x.add_constructor([])
@@ -861,7 +885,13 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
     #-------------------------------------------------------------------------------
     def addDimFunctions(self, space, ndim):
 
+        dim = "Spheral::Dim<%i>" % ndim
+        vector = "Vector%id" % ndim
+        tensor = "Tensor%id" % ndim
+        symtensor = "SymTensor%id" % ndim
+        thirdranktensor = "ThirdRankTensor%id" % ndim
         fourthranktensor = "FourthRankTensor%id" % ndim
+        fifthranktensor = "FifthRankTensor%id" % ndim
         vectorfield = "Spheral::FieldSpace::VectorField%id" % ndim
         tensorfield = "Spheral::FieldSpace::TensorField%id" % ndim
         symtensorfield = "Spheral::FieldSpace::SymTensorField%id" % ndim
@@ -879,5 +909,403 @@ self.Plane%(dim)s = addObject(Spheral, "Plane%(dim)s")
                            template_parameters = [fourthranktensor],
                            custom_name = "invertRankNTensor",
                            docstring = "Invert a fouth rank tensor.")
+
+        # Inner & outer products with doubles
+        for type in (vector, tensor, symtensor, thirdranktensor, fourthranktensor, fifthranktensor):
+            space.add_function("innerProduct", type, 
+                               [param("double", "lhs"), constrefparam(type, "rhs")], 
+                               foreign_cpp_namespace = "Geometry",
+                               template_parameters=[type],
+                               custom_name="innerProduct")
+            space.add_function("innerProduct", type,
+                               [constrefparam(type, "lhs"), param("double", "rhs")], 
+                               foreign_cpp_namespace = "Geometry",
+                               template_parameters=[type], 
+                               custom_name="innerProduct")
+            space.add_function("outerProduct", type, 
+                               [param("double", "lhs"), constrefparam(type, "rhs")], 
+                               foreign_cpp_namespace = "Geometry",
+                               template_parameters=[type], 
+                               custom_name="outerProduct")
+            space.add_function("outerProduct", type, 
+                               [constrefparam(type, "lhs"), param("double", "rhs")], 
+                               foreign_cpp_namespace = "Geometry",
+                               template_parameters=[type],
+                               custom_name="outerProduct")
+
+        # vec . vec
+        space.add_function("innerProduct", "double", 
+                           [constrefparam(vector, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # tensor . vec
+        space.add_function("innerProduct", vector, 
+                           [constrefparam(tensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", vector, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # vec . tensor
+        space.add_function("innerProduct", vector, 
+                           [constrefparam(vector, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", vector, 
+                           [constrefparam(vector, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # thirdranktensor . vector
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(thirdranktensor, "rhs"), constrefparam(vector, "lhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # tensor . tensor
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", tensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # tensor . thirdranktensor
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # thirdranktensor . thirdranktensor
+        space.add_function("innerProduct", fourthranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # fourthranktensor . vector
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", thirdranktensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # fourthranktensor . tensor
+        space.add_function("innerProduct", fourthranktensor, 
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", fourthranktensor, 
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", fourthranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", fourthranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # fourthranktensor . thirdranktensor
+        space.add_function("innerProduct", fifthranktensor, 
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+        space.add_function("innerProduct", fifthranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerProduct")
+
+        # vec outer vec
+        space.add_function("outerProduct", tensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # tensor outer vec
+        space.add_function("outerProduct", thirdranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", thirdranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", thirdranktensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", thirdranktensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # thirdranktensor outer vec
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(vector, "rhs"), constrefparam(thirdranktensor, "lhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # tensor outer tensor
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fourthranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # fourthranktensor outer vec
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(vector, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(vector, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # thirdranktensor outer tensor
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(tensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+        space.add_function("outerProduct", fifthranktensor, 
+                           [constrefparam(symtensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="outerProduct")
+
+        # tensor .. tensor
+        space.add_function("innerDoubleProduct", "double", 
+                           [constrefparam(tensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", "double", 
+                           [constrefparam(tensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", "double", 
+                           [constrefparam(symtensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", "double", 
+                           [constrefparam(symtensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # tensor .. thirdranktensor
+        space.add_function("innerDoubleProduct", vector,
+                           [constrefparam(tensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", vector,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", vector,
+                           [constrefparam(symtensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", vector,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # thirdranktensor .. thirdranktensor
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # tensor .. fourthranktensor
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(tensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(symtensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", tensor,
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # thirdranktensor .. fourthranktensor
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # fourthranktensor .. fourthranktensor
+        space.add_function("innerDoubleProduct", fourthranktensor,
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # tensor .. fifthranktensor
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(tensor, "lhs"), constrefparam(fifthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(fifthranktensor, "lhs"), constrefparam(tensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(symtensor, "lhs"), constrefparam(fifthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", thirdranktensor,
+                           [constrefparam(fifthranktensor, "lhs"), constrefparam(symtensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # thirdranktensor .. fifthranktensor
+        space.add_function("innerDoubleProduct", fourthranktensor,
+                           [constrefparam(thirdranktensor, "lhs"), constrefparam(fifthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", fourthranktensor,
+                           [constrefparam(fifthranktensor, "lhs"), constrefparam(thirdranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+
+        # fourthranktensor .. fifthranktensor
+        space.add_function("innerDoubleProduct", fifthranktensor,
+                           [constrefparam(fourthranktensor, "lhs"), constrefparam(fifthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
+        space.add_function("innerDoubleProduct", fifthranktensor,
+                           [constrefparam(fifthranktensor, "lhs"), constrefparam(fourthranktensor, "rhs")],
+                           foreign_cpp_namespace = "Geometry",
+                           template_parameters=[dim],
+                           custom_name="innerDoubleProduct")
 
         return

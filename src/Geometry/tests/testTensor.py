@@ -449,7 +449,7 @@ class TensorTestBase:
         check = 0
         for row in xrange(self.TensorType.nDimensions):
             for col in xrange(self.TensorType.nDimensions):
-                check += self.lhs(row, col)*self.rhs(row, col)
+                check += self.lhs(row, col)*self.rhs(col, row)
         self.failUnless(fuzzyEqual(result, check),
                         "Doubledot check failure: %f != %f" % (result, check))
         return

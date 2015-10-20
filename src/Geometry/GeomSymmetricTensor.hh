@@ -36,7 +36,8 @@ public:
   typedef EigenStruct<nDim> EigenStructType;
 
   // Useful static memeber data.
-  static const int nDimensions;
+  static const size_type nDimensions;
+  static const size_type numElements;
   static const GeomSymmetricTensor zero;
   static const GeomSymmetricTensor one;
   static const double onethird;
@@ -64,6 +65,10 @@ public:
   // Access the elements by indicies.
   double operator()(const size_type row, const size_type column) const;
   double& operator()(const size_type row, const size_type column);
+
+  // More C++ style indexing.
+  double operator[](size_type index) const;
+  double& operator[](size_type index);
 
   // Access the individual elements by (x,y,z) notation.
   double xx() const;
@@ -198,12 +203,18 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  static const size_type mNumElements;
-
   size_type elementIndex(const size_type row, const size_type column) const;
 };
 
 // Declare specializations.
+template<> const unsigned GeomSymmetricTensor<1>::nDimensions;
+template<> const unsigned GeomSymmetricTensor<2>::nDimensions;
+template<> const unsigned GeomSymmetricTensor<3>::nDimensions;
+
+template<> const unsigned GeomSymmetricTensor<1>::numElements;
+template<> const unsigned GeomSymmetricTensor<2>::numElements;
+template<> const unsigned GeomSymmetricTensor<3>::numElements;
+
 template<> GeomVector<1> GeomSymmetricTensor<1>::eigenValues() const;
 template<> GeomVector<2> GeomSymmetricTensor<2>::eigenValues() const;
 template<> GeomVector<3> GeomSymmetricTensor<3>::eigenValues() const;
@@ -409,10 +420,6 @@ template<> double GeomSymmetricTensor<1>::maxAbsElement() const;
 template<> double GeomSymmetricTensor<2>::maxAbsElement() const;
 template<> double GeomSymmetricTensor<3>::maxAbsElement() const;
 
-template<> const int GeomSymmetricTensor<1>::nDimensions;
-template<> const int GeomSymmetricTensor<2>::nDimensions;
-template<> const int GeomSymmetricTensor<3>::nDimensions;
-
 template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::zero;
 template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::zero;
 template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
@@ -420,10 +427,6 @@ template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::zero;
 template<> const GeomSymmetricTensor<1> GeomSymmetricTensor<1>::one;
 template<> const GeomSymmetricTensor<2> GeomSymmetricTensor<2>::one;
 template<> const GeomSymmetricTensor<3> GeomSymmetricTensor<3>::one;
-
-template<> const GeomSymmetricTensor<1>::size_type GeomSymmetricTensor<1>::mNumElements;
-template<> const GeomSymmetricTensor<2>::size_type GeomSymmetricTensor<2>::mNumElements;
-template<> const GeomSymmetricTensor<3>::size_type GeomSymmetricTensor<3>::mNumElements;
 
 template<> const double GeomSymmetricTensor<1>::onethird;
 template<> const double GeomSymmetricTensor<2>::onethird;

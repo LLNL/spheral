@@ -97,6 +97,14 @@ RegisterMPIDataTypes() {
   MPI_Type_commit(&MPI_FourthRankTensor1d);
   MPI_Type_commit(&MPI_FourthRankTensor2d);
   MPI_Type_commit(&MPI_FourthRankTensor3d);
+
+  // FifthRankTensors.
+  MPI_Type_contiguous(DataTypeTraits<Dim<1>::FifthRankTensor>::numElements(Dim<1>::FifthRankTensor::zero), MPI_DOUBLE, &MPI_FifthRankTensor1d);
+  MPI_Type_contiguous(DataTypeTraits<Dim<2>::FifthRankTensor>::numElements(Dim<2>::FifthRankTensor::zero), MPI_DOUBLE, &MPI_FifthRankTensor2d);
+  MPI_Type_contiguous(DataTypeTraits<Dim<3>::FifthRankTensor>::numElements(Dim<3>::FifthRankTensor::zero), MPI_DOUBLE, &MPI_FifthRankTensor3d);
+  MPI_Type_commit(&MPI_FifthRankTensor1d);
+  MPI_Type_commit(&MPI_FifthRankTensor2d);
+  MPI_Type_commit(&MPI_FifthRankTensor3d);
 #endif
 
 }

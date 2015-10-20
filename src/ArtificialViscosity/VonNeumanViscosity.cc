@@ -80,20 +80,26 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
 
   // Get the fluid velocity gradient.
+  const int correctionOrder = 1;//Using Linear Correction
   const FieldList<Dimension, Tensor> velocityGradient = CRKSPHSpace::gradientCRKSPH(velocity,
                                                                                     position,
                                                                                     vol,
                                                                                     H,
                                                                                     A,
                                                                                     B,
+                                                                                    C,
                                                                                     gradA,
                                                                                     gradB,
+                                                                                    gradC,
                                                                                     connectivityMap,
+										    correctionOrder,
                                                                                     W,
                                                                                     NodeCoupling());
 

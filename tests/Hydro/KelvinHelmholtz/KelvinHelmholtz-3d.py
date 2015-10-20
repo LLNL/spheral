@@ -1,32 +1,24 @@
-#ATS:test(SELF, "--CRKSPH=True --nx1=256 --nx2=256 --ny1=128 --ny2=128 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_256x256.gnu --serialDump=False", label="KH CRK 256^2, nPerh=1.5", np=10)
-#ATS:test(SELF, "--CRKSPH=True --nx1=512 --nx2=512 --ny1=256 --ny2=256 --cfl=0.25 --Cl=1.0 --Cq=1.0 --clearDirectories=True --KernelConstructor NBSplineKernel --filter=0 --nPerh=1.51 --graphMixing True --mixFile KH_CRK_512x512.gnu --serialDump=False", label="KH CRK 512^2, nPerh=1.5", np=70)
-
-#-------------------------------------------------------------------------------
-# This is the basic Kelvin-Helmholtz problem as discussed in
-# Springel 2010, MNRAS, 401, 791-851.
-#-------------------------------------------------------------------------------
 import shutil
 from math import *
-from Spheral2d import *
+from Spheral3d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution2d import *
+from GenerateNodeDistribution3d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
 
 import mpi
 import DistributeNodes
 
-title("Kelvin-Helmholtz test problem in 2D")
+title("Kelvin-Helmholtz test problem in 3D")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 256,
-            ny1 = 128,
-            nx2 = 256,
-            ny2 = 128,
+commandLine(nx = 200,
+            ny = 100,
+            nz = 200,
             
             rho1 = 1.0,
             rho2 = 2.0,
@@ -41,8 +33,6 @@ commandLine(nx1 = 256,
             w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
-            numNodeLists = 2,  # If 2, makes this a two material problem.
-
             gamma = 5.0/3.0,
             mu = 1.0,
 
@@ -56,7 +46,6 @@ commandLine(nx1 = 256,
             Qconstructor = MonaghanGingoldViscosity,
             KernelConstructor = BSplineKernel,
             order = 5,
-            correctionOrder = LinearOrder,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             linearConsistent = False,
             fcentroidal = 0.0,
@@ -131,7 +120,6 @@ commandLine(nx1 = 256,
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
 
-assert numNodeLists in (1, 2)
 
 # Decide on our hydro algorithm.
 if SVPH:
@@ -157,13 +145,11 @@ dataDir = os.path.join(dataDir,
                        "vxboost=%g-vyboost=%g" % (vxboost, vyboost),
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        "densityUpdate=%s" % (densityUpdate),
-                       "correctionOrder=%s" % (correctionOrder),
                        "compatibleEnergy=%s" % (compatibleEnergy),
-                       "PSPH=%s" % (PSPH),
-                       "Cullen=%s" % (boolCullenViscosity),
+                       "XSPH=%s" % XSPH,
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
-                       "%ix%i" % (nx1, ny1 + ny2),
+                       "%ix%ix%i" % (nx, ny*2,nz),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -198,11 +184,13 @@ eos = GammaLawGasMKS(gamma, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-    Wbase = NBSplineKernel(order)
+  WT = TableKernel(NBSplineKernel(order), 1000)
+  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
 else:
-    Wbase = KernelConstructor()
-WT = TableKernel(Wbase, 1000)
-WTPi = WT
+  WT = TableKernel(KernelConstructor(), 1000)
+  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
+Wfbase = NBSplineKernel(9)
+WTf = TableKernel(Wfbase, 1000, hmult=1.0/(nPerh*Wfbase.kernelExtent))
 output("WT")
 output("WTPi")
 kernelExtent = WT.kernelExtent
@@ -210,19 +198,19 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("High density gas", eos,
+nodesLow = makeFluidNodeList("Low density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
                            kernelExtent = kernelExtent,
                            nPerh = nPerh)
-nodes2 = makeFluidNodeList("Low density gas", eos,
+nodesHigh = makeFluidNodeList("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            kernelExtent = kernelExtent,
                            hminratio = hminratio,
                            nPerh = nPerh)
-nodeSet = [nodes1, nodes2]
+nodeSet = [nodesLow, nodesHigh]
 for nodes in nodeSet:
     output("nodes.name")
     output("nodes.hmin")
@@ -234,106 +222,56 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(nx1, ny1,
+    generatorHigh = GenerateNodeDistribution3d(nx, ny, nz,
                                             rho = rho2,
                                             distributionType = "lattice",
-                                            xmin = (0.0,  0.25),
-                                            xmax = (1.0,  0.75),
+                                            xmin = (0.0, 0.0, 0.0),
+                                            xmax = (1.0, 0.5, 1.0),
                                             nNodePerh = nPerh,
                                             SPH = SPH)
-    generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+    generatorLow = GenerateNodeDistribution3d(nx, ny, nz,
                                              rho = rho1,
                                              distributionType = "lattice",
-                                             xmin = (0.0, 0.0),
-                                             xmax = (1.0, 0.25),
+                                             xmin = (0.0, 0.5, 0.0),
+                                             xmax = (1.0, 1.0, 1.0),
                                              nNodePerh = nPerh,
                                              SPH = SPH)
-    generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
-                                             rho = rho1,
-                                             distributionType = "lattice",
-                                             xmin = (0.0, 0.75),
-                                             xmax = (1.0, 1.0),
-                                             nNodePerh = nPerh,
-                                             SPH = SPH)
-    generator2 = CompositeNodeDistribution(generator21, generator22)
-
     if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
+        from VoronoiDistributeNodes import distributeNodes3d
     else:
-        from DistributeNodes import distributeNodes2d
+        from DistributeNodes import distributeNodes3d
 
-    if numNodeLists == 2:
-        distributeNodes2d((nodes1, generator1),
-                          (nodes2, generator2))
-    else:
-        gen = CompositeNodeDistribution(generator1, generator2)
-        distributeNodes2d((nodes1, gen))
+    distributeNodes3d((nodesLow, generatorLow),
+                      (nodesHigh, generatorHigh))
+
 
     # Finish initial conditions.
     rhom = 0.5*(rho1-rho2)
     vxm = 0.5*(vx1-vx2)
-    if numNodeLists == 2:
-        for (nodes, vx) in ((nodes1, vx1),
-                            (nodes2, vx2)):
-            pos = nodes.positions()
-            vel = nodes.velocity()
-            rho = nodes.massDensity()
-            eps = nodes.specificThermalEnergy()
-            mass = nodes.mass()
-            for i in xrange(nodes.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                rho[i] = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
-    else:
-        pos = nodes1.positions()
-        vel = nodes1.velocity()
-        rho = nodes1.massDensity()
-        eps = nodes1.specificThermalEnergy()
-        mass = nodes1.mass()
-        for i in xrange(nodes1.numInternalNodes):
-                yval = pos[i].y
-                xval = pos[i].x
-                velx = 0.0
-                vely = delta*sin(4*pi*xval)
-                if yval >= 0 and yval < 0.25:
-                   rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((yval-0.25)/smooth)
-                elif yval >= 0.25 and yval < 0.5:
-                   rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((0.25-yval)/smooth)
-                elif yval >= 0.5 and yval < 0.75:
-                   rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
-                   mass[i] *= rho[i]/rho2
-                   velx = vx2 + vxm*exp((yval-0.75)/smooth)
-                else:
-                   rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
-                   mass[i] *= rho[i]/rho1
-                   velx = vx1 - vxm*exp((0.75-yval)/smooth)
-
-                vel[i] = Vector(velx + vxboost, vely + vyboost)
-                eps[i] = P1/((gamma - 1.0)*rho[i])
+    for (nodes, vx) in ((nodesLow, vx1),
+                        (nodesHigh, vx2)):
+        pos = nodes.positions()
+        vel = nodes.velocity()
+        rho = nodes.massDensity()
+        eps = nodes.specificThermalEnergy()
+        mass = nodes.mass()
+        for i in xrange(nodes.numInternalNodes):
+            yval = pos[i].y
+            xval = pos[i].x
+            zval = pos[i].z
+            velx = 0.0
+            rho[i] = 0.0
+            vely = delta*sin(4*pi*xval)*sin(4*pi*zval)
+            if yval >= 0 and yval < 0.5:
+               rho[i]=rho1 + rhom*exp((yval-0.5)/smooth)
+               mass[i] *= rho[i]/rho1
+               velx = vx1 + vxm*exp((yval-0.5)/smooth)
+            elif yval >= 0.5 and yval < 1:
+               rho[i]=rho2 - rhom*exp((0.5-yval)/smooth)
+               mass[i] *= rho[i]/rho2
+               velx = vx2 - vxm*exp((0.5-yval)/smooth)
+            vel[i] = Vector(velx + vxboost, vely + vyboost,0)
+            eps[i] = P1/((gamma - 1.0)*rho[i])
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -365,8 +303,7 @@ output("q.quadraticInExpansion")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
+    hydro = HydroConstructor(WT, q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -377,27 +314,25 @@ if SVPH:
                              HUpdate = HUpdate,
                              fcentroidal = fcentroidal,
                              fcellPressure = fcellPressure,
-                             xmin = Vector(-2.0, -2.0),
-                             xmax = Vector(3.0, 3.0))
+                             xmin = Vector(-2.0, -2.0, -2.0),
+                             xmax = Vector(3.0, 3.0,3.0))
                              # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
                              # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
 elif CRKSPH:
     Wf = NBSplineKernel(9)
-    hydro = HydroConstructor(W = WT, 
-                             WPi = WTPi, 
-                             Q = q,
+    hydro = HydroConstructor(WT, WTPi, q,
+                             Wfilter = WTf,
                              filter = filter,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
-                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT,
-                             WPi = WTPi,
-                             Q = q,
+    hydro = HydroConstructor(WT,
+                             WTPi,
+                             q,
                              cfl = cfl,
                              useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                              compatibleEnergyEvolution = compatibleEnergy,
@@ -444,15 +379,21 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-xp1 = Plane(Vector(0.0, 0.0), Vector( 1.0, 0.0))
-xp2 = Plane(Vector(1.0, 0.0), Vector(-1.0, 0.0))
-yp1 = Plane(Vector(0.0, 0.0), Vector(0.0,  1.0))
-yp2 = Plane(Vector(0.0, 1.0), Vector(0.0, -1.0))
-xbc = PeriodicBoundary(xp1, xp2)
-ybc = PeriodicBoundary(yp1, yp2)
-#ybc1 = ReflectingBoundary(yp1)
-#ybc2 = ReflectingBoundary(yp2)
-bcSet = [xbc, ybc]
+xPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 1.0,  0.0, 0.0))
+xPlane1 = Plane(Vector(1.0, 0.0, 0.0), Vector(-1.0,  0.0, 0.0))
+yPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  1.0, 0.0))
+yPlane1 = Plane(Vector(0.0, 1.0, 0.0), Vector( 0.0, -1.0, 0.0))
+zPlane0 = Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0,  0.0, 1.0))
+zPlane1 = Plane(Vector(0.0, 0.0, 1.0), Vector( 0.0,  0.0, -1.0))
+
+xbc = PeriodicBoundary(xPlane0, xPlane1)
+#ybc = PeriodicBoundary(yPlane0, yPlane1)
+zbc = PeriodicBoundary(zPlane0, zPlane1)
+
+ybc1 = ReflectingBoundary(yPlane0)
+ybc2 = ReflectingBoundary(yPlane1)
+
+bcSet = [xbc, zbc, ybc1, ybc2]
 
 for p in packages:
     for bc in bcSet:
@@ -516,16 +457,13 @@ def mixingScale(cycle, t, dt):
     si = []
     ci = []
     di = []
-    ke = []
     for nodeL in nodeSet:
      xprof = mpi.reduce([x.x for x in nodeL.positions().internalValues()], mpi.SUM)
      yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
      vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
-     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
      if mpi.rank == 0:
       for j in xrange (len(xprof)):
-        ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
         if yprof[j] < 0.5:
           si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
           ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
@@ -539,15 +477,14 @@ def mixingScale(cycle, t, dt):
       C=sum(ci)
       D=sum(di)
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
-      KE = max(ke)
       print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
       with open(mixFile, "a") as myfile:
-        myfile.write("%s\t %s\t %s\n" % (t, M, KE))
+        myfile.write("%s\t %s\n" % (t, M))
 
 if graphMixing:
     control.appendPeriodicTimeWork(mixingScale, mixInterval)
     myfile = open(mixFile, "w")
-    myfile.write("# time           mixamp                     KEMax\n")
+    myfile.write("# time           mixamp\n")
     myfile.close()
 
 #-------------------------------------------------------------------------------

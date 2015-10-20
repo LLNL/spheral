@@ -17,6 +17,7 @@ SRCTARGETS = \
 	$(srcdir)/Geom3Vector.cc \
 	$(srcdir)/GeomThirdRankTensor.cc \
 	$(srcdir)/GeomFourthRankTensor.cc \
+	$(srcdir)/GeomFifthRankTensor.cc \
 	$(srcdir)/GeomPlane.cc \
 	$(srcdir)/Jacobi.cc \
 	$(srcdir)/Jacobi2.cc \

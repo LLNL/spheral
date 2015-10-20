@@ -28,6 +28,7 @@ commandLine(
     filter = 0.00,
     HUpdate = IdealH,
     densityUpdate = RigorousSumDensity,
+    correctionOrder = LinearOrder,
     compatibleEnergy = True,
     gradhCorrection = False,
     linearConsistent = False,
@@ -201,6 +202,7 @@ elif CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:

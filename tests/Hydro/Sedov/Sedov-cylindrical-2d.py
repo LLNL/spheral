@@ -44,6 +44,7 @@ commandLine(seed = "constantDTheta",
             ASPH = False,     # Only for H evolution, not hydro algorithm
             CRKSPH = False,
             Qconstructor = MonaghanGingoldViscosity,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             HUpdate = IdealH,
             filter = 0.0,
@@ -148,7 +149,7 @@ dataDir = os.path.join(dataRoot,
                        "XSPH=%s" % XSPH,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "gradhCorrection=%s" % gradhCorrection,
+                       "Cullen=%s" % boolCullenViscosity,
                        "seed=%s" % seed,
                        "nr=%i_nt=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
@@ -308,6 +309,7 @@ if CRKSPH:
                              cfl = cfl,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
+                             correctionOrder = correctionOrder,
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:

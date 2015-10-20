@@ -83,9 +83,10 @@ commandLine(nx1 = 400,
             maxSteps = None,
             statsStep = 10,
             HUpdate = IdealH,
+            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
-            gradhCorrection = True,
+            gradhCorrection = False,
             linearConsistent = False,
 
             useRefinement = False,
@@ -119,8 +120,12 @@ else:
 dataDir = os.path.join(dataDirBase, 
                        str(HydroConstructor).split("'")[1].split(".")[-1],
                        str(Qconstructor).split("'")[1].split(".")[-1],
-                       "%i" % (nx1 + nx2),
-                       "nPerh=%s" % nPerh)
+                       "nPerh=%f" % nPerh,
+                       "compatibleEnergy=%s" % compatibleEnergy,
+                       "correctionOrder=%s" % correctionOrder,
+                       "Cullen=%s" % boolCullenViscosity,
+                       "filter=%f" % filter,
+                       "%i" % (nx1 + nx2))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
@@ -251,6 +256,7 @@ elif CRKSPH:
                              Q = q,
                              filter = filter,
                              cfl = cfl,
+                             correctionOrder = correctionOrder,
                              compatibleEnergyEvolution = compatibleEnergy,
                              XSPH = XSPH,
                              densityUpdate = densityUpdate,

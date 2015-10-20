@@ -237,6 +237,17 @@ struct DataTypeTraits<Dim<1>::FourthRankTensor> {
 };
 
 template<>
+struct DataTypeTraits<Dim<1>::FifthRankTensor> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const Dim<1>::FifthRankTensor& x) { return Dim<1>::FifthRankTensor::numElements; }
+  static Dim<1>::FifthRankTensor zero() { return Dim<1>::FifthRankTensor::zero; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor1d; }
+#endif
+};
+
+template<>
 struct DataTypeTraits<Dim<1>::FacetedVolume> {
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
 };
@@ -298,6 +309,17 @@ struct DataTypeTraits<Dim<2>::FourthRankTensor> {
 };
 
 template<>
+struct DataTypeTraits<Dim<2>::FifthRankTensor> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const Dim<2>::FifthRankTensor& x) { return Dim<2>::FifthRankTensor::numElements; }
+  static Dim<2>::FifthRankTensor zero() { return Dim<2>::FifthRankTensor::zero; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor2d; }
+#endif
+};
+
+template<>
 struct DataTypeTraits<Dim<2>::FacetedVolume> {
   static Dim<2>::FacetedVolume zero() { return Dim<2>::FacetedVolume(); }
 };
@@ -355,6 +377,17 @@ struct DataTypeTraits<Dim<3>::FourthRankTensor> {
   static Dim<3>::FourthRankTensor zero() { return Dim<3>::FourthRankTensor::zero; }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FourthRankTensor3d; }
+#endif
+};
+
+template<>
+struct DataTypeTraits<Dim<3>::FifthRankTensor> {
+  typedef double ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const Dim<3>::FifthRankTensor& x) { return Dim<3>::FifthRankTensor::numElements; }
+  static Dim<3>::FifthRankTensor zero() { return Dim<3>::FifthRankTensor::zero; }
+#ifdef USE_MPI
+  static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor3d; }
 #endif
 };
 
