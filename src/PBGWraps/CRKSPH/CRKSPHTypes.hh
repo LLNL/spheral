@@ -36,7 +36,7 @@ typedef SolidCRKSPHHydroBase<Dim<3> > SolidCRKSPHHydroBase3d;
 inline
 void
 CRKSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
-                        const int correctionOrder,
+                        const CRKOrder correctionOrder,
                         const Dim<1>::Vector& rij,
                         const Dim<1>::Vector& etai,
                         const Dim<1>::SymTensor& Hi,
@@ -59,7 +59,7 @@ CRKSPHKernelAndGradient1d(const KernelSpace::TableKernel<Dim<1> >& W,
 inline
 void
 CRKSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
-                        const int correctionOrder,
+                        const CRKOrder correctionOrder,
                         const Dim<2>::Vector& rij,
                         const Dim<2>::Vector& etai,
                         const Dim<2>::SymTensor& Hi,
@@ -82,7 +82,7 @@ CRKSPHKernelAndGradient2d(const KernelSpace::TableKernel<Dim<2> >& W,
 inline
 void
 CRKSPHKernelAndGradient3d(const KernelSpace::TableKernel<Dim<3> >& W,
-                        const int correctionOrder,
+                        const CRKOrder correctionOrder,
                         const Dim<3>::Vector& rij,
                         const Dim<3>::Vector& etai,
                         const Dim<3>::SymTensor& Hi,

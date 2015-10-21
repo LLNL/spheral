@@ -81,7 +81,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Helper to compute the CRKSPH kernel.
         self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
-           						   param("int","correctionOrder"),
+                                                           constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                            constrefparam(vector, "rij"),
                                                            constrefparam(vector, "etai"),
                                                            param("double", "Hdeti"),
@@ -96,7 +96,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
         self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
-									    param("int","correctionOrder"),
+                                                                            constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
                                                                             constrefparam(symtensor, "Hi"),
@@ -145,8 +145,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 #constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
-                                 param("int","correctionOrder"),
+                                 constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(tensorfieldlist, "C"),
@@ -188,7 +187,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
@@ -202,14 +201,14 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
                                     docstring = "interpolateCRKSPH: returns the CRK interpolations of the input FieldList.")
 
-        # CRDSPH gradient.
+        # CRKSPH gradient.
         for (fl, result, element) in ((scalarfieldlist, vectorfieldlist, "double"),
                                       (vectorfieldlist, tensorfieldlist, vector)):
             self.space.add_function("gradientCRKSPH", result,
@@ -224,7 +223,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "gradientCRKSPH",
@@ -241,7 +240,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],

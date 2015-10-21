@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Physics/GenericHydro.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
   template<typename Dimension> class State;
@@ -36,11 +37,6 @@ namespace Spheral {
 
 namespace Spheral {
 namespace CRKSPHSpace {
-enum CRKOrder {//Used to assign the order of the corrections
-  ZerothOrder = 0,
-  LinearOrder = 1,
-  QuadraticOrder = 2
-};
 
 template<typename Dimension>
 class CRKSPHHydroBase: public PhysicsSpace::GenericHydro<Dimension> {
