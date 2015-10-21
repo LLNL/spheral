@@ -598,8 +598,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists);
+  CHECK(C.size() == numNodeLists);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists);
+  CHECK(gradC.size() == numNodeLists);
   // CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.

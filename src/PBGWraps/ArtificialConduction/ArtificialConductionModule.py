@@ -72,7 +72,10 @@ self.generateArtificialConductionBindings(self.ArtificialConduction%(dim)id, %(d
         
         # Constructor.
         x.add_constructor([constrefparam(tablekernel, "W"),
-                           param("double", "arCondAlpha", default_value="0.5")])
+                           param("double", "arCondAlpha", default_value="0.5"),
+                           param("CRKOrder", "ACcorrectionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder")])
+        # Attributes.
+        x.add_instance_attribute("ACcorrectionOrder", "CRKOrder", getter="ACcorrectionOrder", setter="ACcorrectionOrder")
                            
         # Methods.
         x.add_method("initializeProblemStartup", None, [refparam(database, "dataBase")], is_virtual=True)

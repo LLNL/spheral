@@ -43,6 +43,26 @@ Cq(typename Dimension::Scalar Cq) {
   mCquadratic = Cq;
 }
 
+
+//------------------------------------------------------------------------------
+// Access QcorrectionOrder
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+CRKSPHSpace::CRKOrder
+ArtificialViscosity<Dimension>::QcorrectionOrder() const {
+  return mQcorrectionOrder;
+}
+
+template<typename Dimension>
+inline
+void
+ArtificialViscosity<Dimension>::
+QcorrectionOrder(const CRKSPHSpace::CRKOrder order) {
+  mQcorrectionOrder = order;
+}
+
+
 //------------------------------------------------------------------------------
 // Access sigma.
 //------------------------------------------------------------------------------
