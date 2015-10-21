@@ -97,7 +97,7 @@ commandLine(KernelConstructor = BSplineKernel,
             correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
+            gradhCorrection = True,
             domainIndependent = True,
             cullGhostNodes = True,
             
@@ -149,6 +149,7 @@ elif CRKSPH:
     else:
         HydroConstructor = CRKSPHHydro
     Qconstructor = CRKSPHMonaghanGingoldViscosity
+    gradhCorrection = False
 else:
     if solid:
         HydroConstructor = SolidSPHHydro
