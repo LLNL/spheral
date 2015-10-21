@@ -5,7 +5,7 @@
 #define __Spheral__computeCRKSPHCorrections__
 
 #include "SolidSPH/NodeCoupling.hh"
-
+#include "CRKSPHCorrectionParams.hh"
 namespace Spheral {
 
   // Forward declarations.
@@ -28,7 +28,7 @@ namespace Spheral {
                              const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& weight,
                              const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                              const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                             const int correctionOrder,
+                             const CRKOrder correctionOrder,
                              FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& A,
                              FieldSpace::FieldList<Dimension, typename Dimension::Vector>& B,
                              FieldSpace::FieldList<Dimension, typename Dimension::Tensor>& C,

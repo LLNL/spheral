@@ -22,7 +22,7 @@ namespace Spheral {
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                               const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                              const int correctionOrder,
+                                              const CRKOrder correctionOrder,
                                               const TableKernel< Dim< %(ndim)s > >& kernel,
                                               const NodeCoupling& nodeCoupling);
     template 
@@ -35,7 +35,7 @@ namespace Spheral {
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                               const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                              const int correctionOrder,
+                                              const CRKOrder correctionOrder,
                                               const TableKernel< Dim< %(ndim)s > >& kernel,
                                               const NodeCoupling& nodeCoupling);
 
@@ -49,7 +49,7 @@ namespace Spheral {
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                               const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                              const int correctionOrder,
+                                              const CRKOrder correctionOrder,
                                               const TableKernel< Dim< %(ndim)s > >& kernel,
                                               const NodeCoupling& nodeCoupling);
 
@@ -63,7 +63,7 @@ namespace Spheral {
                                                  const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
                                                  const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                                  const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                                 const int correctionOrder,
+                                                 const CRKOrder correctionOrder,
                                                  const TableKernel< Dim< %(ndim)s > >& kernel,
                                                  const NodeCoupling& nodeCoupling);
 
@@ -77,7 +77,7 @@ namespace Spheral {
                                                        const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>& B,
                                                        const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>& C,
                                                        const ConnectivityMap<Dim< %(ndim)s > >& connectivityMap,
-                                                       const int correctionOrder,
+                                                       const CRKOrder correctionOrder,
                                                        const TableKernel< Dim< %(ndim)s > >& kernel,
                                                        const NodeCoupling& nodeCoupling);
 

@@ -333,23 +333,23 @@ computeCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                          const FieldList<Dimension, typename Dimension::Scalar>& weight,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                         const int correctionOrder,
+                         const CRKOrder correctionOrder,
                          FieldList<Dimension, typename Dimension::Scalar>& A,
                          FieldList<Dimension, typename Dimension::Vector>& B,
                          FieldList<Dimension, typename Dimension::Tensor>& C,
                          FieldList<Dimension, typename Dimension::Vector>& gradA,
                          FieldList<Dimension, typename Dimension::Tensor>& gradB,
                          FieldList<Dimension, typename Dimension::ThirdRankTensor>& gradC) {
-                         if(correctionOrder == 0){
+                         if(correctionOrder == ZerothOrder){
                            computeZerothCRKSPHCorrections(connectivityMap,W,weight,position,H,A,gradA);
-                         }else if(correctionOrder == 1){
+                         }else if(correctionOrder == LinearOrder){
                            computeLinearCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,gradA,gradB);
-                         }else if(correctionOrder == 2){
-                           // computeQuadraticCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
-                           computeQuadraticCRKSPHCorrectionsMike(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
+                         }else if(correctionOrder == QuadraticOrder){
+                           computeQuadraticCRKSPHCorrections(connectivityMap,W,weight,position,H,A,B,C,gradA,gradB,gradC);
                          }
-}
       
+}
+
 }
 }
 
@@ -361,7 +361,7 @@ namespace Spheral {
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                            const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
-                                           const int correctionOrder,
+                                           const CRKOrder correctionOrder,
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
@@ -386,18 +386,6 @@ namespace Spheral {
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                            FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&);
-
-    template void computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dim< %(ndim)s > >&, 
-                                           const TableKernel<Dim< %(ndim)s > >&, 
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
-                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::ThirdRankTensor>&);
 
     template void computeCRKSPHCorrections(const ConnectivityMap<Dim< %(ndim)s > >&, 
                                            const TableKernel<Dim< %(ndim)s > >&, 
