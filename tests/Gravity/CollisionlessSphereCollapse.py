@@ -227,30 +227,15 @@ if outputFile != "None":
         from SpheralGnuPlotUtilities import multiSort
         multiSort(mo, xprof, vprof, Hprof, phiprof)
         f = open(outputFile, "w")
-        f.write(("# " + 27*"%15s " + "\n") % ("x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi", "mortonOrder",
-                                              "x_uu", "y_uu", "z_uu", "vx_uu", "vy_uu", "vz_uu", 
-                                              "Hxx_uu", "Hxy_uu", "Hxz_uu", "Hyy_uu", "Hyz_uu", "Hzz_uu", "phi_uu"))
+        f.write(("# " + 13*"%15s " + "\n") % ("x", "y", "z", "vx", "vy", "vz", "Hxx", "Hxy", "Hxz", "Hyy", "Hyz", "Hzz", "phi"))
         for (xi, vi, Hi, phii, moi) in zip(xprof, vprof, Hprof, phiprof, mo):
-            f.write((13*" %16.12e" + 14*" %i" + "\n") % (xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
-                                                         Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii, moi,
-                                                         unpackElementUL(packElementDouble(xi.x)),
-                                                         unpackElementUL(packElementDouble(xi.y)),
-                                                         unpackElementUL(packElementDouble(xi.z)),
-                                                         unpackElementUL(packElementDouble(vi.x)),
-                                                         unpackElementUL(packElementDouble(vi.y)),
-                                                         unpackElementUL(packElementDouble(vi.z)),
-                                                         unpackElementUL(packElementDouble(Hi.xx)),
-                                                         unpackElementUL(packElementDouble(Hi.xy)),
-                                                         unpackElementUL(packElementDouble(Hi.xz)),
-                                                         unpackElementUL(packElementDouble(Hi.yy)),
-                                                         unpackElementUL(packElementDouble(Hi.yz)),
-                                                         unpackElementUL(packElementDouble(Hi.zz)),
-                                                         unpackElementUL(packElementDouble(phii))))
+            f.write((13*" %16.12e" + "\n") % (xi.x, xi.y, xi.z, vi.x, vi.y, vi.z, 
+                                              Hi.xx, Hi.xy, Hi.xz, Hi.yy, Hi.yz, Hi.zz, phii))
         f.close()
 
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
         if comparisonFile != "None":
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)
+            import filearraycmp as fcomp
+            assert fcomp.filearraycmp(outputFile, comparisonFile)
