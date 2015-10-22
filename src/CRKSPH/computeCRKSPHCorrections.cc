@@ -42,14 +42,14 @@ void solveC(const Dim<1>::FourthRankTensor& L,
             const Dim<1>::Tensor& Q,
             Dim<1>::Tensor& C,
             const double& tiny = 1.0e-15) {
-  C(0,0) = std::abs(L(0,0,0,0)) > 1.0e-15 ? Q(0,0)/L(0,0,0,0) : 0.0;
+  C(0,0) = std::abs(L(0,0,0,0)) > tiny ? Q(0,0)/L(0,0,0,0) : 0.0;
 }
 
 void solveGradC(const Dim<1>::FourthRankTensor& L,
             const Dim<1>::ThirdRankTensor& gQ,
             Dim<1>::ThirdRankTensor& gC,
             const double& tiny = 1.0e-15) {
-  gC(0,0,0) = std::abs(L(0,0,0,0)) > 1.0e-15 ? gQ(0,0,0)/L(0,0,0,0) : 0.0;
+  gC(0,0,0) = std::abs(L(0,0,0,0)) > tiny ? gQ(0,0,0)/L(0,0,0,0) : 0.0;
 }
 
 
@@ -512,8 +512,6 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename Dimension::FourthRankTensor FourthRankTensor;
   typedef typename Dimension::FifthRankTensor FifthRankTensor;
-
-  const double tiny = 1.0e-30;
 
   // We can derive everything in terms of the zeroth, first, and second moments 
   // of the local positions.
