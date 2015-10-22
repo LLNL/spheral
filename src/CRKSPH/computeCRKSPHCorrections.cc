@@ -358,6 +358,7 @@ computeLinearCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
 
+      Scalar thpt;
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
@@ -429,13 +430,15 @@ computeLinearCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap
             // gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
-                m2(nodeListi,i)(ii,jj) += wwj*rij(ii)*rij(jj);
-                m2(nodeListj,j)(ii,jj) += wwi*rij(ii)*rij(jj);
+                thpt = rij(ii)*rij(jj);
+                m2(nodeListi,i)(ii,jj) += wwj*thpt;
+                m2(nodeListj,j)(ii,jj) += wwi*thpt;
               }
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                thpt = rij(ii)*rij(jj);
                 for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                  gradm2(nodeListi, i)(ii,jj,kk) += wj*rij(ii)*rij(jj)*gradWj(kk);
-                  gradm2(nodeListj, j)(ii,jj,kk) += wi*rij(ii)*rij(jj)*gradWi(kk);
+                  gradm2(nodeListi, i)(ii,jj,kk) += wj*thpt*gradWj(kk);
+                  gradm2(nodeListj, j)(ii,jj,kk) += wi*thpt*gradWi(kk);
                 }
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
                 gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
@@ -565,6 +568,7 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
       CHECK(fullConnectivity.size() == numNodeLists);
 
+      Scalar thpt;
       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         const int firstGhostNodej = A[nodeListj]->nodeList().firstGhostNode();
@@ -605,8 +609,12 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
             const Scalar wwj = wj*Wj;
             m0(nodeListi, i) += wwj;
             m0(nodeListj, j) += wwi;
-            gradm0(nodeListi, i) += wj*gradWj;
-            gradm0(nodeListj, j) += wi*gradWi;
+            // gradm0(nodeListi, i) += wj*gradWj;
+            // gradm0(nodeListj, j) += wi*gradWi;
+            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              gradm0(nodeListi, i)(ii) += wj*gradWj(ii);
+              gradm0(nodeListj, j)(ii) += wi*gradWi(ii);
+            }
 
             // First moment. 
             // m1(nodeListi, i) += wwj * rij;
@@ -632,13 +640,15 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
             // gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
-                m2(nodeListi,i)(ii,jj) += wwj*rij(ii)*rij(jj);
-                m2(nodeListj,j)(ii,jj) += wwi*rij(ii)*rij(jj);
+                thpt = rij(ii)*rij(jj);
+                m2(nodeListi,i)(ii,jj) += wwj*thpt;
+                m2(nodeListj,j)(ii,jj) += wwi*thpt;
               }
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                thpt = rij(ii)*rij(jj);
                 for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                  gradm2(nodeListi, i)(ii,jj,kk) += wj*rij(ii)*rij(jj)*gradWj(kk);
-                  gradm2(nodeListj, j)(ii,jj,kk) += wi*rij(ii)*rij(jj)*gradWi(kk);
+                  gradm2(nodeListi, i)(ii,jj,kk) += wj*thpt*gradWj(kk);
+                  gradm2(nodeListj, j)(ii,jj,kk) += wi*thpt*gradWi(kk);
                 }
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
                 gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
@@ -656,11 +666,12 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
                 for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                  m3(nodeListi,i)(ii,jj,kk) += wwj*rij(ii)*rij(jj)*rij(kk);
-                  m3(nodeListj,j)(ii,jj,kk) -= wwi*rij(ii)*rij(jj)*rij(kk);
+                  thpt = rij(ii)*rij(jj)*rij(kk);
+                  m3(nodeListi,i)(ii,jj,kk) += wwj*thpt;
+                  m3(nodeListj,j)(ii,jj,kk) -= wwi*thpt;
                   for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                    gradm3(nodeListi,i)(ii,jj,kk,mm) += wj*rij(ii)*rij(jj)*rij(kk)*gradWj(mm);
-                    gradm3(nodeListj,j)(ii,jj,kk,mm) -= wi*rij(ii)*rij(jj)*rij(kk)*gradWi(mm);
+                    gradm3(nodeListi,i)(ii,jj,kk,mm) += wj*thpt*gradWj(mm);
+                    gradm3(nodeListj,j)(ii,jj,kk,mm) -= wi*thpt*gradWi(mm);
                   }
                   gradm3(nodeListi,i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
                   gradm3(nodeListi,i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
@@ -682,11 +693,12 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
                 for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
                   for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
-                    m4(nodeListi,i)(ii,jj,kk,mm) += wwj*rij(ii)*rij(jj)*rij(kk)*rij(mm);
-                    m4(nodeListj,j)(ii,jj,kk,mm) += wwi*rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                    thpt = rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                    m4(nodeListi,i)(ii,jj,kk,mm) += wwj*thpt;
+                    m4(nodeListj,j)(ii,jj,kk,mm) += wwi*thpt;
                     for (size_t nn = 0; nn != Dimension::nDim; ++nn) {
-                      gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += wj*rij(ii)*rij(jj)*rij(kk)*rij(mm)*gradWj(nn);
-                      gradm4(nodeListj,j)(ii,jj,kk,mm,nn) += wi*rij(ii)*rij(jj)*rij(kk)*rij(mm)*gradWi(nn);
+                      gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += wj*thpt*gradWj(nn);
+                      gradm4(nodeListj,j)(ii,jj,kk,mm,nn) += wi*thpt*gradWi(nn);
                     }
                     gradm4(nodeListi,i)(ii, jj, kk, mm, mm) += wwj*rij(ii)*rij(jj)*rij(kk);
                     gradm4(nodeListi,i)(ii, jj, kk, mm, kk) += wwj*rij(ii)*rij(jj)*rij(mm);
