@@ -398,27 +398,47 @@ computeLinearCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap
             const Scalar wwj = wj*Wj;
             m0(nodeListi, i) += wwj;
             m0(nodeListj, j) += wwi;
-            gradm0(nodeListi, i) += wj*gradWj;
-            gradm0(nodeListj, j) += wi*gradWi;
+            // gradm0(nodeListi, i) += wj*gradWj;
+            // gradm0(nodeListj, j) += wi*gradWi;
+            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              gradm0(nodeListi, i)(ii) += wj*gradWj(ii);
+              gradm0(nodeListj, j)(ii) += wi*gradWi(ii);
+            }
 
             // First moment. 
-            m1(nodeListi, i) += wwj * rij;
-            m1(nodeListj, j) -= wwi * rij;
-            gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
-            gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
+            // m1(nodeListi, i) += wwj * rij;
+            // m1(nodeListj, j) -= wwi * rij;
+            // gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
+            // gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
+            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              m1(nodeListi, i)(ii) += wwj * rij(ii);
+              m1(nodeListj, j)(ii) -= wwi * rij(ii);
+              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                gradm1(nodeListi, i)(ii,jj) += wj*rij(ii)*gradWj(jj);
+                gradm1(nodeListj, j)(ii,jj) -= wi*rij(ii)*gradWi(jj);
+              }
+              gradm1(nodeListi, i)(ii,ii) += wj*Wj;
+              gradm1(nodeListj, j)(ii,ii) += wi*Wi;
+            }
 
             // Second moment.
-            const SymTensor thpt = rij.selfdyad();
-            m2(nodeListi, i) += wwj*thpt;
-            m2(nodeListj, j) += wwi*thpt;
-            gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
-            gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
-
+            // const SymTensor thpt = rij.selfdyad();
+            // m2(nodeListi, i) += wwj*thpt;
+            // m2(nodeListj, j) += wwi*thpt;
+            // gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
+            // gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              for (size_t jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
+                m2(nodeListi,i)(ii,jj) += wwj*rij(ii)*rij(jj);
+                m2(nodeListj,j)(ii,jj) += wwi*rij(ii)*rij(jj);
+              }
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                  gradm2(nodeListi, i)(ii,jj,kk) += wj*rij(ii)*rij(jj)*gradWj(kk);
+                  gradm2(nodeListj, j)(ii,jj,kk) += wi*rij(ii)*rij(jj)*gradWi(kk);
+                }
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
                 gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
-
                 gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
                 gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
               }
