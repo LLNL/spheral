@@ -609,73 +609,97 @@ computeQuadraticCRKSPHCorrections(const ConnectivityMap<Dimension>& connectivity
             gradm0(nodeListj, j) += wi*gradWi;
 
             // First moment. 
-            m1(nodeListi, i) += wwj * rij;
-            m1(nodeListj, j) -= wwi * rij;
-            gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
-            gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
+            // m1(nodeListi, i) += wwj * rij;
+            // m1(nodeListj, j) -= wwi * rij;
+            // gradm1(nodeListi, i) += wj*(outerProduct<Dimension>( rij, gradWj) + Tensor::one*Wj);
+            // gradm1(nodeListj, j) += wi*(outerProduct<Dimension>(-rij, gradWi) + Tensor::one*Wi);
+            for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              m1(nodeListi, i)(ii) += wwj * rij(ii);
+              m1(nodeListj, j)(ii) -= wwi * rij(ii);
+              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                gradm1(nodeListi, i)(ii,jj) += wj*rij(ii)*gradWj(jj);
+                gradm1(nodeListj, j)(ii,jj) -= wi*rij(ii)*gradWi(jj);
+              }
+              gradm1(nodeListi, i)(ii,ii) += wj*Wj;
+              gradm1(nodeListj, j)(ii,ii) += wi*Wi;
+            }
 
             // Second moment.
-            const SymTensor thpt = rij.selfdyad();
-            m2(nodeListi, i) += wwj*thpt;
-            m2(nodeListj, j) += wwi*thpt;
-            gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
-            gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
-
+            // const SymTensor thpt = rij.selfdyad();
+            // m2(nodeListi, i) += wwj*thpt;
+            // m2(nodeListj, j) += wwi*thpt;
+            // gradm2(nodeListi, i) += wj*outerProduct<Dimension>(thpt, gradWj);
+            // gradm2(nodeListj, j) += wi*outerProduct<Dimension>(thpt, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
+              for (size_t jj = ii; jj != Dimension::nDim; ++jj) {   // 'cause m2 is a symmetric tensor.
+                m2(nodeListi,i)(ii,jj) += wwj*rij(ii)*rij(jj);
+                m2(nodeListj,j)(ii,jj) += wwi*rij(ii)*rij(jj);
+              }
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                  gradm2(nodeListi, i)(ii,jj,kk) += wj*rij(ii)*rij(jj)*gradWj(kk);
+                  gradm2(nodeListj, j)(ii,jj,kk) += wi*rij(ii)*rij(jj)*gradWi(kk);
+                }
                 gradm2(nodeListi, i)(ii, jj, jj) += wwj*rij(ii);
                 gradm2(nodeListi, i)(jj, ii, jj) += wwj*rij(ii);
-
                 gradm2(nodeListj, j)(ii, jj, jj) -= wwi*rij(ii);
                 gradm2(nodeListj, j)(jj, ii, jj) -= wwi*rij(ii);
               }
             }
 
             // Third Moment
-            ThirdRankTensor thpt3 = outerProduct<Dimension>(thpt,rij);
-            m3(nodeListi, i) += wwj*thpt3;
-            m3(nodeListj, j) -= wwi*thpt3;
-            gradm3(nodeListi, i) += wj*outerProduct<Dimension>(thpt3, gradWj);
-            gradm3(nodeListj, j) -= wi*outerProduct<Dimension>(thpt3, gradWi);
-
+            // ThirdRankTensor thpt3 = outerProduct<Dimension>(thpt,rij);
+            // m3(nodeListi, i) += wwj*thpt3;
+            // m3(nodeListj, j) -= wwi*thpt3;
+            // gradm3(nodeListi, i) += wj*outerProduct<Dimension>(thpt3, gradWj);
+            // gradm3(nodeListj, j) -= wi*outerProduct<Dimension>(thpt3, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
               for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-               for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-                gradm3(nodeListi, i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
-                gradm3(nodeListi, i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
-                gradm3(nodeListi, i)(ii, jj, kk, ii) += wwj*rij(jj)*rij(kk);
-
-                gradm3(nodeListj, j)(ii, jj, kk, kk) += wwi*rij(ii)*rij(jj);
-                gradm3(nodeListj, j)(ii, jj, kk, jj) += wwi*rij(ii)*rij(kk);
-                gradm3(nodeListj, j)(ii, jj, kk, ii) += wwi*rij(jj)*rij(kk);
-
-               }
+                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                  m3(nodeListi,i)(ii,jj,kk) += wwj*rij(ii)*rij(jj)*rij(kk);
+                  m3(nodeListj,j)(ii,jj,kk) -= wwi*rij(ii)*rij(jj)*rij(kk);
+                  for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+                    gradm3(nodeListi,i)(ii,jj,kk,mm) += wj*rij(ii)*rij(jj)*rij(kk)*gradWj(mm);
+                    gradm3(nodeListj,j)(ii,jj,kk,mm) -= wi*rij(ii)*rij(jj)*rij(kk)*gradWi(mm);
+                  }
+                  gradm3(nodeListi,i)(ii, jj, kk, kk) += wwj*rij(ii)*rij(jj);
+                  gradm3(nodeListi,i)(ii, jj, kk, jj) += wwj*rij(ii)*rij(kk);
+                  gradm3(nodeListi,i)(ii, jj, kk, ii) += wwj*rij(jj)*rij(kk);
+                  gradm3(nodeListj,j)(ii, jj, kk, kk) += wwi*rij(ii)*rij(jj);
+                  gradm3(nodeListj,j)(ii, jj, kk, jj) += wwi*rij(ii)*rij(kk);
+                  gradm3(nodeListj,j)(ii, jj, kk, ii) += wwi*rij(jj)*rij(kk);
+                }
               }
             }
 
             // Fourth Moment
-            FourthRankTensor thpt4 = outerProduct<Dimension>(thpt3,rij);
-            m4(nodeListi, i) += wwj*thpt4;
-            m4(nodeListj, j) += wwi*thpt4;
-            gradm4(nodeListi, i) += wj*outerProduct<Dimension>(thpt4, gradWj);
-            gradm4(nodeListj, j) += wi*outerProduct<Dimension>(thpt4, gradWi);
-
+            // FourthRankTensor thpt4 = outerProduct<Dimension>(thpt3,rij);
+            // m4(nodeListi, i) += wwj*thpt4;
+            // m4(nodeListj, j) += wwi*thpt4;
+            // gradm4(nodeListi, i) += wj*outerProduct<Dimension>(thpt4, gradWj);
+            // gradm4(nodeListj, j) += wi*outerProduct<Dimension>(thpt4, gradWi);
             for (size_t ii = 0; ii != Dimension::nDim; ++ii) {
-             for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
-              for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
-               for (size_t ll = 0; ll != Dimension::nDim; ++ll) {
-                  gradm4(nodeListi, i)(ii, jj, kk, ll, ll) += wwj*rij(ii)*rij(jj)*rij(kk);
-                  gradm4(nodeListi, i)(ii, jj, kk, ll, kk) += wwj*rij(ii)*rij(jj)*rij(ll);
-                  gradm4(nodeListi, i)(ii, jj, kk, ll, jj) += wwj*rij(ii)*rij(kk)*rij(ll);
-                  gradm4(nodeListi, i)(ii, jj, kk, ll, ii) += wwj*rij(jj)*rij(kk)*rij(ll);
+              for (size_t jj = 0; jj != Dimension::nDim; ++jj) {
+                for (size_t kk = 0; kk != Dimension::nDim; ++kk) {
+                  for (size_t mm = 0; mm != Dimension::nDim; ++mm) {
+                    m4(nodeListi,i)(ii,jj,kk,mm) += wwj*rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                    m4(nodeListj,j)(ii,jj,kk,mm) += wwi*rij(ii)*rij(jj)*rij(kk)*rij(mm);
+                    for (size_t nn = 0; nn != Dimension::nDim; ++nn) {
+                      gradm4(nodeListi,i)(ii,jj,kk,mm,nn) += wj*rij(ii)*rij(jj)*rij(kk)*rij(mm)*gradWj(nn);
+                      gradm4(nodeListj,j)(ii,jj,kk,mm,nn) += wi*rij(ii)*rij(jj)*rij(kk)*rij(mm)*gradWi(nn);
+                    }
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, mm) += wwj*rij(ii)*rij(jj)*rij(kk);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, kk) += wwj*rij(ii)*rij(jj)*rij(mm);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, jj) += wwj*rij(ii)*rij(kk)*rij(mm);
+                    gradm4(nodeListi,i)(ii, jj, kk, mm, ii) += wwj*rij(jj)*rij(kk)*rij(mm);
 
-                  gradm4(nodeListj, j)(ii, jj, kk, ll, ll) -= wwi*rij(ii)*rij(jj)*rij(kk);
-                  gradm4(nodeListj, j)(ii, jj, kk, ll, kk) -= wwi*rij(ii)*rij(jj)*rij(ll);
-                  gradm4(nodeListj, j)(ii, jj, kk, ll, jj) -= wwi*rij(ii)*rij(kk)*rij(ll);
-                  gradm4(nodeListj, j)(ii, jj, kk, ll, ii) -= wwi*rij(jj)*rij(kk)*rij(ll);
-               }
+                    gradm4(nodeListj,j)(ii, jj, kk, mm, mm) -= wwi*rij(ii)*rij(jj)*rij(kk);
+                    gradm4(nodeListj,j)(ii, jj, kk, mm, kk) -= wwi*rij(ii)*rij(jj)*rij(mm);
+                    gradm4(nodeListj,j)(ii, jj, kk, mm, jj) -= wwi*rij(ii)*rij(kk)*rij(mm);
+                    gradm4(nodeListj,j)(ii, jj, kk, mm, ii) -= wwi*rij(jj)*rij(kk)*rij(mm);
+                  }
+                }
               }
-             }
             }
           }
         }
