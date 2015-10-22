@@ -2,6 +2,7 @@
 // A simple form for the artificial viscosity due to Monaghan & Gingold.
 //----------------------------------------------------------------------------//
 #include "CRKSPHMonaghanGingoldViscosity.hh"
+#include "Boundary/Boundary.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
@@ -13,6 +14,7 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
+#include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 
 namespace Spheral {
@@ -122,9 +124,71 @@ initialize(const DataBase<Dimension>& dataBase,
   // Let the base class do it's thing.
   ArtificialViscosity<Dimension>::initialize(dataBase, state, derivs, boundaryBegin, boundaryEnd, time, dt, W);
 
+  // The connectivity.
+  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  const size_t numNodeLists = nodeLists.size();
+
+  // const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
+  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
+  FieldList<Dimension, Scalar> QA(FieldSpace::Copy);
+  FieldList<Dimension, Vector> QB(FieldSpace::Copy);
+  FieldList<Dimension, Tensor> QC(FieldSpace::Copy);
+  FieldList<Dimension, Vector> QgradA(FieldSpace::Copy);
+  FieldList<Dimension, Tensor> QgradB(FieldSpace::Copy);
+  FieldList<Dimension, ThirdRankTensor> QgradC(FieldSpace::Copy);
+  FieldList<Dimension, Tensor> QDvDx (FieldSpace::Copy);
+  
+  for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
+    const NodeList<Dimension>& nodeList = position[nodeListk]->nodeList();
+    QA.appendNewField("Q A Correction", nodeList, 0.0);
+    QB.appendNewField("Q B Correction", nodeList, Vector::zero);
+    QC.appendNewField("Q C Correction", nodeList, Tensor::zero);
+    QgradA.appendNewField("Q gradA Correction", nodeList, Vector::zero);
+    QgradB.appendNewField("Q gradB Correction", nodeList, Tensor::zero);
+    QgradC.appendNewField("Q gradC Correction", nodeList, ThirdRankTensor::zero);
+
+    QDvDx.appendNewField("Q Velocity Gradient", nodeList, Tensor::zero);
+  }
+
+  // Change CRKSPH weights here if need be!
+  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const FieldList<Dimension, Scalar> vol = mass/massDensity;
+  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, ArtificialViscosity<Dimension>::QcorrectionOrder(), QA, QB, QC, QgradA, QgradB, QgradC);
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QA);
+    (*boundItr)->applyFieldListGhostBoundary(QB);
+    (*boundItr)->applyFieldListGhostBoundary(QC);
+    (*boundItr)->applyFieldListGhostBoundary(QgradA);
+    (*boundItr)->applyFieldListGhostBoundary(QgradB);
+    (*boundItr)->applyFieldListGhostBoundary(QgradC);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+  // Get the velocity gradient.
+  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  QDvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, QA, QB, QC, QgradA, QgradB, QgradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling()));
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr < boundaryEnd;
+       ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(QDvDx);
+  }
+  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
+       boundItr != boundaryEnd;
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+
+
   // Cache pointers to the velocity gradient.
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  mGradVel = DvDx;
+  //FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  //mGradVel = DvDx;
+  mGradVel = QDvDx;
 }
 
 //------------------------------------------------------------------------------
@@ -241,7 +305,8 @@ Piij(const unsigned nodeListi, const unsigned i,
   const Scalar ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
   const Scalar rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   CHECK(min(ri, rj) <= 1.0);
-  const Scalar phi = limiterMM(min(ri, rj));
+  //const Scalar phi = limiterMM(min(ri, rj));
+  const Scalar phi = limiterVL(min(ri, rj));
 
   // //const Scalar gradi = (((1.0/Dimension::nDim)*Tensor::one*DvDxi.Trace()).dot(xij)).dot(xij);
   // //const Scalar gradj = (((1.0/Dimension::nDim)*Tensor::one*DvDxj.Trace()).dot(xij)).dot(xij);
