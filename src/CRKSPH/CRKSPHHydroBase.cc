@@ -469,19 +469,6 @@ initialize(const typename Dimension::Scalar time,
     (*boundItr)->applyFieldListGhostBoundary(gradB);
     (*boundItr)->applyFieldListGhostBoundary(gradC);
   }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-
-  // Get the pressure and velocity gradients.
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  DvDx.assignFields(CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder(), W, NodeCoupling()));
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(DvDx);
-  }
 
   // Get the artificial viscosity and initialize it.
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
@@ -493,48 +480,6 @@ initialize(const typename Dimension::Scalar time,
                time, 
                dt,
                W);
-
-  // // If we're doing the RigorousSumDensity update, now is a good time to do it
-  // // since we have the boundary conditions and corrections all ready to go.
-  // if (densityUpdate() == PhysicsSpace::RigorousSumDensity) {
-  //   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  //   FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //   computeCRKSPHSumMassDensity(connectivityMap, W, position, mass, vol, H, A0, A, B, massDensity);
-  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //        boundaryItr != this->boundaryEnd();
-  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  // }
-  
-  // // Compute the surface normal
-  // surfNorm = Vector::zero;
-  
-  // size_t nodeListi = 0;
-  // for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-  //      itr != dataBase.fluidNodeListEnd();
-  //      ++itr, ++nodeListi) {
-  //   const NodeList<Dimension>& nodeList = **itr;
-  //   const int firstGhostNodei = nodeList.firstGhostNode();
-  //   const Scalar hmin = nodeList.hmin();
-  //   const Scalar hmax = nodeList.hmax();
-  //   const Scalar hminratio = nodeList.hminratio();
-  //   const int maxNumNeighbors = nodeList.maxNumNeighbors();
-  //   const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-    
-  //   // Iterate over the internal nodes in this NodeList.
-  //   for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
-  //        iItr != connectivityMap.end(nodeListi);
-  //        ++iItr) {
-  //     const int i = *iItr;
-  //     const Vector& m1i = m1(nodeListi, i);
-  //     const SymTensor& Hi = H(nodeListi, i);
-  //     //const Vector& sfi = surfNorm(nodeListi, i);
-      
-  //     surfNorm(nodeListi,i) = Hi*m1i;
-  //   }
-  // }
 }
 
 //------------------------------------------------------------------------------
@@ -839,12 +784,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
               // Velocity gradient.
-              // We've actually already set DvDx in initialize, but we need to update
-              // localDvDx at this point.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
               const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
-              // DvDxi += deltaDvDxi;
-              // DvDxj += deltaDvDxj;
+              DvDxi += deltaDvDxi;
+              DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
                 localDvDxi += deltaDvDxi;
                 localDvDxj += deltaDvDxj;
