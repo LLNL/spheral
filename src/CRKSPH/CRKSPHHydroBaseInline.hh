@@ -333,6 +333,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
+A0() const {
+  return mA0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
 A() const {
   return mA;
 }
@@ -357,6 +365,14 @@ template<typename Dimension>
 inline
 const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
 CRKSPHHydroBase<Dimension>::
+gradA0() const {
+  return mGradA0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
 gradA() const {
   return mGradA;
 }
@@ -375,6 +391,86 @@ const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
 CRKSPHHydroBase<Dimension>::
 gradC() const {
   return mGradC;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Scalar>&
+CRKSPHHydroBase<Dimension>::
+m0() const {
+  return mM0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
+m1() const {
+  return mM1;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>&
+CRKSPHHydroBase<Dimension>::
+m2() const {
+  return mM2;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+CRKSPHHydroBase<Dimension>::
+m3() const {
+  return mM3;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
+CRKSPHHydroBase<Dimension>::
+m4() const {
+  return mM4;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
+CRKSPHHydroBase<Dimension>::
+gradm0() const {
+  return mGradm0;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::Tensor>&
+CRKSPHHydroBase<Dimension>::
+gradm1() const {
+  return mGradm1;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::ThirdRankTensor>&
+CRKSPHHydroBase<Dimension>::
+gradm2() const {
+  return mGradm2;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::FourthRankTensor>&
+CRKSPHHydroBase<Dimension>::
+gradm3() const {
+  return mGradm3;
+}
+
+template<typename Dimension>
+inline
+const FieldSpace::FieldList<Dimension, typename Dimension::FifthRankTensor>&
+CRKSPHHydroBase<Dimension>::
+gradm4() const {
+  return mGradm4;
 }
 
 template<typename Dimension>
