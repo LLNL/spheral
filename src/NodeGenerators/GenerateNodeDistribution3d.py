@@ -1677,7 +1677,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-            if (nshell > 2):
+            if (nshell > 2 and nshell<163):
                 for i in xrange(len(shapeData)):
                     nc  = 0
                     nco = 0
@@ -1715,6 +1715,39 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             elif(nshell==2):
                 self.positions.append([1,0,0])
                 self.positions.append([-1,0,0])
+            elif(nshell>=163):
+                # do the spiral thing here
+                import random
+                random.seed(nshell)
+                dt = random.random()*pi
+                
+                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
+                
+                p = 0
+                for i in xrange(1,nshell+1):
+                    h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
+                    t = acos(h)
+                    
+                    if (i>1 and i<nshell):
+                        p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
+                    elif (i==nshell):
+                        p = 0                    
+                    
+                    x = sin(t)*cos(p)
+                    y = sin(t)*sin(p)
+                    z = cos(t)
+                    
+                    pos = [x,y,z]
+                    posp= [0,0,0]
+                    for k in xrange(3):
+                        for j in xrange(3):
+                            posp[k] += pos[j]*rot[k][j]
+                    
+                    x = posp[0]
+                    y = posp[1]
+                    z = posp[2]
+                    
+                    self.positions.append([x,y,z])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
