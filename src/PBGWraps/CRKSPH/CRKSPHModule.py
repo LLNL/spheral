@@ -71,6 +71,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
+        fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
@@ -138,13 +140,39 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
-        # CRKSPH corrections.
-        self.space.add_function("computeCRKSPHCorrections", None,
+        # CRKSPH moments.
+        self.space.add_function("computeCRKSPHMoments", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 refparam(scalarfieldlist, "m0"),
+                                 refparam(vectorfieldlist, "m1"),
+                                 refparam(symtensorfieldlist, "m2"),
+                                 refparam(thirdranktensorfieldlist, "m3"),
+                                 refparam(fourthranktensorfieldlist, "m4"),
+                                 refparam(vectorfieldlist, "gradm0"),
+                                 refparam(tensorfieldlist, "gradm1"),
+                                 refparam(thirdranktensorfieldlist, "gradm2"),
+                                 refparam(fourthranktensorfieldlist, "gradm3"),
+                                 refparam(fifthranktensorfieldlist, "gradm4")],
+                                template_parameters = [dim],
+                                custom_name = "computeCRKSPHMoments%id" % ndim)
+
+        # CRKSPH corrections.
+        self.space.add_function("computeCRKSPHCorrections", None,
+                                [constrefparam(scalarfieldlist, "m0"),
+                                 constrefparam(vectorfieldlist, "m1"),
+                                 constrefparam(symtensorfieldlist, "m2"),
+                                 constrefparam(thirdranktensorfieldlist, "m3"),
+                                 constrefparam(fourthranktensorfieldlist, "m4"),
+                                 constrefparam(vectorfieldlist, "gradm0"),
+                                 constrefparam(tensorfieldlist, "gradm1"),
+                                 constrefparam(thirdranktensorfieldlist, "gradm2"),
+                                 constrefparam(fourthranktensorfieldlist, "gradm3"),
+                                 constrefparam(fifthranktensorfieldlist, "gradm4"),
                                  param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),

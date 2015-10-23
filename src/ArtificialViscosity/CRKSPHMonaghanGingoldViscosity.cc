@@ -14,6 +14,7 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
+#include "CRKSPH/computeCRKSPHMoments.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "CRKSPH/gradientCRKSPH.hh"
 
@@ -133,31 +134,50 @@ initialize(const DataBase<Dimension>& dataBase,
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  //Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
-  FieldList<Dimension, Scalar> QA(FieldSpace::Copy);
-  FieldList<Dimension, Vector> QB(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> QC(FieldSpace::Copy);
-  FieldList<Dimension, Vector> QgradA(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> QgradB(FieldSpace::Copy);
-  FieldList<Dimension, ThirdRankTensor> QgradC(FieldSpace::Copy);
-  FieldList<Dimension, Tensor> QDvDx (FieldSpace::Copy);
-  
-  for (size_t nodeListk = 0; nodeListk != numNodeLists; ++nodeListk) {
-    const NodeList<Dimension>& nodeList = position[nodeListk]->nodeList();
-    QA.appendNewField("Q A Correction", nodeList, 0.0);
-    QB.appendNewField("Q B Correction", nodeList, Vector::zero);
-    QC.appendNewField("Q C Correction", nodeList, Tensor::zero);
-    QgradA.appendNewField("Q gradA Correction", nodeList, Vector::zero);
-    QgradB.appendNewField("Q gradB Correction", nodeList, Tensor::zero);
-    QgradC.appendNewField("Q gradC Correction", nodeList, ThirdRankTensor::zero);
 
-    QDvDx.appendNewField("Q Velocity Gradient", nodeList, Tensor::zero);
+  const CRKSPHSpace::CRKOrder correctionOrder = this->QcorrectionOrder();
+
+  //Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
+  FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, "Q m0");
+  FieldList<Dimension, Vector> m1;
+  FieldList<Dimension, SymTensor>  m2;
+  FieldList<Dimension, ThirdRankTensor> m3;
+  FieldList<Dimension, FourthRankTensor> m4;
+  FieldList<Dimension, Vector> gradm0 = dataBase.newFluidFieldList(Vector::zero, "Q grad m0");
+  FieldList<Dimension, Tensor> gradm1;
+  FieldList<Dimension, ThirdRankTensor> gradm2;
+  FieldList<Dimension, FourthRankTensor> gradm3;
+  FieldList<Dimension, FifthRankTensor> gradm4;
+  FieldList<Dimension, Scalar> QA = dataBase.newFluidFieldList(0.0, "Q A");
+  FieldList<Dimension, Vector> QB;
+  FieldList<Dimension, Tensor> QC;
+  FieldList<Dimension, Vector> QgradA = dataBase.newFluidFieldList(Vector::zero, "Q grad A");
+  FieldList<Dimension, Tensor> QgradB;
+  FieldList<Dimension, ThirdRankTensor> QgradC;
+  if (correctionOrder == CRKSPHSpace::LinearOrder or correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    m1 = dataBase.newFluidFieldList(Vector::zero, "Q m1");
+    m2 = dataBase.newFluidFieldList(SymTensor::zero, "Q m2");
+    gradm1 = dataBase.newFluidFieldList(Tensor::zero, "Q grad m1");
+    gradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad m2");
+    QB = dataBase.newFluidFieldList(Vector::zero, "Q B");
+    QgradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
   }
+  if (correctionOrder == CRKSPHSpace::QuadraticOrder) {
+    m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q m3");
+    m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, "Q m4");
+    gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, "Q grad m3");
+    gradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero, "Q grad m4");
+    QC = dataBase.newFluidFieldList(Tensor::zero, "Q C");
+    QgradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
+  }
+
+  FieldList<Dimension, Tensor> QDvDx  = dataBase.newFluidFieldList(Tensor::zero, "Q Velocity Gradient");
 
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, ArtificialViscosity<Dimension>::QcorrectionOrder(), QA, QB, QC, QgradA, QgradB, QgradC);
+  CRKSPHSpace::computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+  CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
        ++boundItr) {

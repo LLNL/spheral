@@ -47,6 +47,8 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
@@ -201,13 +203,26 @@ public:
   const FieldSpace::FieldList<Dimension, Vector>&    DmassDensityDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
+  const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
   const FieldSpace::FieldList<Dimension, ThirdRankTensor>&    gradC() const;
     
+  const FieldList<Dimension, Scalar>&                m0() const;
+  const FieldList<Dimension, Vector>&                m1() const;
+  const FieldList<Dimension, SymTensor>&             m2() const;
+  const FieldList<Dimension, ThirdRankTensor>&       m3() const;
+  const FieldList<Dimension, FourthRankTensor>&      m4() const;
+  const FieldList<Dimension, Vector>&                gradm0() const;
+  const FieldList<Dimension, Tensor>&                gradm1() const;
+  const FieldList<Dimension, ThirdRankTensor> &      gradm2() const;
+  const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
+  const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
+
   const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
   //****************************************************************************
@@ -259,13 +274,26 @@ private:
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
 
+  FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Tensor>    mC;
+  FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
   FieldSpace::FieldList<Dimension, ThirdRankTensor>    mGradC;
     
+  FieldList<Dimension, Scalar>                mM0;
+  FieldList<Dimension, Vector>                mM1;
+  FieldList<Dimension, SymTensor>             mM2;
+  FieldList<Dimension, ThirdRankTensor>       mM3;
+  FieldList<Dimension, FourthRankTensor>      mM4;
+  FieldList<Dimension, Vector>                mGradm0;
+  FieldList<Dimension, Tensor>                mGradm1;
+  FieldList<Dimension, ThirdRankTensor>       mGradm2;
+  FieldList<Dimension, FourthRankTensor>      mGradm3;
+  FieldList<Dimension, FifthRankTensor>       mGradm4;
+
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 
   // The restart registration.

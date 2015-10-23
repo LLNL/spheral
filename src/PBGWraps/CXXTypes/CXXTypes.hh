@@ -67,6 +67,14 @@ typedef vector<Spheral::ThirdRankTensor1d> vector_of_ThirdRankTensor1d;
 typedef vector<Spheral::ThirdRankTensor2d> vector_of_ThirdRankTensor2d;
 typedef vector<Spheral::ThirdRankTensor3d> vector_of_ThirdRankTensor3d;
 
+typedef vector<Spheral::FourthRankTensor1d> vector_of_FourthRankTensor1d;
+typedef vector<Spheral::FourthRankTensor2d> vector_of_FourthRankTensor2d;
+typedef vector<Spheral::FourthRankTensor3d> vector_of_FourthRankTensor3d;
+
+typedef vector<Spheral::FifthRankTensor1d> vector_of_FifthRankTensor1d;
+typedef vector<Spheral::FifthRankTensor2d> vector_of_FifthRankTensor2d;
+typedef vector<Spheral::FifthRankTensor3d> vector_of_FifthRankTensor3d;
+
 typedef vector<Spheral::Geom3Vector> vector_of_Geom3Vector;
 
 typedef vector<Spheral::Box1d> vector_of_Box1d;
@@ -88,6 +96,14 @@ typedef vector<Spheral::SymTensor3d>::iterator vector_of_SymTensor3d_iterator;
 typedef vector<Spheral::ThirdRankTensor1d>::iterator vector_of_ThirdRankTensor1d_iterator;
 typedef vector<Spheral::ThirdRankTensor2d>::iterator vector_of_ThirdRankTensor2d_iterator;
 typedef vector<Spheral::ThirdRankTensor3d>::iterator vector_of_ThirdRankTensor3d_iterator;
+
+typedef vector<Spheral::FourthRankTensor1d>::iterator vector_of_FourthRankTensor1d_iterator;
+typedef vector<Spheral::FourthRankTensor2d>::iterator vector_of_FourthRankTensor2d_iterator;
+typedef vector<Spheral::FourthRankTensor3d>::iterator vector_of_FourthRankTensor3d_iterator;
+
+typedef vector<Spheral::FifthRankTensor1d>::iterator vector_of_FifthRankTensor1d_iterator;
+typedef vector<Spheral::FifthRankTensor2d>::iterator vector_of_FifthRankTensor2d_iterator;
+typedef vector<Spheral::FifthRankTensor3d>::iterator vector_of_FifthRankTensor3d_iterator;
 
 typedef vector<Spheral::Geom3Vector>::iterator vector_of_Geom3Vector_iterator;
 
@@ -118,6 +134,14 @@ typedef vector<vector_of_ThirdRankTensor1d>       vector_of_vector_of_ThirdRankT
 typedef vector<vector_of_ThirdRankTensor2d>       vector_of_vector_of_ThirdRankTensor2d;
 typedef vector<vector_of_ThirdRankTensor3d>       vector_of_vector_of_ThirdRankTensor3d;
 
+typedef vector<vector_of_FourthRankTensor1d>       vector_of_vector_of_FourthRankTensor1d;
+typedef vector<vector_of_FourthRankTensor2d>       vector_of_vector_of_FourthRankTensor2d;
+typedef vector<vector_of_FourthRankTensor3d>       vector_of_vector_of_FourthRankTensor3d;
+
+typedef vector<vector_of_FifthRankTensor1d>       vector_of_vector_of_FifthRankTensor1d;
+typedef vector<vector_of_FifthRankTensor2d>       vector_of_vector_of_FifthRankTensor2d;
+typedef vector<vector_of_FifthRankTensor3d>       vector_of_vector_of_FifthRankTensor3d;
+
 typedef vector<vector_of_vector_of_char>        vector_of_vector_of_vector_of_char;
 typedef vector<vector_of_vector_of_unsigned>    vector_of_vector_of_vector_of_unsigned;
 typedef vector<vector_of_vector_of_int>         vector_of_vector_of_vector_of_int;
@@ -147,6 +171,14 @@ typedef vector<vector_of_SymTensor3d>::iterator       vector_of_vector_of_SymTen
 typedef vector<vector_of_ThirdRankTensor1d>::iterator       vector_of_vector_of_ThirdRankTensor1d_iterator;
 typedef vector<vector_of_ThirdRankTensor2d>::iterator       vector_of_vector_of_ThirdRankTensor2d_iterator;
 typedef vector<vector_of_ThirdRankTensor3d>::iterator       vector_of_vector_of_ThirdRankTensor3d_iterator;
+
+typedef vector<vector_of_FourthRankTensor1d>::iterator       vector_of_vector_of_FourthRankTensor1d_iterator;
+typedef vector<vector_of_FourthRankTensor2d>::iterator       vector_of_vector_of_FourthRankTensor2d_iterator;
+typedef vector<vector_of_FourthRankTensor3d>::iterator       vector_of_vector_of_FourthRankTensor3d_iterator;
+
+typedef vector<vector_of_FifthRankTensor1d>::iterator       vector_of_vector_of_FifthRankTensor1d_iterator;
+typedef vector<vector_of_FifthRankTensor2d>::iterator       vector_of_vector_of_FifthRankTensor2d_iterator;
+typedef vector<vector_of_FifthRankTensor3d>::iterator       vector_of_vector_of_FifthRankTensor3d_iterator;
 
 typedef vector<vector_of_vector_of_char>::iterator        vector_of_vector_of_vector_of_char_iterator;
 typedef vector<vector_of_vector_of_unsigned>::iterator    vector_of_vector_of_vector_of_unsigned_iterator;

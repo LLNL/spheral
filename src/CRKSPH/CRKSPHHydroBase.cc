@@ -15,6 +15,7 @@
 #include "computeHullVolumes.hh"
 #include "computeNeighborHull.hh"
 #include "computeCRKSPHSumMassDensity.hh"
+#include "computeCRKSPHMoments.hh"
 #include "computeCRKSPHCorrections.hh"
 #include "computeCRKSPHIntegral.hh"
 #include "computeHVolumes.hh"
@@ -136,9 +137,20 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mA(FieldSpace::Copy),
   mB(FieldSpace::Copy),
   mC(FieldSpace::Copy),
+  mGradA0(FieldSpace::Copy),
   mGradA(FieldSpace::Copy),
   mGradB(FieldSpace::Copy),
   mGradC(FieldSpace::Copy),
+  mM0(FieldSpace::Copy),
+  mM1(FieldSpace::Copy),
+  mM2(FieldSpace::Copy),
+  mM3(FieldSpace::Copy),
+  mM4(FieldSpace::Copy),
+  mGradm0(FieldSpace::Copy),
+  mGradm1(FieldSpace::Copy),
+  mGradm2(FieldSpace::Copy),
+  mGradm3(FieldSpace::Copy),
+  mGradm4(FieldSpace::Copy),
   mSurfNorm(FieldSpace::Copy),
   mRestart(DataOutput::registerWithRestart(*this)) {
 }
@@ -182,12 +194,26 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDmassDensityDx = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
 
-  mA = dataBase.newFluidFieldList(0.0,              HydroFieldNames::A_CRKSPH);
-  mB = dataBase.newFluidFieldList(Vector::zero,     HydroFieldNames::B_CRKSPH);
-  mC = dataBase.newFluidFieldList(Tensor::zero,     HydroFieldNames::C_CRKSPH);
-  mGradA = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::gradA_CRKSPH);
-  mGradB = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::gradB_CRKSPH);
-  mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH);
+  mA0 = dataBase.newFluidFieldList(0.0,                       HydroFieldNames::A0_CRKSPH);
+  mGradA0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradA0_CRKSPH);
+  mA = dataBase.newFluidFieldList(0.0,                        HydroFieldNames::A_CRKSPH);
+  mB = dataBase.newFluidFieldList(Vector::zero,               HydroFieldNames::B_CRKSPH);
+  mGradA = dataBase.newFluidFieldList(Vector::zero,           HydroFieldNames::gradA_CRKSPH);
+  mGradB = dataBase.newFluidFieldList(Tensor::zero,           HydroFieldNames::gradB_CRKSPH);
+  mM0 = dataBase.newFluidFieldList(0.0,                       HydroFieldNames::m0_CRKSPH);
+  mM1 = dataBase.newFluidFieldList(Vector::zero,              HydroFieldNames::m1_CRKSPH);
+  mM2 = dataBase.newFluidFieldList(SymTensor::zero,           HydroFieldNames::m2_CRKSPH);
+  mGradm0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradM0_CRKSPH);
+  mGradm1 = dataBase.newFluidFieldList(Tensor::zero,          HydroFieldNames::gradM1_CRKSPH);
+  mGradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH);
+  if (mCorrectionOrder == QuadraticOrder) {
+    mC = dataBase.newFluidFieldList(Tensor::zero,                HydroFieldNames::C_CRKSPH);
+    mGradC = dataBase.newFluidFieldList(ThirdRankTensor::zero,   HydroFieldNames::gradC_CRKSPH);
+    mM3 = dataBase.newFluidFieldList(ThirdRankTensor::zero,      HydroFieldNames::m3_CRKSPH);
+    mM4 = dataBase.newFluidFieldList(FourthRankTensor::zero,     HydroFieldNames::m4_CRKSPH);
+    mGradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, HydroFieldNames::gradM3_CRKSPH);
+    mGradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero,  HydroFieldNames::gradM4_CRKSPH);
+  }
 
   // mSurfNorm = dataBase.newFluidFieldList(Vector::zero, "Surface Normal");
 
@@ -228,7 +254,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4);
+  computeZerothCRKSPHCorrections(mM0, mGradm0, mA0, mGradA0);
+  computeCRKSPHCorrections(mM0, mM1, mM2, mM3, mM4, mGradm0, mGradm1, mGradm2, mGradm3, mGradm4, correctionOrder(), mA, mB, mC, mGradA, mGradB, mGradC);
 
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
@@ -262,14 +290,28 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   // dataBase.fluidPressure(mPressure);
   // dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.resizeFluidFieldList(mPressure, 0.0,          HydroFieldNames::pressure, false);
-  dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,        HydroFieldNames::soundSpeed, false);
-  dataBase.resizeFluidFieldList(mA,     0.0,             HydroFieldNames::A_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mB,     Vector::zero,    HydroFieldNames::B_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mC,     Tensor::zero,    HydroFieldNames::C_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mGradA, Vector::zero,    HydroFieldNames::gradA_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mGradB, Tensor::zero,    HydroFieldNames::gradB_CRKSPH, false);
-  dataBase.resizeFluidFieldList(mGradC, ThirdRankTensor::zero,    HydroFieldNames::gradC_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mPressure,   0.0,                   HydroFieldNames::pressure, false);
+  dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,                   HydroFieldNames::soundSpeed, false);
+  dataBase.resizeFluidFieldList(mA0,         0.0,                   HydroFieldNames::A0_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradA0,     Vector::zero,          HydroFieldNames::gradA0_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mA,          0.0,                   HydroFieldNames::A_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mB,          Vector::zero,          HydroFieldNames::B_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradA,      Vector::zero,          HydroFieldNames::gradA_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradB,      Tensor::zero,          HydroFieldNames::gradB_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mM0,         0.0,                   HydroFieldNames::m0_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mM1,         Vector::zero,          HydroFieldNames::m1_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mM2,         SymTensor::zero,       HydroFieldNames::m2_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradm0,     Vector::zero,          HydroFieldNames::gradM0_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradm1,     Tensor::zero,          HydroFieldNames::gradM1_CRKSPH, false);
+  dataBase.resizeFluidFieldList(mGradm2,     ThirdRankTensor::zero, HydroFieldNames::gradM2_CRKSPH, false);
+  if (mCorrectionOrder == QuadraticOrder) {
+    dataBase.resizeFluidFieldList(mC,        Tensor::zero,          HydroFieldNames::C_CRKSPH, false);
+    dataBase.resizeFluidFieldList(mGradC,    ThirdRankTensor::zero, HydroFieldNames::gradC_CRKSPH, false);
+    dataBase.resizeFluidFieldList(mM3,       ThirdRankTensor::zero, HydroFieldNames::m3_CRKSPH, false);
+    dataBase.resizeFluidFieldList(mM4,       FourthRankTensor::zero,HydroFieldNames::m4_CRKSPH, false);
+    dataBase.resizeFluidFieldList(mGradm3,   FourthRankTensor::zero,HydroFieldNames::m3_CRKSPH, false);
+    dataBase.resizeFluidFieldList(mGradm4,   FifthRankTensor::zero, HydroFieldNames::m4_CRKSPH, false);
+  }
   // dataBase.resizeFluidFieldList(mSurfNorm, Vector::zero, "Surface Normal", false);
 
   // If we're using the compatibile energy discretization, prepare to maintain a copy
@@ -362,12 +404,24 @@ registerState(DataBase<Dimension>& dataBase,
   // during CRKSPHHydroBase::initialize, not as part of our usual state update.
   // This is necessary 'cause we need boundary conditions *and* the current set of
   // neighbors before we compute these suckers.
+  state.enroll(mA0);
+  state.enroll(mGradA0);
   state.enroll(mA);
   state.enroll(mB);
   state.enroll(mC);
   state.enroll(mGradA);
   state.enroll(mGradB);
   state.enroll(mGradC);
+  state.enroll(mM0);
+  state.enroll(mM1);
+  state.enroll(mM2);
+  state.enroll(mM3);
+  state.enroll(mM4);
+  state.enroll(mGradm0);
+  state.enroll(mGradm1);
+  state.enroll(mGradm2);
+  state.enroll(mGradm3);
+  state.enroll(mGradm4);
   // state.enroll(mSurfNorm);
 }
 
@@ -443,28 +497,44 @@ initialize(const typename Dimension::Scalar time,
   // Compute the kernel correction fields.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  // const FieldList<Dimension, Scalar> vol = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CRKSPH, 0.0);
+  FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
   FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+  FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+  FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+  FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+  FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+  FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+  FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+  FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
+
   // FieldList<Dimension, Vector> surfNorm = state.fields("Surface Normal", Vector::zero);
   
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  computeCRKSPHCorrections(connectivityMap, W, vol, position, H, correctionOrder(), A, B, C, gradA, gradB, gradC);
+  computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder(), m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
+  computeZerothCRKSPHCorrections(m0, gradm0, A0, gradA0);
+  computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder(), A, B, C, gradA, gradB, gradC);
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) {
+    (*boundItr)->applyFieldListGhostBoundary(A0);
     (*boundItr)->applyFieldListGhostBoundary(A);
     (*boundItr)->applyFieldListGhostBoundary(B);
     (*boundItr)->applyFieldListGhostBoundary(C);
+    (*boundItr)->applyFieldListGhostBoundary(gradA0);
     (*boundItr)->applyFieldListGhostBoundary(gradA);
     (*boundItr)->applyFieldListGhostBoundary(gradB);
     (*boundItr)->applyFieldListGhostBoundary(gradC);
@@ -515,6 +585,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
   const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
   const size_t numNodeLists = nodeLists.size();
+  const CRKOrder order = this->correctionOrder();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -542,11 +613,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
-  CHECK(B.size() == numNodeLists);
-  CHECK(C.size() == numNodeLists);
+  CHECK(B.size() == numNodeLists or order == ZerothOrder);
+  CHECK(C.size() == numNodeLists or order != QuadraticOrder);
   CHECK(gradA.size() == numNodeLists);
-  CHECK(gradB.size() == numNodeLists);
-  CHECK(gradC.size() == numNodeLists);
+  CHECK(gradB.size() == numNodeLists or order == ZerothOrder);
+  CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
   // CHECK(surfNorm.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -595,6 +666,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
 
+  // Some scratch variables.
+  Vector Bi = Vector::zero, Bj = Vector::zero;
+  Tensor Ci = Tensor::zero, Cj = Tensor::zero;
+  Tensor gradBi = Tensor::zero, gradBj = Tensor::zero;
+  ThirdRankTensor gradCi = ThirdRankTensor::zero, gradCj = ThirdRankTensor::zero;
+
   // Start our big loop over all FluidNodeLists.
   size_t nodeListi = 0;
   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -634,11 +711,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
-      const Vector& Bi = B(nodeListi, i);
-      const Tensor& Ci = C(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
-      const Tensor& gradBi = gradB(nodeListi, i);
-      const ThirdRankTensor& gradCi = gradC(nodeListi, i);
+      if (order != ZerothOrder) {
+        Bi = B(nodeListi, i);
+        gradBi = gradB(nodeListi, i);
+      }
+      if (order == QuadraticOrder) {
+        Ci = C(nodeListi, i);
+        gradCi = gradC(nodeListi, i);
+      }
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
       CHECK2(mi > 0.0, i << " " << mi);
@@ -706,11 +787,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
               const Scalar Aj = A(nodeListj, j);
-              const Vector& Bj = B(nodeListj, j);
-              const Tensor& Cj = C(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
-              const Tensor& gradBj = gradB(nodeListj, j);
-              const ThirdRankTensor& gradCj = gradC(nodeListj, j);
+              if (order != ZerothOrder) {
+                Bj = B(nodeListj, j);
+                gradBj = gradB(nodeListj, j);
+              }
+              if (order == QuadraticOrder) {
+                Cj = C(nodeListj, j);
+                gradCj = gradC(nodeListj, j);
+              }
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
               CHECK(mj > 0.0);
@@ -747,8 +832,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj;
               Vector gradWi, gradWj;
-              CRKSPHKernelAndGradient(W, correctionOrder(),  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
-              CRKSPHKernelAndGradient(W, correctionOrder(), -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+              CRKSPHKernelAndGradient(W, order,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
+              CRKSPHKernelAndGradient(W, order, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
               const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
