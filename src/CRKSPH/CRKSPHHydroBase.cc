@@ -83,6 +83,24 @@ using Geometry::outerProduct;
 using PhysicsSpace::MassDensityType;
 using PhysicsSpace::HEvolutionType;
 
+namespace {
+
+double fluxlimiterVL(const double x) {
+  // if (x > 0.0) {
+  //   return min(1.0, x);                           // minmod
+  // } else {
+  //   return 0.0;
+  // }
+
+  // if (x > 0.0) {
+  //   return 2.0/(1.0 + x)*2.0*x/(1.0 + x);                       // van Leer
+  // } else {
+  //   return 0.0;
+  // }
+  return (x + abs(x))/(1.0 + abs(x));                       // van Leer
+}
+
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -132,7 +150,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDHDt(FieldSpace::Copy),
   mDvDx(FieldSpace::Copy),
   mInternalDvDx(FieldSpace::Copy),
-  mDmassDensityDx(FieldSpace::Copy),
   mPairAccelerations(FieldSpace::Copy),
   mA(FieldSpace::Copy),
   mB(FieldSpace::Copy),
@@ -191,7 +208,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  mDmassDensityDx = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
 
   mA0 = dataBase.newFluidFieldList(0.0,                       HydroFieldNames::A0_CRKSPH);
@@ -456,7 +472,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mDmassDensityDx, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
 
   derivs.enroll(mHideal);
@@ -478,7 +493,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
-  derivs.enroll(mDmassDensityDx);
   derivs.enroll(mPairAccelerations);
 }
 
@@ -597,9 +611,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const FieldList<Dimension, Scalar> A0 = state.fields(HydroFieldNames::A0_CRKSPH, 0.0);
   const FieldList<Dimension, Scalar> A = state.fields(HydroFieldNames::A_CRKSPH, 0.0);
   const FieldList<Dimension, Vector> B = state.fields(HydroFieldNames::B_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> C = state.fields(HydroFieldNames::C_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, Vector> gradA0 = state.fields(HydroFieldNames::gradA0_CRKSPH, Vector::zero);
   const FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   const FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   const FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
@@ -612,9 +628,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(A0.size() == numNodeLists);
   CHECK(A.size() == numNodeLists);
   CHECK(B.size() == numNodeLists or order == ZerothOrder);
   CHECK(C.size() == numNodeLists or order != QuadraticOrder);
+  CHECK(gradA0.size() == numNodeLists);
   CHECK(gradA.size() == numNodeLists);
   CHECK(gradB.size() == numNodeLists or order == ZerothOrder);
   CHECK(gradC.size() == numNodeLists or order != QuadraticOrder);
@@ -627,7 +645,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, Vector> DrhoDx = derivatives.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -642,7 +659,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
-  CHECK(DrhoDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
@@ -665,6 +681,81 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
     }
   }
+
+  //................................................................................
+  // Find the grad pressure as a switch for the FCT of momentum.
+  // Note this should be moved out of here if it works since we don't want to stop 
+  // for boundary conditions in evaluateDerivatives.
+  // FieldList<Dimension, Vector> gradP = gradientCRKSPH(pressure, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
+  FieldList<Dimension, Scalar> vol = mass/massDensity;  // Depending on boundaries already applied to m & rho.
+  DvDx = gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
+  // const FieldList<Dimension, Tensor> DvDx0 = gradientCRKSPH(velocity, position, vol, H, A0, B, C, gradA0, gradB, gradC, connectivityMap, ZerothOrder, W);
+  // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
+  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   for (size_t i = 0; i != DvDx[nodeListi]->numInternalElements(); ++i) {
+  //     const Scalar ri = DvDx0(nodeListi,i).doubledot(DvDx(nodeListi,i).Inverse());
+  //     psi(nodeListi,i) = fluxlimiterVL(ri);
+  //   }
+  // }
+  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(psi);
+  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  // // Find the minimum flux limiter value per point.
+  // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
+  // {
+  //   size_t nodeListi = 0;
+  //   for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
+  //        itr != dataBase.fluidNodeListEnd();
+  //        ++itr, ++nodeListi) {
+  //     const NodeList<Dimension>& nodeList = **itr;
+  //     const int firstGhostNodei = nodeList.firstGhostNode();
+  //     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
+  //          iItr != connectivityMap.end(nodeListi);
+  //          ++iItr) {
+  //       const int i = *iItr;
+  //       const Vector& gradPi = gradP(nodeListi, i);
+  //       const Vector& ri = position(nodeListi, i);
+  //       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
+  //       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+  //         const vector<int>& connectivity = fullConnectivity[nodeListj];
+  //         if (connectivity.size() > 0) {
+  //           const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
+  //           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
+  //           for (vector<int>::const_iterator jItr = connectivity.begin();
+  //                jItr != connectivity.end();
+  //                ++jItr) {
+  //             const int j = *jItr;
+  //             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
+  //                                                          nodeListj, j,
+  //                                                          firstGhostNodej)) {
+  //               const Vector& rj = position(nodeListj, j);
+  //               const Vector& gradPj = gradP(nodeListj, j);
+  //               const Vector rij = ri - rj;
+  //               const Scalar gradPij = gradPi.dot(rij);
+  //               const Scalar gradPji = gradPj.dot(rij);
+  //               const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
+  //               const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
+  //               const Scalar psiij = fluxlimiterVL(min(Ri, Rj));
+  //               psi(nodeListi,i) = min(psi(nodeListi,i), psiij);
+  //               psi(nodeListj,j) = min(psi(nodeListj,j), psiij);
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(psi);
+  //   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //        boundaryItr != this->boundaryEnd();
+  //        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // }
+  //................................................................................
 
   // Some scratch variables.
   Vector Bi = Vector::zero, Bj = Vector::zero;
@@ -710,6 +801,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const Scalar Pi = pressure(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar ci = soundSpeed(nodeListi, i);
+      const Scalar A0i = A0(nodeListi, i);
+      const Vector& gradA0i = gradA0(nodeListi, i);
       const Scalar Ai = A(nodeListi, i);
       const Vector& gradAi = gradA(nodeListi, i);
       if (order != ZerothOrder) {
@@ -722,6 +815,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
       const Scalar Hdeti = Hi.Determinant();
       const Scalar weighti = mi/rhoi;  // Change CRKSPH weights here if need be!
+      // const Scalar psii = psi(nodeListi, i);
+      // const Vector& gradPi = gradP(nodeListi, i);
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       CHECK2(Ai > 0.0, i << " " << Ai);
@@ -734,7 +829,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Scalar& DepsDti = DepsDt(nodeListi, i);
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
-      Vector& DrhoDxi = DrhoDx(nodeListi, i);
       SymTensor& DHDti = DHDt(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
@@ -786,6 +880,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Pj = pressure(nodeListj, j);
               const SymTensor& Hj = H(nodeListj, j);
               const Scalar cj = soundSpeed(nodeListj, j);
+              const Scalar A0j = A0(nodeListj, j);
+              const Vector& gradA0j = gradA0(nodeListj, j);
               const Scalar Aj = A(nodeListj, j);
               const Vector& gradAj = gradA(nodeListj, j);
               if (order != ZerothOrder) {
@@ -798,6 +894,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               }
               const Scalar Hdetj = Hj.Determinant();
               const Scalar weightj = mj/rhoj;     // Change CRKSPH weights here if need be!
+              // const Scalar psij = psi(nodeListj, j);
+              // const Vector& gradPj = gradP(nodeListj, j);
               CHECK(mj > 0.0);
               CHECK(rhoj > 0.0);
               CHECK(Aj > 0.0 or j >= firstGhostNodej);
@@ -810,7 +908,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
               Tensor& localDvDxj = localDvDx(nodeListj, j);
-              Vector& DrhoDxj = DrhoDx(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
               Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
               Scalar& viscousWorkj = viscousWork(nodeListj, j);
@@ -829,16 +926,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(etaMagj >= 0.0);
               const Vector vij = vi - vj;
 
+              // Apply FCT limiting based on the pressure gradient.
+              // const Scalar gradPij = gradPi.dot(rij);
+              // const Scalar gradPji = gradPj.dot(rij);
+              // const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
+              // const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
+              const Scalar dvdxi = DvDxi.dot(rij).dot(rij);
+              const Scalar dvdxj = DvDxj.dot(rij).dot(rij);
+              const Scalar Ri = dvdxi/(sgn(dvdxj)*max(1.0e-30, abs(dvdxj)));
+              const Scalar Rj = dvdxj/(sgn(dvdxi)*max(1.0e-30, abs(dvdxi)));
+              const Scalar psi = fluxlimiterVL(min(Ri, Rj));
+              
               // Symmetrized kernel weight and gradient.
-              Scalar gWi, gWj, Wi, Wj;
-              Vector gradWi, gradWj;
+              Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
+              Vector gradWi, gradWj, gradW0i, gradW0j;
+              CRKSPHKernelAndGradient(W, ZerothOrder,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, A0i, Vector::zero, Tensor::zero, gradA0i, Tensor::zero, ThirdRankTensor::zero, W0j, gW0j, gradW0j);
+              CRKSPHKernelAndGradient(W, ZerothOrder, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, Tensor::zero, gradA0j, Tensor::zero, ThirdRankTensor::zero, W0i, gW0i, gradW0i);
               CRKSPHKernelAndGradient(W, order,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
               CRKSPHKernelAndGradient(W, order, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
+              Wi = W0i + psi*(Wi - W0i);                    // FCT limiting of the kernel
+              Wj = W0j + psi*(Wj - W0j);                    // FCT limiting of the kernel
+              gradWj = gradW0j + psi*(gradWj - gradW0j);    // FCT limiting of the gradient
+              gradWi = gradW0i + psi*(gradWi - gradW0i);    // FCT limiting of the gradient
               const Vector deltagrad = gradWj - gradWi;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
-              const Vector gradWQSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
-              const Vector gradWQSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
+              // const Vector gradWQSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
+              // const Vector gradWQSPHj = (Hj*etaj.unitVector())*WQ.gradValue(etaj.magnitude(), Hdetj);
 
               // Zero'th and second moment of the node distribution -- used for the
               // ideal H calculation.
@@ -871,18 +985,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Velocity gradient.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
               const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
-              DvDxi += deltaDvDxi;
-              DvDxj += deltaDvDxj;
+              // DvDxi += deltaDvDxi;
+              // DvDxj += deltaDvDxj;
               if (nodeListi == nodeListj) {
                 localDvDxi += deltaDvDxi;
                 localDvDxj += deltaDvDxj;
               }
-
-              // Mass density gradient.
-              // DrhoDxi += weightj*rhoj*gradWj;
-              // DrhoDxj += weighti*rhoi*gradWi;
-              DrhoDxi += weightj*(rhoj - rhoi)*gradWj;
-              DrhoDxj += weighti*(rhoi - rhoj)*gradWi;
 
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
@@ -1211,7 +1319,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1230,7 +1337,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradA);
     (*boundaryItr)->applyFieldListGhostBoundary(gradB);
     (*boundaryItr)->applyFieldListGhostBoundary(gradC);
-    (*boundaryItr)->applyFieldListGhostBoundary(DrhoDx);
   }
 }
 
@@ -1261,7 +1367,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> gradA = state.fields(HydroFieldNames::gradA_CRKSPH, Vector::zero);
   FieldList<Dimension, Tensor> gradB = state.fields(HydroFieldNames::gradB_CRKSPH, Tensor::zero);
   FieldList<Dimension, ThirdRankTensor> gradC = state.fields(HydroFieldNames::gradC_CRKSPH, ThirdRankTensor::zero);
-  FieldList<Dimension, Vector> DrhoDx = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1280,7 +1385,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(gradA);
     (*boundaryItr)->enforceFieldListBoundary(gradB);
     (*boundaryItr)->enforceFieldListBoundary(gradC);
-    (*boundaryItr)->enforceFieldListBoundary(DrhoDx);
   }
 }
 
@@ -1310,7 +1414,6 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
-  file.write(mDmassDensityDx, pathName + "/DmassDensityDx");
   file.write(mVolume, pathName + "/volume");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
@@ -1347,7 +1450,6 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
-  file.read(mDmassDensityDx, pathName + "/DmassDensityDx");
   file.read(mVolume, pathName + "/volume");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
