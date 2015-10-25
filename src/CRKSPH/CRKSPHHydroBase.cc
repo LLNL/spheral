@@ -697,12 +697,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   //     psi(nodeListi,i) = fluxlimiterVL(ri);
   //   }
   // }
-  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //      boundaryItr != this->boundaryEnd();
-  //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(psi);
-  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-  //      boundaryItr != this->boundaryEnd();
-  //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
   // // Find the minimum flux limiter value per point.
   // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
