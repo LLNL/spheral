@@ -315,14 +315,6 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
-const FieldSpace::FieldList<Dimension, typename Dimension::Vector>&
-CRKSPHHydroBase<Dimension>::
-DmassDensityDx() const {
-  return mDmassDensityDx;
-}
-
-template<typename Dimension>
-inline
 const FieldSpace::FieldList<Dimension, std::vector<typename Dimension::Vector> >&
 CRKSPHHydroBase<Dimension>::
 pairAccelerations() const {

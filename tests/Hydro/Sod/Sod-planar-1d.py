@@ -507,12 +507,9 @@ if graphics:
         plots += [(volPlot, "Sod-planar-vol.png"),
                   (APlot, "Sod-planar-A.png"),
                   (BPlot, "Sod-planar-B.png")]
-        state = State()
         derivs = StateDerivatives(db, integrator.physicsPackages())
         drhodt = derivs.scalarFields("delta mass density")
         pdrhodt = plotFieldList(drhodt, winTitle = "DrhoDt", colorNodeLists=False)
-        drhodx = derivs.vectorFields("mass density gradient")
-        pdrhodx = plotFieldList(drhodx, yFunction="%s.x", winTitle = "DrhoDx", colorNodeLists=False)
     
     viscPlot = plotFieldList(hydro.maxViscousPressure(),
                              winTitle = "max(rho^2 Piij)",
