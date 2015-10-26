@@ -99,7 +99,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         # k = 3/(self.rho0*rmax**3) * targetMass/(4.0*pi)
         # print "Found kappa={0:3.3f}. Was that what you expected?".format(k)
         
-        nlat = 2*nr
+        nlat = nr
         
         # create the unstretched lattice
         self.xl, self.yl, self.zl, self.ml, self.Hl = \
@@ -116,7 +116,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         for i in xrange(len(self.xl)):
             self.rl.append(sqrt(self.xl[i]**2+self.yl[i]**2+self.zl[i]**2))
         
-        print "Sorting unstretched lattice..."
+        print "Sorting unstretched lattice... %d elements" % len(self.rl)
         
         multiSort(self.rl,self.xl,self.yl,self.zl)
         
@@ -136,6 +136,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         rp  = 0
         rn  = 0
         for i in xrange(1,len(self.rl)):
+            #print "%d / %d" % (i,len(self.rl))
             r0 = self.rl[i]
             if (abs(r0-r0p)/r0>1e-10):
                 sol     = r0**3*self.rho0/3.0
