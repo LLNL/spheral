@@ -137,17 +137,18 @@ initialize(const DataBase<Dimension>& dataBase,
 
   const CRKSPHSpace::CRKOrder correctionOrder = this->QcorrectionOrder();
 
-  //Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
-  FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, "Q m0");
-  FieldList<Dimension, Vector> m1;
-  FieldList<Dimension, SymTensor>  m2;
-  FieldList<Dimension, ThirdRankTensor> m3;
-  FieldList<Dimension, FourthRankTensor> m4;
-  FieldList<Dimension, Vector> gradm0 = dataBase.newFluidFieldList(Vector::zero, "Q grad m0");
-  FieldList<Dimension, Tensor> gradm1;
-  FieldList<Dimension, ThirdRankTensor> gradm2;
-  FieldList<Dimension, FourthRankTensor> gradm3;
-  FieldList<Dimension, FifthRankTensor> gradm4;
+  // Make new correction fields cause do not want to mess up the corrections of the solver if they are at different orders.
+  // The CRK hydro has already evaluated the moments, so we get to just reuse those.
+  const FieldList<Dimension, Scalar> m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  const FieldList<Dimension, Vector> m1 = state.fields(HydroFieldNames::m1_CRKSPH, Vector::zero);
+  const FieldList<Dimension, SymTensor> m2 = state.fields(HydroFieldNames::m2_CRKSPH, SymTensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> m3 = state.fields(HydroFieldNames::m3_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> m4 = state.fields(HydroFieldNames::m4_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, Vector> gradm0 = state.fields(HydroFieldNames::gradM0_CRKSPH, Vector::zero);
+  const FieldList<Dimension, Tensor> gradm1 = state.fields(HydroFieldNames::gradM1_CRKSPH, Tensor::zero);
+  const FieldList<Dimension, ThirdRankTensor> gradm2 = state.fields(HydroFieldNames::gradM2_CRKSPH, ThirdRankTensor::zero);
+  const FieldList<Dimension, FourthRankTensor> gradm3 = state.fields(HydroFieldNames::gradM3_CRKSPH, FourthRankTensor::zero);
+  const FieldList<Dimension, FifthRankTensor> gradm4 = state.fields(HydroFieldNames::gradM4_CRKSPH, FifthRankTensor::zero);
   FieldList<Dimension, Scalar> QA = dataBase.newFluidFieldList(0.0, "Q A");
   FieldList<Dimension, Vector> QB;
   FieldList<Dimension, Tensor> QC;
@@ -155,18 +156,10 @@ initialize(const DataBase<Dimension>& dataBase,
   FieldList<Dimension, Tensor> QgradB;
   FieldList<Dimension, ThirdRankTensor> QgradC;
   if (correctionOrder == CRKSPHSpace::LinearOrder or correctionOrder == CRKSPHSpace::QuadraticOrder) {
-    m1 = dataBase.newFluidFieldList(Vector::zero, "Q m1");
-    m2 = dataBase.newFluidFieldList(SymTensor::zero, "Q m2");
-    gradm1 = dataBase.newFluidFieldList(Tensor::zero, "Q grad m1");
-    gradm2 = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad m2");
     QB = dataBase.newFluidFieldList(Vector::zero, "Q B");
     QgradB = dataBase.newFluidFieldList(Tensor::zero, "Q grad B");
   }
   if (correctionOrder == CRKSPHSpace::QuadraticOrder) {
-    m3 = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q m3");
-    m4 = dataBase.newFluidFieldList(FourthRankTensor::zero, "Q m4");
-    gradm3 = dataBase.newFluidFieldList(FourthRankTensor::zero, "Q grad m3");
-    gradm4 = dataBase.newFluidFieldList(FifthRankTensor::zero, "Q grad m4");
     QC = dataBase.newFluidFieldList(Tensor::zero, "Q C");
     QgradC = dataBase.newFluidFieldList(ThirdRankTensor::zero, "Q grad C");
   }
@@ -176,7 +169,6 @@ initialize(const DataBase<Dimension>& dataBase,
   // Change CRKSPH weights here if need be!
   const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const FieldList<Dimension, Scalar> vol = mass/massDensity;
-  CRKSPHSpace::computeCRKSPHMoments(connectivityMap, W, vol, position, H, correctionOrder, m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4);
   CRKSPHSpace::computeCRKSPHCorrections(m0, m1, m2, m3, m4, gradm0, gradm1, gradm2, gradm3, gradm4, correctionOrder, QA, QB, QC, QgradA, QgradB, QgradC);
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
        boundItr < boundaryEnd;
