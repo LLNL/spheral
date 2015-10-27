@@ -134,7 +134,6 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mTimeStepMask(FieldSpace::Copy),
   mPressure(FieldSpace::Copy),
   mSoundSpeed(FieldSpace::Copy),
-  mVolume(FieldSpace::Copy),
   mSpecificThermalEnergy0(FieldSpace::Copy),
   mHideal(FieldSpace::Copy),
   mMaxViscousPressure(FieldSpace::Copy),
@@ -151,6 +150,14 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDx(FieldSpace::Copy),
   mInternalDvDx(FieldSpace::Copy),
   mPairAccelerations(FieldSpace::Copy),
+  mDvDt0(FieldSpace::Copy),
+  mDmassDensityDt0(FieldSpace::Copy),
+  mDspecificThermalEnergyDt0(FieldSpace::Copy),
+  mDHDt0(FieldSpace::Copy),
+  mDvDx0(FieldSpace::Copy),
+  mInternalDvDx0(FieldSpace::Copy),
+  mPairAccelerations0(FieldSpace::Copy),
+  mA0(FieldSpace::Copy),
   mA(FieldSpace::Copy),
   mB(FieldSpace::Copy),
   mC(FieldSpace::Copy),
@@ -192,7 +199,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
-  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
@@ -209,6 +215,13 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mPairAccelerations = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations);
+  mDvDt0 = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity + "0");
+  mDmassDensityDt0 = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity + "0");
+  mDspecificThermalEnergyDt0 = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy + "0");
+  mDHDt0 = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H + "0");
+  mDvDx0 = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient + "0");
+  mInternalDvDx0 = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient + "0");
+  mPairAccelerations0 = dataBase.newFluidFieldList(vector<Vector>(), HydroFieldNames::pairAccelerations + "0");
 
   mA0 = dataBase.newFluidFieldList(0.0,                       HydroFieldNames::A0_CRKSPH);
   mGradA0 = dataBase.newFluidFieldList(Vector::zero,          HydroFieldNames::gradA0_CRKSPH);
@@ -473,6 +486,13 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mPairAccelerations, vector<Vector>(), HydroFieldNames::pairAccelerations, false);
+  dataBase.resizeFluidFieldList(mDvDt0, Vector::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity + "0", false);
+  dataBase.resizeFluidFieldList(mDmassDensityDt0, 0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity + "0", false);
+  dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt0, 0.0, IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy + "0", false);
+  dataBase.resizeFluidFieldList(mDHDt0, SymTensor::zero, IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H + "0", false);
+  dataBase.resizeFluidFieldList(mDvDx0, Tensor::zero, HydroFieldNames::velocityGradient + "0", false);
+  dataBase.resizeFluidFieldList(mInternalDvDx0, Tensor::zero, HydroFieldNames::internalVelocityGradient + "0", false);
+  dataBase.resizeFluidFieldList(mPairAccelerations0, vector<Vector>(), HydroFieldNames::pairAccelerations + "0", false);
 
   derivs.enroll(mHideal);
   derivs.enroll(mMaxViscousPressure);
@@ -494,6 +514,13 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
   derivs.enroll(mPairAccelerations);
+  derivs.enroll(mDvDt0);
+  derivs.enroll(mDmassDensityDt0);
+  derivs.enroll(mDspecificThermalEnergyDt0);
+  derivs.enroll(mDHDt0);
+  derivs.enroll(mDvDx0);
+  derivs.enroll(mInternalDvDx0);
+  derivs.enroll(mPairAccelerations0);
 }
 
 //------------------------------------------------------------------------------
@@ -646,11 +673,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
+  FieldList<Dimension, Scalar> DrhoDt0 = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity + "0", 0.0);
+  FieldList<Dimension, Vector> DvDt0 = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::velocity + "0", Vector::zero);
+  FieldList<Dimension, Scalar> DepsDt0 = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy + "0", 0.0);
+  FieldList<Dimension, Tensor> DvDx0 = derivatives.fields(HydroFieldNames::velocityGradient + "0", Tensor::zero);
+  FieldList<Dimension, Tensor> localDvDx0 = derivatives.fields(HydroFieldNames::internalVelocityGradient + "0", Tensor::zero);
+  FieldList<Dimension, SymTensor> DHDt0 = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H + "0", SymTensor::zero);
   FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, Scalar> effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   FieldList<Dimension, Scalar> viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   FieldList<Dimension, vector<Vector> > pairAccelerations = derivatives.fields(HydroFieldNames::pairAccelerations, vector<Vector>());
+  FieldList<Dimension, vector<Vector> > pairAccelerations0 = derivatives.fields(HydroFieldNames::pairAccelerations + "0", vector<Vector>());
   FieldList<Dimension, Vector> XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
@@ -661,11 +695,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
+  CHECK(DrhoDt0.size() == numNodeLists);
+  CHECK(DvDt0.size() == numNodeLists);
+  CHECK(DepsDt0.size() == numNodeLists);
+  CHECK(DvDx0.size() == numNodeLists);
+  CHECK(localDvDx0.size() == numNodeLists);
+  CHECK(DHDt0.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(pairAccelerations.size() == numNodeLists);
+  CHECK(pairAccelerations0.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
@@ -677,32 +718,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
       for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
-        pairAccelerations(nodeListi, i).reserve(connectivityMap.numNeighborsForNode(*itr, i));
+        const size_t n = connectivityMap.numNeighborsForNode(*itr, i);
+        pairAccelerations(nodeListi, i).reserve(n);
+        pairAccelerations0(nodeListi, i).reserve(n);
       }
     }
   }
 
-  //................................................................................
-  // Find the grad pressure as a switch for the FCT of momentum.
-  // Note this should be moved out of here if it works since we don't want to stop 
-  // for boundary conditions in evaluateDerivatives.
-  // FieldList<Dimension, Vector> gradP = gradientCRKSPH(pressure, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
-  FieldList<Dimension, Scalar> vol = mass/massDensity;  // Depending on boundaries already applied to m & rho.
-  DvDx = gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
-  // const FieldList<Dimension, Tensor> DvDx0 = gradientCRKSPH(velocity, position, vol, H, A0, B, C, gradA0, gradB, gradC, connectivityMap, ZerothOrder, W);
-  // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
-  // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-  //   for (size_t i = 0; i != DvDx[nodeListi]->numInternalElements(); ++i) {
-  //     const Scalar ri = DvDx0(nodeListi,i).doubledot(DvDx(nodeListi,i).Inverse());
-  //     psi(nodeListi,i) = fluxlimiterVL(ri);
-  //   }
-  // }
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // //................................................................................
+  // // Find the grad pressure as a switch for the FCT of momentum.
+  // // Note this should be moved out of here if it works since we don't want to stop 
+  // // for boundary conditions in evaluateDerivatives.
+  // // FieldList<Dimension, Vector> gradP = gradientCRKSPH(pressure, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
+  // FieldList<Dimension, Scalar> vol = mass/massDensity;  // Depending on boundaries already applied to m & rho.
+  // DvDx = gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, order, W);
+  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
+  // for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
+  // // for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  // //   for (size_t i = 0; i != DvDx[nodeListi]->numInternalElements(); ++i) {
+  // //     const Scalar ri = DvDx0(nodeListi,i).doubledot(DvDx(nodeListi,i).Inverse());
+  // //     psi(nodeListi,i) = fluxlimiterVL(ri);
+  // //   }
+  // // }
 
   // // Find the minimum flux limiter value per point.
   // FieldList<Dimension, Scalar> psi = dataBase.newFluidFieldList(1.0, "flux limiter");
@@ -717,13 +759,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   //          iItr != connectivityMap.end(nodeListi);
   //          ++iItr) {
   //       const int i = *iItr;
-  //       const Vector& gradPi = gradP(nodeListi, i);
+  //       const Tensor& DvDxi = DvDx(nodeListi, i);
   //       const Vector& ri = position(nodeListi, i);
   //       const vector< vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(&nodeList, i);
   //       for (size_t nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
   //         const vector<int>& connectivity = fullConnectivity[nodeListj];
   //         if (connectivity.size() > 0) {
-  //           const double fweightij = 1.0; // (nodeListi == nodeListj ? 1.0 : 0.2);
   //           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
   //           for (vector<int>::const_iterator jItr = connectivity.begin();
   //                jItr != connectivity.end();
@@ -733,12 +774,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   //                                                          nodeListj, j,
   //                                                          firstGhostNodej)) {
   //               const Vector& rj = position(nodeListj, j);
-  //               const Vector& gradPj = gradP(nodeListj, j);
+  //               const Tensor& DvDxj = DvDx(nodeListj, j);
   //               const Vector rij = ri - rj;
-  //               const Scalar gradPij = gradPi.dot(rij);
-  //               const Scalar gradPji = gradPj.dot(rij);
-  //               const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
-  //               const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
+  //               const Scalar gradi = DvDxi.dot(rij).dot(rij);
+  //               const Scalar gradj = DvDxj.dot(rij).dot(rij);
+  //               const Scalar Ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  //               const Scalar Rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
   //               const Scalar psiij = fluxlimiterVL(min(Ri, Rj));
   //               psi(nodeListi,i) = min(psi(nodeListi,i), psiij);
   //               psi(nodeListj,j) = min(psi(nodeListj,j), psiij);
@@ -830,11 +871,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
       SymTensor& DHDti = DHDt(nodeListi, i);
+      Scalar& DrhoDt0i = DrhoDt0(nodeListi, i);
+      Vector& DvDt0i = DvDt0(nodeListi, i);
+      Scalar& DepsDt0i = DepsDt0(nodeListi, i);
+      Tensor& DvDx0i = DvDx0(nodeListi, i);
+      Tensor& localDvDx0i = localDvDx0(nodeListi, i);
+      SymTensor& DHDt0i = DHDt0(nodeListi, i);
       SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       Scalar& effViscousPressurei = effViscousPressure(nodeListi, i);
       Scalar& viscousWorki = viscousWork(nodeListi, i);
       vector<Vector>& pairAccelerationsi = pairAccelerations(nodeListi, i);
+      vector<Vector>& pairAccelerations0i = pairAccelerations0(nodeListi, i);
       Vector& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       Scalar& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       SymTensor& massSecondMomenti = massSecondMoment(nodeListi, i);
@@ -908,10 +956,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               Scalar& DepsDtj = DepsDt(nodeListj, j);
               Tensor& DvDxj = DvDx(nodeListj, j);
               Tensor& localDvDxj = localDvDx(nodeListj, j);
+              Scalar& DrhoDt0j = DrhoDt0(nodeListj, j);
+              Vector& DvDt0j = DvDt0(nodeListj, j);
+              Scalar& DepsDt0j = DepsDt0(nodeListj, j);
+              Tensor& DvDx0j = DvDx0(nodeListj, j);
+              Tensor& localDvDx0j = localDvDx0(nodeListj, j);
               Scalar& maxViscousPressurej = maxViscousPressure(nodeListj, j);
               Scalar& effViscousPressurej = effViscousPressure(nodeListj, j);
               Scalar& viscousWorkj = viscousWork(nodeListj, j);
               vector<Vector>& pairAccelerationsj = pairAccelerations(nodeListj, j);
+              vector<Vector>& pairAccelerations0j = pairAccelerations0(nodeListj, j);
               Vector& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
               Scalar& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
               SymTensor& massSecondMomentj = massSecondMoment(nodeListj, j);
@@ -926,16 +980,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CHECK(etaMagj >= 0.0);
               const Vector vij = vi - vj;
 
-              // Apply FCT limiting based on the pressure gradient.
-              // const Scalar gradPij = gradPi.dot(rij);
-              // const Scalar gradPji = gradPj.dot(rij);
-              // const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
-              // const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
-              const Scalar dvdxi = DvDxi.dot(rij).dot(rij);
-              const Scalar dvdxj = DvDxj.dot(rij).dot(rij);
-              const Scalar Ri = dvdxi/(sgn(dvdxj)*max(1.0e-30, abs(dvdxj)));
-              const Scalar Rj = dvdxj/(sgn(dvdxi)*max(1.0e-30, abs(dvdxi)));
-              const Scalar psi = fluxlimiterVL(min(Ri, Rj));
+              // // Apply FCT limiting based on the pressure gradient.
+              // // const Scalar gradPij = gradPi.dot(rij);
+              // // const Scalar gradPji = gradPj.dot(rij);
+              // // const Scalar Ri = gradPij/(sgn(gradPji)*max(1.0e-30, abs(gradPji)));
+              // // const Scalar Rj = gradPji/(sgn(gradPij)*max(1.0e-30, abs(gradPij)));
+              // const Scalar dvdxi = DvDxi.dot(rij).dot(rij);
+              // const Scalar dvdxj = DvDxj.dot(rij).dot(rij);
+              // const Scalar Ri = dvdxi/(sgn(dvdxj)*max(1.0e-30, abs(dvdxj)));
+              // const Scalar Rj = dvdxj/(sgn(dvdxi)*max(1.0e-30, abs(dvdxi)));
+              // const Scalar psi = fluxlimiterVL(min(Ri, Rj));
               
               // Symmetrized kernel weight and gradient.
               Scalar gWi, gWj, Wi, Wj, gW0i, gW0j, W0i, W0j;
@@ -944,11 +998,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               CRKSPHKernelAndGradient(W, ZerothOrder, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, A0j, Vector::zero, Tensor::zero, gradA0j, Tensor::zero, ThirdRankTensor::zero, W0i, gW0i, gradW0i);
               CRKSPHKernelAndGradient(W, order,  rij, -etai, Hi, Hdeti,  etaj, Hj, Hdetj, Ai, Bi, Ci, gradAi, gradBi, gradCi, Wj, gWj, gradWj);
               CRKSPHKernelAndGradient(W, order, -rij,  etaj, Hj, Hdetj, -etai, Hi, Hdeti, Aj, Bj, Cj, gradAj, gradBj, gradCj, Wi, gWi, gradWi);
-              Wi = W0i + psi*(Wi - W0i);                    // FCT limiting of the kernel
-              Wj = W0j + psi*(Wj - W0j);                    // FCT limiting of the kernel
-              gradWj = gradW0j + psi*(gradWj - gradW0j);    // FCT limiting of the gradient
-              gradWi = gradW0i + psi*(gradWi - gradW0i);    // FCT limiting of the gradient
+              // Wi = W0i + psi*(Wi - W0i);                    // FCT limiting of the kernel
+              // Wj = W0j + psi*(Wj - W0j);                    // FCT limiting of the kernel
+              // gradWi = gradW0i + psi*(gradWi - gradW0i);    // FCT limiting of the gradient
+              // gradWj = gradW0j + psi*(gradWj - gradW0j);    // FCT limiting of the gradient
               const Vector deltagrad = gradWj - gradWi;
+              const Vector deltagrad0 = gradW0j - gradW0i;
               const Vector gradWSPHi = (Hi*etai.unitVector())*W.gradValue(etai.magnitude(), Hdeti);
               const Vector gradWSPHj = (Hj*etaj.unitVector())*W.gradValue(etaj.magnitude(), Hdetj);
               // const Vector gradWQSPHi = (Hi*etai.unitVector())*WQ.gradValue(etai.magnitude(), Hdeti);
@@ -973,6 +1028,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // const Scalar workQj = vij.dot(Qaccj);                                            // SPH
               const Scalar workQi = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad);            // CRK
               const Scalar workQj = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad);            // CRK
+              const Scalar workQ0i = rhoj*rhoj*QPiij.second.dot(vij).dot(deltagrad0);          // CRK
+              const Scalar workQ0j = rhoi*rhoi*QPiij.first .dot(vij).dot(deltagrad0);          // CRK
               const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
               const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -985,27 +1042,38 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // Velocity gradient.
               const Tensor deltaDvDxi = -weightj*vij.dyad(gradWj);
               const Tensor deltaDvDxj =  weighti*vij.dyad(gradWi);
-              // DvDxi += deltaDvDxi;
-              // DvDxj += deltaDvDxj;
+              const Tensor deltaDvDx0i = -weightj*vij.dyad(gradW0j);
+              const Tensor deltaDvDx0j =  weighti*vij.dyad(gradW0i);
+              DvDxi += deltaDvDxi;
+              DvDxj += deltaDvDxj;
+              DvDx0i += deltaDvDx0i;
+              DvDx0j += deltaDvDx0j;
               if (nodeListi == nodeListj) {
-                localDvDxi += deltaDvDxi;
-                localDvDxj += deltaDvDxj;
+                localDvDx0i += deltaDvDx0i;
+                localDvDx0j += deltaDvDx0j;
               }
 
               // Acceleration (CRKSPH form).
               CHECK(rhoi > 0.0);
               CHECK(rhoj > 0.0);
-              Vector deltaDvDti, deltaDvDtj;
               // const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad) + mi*mj*(Qacci + Qaccj);    // <- Type III, with SPH Q forces
               const Vector forceij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + 
                                                           ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad));    // <- Type III, with CRKSPH Q forces
-              deltaDvDti = -forceij/mi;
-              deltaDvDtj =  forceij/mj;
+              const Vector force0ij = 0.5*weighti*weightj*((Pi + Pj)*deltagrad0 + 
+                                                           ((rhoi*rhoi*QPiij.first + rhoj*rhoj*QPiij.second)*deltagrad0));    // <- Type III, with CRKSPH Q forces
+              const Vector deltaDvDti = -forceij/mi;
+              const Vector deltaDvDtj =  forceij/mj;
+              const Vector deltaDvDt0i = -force0ij/mi;
+              const Vector deltaDvDt0j =  force0ij/mj;
               DvDti += deltaDvDti;
               DvDtj += deltaDvDtj;
+              DvDt0i += deltaDvDt0i;
+              DvDt0j += deltaDvDt0j;
               if (mCompatibleEnergyEvolution) {
                 pairAccelerationsi.push_back(deltaDvDti);
                 pairAccelerationsj.push_back(deltaDvDtj);
+                pairAccelerations0i.push_back(deltaDvDt0i);
+                pairAccelerations0j.push_back(deltaDvDt0j);
               }
 
               // Specific thermal energy evolution.
@@ -1013,6 +1081,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad))/mj + mi*workQj; // SPH Q
               DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mi;    // CRK Q
               DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mj;    // CRK Q
+              DepsDt0i += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad0) + workQ0i)/mi;    // CRK Q
+              DepsDt0j += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad0) + workQ0j)/mj;    // CRK Q
 
               // Estimate of delta v (for XSPH).
               if (mXSPH and (nodeListi == nodeListj)) {
@@ -1034,6 +1104,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Time evolution of the mass density.
       DrhoDti = -rhoi*DvDxi.Trace();
+      DrhoDt0i = -rhoi*DvDx0i.Trace();
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -1054,6 +1125,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                              hmax,
                                                              hminratio,
                                                              nPerh);
+      DHDt0i = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
+                                                              ri,
+                                                              DvDx0i,
+                                                              hmin,
+                                                              hmax,
+                                                              hminratio,
+                                                              nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
                                                         ri,
                                                         weightedNeighborSumi,
@@ -1414,7 +1492,6 @@ dumpState(FileIO& file, string pathName) const {
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
-  file.write(mVolume, pathName + "/volume");
   file.write(mA, pathName + "/A");
   file.write(mB, pathName + "/B");
   file.write(mC, pathName + "/C");
@@ -1450,7 +1527,6 @@ restoreState(const FileIO& file, string pathName) {
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
-  file.read(mVolume, pathName + "/volume");
   file.read(mA, pathName + "/A");
   file.read(mB, pathName + "/B");
   file.read(mC, pathName + "/C");
