@@ -49,7 +49,8 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                  phiMin = 0.0,
                  phiMax = 2.0*pi,
                  nNodePerh = 2.01,
-                 offset=None):
+                 offset=None,
+                 m0ForMassMatching=None):
         
         assert nr > 0
         assert rmin >= 0
@@ -85,14 +86,26 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         
         # Determine how much total mass there is in the system.
         targetMass = self.integrateTotalMass(self.densityProfileMethod,
-                                                 rmax)
+                                                 rmin, rmax,
+                                                 thetaMin, thetaMax,
+                                                 phiMin, phiMax)
+
+        
+        #targetMass = self.integrateTotalMass(self.densityProfileMethod,
+        #                                         rmax)
         
         targetN         = 4.0/3.0*pi*(nr**3)
         self.m0         = targetMass/targetN
         self.vol        = 4.0/3.0*pi*(rmax**3)
         # what this means is this currently only supports creating a full sphere and then
         # cutting out the middle to rmin if rmin > 0
-        self.rho0       = targetMass/self.vol
+        
+        if m0ForMassMatching is None:
+            self.rho0       = targetMass/self.vol
+        else:
+            self.m0 = m0ForMassMatching
+            self.rho0 = targetN*self.m0/self.vol
+        
         print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0)
     
         # compute kappa first
@@ -152,7 +165,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
                         rn = rj
                         break
             r0p = r0
-            if (rn <= rmax):
+            if (rn <= rmax and rn > rmin):
                 self.x.append(self.xl[i] * rn/r0)
                 self.y.append(self.yl[i] * rn/r0)
                 self.z.append(self.zl[i] * rn/r0)
@@ -251,18 +264,20 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
     # enclosed mass.
     #---------------------------------------------------------------------------
     def integrateTotalMass(self, densityProfileMethod,
-                           rmax,
+                           rmin, rmax,
+                           thetaMin, thetaMax,
+                           phiMin, phiMax,
                            nbins = 10000):
         assert nbins > 0
         assert nbins % 2 == 0
         
         result = 0
-        dr = rmax/nbins
+        dr = (rmax-rmin)/nbins
         for i in xrange(1,nbins):
-            r1 = (i-1)*dr
-            r2 = i*dr
+            r1 = rmin + (i-1)*dr
+            r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
-        result = result * 4.0*pi
+        result = result * (phiMax-phiMin) * (cos(thetaMin)-cos(thetaMax))
         return result
 
     #-------------------------------------------------------------------------------

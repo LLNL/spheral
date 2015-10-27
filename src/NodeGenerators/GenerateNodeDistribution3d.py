@@ -1731,7 +1731,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     if (i>1 and i<nshell):
                         p = (p + 3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h)) % (2.0*pi)
                     elif (i==nshell):
-                        p = 0                    
+                        p = 0
                     
                     x = sin(t)*cos(p)
                     y = sin(t)*sin(p)
