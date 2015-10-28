@@ -494,9 +494,6 @@ if graphics:
              (csPlot, "Sod-planar-cs.png")]
     
     if CRKSPH:
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                colorNodeLists = False)
         APlot = plotFieldList(hydro.A(),
                               winTitle = "A",
                               colorNodeLists = False)
@@ -504,8 +501,7 @@ if graphics:
                               yFunction = "%s.x",
                               winTitle = "B",
                               colorNodeLists = False)
-        plots += [(volPlot, "Sod-planar-vol.png"),
-                  (APlot, "Sod-planar-A.png"),
+        plots += [(APlot, "Sod-planar-A.png"),
                   (BPlot, "Sod-planar-B.png")]
         derivs = StateDerivatives(db, integrator.physicsPackages())
         drhodt = derivs.scalarFields("delta mass density")
