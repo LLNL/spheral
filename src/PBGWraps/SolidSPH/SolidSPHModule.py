@@ -27,6 +27,7 @@ class SolidSPH:
 
         # Expose types.
         self.NodeCoupling = addObject(Spheral, "NodeCoupling", allow_subclassing=True)
+        self.PerNodeListNodeCoupling = addObject(Spheral, "PerNodeListNodeCoupling", allow_subclassing=True, parent=self.NodeCoupling)
 
         for dim in self.dims:
             exec('''
