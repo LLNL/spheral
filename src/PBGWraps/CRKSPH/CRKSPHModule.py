@@ -148,6 +148,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
                                  refparam(symtensorfieldlist, "m2"),

@@ -29,6 +29,7 @@ namespace Spheral {
                          const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
                          const CRKOrder correctionOrder,
+                         const NodeCoupling& nodeCoupling,
                          FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& m0,
                          FieldSpace::FieldList<Dimension, typename Dimension::Vector>& m1,
                          FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& m2,
