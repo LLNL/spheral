@@ -184,7 +184,6 @@ public:
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
@@ -194,14 +193,22 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
+
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    DmassDensityDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
+
+  const FieldSpace::FieldList<Dimension, Vector>&    DvDt0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt0() const;
+  const FieldSpace::FieldList<Dimension, SymTensor>& DHDt0() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    DvDx0() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx0() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations0() const;
 
   const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
@@ -260,19 +267,24 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
-
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;
+
   FieldSpace::FieldList<Dimension, Vector>    mDvDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldSpace::FieldList<Dimension, Vector>    mDmassDensityDx;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, Vector>    mDvDt0;
+  FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt0;
+  FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt0;
+  FieldSpace::FieldList<Dimension, SymTensor> mDHDt0;
+  FieldSpace::FieldList<Dimension, Tensor>    mDvDx0;
+  FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx0;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations0;
 
   FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;

@@ -148,6 +148,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
                                  param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
                                  refparam(scalarfieldlist, "m0"),
                                  refparam(vectorfieldlist, "m1"),
                                  refparam(symtensorfieldlist, "m2"),
@@ -429,7 +430,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
-        const_ref_return_value(x, me, "%s::volume" % me, scalarfieldlist, [], "volume")
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
@@ -445,12 +445,20 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
-        const_ref_return_value(x, me, "%s::DmassDensityDx" % me, vectorfieldlist, [], "DmassDensityDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
+        const_ref_return_value(x, me, "%s::DvDt0" % me, vectorfieldlist, [], "DvDt0")
+        const_ref_return_value(x, me, "%s::DmassDensityDt0" % me, scalarfieldlist, [], "DmassDensityDt0")
+        const_ref_return_value(x, me, "%s::DspecificThermalEnergyDt0" % me, scalarfieldlist, [], "DspecificThermalEnergyDt0")
+        const_ref_return_value(x, me, "%s::DHDt0" % me, symtensorfieldlist, [], "DHDt0")
+        const_ref_return_value(x, me, "%s::DvDx0" % me, tensorfieldlist, [], "DvDx0")
+        const_ref_return_value(x, me, "%s::internalDvDx0" % me, tensorfieldlist, [], "internalDvDx0")
+        const_ref_return_value(x, me, "%s::pairAccelerations0" % me, vectorvectorfieldlist, [], "pairAccelerations0")
 
+        const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
         const_ref_return_value(x, me, "%s::C" % me, tensorfieldlist, [], "C")
+        const_ref_return_value(x, me, "%s::gradA0" % me, vectorfieldlist, [], "gradA0")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")

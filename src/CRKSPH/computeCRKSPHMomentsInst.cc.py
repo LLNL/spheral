@@ -14,6 +14,7 @@ namespace Spheral {
                                        const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& position,
                                        const FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& H,
                                        const CRKOrder correctionOrder,
+                                       const NodeCoupling& nodeCoupling,
                                        FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Scalar>& m0,
                                        FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::Vector>& m1,
                                        FieldList< Dim< %(ndim)s >,  Dim< %(ndim)s >::SymTensor>& m2,
