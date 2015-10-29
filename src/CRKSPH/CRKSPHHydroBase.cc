@@ -1190,7 +1190,7 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, massDensity);
+    computeCRKSPHSumMassDensity(connectivityMap, this->kernel(), position, mass, H, this->boundaryBegin(), this->boundaryEnd(), massDensity);
 
     // FieldList<Dimension, Scalar> vol = dataBase.newFluidFieldList(0.0, "volume");
     // FieldList<Dimension, FacetedVolume> polyvol = dataBase.newFluidFieldList(FacetedVolume(), "poly volume");
