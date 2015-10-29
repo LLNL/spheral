@@ -1551,6 +1551,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
         assert nNodePerh > 0.0
         assert offset is None or len(offset)==3
         
+        import random
+        
         if offset is None:
             self.offset = Vector3d(0,0,0)
         else:
@@ -1665,9 +1667,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             # Get the nominal delta r, number of nodes,
             # and mass per node at this radius.
             rhoi    = self.densityProfileMethod(ri)
-            dr      = pow(self.m0/(4.0/3.0*pi*rhoi),1.0/3.0)
-            mshell  = rhoi * 4.0*pi*ri*ri*dr
-            nshell  = int(mshell / self.m0)
+            dr      = pow(self.m0/(rhoi),1.0/3.0)
+            dr      = min(dr,ri-rmin)
+            #mshell  = rhoi * 4.0*pi*ri*ri*dr
+            mshell  = self.integrateTotalMass(self.densityProfileMethod,
+                                              ri-dr, ri,
+                                              0, pi,
+                                              0, 2*pi)
+            nshell  = int(mshell / self.m0+0.5)
             nshell  = max(nshell,1)
             nr      = 0
             ver     = 0
@@ -1677,7 +1684,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
-            if (nshell > 2 and nshell<163):
+            if (nshell > 4 and nshell<163):
                 for i in xrange(len(shapeData)):
                     nc  = 0
                     nco = 0
@@ -1713,15 +1720,22 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             elif(nshell==1):
                 self.positions.append([0,0,0])
             elif(nshell==2):
-                self.positions.append([1,0,0])
-                self.positions.append([-1,0,0])
+                self.positions.append([0,0,1])
+                self.positions.append([0,0,-1])
+            elif(nshell==3):
+                t = sqrt(3)/2.0
+                self.positions.append([0,1,0])
+                self.positions.append([t,-0.5,0])
+                self.positions.append([-t,-0.5,0])
+            elif(nshell==4):
+                t = sqrt(3.0)/3.0
+                self.positions.append([t,t,t])
+                self.positions.append([t,-t,-t])
+                self.positions.append([-t,-t,t])
+                self.positions.append([-t,t,-t])
             elif(nshell>=163):
                 # do the spiral thing here
-                import random
-                random.seed(nshell)
-                dt = random.random()*pi
                 
-                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
                 
                 p = 0
                 for i in xrange(1,nshell+1):
@@ -1737,15 +1751,6 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     y = sin(t)*sin(p)
                     z = cos(t)
                     
-                    pos = [x,y,z]
-                    posp= [0,0,0]
-                    for k in xrange(3):
-                        for j in xrange(3):
-                            posp[k] += pos[j]*rot[k][j]
-                    
-                    x = posp[0]
-                    y = posp[1]
-                    z = posp[2]
                     
                     self.positions.append([x,y,z])
             mi = self.m0 * (float(nshell)/float(len(self.positions)))
@@ -1755,6 +1760,33 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]
                 z       = rii*self.positions[n][2]
+                
+                
+                random.seed(nshell)
+                dt = random.random()*pi
+                dt2 = random.random()*pi
+                
+                rot = [[1.0,0.0,0.0],[0.0,cos(dt),-sin(dt)],[0.0,sin(dt),cos(dt)]]
+                rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
+                pos = [x,y,z]
+                posp= [0,0,0]
+                for k in xrange(3):
+                    for j in xrange(3):
+                        posp[k] += pos[j]*rot[k][j]
+                
+                x = posp[0]
+                y = posp[1]
+                z = posp[2]
+                
+                pos = [x,y,z]
+                posp= [0,0,0]
+                for k in xrange(3):
+                    for j in xrange(3):
+                        posp[k] += pos[j]*rot2[k][j]
+                x = posp[0]
+                y = posp[1]
+                z = posp[2]
+                
                 if(nshell>1):
                     theta   = acos(z/sqrt(x*x+y*y+z*z))
                     phi     = atan2(y,x)
@@ -1764,14 +1796,14 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     theta = (thetaMax - thetaMin)/2.0
                     phi = (phiMax - phiMin)/2.0
                 if (theta<=thetaMax and theta>=thetaMin) and (phi<=phiMax and phi>=phiMin):
-                    self.x.append(rii*self.positions[n][0])
-                    self.y.append(rii*self.positions[n][1])
-                    self.z.append(rii*self.positions[n][2])
+                    self.x.append(x)
+                    self.y.append(y)
+                    self.z.append(z)
                     self.m.append(mi)
                     self.H.append(SymTensor3d.one*(1.0/hi))
             #self.H.append(Hi)
             
-            ri = max(0.0, ri - dr)
+            ri = max(rmin, ri - dr)
     
         # If requested, shift the nodes.
         if offset:
