@@ -12,15 +12,32 @@
 
 namespace Spheral {
 
+// The generic node coupling -- all nodes coupled equally.
 class NodeCoupling {
 public:
-  // Constructor.
+  // Constructor, destructor.
   NodeCoupling() {}
+  virtual ~NodeCoupling() {}
+  
 
   // The coupling operator.
   virtual double operator()(const unsigned nodeListi, const unsigned i,
                             const unsigned nodeListj, const unsigned j) const {
     return 1.0;
+  }
+};
+
+// A variant where only nodes within a NodeList are coupled.
+class PerNodeListNodeCoupling : public NodeCoupling {
+public:
+  // Constructor.
+  PerNodeListNodeCoupling(): NodeCoupling() {}
+  virtual ~PerNodeListNodeCoupling() {}
+
+  // The coupling operator.
+  virtual double operator()(const unsigned nodeListi, const unsigned i,
+                            const unsigned nodeListj, const unsigned j) const {
+    return (nodeListi == nodeListj ? 1.0 : 0.0);
   }
 };
 
