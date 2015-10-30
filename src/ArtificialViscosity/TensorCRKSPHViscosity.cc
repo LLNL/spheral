@@ -199,8 +199,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Compute the basic velocity gradient.
   const FieldList<Dimension, Scalar> vol = mass/rho;
-  const int correctionOrder = 1;//Using Linear Correction
-  mGradVel = CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder, W, NodeCoupling());
+  mGradVel = CRKSPHSpace::gradientCRKSPH(velocity, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
   sigma = mGradVel;
   sigma.copyFields();
 
@@ -236,7 +235,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Compute the gradient of div vel.
-  gradDivVelocity = CRKSPHSpace::gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, correctionOrder, W, NodeCoupling());
+  gradDivVelocity = CRKSPHSpace::gradientCRKSPH(divVel, position, vol, H, A, B, C, gradA, gradB, gradC, connectivityMap, ArtificialViscosity<Dimension>::QcorrectionOrder(), W, NodeCoupling());
 
   // Apply boundary conditions.
   for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;

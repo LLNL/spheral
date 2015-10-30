@@ -95,6 +95,7 @@ commandLine(KernelConstructor = BSplineKernel,
             smoothIters = 0,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
+            QcorrectionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -256,6 +257,7 @@ output("db.numFluidNodeLists")
 q = Qconstructor(Cl, Cq, linearInExpansion)
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
+q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")

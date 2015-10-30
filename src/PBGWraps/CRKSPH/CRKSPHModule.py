@@ -71,6 +71,8 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         tensorfieldlist = "Spheral::FieldSpace::TensorFieldList%id" % ndim
         symtensorfieldlist = "Spheral::FieldSpace::SymTensorFieldList%id" % ndim
         thirdranktensorfieldlist = "Spheral::FieldSpace::ThirdRankTensorFieldList%id" % ndim
+        fourthranktensorfieldlist = "Spheral::FieldSpace::FourthRankTensorFieldList%id" % ndim
+        fifthranktensorfieldlist = "Spheral::FieldSpace::FifthRankTensorFieldList%id" % ndim
         polyvolfieldlist = "Spheral::FieldSpace::FacetedVolumeFieldList%id" % ndim
         connectivitymap = "Spheral::NeighborSpace::ConnectivityMap%id" % ndim
         tablekernel = "Spheral::KernelSpace::TableKernel%id" % ndim
@@ -81,7 +83,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Helper to compute the CRKSPH kernel.
         self.space.add_function("CRKSPHKernel", "double", [constrefparam(tablekernel, "W"),
-           						   param("int","correctionOrder"),
+                                                           param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                            constrefparam(vector, "rij"),
                                                            constrefparam(vector, "etai"),
                                                            param("double", "Hdeti"),
@@ -96,7 +98,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
 
         # Simultaneously evaluate the CRKSPH kernel and it's gradient.
         self.space.add_function("CRKSPHKernelAndGradient%id" % ndim, None, [constrefparam(tablekernel, "W"),
-									    param("int","correctionOrder"),
+                                                                            param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                                                             constrefparam(vector, "rij"),
                                                                             constrefparam(vector, "etai"),
                                                                             constrefparam(symtensor, "Hi"),
@@ -122,6 +124,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(scalarfieldlist, "mass"),
                                  constrefparam(symtensorfieldlist, "H"),
+                                 constrefparam(vector_of_boundary, "boundaries"),
                                  refparam(scalarfieldlist, "massDensity")],
                                 template_parameters = [dim],
                                 custom_name = "computeCRKSPHSumMassDensity%id" % ndim)
@@ -138,15 +141,41 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                 template_parameters = [dim],
                                 custom_name = "computeSolidCRKSPHSumMassDensity%id" % ndim)
 
-        # CRKSPH corrections.
-        self.space.add_function("computeCRKSPHCorrections", None,
+        # CRKSPH moments.
+        self.space.add_function("computeCRKSPHMoments", None,
                                 [constrefparam(connectivitymap, "connectivityMap"),
                                  constrefparam(tablekernel, "W"),
                                  constrefparam(scalarfieldlist, "weight"),
                                  constrefparam(vectorfieldlist, "position"),
                                  constrefparam(symtensorfieldlist, "H"),
-                                 #constrefparam("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
-                                 param("int","correctionOrder"),
+                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
+                                 constrefparam("Spheral::NodeCoupling", "nodeCoupling"),
+                                 refparam(scalarfieldlist, "m0"),
+                                 refparam(vectorfieldlist, "m1"),
+                                 refparam(symtensorfieldlist, "m2"),
+                                 refparam(thirdranktensorfieldlist, "m3"),
+                                 refparam(fourthranktensorfieldlist, "m4"),
+                                 refparam(vectorfieldlist, "gradm0"),
+                                 refparam(tensorfieldlist, "gradm1"),
+                                 refparam(thirdranktensorfieldlist, "gradm2"),
+                                 refparam(fourthranktensorfieldlist, "gradm3"),
+                                 refparam(fifthranktensorfieldlist, "gradm4")],
+                                template_parameters = [dim],
+                                custom_name = "computeCRKSPHMoments%id" % ndim)
+
+        # CRKSPH corrections.
+        self.space.add_function("computeCRKSPHCorrections", None,
+                                [constrefparam(scalarfieldlist, "m0"),
+                                 constrefparam(vectorfieldlist, "m1"),
+                                 constrefparam(symtensorfieldlist, "m2"),
+                                 constrefparam(thirdranktensorfieldlist, "m3"),
+                                 constrefparam(fourthranktensorfieldlist, "m4"),
+                                 constrefparam(vectorfieldlist, "gradm0"),
+                                 constrefparam(tensorfieldlist, "gradm1"),
+                                 constrefparam(thirdranktensorfieldlist, "gradm2"),
+                                 constrefparam(fourthranktensorfieldlist, "gradm3"),
+                                 constrefparam(fifthranktensorfieldlist, "gradm4"),
+                                 param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                  refparam(scalarfieldlist, "A"),
                                  refparam(vectorfieldlist, "B"),
                                  refparam(tensorfieldlist, "C"),
@@ -188,7 +217,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
@@ -202,14 +231,14 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(vectorfieldlist, "B"),
                                      constrefparam(tensorfieldlist, "C"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
                                     custom_name = "interpolateCRKSPH",
                                     docstring = "interpolateCRKSPH: returns the CRK interpolations of the input FieldList.")
 
-        # CRDSPH gradient.
+        # CRKSPH gradient.
         for (fl, result, element) in ((scalarfieldlist, vectorfieldlist, "double"),
                                       (vectorfieldlist, tensorfieldlist, vector)):
             self.space.add_function("gradientCRKSPH", result,
@@ -224,7 +253,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W")],
                                     template_parameters = [dim, element],
                                     custom_name = "gradientCRKSPH",
@@ -241,7 +270,7 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
                                      constrefparam(tensorfieldlist, "gradB"),
                                      constrefparam(thirdranktensorfieldlist, "gradC"),
                                      constrefparam(connectivitymap, "connectivityMap"),
-                                     param("int","correctionOrder"),
+                                     param("Spheral::CRKSPHSpace::CRKOrder","correctionOrder"),
                                      constrefparam(tablekernel, "W"),
                                      constrefparam("Spheral::NodeCoupling", "nodeCoupling")],
                                     template_parameters = [dim, element],
@@ -402,7 +431,6 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::timeStepMask" % me, intfieldlist, [], "timeStepMask")
         const_ref_return_value(x, me, "%s::pressure" % me, scalarfieldlist, [], "pressure")
         const_ref_return_value(x, me, "%s::soundSpeed" % me, scalarfieldlist, [], "soundSpeed")
-        const_ref_return_value(x, me, "%s::volume" % me, scalarfieldlist, [], "volume")
         const_ref_return_value(x, me, "%s::specificThermalEnergy0" % me, scalarfieldlist, [], "specificThermalEnergy0")
         const_ref_return_value(x, me, "%s::Hideal" % me, symtensorfieldlist, [], "Hideal")
         const_ref_return_value(x, me, "%s::maxViscousPressure" % me, scalarfieldlist, [], "maxViscousPressure")
@@ -418,12 +446,20 @@ self.generateSolidCRKSPHHydroBaseBindings(self.SolidCRKSPHHydroBase%(dim)id, %(d
         const_ref_return_value(x, me, "%s::DHDt" % me, symtensorfieldlist, [], "DHDt")
         const_ref_return_value(x, me, "%s::DvDx" % me, tensorfieldlist, [], "DvDx")
         const_ref_return_value(x, me, "%s::internalDvDx" % me, tensorfieldlist, [], "internalDvDx")
-        const_ref_return_value(x, me, "%s::DmassDensityDx" % me, vectorfieldlist, [], "DmassDensityDx")
         const_ref_return_value(x, me, "%s::pairAccelerations" % me, vectorvectorfieldlist, [], "pairAccelerations")
+        const_ref_return_value(x, me, "%s::DvDt0" % me, vectorfieldlist, [], "DvDt0")
+        const_ref_return_value(x, me, "%s::DmassDensityDt0" % me, scalarfieldlist, [], "DmassDensityDt0")
+        const_ref_return_value(x, me, "%s::DspecificThermalEnergyDt0" % me, scalarfieldlist, [], "DspecificThermalEnergyDt0")
+        const_ref_return_value(x, me, "%s::DHDt0" % me, symtensorfieldlist, [], "DHDt0")
+        const_ref_return_value(x, me, "%s::DvDx0" % me, tensorfieldlist, [], "DvDx0")
+        const_ref_return_value(x, me, "%s::internalDvDx0" % me, tensorfieldlist, [], "internalDvDx0")
+        const_ref_return_value(x, me, "%s::pairAccelerations0" % me, vectorvectorfieldlist, [], "pairAccelerations0")
 
+        const_ref_return_value(x, me, "%s::A0" % me, scalarfieldlist, [], "A0")
         const_ref_return_value(x, me, "%s::A" % me, scalarfieldlist, [], "A")
         const_ref_return_value(x, me, "%s::B" % me, vectorfieldlist, [], "B")
         const_ref_return_value(x, me, "%s::C" % me, tensorfieldlist, [], "C")
+        const_ref_return_value(x, me, "%s::gradA0" % me, vectorfieldlist, [], "gradA0")
         const_ref_return_value(x, me, "%s::gradA" % me, vectorfieldlist, [], "gradA")
         const_ref_return_value(x, me, "%s::gradB" % me, tensorfieldlist, [], "gradB")
         const_ref_return_value(x, me, "%s::gradC" % me, thirdranktensorfieldlist, [], "gradC")

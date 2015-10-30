@@ -1,7 +1,9 @@
-from Spheral import *
-from SpheralTestUtilities import *
 import Gnuplot
 import numpy
+
+from Spheral import *
+from SpheralTestUtilities import *
+from SpheralGnuPlotUtilities import *
 
 ################################################################################
 def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
@@ -17,7 +19,7 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     plot.ylabel('W(r)')
     if title:
         plot.title(title)
-    data = Gnuplot.Data(x, y, with='lines', title=lineTitle)
+    data = Gnuplot.Data(x, y, with_='lines', title=lineTitle)
     plot.replot(data)
     return
 
@@ -58,7 +60,7 @@ titleDict = {'spline':  'B Spline Kernel',
 
 data = []
 plots = []
-plotWsum = Gnuplot.Gnuplot()
+plotWsum = generateNewGnuPlot()
 plotWsum("set xlabel 'Nodes per smoothing scale'")
 plotWsum("set ylabel 'W_{sum}'")
 #plotWsum("set logscale y")
@@ -77,7 +79,7 @@ for kernel in kernels:
         
         # Build the TableKernel.
         WT = eval('TableKernel' + str(W).split()[0][-2:] + '(W, numPoints)')
-        #WH = eval('HKernel' + str(W).split()[0][-2:] + '(W.kernelExtent())')
+        #WH = eval('HKernel' + str(W).split()[0][-2:] + '(W.kernelExtent)')
 
         # Go over the range of nodes per H, and see how well the TableKernel predicts
         Wsumarray = []
@@ -85,7 +87,7 @@ for kernel in kernels:
         lookupnperh = []
         for nperh in [0.5*float(x) for x in range(1, 20)]:
             deta = 1.0/nperh
-            npoints = int(WT.kernelExtent()*nperh)
+            npoints = int(WT.kernelExtent*nperh)
             Wsum = 0.0
 
             eta = 0.0
@@ -115,20 +117,20 @@ for kernel in kernels:
 
         # Plot the lookup results.
         actualdata = Gnuplot.Data(Wsumarray, actualnperh,
-                                  with = "lines",
+                                  with_ = "lines",
                                   title = "Actual n per h",
                                   inline = True)
         lookupdata = Gnuplot.Data(Wsumarray, lookupnperh,
-                                  with = "points",
+                                  with_ = "points",
                                   title = "Lookup n per h",
                                   inline = True)
         nperhdata = Gnuplot.Data(actualnperh, lookupnperh,
-                                 with="points",
+                                 with_="points",
                                  title = None,
                                  inline = True)
         data.extend([actualdata, lookupdata, nperhdata])
 
-        plot = Gnuplot.Gnuplot()
+        plot = generateNewGnuPlot()
         plot.plot(actualdata)
         plot.replot(lookupdata)
         plot.title("%-d" % nDim)
@@ -137,7 +139,7 @@ for kernel in kernels:
         plot.refresh()
         plots.append(plot)
 
-        p = Gnuplot.Gnuplot()
+        p = generateNewGnuPlot()
         p.plot(nperhdata)
         p.title("Comparison of actual vs. lookup nperh")
         p.xlabel("actual nperh")
@@ -146,8 +148,8 @@ for kernel in kernels:
         plots.append(p)
 
         # Plot Wsum as a function of n per h.
-        nperhdata = Gnuplot.Data(WT.nperh(), WT.Wsum(),
-                                 with = "lines",
+        nperhdata = Gnuplot.Data(WT.nperhValues, WT.WsumValues,
+                                 with_ = "lines",
                                  title = ("%i -D" % (nDim)),
                                  inline = True)
         plotWsum.replot(nperhdata)

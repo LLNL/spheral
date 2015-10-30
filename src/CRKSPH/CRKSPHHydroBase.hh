@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Physics/GenericHydro.hh"
+#include "CRKSPHCorrectionParams.hh"
 
 namespace Spheral {
   template<typename Dimension> class State;
@@ -36,11 +37,6 @@ namespace Spheral {
 
 namespace Spheral {
 namespace CRKSPHSpace {
-enum CRKOrder {//Used to assign the order of the corrections
-  ZerothOrder = 0,
-  LinearOrder = 1,
-  QuadraticOrder = 2
-};
 
 template<typename Dimension>
 class CRKSPHHydroBase: public PhysicsSpace::GenericHydro<Dimension> {
@@ -51,6 +47,8 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  typedef typename Dimension::FourthRankTensor FourthRankTensor;
+  typedef typename Dimension::FifthRankTensor FifthRankTensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
@@ -186,7 +184,6 @@ public:
   const FieldSpace::FieldList<Dimension, int>&       timeStepMask() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    pressure() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldSpace::FieldList<Dimension, Scalar>&    volume() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    maxViscousPressure() const;
@@ -196,22 +193,43 @@ public:
   const FieldSpace::FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldSpace::FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldSpace::FieldList<Dimension, Vector>&    DxDt() const;
+
   const FieldSpace::FieldList<Dimension, Vector>&    DvDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldSpace::FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldSpace::FieldList<Dimension, Vector>&    DmassDensityDx() const;
   const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations() const;
 
+  const FieldSpace::FieldList<Dimension, Vector>&    DvDt0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    DmassDensityDt0() const;
+  const FieldSpace::FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt0() const;
+  const FieldSpace::FieldList<Dimension, SymTensor>& DHDt0() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    DvDx0() const;
+  const FieldSpace::FieldList<Dimension, Tensor>&    internalDvDx0() const;
+  const FieldSpace::FieldList<Dimension, std::vector<Vector> >& pairAccelerations0() const;
+
+  const FieldSpace::FieldList<Dimension, Scalar>&    A0() const;
   const FieldSpace::FieldList<Dimension, Scalar>&    A() const;
   const FieldSpace::FieldList<Dimension, Vector>&    B() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    C() const;
+  const FieldSpace::FieldList<Dimension, Vector>&    gradA0() const;
   const FieldSpace::FieldList<Dimension, Vector>&    gradA() const;
   const FieldSpace::FieldList<Dimension, Tensor>&    gradB() const;
   const FieldSpace::FieldList<Dimension, ThirdRankTensor>&    gradC() const;
     
+  const FieldList<Dimension, Scalar>&                m0() const;
+  const FieldList<Dimension, Vector>&                m1() const;
+  const FieldList<Dimension, SymTensor>&             m2() const;
+  const FieldList<Dimension, ThirdRankTensor>&       m3() const;
+  const FieldList<Dimension, FourthRankTensor>&      m4() const;
+  const FieldList<Dimension, Vector>&                gradm0() const;
+  const FieldList<Dimension, Tensor>&                gradm1() const;
+  const FieldList<Dimension, ThirdRankTensor> &      gradm2() const;
+  const FieldList<Dimension, FourthRankTensor>&      gradm3() const;
+  const FieldList<Dimension, FifthRankTensor>&       gradm4() const;
+
   const FieldSpace::FieldList<Dimension, Vector>&    surfNorm() const;
 
   //****************************************************************************
@@ -249,27 +267,45 @@ private:
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
-
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;
+
   FieldSpace::FieldList<Dimension, Vector>    mDvDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldSpace::FieldList<Dimension, SymTensor> mDHDt;
   FieldSpace::FieldList<Dimension, Tensor>    mDvDx;
   FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldSpace::FieldList<Dimension, Vector>    mDmassDensityDx;
 
-  FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+  FieldSpace::FieldList<Dimension, Vector>    mDvDt0;
+  FieldSpace::FieldList<Dimension, Scalar>    mDmassDensityDt0;
+  FieldSpace::FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt0;
+  FieldSpace::FieldList<Dimension, SymTensor> mDHDt0;
+  FieldSpace::FieldList<Dimension, Tensor>    mDvDx0;
+  FieldSpace::FieldList<Dimension, Tensor>    mInternalDvDx0;
 
   FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations;
+  FieldSpace::FieldList<Dimension, std::vector<Vector> > mPairAccelerations0;
 
+  FieldSpace::FieldList<Dimension, Scalar>    mA0;
   FieldSpace::FieldList<Dimension, Scalar>    mA;
   FieldSpace::FieldList<Dimension, Vector>    mB;
   FieldSpace::FieldList<Dimension, Tensor>    mC;
+  FieldSpace::FieldList<Dimension, Vector>    mGradA0;
   FieldSpace::FieldList<Dimension, Vector>    mGradA;
   FieldSpace::FieldList<Dimension, Tensor>    mGradB;
   FieldSpace::FieldList<Dimension, ThirdRankTensor>    mGradC;
     
+  FieldList<Dimension, Scalar>                mM0;
+  FieldList<Dimension, Vector>                mM1;
+  FieldList<Dimension, SymTensor>             mM2;
+  FieldList<Dimension, ThirdRankTensor>       mM3;
+  FieldList<Dimension, FourthRankTensor>      mM4;
+  FieldList<Dimension, Vector>                mGradm0;
+  FieldList<Dimension, Tensor>                mGradm1;
+  FieldList<Dimension, ThirdRankTensor>       mGradm2;
+  FieldList<Dimension, FourthRankTensor>      mGradm3;
+  FieldList<Dimension, FifthRankTensor>       mGradm4;
+
   FieldSpace::FieldList<Dimension, Vector>    mSurfNorm;
 
   // The restart registration.

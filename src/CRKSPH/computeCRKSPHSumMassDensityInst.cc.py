@@ -13,6 +13,8 @@ namespace Spheral {
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                               const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
+                                              const std::vector<BoundarySpace::Boundary< Dim< %(ndim)s > >*>::const_iterator& boundaryBegin,
+                                              const std::vector<BoundarySpace::Boundary< Dim< %(ndim)s > >*>::const_iterator& boundaryEnd,
                                               FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&);
   }
 }

@@ -94,11 +94,13 @@ self.addVonNeumanViscosityMethods(self.VonNeumanViscosity%(dim)id, %(dim)i)
 
         # Constructors.
         x.add_constructor([param("double", "Clinear", default_value="1.0"),
-                           param("double", "Cquadratic", default_value="1.0")])
+                           param("double", "Cquadratic", default_value="1.0"),
+                           param("CRKOrder", "QcorrectionOrder", default_value="Spheral::CRKSPHSpace::LinearOrder")])
 
         # Attributes.
         x.add_instance_attribute("Cl", "double", getter="Cl", setter="Cl")
         x.add_instance_attribute("Cq", "double", getter="Cq", setter="Cq")
+        x.add_instance_attribute("QcorrectionOrder", "CRKOrder", getter="QcorrectionOrder", setter="QcorrectionOrder")
         x.add_instance_attribute("balsaraShearCorrection", "bool", getter="balsaraShearCorrection", setter="balsaraShearCorrection")
         x.add_instance_attribute("reducingViscosityCorrection", "bool", getter="reducingViscosityCorrection", setter="reducingViscosityCorrection")
         x.add_instance_attribute("limiter", "bool", getter="limiter", setter="limiter")
