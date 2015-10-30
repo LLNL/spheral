@@ -293,10 +293,10 @@ TETGENDIR = $(TETGENDIST:.tar.gz=)
 
 # Polytope
 POLYTOPEVER = 0.5.23
-POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.bz2
+POLYTOPEDIST = polytope-$(POLYTOPEVER).tar.gz
 POLYTOPEURL = https://bitbucket.org/jjphatt/polytope/downloads/$(POLYTOPEDIST)
-POLYTOPEDIR = $(POLYTOPEDIST:.tar.bz2=)
-POLYTOPEBUILDDATE = $(patsubst %.tar.bz2, .%.date, $(POLYTOPEDIST))
+POLYTOPEDIR = $(POLYTOPEDIST:.tar.gz=)
+POLYTOPEBUILDDATE = $(patsubst %.tar.gz, .%.date, $(POLYTOPEDIST))
 
 # OpenSubDiv
 OPENSUBDIVDIST = OpenSubdiv-2_5_0.zip
@@ -1426,7 +1426,7 @@ $(POLYTOPEBUILDDATE):	$(POLYTOPEDIST) $(CMAKEEXE) $(BOOSTDATE) $(SILOBUILDDATE) 
 	@echo "################################################################################"
 	rm -fr $(POLYTOPEDIR) $(POLYTOPEINCDIR) $(TRIANGLEDIR)
 	@$(MKDIR) -p $(prefix)/bin $(prefix)/man $(prefix)/lib $(POLYTOPEINCDIR) $(TRIANGLEDIR)
-	$(BZIP2) -dc $(POLYTOPEDIST) | $(TAR) -xf -
+	$(GZIP) -dc $(POLYTOPEDIST) | $(TAR) -xf -
 	@if test "$(USE_TRIANGLE)" = "1"; then \
 		$(MAKE) $(TRIANGLEDIST); \
 		$(SHELL) -ec "cd $(TRIANGLEDIR); $(UNZIP) ../$(TRIANGLEDIST)"; \
