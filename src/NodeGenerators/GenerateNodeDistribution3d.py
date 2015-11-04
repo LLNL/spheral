@@ -1684,6 +1684,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                              0.0, 1.0/hi, 0.0,
                              0.0, 0.0, 1.0/hi)
+                             
+            mi  = mshell / float(nshell)
             if (nshell > 4 and nshell<163):
                 for i in xrange(len(shapeData)):
                     nc  = 0
@@ -1717,7 +1719,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     self.createCubicSphere(nr)
                 else:
                     self.createIcoSphere(nr)
-            elif(nshell==1):
+            elif(nshell==1 and mi> 0.5 * self.m0):
                 self.positions.append([0,0,0])
             elif(nshell==2):
                 self.positions.append([0,0,1])
@@ -1754,7 +1756,7 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     
                     self.positions.append([x,y,z])
             #mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            mi  = mshell / float(nshell)
+            
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
@@ -2223,6 +2225,8 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
             Hi = SymTensor3d(1.0/hi, 0.0, 0.0,
                            0.0, 1.0/hi, 0.0,
                            0.0, 0.0, 1.0/hi)
+                           
+            mi  = mshell / float(nshell)
             
             if (nshell > 1):
                 p = 0
@@ -2240,11 +2244,11 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
                     z = cos(t)
 
                     self.positions.append([x,y,z])
-            elif (nshell==1):
+            elif (nshell==1 and mi > 0.5 * self.m0):
                 self.positions.append([0,0,0])
 
             #mi = self.m0 * (float(nshell)/float(len(self.positions)))
-            mi  = mshell / float(nshell)
+            
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
