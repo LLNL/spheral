@@ -1753,7 +1753,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                     
                     
                     self.positions.append([x,y,z])
-            mi = self.m0 * (float(nshell)/float(len(self.positions)))
+            #mi = self.m0 * (float(nshell)/float(len(self.positions)))
+            mi  = mshell / float(nshell)
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
@@ -2242,7 +2243,8 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
             elif (nshell==1):
                 self.positions.append([0,0,0])
 
-            mi = self.m0 * (float(nshell)/float(len(self.positions)))
+            #mi = self.m0 * (float(nshell)/float(len(self.positions)))
+            mi  = mshell / float(nshell)
             rii = ri - 0.5*dr
             print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
             for n in xrange(len(self.positions)):
