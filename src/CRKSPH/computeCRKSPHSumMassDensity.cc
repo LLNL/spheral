@@ -109,8 +109,14 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   //   }
   // }
 
-  // For our first pass compute the SPH sum definition.
-  massDensity = 0.0;
+  FieldList<Dimension, Scalar> vol0(FieldSpace::Copy);
+  FieldList<Dimension, Scalar> vol1(FieldSpace::Copy);
+  for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    vol0.appendNewField("volume", position[nodeListi]->nodeList(), 0.0);
+    vol1.appendNewField("averaged volume", position[nodeListi]->nodeList(), 0.0);
+  }
+
+  // For our first pass compute the effective volume per point.
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
 
@@ -122,7 +128,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
-      const Scalar mi = mass(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -140,7 +145,6 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                        nodeListj, j,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
-            const Scalar mj = mass(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
 
@@ -152,31 +156,30 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
-            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Wi;
-            massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Wj;
+            vol0(nodeListi, i) += Wi;
+            vol0(nodeListj, j) += Wj;
           }
         }
       }
   
       // Add the self-contribution.
-      massDensity(nodeListi, i) = massDensity(nodeListi, i) + mi*W.kernelValue(0.0, Hdeti);
-      CHECK(massDensity(nodeListi, i) > 0.0);
+      vol0(nodeListi, i) += W.kernelValue(0.0, Hdeti);
+      CHECK(vol0(nodeListi, i) > 0.0);
+      vol0(nodeListi, i) = 1.0/vol0(nodeListi, i);
     }
   }
 
-  // Apply boundary conditions to the intermediate density estimate.
+  // Apply boundary conditions to the per node volume estimate.
   typedef typename std::vector<BoundarySpace::Boundary<Dimension>*>::const_iterator BoundaryIterator;
   for (BoundaryIterator boundItr = boundaryBegin;
        boundItr != boundaryEnd;
-       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(massDensity);
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(vol0);
   for (BoundaryIterator boundItr = boundaryBegin;
        boundItr != boundaryEnd;
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
-  // Now correct by the zeroth moment of the implied new volume weighting.
-  FieldList<Dimension, Scalar> m0(massDensity);
-  m0.copyFields();
-  m0 = 0.0;
+  // Now use this volume as weighting to compute the effective volume and mass per point.
+  massDensity = 0.0;
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const FluidNodeList<Dimension>& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
     const Scalar rhoMin = nodeList.rhoMin();
@@ -191,6 +194,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // Get the state for node i.
       const Vector& ri = position(nodeListi, i);
       const Scalar mi = mass(nodeListi, i);
+      const Scalar Vi = vol0(nodeListi, i);
       const Scalar rhoi = massDensity(nodeListi, i);
       const SymTensor& Hi = H(nodeListi, i);
       const Scalar Hdeti = Hi.Determinant();
@@ -210,6 +214,7 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                                        firstGhostNodej)) {
             const Vector& rj = position(nodeListj, j);
             const Scalar mj = mass(nodeListj, j);
+            const Scalar Vj = vol0(nodeListj, j);
             const Scalar rhoj = massDensity(nodeListj, j);
             const SymTensor& Hj = H(nodeListj, j);
             const Scalar Hdetj = Hj.Determinant();
@@ -222,8 +227,10 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
             const Scalar Wj = W.kernelValue(etaj, Hdetj);
 
             // Sum the pair-wise contributions.
-            m0(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)/rhoj * Wi;
-            m0(nodeListj, j) += (nodeListi == nodeListj ? mi : mj)/rhoi * Wj;
+            massDensity(nodeListi, i) += (nodeListi == nodeListj ? mj : mi) * Vj*Wi;
+            massDensity(nodeListj, j) += (nodeListi == nodeListj ? mi : mj) * Vi*Wj;
+            vol1(nodeListi, i) += Vj*Vj*Wi;
+            vol1(nodeListj, j) += Vi*Vi*Wj;
           }
         }
       }
@@ -231,7 +238,8 @@ computeCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       // Finalize the density for node i.
       massDensity(nodeListi, i) = max(rhoMin, 
                                       min(rhoMax,
-                                          massDensity(nodeListi, i)/(m0(nodeListi, i) + mi/rhoi*W.kernelValue(0.0, Hdeti))));
+                                          (massDensity(nodeListi, i) + mi*Vi*W.kernelValue(0.0, Hdeti))/
+                                          (vol1(nodeListi, i) + Vi*Vi*W.kernelValue(0.0, Hdeti))));
       CHECK(massDensity(nodeListi, i) > 0.0);
     }
   }
