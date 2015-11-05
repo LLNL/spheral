@@ -122,22 +122,6 @@ computeCRKSPHSumMassDensity(const NeighborSpace::ConnectivityMap<Dimension>& con
                             massDensity);
 }
 
-//------------------------------------------------------------------------------
-// compputeCRKSPHSumVolume with a std::vector<Boundary> rather than iterators.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-computeCRKSPHSumVolume(const NeighborSpace::ConnectivityMap<Dimension>& connectivityMap,
-                            const KernelSpace::TableKernel<Dimension>& W,
-                            const FieldSpace::FieldList<Dimension, typename Dimension::Vector>& position,
-                            const FieldSpace::FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            const std::vector<BoundarySpace::Boundary<Dimension>*>& boundaries,
-                            FieldSpace::FieldList<Dimension, typename Dimension::Scalar>& vol) {
-  computeCRKSPHSumVolume(connectivityMap, W, position, H,
-                            boundaries.begin(), boundaries.end(),
-                            vol);
-}
 
 }
 }

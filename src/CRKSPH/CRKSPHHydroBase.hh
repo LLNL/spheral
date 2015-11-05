@@ -266,6 +266,8 @@ private:
   FieldSpace::FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldSpace::FieldList<Dimension, SymTensor> mMassSecondMoment;
 
+  FieldSpace::FieldList<Dimension, Scalar>    mVolume;
+
   FieldSpace::FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldSpace::FieldList<Dimension, Vector>    mDxDt;
 
